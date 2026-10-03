@@ -1,0 +1,23 @@
+{
+  "name": "oneclub-web",
+  "private": true,
+  "packageManager": "pnpm@10.34.6",
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter \"./apps/*\" dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "e2e": "playwright test",
+    "showcase": "pnpm --filter @oneclub/ui showcase"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "otpauth": "^9.5.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "typescript": "~5.9.3"
+    }
+  }
+}

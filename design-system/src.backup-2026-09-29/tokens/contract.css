@@ -1,0 +1,172 @@
+/**
+ * @license MIT
+ * Morphic Design System — Public Design Token Contract
+ *
+ * Spec: Morphic-Design-System-adjusted.md §8 "Design Token Contract"
+ *
+ *   Component  →  Semantic Token  →  Theme  →  Actual Colour        (§6)
+ *
+ * This is the SHORT, framework-independent, AI-readable alias layer the spec
+ * writes its examples against:
+ *
+ *     var(--color-primary)   var(--space-4)   var(--radius-md)
+ *     var(--elevation-1)     var(--motion-standard)
+ *
+ * Everything here is an alias onto the `--md-sys-*` tokens. Aliases carry no
+ * literal values of their own, so a theme override in themes.css automatically
+ * flows through both naming schemes. Components may use either name; new code
+ * should prefer these short names.
+ *
+ * NEVER put a raw value in a component. §6:
+ *     Bad        background: #6FAF39;
+ *     Preferred  background: var(--color-primary);
+ */
+
+:root {
+  /* ======================================================================= */
+  /* COLOUR (§7 Theme Token Groups)                                          */
+  /* ======================================================================= */
+  --color-primary: var(--md-sys-color-primary);
+  --color-primary-strong: var(--md-sys-color-primary-strong);
+  --color-on-primary: var(--md-sys-color-on-primary);
+  --color-primary-container: var(--md-sys-color-primary-container);
+  --color-on-primary-container: var(--md-sys-color-on-primary-container);
+  --color-primary-soft: var(--md-sys-color-primary-soft);
+
+  --color-secondary: var(--md-sys-color-secondary);
+  --color-on-secondary: var(--md-sys-color-on-secondary);
+  --color-secondary-container: var(--md-sys-color-secondary-container);
+  --color-on-secondary-container: var(--md-sys-color-on-secondary-container);
+
+  --color-tertiary: var(--md-sys-color-tertiary);
+  --color-on-tertiary: var(--md-sys-color-on-tertiary);
+  --color-tertiary-container: var(--md-sys-color-tertiary-container);
+  --color-on-tertiary-container: var(--md-sys-color-on-tertiary-container);
+
+  --color-background: var(--md-sys-color-background);
+  --color-on-background: var(--md-sys-color-on-background);
+  --color-surface: var(--md-sys-color-surface);
+  --color-on-surface: var(--md-sys-color-on-surface);
+  --color-on-surface-variant: var(--md-sys-color-on-surface-variant);
+  --color-on-surface-muted: var(--md-sys-color-on-surface-variant);
+  --color-surface-variant: var(--md-sys-color-surface-variant);
+
+  --color-surface-container-lowest: var(--md-sys-color-surface-container-lowest);
+  --color-surface-container-low: var(--md-sys-color-surface-container-low);
+  --color-surface-container: var(--md-sys-color-surface-container);
+  --color-surface-container-high: var(--md-sys-color-surface-container-high);
+  --color-surface-container-highest: var(--md-sys-color-surface-container-highest);
+
+  --color-outline: var(--md-sys-color-outline);
+  --color-outline-variant: var(--md-sys-color-outline-variant);
+  --color-border: var(--md-sys-color-border);
+
+  --color-success: var(--md-sys-color-success);
+  --color-on-success: var(--md-sys-color-on-success);
+  --color-success-container: var(--md-sys-color-success-container);
+  --color-on-success-container: var(--md-sys-color-on-success-container);
+  --color-warning: var(--md-sys-color-warning);
+  --color-on-warning: var(--md-sys-color-on-warning);
+  --color-warning-container: var(--md-sys-color-warning-container);
+  --color-on-warning-container: var(--md-sys-color-on-warning-container);
+  --color-error: var(--md-sys-color-error);
+  --color-on-error: var(--md-sys-color-on-error);
+  --color-error-container: var(--md-sys-color-error-container);
+  --color-on-error-container: var(--md-sys-color-on-error-container);
+  --color-info: var(--md-sys-color-info);
+  --color-on-info: var(--md-sys-color-on-info);
+  --color-info-container: var(--md-sys-color-info-container);
+  --color-on-info-container: var(--md-sys-color-on-info-container);
+
+  /* Data visualisation (§29) — one dominant colour + small semantic palette */
+  --color-chart-primary: var(--md-sys-color-chart-primary);
+  --color-chart-secondary: var(--md-sys-color-chart-secondary);
+  --color-chart-tertiary: var(--md-sys-color-chart-tertiary);
+  --color-chart-quaternary: var(--md-sys-color-chart-quaternary);
+  --color-chart-neutral: var(--md-sys-color-chart-neutral);
+  --color-chart-grid: var(--md-sys-color-chart-grid);
+  --color-chart-axis: var(--md-sys-color-chart-axis);
+  --color-chart-area-from: var(--md-sys-color-chart-area-from);
+  --color-chart-area-to: var(--md-sys-color-chart-area-to);
+
+  --color-inverse-surface: var(--md-sys-color-inverse-surface);
+  --color-inverse-on-surface: var(--md-sys-color-inverse-on-surface);
+  --color-inverse-primary: var(--md-sys-color-inverse-primary);
+  --color-scrim: var(--md-sys-color-scrim);
+  --color-on-media: var(--md-sys-color-on-media);
+  --color-media-scrim: var(--md-sys-color-media-scrim);
+
+  /* ======================================================================= */
+  /* SPACING (§23)                                                           */
+  /* ======================================================================= */
+  --space-1: var(--md-sys-spacing-1);
+  --space-2: var(--md-sys-spacing-2);
+  --space-3: var(--md-sys-spacing-3);
+  --space-4: var(--md-sys-spacing-4);
+  --space-5: var(--md-sys-spacing-5);
+  --space-6: var(--md-sys-spacing-6);
+  --space-8: var(--md-sys-spacing-8);
+  --space-10: var(--md-sys-spacing-10);
+  --space-12: var(--md-sys-spacing-12);
+
+  --gap-card: var(--md-sys-gap-card);
+  --gap-section: var(--md-sys-gap-section);
+  --padding-page: var(--md-sys-padding-page);
+  --padding-card: var(--md-sys-padding-card);
+
+  /* ======================================================================= */
+  /* ELEVATION (§21) — extremely subtle; most cards use surface contrast      */
+  /* ======================================================================= */
+  --elevation-0: var(--md-sys-elevation-level0);
+  --elevation-1: var(--md-sys-elevation-level1);
+  --elevation-2: var(--md-sys-elevation-level2);
+  --elevation-3: var(--md-sys-elevation-level3);
+  --elevation-4: var(--md-sys-elevation-level4);
+  --elevation-5: var(--md-sys-elevation-level5);
+
+  /* ======================================================================= */
+  /* MOTION (§18) — restrained, Material easing, never bouncy                */
+  /* ======================================================================= */
+  --motion-easing-standard: var(--md-sys-motion-easing-standard);
+  --motion-easing-emphasized: var(--md-sys-motion-easing-emphasized);
+  --motion-easing-decelerate: var(--md-sys-motion-easing-emphasized-decelerate);
+  --motion-easing-accelerate: var(--md-sys-motion-easing-emphasized-accelerate);
+
+  /* Semantic durations, straight from the §18 table */
+  --motion-duration-hover: 140ms;      /* 120–160ms */
+  --motion-duration-button: 160ms;     /* 120–180ms */
+  --motion-duration-card: 200ms;       /* 180–220ms */
+  --motion-duration-modal: 250ms;      /* 220–280ms */
+  --motion-duration-page: 300ms;       /* 250–350ms */
+  --motion-duration-chart: 550ms;      /* 400–700ms */
+
+  /* Shorthands used across component CSS */
+  --motion-fast: var(--motion-duration-hover) var(--motion-easing-standard);
+  --motion-standard: var(--motion-duration-card) var(--motion-easing-standard);
+  --motion-emphasized: var(--motion-duration-modal) var(--motion-easing-emphasized);
+
+  /* ======================================================================= */
+  /* TYPOGRAPHY (§6)                                                         */
+  /* ======================================================================= */
+  --font-family: var(--md-sys-typescale-font-family);
+  --font-size-page-title: var(--md-sys-typescale-page-title-size);
+  --font-size-section-title: var(--md-sys-typescale-section-title-size);
+  --font-size-metric: var(--md-sys-typescale-metric-size);
+  --font-size-body: var(--md-sys-typescale-body-size);
+  --font-size-meta: var(--md-sys-typescale-meta-size);
+  --font-size-nav: var(--md-sys-typescale-nav-size);
+  --font-size-label: var(--md-sys-typescale-label-size);
+
+  /* ======================================================================= */
+  /* SHAPE (§7) — radius-* already carry literal values in elevation.css     */
+  /* Component-intent aliases so callers never guess a radius.               */
+  /* ======================================================================= */
+  --radius-card: var(--radius-xl);      /* dashboard cards 18–22px */
+  --radius-card-nested: var(--radius-lg);
+  --radius-chart: var(--radius-xl);     /* charts 18–22px */
+  --radius-table: var(--radius-lg);     /* list containers 16–20px */
+  --radius-input: var(--radius-md);     /* inputs/filters 10–14px */
+  --radius-button: var(--radius-md);    /* pill or 10–14px */
+  --radius-badge: var(--radius-pill);
+  --radius-overlay: var(--radius-lg);
+}

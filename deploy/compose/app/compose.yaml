@@ -1,0 +1,103 @@
+# App Host stack for one customer instance (Technical Doc §10.1/10.2).
+# Usage (run by deploy/scripts/deploy.sh, never by hand in production):
+#   INSTANCE=mgcc VERSION=<git-sha> docker compose -p oneclub-mgcc \
+#     --env-file /srv/oneclub/instances/mgcc/.env -f compose.yaml up -d
+#
+# Secrets come from the instance bundle created by `oneclub instance create`
+# (files under ${INSTANCE_DIR}/secrets), never from the image or the repo.
+name: oneclub-${INSTANCE:?set INSTANCE}
+
+x-backend: &backend
+  image: ${REGISTRY:-registry.oneclub.id}/oneclub:${VERSION:?set VERSION}
+  env_file: ${INSTANCE_DIR}/.env
+  environment:
+    DATABASE_URL_FILE: /run/secrets/database_url
+    DATABASE_REPLICA_URL_FILE: /run/secrets/database_report_url
+    APP_SECRET_FILE: /run/secrets/app_secret
+    SMTP_PASSWORD_FILE: /run/secrets/smtp_password
+    S3_SECRET_KEY_FILE: /run/secrets/s3_secret_key
+  secrets: [database_url, database_report_url, app_secret, smtp_password, s3_secret_key]
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: { max-size: "50m", max-file: "5" }
+
+services:
+  caddy:
+    image: caddy:2.10
+    ports: ["80:80", "443:443"]
+    environment:
+      DOMAIN_BACKOFFICE: ${DOMAIN_BACKOFFICE}
+      DOMAIN_MEMBER: ${DOMAIN_MEMBER}
+      DOMAIN_OPS: ${DOMAIN_OPS}
+      DOMAIN_PLATFORM_ADMIN: ${DOMAIN_PLATFORM_ADMIN}
+      DOMAIN_WEB: ${DOMAIN_WEB}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - static:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [api, web]
+    restart: unless-stopped
+
+  api:
+    <<: *backend
+    command: ["api"]
+    deploy:
+      replicas: ${API_REPLICAS:-2}
+    healthcheck:
+      test: ["CMD", "/oneclub", "healthcheck"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    stop_grace_period: 35s
+    depends_on:
+      pgbouncer: { condition: service_started }
+
+  worker:
+    <<: *backend
+    command: ["worker"]
+    stop_grace_period: 70s
+    depends_on: [pgbouncer]
+
+  migrate:
+    <<: *backend
+    command: ["migrate", "up"]
+    environment:
+      DATABASE_OWNER_URL_FILE: /run/secrets/database_owner_url
+    secrets: [database_owner_url]
+    restart: "no"
+    profiles: ["migrate"]
+
+  # Copies the SPA/PWA builds into the shared volume served by Caddy.
+  static:
+    image: ${REGISTRY:-registry.oneclub.id}/oneclub-static:${VERSION}
+    volumes:
+      - static:/export
+    restart: "no"
+
+  web:
+    image: ${REGISTRY:-registry.oneclub.id}/oneclub-web:${VERSION}
+    environment:
+      ONECLUB_API_URL: http://api:8080
+    restart: unless-stopped
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    env_file: ${INSTANCE_DIR}/.env.pgbouncer
+    restart: unless-stopped
+
+secrets:
+  database_url:        { file: "${INSTANCE_DIR}/secrets/database_url" }
+  database_owner_url:  { file: "${INSTANCE_DIR}/secrets/database_owner_url" }
+  database_report_url: { file: "${INSTANCE_DIR}/secrets/database_report_url" }
+  app_secret:          { file: "${INSTANCE_DIR}/secrets/app_secret" }
+  smtp_password:       { file: "${INSTANCE_DIR}/secrets/smtp_password" }
+  s3_secret_key:       { file: "${INSTANCE_DIR}/secrets/s3_secret_key" }
+
+volumes:
+  static:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,59 @@
+{
+  "motion": {
+    "easing": {
+      "linear": {
+        "$value": "cubic-bezier(0, 0, 1, 1)",
+        "$type": "cubicBezier",
+        "$description": "Hanya untuk transisi warna atau opacity murni"
+      },
+      "standard": {
+        "$value": "cubic-bezier(0.2, 0, 0, 1)",
+        "$type": "cubicBezier",
+        "$description": "Gerakan utilitas standar untuk transisi on-screen sederhana"
+      },
+      "standardDecelerate": {
+        "$value": "cubic-bezier(0, 0, 0.2, 1)",
+        "$type": "cubicBezier",
+        "$description": "Elemen utilitas masuk layar"
+      },
+      "standardAccelerate": {
+        "$value": "cubic-bezier(0.3, 0, 1, 1)",
+        "$type": "cubicBezier",
+        "$description": "Elemen utilitas keluar layar"
+      },
+      "emphasized": {
+        "$value": "cubic-bezier(0.2, 0, 0, 1)",
+        "$type": "cubicBezier",
+        "$description": "Standar utama M3 untuk transisi penting di dalam layar"
+      },
+      "emphasizedDecelerate": {
+        "$value": "cubic-bezier(0.05, 0.7, 0.1, 1)",
+        "$type": "cubicBezier",
+        "$description": "Elemen utama memasuki viewport (Dialog buka, Sheet naik)"
+      },
+      "emphasizedAccelerate": {
+        "$value": "cubic-bezier(0.3, 0, 0.8, 0.15)",
+        "$type": "cubicBezier",
+        "$description": "Elemen utama keluar viewport (Dismiss dialog, Sheet turun)"
+      }
+    },
+    "duration": {
+      "short1": { "$value": "50ms", "$type": "duration" },
+      "short2": { "$value": "100ms", "$type": "duration" },
+      "short3": { "$value": "150ms", "$type": "duration" },
+      "short4": { "$value": "200ms", "$type": "duration" },
+      "medium1": { "$value": "250ms", "$type": "duration" },
+      "medium2": { "$value": "300ms", "$type": "duration" },
+      "medium3": { "$value": "350ms", "$type": "duration" },
+      "medium4": { "$value": "400ms", "$type": "duration" },
+      "long1": { "$value": "450ms", "$type": "duration" },
+      "long2": { "$value": "500ms", "$type": "duration" },
+      "long3": { "$value": "550ms", "$type": "duration" },
+      "long4": { "$value": "600ms", "$type": "duration" },
+      "extraLong1": { "$value": "700ms", "$type": "duration" },
+      "extraLong2": { "$value": "800ms", "$type": "duration" },
+      "extraLong3": { "$value": "900ms", "$type": "duration" },
+      "extraLong4": { "$value": "1000ms", "$type": "duration" }
+    }
+  }
+}

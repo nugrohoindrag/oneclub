@@ -1,0 +1,106 @@
+# Caddy: TLS, security headers, static shells and load balancing to the API
+# replicas (Technical Doc §3.1, §9.3, §10.3).
+{
+	email {$ACME_EMAIL}
+	# Custom domains (FR-INS-06): certificates are issued on demand only for
+	# hostnames the API reports as verified and active.
+	on_demand_tls {
+		ask http://api:8080/api/v1/public/domains/allowed
+	}
+}
+
+(api) {
+	handle /api/* {
+		reverse_proxy {
+			# Docker DNS returns every api replica; re-resolved every second
+			# so rolling updates add/remove replicas without a reload.
+			dynamic a api 8080 {
+				refresh 1s
+			}
+			lb_policy round_robin
+			lb_try_duration 10s
+			lb_try_interval 250ms
+			health_uri /readyz
+			health_interval 2s
+			health_timeout 2s
+			fail_duration 5s
+		}
+	}
+}
+
+(security) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), geolocation=(), microphone=()"
+		Content-Security-Policy "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'"
+		-Server
+	}
+}
+
+(spa) {
+	encode zstd gzip
+	@assets path /assets/*
+	header @assets Cache-Control "public, max-age=31536000, immutable"
+	try_files {path} /index.html
+	file_server
+}
+
+{$DOMAIN_BACKOFFICE} {
+	import security
+	import api
+	handle {
+		root * /srv/backoffice
+		import spa
+	}
+}
+
+{$DOMAIN_MEMBER} {
+	import security
+	import api
+	handle {
+		root * /srv/member
+		import spa
+	}
+}
+
+{$DOMAIN_OPS} {
+	import security
+	import api
+	handle {
+		root * /srv/ops
+		header /sw.js Cache-Control "no-cache"
+		import spa
+	}
+}
+
+{$DOMAIN_PLATFORM_ADMIN} {
+	import security
+	import api
+	handle {
+		root * /srv/platform-admin
+		import spa
+	}
+}
+
+{$DOMAIN_WEB} {
+	import security
+	import api
+	handle {
+		reverse_proxy web:3000
+	}
+}
+
+# Verified custom domains of this instance (any surface) are served here;
+# the API decides which hostnames are allowed.
+https:// {
+	tls {
+		on_demand
+	}
+	import security
+	import api
+	handle {
+		reverse_proxy web:3000
+	}
+}

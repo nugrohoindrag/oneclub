@@ -1,0 +1,37 @@
+{
+  "name": "@oneclub/shell",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OneClub application shell: providers, layouts, login, header, shared settings pages on top of Morphic.",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./shell.css": "./src/shell.css"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@oneclub/api-client": "workspace:*",
+    "@oneclub/i18n": "workspace:*",
+    "@oneclub/ui": "workspace:*",
+    "@tanstack/react-query": "^5.104.1",
+    "motion": "^14.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router": "^8.4.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "jsdom": "^30.1.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
+  }
+}

@@ -1,0 +1,94 @@
+/**
+ * @license MIT
+ * Morphic Design System — Shape & Elevation Tokens
+ *
+ * Spec: Morphic-Design-System-adjusted.md
+ *   §7  Shape System — the rounded scale, one of the strongest visual traits
+ *   §21 Elevation    — extremely subtle, two soft layers
+ *   §32 Anti-Patterns — no heavy shadows, no random border radii
+ *
+ * §21: "Most dashboard cards should rely on surface contrast + border."
+ * Elevation is reserved for floating menus, dropdowns, dialogs, hover states,
+ * and selected floating elements — not for every card in the grid.
+ */
+
+:root {
+  /* ======================================================================= */
+  /* ELEVATION (§21) — the two-layer soft form the spec prescribes:           */
+  /*   box-shadow: 0 1px 2px rgba(...), 0 4px 12px rgba(...);                 */
+  /* ======================================================================= */
+  --md-sys-elevation-level0: none;
+
+  /* 1 — hover on a card, a resting hero */
+  --md-sys-elevation-level1:
+    0 1px 2px rgba(21, 33, 11, 0.04),
+    0 4px 12px rgba(21, 33, 11, 0.04);
+
+  /* 2 — dropdowns, popovers, floating controls */
+  --md-sys-elevation-level2:
+    0 1px 2px rgba(21, 33, 11, 0.05),
+    0 6px 18px rgba(21, 33, 11, 0.06);
+
+  /* 3 — menus, command palette */
+  --md-sys-elevation-level3:
+    0 2px 4px rgba(21, 33, 11, 0.06),
+    0 10px 28px rgba(21, 33, 11, 0.08);
+
+  /* 4 — dialogs, side sheets */
+  --md-sys-elevation-level4:
+    0 2px 6px rgba(21, 33, 11, 0.07),
+    0 16px 40px rgba(21, 33, 11, 0.1);
+
+  /* 5 — modal over scrim; the ceiling, still restrained */
+  --md-sys-elevation-level5:
+    0 4px 10px rgba(21, 33, 11, 0.08),
+    0 24px 56px rgba(21, 33, 11, 0.12);
+
+  /* ======================================================================= */
+  /* SHAPE SCALE (§7)                                                        */
+  /* Do not mix many unrelated radii — pick from this scale only.            */
+  /* ======================================================================= */
+  --radius-none: 0px;
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-hero: 28px; /* 26–30px */
+  --radius-pill: 999px;
+
+  /* Material 3 shape-role mappings (§20 Material 3 Mapping) */
+  --md-sys-shape-corner-none: var(--radius-none);
+  --md-sys-shape-corner-extra-small: var(--radius-xs);
+  --md-sys-shape-corner-small: var(--radius-sm);
+  --md-sys-shape-corner-medium: var(--radius-md);
+  --md-sys-shape-corner-large: var(--radius-lg);
+  --md-sys-shape-corner-extra-large: var(--radius-xl);
+  --md-sys-shape-corner-hero: var(--radius-hero);
+  --md-sys-shape-corner-full: var(--radius-pill);
+}
+
+/* Dark mode: shadows read against #0F150C, so they need more alpha to be seen
+   at all — but §30 keeps the same geometry and the same restraint. */
+[data-theme='dark'],
+.dark {
+  --md-sys-elevation-level1:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.24);
+
+  --md-sys-elevation-level2:
+    0 1px 2px rgba(0, 0, 0, 0.36),
+    0 6px 18px rgba(0, 0, 0, 0.3);
+
+  --md-sys-elevation-level3:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 10px 28px rgba(0, 0, 0, 0.36);
+
+  --md-sys-elevation-level4:
+    0 2px 6px rgba(0, 0, 0, 0.46),
+    0 16px 40px rgba(0, 0, 0, 0.42);
+
+  --md-sys-elevation-level5:
+    0 4px 10px rgba(0, 0, 0, 0.52),
+    0 24px 56px rgba(0, 0, 0, 0.5);
+}

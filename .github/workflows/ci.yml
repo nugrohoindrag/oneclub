@@ -1,0 +1,139 @@
+# CI (Technical Doc §12.2, FR-TEC-09). Runs on every pull request and on
+# main; main additionally builds, scans and deploys to Dev automatically.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+  security-events: write
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 20
+    env:
+      ONECLUB_TEST_ADMIN_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-go@v5
+        with: { go-version-file: go.mod }
+
+      - name: golangci-lint (incl. depguard arch rules)
+        uses: golangci/golangci-lint-action@v8
+        with: { version: latest }
+
+      - name: Unit + architecture tests
+        run: go test -race -count=1 ./internal/...
+
+      - name: Migrations on an empty database (twice, to prove idempotency)
+        run: go test -count=1 ./internal/platform/provision/...
+
+      - name: Integration / acceptance tests (real PostgreSQL)
+        run: go test -count=1 -timeout 20m ./test/e2e/...
+
+      - name: OpenAPI is regenerated and committed (no drift)
+        run: |
+          go run ./cmd/oneclub openapi -o /tmp/openapi.json
+          diff -u api/openapi/openapi.json /tmp/openapi.json
+
+      - name: OpenAPI breaking-change check against the target branch
+        if: github.event_name == 'pull_request'
+        run: |
+          git show origin/${{ github.base_ref }}:oneclub/api/openapi/openapi.json > /tmp/base.json 2>/dev/null || git show origin/${{ github.base_ref }}:api/openapi/openapi.json > /tmp/base.json || exit 0
+          go run github.com/oasdiff/oasdiff@latest breaking /tmp/base.json api/openapi/openapi.json --fail-on ERR
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: openapi
+          path: api/openapi/openapi.json
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run: { working-directory: web }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm, cache-dependency-path: web/pnpm-lock.yaml }
+      - run: pnpm install --frozen-lockfile
+      - name: API client is generated from the committed OpenAPI (no drift)
+        run: pnpm --filter @oneclub/api-client generate && git diff --exit-code packages/api-client/src/schema.ts
+      - run: pnpm -r typecheck
+      - run: pnpm -r lint
+      - run: pnpm -r test
+      - run: pnpm -r build
+
+  images:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USER }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile
+          build-args: VERSION=${{ github.sha }}
+          tags: ${{ vars.REGISTRY }}/oneclub:${{ github.sha }}
+          push: true
+      - name: Build static shells image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.web
+          target: static
+          tags: ${{ vars.REGISTRY }}/oneclub-static:${{ github.sha }}
+          push: true
+      - name: Build website image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.web
+          target: web
+          tags: ${{ vars.REGISTRY }}/oneclub-web:${{ github.sha }}
+          push: true
+      - name: Scan images (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ vars.REGISTRY }}/oneclub:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+
+  deploy-dev:
+    needs: [images]
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Deploy to Dev (automatic)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEV_HOST }}
+          username: deploy
+          key: ${{ secrets.DEV_SSH_KEY }}
+          script: /srv/oneclub/scripts/deploy.sh ${{ vars.DEV_INSTANCE }} ${{ github.sha }}

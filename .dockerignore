@@ -1,0 +1,9 @@
+bin
+var
+.env*
+deploy/instances
+web/node_modules
+web/**/node_modules
+web/**/dist
+web/**/.next
+.git

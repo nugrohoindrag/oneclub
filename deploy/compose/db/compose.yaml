@@ -1,0 +1,66 @@
+# DB Host (Technical Doc §10.1, §7.7): PostgreSQL primary with WAL archiving
+# to object storage via pgBackRest, plus a streaming replica for reporting.
+# For the pilot, App Host and DB Host may share one VM; the database is
+# separated before production go-live.
+name: oneclub-db
+
+services:
+  primary:
+    image: ${PG_IMAGE:-registry.oneclub.id/postgres-pgbackrest:18}
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_superuser_password
+    secrets: [pg_superuser_password, pgbackrest_s3_key, pgbackrest_s3_secret]
+    command:
+      - postgres
+      - -c
+      - wal_level=replica
+      - -c
+      - archive_mode=on
+      - -c
+      - archive_command=pgbackrest --stanza=oneclub archive-push %p
+      # RPO ≤ 5 minutes (PRD §11): force a WAL switch at least every 60 s.
+      - -c
+      - archive_timeout=60
+      - -c
+      - max_wal_senders=10
+      - -c
+      - hot_standby=on
+      - -c
+      - shared_buffers=2GB
+      - -c
+      - max_connections=300
+      - -c
+      - ssl=on
+      - -c
+      - ssl_cert_file=/etc/ssl/pg/server.crt
+      - -c
+      - ssl_key_file=/etc/ssl/pg/server.key
+    volumes:
+      - pg_primary:/var/lib/postgresql
+      - ../../pgbackrest/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf:ro
+      - ./tls:/etc/ssl/pg:ro
+    ports: ["5432:5432"]
+    shm_size: 1gb
+    restart: unless-stopped
+
+  replica:
+    image: ${PG_IMAGE:-registry.oneclub.id/postgres-pgbackrest:18}
+    environment:
+      PRIMARY_HOST: primary
+    secrets: [pg_replication_password]
+    # Initialised once with: pg_basebackup -h primary -U replicator -D $PGDATA -R -X stream
+    volumes:
+      - pg_replica:/var/lib/postgresql
+    ports: ["5433:5432"]
+    shm_size: 1gb
+    restart: unless-stopped
+
+secrets:
+  pg_superuser_password:   { file: ./secrets/pg_superuser_password }
+  pg_replication_password: { file: ./secrets/pg_replication_password }
+  pgbackrest_s3_key:       { file: ./secrets/pgbackrest_s3_key }
+  pgbackrest_s3_secret:    { file: ./secrets/pgbackrest_s3_secret }
+
+volumes:
+  pg_primary:
+  pg_replica:

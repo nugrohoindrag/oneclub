@@ -1,0 +1,47 @@
+version: "2"
+
+linters:
+  enable:
+    - depguard
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - bodyclose
+    - sqlclosecheck
+    - rowserrcheck
+    - gosec
+  settings:
+    gosec:
+      excludes:
+        - G104 # errors explicitly ignored with _ are reviewed
+        - G115 # integer conversions are bounded
+    # Architecture rules (Technical Doc §4.2) — mirrored by internal/archtest.
+    depguard:
+      rules:
+        kernel:
+          files: ["**/internal/kernel/**"]
+          deny:
+            - { pkg: "oneclub/internal/platform", desc: "kernel must not import modules" }
+            - { pkg: "oneclub/internal/app", desc: "kernel must not import the composition root" }
+        platform:
+          files: ["**/internal/platform/**"]
+          deny:
+            - { pkg: "oneclub/internal/golf", desc: "platform must not depend on business modules; use domain events" }
+            - { pkg: "oneclub/internal/billing", desc: "platform must not depend on business modules" }
+            - { pkg: "oneclub/internal/commercial", desc: "platform must not depend on business modules" }
+            - { pkg: "oneclub/internal/crm", desc: "platform must not depend on business modules" }
+            - { pkg: "oneclub/internal/membership", desc: "platform must not depend on business modules" }
+            - { pkg: "oneclub/internal/sportclub", desc: "platform must not depend on business modules" }
+            - { pkg: "oneclub/internal/reservation", desc: "platform must not depend on business modules" }
+            - { pkg: "oneclub/internal/procurement", desc: "platform must not depend on business modules" }
+            - { pkg: "oneclub/internal/reporting", desc: "platform must not depend on business modules" }
+            - { pkg: "oneclub/internal/app", desc: "only cmd wires the application" }
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters: [gosec, errcheck]
+
+formatters:
+  enable: [gofmt, goimports]

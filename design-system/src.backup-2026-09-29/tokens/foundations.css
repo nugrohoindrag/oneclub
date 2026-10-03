@@ -1,0 +1,185 @@
+/**
+ * @license MIT
+ * Morphic Design System — Foundation Tokens
+ *
+ * Spec: Morphic-Design-System-adjusted.md
+ *   §3.1 Foundations   — the required foundation token groups
+ *   §6   Typography    — compact, information-dense hierarchy
+ *   §7   Shape System  — rounded scale (lives in elevation.css)
+ *   §8   Layout        — 1152×720 reference viewport, sidebar sizing
+ *   §23  Spacing       — 8px base grid
+ *   §24  Density       — intentionally dense, no excessive vertical padding
+ *   §25  Responsive    — desktop ≥1200 / tablet 768–1199 / mobile <768
+ *
+ * Contains no colour. Colour lives in colors.css / themes.css so that a theme
+ * swap can never disturb geometry (§30).
+ */
+
+:root {
+  /* ======================================================================= */
+  /* SPACING — 8px base grid (§23)                                           */
+  /* ======================================================================= */
+  --md-sys-spacing-1: 4px;   /* micro */
+  --md-sys-spacing-2: 8px;   /* xs    */
+  --md-sys-spacing-3: 12px;  /* sm    */
+  --md-sys-spacing-4: 16px;  /* md    */
+  --md-sys-spacing-5: 20px;  /* lg    */
+  --md-sys-spacing-6: 24px;  /* xl    */
+  --md-sys-spacing-8: 32px;  /* 2xl   */
+  --md-sys-spacing-10: 40px; /* 3xl   */
+  --md-sys-spacing-12: 48px; /* section */
+
+  /* Composed dashboard rhythm (§23 "typical dashboard gaps") */
+  --md-sys-gap-card: 14px;         /* 12–16px */
+  --md-sys-gap-section: 22px;      /* 20–24px */
+  --md-sys-padding-page: 24px;     /* 20–32px */
+  --md-sys-padding-card: 18px;     /* 16–20px */
+  --md-sys-padding-card-compact: 14px;
+  --md-sys-padding-card-hero: 24px;
+
+  /* ======================================================================= */
+  /* TYPOGRAPHY (§6) — compact. Avoid oversized SaaS typography.             */
+  /* ======================================================================= */
+  --md-sys-typescale-font-family: 'Roboto Flex', 'Inter', -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --md-sys-typescale-font-family-numeric: 'Roboto Flex', 'Inter', ui-monospace,
+    'SF Mono', 'Segoe UI', sans-serif;
+
+  /* Page title — 24–28px / 650–700 / compact line height */
+  --md-sys-typescale-page-title-size: 26px;
+  --md-sys-typescale-page-title-weight: 680;
+  --md-sys-typescale-page-title-line-height: 1.18;
+  --md-sys-typescale-page-title-tracking: -0.02em;
+
+  /* Section title — 16–18px / 600–650 */
+  --md-sys-typescale-section-title-size: 17px;
+  --md-sys-typescale-section-title-weight: 620;
+  --md-sys-typescale-section-title-line-height: 1.3;
+  --md-sys-typescale-section-title-tracking: -0.01em;
+
+  /* Metric value — 20–28px / 650–700 / tabular numerals */
+  --md-sys-typescale-metric-size: 24px;
+  --md-sys-typescale-metric-weight: 680;
+  --md-sys-typescale-metric-line-height: 1.15;
+  --md-sys-typescale-metric-tracking: -0.02em;
+  --md-sys-typescale-metric-size-lg: 32px;
+  --md-sys-typescale-metric-size-sm: 20px;
+
+  /* Body — 13–14px / 400–500 */
+  --md-sys-typescale-body-size: 14px;
+  --md-sys-typescale-body-weight: 450;
+  --md-sys-typescale-body-line-height: 1.5;
+  --md-sys-typescale-body-size-sm: 13px;
+
+  /* Metadata — 11–12px / 400–500 */
+  --md-sys-typescale-meta-size: 12px;
+  --md-sys-typescale-meta-weight: 450;
+  --md-sys-typescale-meta-line-height: 1.4;
+  --md-sys-typescale-meta-size-sm: 11px;
+
+  /* Navigation — 12–13px / 500 */
+  --md-sys-typescale-nav-size: 13px;
+  --md-sys-typescale-nav-weight: 500;
+  --md-sys-typescale-nav-line-height: 1.3;
+
+  /* Label — buttons, chips, table headers */
+  --md-sys-typescale-label-size: 13px;
+  --md-sys-typescale-label-weight: 550;
+  --md-sys-typescale-label-line-height: 1.25;
+  --md-sys-typescale-label-tracking: 0.005em;
+  --md-sys-typescale-label-size-sm: 12px;
+
+  /* ======================================================================= */
+  /* ICONOGRAPHY (§28) — Material Symbols Rounded, one family only           */
+  /* ======================================================================= */
+  --md-sys-icon-size-nav: 20px;    /* 18–20px navigation */
+  --md-sys-icon-size-compact: 18px; /* 16–18px compact actions */
+  --md-sys-icon-size-card: 22px;   /* 20–24px cards */
+  --md-sys-icon-size-sm: 16px;
+  --md-sys-icon-size-lg: 24px;
+
+  /* ======================================================================= */
+  /* LAYOUT (§8) — reference viewport 1152 × 720                             */
+  /* ======================================================================= */
+  --md-sys-layout-reference-width: 1152px;
+  --md-sys-layout-reference-height: 720px;
+  --md-sys-layout-content-max-width: 1440px;
+
+  --md-sys-layout-sidebar-collapsed: 68px;  /* 64–72px */
+  --md-sys-layout-sidebar-expanded: 196px;  /* 180–210px */
+  --md-sys-layout-header-height: 60px;      /* compact header (§9) */
+  --md-sys-layout-header-height-compact: 52px;
+
+  /* ======================================================================= */
+  /* DENSITY (§24) — control heights stay compact                            */
+  /* ======================================================================= */
+  --md-sys-density-control-height-sm: 30px;
+  --md-sys-density-control-height: 36px;
+  --md-sys-density-control-height-lg: 44px;
+  --md-sys-density-row-height-compact: 40px;
+  --md-sys-density-row-height: 48px;
+  --md-sys-density-row-height-comfortable: 56px;
+
+  /* Minimum touch target (§9 Accessibility Contract) */
+  --md-sys-a11y-touch-target: 44px;
+  --md-sys-a11y-focus-ring-width: 2px;
+  --md-sys-a11y-focus-ring-offset: 2px;
+
+  /* ======================================================================= */
+  /* BREAKPOINTS (§25) — exported for JS/container queries                   */
+  /* ======================================================================= */
+  --md-sys-breakpoint-mobile: 0px;
+  --md-sys-breakpoint-tablet: 768px;
+  --md-sys-breakpoint-desktop: 1200px;
+  --md-sys-breakpoint-wide: 1600px;
+
+  /* ======================================================================= */
+  /* Z-INDEX (§3.1)                                                          */
+  /* ======================================================================= */
+  --md-sys-z-base: 0;
+  --md-sys-z-raised: 10;
+  --md-sys-z-sticky: 100;
+  --md-sys-z-header: 200;
+  --md-sys-z-drawer: 300;
+  --md-sys-z-scrim: 400;
+  --md-sys-z-dialog: 500;
+  --md-sys-z-dropdown: 600;
+  --md-sys-z-popover: 700;
+  --md-sys-z-tooltip: 800;
+  --md-sys-z-snackbar: 900;
+  --md-sys-z-max: 1000;
+
+  /* ======================================================================= */
+  /* OPACITY (§3.1)                                                          */
+  /* ======================================================================= */
+  --md-sys-opacity-disabled: 0.38;
+  --md-sys-opacity-muted: 0.62;
+  --md-sys-opacity-subtle: 0.08;
+  --md-sys-opacity-scrim: 0.42;
+
+  /* ======================================================================= */
+  /* BORDER (§22) — subtle, low opacity. Strong borders break the morphism.  */
+  /* ======================================================================= */
+  --md-sys-border-width: 1px;
+  --md-sys-border-width-strong: 1.5px;
+}
+
+/* Tablet — sidebar becomes a rail, density tightens slightly (§25) */
+@media (max-width: 1199px) {
+  :root {
+    --md-sys-padding-page: 20px;
+    --md-sys-gap-section: 20px;
+  }
+}
+
+/* Mobile — single column; padding tightens but radius is preserved (§25) */
+@media (max-width: 767px) {
+  :root {
+    --md-sys-padding-page: 16px;
+    --md-sys-padding-card: 16px;
+    --md-sys-gap-card: 12px;
+    --md-sys-gap-section: 20px;
+    --md-sys-typescale-page-title-size: 22px;
+    --md-sys-typescale-metric-size: 22px;
+  }
+}

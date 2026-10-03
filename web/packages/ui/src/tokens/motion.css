@@ -1,0 +1,118 @@
+/**
+ * Material Design 3 Motion System - CSS Custom Properties & Utility Classes
+ * Version: 1.0.0
+ */
+
+:root {
+  /* ==========================================================================
+     MATERIAL DESIGN 3 - EASING TOKENS
+     ========================================================================== */
+  --md-sys-motion-easing-linear: cubic-bezier(0, 0, 1, 1);
+  --md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-standard-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --md-sys-motion-easing-standard-accelerate: cubic-bezier(0.3, 0, 1, 1);
+
+  --md-sys-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --md-sys-motion-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+
+  /* ==========================================================================
+     MATERIAL DESIGN 3 - DURATION TOKENS
+     ========================================================================== */
+  --md-sys-motion-duration-short-1: 50ms;
+  --md-sys-motion-duration-short-2: 100ms;
+  --md-sys-motion-duration-short-3: 150ms;
+  --md-sys-motion-duration-short-4: 200ms;
+
+  --md-sys-motion-duration-medium-1: 250ms;
+  --md-sys-motion-duration-medium-2: 300ms;
+  --md-sys-motion-duration-medium-3: 350ms;
+  --md-sys-motion-duration-medium-4: 400ms;
+
+  --md-sys-motion-duration-long-1: 450ms;
+  --md-sys-motion-duration-long-2: 500ms;
+  --md-sys-motion-duration-long-3: 550ms;
+  --md-sys-motion-duration-long-4: 600ms;
+
+  --md-sys-motion-duration-extra-long-1: 700ms;
+  --md-sys-motion-duration-extra-long-2: 800ms;
+  --md-sys-motion-duration-extra-long-3: 900ms;
+  --md-sys-motion-duration-extra-long-4: 1000ms;
+
+  /* ==========================================================================
+     COMPOSED COMPONENT TRANSITION SHORTCUTS
+     ========================================================================== */
+  --md-sys-motion-transition-fade: opacity var(--md-sys-motion-duration-short-3) var(--md-sys-motion-easing-linear);
+  --md-sys-motion-transition-state-layer: background-color var(--md-sys-motion-duration-short-2) var(--md-sys-motion-easing-linear),
+                                          opacity var(--md-sys-motion-duration-short-2) var(--md-sys-motion-easing-linear);
+}
+
+/* ==========================================================================
+   UTILITY MOTION CLASSES
+   ========================================================================== */
+
+/* State Layer / Hover & Focus */
+.m3-motion-state-layer {
+  transition: var(--md-sys-motion-transition-state-layer);
+}
+
+/* Dialog / Modal Transitions */
+.m3-dialog-enter {
+  opacity: 1;
+  transform: scale(1);
+  transition: transform var(--md-sys-motion-duration-medium-3) var(--md-sys-motion-easing-emphasized-decelerate),
+              opacity var(--md-sys-motion-duration-medium-3) var(--md-sys-motion-easing-emphasized-decelerate);
+}
+
+.m3-dialog-exit {
+  opacity: 0;
+  transform: scale(0.9);
+  transition: transform var(--md-sys-motion-duration-short-4) var(--md-sys-motion-easing-emphasized-accelerate),
+              opacity var(--md-sys-motion-duration-short-4) var(--md-sys-motion-easing-emphasized-accelerate);
+}
+
+/* Bottom Sheet Transitions */
+.m3-sheet-enter {
+  transform: translateY(0);
+  transition: transform var(--md-sys-motion-duration-long-1) var(--md-sys-motion-easing-emphasized-decelerate);
+}
+
+.m3-sheet-exit {
+  transform: translateY(100%);
+  transition: transform var(--md-sys-motion-duration-medium-2) var(--md-sys-motion-easing-emphasized-accelerate);
+}
+
+/* Scrim / Backdrop */
+.m3-scrim-enter {
+  opacity: 0.32;
+  transition: opacity var(--md-sys-motion-duration-medium-2) var(--md-sys-motion-easing-linear);
+}
+
+.m3-scrim-exit {
+  opacity: 0;
+  transition: opacity var(--md-sys-motion-duration-short-4) var(--md-sys-motion-easing-linear);
+}
+
+/* ==========================================================================
+   ACCESSIBILITY: REDUCED MOTION OVERRIDE
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .m3-dialog-enter,
+  .m3-dialog-exit,
+  .m3-sheet-enter,
+  .m3-sheet-exit,
+  .m3-scrim-enter,
+  .m3-scrim-exit {
+    transform: none !important;
+    transition: opacity var(--md-sys-motion-duration-short-3) linear !important;
+  }
+}

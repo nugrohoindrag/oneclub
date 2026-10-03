@@ -1,0 +1,334 @@
+/**
+ * @license MIT
+ * Morphic Design System — Theme Presets
+ *
+ * Spec: Morphic-Design-System-adjusted.md
+ *   §2  Themes            — Light | Dark | Lime | Blue | Violet | Orange | Rose | Custom
+ *   §6  Theme Architecture — Component → Semantic Token → Theme → Actual Colour
+ *   §7  Theme Token Groups — the token surface every theme must define
+ *   §30 Dark Mode Rules    — presets change semantic colour only, never geometry
+ *
+ * A preset swaps the ACCENT ONLY. Surfaces, background, borders and text stay
+ * on the green tonal palette in every preset, because §20 requires that
+ * "green should dominate the experience" and §15 keeps the pale green surface
+ * as Morphic's visual identity. What a preset owns:
+ *
+ *   primary / primary-container / primary-soft / on-primary  (§7)
+ *   chart-primary / chart-secondary / chart area fill        (§29)
+ *   the hero card surface                                    (§11)
+ *   inverse-primary
+ *
+ * What a preset must NEVER override — these come from colors.css and are the
+ * same in every preset:
+ *
+ *   background · surface · surface-container-* · on-surface · on-surface-variant
+ *   outline · outline-variant · border · scrim · chart-grid · chart-axis
+ *
+ * Lime is the reference preset and matches the :root defaults in colors.css.
+ * To add a Custom theme, copy one block and override the same token names;
+ * never introduce new token names at the component level.
+ */
+
+/* ========================================================================= */
+/* LIGHT PRESETS                                                             */
+/* ========================================================================= */
+
+/* Lime — reference preset (§20), identical to :root */
+[data-accent='lime'] {
+  --md-sys-color-primary: #6FAF39;
+  --md-sys-color-primary-strong: #588B2D;
+  --md-sys-color-on-primary: #F0F4EC;
+  --md-sys-color-primary-container: #B8EA86;
+  --md-sys-color-on-primary-container: #1B3D05;
+  --md-sys-color-primary-soft: #C7ECA2;
+
+  --md-sys-color-chart-primary: #6FAF39;
+  --md-sys-color-chart-secondary: #9CEC5D;
+  --md-sys-color-chart-area-from: rgba(111, 175, 57, 0.24);
+  --md-sys-color-chart-area-to: rgba(111, 175, 57, 0);
+
+  --hero-banner-bg: linear-gradient(135deg, #C7ECA2 0%, #B8EA86 45%, #9CDC5E 100%);
+  --hero-banner-text: #143503;
+  --hero-banner-subtext: #26540B;
+  --hero-banner-pill-bg: #254E09;
+  --hero-banner-pill-text: #F0F7E5;
+  --hero-banner-pill-icon: #B8EA86;
+  --hero-banner-tag-bg: rgba(37, 78, 9, 0.12);
+  --hero-banner-tag-text: #1B3D05;
+  --hero-banner-blob-1: rgba(37, 78, 9, 0.07);
+  --hero-banner-blob-2: rgba(255, 255, 255, 0.38);
+  --hero-banner-arc: rgba(37, 78, 9, 0.16);
+
+  --md-sys-color-inverse-primary: #9CEC5D;
+}
+
+/* Blue */
+[data-accent='blue'] {
+  --md-sys-color-primary: #2F73B8;
+  --md-sys-color-primary-strong: #2F73B8;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #B6D6F2;
+  --md-sys-color-on-primary-container: #062945;
+  --md-sys-color-primary-soft: #CDE4F7;
+
+  --md-sys-color-chart-primary: #2F73B8;
+  --md-sys-color-chart-secondary: #6BA8DD;
+  --md-sys-color-chart-area-from: rgba(47, 115, 184, 0.22);
+  --md-sys-color-chart-area-to: rgba(47, 115, 184, 0);
+
+  --hero-banner-bg: linear-gradient(135deg, #CDE4F7 0%, #B6D6F2 45%, #8FBFE8 100%);
+  --hero-banner-text: #06243F;
+  --hero-banner-subtext: #0D3255;
+  --hero-banner-pill-bg: #0D3255;
+  --hero-banner-pill-text: #E9F2FA;
+  --hero-banner-pill-icon: #B6D6F2;
+  --hero-banner-tag-bg: rgba(13, 50, 85, 0.12);
+  --hero-banner-tag-text: #062945;
+  --hero-banner-blob-1: rgba(13, 50, 85, 0.07);
+  --hero-banner-blob-2: rgba(255, 255, 255, 0.38);
+  --hero-banner-arc: rgba(13, 50, 85, 0.16);
+
+  --md-sys-color-inverse-primary: #7FC0F5;
+}
+
+/* Violet */
+[data-accent='violet'] {
+  --md-sys-color-primary: #7048BE;
+  --md-sys-color-primary-strong: #7048BE;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #D9C9F4;
+  --md-sys-color-on-primary-container: #240D4C;
+  --md-sys-color-primary-soft: #E4D8F8;
+
+  --md-sys-color-chart-primary: #7048BE;
+  --md-sys-color-chart-secondary: #A98AE0;
+  --md-sys-color-chart-area-from: rgba(112, 72, 190, 0.22);
+  --md-sys-color-chart-area-to: rgba(112, 72, 190, 0);
+
+  --hero-banner-bg: linear-gradient(135deg, #E4D8F8 0%, #D9C9F4 45%, #B99EE9 100%);
+  --hero-banner-text: #1E0A44;
+  --hero-banner-subtext: #2C1259;
+  --hero-banner-pill-bg: #2C1259;
+  --hero-banner-pill-text: #F0EAFA;
+  --hero-banner-pill-icon: #D9C9F4;
+  --hero-banner-tag-bg: rgba(44, 18, 89, 0.12);
+  --hero-banner-tag-text: #240D4C;
+  --hero-banner-blob-1: rgba(44, 18, 89, 0.07);
+  --hero-banner-blob-2: rgba(255, 255, 255, 0.38);
+  --hero-banner-arc: rgba(44, 18, 89, 0.16);
+
+  --md-sys-color-inverse-primary: #C0A3F5;
+}
+
+/* Orange */
+[data-accent='orange'] {
+  --md-sys-color-primary: #A66220;
+  --md-sys-color-primary-strong: #A66220;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #F7D5AE;
+  --md-sys-color-on-primary-container: #422402;
+  --md-sys-color-primary-soft: #FAE3C8;
+
+  --md-sys-color-chart-primary: #B36A22;
+  --md-sys-color-chart-secondary: #E7A257;
+  --md-sys-color-chart-area-from: rgba(179, 106, 34, 0.22);
+  --md-sys-color-chart-area-to: rgba(179, 106, 34, 0);
+
+  --hero-banner-bg: linear-gradient(135deg, #FAE3C8 0%, #F7D5AE 45%, #F0BB80 100%);
+  --hero-banner-text: #3A1F02;
+  --hero-banner-subtext: #4E2C06;
+  --hero-banner-pill-bg: #4E2C06;
+  --hero-banner-pill-text: #FBF1E4;
+  --hero-banner-pill-icon: #F7D5AE;
+  --hero-banner-tag-bg: rgba(78, 44, 6, 0.12);
+  --hero-banner-tag-text: #422402;
+  --hero-banner-blob-1: rgba(78, 44, 6, 0.07);
+  --hero-banner-blob-2: rgba(255, 255, 255, 0.38);
+  --hero-banner-arc: rgba(78, 44, 6, 0.16);
+
+  --md-sys-color-inverse-primary: #F0B472;
+}
+
+/* Rose */
+[data-accent='rose'] {
+  --md-sys-color-primary: #B23A52;
+  --md-sys-color-primary-strong: #B23A52;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #F5C3CE;
+  --md-sys-color-on-primary-container: #470D1A;
+  --md-sys-color-primary-soft: #F8D7DE;
+
+  --md-sys-color-chart-primary: #B23A52;
+  --md-sys-color-chart-secondary: #E27689;
+  --md-sys-color-chart-area-from: rgba(178, 58, 82, 0.22);
+  --md-sys-color-chart-area-to: rgba(178, 58, 82, 0);
+
+  --hero-banner-bg: linear-gradient(135deg, #F8D7DE 0%, #F5C3CE 45%, #EC9AAB 100%);
+  --hero-banner-text: #3F0A16;
+  --hero-banner-subtext: #55101F;
+  --hero-banner-pill-bg: #55101F;
+  --hero-banner-pill-text: #FBEBEE;
+  --hero-banner-pill-icon: #F5C3CE;
+  --hero-banner-tag-bg: rgba(85, 16, 31, 0.12);
+  --hero-banner-tag-text: #470D1A;
+  --hero-banner-blob-1: rgba(85, 16, 31, 0.07);
+  --hero-banner-blob-2: rgba(255, 255, 255, 0.38);
+  --hero-banner-arc: rgba(85, 16, 31, 0.16);
+
+  --md-sys-color-inverse-primary: #F0899E;
+}
+
+/* ========================================================================= */
+/* DARK PRESETS (§5, §30)                                                    */
+/* Same geometry, same hierarchy — semantic surfaces only.                   */
+/* ========================================================================= */
+
+/* Lime dark — reference dark theme, identical to [data-theme='dark'] */
+[data-theme='dark'][data-accent='lime'],
+.dark[data-accent='lime'] {
+  --md-sys-color-primary: #9CEC5D;
+  --md-sys-color-primary-strong: #9CEC5D;
+  --md-sys-color-on-primary: #0F2A03;
+  --md-sys-color-primary-container: #74AF42;
+  --md-sys-color-on-primary-container: #0F2A03;
+  --md-sys-color-primary-soft: #4C7526;
+
+  --md-sys-color-chart-primary: #9CEC5D;
+  --md-sys-color-chart-secondary: #6FAF39;
+  --md-sys-color-chart-area-from: rgba(156, 236, 93, 0.22);
+  --md-sys-color-chart-area-to: rgba(156, 236, 93, 0);
+
+  --hero-banner-bg: linear-gradient(135deg, #3B4631 0%, #45691F 55%, #507B29 100%);
+  --hero-banner-text: #EEF9E2;
+  --hero-banner-subtext: #C7ECA2;
+  --hero-banner-pill-bg: #9CEC5D;
+  --hero-banner-pill-text: #0F2A03;
+  --hero-banner-pill-icon: #0F2A03;
+  --hero-banner-tag-bg: rgba(230, 240, 221, 0.14);
+  --hero-banner-tag-text: #E6F0DD;
+  --hero-banner-blob-1: rgba(156, 236, 93, 0.1);
+  --hero-banner-blob-2: rgba(230, 240, 221, 0.06);
+  --hero-banner-arc: rgba(199, 236, 162, 0.22);
+
+  --md-sys-color-inverse-primary: #4E8C24;
+}
+
+/* Blue dark */
+[data-theme='dark'][data-accent='blue'],
+.dark[data-accent='blue'] {
+  --md-sys-color-primary: #7FC0F5;
+  --md-sys-color-primary-strong: #7FC0F5;
+  --md-sys-color-on-primary: #05233D;
+  --md-sys-color-primary-container: #2F5D89;
+  --md-sys-color-on-primary-container: #DDEAF6;
+  --md-sys-color-primary-soft: #234866;
+
+  --md-sys-color-chart-primary: #7FC0F5;
+  --md-sys-color-chart-secondary: #4E93CE;
+  --md-sys-color-chart-area-from: rgba(127, 192, 245, 0.22);
+  --md-sys-color-chart-area-to: rgba(127, 192, 245, 0);
+
+  --hero-banner-bg: linear-gradient(135deg, #2A3A4C 0%, #234866 55%, #2F5D89 100%);
+  --hero-banner-text: #EAF3FC;
+  --hero-banner-subtext: #B6D6F2;
+  --hero-banner-pill-bg: #7FC0F5;
+  --hero-banner-pill-text: #05233D;
+  --hero-banner-pill-icon: #05233D;
+  --hero-banner-tag-bg: rgba(221, 234, 246, 0.14);
+  --hero-banner-tag-text: #DDEAF6;
+  --hero-banner-blob-1: rgba(127, 192, 245, 0.1);
+  --hero-banner-blob-2: rgba(221, 234, 246, 0.06);
+  --hero-banner-arc: rgba(182, 214, 242, 0.22);
+
+  --md-sys-color-inverse-primary: #2F73B8;
+}
+
+/* Violet dark */
+[data-theme='dark'][data-accent='violet'],
+.dark[data-accent='violet'] {
+  --md-sys-color-primary: #C0A3F5;
+  --md-sys-color-primary-strong: #C0A3F5;
+  --md-sys-color-on-primary: #1F0A44;
+  --md-sys-color-primary-container: #5A4189;
+  --md-sys-color-on-primary-container: #E8E0F6;
+  --md-sys-color-primary-soft: #453166;
+
+  --md-sys-color-chart-primary: #C0A3F5;
+  --md-sys-color-chart-secondary: #8F6FCE;
+  --md-sys-color-chart-area-from: rgba(192, 163, 245, 0.22);
+  --md-sys-color-chart-area-to: rgba(192, 163, 245, 0);
+
+  --hero-banner-bg: linear-gradient(135deg, #362B4A 0%, #453166 55%, #5A4189 100%);
+  --hero-banner-text: #F2ECFC;
+  --hero-banner-subtext: #D9C9F4;
+  --hero-banner-pill-bg: #C0A3F5;
+  --hero-banner-pill-text: #1F0A44;
+  --hero-banner-pill-icon: #1F0A44;
+  --hero-banner-tag-bg: rgba(232, 224, 246, 0.14);
+  --hero-banner-tag-text: #E8E0F6;
+  --hero-banner-blob-1: rgba(192, 163, 245, 0.1);
+  --hero-banner-blob-2: rgba(232, 224, 246, 0.06);
+  --hero-banner-arc: rgba(217, 201, 244, 0.22);
+
+  --md-sys-color-inverse-primary: #7048BE;
+}
+
+/* Orange dark */
+[data-theme='dark'][data-accent='orange'],
+.dark[data-accent='orange'] {
+  --md-sys-color-primary: #F0B472;
+  --md-sys-color-primary-strong: #F0B472;
+  --md-sys-color-on-primary: #3B1F02;
+  --md-sys-color-primary-container: #8A5C24;
+  --md-sys-color-on-primary-container: #F5EADE;
+  --md-sys-color-primary-soft: #66431A;
+
+  --md-sys-color-chart-primary: #F0B472;
+  --md-sys-color-chart-secondary: #C4863C;
+  --md-sys-color-chart-area-from: rgba(240, 180, 114, 0.22);
+  --md-sys-color-chart-area-to: rgba(240, 180, 114, 0);
+
+  --hero-banner-bg: linear-gradient(135deg, #443628 0%, #66431A 55%, #8A5C24 100%);
+  --hero-banner-text: #FCF3E9;
+  --hero-banner-subtext: #F7D5AE;
+  --hero-banner-pill-bg: #F0B472;
+  --hero-banner-pill-text: #3B1F02;
+  --hero-banner-pill-icon: #3B1F02;
+  --hero-banner-tag-bg: rgba(245, 234, 222, 0.14);
+  --hero-banner-tag-text: #F5EADE;
+  --hero-banner-blob-1: rgba(240, 180, 114, 0.1);
+  --hero-banner-blob-2: rgba(245, 234, 222, 0.06);
+  --hero-banner-arc: rgba(247, 213, 174, 0.22);
+
+  --md-sys-color-inverse-primary: #B36A22;
+}
+
+/* Rose dark */
+[data-theme='dark'][data-accent='rose'],
+.dark[data-accent='rose'] {
+  --md-sys-color-primary: #F0899E;
+  --md-sys-color-primary-strong: #F0899E;
+  --md-sys-color-on-primary: #400A18;
+  --md-sys-color-primary-container: #8A3548;
+  --md-sys-color-on-primary-container: #F6E1E6;
+  --md-sys-color-primary-soft: #662734;
+
+  --md-sys-color-chart-primary: #F0899E;
+  --md-sys-color-chart-secondary: #C4566E;
+  --md-sys-color-chart-area-from: rgba(240, 137, 158, 0.22);
+  --md-sys-color-chart-area-to: rgba(240, 137, 158, 0);
+
+  --hero-banner-bg: linear-gradient(135deg, #442A33 0%, #662734 55%, #8A3548 100%);
+  --hero-banner-text: #FCECEF;
+  --hero-banner-subtext: #F5C3CE;
+  --hero-banner-pill-bg: #F0899E;
+  --hero-banner-pill-text: #400A18;
+  --hero-banner-pill-icon: #400A18;
+  --hero-banner-tag-bg: rgba(246, 225, 230, 0.14);
+  --hero-banner-tag-text: #F6E1E6;
+  --hero-banner-blob-1: rgba(240, 137, 158, 0.1);
+  --hero-banner-blob-2: rgba(246, 225, 230, 0.06);
+  --hero-banner-arc: rgba(245, 195, 206, 0.22);
+
+  --md-sys-color-inverse-primary: #B23A52;
+}

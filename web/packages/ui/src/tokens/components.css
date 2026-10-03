@@ -1,0 +1,449 @@
+/**
+ * @license MIT
+ * Morphic Design System — Global Styles & Surface Primitives
+ *
+ * Spec: Morphic-Design-System-adjusted.md
+ *   §19 Visual DNA        — soft layered morphism, cards merge into the page
+ *   §21 Elevation         — extremely subtle; surface contrast does the work
+ *   §22 Borders           — 1px, low opacity; strong borders break the look
+ *   §32 Anti-Patterns     — no glass blur, no heavy shadows, no white boxes
+ *
+ * Token layer order matters: foundations (geometry) → colors (light/dark base)
+ * → themes (presets) → elevation (shape+shadow) → motion → contract (aliases).
+ * The contract layer is imported last so its aliases resolve against whatever
+ * the active theme set.
+ */
+
+@import './foundations.css';
+@import './colors.css';
+@import './themes.css';
+@import './elevation.css';
+@import './motion.css';
+@import './contract.css';
+
+/* ========================================================================= */
+/* GLOBAL RESET & TYPOGRAPHY BASE (§6)                                       */
+/* ========================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-body);
+  line-height: var(--md-sys-typescale-body-line-height);
+  background-color: var(--color-background);
+  color: var(--color-on-background);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Tabular, lining numerals — metric values must align (§6) */
+  font-feature-settings: 'tnum' on, 'lnum' on;
+  /* §30: a theme swap changes colour only, and does it smoothly (§19 motion) */
+  transition: background-color var(--motion-standard), color var(--motion-standard);
+}
+
+/* ========================================================================= */
+/* ACCESSIBILITY (§9 Accessibility Contract)                                 */
+/* ========================================================================= */
+
+/* Visible focus on every interactive element, keyboard-only */
+:focus-visible {
+  outline: var(--md-sys-a11y-focus-ring-width) solid var(--color-primary-strong);
+  outline-offset: var(--md-sys-a11y-focus-ring-offset);
+  border-radius: inherit;
+}
+
+/* Screen-reader-only content — the Visually Hidden primitive (§3.2) */
+.morphic-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ========================================================================= */
+/* SCROLLBAR — low visual noise (§19)                                        */
+/* ========================================================================= */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-outline-variant);
+  border-radius: var(--radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-outline);
+}
+
+/* ========================================================================= */
+/* MORPHIC CARD — the signature surface (§19)                                */
+/* Surface contrast + a 1px low-contrast border. No resting drop shadow:      */
+/* §21 reserves elevation for floating elements and hover only.               */
+/* ========================================================================= */
+
+.morphic-card {
+  background-color: var(--color-surface);
+  border: var(--md-sys-border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  padding: var(--padding-card);
+  box-shadow: var(--elevation-0);
+  transition: transform var(--motion-standard),
+              background-color var(--motion-standard),
+              border-color var(--motion-standard),
+              box-shadow var(--motion-standard);
+}
+
+/* §19 Micro-interactions: brighter surface → subtle elevation → -1px */
+.morphic-card:hover {
+  background-color: var(--color-surface-container-low);
+  border-color: var(--color-outline-variant);
+  box-shadow: var(--elevation-1);
+  transform: translateY(-1px);
+}
+
+/* Nested cards sit one tonal step higher, never on a new shadow (§19) */
+.morphic-card--nested {
+  background-color: var(--color-surface-container);
+  border-radius: var(--radius-card-nested);
+  padding: var(--md-sys-padding-card-compact);
+}
+
+.morphic-card--flat:hover {
+  transform: none;
+  box-shadow: var(--elevation-0);
+}
+
+/* ========================================================================= */
+/* MORPHIC SURFACE — page-level and section-level containers                  */
+/* ========================================================================= */
+
+.morphic-surface {
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  border-radius: var(--radius-card);
+}
+
+.morphic-surface--sunken {
+  background-color: var(--color-surface-container-lowest);
+}
+
+.morphic-surface--raised {
+  background-color: var(--color-surface-container);
+}
+
+/* ========================================================================= */
+/* HERO SURFACE (§11 Hero Card)                                              */
+/* Tonal green surface, very large radius, decorative organic shapes.         */
+/* All colour comes from theme tokens — never hard-coded (§6).                */
+/* ========================================================================= */
+
+.morphic-hero-surface {
+  background: var(--hero-banner-bg);
+  color: var(--hero-banner-text);
+  border-radius: var(--radius-hero);
+  padding: var(--md-sys-padding-card-hero);
+  position: relative;
+  overflow: hidden;
+  /* §21: the hero is a feature surface, not a floating one — level 1 only */
+  box-shadow: var(--elevation-1);
+}
+
+/* Decorative shapes stay subtle (§11): "do not turn the dashboard into an
+   illustration-heavy landing page." */
+.morphic-hero-decor {
+  position: absolute;
+  pointer-events: none;
+  border-radius: var(--radius-pill);
+}
+
+/* ========================================================================= */
+/* HEADER (§9 Header) — compact, minimal vertical space                      */
+/* §32 forbids glass blur, so this is a solid tonal surface with a hairline. */
+/* ========================================================================= */
+
+.morphic-header {
+  min-height: var(--md-sys-layout-header-height);
+  background-color: var(--color-background);
+  border-bottom: var(--md-sys-border-width) solid var(--color-border);
+  z-index: var(--md-sys-z-header);
+  transition: background-color var(--motion-standard),
+              border-color var(--motion-standard);
+}
+
+.morphic-header--sticky {
+  position: sticky;
+  top: 0;
+}
+
+/* ========================================================================= */
+/* SIDEBAR (§8) — feels like part of the background, not a separate panel    */
+/* ========================================================================= */
+
+.morphic-sidebar {
+  width: var(--md-sys-layout-sidebar-expanded);
+  background-color: var(--color-background);
+  border-right: var(--md-sys-border-width) solid var(--color-border);
+  transition: width var(--motion-standard),
+              background-color var(--motion-standard);
+}
+
+.morphic-sidebar--collapsed {
+  width: var(--md-sys-layout-sidebar-collapsed);
+}
+
+/* Selected nav item: soft rounded primary container that transitions
+   smoothly (§19 Micro-interactions → Navigation) */
+.morphic-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--md-sys-density-control-height);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-nav);
+  font-weight: var(--md-sys-typescale-nav-weight);
+  color: var(--color-on-surface-variant);
+  background-color: transparent;
+  transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+
+.morphic-nav-item:hover {
+  background-color: var(--color-surface-container);
+  color: var(--color-on-surface);
+}
+
+.morphic-nav-item[aria-current],
+.morphic-nav-item--selected {
+  background-color: var(--color-primary-container);
+  color: var(--color-on-primary-container);
+}
+
+/* ========================================================================= */
+/* STATE LAYERS (§11 State Contract)                                         */
+/* ========================================================================= */
+
+.morphic-disabled,
+[aria-disabled='true'] {
+  opacity: var(--md-sys-opacity-disabled);
+  pointer-events: none;
+}
+
+/* ========================================================================= */
+/* HEADER ALIAS — the pre-Morphic header class, now a solid tonal surface     */
+/* rather than a blurred one (§32).                                           */
+/* ========================================================================= */
+
+.morphic-glass-header {
+  background-color: var(--color-background);
+  border-bottom: var(--md-sys-border-width) solid var(--color-border);
+}
+
+/* ========================================================================= */
+/* REDUCED MOTION (§9) — motion.css handles the global override; these are    */
+/* the transform-based affordances that must also be neutralised.             */
+/* ========================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .morphic-card:hover,
+  .morphic-morphic-card:hover {
+    transform: none;
+  }
+}
+
+/* ========================================================================= */
+/* HERO CARD RESPONSIVE STYLES                                               */
+/* ========================================================================= */
+
+.factory-vision-hero-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  padding: 28px 36px;
+  min-height: 140px;
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-hero, 28px);
+}
+
+.hero-card-left {
+  flex: 1 1 auto;
+  max-width: 640px;
+  position: relative;
+  z-index: 3;
+}
+
+.hero-card-title {
+  margin: 0 0 8px;
+  font-size: clamp(22px, 2.6vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.hero-card-subtitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  max-width: 580px;
+}
+
+.hero-card-right {
+  position: relative;
+  z-index: 3;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+}
+
+.hero-card-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Responsive Breakpoint: Tablet & Mobile (<= 768px) */
+@media (max-width: 768px) {
+  .factory-vision-hero-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+    gap: 20px !important;
+    padding: 24px 20px !important;
+  }
+
+  .hero-card-left {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .hero-card-title {
+    font-size: 22px !important;
+  }
+
+  .hero-card-right {
+    width: 100% !important;
+    align-items: flex-start !important;
+    margin-left: 0 !important;
+    gap: 12px !important;
+  }
+
+  .hero-card-actions {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+  }
+}
+
+/* ========================================================================= */
+/* GLOBAL RESPONSIVE RULES (GRIDS, TABLES, SPLITS, FORMS)                    */
+/* ========================================================================= */
+
+.morphic-grid {
+  display: grid;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .morphic-grid[data-cols="4"],
+  .morphic-grid[data-cols="5"],
+  .morphic-grid[data-cols="6"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .morphic-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .morphic-split-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .morphic-glass-header {
+    padding: 0 16px !important;
+  }
+
+  .morphic-container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+}
+
+/* Responsive Table Wrapper */
+.morphic-table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-lg);
+}
+
+.morphic-table-container table {
+  min-width: 600px;
+}
+
+/* Showcase App Responsive Navigation */
+.mobile-nav-toggle {
+  display: none !important;
+}
+
+.showcase-sidebar-desktop {
+  display: flex !important;
+}
+
+.showcase-main-content {
+  flex: 1;
+  padding: clamp(20px, 3vw, 44px);
+  max-width: 1200px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+@media (max-width: 1024px) {
+  .mobile-nav-toggle {
+    display: flex !important;
+  }
+
+  .showcase-sidebar-desktop {
+    display: none !important;
+  }
+
+  .morphic-glass-header {
+    height: auto !important;
+    min-height: 64px !important;
+    padding: 12px 16px !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+
+  .showcase-main-content {
+    padding: 20px 16px !important;
+  }
+}
+
+
+

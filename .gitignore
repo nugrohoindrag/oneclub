@@ -1,0 +1,30 @@
+# build output
+/bin/
+/var/
+/dist/
+*.exe
+coverage.out
+
+# local secrets — never commit (FR-TEC-12)
+.env
+.env.*
+!.env.example
+deploy/instances/
+secrets/
+
+# frontend
+web/node_modules/
+web/**/node_modules/
+web/**/dist/
+web/**/.next/
+web/**/.turbo/
+web/**/*.tsbuildinfo
+
+# test artefacts
+web/test-results/
+web/playwright-report/
+web/packages/ui/dist-showcase/
+web/apps/web/next-env.d.ts
+
+# product documents (PRD, Technical Doc, roadmap) — kept locally, not pushed
+/docs/product/
