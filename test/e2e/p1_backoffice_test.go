@@ -129,17 +129,27 @@ func TestP1BillingAndPayment(t *testing.T) {
 	fin.Must(422, "POST", "/api/v1/billing/folios/"+fid+":reopen", map[string]any{})
 	fin.Must(200, "POST", "/api/v1/billing/folios/"+fid+":reopen", map[string]any{"reason": "Refund one box of balls"})
 
-	// refund needs approval by the Finance Manager (FR-PAY-05)
+	// Refund Policy (FR-PAY-05/07): up to IDR 2,000,000 completes at once;
+	// above it waits for the Finance Manager.
+	pa := login(t, inst, "property.admin@demo.oneclub.id", demoPassword)
 	cashier.Must(403, "POST", "/api/v1/billing/refunds", map[string]any{"paymentId": pay["id"], "amount": "1", "reason": "x"})
-	rf := login(t, inst, "property.admin@demo.oneclub.id", demoPassword).Must(201, "POST", "/api/v1/billing/refunds", map[string]any{"paymentId": pay["id"], "amount": "150000", "reason": "Returned golf balls",
+	small := pa.Must(201, "POST", "/api/v1/billing/refunds", map[string]any{"paymentId": pay["id"], "amount": "150000", "reason": "Returned golf balls",
+		"destination": "original_method"}).JSON()
+	if small["status"] != "completed" || small["approvalRequestId"] != nil {
+		t.Fatalf("a refund within the policy limit completes without approval: %v", small)
+	}
+	fin.Must(201, "POST", "/api/v1/billing/folios/"+fid+"/lines", map[string]any{"chargeType": "other", "description": "Golf bag", "unitPrice": "3000000"})
+	big := cashier.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": fid, "amount": "3000000", "methodType": "card", "channel": "venue",
+		"reference": "EDC-778812"}).JSON()
+	rf := pa.Must(201, "POST", "/api/v1/billing/refunds", map[string]any{"paymentId": big["id"], "amount": "2500000", "reason": "Wrong bag model",
 		"destination": "original_method"}).JSON()
 	if rf["status"] != "pending" || rf["approvalRequestId"] == nil {
-		t.Fatalf("refund waits for approval: %v", rf)
+		t.Fatalf("a refund above the policy limit waits for approval: %v", rf)
 	}
 	fin.Must(200, "POST", "/api/v1/platform/approvals/"+str(rf["approvalRequestId"])+":approve", map[string]any{})
-	waitFor(t, 10*time.Second, "refund processed", func() bool {
+	waitFor(t, 10*time.Second, "refund completed", func() bool {
 		for _, r := range fin.Must(200, "GET", "/api/v1/billing/refunds", nil).Items() {
-			if r["id"] == rf["id"] && r["status"] == "processed" {
+			if r["id"] == rf["id"] && r["status"] == "completed" {
 				return true
 			}
 		}

@@ -21,7 +21,7 @@ browser test `web/e2e/golf.spec.ts`, load tests `test/load/*.js`.
 | EP-09 Caddy | Attendance, queue / rotation, auto & manual assignment, replace, cancel, caddy fee as liability, tips | `TestP1GolfDayOperation`, `TestP1BookingChanges` | ✅ |
 | EP-10 Golf cart | Readiness board, sharing rule, auto assignment of Ready carts without overlap, surcharge, return | `TestP1GolfDayOperation`, `TestP1BookingChanges` | ✅ |
 | EP-11 Check-in & starter | Check-in by card / QR / code / name with payment-before-check-in, readiness, starter queue (call, hold, release, skip, tee-off, finish), course status / weather stop, lockers, bag drop & storage; offline check-in & bag drop via sync | `TestP1GolfDayOperation`, `TestP1BookingChanges`, sync idempotency (P0 `TestOfflineSync`) | ✅ |
-| EP-12 Billing & payment | Folios, lines, void, close / reopen, payments (cash, card, transfer, member charge, gateway), deposits, refunds with Refund Policy approval, member accounts & statements, reconciliation, accounting export, receipts | `TestP1WebsiteBooking` (webhook ×3 → one payment), `TestP1MemberPortal` (statement), `TestP1BillingAndPayment` | 🟡 `TestP1BillingAndPayment` refund assertion to update (auto-refund ≤ IDR 2,000,000 by policy) |
+| EP-12 Billing & payment | Folios, lines, void, close / reopen, payments (cash, card, transfer, member charge, gateway), deposits, refunds with Refund Policy approval, member accounts & statements, reconciliation, accounting export, receipts | `TestP1WebsiteBooking` (webhook ×3 → one payment), `TestP1MemberPortal` (statement), `TestP1BillingAndPayment` | ✅ |
 | EP-13 Member Portal | OTP login, Book Golf, bookings (reschedule / cancel), my flights / caddy / golf cart, membership, digital card QR (offline copy), transactions, statements, profile, application | `TestP1MemberPortal`, `web/e2e/golf.spec.ts` | ✅ / 🟡 browser run on staging |
 | EP-14 Website | Golf pages (course, guide, hole-by-hole, handicap, facilities), rates, Book Golf with hold + online payment, manage link (cancel), membership self-activation | `TestP1WebsiteBooking`, `web/e2e/golf.spec.ts` | ✅ / 🟡 browser run on staging |
 | EP-15 Club Policies | Golf, Guest, Cancellation, Weather, Caddy, Golf Cart, Payment, Eligibility, Override, Refund, Member policies (versioned, defaults) | used by every golf test; `GET /api/v1/golf/policies` | ✅ |
@@ -46,12 +46,10 @@ browser test `web/e2e/golf.spec.ts`, load tests `test/load/*.js`.
 | Today's Players equals the Daily Tee Sheet Report | `TestP1GolfDayOperation` |
 | Tee sheet change reaches the screen in < 2 s | `TestP1TeeSheetRealtime` |
 | Offline check-in synchronises without duplicates | sync idempotency by item id + check-in of an already checked-in player is a no-op; `test/load/checkin-peak.js` repeats check-ins |
-| Every mutating route audited | e2e harness audit check (264 mutating routes) |
+| Every mutating route audited | e2e harness audit check: 264/264 mutating routes exercised, none without an audit entry |
 
 ## Open items
 
-- `TestP1BillingAndPayment`: change the refund assertion to the Refund Policy (≤ IDR 2,000,000 completes at once, larger
-  refunds wait for approval); it covers the last 14 billing routes of the audit-coverage check.
 - Dry runs ×2, parallel run, cutover and sign-offs with Modern Golf data (EP-18).
 - HA failover and restore drills, external penetration test, load test on staging, hypercare (EP-19).
 - PRD Open Questions (club decisions): membership types eligible for the Member Rate, all-in component amounts, parallel-run length.
