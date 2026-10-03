@@ -1,7 +1,11 @@
-# Release (Technical Doc §12.2): tag vX.Y.Z → Staging + E2E → Production per
-# instance with manual approval (GitHub environment protection rules).
+# Release (Technical Doc §12.2): tag vX.Y.Z → images → Staging + browser
+# tests → Production per instance after manual approval (GitHub environment
+# "production" with required reviewers).
 # VPS images are built obfuscated (garble) and without source maps
 # (Technical Doc §9.4 — obfuscation only for VPS deploys).
+# Staging/Production jobs run only once their servers are configured
+# (vars.STAGING_INSTANCE / vars.PRODUCTION_INSTANCES); see
+# docs/runbooks/ci-cd.md.
 name: release
 
 on:
@@ -9,24 +13,27 @@ on:
     tags: ["v*.*.*"]
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
+
+env:
+  REGISTRY: ${{ vars.REGISTRY || format('ghcr.io/{0}', github.repository_owner) }}
 
 jobs:
   images:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write   # GitHub release
+      packages: write
     outputs:
-      version: ${{ steps.v.outputs.version }}
+      version: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
-      - id: v
-        run: echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
-          registry: ${{ vars.REGISTRY }}
-          username: ${{ secrets.REGISTRY_USER }}
-          password: ${{ secrets.REGISTRY_PASSWORD }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USER || github.actor }}
+          password: ${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}
       - name: Backend (obfuscated with garble)
         uses: docker/build-push-action@v6
         with:
@@ -35,9 +42,18 @@ jobs:
           build-args: |
             VERSION=${{ github.ref_name }}
             OBFUSCATE=true
-            GARBLE_SEED=${{ secrets.GARBLE_SEED }}
-          tags: ${{ vars.REGISTRY }}/oneclub:${{ github.ref_name }}
-          push: true
+            GARBLE_SEED=${{ secrets.GARBLE_SEED || 'random' }}
+          tags: ${{ env.REGISTRY }}/oneclub:${{ github.ref_name }}
+          load: true
+      - name: Scan backend image (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/oneclub:${{ github.ref_name }}
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+      - name: Push backend image
+        run: docker push "$REGISTRY/oneclub:${{ github.ref_name }}"
       - name: Static shells (no source maps)
         uses: docker/build-push-action@v6
         with:
@@ -45,7 +61,7 @@ jobs:
           file: deploy/docker/Dockerfile.web
           target: static
           build-args: SOURCEMAPS=false
-          tags: ${{ vars.REGISTRY }}/oneclub-static:${{ github.ref_name }}
+          tags: ${{ env.REGISTRY }}/oneclub-static:${{ github.ref_name }}
           push: true
       - name: Website (no source maps)
         uses: docker/build-push-action@v6
@@ -54,7 +70,7 @@ jobs:
           file: deploy/docker/Dockerfile.web
           target: web
           build-args: SOURCEMAPS=false
-          tags: ${{ vars.REGISTRY }}/oneclub-web:${{ github.ref_name }}
+          tags: ${{ env.REGISTRY }}/oneclub-web:${{ github.ref_name }}
           push: true
       - name: Release notes from commits
         uses: softprops/action-gh-release@v2
@@ -62,6 +78,7 @@ jobs:
           generate_release_notes: true
 
   staging:
+    if: vars.STAGING_INSTANCE != ''
     needs: [images]
     runs-on: ubuntu-latest
     environment: staging
@@ -74,23 +91,41 @@ jobs:
           username: deploy
           key: ${{ secrets.STAGING_SSH_KEY }}
           script: /srv/oneclub/scripts/deploy.sh ${{ vars.STAGING_INSTANCE }} ${{ needs.images.outputs.version }}
+      - name: Prepare browser-test accounts on Staging
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          HOST: ${{ secrets.STAGING_HOST }}
+        run: |
+          install -m 600 /dev/null "$RUNNER_TEMP/key" && printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/key"
+          ssh -i "$RUNNER_TEMP/key" -o StrictHostKeyChecking=accept-new "deploy@$HOST" \
+            /srv/oneclub/scripts/e2e-setup.sh "${{ vars.STAGING_INSTANCE }}" < web/e2e/setup.sql
+          rm -f "$RUNNER_TEMP/key"
+      - uses: pnpm/action-setup@v4
+        with: { package_json_file: web/package.json }
       - uses: actions/setup-node@v4
-        with: { node-version: 24 }
-      - name: E2E against Staging (obfuscated build)
+        with: { node-version: 24, cache: pnpm, cache-dependency-path: web/pnpm-lock.yaml }
+      - name: Browser tests against Staging (obfuscated build)
         working-directory: web
         env:
-          E2E_BASE_URL: ${{ vars.STAGING_BACKOFFICE_URL }}
+          E2E_SKIP_SETUP: "1"
+          E2E_BACKOFFICE: ${{ vars.STAGING_BACKOFFICE_URL }}
+          E2E_MEMBER: ${{ vars.STAGING_MEMBER_URL }}
+          E2E_OPS: ${{ vars.STAGING_OPS_URL }}
+          E2E_PLATFORM_ADMIN: ${{ vars.STAGING_PLATFORM_ADMIN_URL }}
+          E2E_WEB: ${{ vars.STAGING_WEB_URL }}
           E2E_PASSWORD: ${{ secrets.STAGING_DEMO_PASSWORD }}
-        run: corepack enable && pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium && pnpm e2e
+          DEMO_DEVICE_TOKEN: ${{ secrets.STAGING_DEVICE_TOKEN }}
+        run: pnpm install --frozen-lockfile && pnpm e2e
 
   production:
+    if: vars.PRODUCTION_INSTANCES != ''
     needs: [images, staging]
     runs-on: ubuntu-latest
-    environment: production   # requires manual approval
+    environment: production   # required reviewers = manual approval
     strategy:
       max-parallel: 1
       matrix:
-        instance: ${{ fromJSON(vars.PRODUCTION_INSTANCES) }}
+        instance: ${{ fromJSON(vars.PRODUCTION_INSTANCES || '[]') }}
     steps:
       - name: Deploy ${{ matrix.instance }}
         uses: appleboy/ssh-action@v1

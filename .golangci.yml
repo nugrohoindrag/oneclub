@@ -39,6 +39,8 @@ linters:
             - { pkg: "oneclub/internal/reporting", desc: "platform must not depend on business modules" }
             - { pkg: "oneclub/internal/app", desc: "only cmd wires the application" }
   exclusions:
+    # Unchecked Close/Flush/Remove/print errors are idiomatic in defer paths.
+    presets: [std-error-handling]
     rules:
       - path: _test\.go
         linters: [gosec, errcheck]

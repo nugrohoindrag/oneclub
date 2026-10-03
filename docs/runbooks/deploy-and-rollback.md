@@ -4,11 +4,12 @@
 
 | Trigger | What happens |
 |---|---|
-| Pull request | Go lint + arch-lint, unit, migrations on empty DB, e2e on PostgreSQL, OpenAPI drift + breaking-change check, frontend typecheck/lint/test/build |
-| Merge to `main` | Images `oneclub`, `oneclub-static`, `oneclub-web` tagged with the commit SHA → Trivy scan → automatic deploy to **Dev** |
+| Pull request | Go lint + arch-lint, unit, migrations on empty DB, e2e on PostgreSQL, OpenAPI drift + breaking-change check, frontend typecheck/lint/test/build, Playwright browser tests |
+| Merge to `main` | Images `oneclub`, `oneclub-static`, `oneclub-web` tagged with the commit SHA → Trivy scan → push to GHCR → automatic deploy to **Dev** (once configured) |
 | Tag `vX.Y.Z` | Obfuscated backend (garble) + frontends without source maps → **Staging** + Playwright → **Production** per instance after manual approval |
 
-Obfuscation is applied only to VPS builds (Technical Doc §9.4).
+Obfuscation is applied only to VPS builds (Technical Doc §9.4). Secrets, variables and branch protection:
+[ci-cd.md](ci-cd.md).
 
 ## Zero-downtime deploy (`deploy/scripts/deploy.sh <instance> <version>`)
 

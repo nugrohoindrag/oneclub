@@ -53,7 +53,7 @@ type Config struct {
 
 func get(key, def string) string {
 	if f := os.Getenv(key + "_FILE"); f != "" {
-		b, err := os.ReadFile(f)
+		b, err := os.ReadFile(f) //nolint:gosec // G304: *_FILE points at an operator-mounted secret
 		if err == nil {
 			return strings.TrimSpace(string(b))
 		}

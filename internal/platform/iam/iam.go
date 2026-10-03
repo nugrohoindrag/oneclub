@@ -4,7 +4,6 @@
 package iam
 
 import (
-	"context"
 	"net/http"
 	"sync"
 	"time"
@@ -99,12 +98,4 @@ func (s *Service) rateLimit(key string, n int, period time.Duration) error {
 		return errs.RateLimited()
 	}
 	return nil
-}
-
-type ctxKey int
-
-const tokenKey ctxKey = 0
-
-func withToken(ctx context.Context, tokenHash string) context.Context {
-	return context.WithValue(ctx, tokenKey, tokenHash)
 }

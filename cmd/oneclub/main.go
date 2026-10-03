@@ -151,7 +151,7 @@ func ownerURL() (string, error) {
 	}
 	_ = cfg
 	if v := os.Getenv("DATABASE_OWNER_URL_FILE"); v != "" {
-		b, err := os.ReadFile(v)
+		b, err := os.ReadFile(v) //nolint:gosec // G304: operator-mounted secret file
 		if err != nil {
 			return "", err
 		}
@@ -330,7 +330,7 @@ func runOpenAPI(args []string) error {
 		_, err = os.Stdout.Write(spec)
 		return err
 	}
-	return os.WriteFile(*out, spec, 0o644)
+	return os.WriteFile(*out, spec, 0o600)
 }
 
 func runHealthcheck() error {
@@ -342,7 +342,7 @@ func runHealthcheck() error {
 		}
 	}
 	c := http.Client{Timeout: 3 * time.Second}
-	resp, err := c.Get("http://" + addr + "/readyz")
+	resp, err := c.Get("http://" + addr + "/readyz") //nolint:gosec // G704: local readiness probe, address from HTTP_ADDR
 	if err != nil {
 		return err
 	}

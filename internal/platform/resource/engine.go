@@ -121,7 +121,7 @@ func (e *Engine) buildList(ctx context.Context, d *Def, lp httpx.ListParams, inc
 	}
 	for name, v := range lp.Filters {
 		f, ok := d.field(name)
-		if !ok || !(f.Filter || name == "status") {
+		if !ok || (!f.Filter && name != "status") {
 			return nil, "", errs.BadRequest("invalid_filter", "unsupported filter "+name)
 		}
 		vals := strings.Split(v, ",")

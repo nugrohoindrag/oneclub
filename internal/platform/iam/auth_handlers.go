@@ -118,15 +118,17 @@ type PreferencesRequest struct {
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
+// Secure comes from config: always true in deployed environments, false only
+// for plain-http local development.
 func (s *Service) setCookie(w http.ResponseWriter, token string, ttl time.Duration) {
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(w, &http.Cookie{ //nolint:gosec // G124: Secure is config-driven, see above
 		Name: SessionCookie, Value: token, Path: "/", HttpOnly: true,
 		Secure: s.Cfg.CookieSecure, SameSite: http.SameSiteLaxMode, MaxAge: int(ttl.Seconds()),
 	})
 }
 
 func (s *Service) clearCookie(w http.ResponseWriter) {
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(w, &http.Cookie{ //nolint:gosec // G124: Secure is config-driven, see setCookie
 		Name: SessionCookie, Value: "", Path: "/", HttpOnly: true,
 		Secure: s.Cfg.CookieSecure, SameSite: http.SameSiteLaxMode, MaxAge: -1,
 	})

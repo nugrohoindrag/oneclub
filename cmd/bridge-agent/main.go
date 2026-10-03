@@ -60,10 +60,11 @@ func main() {
 		case <-time.After(wait):
 		}
 		body, _ := json.Marshal(heartbeat{AgentVersion: version, Hardware: hw})
-		req, _ := http.NewRequestWithContext(ctx, http.MethodPost, api+"/api/v1/bridge/heartbeat", bytes.NewReader(body))
+		// The API URL is operator configuration (ONECLUB_API_URL), not user input.
+		req, _ := http.NewRequestWithContext(ctx, http.MethodPost, api+"/api/v1/bridge/heartbeat", bytes.NewReader(body)) //nolint:gosec // G704
 		req.Header.Set("Authorization", "Bearer "+token)
 		req.Header.Set("Content-Type", "application/json")
-		resp, err := client.Do(req)
+		resp, err := client.Do(req) //nolint:gosec // G704: see above
 		wait = 30 * time.Second
 		if err != nil {
 			log.Warn("heartbeat failed", "err", err)

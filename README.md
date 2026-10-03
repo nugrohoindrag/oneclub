@@ -27,7 +27,8 @@ make api & make worker        # API on :8080, River worker
 cd web && pnpm install && pnpm dev   # backoffice :5173, member :5174, ops :5175, platform-admin :5176, web :3000
 ```
 
-See [`docs/runbooks/local-development.md`](docs/runbooks/local-development.md).
+See [`docs/runbooks/local-development.md`](docs/runbooks/local-development.md). Team workflow (branches, pull requests,
+resolving generated-file and migration conflicts) and CI/CD setup: [`docs/runbooks/ci-cd.md`](docs/runbooks/ci-cd.md).
 
 ## Applications (application surfaces)
 

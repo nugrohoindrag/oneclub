@@ -18,7 +18,6 @@ COPY web/apps/ops/package.json apps/ops/
 COPY web/apps/platform-admin/package.json apps/platform-admin/
 COPY web/packages/ui/package.json packages/ui/
 COPY web/packages/api-client/package.json packages/api-client/
-COPY web/packages/auth/package.json packages/auth/
 COPY web/packages/i18n/package.json packages/i18n/
 COPY web/packages/offline/package.json packages/offline/
 COPY web/packages/shell/package.json packages/shell/

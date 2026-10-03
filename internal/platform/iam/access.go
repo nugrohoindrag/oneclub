@@ -309,7 +309,7 @@ type APIKeyRequest struct {
 	ExpiresAt  *time.Time `json:"expiresAt,omitempty"`
 }
 
-const apiKeySelect = `SELECT id, name, prefix, scopes, property_id, expires_at, revoked_at, last_used_at, rotated_at, created_at FROM platform.api_keys`
+const apiKeySelect = `SELECT id, name, prefix, scopes, property_id, expires_at, revoked_at, last_used_at, rotated_at, created_at FROM platform.api_keys` //nolint:gosec // G101: SQL column list, not a credential
 
 func scanAPIKey(row pgx.Row) (APIKey, error) {
 	var k APIKey

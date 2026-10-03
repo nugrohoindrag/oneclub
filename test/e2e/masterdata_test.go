@@ -117,10 +117,9 @@ func TestImportThousandCustomers(t *testing.T) {
 	var b strings.Builder
 	b.WriteString("code,name,customerType,email,phone\n")
 	for i := 1; i <= 1000; i++ {
-		switch {
-		case i%100 == 0: // 10 invalid rows: bad e-mail
+		if i%100 == 0 { // 10 invalid rows: bad e-mail
 			fmt.Fprintf(&b, "C%04d,Customer %d,individual,not-an-email,0812\n", i, i)
-		default:
+		} else {
 			fmt.Fprintf(&b, "C%04d,Customer %d,individual,c%d@example.test,0812%06d\n", i, i, i, i)
 		}
 	}

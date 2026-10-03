@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -51,18 +52,24 @@ func New(cfg config.Storage, instance string) (Blob, error) {
 		if err := os.MkdirAll(dir, 0o750); err != nil {
 			return nil, err
 		}
-		return &fsBlob{dir: dir}, nil
+		root, err := os.OpenRoot(dir)
+		if err != nil {
+			return nil, err
+		}
+		return &fsBlob{root: root}, nil
 	}
 }
 
-type fsBlob struct{ dir string }
+// fsBlob keeps every file inside the instance directory: os.Root rejects
+// paths and symlinks that would escape it.
+type fsBlob struct{ root *os.Root }
 
 func (b *fsBlob) path(key string) (string, error) {
-	clean := filepath.Clean("/" + key)
-	if strings.Contains(clean, "..") {
+	clean := strings.TrimPrefix(path.Clean("/"+key), "/")
+	if clean == "" || strings.Contains(clean, "..") {
 		return "", errors.New("storage: invalid key")
 	}
-	return filepath.Join(b.dir, filepath.FromSlash(clean)), nil
+	return filepath.FromSlash(clean), nil
 }
 
 func (b *fsBlob) Put(_ context.Context, key, _ string, r io.Reader, _ int64) error {
@@ -70,10 +77,10 @@ func (b *fsBlob) Put(_ context.Context, key, _ string, r io.Reader, _ int64) err
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(p), 0o750); err != nil {
+	if err := b.root.MkdirAll(filepath.Dir(p), 0o750); err != nil {
 		return err
 	}
-	f, err := os.Create(p)
+	f, err := b.root.Create(p)
 	if err != nil {
 		return err
 	}
@@ -89,7 +96,7 @@ func (b *fsBlob) Get(_ context.Context, key string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, err
 	}
-	return os.Open(p)
+	return b.root.Open(p)
 }
 
 type s3Blob struct {
@@ -150,7 +157,8 @@ var allowedBranding = map[string]bool{"image/png": true, "image/jpeg": true, "im
 
 // upload accepts branding images (logo, favicon, login photo).
 func (f *Files) upload(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseMultipartForm(5 << 20); err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, 5<<20+64<<10) // file + multipart envelope
+	if err := r.ParseMultipartForm(5 << 20); err != nil { //nolint:gosec // G120: body capped by MaxBytesReader above
 		httpx.WriteError(w, r, errs.BadRequest("invalid_upload", "upload must be multipart/form-data up to 5 MB"))
 		return
 	}

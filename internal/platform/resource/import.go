@@ -233,7 +233,8 @@ func (e *Engine) handleImport(w http.ResponseWriter, r *http.Request) {
 	var req ImportRequest
 	var body io.Reader
 	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
-		if err := r.ParseMultipartForm(maxImportBytes); err != nil {
+		r.Body = http.MaxBytesReader(w, r.Body, maxImportBytes+64<<10) // file + multipart envelope
+		if err := r.ParseMultipartForm(maxImportBytes); err != nil {   //nolint:gosec // G120: body capped by MaxBytesReader above
 			httpx.WriteError(w, r, errs.BadRequest("invalid_upload", "invalid upload"))
 			return
 		}
