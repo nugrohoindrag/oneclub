@@ -14,7 +14,7 @@ func TestP1CourseStructure(t *testing.T) {
 	gm := login(t, inst, "golf.manager@demo.oneclub.id", demoPassword)
 	var venue string
 	sysQueryRow(t, inst, `SELECT id::text FROM platform.venues WHERE property_id = $1 AND code = 'GOLF'`, []any{inst.Main}, &venue)
-	c := gm.Must(201, "POST", "/api/v1/golf/courses", map[string]any{"venueId": venue, "code": "PAR3", "name": "Par-3 Academy Course", "holes": 9}).JSON()
+	c := gm.Must(201, "POST", "/api/v1/golf/courses", map[string]any{"venueId": venue, "code": "ACADEMY9", "name": "Par-3 Academy Course", "holes": 9}).JSON()
 	cid := str(c["id"])
 	sec := gm.Must(201, "POST", "/api/v1/golf/course-sections", map[string]any{"courseId": cid, "code": "ALL", "name": "All Nine", "sequence": 1}).JSON()
 	gm.Must(200, "PATCH", "/api/v1/golf/course-sections/"+str(sec["id"]), map[string]any{"name": "Academy Nine"})

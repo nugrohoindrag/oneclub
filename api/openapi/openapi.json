@@ -42363,6 +42363,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "description": "Active property (EventSource cannot send X-Property-Id)",
+            "in": "query",
+            "name": "propertyId",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {

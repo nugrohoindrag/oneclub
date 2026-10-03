@@ -364,6 +364,10 @@ func (s *Server) authorize(ctx context.Context, r *http.Request, rt *route.Route
 
 	scope := dbtx.Scope{UserID: p.UserID}
 	propHeader := r.Header.Get("X-Property-Id")
+	if propHeader == "" && r.Method == http.MethodGet && rt.RawContent == "text/event-stream" {
+		// EventSource cannot send headers: streams name the property in the query
+		propHeader = r.URL.Query().Get("propertyId")
+	}
 	var active uuid.UUID
 	if propHeader != "" {
 		u, err := uuid.Parse(propHeader)

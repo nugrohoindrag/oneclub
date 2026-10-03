@@ -26565,6 +26565,8 @@ export interface operations {
             query?: {
                 courseId?: string;
                 date?: string;
+                /** @description Active property (EventSource cannot send X-Property-Id) */
+                propertyId?: string;
             };
             header: {
                 /** @description Active property chosen in the property switcher. */

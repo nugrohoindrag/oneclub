@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime, formatNumber, formatRelative, useTranslation } from '@oneclub/i18n';
 import {
@@ -74,14 +74,23 @@ export function ModulePage({ path }: { path: string }) {
 
 // ── Reports (EP-10) ───────────────────────────────────────────────────────
 
+const REPORT_GROUPS: Record<string, { title: string; match: (r: Schemas['ReportInfo']) => boolean }> = {
+  golf: { title: 'Golf Reports', match: (r) => r.module === 'golf' && r.code !== 'golf.bookings' && r.code !== 'golf.no_show_cancellation' },
+  booking: { title: 'Booking Reports', match: (r) => r.code === 'golf.bookings' || r.code === 'golf.no_show_cancellation' },
+  membership: { title: 'Membership Reports', match: (r) => r.module === 'membership' },
+  billing: { title: 'Operational Reports', match: (r) => r.module === 'billing' || r.module === 'platform' },
+};
+
 export function ReportsPage() {
   const reports = useGet<Page<Schemas['ReportInfo']>>('/api/v1/reporting/reports');
+  const [search] = useSearchParams();
+  const group = REPORT_GROUPS[search.get('module') ?? ''];
   return (
     <div className="oc-stack">
-      <PageHeader title="Reports" help="Reports run on the read replica so they never slow down transactions." />
+      <PageHeader title={group?.title ?? 'Reports'} help="Reports run on the read replica so they never slow down transactions." />
       {reports.isLoading && <Skeleton />}
       <div className="oc-grid">
-        {reports.data?.items.map((r) => (
+        {reports.data?.items.filter((r) => !group || group.match(r)).map((r) => (
           <Link key={r.code} to={`/reports/${r.code}`} className="oc-card" style={{ textDecoration: 'none' }}>
             <div className="oc-card-head"><span className="oc-icon-circle"><Icon name="table_chart" size={20} /></span><h3>{r.name}</h3></div>
             <div className="oc-small oc-muted">{r.description}</div>

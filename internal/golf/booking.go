@@ -1517,3 +1517,23 @@ func (m *Module) repricePlayer(ctx context.Context, tx pgx.Tx, property, booking
 	}
 	return addHistory(ctx, tx, property, bookingID, "price_changed", nil, map[string]any{"playerId": playerID, "total": res.Total, "snapshotId": sid}, reason)
 }
+
+// SetLegacyRef stores the Rhapsody booking reference of a migrated booking
+// (EP-18 FR-MIG-07) so the import can be re-run and reconciled.
+func SetLegacyRef(ctx context.Context, tx pgx.Tx, bookingID uuid.UUID, ref string) error {
+	_, err := tx.Exec(ctx, `UPDATE golf.bookings SET legacy_ref = $2 WHERE id = $1`, bookingID, ref)
+	return err
+}
+
+// BookingByLegacyRef returns the booking migrated with ref, if any.
+func BookingByLegacyRef(ctx context.Context, q dbtx.Querier, property uuid.UUID, ref string) (*uuid.UUID, error) {
+	var out uuid.UUID
+	err := q.QueryRow(ctx, `SELECT id FROM golf.bookings WHERE property_id = $1 AND legacy_ref = $2`, property, ref).Scan(&out)
+	if dbtx.IsNoRows(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}

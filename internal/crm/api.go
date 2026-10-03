@@ -443,3 +443,36 @@ func UpdateSelf(ctx context.Context, tx pgx.Tx, customerID uuid.UUID, u SelfUpda
 	return audit.Record(ctx, tx, audit.Entry{Module: "crm", Action: audit.ActionUpdate, EntityType: "crm.customer", EntityID: customerID.String(),
 		PropertyID: &property, After: map[string]any{"phoneChanged": u.Phone != nil, "marketingOptIn": u.MarketingOptIn, "consent": u.Consent}})
 }
+
+// ByLegacyRef resolves a migrated customer or corporate account by its
+// Rhapsody reference (EP-18). table is "customers" or "corporate_accounts".
+func ByLegacyRef(ctx context.Context, q dbtx.Querier, property uuid.UUID, table, ref string) (*uuid.UUID, error) {
+	if table != "customers" && table != "corporate_accounts" {
+		return nil, errs.BadRequest("invalid_table", "unknown CRM table")
+	}
+	var out uuid.UUID
+	err := q.QueryRow(ctx, `SELECT id FROM crm.`+table+` WHERE property_id = $1 AND legacy_ref = $2 AND archived_at IS NULL LIMIT 1`, property, ref).Scan(&out)
+	if dbtx.IsNoRows(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// LinkNominee records a customer as nominee of a corporate account
+// (idempotent; Rhapsody migration and membership activation).
+func LinkNominee(ctx context.Context, tx pgx.Tx, property, corporateID, customerID uuid.UUID, title string) error {
+	_, err := tx.Exec(ctx, `INSERT INTO crm.corporate_nominees (id, property_id, corporate_account_id, customer_id, title)
+		VALUES ($1,$2,$3,$4,$5) ON CONFLICT (corporate_account_id, customer_id) DO UPDATE SET status = 'active'`,
+		id.New(), property, corporateID, customerID, nullIfEmpty(title))
+	return err
+}
+
+func nullIfEmpty(s string) *string {
+	if s = strings.TrimSpace(s); s == "" {
+		return nil
+	}
+	return &s
+}

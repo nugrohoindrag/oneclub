@@ -1192,7 +1192,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/golf/tee-sheet", Tag: tt, Summary: "Tee Sheet grid (flights, players, check-in, caddy, golf cart, readiness)",
 		Permission: "golf.tee_sheet.view", Response: TeeSheet{}, Query: []route.Param{{Name: "date"}, {Name: "courseId", Required: true}}, Handler: m.teeSheetHTTP})
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/golf/tee-sheet/stream", Tag: tt, Summary: "Real-time tee sheet, starter, board and course status events (SSE)",
-		Permission: "golf.tee_sheet.view", RawContent: "text/event-stream", Query: []route.Param{{Name: "courseId"}, {Name: "date"}},
+		Permission: "golf.tee_sheet.view", RawContent: "text/event-stream", Query: []route.Param{{Name: "courseId"}, {Name: "date"}, {Name: "propertyId", Description: "Active property (EventSource cannot send X-Property-Id)"}},
 		Handler: m.Hub.Stream([]string{"golf"}, "courseId", "date")})
 	// holds & bookings
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/holds", Tag: tb, Summary: "Tee Hold (seats held until expiry)", Permission: "golf.booking.create",

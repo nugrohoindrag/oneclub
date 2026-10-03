@@ -1,6 +1,6 @@
 # OneClub
 
-Golf & country club platform — **P0 Platform Foundation (Release 0)**.
+Golf & country club platform — **P0 Platform Foundation** and **P1 Golf Core MVP (Release 1)** for Modern Golf & Country Club.
 
 | Part | Path | Stack |
 |---|---|---|
@@ -12,7 +12,9 @@ Golf & country club platform — **P0 Platform Foundation (Release 0)**.
 
 Product documents (PRD, Technical Documentation, Naming Convention, roadmap) live in `docs/product/` locally and are
 not committed. The original Morphic design system source is kept in `design-system/` (restored as `web/packages/ui`).
-P0 requirement → code → test mapping: [`docs/p0-traceability.md`](docs/p0-traceability.md).
+P0 requirement → code → test mapping: [`docs/p0-traceability.md`](docs/p0-traceability.md); P1:
+[`docs/p1-traceability.md`](docs/p1-traceability.md). Rhapsody migration: [`docs/migration/`](docs/migration/);
+go-live: [`docs/runbooks/production-readiness.md`](docs/runbooks/production-readiness.md).
 
 ## Quick start (local)
 
@@ -45,13 +47,21 @@ resolving generated-file and migration conflicts) and CI/CD setup: [`docs/runboo
 
 ```bash
 make unit                                  # Go unit + architecture boundary tests
-make e2e                                   # 41 acceptance tests on a real PostgreSQL (fresh instances per run)
+make e2e                                   # P0 + P1 acceptance tests on a real PostgreSQL (fresh instances per run)
 cd web && pnpm -r typecheck && pnpm -r test
-cd web && pnpm exec playwright test        # browser tests of every shell (needs running API + previews)
+cd web && pnpm exec playwright test        # browser tests of every shell + golf flow (needs running API + previews)
+k6 run test/load/teetime-rush.js           # load tests (see docs/runbooks/production-readiness.md §4)
 ```
+
+`oneclub seed-demo` (dev/staging) seeds the Modern Golf course (MGC, 18 holes, 6,350 m), tee sheet templates, the
+2026 rate card, membership types, caddies, golf carts, lockers, a demo member (`member@demo.oneclub.id`, Member No.
+D0001) and one staff user per P1 role (`golf.admin@`, `caddy.master@`, `front.desk@`, `reservation@`, `golf.staff@`,
+`membership@`, `membership.admin@demo.oneclub.id`).
 
 ## Binary commands
 
 ```
-oneclub api | worker | migrate up|status|down <module> | instance create|drop | seed-demo | openapi [-o file] | healthcheck | version
+oneclub api | worker | migrate up|status|down <module> | instance create|drop | seed-demo
+oneclub import rhapsody stage|validate|load|reconcile -property CODE [-dir DIR] [-out DIR]
+oneclub openapi [-o file] | healthcheck | version
 ```

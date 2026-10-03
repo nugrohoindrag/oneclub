@@ -1,10 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, Outlet, RouterProvider } from 'react-router';
+import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router';
 import '@oneclub/shell/shell.css';
 import {
   AppProviders, ApiKeysPage, ApprovalDetailPage, ApprovalWorkflowsPage, ApprovalsPage, AuditLogsPage, BackgroundJobsPage, BrandingPage, BridgeAgentsPage,
-  CoursesPage, CustomerInstancePage, DepartmentsPage, DevicesPage, EmployeesPage, ErrorBoundary, FeatureFlagsPage, FeaturesPage, IntegrationLogsPage,
+  CustomerInstancePage, DepartmentsPage, DevicesPage, EmployeesPage, ErrorBoundary, FeatureFlagsPage, FeaturesPage, IntegrationLogsPage,
   IntegrationsPage, LocalizationPage, LoginPage, MasterDataImportPage, NotFoundPage, NotificationHistoryPage, NotificationSettingsPage, NotificationsPage,
   OrganizationPage, PaymentMethodsPage, ProfilePage, PropertiesPage, RequirePermission, RequireShell, ResetPasswordPage, RolesPage, RulesPage, SidebarLayout,
   SystemSettingsPage, TaxServicePage, TopNavLayout, UsersPage, VenuesPage, ComingSoonPage,
@@ -12,6 +12,66 @@ import {
 import {
   DashboardPage, ExecutiveOverviewPage, ExportsPage, MODULE_PAGES, ModulePage, ReportRunPage, ReportsPage, SettingsHomePage,
 } from './pages';
+import {
+  AvailabilityPage, BookingHistoryPage, BookingNewPage, BookingsPage, CaddiesPage, CancellationsPage, CheckInPage, CoursePage, FlightsPage, GolfCartsPage,
+  GolfSettingsPage, PlayersPage, RainChecksPage, StarterPage, TeeSheetPage,
+} from './p1/golf';
+import {
+  ApplicationsPage, BookingPerformancePage, CardsPage, CorporateAccountsPage, Customer360Page, CustomerAccountsPage, CustomersPage, DepositsPage,
+  EffectiveDatesPage, FoliosPage, GolfPerformancePage, MemberChargesPage, MembersPage, MembershipHistoryPage, MembershipPerformancePage, PaymentsPage,
+  PricingRulesPage, RatePlansPage, ReconciliationPage, RefundsPage, RenewalsPage, packageCfg, programCfg, typeCfg,
+} from './p1/business';
+import { ResourcePage } from '@oneclub/shell';
+
+const rp = (perm: string, el: React.ReactNode) => <RequirePermission perm={perm}>{el}</RequirePermission>;
+
+/** P1 Golf Core MVP pages (PRD P1 §6.1). */
+const p1 = [
+  { path: 'golf', element: rp('golf.tee_sheet.view', <TeeSheetPage />) },
+  { path: 'golf/tee-sheet', element: rp('golf.tee_sheet.view', <TeeSheetPage />) },
+  { path: 'golf/bookings', element: rp('golf.booking.view', <BookingsPage />) },
+  { path: 'golf/bookings/new', element: rp('golf.booking.create', <BookingNewPage />) },
+  { path: 'golf/flights', element: rp('golf.flight.view', <FlightsPage />) },
+  { path: 'golf/players', element: rp('golf.booking.view', <PlayersPage />) },
+  { path: 'golf/caddies', element: rp('golf.caddy.view', <CaddiesPage />) },
+  { path: 'golf/golf-carts', element: rp('golf.golf_cart.view', <GolfCartsPage />) },
+  { path: 'golf/course', element: rp('golf.course.view', <CoursePage />) },
+  { path: 'golf/check-in', element: rp('golf.check_in.perform', <CheckInPage />) },
+  { path: 'golf/starter', element: rp('golf.starter.view', <StarterPage />) },
+  { path: 'golf/rain-checks', element: rp('golf.rain_check.view', <RainChecksPage />) },
+  { path: 'golf/settings', element: rp('golf.tee_sheet.view', <GolfSettingsPage />) },
+  { path: 'membership', element: rp('membership.member.view', <MembersPage />) },
+  { path: 'membership/members', element: rp('membership.member.view', <MembersPage />) },
+  { path: 'membership/programs', element: rp('membership.program.view', <ResourcePage cfg={programCfg} />) },
+  { path: 'membership/types', element: rp('membership.program.view', <ResourcePage cfg={typeCfg} />) },
+  { path: 'membership/packages', element: rp('membership.program.view', <ResourcePage cfg={packageCfg} />) },
+  { path: 'membership/applications', element: rp('membership.application.view', <ApplicationsPage />) },
+  { path: 'membership/cards', element: rp('membership.card.view', <CardsPage />) },
+  { path: 'membership/renewals', element: rp('membership.membership.view', <RenewalsPage />) },
+  { path: 'membership/history', element: rp('membership.membership.view', <MembershipHistoryPage />) },
+  { path: 'booking', element: rp('golf.booking.view', <BookingsPage title="All Bookings" noDate />) },
+  { path: 'booking/all', element: rp('golf.booking.view', <BookingsPage title="All Bookings" noDate />) },
+  { path: 'booking/availability', element: rp('golf.tee_sheet.view', <AvailabilityPage />) },
+  { path: 'booking/history', element: rp('golf.booking.view', <BookingHistoryPage />) },
+  { path: 'booking/cancellations', element: rp('golf.booking.view', <CancellationsPage />) },
+  { path: 'crm', element: rp('crm.customer.view', <CustomersPage />) },
+  { path: 'crm/customers', element: rp('crm.customer.view', <CustomersPage />) },
+  { path: 'crm/customer-360', element: rp('crm.customer_overview.view', <Customer360Page />) },
+  { path: 'crm/corporate-accounts', element: rp('crm.corporate_account.view', <CorporateAccountsPage />) },
+  { path: 'commercial', element: rp('commercial.pricing.view', <RatePlansPage />) },
+  { path: 'commercial/pricing/rate-plans', element: rp('commercial.pricing.view', <RatePlansPage />) },
+  { path: 'commercial/pricing/rules', element: rp('commercial.pricing.view', <PricingRulesPage />) },
+  { path: 'commercial/pricing/effective-dates', element: rp('commercial.pricing.view', <EffectiveDatesPage />) },
+  { path: 'billing', element: rp('billing.folio.view', <FoliosPage />) },
+  { path: 'billing/folios', element: rp('billing.folio.view', <FoliosPage />) },
+  { path: 'billing/customer-accounts', element: rp('billing.customer_account.view', <CustomerAccountsPage />) },
+  { path: 'billing/payments', element: rp('billing.payment.view', <PaymentsPage />) },
+  { path: 'billing/deposits', element: rp('billing.payment.view', <DepositsPage />) },
+  { path: 'billing/refunds', element: rp('billing.refund.view', <RefundsPage />) },
+  { path: 'billing/member-charges', element: rp('billing.customer_account.view', <MemberChargesPage />) },
+  { path: 'billing/reconciliation', element: rp('billing.reconciliation.view', <ReconciliationPage />) },
+];
+const P1_MODULES = new Set(['golf', 'membership', 'booking', 'crm', 'commercial']);
 
 const settings = [
   { path: 'settings', element: <SettingsHomePage /> },
@@ -21,7 +81,7 @@ const settings = [
   { path: 'settings/organization/employees', element: <RequirePermission perm="platform.employee.view"><EmployeesPage /></RequirePermission> },
   { path: 'settings/customer-instance', element: <RequirePermission perm="platform.instance.view"><CustomerInstancePage /></RequirePermission> },
   { path: 'settings/venues', element: <RequirePermission perm="platform.venue.view"><VenuesPage /></RequirePermission> },
-  { path: 'settings/courses', element: <RequirePermission perm="golf.course.view"><CoursesPage /></RequirePermission> },
+  { path: 'settings/courses', element: <Navigate to="/golf/course" replace /> },
   { path: 'settings/users', element: <RequirePermission perm="platform.user.view"><UsersPage /></RequirePermission> },
   { path: 'settings/roles', element: <RequirePermission perm="platform.role.view"><RolesPage /></RequirePermission> },
   { path: 'settings/features', element: <RequirePermission perm="platform.module.view"><FeaturesPage /></RequirePermission> },
@@ -57,9 +117,10 @@ const router = createBrowserRouter([
         element: <RequireShell shell="management"><TopNavLayout shell="management" home="/management" /></RequireShell>,
         children: [
           { index: true, element: <ExecutiveOverviewPage /> },
-          ...['golf', 'membership', 'booking', 'financial'].map((p) => ({
-            path: p, element: <ComingSoonPage title={`${p === 'booking' ? 'Booking' : p.charAt(0).toUpperCase() + p.slice(1)} Performance`} phase={p === 'financial' ? 'P2' : 'P1'} />,
-          })),
+          { path: 'golf', element: <GolfPerformancePage /> },
+          { path: 'membership', element: <MembershipPerformancePage /> },
+          { path: 'booking', element: <BookingPerformancePage /> },
+          { path: 'financial', element: <ComingSoonPage title="Financial Performance" phase="P2" /> },
           { path: '*', element: <NotFoundPage /> },
         ],
       },
@@ -70,7 +131,8 @@ const router = createBrowserRouter([
           { index: true, element: <DashboardPage /> },
           { path: 'approvals', element: <ApprovalsPage /> },
           { path: 'approvals/:id', element: <ApprovalDetailPage /> },
-          ...MODULE_PAGES.map((m) => ({ path: m.path, element: <ModulePage path={m.path} /> })),
+          ...p1,
+          ...MODULE_PAGES.filter((m) => !P1_MODULES.has(m.path)).map((m) => ({ path: m.path, element: <ModulePage path={m.path} /> })),
           { path: 'reports', element: <RequirePermission perm="reporting.report.view"><ReportsPage /></RequirePermission> },
           { path: 'reports/exports', element: <RequirePermission perm="reporting.export.create"><ExportsPage /></RequirePermission> },
           { path: 'reports/:code', element: <RequirePermission perm="reporting.report.view"><ReportRunPage /></RequirePermission> },

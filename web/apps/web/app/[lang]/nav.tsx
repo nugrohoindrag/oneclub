@@ -7,16 +7,19 @@ export function SiteNav({ lang, labels }: { lang: Lang; labels: Record<string, s
   const path = usePathname();
   const items: [string, string][] = [
     [`/${lang}`, labels.home],
-    [`/${lang}/location`, labels.location],
+    [`/${lang}/golf`, labels.golf],
+    [`/${lang}/membership`, labels.membership],
     [`/${lang}/contact`, labels.contact],
+    [`/${lang}/location`, labels.location],
   ];
   return (
     <nav className="w-nav" aria-label="Main">
       {items.map(([href, label]) => (
-        <a key={href} href={href} aria-current={path === href ? 'page' : undefined}>
+        <a key={href} href={href} aria-current={path === href || (href !== `/${lang}` && path.startsWith(href)) ? 'page' : undefined}>
           {label}
         </a>
       ))}
+      <a className="w-cta" href={`/${lang}/book-golf`}>{labels.book}</a>
     </nav>
   );
 }
