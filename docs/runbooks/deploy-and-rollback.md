@@ -6,7 +6,8 @@
 |---|---|
 | Pull request | Go lint + arch-lint, unit, migrations on empty DB, e2e on PostgreSQL, OpenAPI drift + breaking-change check, frontend typecheck/lint/test/build, Playwright browser tests |
 | Merge to `main` | Images `oneclub`, `oneclub-static`, `oneclub-web` tagged with the commit SHA → Trivy scan → push to GHCR → automatic deploy to **Dev** (once configured) |
-| Tag `vX.Y.Z` | Obfuscated backend (garble) + frontends without source maps → **Staging** + Playwright → **Production** per instance after manual approval |
+| Merge `main` → `staging` | Obfuscated backend (garble) + frontends without source maps, built once (`<sha>-vps`) → **Staging** + Playwright |
+| Tag `vX.Y.Z` on `staging` | The Staging-tested images are promoted to `vX.Y.Z` (no rebuild) → **Production** per instance after manual approval |
 
 Obfuscation is applied only to VPS builds (Technical Doc §9.4). Secrets, variables and branch protection:
 [ci-cd.md](ci-cd.md).

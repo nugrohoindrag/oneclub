@@ -29,9 +29,12 @@ set -a
 source .env.local
 set +a
 
-./bin/oneclub seed-demo | tee "$LOGS/seed.txt"
+# The device token is a credential: keep it out of the (public) job log.
+./bin/oneclub seed-demo > "$LOGS/seed.txt"
 token="$(sed -n 's/.*Demo POS device token (shown once): *//p' "$LOGS/seed.txt")"
 echo "::add-mask::$token"
+sed -i '/device token/d' "$LOGS/seed.txt"
+cat "$LOGS/seed.txt"
 echo "DEMO_DEVICE_TOKEN=$token" >> "${GITHUB_ENV:-/dev/null}"
 
 nohup ./bin/oneclub api > "$LOGS/api.log" 2>&1 &

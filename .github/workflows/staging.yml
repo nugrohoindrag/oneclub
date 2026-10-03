@@ -1,0 +1,124 @@
+# Staging (Technical Doc §12.2). The `staging` branch is promoted from `main`
+# (pull request main → staging). Every push builds the VPS images once —
+# backend obfuscated with garble, frontends without source maps (§9.4) —
+# tagged <sha>-vps, deploys them to Staging and runs the browser tests there.
+# A release tag on a staging commit later promotes exactly these images to
+# Production (release.yml) without rebuilding.
+name: staging
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+concurrency:
+  group: staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ${{ vars.REGISTRY || format('ghcr.io/{0}', github.repository_owner) }}
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.t.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: t
+        run: echo "tag=${GITHUB_SHA}-vps" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USER || github.actor }}
+          password: ${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}
+      - name: Backend (obfuscated with garble)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile
+          build-args: |
+            VERSION=${{ github.sha }}
+            OBFUSCATE=true
+            GARBLE_SEED=${{ secrets.GARBLE_SEED || 'random' }}
+          tags: ${{ env.REGISTRY }}/oneclub:${{ steps.t.outputs.tag }}
+          load: true
+      - name: Scan backend image (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/oneclub:${{ steps.t.outputs.tag }}
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+      - name: Obfuscated binary starts
+        run: docker run --rm "$REGISTRY/oneclub:${{ steps.t.outputs.tag }}" version
+      - name: Push backend image
+        run: docker push "$REGISTRY/oneclub:${{ steps.t.outputs.tag }}"
+      - name: Static shells (no source maps)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.web
+          target: static
+          build-args: SOURCEMAPS=false
+          tags: ${{ env.REGISTRY }}/oneclub-static:${{ steps.t.outputs.tag }}
+          push: true
+          cache-from: type=gha,scope=web-vps
+          cache-to: type=gha,mode=max,scope=web-vps
+      - name: Website (no source maps)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.web
+          target: web
+          build-args: SOURCEMAPS=false
+          tags: ${{ env.REGISTRY }}/oneclub-web:${{ steps.t.outputs.tag }}
+          push: true
+          cache-from: type=gha,scope=web-vps
+
+  deploy:
+    if: vars.STAGING_INSTANCE != ''
+    needs: [images]
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to Staging
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: deploy
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: /srv/oneclub/scripts/deploy.sh ${{ vars.STAGING_INSTANCE }} ${{ needs.images.outputs.tag }}
+      - name: Prepare browser-test accounts on Staging
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          HOST: ${{ secrets.STAGING_HOST }}
+        run: |
+          install -m 600 /dev/null "$RUNNER_TEMP/key" && printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/key"
+          ssh -i "$RUNNER_TEMP/key" -o StrictHostKeyChecking=accept-new "deploy@$HOST" \
+            /srv/oneclub/scripts/e2e-setup.sh "${{ vars.STAGING_INSTANCE }}" < web/e2e/setup.sql
+          rm -f "$RUNNER_TEMP/key"
+      - uses: pnpm/action-setup@v4
+        with: { package_json_file: web/package.json }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: pnpm, cache-dependency-path: web/pnpm-lock.yaml }
+      - name: Browser tests against Staging (obfuscated build)
+        working-directory: web
+        env:
+          E2E_SKIP_SETUP: "1"
+          E2E_BACKOFFICE: ${{ vars.STAGING_BACKOFFICE_URL }}
+          E2E_MEMBER: ${{ vars.STAGING_MEMBER_URL }}
+          E2E_OPS: ${{ vars.STAGING_OPS_URL }}
+          E2E_PLATFORM_ADMIN: ${{ vars.STAGING_PLATFORM_ADMIN_URL }}
+          E2E_WEB: ${{ vars.STAGING_WEB_URL }}
+          E2E_PASSWORD: ${{ secrets.STAGING_DEMO_PASSWORD }}
+          DEMO_DEVICE_TOKEN: ${{ secrets.STAGING_DEVICE_TOKEN }}
+        run: pnpm install --frozen-lockfile && pnpm e2e

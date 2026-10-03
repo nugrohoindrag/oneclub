@@ -8,16 +8,39 @@ Repository: https://github.com/textedoh/oneclub · workflows in `.github/workflo
 |---|---|---|
 | `ci` | every pull request, push to `main`, manual | `lint` (golangci-lint + depguard architecture rules) · `backend` (unit + race, migrations, 41 API acceptance tests on PostgreSQL 18, OpenAPI drift + breaking-change check on PRs) · `frontend` (API-client drift, typecheck, lint, unit tests, build) · `browser` (full stack on the runner + Playwright for every shell) |
 | `ci` (main only) | push to `main` after all checks pass | `images` → build, Trivy scan, push `oneclub`, `oneclub-static`, `oneclub-web` tagged with the commit SHA · `deploy-dev` (only when Dev is configured) |
-| `release` | tag `vX.Y.Z` | obfuscated backend + frontends without source maps → GitHub release → `staging` deploy + browser tests → `production` per instance after manual approval |
+| `staging` | push to branch `staging` | VPS images built once — backend obfuscated (garble), frontends without source maps — tagged `<sha>-vps`, Trivy scan, smoke start → deploy to Staging + browser tests (once configured) |
+| `release` | tag `vX.Y.Z` on a `staging` commit | promotes that commit's `<sha>-vps` images to `vX.Y.Z` (no rebuild — Production runs exactly what Staging tested) → GitHub release → `production` per instance after manual approval |
 
 Images go to GitHub Container Registry (`ghcr.io/textedoh/…`) with the built-in `GITHUB_TOKEN`; set
 `vars.REGISTRY` + `secrets.REGISTRY_USER/REGISTRY_PASSWORD` to use another registry.
 
 Deploy jobs are skipped until their server is configured, so CI is green before hosting exists (Open Question #1).
 
-## Working in parallel (P1 / P2)
+## Branches and promotion
 
-1. Branch from `main`: `feat/p1-<topic>` or `feat/p2-<topic>`; keep branches short-lived and rebase on `main` often.
+```text
+feat/pN-<topic> ──PR──▶ main ──PR──▶ staging ──tag vX.Y.Z──▶ Production
+                        (Dev)        (Staging)               (manual approval)
+```
+
+| Branch | Environment | Who merges | How |
+|---|---|---|---|
+| `feat/pN-*` | — (CI on the PR) | developer | short-lived, one feature |
+| `main` | Dev (automatic) | both developers | PR with green CI + 1 approval, squash merge |
+| `staging` | Staging (automatic) | release owner | PR `main → staging` (merge commit, never squash) when a set of features is ready for UAT |
+| tag `vX.Y.Z` | Production | release owner | `git tag vX.Y.Z origin/staging && git push origin vX.Y.Z` after UAT sign-off; approve the `production` environment |
+
+Rules: nothing is committed to `staging` directly — it only receives `main`. A fix found on Staging is made on a
+`feat/*` branch → `main` → promoted to `staging` again, so `main` always contains everything that is on Staging.
+
+## Working in parallel (P1–P6)
+
+Phases are built in pairs by two developers at the same time: P1 ‖ P2, then P3 ‖ P4, then P5 ‖ P6
+(Technical Documentation §12.3). Each pair branches from a `main` that already contains the previous pair.
+
+1. Branch from `main` per feature, prefixed with the phase: `feat/p1-<topic>`, `feat/p2-<topic>`, … `feat/p6-<topic>`.
+   Keep branches short-lived (days, not weeks) and rebase on `main` often — small, early merges keep two phases
+   from drifting apart.
 2. Open a pull request; merge only when `lint`, `backend`, `frontend` and `browser` are green
    (enforced by branch protection — see below). Squash merge keeps `main` linear.
 3. Typical conflict points and how to resolve them:
@@ -30,11 +53,14 @@ Deploy jobs are skipped until their server is configured, so CI is green before 
      keep entries in the existing order and resolve by keeping both sides.
 4. Before pushing: `make lint unit` (and `make e2e` when touching API/DB code).
 
-## Branch protection for `main` (recommended)
+## Branch protection (recommended)
 
-Settings → Branches → Add rule for `main`:
-require a pull request (1 approval), require status checks `lint`, `backend`, `frontend`, `browser`,
-require branches to be up to date, block force pushes.
+Settings → Branches → Add rule:
+
+- `main`: require a pull request (1 approval), require status checks `lint`, `backend`, `frontend`, `browser`,
+  require branches to be up to date, block force pushes and deletion.
+- `staging`: require a pull request (from `main` only, by convention), require the same status checks,
+  block force pushes and deletion.
 
 ## Configuration when servers exist
 

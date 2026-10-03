@@ -176,10 +176,13 @@ test('Ops: device + PIN login, works offline and syncs the queue when back onlin
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByText('Shift note')).toBeVisible();
-  // 2. Chrome's network emulation does not flip navigator.onLine for
-  //    service-worker pages, so the app's own offline switch is used too.
+  // 2. Chrome on Windows does not flip navigator.onLine for service-worker
+  //    pages under network emulation (Linux does), so the app's own offline
+  //    switch is used when the app still believes it is online.
   await page.getByRole('link', { name: /pending/ }).click();
-  await page.getByRole('button', { name: 'Simulate offline' }).click();
+  await expect(page.getByRole('button', { name: /Simulate offline|Go back online/ })).toBeVisible();
+  const simulate = page.getByRole('button', { name: 'Simulate offline' });
+  if (await simulate.isVisible()) await simulate.click();
   await expect(page.getByRole('link', { name: /^Offline/ })).toBeVisible();
   await page.locator('.oc-brand').click();
   // 3. The action is queued locally.
@@ -191,7 +194,9 @@ test('Ops: device + PIN login, works offline and syncs the queue when back onlin
   await expect(row.locator('.oc-status')).toHaveText('Pending');
   // 4. Back online → the queue syncs to the server.
   await context.setOffline(false);
-  await page.getByRole('button', { name: 'Go back online' }).click();
+  // Where the browser reported offline itself, the 'online' event already
+  // resumes sync and the button may disappear.
+  await page.getByRole('button', { name: 'Go back online' }).click({ timeout: 3_000 }).catch(() => undefined);
   await expect(row.locator('.oc-status')).toHaveText('Completed', { timeout: 20_000 });
 });
 
