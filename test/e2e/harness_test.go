@@ -197,6 +197,7 @@ func stop(in *Instance) {
 	_ = in.App.Jobs.River.Stop(sctx)
 	c()
 	in.cancel()
+	in.App.Hub.Stop()
 	in.Server.Close()
 	in.DB.Close()
 	if os.Getenv("ONECLUB_KEEP_TEST_DB") == "" {

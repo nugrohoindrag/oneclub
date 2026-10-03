@@ -38,6 +38,33 @@ linters:
             - { pkg: "oneclub/internal/procurement", desc: "platform must not depend on business modules" }
             - { pkg: "oneclub/internal/reporting", desc: "platform must not depend on business modules" }
             - { pkg: "oneclub/internal/app", desc: "only cmd wires the application" }
+        # Layers: business line → shared core → customer → back office →
+        # foundation. Upward dependencies use domain events.
+        shared-core:
+          files: ["**/internal/membership/**", "**/internal/reservation/**", "**/internal/commercial/**", "**/internal/billing/**"]
+          deny:
+            - { pkg: "oneclub/internal/golf", desc: "shared core must not depend on a business line; use domain events" }
+            - { pkg: "oneclub/internal/sportclub", desc: "shared core must not depend on a business line" }
+            - { pkg: "oneclub/internal/app", desc: "only cmd wires the application" }
+        customer:
+          files: ["**/internal/crm/**"]
+          deny:
+            - { pkg: "oneclub/internal/golf", desc: "crm must not depend on upper layers; use domain events" }
+            - { pkg: "oneclub/internal/membership", desc: "crm must not depend on upper layers" }
+            - { pkg: "oneclub/internal/billing", desc: "crm must not depend on upper layers" }
+            - { pkg: "oneclub/internal/commercial", desc: "crm must not depend on upper layers" }
+            - { pkg: "oneclub/internal/reservation", desc: "crm must not depend on upper layers" }
+            - { pkg: "oneclub/internal/app", desc: "only cmd wires the application" }
+        reporting:
+          files: ["**/internal/reporting/**"]
+          deny:
+            - { pkg: "oneclub/internal/golf", desc: "reporting reads read models only" }
+            - { pkg: "oneclub/internal/membership", desc: "reporting reads read models only" }
+            - { pkg: "oneclub/internal/billing", desc: "reporting reads read models only" }
+            - { pkg: "oneclub/internal/commercial", desc: "reporting reads read models only" }
+            - { pkg: "oneclub/internal/crm", desc: "reporting reads read models only" }
+            - { pkg: "oneclub/internal/reservation", desc: "reporting reads read models only" }
+            - { pkg: "oneclub/internal/app", desc: "only cmd wires the application" }
   exclusions:
     # Unchecked Close/Flush/Remove/print errors are idiomatic in defer paths.
     presets: [std-error-handling]

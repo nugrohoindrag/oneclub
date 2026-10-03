@@ -101,6 +101,7 @@ func runAPI() error {
 	}
 	srv := &http.Server{Addr: cfg.HTTPAddr, Handler: a.Server.Handler(), ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout: 60 * time.Second, WriteTimeout: 120 * time.Second, IdleTimeout: 120 * time.Second}
+	srv.RegisterOnShutdown(a.Hub.Stop) // end SSE streams so in-flight requests drain
 	ctx, stop := signalContext()
 	defer stop()
 	errCh := make(chan error, 1)

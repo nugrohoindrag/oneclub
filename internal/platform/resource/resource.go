@@ -72,6 +72,9 @@ type Hooks struct {
 	BeforeWrite func(ctx context.Context, tx pgx.Tx, values map[string]any, before map[string]any) error
 	AfterCreate func(ctx context.Context, tx pgx.Tx, row map[string]any) error
 	AfterUpdate func(ctx context.Context, tx pgx.Tx, before, after map[string]any) error
+	// AfterRead adjusts a row before it leaves the API (list, view, export),
+	// e.g. masking personal data the caller may not see (UU PDP).
+	AfterRead func(ctx context.Context, row map[string]any)
 }
 
 // Def defines one resource.

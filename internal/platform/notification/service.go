@@ -101,12 +101,17 @@ func (s *Service) Send(ctx context.Context, tx pgx.Tx, m notify.Message) error {
 			return err
 		}
 	}
-	if m.Email != "" {
+	if m.Email != "" || m.Phone != "" {
 		loc := m.Locale
 		if loc == "" {
 			loc = defLocale
 		}
-		recips = append(recips, recipient{Email: m.Email, Locale: loc})
+		r := recipient{Email: m.Email, Name: m.Name, Locale: loc}
+		if m.Phone != "" {
+			ph := m.Phone
+			r.Phone = &ph
+		}
+		recips = append(recips, r)
 	}
 	for _, r := range recips {
 		optedOut := map[string]bool{}
@@ -136,11 +141,14 @@ func (s *Service) Send(ctx context.Context, tx pgx.Tx, m notify.Message) error {
 			if ch == notify.ChannelInApp && r.ID == uuid.Nil {
 				continue
 			}
+			if ch == notify.ChannelEmail && r.Email == "" {
+				continue
+			}
 			subject, body, err := s.render(ctx, tx, m.Event, ch, r.Locale, data)
 			if err != nil {
 				return err
 			}
-			if err := s.queue(ctx, tx, m, r, ch, subject, body); err != nil {
+			if err := s.queue(ctx, tx, m, r, ch, subject, body, data); err != nil {
 				return err
 			}
 		}
@@ -148,7 +156,7 @@ func (s *Service) Send(ctx context.Context, tx pgx.Tx, m notify.Message) error {
 	return nil
 }
 
-func (s *Service) queue(ctx context.Context, tx pgx.Tx, m notify.Message, r recipient, ch, subject, body string) error {
+func (s *Service) queue(ctx context.Context, tx pgx.Tx, m notify.Message, r recipient, ch, subject, body string, data map[string]any) error {
 	did := id.New()
 	var uid *uuid.UUID
 	if r.ID != uuid.Nil {
@@ -175,9 +183,13 @@ func (s *Service) queue(ctx context.Context, tx pgx.Tx, m notify.Message, r reci
 			}
 			to = *r.Phone
 		}
+		payload := map[string]any{}
+		for k, v := range data {
+			payload[k] = fmt.Sprint(v)
+		}
 		if _, err := tx.Exec(ctx, `INSERT INTO platform.notification_deliveries (id, user_id, event_code, category, channel, locale,
-			recipient, subject, body, status) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'pending')`,
-			did, uid, m.Event, m.Category, ch, r.Locale, to, subject, body); err != nil {
+			recipient, subject, body, status, payload) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'pending',$10)`,
+			did, uid, m.Event, m.Category, ch, r.Locale, to, subject, body, payload); err != nil {
 			return err
 		}
 		jid, err := s.Jobs.Insert(ctx, tx, DeliverArgs{DeliveryID: did}, nil)

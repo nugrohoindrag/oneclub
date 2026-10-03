@@ -180,6 +180,15 @@ func Calculate(rules []Rule, amount decimal.Decimal, currency string, at time.Ti
 	if len(rules) > 0 {
 		mode = rules[0].PricingMode
 	}
+	return CalculateMode(rules, amount, currency, at, mode)
+}
+
+// CalculateMode is Calculate with an explicit Nett / ++ mode (a rate plan
+// decides whether its prices include tax & service, FR-PRC-06).
+func CalculateMode(rules []Rule, amount decimal.Decimal, currency string, at time.Time, mode string) Breakdown {
+	if mode != "nett" {
+		mode = "plus_plus"
+	}
 	hundred := decimal.NewFromInt(100)
 	// factor(net=1): total per unit of net
 	compute := func(net decimal.Decimal, round bool) ([]decimal.Decimal, decimal.Decimal) {
@@ -273,6 +282,10 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	eng.Register(reg, TaxServiceRules)
 	eng.Register(reg, Products)
 	eng.Register(reg, Outlets)
+	for _, d := range []*resource.Def{DayTypes, TimeBands, RatePlans, PricingRules} {
+		eng.Register(reg, d)
+	}
+	m.registerPricing(reg)
 	reg.Add(route.Route{Method: http.MethodPost, Path: "/api/v1/commercial/tax-service-rules:calculate", Module: "commercial", Tag: "Tax & Service",
 		Summary: "Calculate tax and service for an amount at a point in time", Permission: "commercial.tax_service.view",
 		Scope: route.ScopeProperty, Request: CalculateRequest{}, Response: Breakdown{}, Status: http.StatusOK,
@@ -281,17 +294,26 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 
 // Contribution returns catalogue entries.
 func Contribution() catalog.Contribution {
+	pricingAll := append(resource.AllActions(DayTypes), "commercial.price_override.apply", "commercial.price_override.approve_any")
 	return catalog.Contribution{
-		Permissions: append(append(catalog.P("commercial", "tax_service", "view", "create", "update", "export"),
-			resource.Permissions(Products)...), resource.Permissions(Outlets)...),
+		Permissions: append(append(append(append(catalog.P("commercial", "tax_service", "view", "create", "update", "export"),
+			resource.Permissions(Products)...), resource.Permissions(Outlets)...), resource.Permissions(DayTypes)...),
+			catalog.P("commercial", "price_override", "apply", "approve_any")...),
 		RolePermissions: map[string][]string{
-			"property_admin":  append([]string{"commercial.tax_service.view", "commercial.tax_service.create", "commercial.tax_service.update", "commercial.tax_service.export"}, resource.AllActions(Products, Outlets)...),
-			"finance_manager": {"commercial.tax_service.view", "commercial.tax_service.create", "commercial.tax_service.update"},
-			"accountant":      {"commercial.tax_service.view"},
-			"outlet_manager":  {"commercial.product.view", "commercial.outlet.view"},
-			"cashier":         {"commercial.outlet.view"},
-			"pos_staff":       {"commercial.outlet.view"},
-			"kitchen_staff":   {"commercial.outlet.view"},
+			"property_admin":    append(append([]string{"commercial.tax_service.view", "commercial.tax_service.create", "commercial.tax_service.update", "commercial.tax_service.export"}, resource.AllActions(Products, Outlets)...), pricingAll...),
+			"finance_manager":   append([]string{"commercial.tax_service.view", "commercial.tax_service.create", "commercial.tax_service.update"}, pricingAll...),
+			"accountant":        {"commercial.tax_service.view", "commercial.pricing.view", "commercial.pricing.export"},
+			"general_manager":   {"commercial.pricing.view", "commercial.price_override.apply"},
+			"club_manager":      {"commercial.pricing.view", "commercial.price_override.apply"},
+			"golf_manager":      {"commercial.pricing.view", "commercial.pricing.create", "commercial.pricing.update", "commercial.pricing.export", "commercial.price_override.apply"},
+			"golf_admin":        {"commercial.pricing.view"},
+			"reservation_staff": {"commercial.pricing.view"},
+			"front_desk":        {"commercial.pricing.view"},
+			"membership_admin":  {"commercial.pricing.view"},
+			"outlet_manager":    {"commercial.product.view", "commercial.outlet.view"},
+			"cashier":           {"commercial.outlet.view"},
+			"pos_staff":         {"commercial.outlet.view"},
+			"kitchen_staff":     {"commercial.outlet.view"},
 		},
 	}
 }

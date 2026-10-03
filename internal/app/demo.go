@@ -50,7 +50,8 @@ type DemoResult struct {
 // SeedDemo creates demo data in an existing instance (idempotent).
 func SeedDemo(ctx context.Context, db *dbtx.DB) (*DemoResult, error) {
 	ctx = dbtx.System(ctx)
-	res := &DemoResult{Properties: map[string]uuid.UUID{}, Users: DemoUsers}
+	users := append(append([]DemoUser{}, DemoUsers...), P1DemoUsers...)
+	res := &DemoResult{Properties: map[string]uuid.UUID{}, Users: users}
 	hash, err := password.Hash(DemoPassword)
 	if err != nil {
 		return nil, err
@@ -102,7 +103,7 @@ func SeedDemo(ctx context.Context, db *dbtx.DB) (*DemoResult, error) {
 		}
 
 		// users
-		for _, u := range DemoUsers {
+		for _, u := range users {
 			uid := id.New()
 			if err := tx.QueryRow(ctx, `INSERT INTO platform.users (id, email, full_name, password_hash, password_changed_at, pin_hash, locale)
 				VALUES ($1,$2,$3,$4,now(),$5,'id') ON CONFLICT (email) DO UPDATE SET full_name = EXCLUDED.full_name RETURNING id`,
@@ -119,6 +120,10 @@ func SeedDemo(ctx context.Context, db *dbtx.DB) (*DemoResult, error) {
 				ON CONFLICT DO NOTHING`, id.New(), uid, pid, u.Role); err != nil {
 				return err
 			}
+		}
+
+		if err := seedGolfDemo(ctx, tx, main); err != nil {
+			return fmt.Errorf("golf demo: %w", err)
 		}
 
 		// approval workflows: Test Approval (2 steps, step 2 only above
@@ -139,6 +144,10 @@ func SeedDemo(ctx context.Context, db *dbtx.DB) (*DemoResult, error) {
 				{2, "Finance approval above IDR 10,000,000", "finance_manager", []map[string]any{{"attribute": "amount", "operator": "gt", "value": 10000000}}, &sla},
 			}},
 			{"venue_activation", "Venue Activation", []step{{1, "General Manager approval", "general_manager", nil, &sla}}},
+			{"membership_application", "Membership Application", []step{{1, "Membership Manager approval", "membership_manager", nil, &sla}}},
+			{"refund", "Refund", []step{{1, "Finance Manager approval", "finance_manager", nil, &sla}}},
+			{"price_override", "Golf Price Override", []step{{1, "Golf Manager approval", "golf_manager", nil, &sla}}},
+			{"cancellation_waiver", "Cancellation / No-show Fee Waiver", []step{{1, "Golf Manager approval", "golf_manager", nil, &sla}}},
 		} {
 			var exists bool
 			if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM platform.approval_workflows WHERE document_type = $1)`, wf.doc).Scan(&exists); err != nil {

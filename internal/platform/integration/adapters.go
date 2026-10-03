@@ -116,6 +116,13 @@ func (m *mockPayment) GetPayment(ctx context.Context, externalID string) (Paymen
 	return out, err
 }
 
+// RefundPayment refunds through the sandbox gateway.
+func (m *mockPayment) RefundPayment(ctx context.Context, externalID, amount, reason string) (string, error) {
+	out := "mockrefund_" + id.New().String()
+	return out, timed(m.env, ctx, "refund_payment", map[string]any{"externalId": externalID, "amount": amount, "reason": reason},
+		func() (any, int, error) { return map[string]any{"refundId": out}, 201, nil })
+}
+
 func (m *mockPayment) TestConnection(ctx context.Context) (string, error) {
 	err := timed(m.env, ctx, "test_connection", nil, func() (any, int, error) { return map[string]any{"ok": true}, 200, nil })
 	return "Mock payment gateway reachable (" + m.env.Mode + ")", err

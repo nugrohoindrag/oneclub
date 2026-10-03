@@ -153,6 +153,17 @@ func (f *Files) Save(ctx context.Context, tx pgx.Tx, filename, contentType, purp
 	return out, err
 }
 
+// Open returns the content and file name of a stored file (modules stream
+// private files they own, e.g. member statement PDFs).
+func (f *Files) Open(ctx context.Context, fid uuid.UUID) (io.ReadCloser, string, error) {
+	var key, name string
+	if err := f.DB.Primary.QueryRow(ctx, `SELECT storage_key, filename FROM platform.files WHERE id = $1`, fid).Scan(&key, &name); err != nil {
+		return nil, "", err
+	}
+	rc, err := f.Blob.Get(ctx, key)
+	return rc, name, err
+}
+
 var allowedBranding = map[string]bool{"image/png": true, "image/jpeg": true, "image/webp": true, "image/svg+xml": true, "image/x-icon": true, "image/vnd.microsoft.icon": true}
 
 // upload accepts branding images (logo, favicon, login photo).

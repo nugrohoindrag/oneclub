@@ -43,7 +43,7 @@ type Integration struct {
 	Code             string         `json:"code"`
 	Adapter          string         `json:"adapter"`
 	AdapterName      string         `json:"adapterName"`
-	Capability       string         `json:"capability" enum:"payment,messaging,email,tax_invoice,resident_data,hardware"`
+	Capability       string         `json:"capability" enum:"payment,messaging,email,tax_invoice,resident_data,hardware,captcha"`
 	Name             string         `json:"name"`
 	Enabled          bool           `json:"enabled"`
 	Mode             string         `json:"mode" enum:"sandbox,production"`
@@ -621,6 +621,33 @@ func (h *HTTP) webhook(w http.ResponseWriter, r *http.Request) {
 	httpx.JSON(w, http.StatusOK, ack)
 }
 
+// webhookChallenge answers a GET handshake for adapters that need one.
+func (h *HTTP) webhookChallenge(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec, err := h.Svc.load(ctx, h.Svc.DB.Primary, `code = $1 AND enabled`, chi.URLParam(r, "integration"))
+	if err != nil {
+		httpx.WriteError(w, r, errs.NotFound("integration"))
+		return
+	}
+	adapter, err := h.Svc.instantiate(ctx, rec)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	c, ok := adapter.(WebhookChallenger)
+	if !ok {
+		httpx.WriteError(w, r, errs.NotFound("webhook endpoint"))
+		return
+	}
+	answer, ok := c.Challenge(r.URL.Query())
+	if !ok {
+		httpx.WriteError(w, r, errs.Forbidden("verification failed"))
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain")
+	_, _ = w.Write([]byte(answer))
+}
+
 // Register adds the integration routes (PRD §10 Integration).
 func (h *HTTP) Register(reg *route.Registry) {
 	const tag = "Integrations"
@@ -644,5 +671,7 @@ func (h *HTTP) Register(reg *route.Registry) {
 		Query: []route.Param{{Name: "q"}, {Name: "filter[integrationCode]"}, {Name: "filter[direction]"}, {Name: "filter[success]"}}, Handler: h.logs})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/webhooks/{integration}", Summary: "Inbound webhook (signature verified)",
 		Auth: route.AuthSignature, Response: WebhookAck{}, Status: http.StatusOK, Handler: h.webhook})
+	add(route.Route{Method: http.MethodGet, Path: "/api/v1/webhooks/{integration}", Summary: "Webhook subscription handshake (e.g. WhatsApp Cloud API verify token)",
+		Auth: route.AuthSignature, RawContent: "text/plain", Handler: h.webhookChallenge})
 	h.registerBridge(reg)
 }

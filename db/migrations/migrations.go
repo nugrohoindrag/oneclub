@@ -7,17 +7,20 @@ import "embed"
 //go:embed */*.sql
 var FS embed.FS
 
-// Order is the module apply order (dependencies first). Every module keeps
-// its own goose version table, public.goose_<module>.
+// Order is the module apply order (dependencies first, following the layers
+// of Technical Doc §4.1 from the bottom up). Every module keeps its own goose
+// version table, public.goose_<module>, so reordering never re-applies a
+// migration; it only matters for foreign keys between schemas on a fresh
+// database.
 var Order = []string{
 	"platform",
 	"audit",
-	"golf",
+	"crm",
 	"billing",
 	"commercial",
-	"reservation",
-	"crm",
 	"membership",
+	"reservation",
+	"golf",
 	"sportclub",
 	"procurement",
 	"reporting",
