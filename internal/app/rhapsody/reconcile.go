@@ -64,7 +64,10 @@ func Metrics(ctx context.Context, tx pgx.Tx, property uuid.UUID) (map[string]str
 		}
 		out["active_members:"+code] = fmt.Sprint(n)
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return out, p2Metrics(ctx, tx, property, out)
 }
 
 // ReadTotals reads the Rhapsody control totals (metric,value per line).

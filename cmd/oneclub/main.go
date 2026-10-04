@@ -7,7 +7,6 @@
 //	oneclub seed-demo                demo data for dev/staging
 //	oneclub import rhapsody <step>   Rhapsody migration: stage|validate|load|reconcile (EP-18)
 //	oneclub openapi [-o file]        write the OpenAPI document
-//	oneclub import rhapsody|sign-off data migration (staging → validate → load → reconcile)
 //	oneclub healthcheck              container health check
 //	oneclub version
 package main
@@ -58,8 +57,6 @@ func main() {
 		err = runImport(args)
 	case "openapi":
 		err = runOpenAPI(args)
-	case "import":
-		err = runImport(args)
 	case "healthcheck":
 		err = runHealthcheck()
 	case "version":
@@ -126,9 +123,7 @@ func runAPI() error {
 	slog.Info("api shutting down")
 	sctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	err = srv.Shutdown(sctx)
-	a.Realtime.Close()
-	return err
+	return srv.Shutdown(sctx)
 }
 
 func runWorker() error {
@@ -404,7 +399,8 @@ func runImport(args []string) error {
 	if err != nil {
 		return err
 	}
-	d := &rhapsody.Deps{DB: db, Engine: a.Engine, Golf: a.Golf, Billing: a.Billing, Location: a.Instance.Location}
+	d := &rhapsody.Deps{DB: db, Engine: a.Engine, Golf: a.Golf, Billing: a.Billing, Location: a.Instance.Location,
+		P2: rhapsody.P2Deps{Vouchers: a.Vouchers, Reservations: a.Reservations, Experience: a.Experience}}
 	switch step {
 	case "validate":
 		issues, err := d.Validate(ctx, property)
