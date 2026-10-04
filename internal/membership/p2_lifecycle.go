@@ -1047,8 +1047,11 @@ func (m *Module) RemoveMember(ctx context.Context, tx pgx.Tx, mid, coveredID uui
 	}
 	var memberID uuid.UUID
 	var role string
-	if err := tx.QueryRow(ctx, `UPDATE membership.memberships SET status = 'inactive', ends_on = least(coalesce(ends_on, current_date), current_date)
-		WHERE id = $1 AND principal_id = $2 AND status <> 'inactive' RETURNING member_id, role`, coveredID, mid).Scan(&memberID, &role); err != nil {
+	// The club's date, not current_date: the database runs in UTC, which is
+	// still yesterday in the early morning (UTC+7) for a member added today.
+	t := today(ctx, tx, l.PropertyID)
+	if err := tx.QueryRow(ctx, `UPDATE membership.memberships SET status = 'inactive', ends_on = least(coalesce(ends_on, $3::date), $3::date)
+		WHERE id = $1 AND principal_id = $2 AND status <> 'inactive' RETURNING member_id, role`, coveredID, mid, t).Scan(&memberID, &role); err != nil {
 		if dbtx.IsNoRows(err) {
 			return Membership{}, errs.NotFound("covered member")
 		}
