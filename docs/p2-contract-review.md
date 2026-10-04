@@ -1,13 +1,13 @@
 # Perubahan Kontrak P2 di Module P1
 
-Catatan perubahan yang dibawa P2 ke module dan file milik P1. Pembanding: commit P1 `a48e6a3`.
+Catatan perubahan yang dibawa P2 ke module dan file milik P1. Pembanding: head P1 `941cf32` (PR #1).
 
 Dasar aturan: Tech Doc §4.2, §7.5, §12.3 dan PRD P2 §5.4. Semua kebutuhan P2 di module P1 ada di file baru (aditif) dan migration `00003` per module. File P1 yang berubah hanya untuk dua hal: requirement PRD yang hanya bisa dipenuhi di file P1 (`billing/finance.go`) dan penyesuaian kode P1 (bagian 6.x). Semuanya dirinci di bagian berikut.
 
-File P1 yang berubah (hasilnya harus tepat: `billing/finance.go`, `crm/overview.go`, `golf/booking.go`, `golf/http.go`, `golf/modify.go`, `golf/operations.go`, `golf/portal.go`, `golf/teesheet.go`, `membership/api.go`, `membership/http.go`):
+File P1 yang berubah (hasilnya harus tepat: `billing/finance.go`, `crm/overview.go`, `golf/booking.go`, `golf/http.go`, `golf/modify.go`, `golf/operations.go`, `golf/portal.go`, `golf/teesheet.go`, `membership/api.go`, `membership/http.go`, `membership/lifecycle.go`):
 
 ```bash
-git diff --diff-filter=MD --stat a48e6a3 -- internal/golf internal/billing internal/crm internal/membership internal/commercial/*.go
+git diff --diff-filter=MD --stat 941cf32 -- internal/golf internal/billing internal/crm internal/membership internal/commercial/*.go
 ```
 
 ## Perubahan di file P1: Member Statement per lini (kontrak C2)
@@ -46,6 +46,7 @@ Temuan di kode P1 yang dikerjakan bersama P2. Semua minimal; test P1 tetap hijau
 | 6.6 | `golf/booking.go`, `modify.go`, `portal.go`, `teesheet.go` | Query lintas schema diganti API publik: `reservation.HeldAllocations`, `billing.FolioOfLine`, `membership.MemberNo`, `membership.FindMembers`, `membership.MaxBookingWindowDays` | Tech Doc §4.2 #2. Fungsi baru ada di `reservation/module.go`, `billing/p2_api.go`, `membership/p2_api.go`. |
 | 6.7 | — | Tidak diubah (**diputuskan** 4 Oktober 2026: perilaku P1 dipertahankan) | `POST /billing/customer-accounts` untuk akun yang sudah ada tanpa perubahan mengembalikan 201 tanpa entri audit. Pilihan: 200 untuk no-op, atau catat audit. |
 | 6.8 | `golf/teesheet.go` (+1 field, +1 kolom) | Baris pemain (`SheetPlayer`, dipakai tee sheet dan `member/golf/my-flights`) mendapat `caddyAssignmentId` | Member App menilai caddy setelah ronde (`member/golf/caddy-assignments/{id}:rate`, EP-05). Aditif; test: `TestP2GolfOperationsCoverage`, Playwright. |
+| 6.9 | `membership/lifecycle.go` (+4) | `Activate` mengunci baris aplikasi (`FOR UPDATE`) sebelum membaca statusnya | Aktivasi manual dan aktivasi otomatis setelah pembayaran (subscriber `billing.payment_settled`) bisa berjalan bersamaan; yang kedua gagal 500 (`members_customer` duplikat). Kini yang kedua menunggu lalu mendapat aplikasi yang sudah `completed`. Ditemukan sebagai kegagalan acak `TestP1MembershipLifecycle`. |
 
 ## Penambahan di file frontend P1 (aditif)
 
