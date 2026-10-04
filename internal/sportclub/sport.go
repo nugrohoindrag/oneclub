@@ -276,7 +276,7 @@ func (m *Module) CreateEntry(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 			return EntryResult{}, handle.Invalid("birthDate", "required", "the child's date of birth is required")
 		}
 		age := crm.Customer{BirthDate: bd}
-		a, _ := age.AgeOn(visit)
+		a, _ := crm.AgeOn(age, visit)
 		if a > pol.ChildMaxAge {
 			return EntryResult{}, errs.Validation("child_too_old", fmt.Sprintf("Child Entry is for children under %d (this child is %d); use the adult rate", pol.ChildMaxAge+1, a))
 		}
@@ -356,8 +356,7 @@ func (m *Module) CreateEntry(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 			return EntryResult{}, err
 		}
 		amount, snapshot = pr.Total(), pr.SnapshotID
-		fo, err := m.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: property, BusinessLine: billing.LineSport, CustomerID: customerID,
-			HolderName: customerName, SourceType: "sport_entry"})
+		fo, err := m.Billing.OpenLineFolio(ctx, tx, billing.LineFolioInput{FolioInput: billing.FolioInput{Property: property, CustomerID: customerID, HolderName: customerName, SourceType: "sport_entry"}, BusinessLine: billing.LineSport})
 		if err != nil {
 			return EntryResult{}, err
 		}
@@ -382,9 +381,7 @@ func (m *Module) CreateEntry(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	}
 	out := EntryResult{}
 	if folioID != nil {
-		if _, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: *folioID, BusinessLine: billing.LineSport, ReferenceType: "sportclub.entry", ReferenceID: &eid,
-			RevenueComponent: "sport_entry", Description: "Entry " + f.Name + " (" + strings.ReplaceAll(in.EntryType, "_", " ") + ")",
-			Quantity: decimal.NewFromInt(int64(quantity)), Net: amount, SnapshotID: snapshot}); err != nil {
+		if _, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: *folioID, ReferenceType: "sportclub.entry", ReferenceID: &eid, Description: "Entry " + f.Name + " (" + strings.ReplaceAll(in.EntryType, "_", " ") + ")", Quantity: decimal.NewFromInt(int64(quantity)), Net: amount, SnapshotID: snapshot}, BusinessLine: billing.LineSport, RevenueComponent: "sport_entry"}); err != nil {
 			return EntryResult{}, err
 		}
 		if err := m.settle(ctx, tx, *folioID, in.Payment, in.Channel, key); err != nil {
@@ -433,8 +430,7 @@ func (m *Module) settle(ctx context.Context, tx pgx.Tx, folioID uuid.UUID, p *Pa
 	if key != "" {
 		pk = key + "-pay"
 	}
-	if _, err := m.Billing.TakePayment(ctx, tx, billing.PaymentInput{FolioID: &folioID, MethodType: p.MethodType, Amount: amt, Reference: p.Reference,
-		Tender: p.Tender, Channel: channel, IdempotencyKey: pk}); err != nil {
+	if _, err := m.Billing.TakeTender(ctx, tx, billing.TenderPaymentInput{PaymentInput: billing.PaymentInput{FolioID: &folioID, MethodType: p.MethodType, Amount: amt, Reference: p.Reference, Channel: channel}, Tender: p.Tender, IdempotencyKey: pk}); err != nil {
 		return err
 	}
 	f, err = billing.GetFolio(ctx, tx, folioID)
@@ -548,7 +544,7 @@ func (m *Module) ValidateAccess(ctx context.Context, tx pgx.Tx, property uuid.UU
 		if err != nil {
 			return false, err
 		}
-		age, ok := p.AgeOn(today)
+		age, ok := crm.AgeOn(p, today)
 		if !ok {
 			return true, nil
 		}
@@ -777,14 +773,12 @@ func (m *Module) AssignLocker(ctx context.Context, tx pgx.Tx, property uuid.UUID
 	aid := id.New()
 	var folio *uuid.UUID
 	if fee.IsPositive() {
-		f, err := m.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: property, BusinessLine: billing.LineSport, CustomerID: in.CustomerID,
-			HolderName: in.GuestName, SourceType: "locker", SourceID: &aid})
+		f, err := m.Billing.OpenLineFolio(ctx, tx, billing.LineFolioInput{FolioInput: billing.FolioInput{Property: property, CustomerID: in.CustomerID, HolderName: in.GuestName, SourceType: "locker", SourceID: &aid}, BusinessLine: billing.LineSport})
 		if err != nil {
 			return LockerAssignment{}, err
 		}
 		folio = &f.ID
-		if _, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: f.ID, BusinessLine: billing.LineSport, ReferenceType: "sportclub.locker_assignment",
-			ReferenceID: &aid, RevenueComponent: "locker", Description: "Locker " + code + " (" + in.AssignmentType + ")", Net: fee}); err != nil {
+		if _, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: f.ID, ReferenceType: "sportclub.locker_assignment", ReferenceID: &aid, Description: "Locker " + code + " (" + in.AssignmentType + ")", Net: fee}, BusinessLine: billing.LineSport, RevenueComponent: "locker"}); err != nil {
 			return LockerAssignment{}, err
 		}
 	}

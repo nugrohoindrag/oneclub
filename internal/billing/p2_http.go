@@ -37,8 +37,8 @@ type AccountLimit struct {
 	Balance     string  `json:"balance" db:"balance"`
 }
 
-// registerP2 adds the P2 billing routes (PRD P2 EP-03).
-func (h *HTTP) registerP2(reg *route.Registry) {
+// RegisterP2 adds the P2 billing routes (PRD P2 EP-03).
+func (h *HTTP) RegisterP2(reg *route.Registry) {
 	s, db := h.Svc, h.Svc.DB
 	s.registerOnline(reg)
 	add := func(rt route.Route) {
@@ -76,8 +76,8 @@ func (h *HTTP) registerP2(reg *route.Registry) {
 		})})
 }
 
-// p2Contribution is the P2 part of the billing catalogue.
-func p2Contribution() catalog.Contribution {
+// P2Contribution is the P2 part of the billing catalogue.
+func P2Contribution() catalog.Contribution {
 	// frontline of the P2 business lines: open folios, post charges, take
 	// payments and member charges (incl. the offline POS limit cache).
 	frontline := []string{"billing.folio.view", "billing.folio.create", "billing.folio.add_charge", "billing.folio.close", "billing.payment.view",

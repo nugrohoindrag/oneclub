@@ -963,8 +963,7 @@ func (m *Module) billFolio(ctx context.Context, tx pgx.Tx, o Order, b Bill, cust
 	if cust == nil {
 		cust = o.CustomerID
 	}
-	f, err := m.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: o.PropertyID, BusinessLine: billing.LinePOS, CustomerID: cust,
-		SourceType: "pos_order", SourceID: &o.ID})
+	f, err := m.Billing.OpenLineFolio(ctx, tx, billing.LineFolioInput{FolioInput: billing.FolioInput{Property: o.PropertyID, CustomerID: cust, SourceType: "pos_order", SourceID: &o.ID}, BusinessLine: billing.LinePOS})
 	if err != nil {
 		return uuid.Nil, err
 	}
@@ -1014,8 +1013,7 @@ func (m *Module) chargeLines(ctx context.Context, tx pgx.Tx, o Order, folioID uu
 				}
 			}
 		}
-		if _, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: folioID, BusinessLine: line, ReferenceType: "commercial.order_line", ReferenceID: &lid,
-			RevenueComponent: comp, Description: l.Name, Quantity: qty, Net: net, Service: svc, Tax: tax, SnapshotID: snap, Liability: liability}); err != nil {
+		if _, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: folioID, ReferenceType: "commercial.order_line", ReferenceID: &lid, Description: l.Name, Quantity: qty, Net: net, Service: svc, Tax: tax, SnapshotID: snap, Liability: liability}, BusinessLine: line, RevenueComponent: comp}); err != nil {
 			return err
 		}
 		if _, err := tx.Exec(ctx, `UPDATE commercial.order_lines SET charged_folio_id = $2 WHERE id = $1`, l.ID, folioID); err != nil {
@@ -1095,8 +1093,7 @@ func (m *Module) Pay(ctx context.Context, tx pgx.Tx, oid uuid.UUID, in PayInput,
 		if key != "" {
 			pk = fmt.Sprintf("%s-%d", key, i)
 		}
-		p, err := m.Billing.TakePayment(ctx, tx, billing.PaymentInput{FolioID: &fid, MethodType: t.MethodType, Amount: amt, Reference: t.Reference, Tender: tender,
-			OutletID: &o.OutletID, ShiftID: shift, Offline: in.Offline, IdempotencyKey: pk})
+		p, err := m.Billing.TakeTender(ctx, tx, billing.TenderPaymentInput{PaymentInput: billing.PaymentInput{FolioID: &fid, MethodType: t.MethodType, Amount: amt, Reference: t.Reference}, Tender: tender, OutletID: &o.OutletID, ShiftID: shift, Offline: in.Offline, IdempotencyKey: pk})
 		if err != nil {
 			return o, err
 		}
@@ -1106,7 +1103,9 @@ func (m *Module) Pay(ctx context.Context, tx pgx.Tx, oid uuid.UUID, in PayInput,
 				return o, err
 			}
 		}
-		if p.NeedsReview {
+		if pt, err := billing.TenderOf(ctx, tx, p.ID); err != nil {
+			return o, err
+		} else if pt.NeedsReview {
 			if _, err := tx.Exec(ctx, `UPDATE commercial.orders SET needs_review = true WHERE id = $1`, oid); err != nil {
 				return o, err
 			}

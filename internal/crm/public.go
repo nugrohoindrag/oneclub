@@ -128,7 +128,7 @@ type ContactResult struct {
 	Status string `json:"status"`
 }
 
-func (m *Module) registerPublic(reg *route.Registry) {
+func (m *Engagement) registerPublic(reg *route.Registry) {
 	PublicRoute(reg, "crm", route.Route{Method: http.MethodPost, Path: "/api/v1/public/contact", Summary: "Contact form (logged as a customer interaction)",
 		Request: ContactInput{}, Response: ContactResult{}, Status: http.StatusAccepted,
 		Handler: PublicWrite(m.DB, http.StatusAccepted, func(ctx context.Context, tx pgx.Tx, r *http.Request, pid uuid.UUID, c Customer, in ContactInput) (ContactResult, error) {

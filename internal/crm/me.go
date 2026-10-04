@@ -35,24 +35,28 @@ func MeRoute(reg *route.Registry, module, tag string, rt route.Route) {
 	reg.Add(rt)
 }
 
-// MyProfile is the Profile screen of the Member App.
-type MyProfile struct {
-	Profile     Customer     `json:"profile"`
-	Preferences []Preference `json:"preferences" doc:"Including the member's own health preferences"`
+// MyPreferences is the Profile screen of the Member App.
+type MyPreferences struct {
+	Profile     CustomerProfile `json:"profile"`
+	Preferences []Preference    `json:"preferences" doc:"Including the member's own health preferences"`
 }
 
-func (m *Module) registerMe(reg *route.Registry) {
+func (m *Engagement) registerMe(reg *route.Registry) {
 	db := m.DB
-	MeRoute(reg, "crm", "Member App", route.Route{Method: http.MethodGet, Path: "/api/v1/me/profile", Summary: "My profile, preferences and consents",
-		Response: MyProfile{}, Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (MyProfile, error) {
+	MeRoute(reg, "crm", "Member Portal", route.Route{Method: http.MethodGet, Path: "/api/v1/member/preferences", Summary: "My preferences and consents",
+		Response: MyPreferences{}, Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (MyPreferences, error) {
 			p, err := Me(ctx, tx)
 			if err != nil {
-				return MyProfile{}, err
+				return MyPreferences{}, err
+			}
+			prof, err := GetCustomerProfile(ctx, tx, p.ID)
+			if err != nil {
+				return MyPreferences{}, err
 			}
 			prefs, err := ListPreferences(ctx, tx, p.ID, true)
-			return MyProfile{Profile: p, Preferences: prefs}, err
+			return MyPreferences{Profile: prof, Preferences: prefs}, err
 		})})
-	MeRoute(reg, "crm", "Member App", route.Route{Method: http.MethodPost, Path: "/api/v1/me/preferences", Summary: "Add a preference",
+	MeRoute(reg, "crm", "Member Portal", route.Route{Method: http.MethodPost, Path: "/api/v1/member/preferences", Summary: "Add a preference",
 		Request: PreferenceInput{}, Response: Preference{},
 		Handler: handle.Write(db, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, in PreferenceInput) (Preference, error) {
 			p, err := Me(ctx, tx)
@@ -61,7 +65,7 @@ func (m *Module) registerMe(reg *route.Registry) {
 			}
 			return RecordPreference(ctx, tx, p.PropertyID, p.ID, in, "member")
 		})})
-	MeRoute(reg, "crm", "Member App", route.Route{Method: http.MethodPost, Path: "/api/v1/me/preferences/{id}:remove", Summary: "Remove one of my preferences",
+	MeRoute(reg, "crm", "Member Portal", route.Route{Method: http.MethodPost, Path: "/api/v1/member/preferences/{id}:remove", Summary: "Remove one of my preferences",
 		Handler: handle.Write(db, http.StatusNoContent, func(ctx context.Context, tx pgx.Tx, r *http.Request, _ handle.Empty) (handle.Empty, error) {
 			p, err := Me(ctx, tx)
 			if err != nil {
@@ -80,16 +84,16 @@ func (m *Module) registerMe(reg *route.Registry) {
 			}
 			return handle.Empty{}, RemovePreference(ctx, tx, p.PropertyID, pid)
 		})})
-	MeRoute(reg, "crm", "Member App", route.Route{Method: http.MethodPost, Path: "/api/v1/me/consent", Summary: "My profiling / marketing consent",
-		Request: ConsentInput{}, Response: Customer{}, Status: http.StatusOK,
-		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in ConsentInput) (Customer, error) {
+	MeRoute(reg, "crm", "Member Portal", route.Route{Method: http.MethodPost, Path: "/api/v1/member/consent", Summary: "My profiling / marketing consent",
+		Request: ConsentInput{}, Response: CustomerProfile{}, Status: http.StatusOK,
+		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in ConsentInput) (CustomerProfile, error) {
 			p, err := Me(ctx, tx)
 			if err != nil {
-				return Customer{}, err
+				return CustomerProfile{}, err
 			}
 			return SetConsent(ctx, tx, p.PropertyID, p.ID, in.Profiling, in.Marketing)
 		})})
-	MeRoute(reg, "crm", "Member App", route.Route{Method: http.MethodPost, Path: "/api/v1/me/feedback", Summary: "Give feedback after a visit (in-app)",
+	MeRoute(reg, "crm", "Member Portal", route.Route{Method: http.MethodPost, Path: "/api/v1/member/feedback", Summary: "Give feedback after a visit (in-app)",
 		Request: MyFeedbackInput{}, Response: Feedback{},
 		Handler: handle.Write(db, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, in MyFeedbackInput) (Feedback, error) {
 			p, err := Me(ctx, tx)
@@ -105,7 +109,7 @@ func (m *Module) registerMe(reg *route.Registry) {
 			}
 			return m.SubmitFeedback(ctx, tx, token, in.FeedbackInput, "member_app")
 		})})
-	MeRoute(reg, "crm", "Member App", route.Route{Method: http.MethodGet, Path: "/api/v1/me/feedback-requests", Summary: "Surveys waiting for my answer",
+	MeRoute(reg, "crm", "Member Portal", route.Route{Method: http.MethodGet, Path: "/api/v1/member/feedback-requests", Summary: "Surveys waiting for my answer",
 		Response: FeedbackInvite{}, List: true, Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (httpx.Page[FeedbackInvite], error) {
 			p, err := Me(ctx, tx)
 			if err != nil {

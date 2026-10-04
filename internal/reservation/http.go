@@ -306,9 +306,7 @@ func (e *Engine) ChargeLines(ctx context.Context, tx pgx.Tx, r Reservation, segm
 	total := decimal.Zero
 	folioID := r.FolioID
 	if folioID == nil {
-		f, err := e.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: r.PropertyID, BusinessLine: lineOf(r.BusinessLine),
-			CustomerID: r.CustomerID, HolderName: deref(r.GuestName), ReservationID: &r.ID, SourceType: "reservation", SourceID: &r.ID,
-			CorporateName: deref(r.CorporateName)})
+		f, err := e.Billing.OpenLineFolio(ctx, tx, billing.LineFolioInput{FolioInput: billing.FolioInput{Property: r.PropertyID, CustomerID: r.CustomerID, HolderName: deref(r.GuestName), SourceType: "reservation", SourceID: &r.ID}, BusinessLine: lineOf(r.BusinessLine), ReservationID: &r.ID, CorporateName: deref(r.CorporateName)})
 		if err != nil {
 			return r, total, err
 		}
@@ -339,10 +337,7 @@ func (e *Engine) ChargeLines(ctx context.Context, tx pgx.Tx, r Reservation, segm
 		if err != nil {
 			return r, total, fmt.Errorf("line %d: %w", l.LineNo, err)
 		}
-		if _, err := e.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: *folioID, BusinessLine: lineOf(r.BusinessLine), ReferenceType: "reservation.line",
-			ReferenceID: &l.ID, RevenueComponent: pr.RevenueComponent, Description: res.Name + " · " + l.Start.In(calendar.Location(ctx, tx)).Format("2 Jan 15:04"),
-			Quantity: decimal.RequireFromString(pr.Units), Net: pr.Net(), Service: pr.ServiceAmount(), Tax: pr.TaxAmount(), TaxLines: pr.Tax.Lines,
-			SnapshotID: pr.SnapshotID}); err != nil {
+		if _, err := e.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: *folioID, ReferenceType: "reservation.line", ReferenceID: &l.ID, Description: res.Name + " · " + l.Start.In(calendar.Location(ctx, tx)).Format("2 Jan 15:04"), Quantity: decimal.RequireFromString(pr.Units), Net: pr.Net(), Service: pr.ServiceAmount(), Tax: pr.TaxAmount(), SnapshotID: pr.SnapshotID}, BusinessLine: lineOf(r.BusinessLine), RevenueComponent: pr.RevenueComponent, TaxLines: pr.Tax.Lines}); err != nil {
 			return r, total, err
 		}
 		if err := e.SetLinePrice(ctx, tx, l.ID, pr.SnapshotID, pr.Total()); err != nil {

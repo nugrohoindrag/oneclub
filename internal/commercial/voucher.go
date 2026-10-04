@@ -1119,8 +1119,7 @@ func (m *Module) Sell(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sel
 	if in.FolioID != nil {
 		folioID = *in.FolioID
 	} else {
-		f, err := m.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: property, BusinessLine: billing.LineVoucher,
-			CustomerID: in.CustomerID, HolderName: in.GuestName, SourceType: "voucher_sale"})
+		f, err := m.Billing.OpenLineFolio(ctx, tx, billing.LineFolioInput{FolioInput: billing.FolioInput{Property: property, CustomerID: in.CustomerID, HolderName: in.GuestName, SourceType: "voucher_sale"}, BusinessLine: billing.LineVoucher})
 		if err != nil {
 			return SaleResult{}, err
 		}
@@ -1134,9 +1133,7 @@ func (m *Module) Sell(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sel
 		if err != nil {
 			return out, err
 		}
-		if _, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: folioID, BusinessLine: billing.LineVoucher, ReferenceType: "commercial.voucher",
-			ReferenceID: &v.ID, RevenueComponent: "voucher_deferred", Description: vt.Name + " " + v.Code, Net: price, Liability: true,
-			SnapshotID: snapshot}); err != nil {
+		if _, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: folioID, ReferenceType: "commercial.voucher", ReferenceID: &v.ID, Description: vt.Name + " " + v.Code, Net: price, Liability: true, SnapshotID: snapshot}, BusinessLine: billing.LineVoucher, RevenueComponent: "voucher_deferred"}); err != nil {
 			return out, err
 		}
 		out.Vouchers = append(out.Vouchers, v)
@@ -1151,8 +1148,7 @@ func (m *Module) Sell(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sel
 		if key != "" {
 			pkey = key + "-payment"
 		}
-		if _, err := m.Billing.TakePayment(ctx, tx, billing.PaymentInput{FolioID: &folioID, MethodType: in.Payment.MethodType, Amount: amt,
-			Reference: in.Payment.Reference, Tender: in.Payment.Tender, Channel: channel, IdempotencyKey: pkey}); err != nil {
+		if _, err := m.Billing.TakeTender(ctx, tx, billing.TenderPaymentInput{PaymentInput: billing.PaymentInput{FolioID: &folioID, MethodType: in.Payment.MethodType, Amount: amt, Reference: in.Payment.Reference, Channel: channel}, Tender: in.Payment.Tender, IdempotencyKey: pkey}); err != nil {
 			return out, err
 		}
 		f, err := billing.GetFolio(ctx, tx, folioID)

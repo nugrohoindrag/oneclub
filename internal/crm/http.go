@@ -16,7 +16,6 @@ import (
 	"oneclub/internal/kernel/reqctx"
 	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/audit"
-	"oneclub/internal/platform/notify"
 	"oneclub/internal/platform/resource"
 	"oneclub/internal/platform/storage"
 )
@@ -55,13 +54,6 @@ type Module struct {
 	DB     *dbtx.DB
 	Events Publisher
 	Files  *storage.Files
-	// P2 (EP-23/24): notifications for feedback and campaigns, and the
-	// business-line providers wired in internal/app (CRM sits below them).
-	Notify    notify.Sender
-	Sections  map[string]SectionFunc
-	Behavior  map[string]BehaviorFunc
-	Facts     FactsFunc
-	PublicURL string // base of the public feedback link (website)
 }
 
 type MergeRequest struct {
@@ -404,9 +396,6 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	for _, d := range []*resource.Def{Customers, Guests, CorporateAccounts, CorporateNominees, Relationships, Preferences} {
 		eng.Register(reg, d)
 	}
-	m.registerEngagement(reg, eng)
-	m.registerMe(reg)
-	m.registerPublic(reg)
 	add := func(rt route.Route) {
 		rt.Module = "crm"
 		rt.Scope = route.ScopeProperty

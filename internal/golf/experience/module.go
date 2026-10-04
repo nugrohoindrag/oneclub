@@ -264,7 +264,7 @@ type Module struct {
 	Golf         *golf.Module
 	Commercial   *commercial.Module  // on-course F&B orders from the Caddy Tablet
 	Reservations *reservation.Engine // driving range bays as bookable resources
-	CRM          *crm.Module         // post-round feedback, caddy-recorded preferences
+	CRM          *crm.Engagement     // post-round feedback, caddy-recorded preferences
 	Files        *storage.Files      // HIO claim package, introduction letters
 	GPS          GPSAdapter          // golf cart positions (vendor adapter)
 }

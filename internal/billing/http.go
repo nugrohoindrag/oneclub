@@ -518,7 +518,18 @@ func (h *HTTP) reopenFolio(w http.ResponseWriter, r *http.Request) {
 		if err := checkIfMatch(ctx, tx, r, fid); err != nil {
 			return err
 		}
-		if err := h.Svc.ReopenFolio(ctx, tx, fid, req.Reason); err != nil {
+		var num string
+		err := tx.QueryRow(ctx, `UPDATE billing.folios SET status = 'open', reopened_at = now(), reopened_by = $2, reopen_reason = $3, closed_at = NULL,
+			version = version + 1 WHERE id = $1 AND status = 'closed' RETURNING number`, fid, id.Ptr(actor(ctx)), req.Reason).Scan(&num)
+		if dbtx.IsNoRows(err) {
+			return errs.Conflict("folio_not_closed", "only closed folios can be reopened")
+		}
+		if err != nil {
+			return err
+		}
+		pid := prop(ctx)
+		if err := audit.Record(ctx, tx, audit.Entry{Module: "billing", Action: "reopen", EntityType: "billing.folio", EntityID: fid.String(),
+			EntityLabel: num, PropertyID: &pid, Reason: req.Reason, Before: map[string]any{"status": "closed"}, After: map[string]any{"status": "open"}}); err != nil {
 			return err
 		}
 		out, err = GetFolio(ctx, tx, fid)
@@ -1412,7 +1423,6 @@ func (h *HTTP) dailySummary(w http.ResponseWriter, r *http.Request) {
 
 // Register adds the billing routes.
 func (h *HTTP) Register(reg *route.Registry) {
-	h.registerP2(reg)
 	add := func(rt route.Route) {
 		rt.Module = "billing"
 		rt.Scope = route.ScopeProperty

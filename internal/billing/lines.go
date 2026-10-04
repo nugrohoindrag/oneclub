@@ -101,7 +101,7 @@ func (s *Service) RegisterTender(method string, h TenderHandler) {
 
 // applyTender redeems a voucher / prepaid balance or moves the amount to
 // another open folio (Charge to Stay / Reservation, FR-BIL-P2-04).
-func (s *Service) applyTender(ctx context.Context, tx pgx.Tx, property, folioID uuid.UUID, in PaymentInput) (decimal.Decimal, map[string]any, error) {
+func (s *Service) applyTender(ctx context.Context, tx pgx.Tx, property, folioID uuid.UUID, in TenderPaymentInput) (decimal.Decimal, map[string]any, error) {
 	var number, line string
 	var cust *uuid.UUID
 	if err := tx.QueryRow(ctx, `SELECT number, business_line, customer_id FROM billing.folios WHERE id = $1`, folioID).Scan(&number, &line, &cust); err != nil {
@@ -136,8 +136,8 @@ func (s *Service) applyTender(ctx context.Context, tx pgx.Tx, property, folioID 
 			}
 			return decimal.Zero, nil, err
 		}
-		if _, err := s.AddCharge(ctx, tx, Charge{FolioID: target, BusinessLine: line, RevenueComponent: componentOf(line),
-			ReferenceType: "billing.folio_transfer", ReferenceID: &folioID, Description: "Charged from " + number, Net: in.Amount}); err != nil {
+		if _, err := s.AddLineCharge(ctx, tx, LineCharge{Charge: Charge{FolioID: target, ReferenceType: "billing.folio_transfer", ReferenceID: &folioID,
+			Description: "Charged from " + number, Net: in.Amount}, BusinessLine: line, RevenueComponent: componentOf(line)}); err != nil {
 			return decimal.Zero, nil, err
 		}
 		return in.Amount, map[string]any{"targetFolioId": target.String(), "targetFolioNumber": targetNo}, nil
@@ -217,8 +217,8 @@ func (s *Service) SettleCancellation(ctx context.Context, tx pgx.Tx, folioID uui
 		}
 	}
 	if fee.IsPositive() {
-		if _, err := s.AddCharge(ctx, tx, Charge{FolioID: folioID, ChargeType: "cancellation_fee", BusinessLine: businessLine,
-			RevenueComponent: "cancellation_fee", ReferenceType: "billing.cancellation", ReferenceID: &folioID, Description: "Cancellation fee", Net: fee}); err != nil {
+		if _, err := s.AddLineCharge(ctx, tx, LineCharge{Charge: Charge{FolioID: folioID, ChargeType: "cancellation_fee", ReferenceType: "billing.cancellation",
+			ReferenceID: &folioID, Description: "Cancellation fee", Net: fee}, BusinessLine: businessLine, RevenueComponent: "cancellation_fee"}); err != nil {
 			return decimal.Zero, err
 		}
 	}
@@ -417,8 +417,8 @@ func (s *Service) Checkout(ctx context.Context, tx pgx.Tx, r CheckoutRequest) (C
 	}
 	out.Total = sum.Charges
 	if due := dec(sum.Balance); r.VoucherCode != "" && due.IsPositive() {
-		p, err := s.TakePayment(ctx, tx, PaymentInput{FolioID: &r.FolioID, MethodType: "voucher_prepaid", Amount: due,
-			Tender: map[string]any{"code": r.VoucherCode}, Description: r.Description})
+		p, err := s.TakeTender(ctx, tx, TenderPaymentInput{PaymentInput: PaymentInput{FolioID: &r.FolioID, MethodType: "voucher_prepaid", Amount: due,
+			Description: r.Description}, Tender: map[string]any{"code": r.VoucherCode}})
 		if err != nil {
 			return out, err
 		}

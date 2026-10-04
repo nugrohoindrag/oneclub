@@ -350,8 +350,7 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 		return StayResult{}, errs.Conflict("sold_out", "no unit of this type is available for the dates")
 	}
 	// rates and folio
-	f, err := m.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: property, BusinessLine: billing.LineStay, CustomerID: cid,
-		HolderName: name, ReservationID: &res.ID, SourceType: "reservation", SourceID: &res.ID, CorporateName: in.CorporateName})
+	f, err := m.Billing.OpenLineFolio(ctx, tx, billing.LineFolioInput{FolioInput: billing.FolioInput{Property: property, CustomerID: cid, HolderName: name, SourceType: "reservation", SourceID: &res.ID}, BusinessLine: billing.LineStay, ReservationID: &res.ID, CorporateName: in.CorporateName})
 	if err != nil {
 		return StayResult{}, err
 	}
@@ -364,9 +363,7 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 		if err != nil {
 			return err
 		}
-		if _, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: f.ID, BusinessLine: billing.LineStay, ReferenceType: "reservation.line", ReferenceID: &lineID,
-			RevenueComponent: nonEmpty(pr.RevenueComponent, comp), Description: desc, Quantity: decimal.RequireFromString(pr.Units), Net: pr.Net(),
-			Service: pr.ServiceAmount(), Tax: pr.TaxAmount(), TaxLines: pr.Tax.Lines, SnapshotID: pr.SnapshotID}); err != nil {
+		if _, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: f.ID, ReferenceType: "reservation.line", ReferenceID: &lineID, Description: desc, Quantity: decimal.RequireFromString(pr.Units), Net: pr.Net(), Service: pr.ServiceAmount(), Tax: pr.TaxAmount(), SnapshotID: pr.SnapshotID}, BusinessLine: billing.LineStay, RevenueComponent: nonEmpty(pr.RevenueComponent, comp), TaxLines: pr.Tax.Lines}); err != nil {
 			return err
 		}
 		total = total.Add(pr.Total())
@@ -500,8 +497,7 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 		if key != "" {
 			pk = key + "-pay"
 		}
-		if _, err := m.Billing.TakePayment(ctx, tx, billing.PaymentInput{FolioID: &f.ID, Purpose: kind, MethodType: in.Payment.MethodType, Amount: amt,
-			Reference: in.Payment.Reference, Tender: in.Payment.Tender, IdempotencyKey: pk}); err != nil {
+		if _, err := m.Billing.TakeTender(ctx, tx, billing.TenderPaymentInput{PaymentInput: billing.PaymentInput{FolioID: &f.ID, Purpose: kind, MethodType: in.Payment.MethodType, Amount: amt, Reference: in.Payment.Reference}, Tender: in.Payment.Tender, IdempotencyKey: pk}); err != nil {
 			return StayResult{}, err
 		}
 	}
@@ -737,9 +733,7 @@ func (m *Module) CheckOut(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Chec
 		hours := int(late.Hours()) + 1
 		fee, _ := decimal.NewFromString(pol.LateCheckoutFeePerHour)
 		if fee.IsPositive() {
-			if _, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: *s.FolioID, BusinessLine: billing.LineStay, ReferenceType: "stay.stay", ReferenceID: &s.ID,
-				RevenueComponent: "late_checkout_fee", Description: fmt.Sprintf("Late check-out %d h", hours), Quantity: decimal.NewFromInt(int64(hours)),
-				Net: fee.Mul(decimal.NewFromInt(int64(hours)))}); err != nil {
+			if _, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: *s.FolioID, ReferenceType: "stay.stay", ReferenceID: &s.ID, Description: fmt.Sprintf("Late check-out %d h", hours), Quantity: decimal.NewFromInt(int64(hours)), Net: fee.Mul(decimal.NewFromInt(int64(hours)))}, BusinessLine: billing.LineStay, RevenueComponent: "late_checkout_fee"}); err != nil {
 				return StayResult{}, err
 			}
 		}
@@ -846,9 +840,7 @@ func (m *Module) Extend(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Extend
 		add, snap, lines = pr.Total(), pr.SnapshotID, pr.Tax.Lines
 	}
 	if add.IsPositive() {
-		if _, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: *s.FolioID, BusinessLine: billing.LineStay, ReferenceType: "reservation.line", ReferenceID: &r.Lines[0].ID,
-			RevenueComponent: map[string]string{"vip_suite": "vip_suite", "meeting_room": "meeting"}[svc], Description: fmt.Sprintf("Overtime %d h", in.Hours),
-			Quantity: decimal.NewFromInt(int64(in.Hours)), Net: add, TaxLines: lines, SnapshotID: snap}); err != nil {
+		if _, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: *s.FolioID, ReferenceType: "reservation.line", ReferenceID: &r.Lines[0].ID, Description: fmt.Sprintf("Overtime %d h", in.Hours), Quantity: decimal.NewFromInt(int64(in.Hours)), Net: add, SnapshotID: snap}, BusinessLine: billing.LineStay, RevenueComponent: map[string]string{"vip_suite": "vip_suite", "meeting_room": "meeting"}[svc], TaxLines: lines}); err != nil {
 			return StayResult{}, err
 		}
 	}

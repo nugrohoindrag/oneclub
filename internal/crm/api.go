@@ -21,25 +21,17 @@ import (
 
 // Customer is the profile other modules need.
 type Customer struct {
-	ID         uuid.UUID  `json:"id" db:"id"`
-	PropertyID uuid.UUID  `json:"propertyId" db:"property_id"`
-	Code       string     `json:"code" db:"code"`
-	Name       string     `json:"name" db:"name"`
-	Email      string     `json:"email" db:"email"`
-	Phone      string     `json:"phone" db:"phone"`
-	Gender     string     `json:"gender" db:"gender"`
-	BirthDate  *time.Time `json:"birthDate" db:"birth_date"`
-	Resident   bool       `json:"resident" db:"resident"`
-	UserID     *uuid.UUID `json:"userId" db:"user_id"`
-	Status     string     `json:"status" db:"status"`
-	// P2 eligibility and personalisation attributes (crm/00003).
-	CustomerType      string     `json:"customerType" db:"customer_type"`
-	Student           bool       `json:"student" db:"student"`
-	StudentValidUntil *time.Time `json:"studentValidUntil" db:"student_valid_until"`
-	MaritalStatus     string     `json:"maritalStatus" db:"marital_status"`
-	Locale            string     `json:"locale" db:"locale"`
-	MarketingOptIn    bool       `json:"marketingOptIn" db:"marketing_opt_in"`
-	ConsentProfiling  bool       `json:"consentProfiling" db:"consent_profiling"`
+	ID         uuid.UUID  `json:"id"`
+	PropertyID uuid.UUID  `json:"propertyId"`
+	Code       string     `json:"code"`
+	Name       string     `json:"name"`
+	Email      string     `json:"email"`
+	Phone      string     `json:"phone"`
+	Gender     string     `json:"gender"`
+	BirthDate  *time.Time `json:"birthDate"`
+	Resident   bool       `json:"resident"`
+	UserID     *uuid.UUID `json:"userId"`
+	Status     string     `json:"status"`
 }
 
 // Age returns the age in whole years on day (-1 when the birth date is
@@ -56,23 +48,11 @@ func (c Customer) Age(day time.Time) int {
 	return age
 }
 
-// AgeOn is Age with an explicit "known" flag (eligibility rules need both).
-func (c Customer) AgeOn(day time.Time) (int, bool) {
-	a := c.Age(day)
-	return a, a >= 0
-}
-
-// CustomerSelect selects customers for handle.List[Customer].
-const CustomerSelect = `SELECT ` + customerCols + ` FROM crm.customers`
-
-const customerCols = `id, property_id, code, name, coalesce(email, '') AS email, coalesce(phone, '') AS phone, coalesce(gender, '') AS gender,
-	birth_date, resident, user_id, status, customer_type, student, student_valid_until, coalesce(marital_status, '') AS marital_status,
-	coalesce(locale, '') AS locale, marketing_opt_in, consent_profiling`
+const customerCols = `id, property_id, code, name, coalesce(email, ''), coalesce(phone, ''), coalesce(gender, ''), birth_date, resident, user_id, status`
 
 func scanCustomer(row pgx.Row) (Customer, error) {
 	var c Customer
-	err := row.Scan(&c.ID, &c.PropertyID, &c.Code, &c.Name, &c.Email, &c.Phone, &c.Gender, &c.BirthDate, &c.Resident, &c.UserID, &c.Status,
-		&c.CustomerType, &c.Student, &c.StudentValidUntil, &c.MaritalStatus, &c.Locale, &c.MarketingOptIn, &c.ConsentProfiling)
+	err := row.Scan(&c.ID, &c.PropertyID, &c.Code, &c.Name, &c.Email, &c.Phone, &c.Gender, &c.BirthDate, &c.Resident, &c.UserID, &c.Status)
 	return c, err
 }
 
@@ -495,48 +475,4 @@ func nullIfEmpty(s string) *string {
 		return nil
 	}
 	return &s
-}
-
-// Identity identifies a person from a website / app form.
-type Identity struct {
-	Name  string
-	Phone string
-	Email string
-}
-
-// FindOrCreate returns the customer with the same phone or e-mail (dedup,
-// FR-CUS-03 / FR-WEB-08), the customer an upgraded guest became, or a new
-// customer (website consent recorded). The bool reports a new profile.
-func FindOrCreate(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Identity) (Customer, bool, error) {
-	in.Name = strings.TrimSpace(in.Name)
-	phone := NormalizePhone(in.Phone)
-	email := strings.ToLower(strings.TrimSpace(in.Email))
-	if phone == "" && email == "" {
-		return Customer{}, false, errs.Validation("identity_required", "phone or e-mail is required", errs.Field("phone", "required", "phone or e-mail is required"))
-	}
-	dups, err := FindDuplicates(ctx, tx, property, phone, email, "")
-	if err != nil {
-		return Customer{}, false, err
-	}
-	if len(dups) > 0 {
-		c, err := GetCustomer(ctx, tx, dups[0].ID)
-		return c, false, err
-	}
-	if phone != "" {
-		var cid *uuid.UUID
-		err := tx.QueryRow(ctx, `SELECT customer_id FROM crm.guests WHERE property_id = $1 AND phone = $2 AND customer_id IS NOT NULL
-			AND erased_at IS NULL ORDER BY created_at LIMIT 1`, property, phone).Scan(&cid)
-		if err == nil && cid != nil {
-			c, err := GetCustomer(ctx, tx, *cid)
-			return c, false, err
-		}
-		if err != nil && !dbtx.IsNoRows(err) {
-			return Customer{}, false, err
-		}
-	}
-	if in.Name == "" {
-		return Customer{}, false, errs.Validation("name_required", "name is required", errs.Field("name", "required", "name is required"))
-	}
-	c, err := CreateCustomer(ctx, tx, property, NewCustomer{Name: in.Name, Email: email, Phone: phone, ConsentChannel: "website"})
-	return c, true, err
 }

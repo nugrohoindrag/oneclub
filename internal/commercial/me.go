@@ -129,8 +129,7 @@ func (m *Module) registerMe(reg *route.Registry) {
 			if in.MemberCharge {
 				return m.Pay(ctx, tx, o.ID, PayInput{CustomerID: &p.ID, Tenders: []TenderInput{{MethodType: "member_account"}}}, "me-"+o.ID.String())
 			}
-			f, err := m.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: p.PropertyID, BusinessLine: billing.LinePOS,
-				CustomerID: &p.ID, SourceType: "pos_order", SourceID: &o.ID})
+			f, err := m.Billing.OpenLineFolio(ctx, tx, billing.LineFolioInput{FolioInput: billing.FolioInput{Property: p.PropertyID, CustomerID: &p.ID, SourceType: "pos_order", SourceID: &o.ID}, BusinessLine: billing.LinePOS})
 			if err != nil {
 				return o, err
 			}

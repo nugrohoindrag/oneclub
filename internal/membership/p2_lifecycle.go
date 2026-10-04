@@ -219,13 +219,11 @@ func (m *Module) chargeFee(ctx context.Context, tx pgx.Tx, l lc, feeType string,
 // postFee posts a fee to a folio of its own (source "membership", settled
 // through OnFeePaid).
 func (m *Module) postFee(ctx context.Context, tx pgx.Tx, l lc, fid uuid.UUID, feeType string, amount decimal.Decimal) error {
-	f, err := m.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: l.PropertyID, CustomerID: l.CustomerID, HolderName: l.MemberName,
-		SourceType: "membership", SourceID: &fid, SourceRef: l.MemberNo, BusinessLine: billing.LineMembership})
+	f, err := m.Billing.OpenLineFolio(ctx, tx, billing.LineFolioInput{FolioInput: billing.FolioInput{Property: l.PropertyID, CustomerID: l.CustomerID, HolderName: l.MemberName, SourceType: "membership", SourceID: &fid, SourceRef: l.MemberNo}, BusinessLine: billing.LineMembership})
 	if err != nil {
 		return err
 	}
-	if _, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: f.ID, BusinessLine: billing.LineMembership, RevenueComponent: feeComponent[feeType],
-		Description: feeLabel[feeType] + " — " + l.MemberNo, Net: amount, ReferenceType: "membership.fee", ReferenceID: &fid}); err != nil {
+	if _, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: f.ID, Description: feeLabel[feeType] + " — " + l.MemberNo, Net: amount, ReferenceType: "membership.fee", ReferenceID: &fid}, BusinessLine: billing.LineMembership, RevenueComponent: feeComponent[feeType]}); err != nil {
 		return err
 	}
 	_, err = tx.Exec(ctx, `UPDATE membership.fees SET folio_id = $2 WHERE id = $1`, fid, f.ID)
@@ -934,16 +932,16 @@ func (m *Module) AddMember(ctx context.Context, tx pgx.Tx, mid uuid.UUID, in Mem
 		return Membership{}, errs.Conflict("limit_reached", fmt.Sprintf("the type covers at most %d %s member(s)", limit, role))
 	}
 	if role == "family" && l.CustomerID != nil {
-		applicant, err := crm.GetCustomer(ctx, tx, *l.CustomerID)
+		applicant, err := crm.GetCustomerProfile(ctx, tx, *l.CustomerID)
 		if err != nil {
 			return Membership{}, err
 		}
-		dep, err := crm.GetCustomer(ctx, tx, in.CustomerID)
+		dep, err := crm.GetCustomerProfile(ctx, tx, in.CustomerID)
 		if err != nil {
 			return Membership{}, err
 		}
 		deps := []Dependent{{CustomerID: in.CustomerID, Relationship: in.Relationship, Student: dep.Student}}
-		res := Evaluate(t.Eligibility, applicant, deps, map[uuid.UUID]crm.Customer{in.CustomerID: dep}, applicant.Student, false, today(ctx, tx, l.PropertyID))
+		res := Evaluate(t.Eligibility, applicant.Customer, deps, map[uuid.UUID]crm.Customer{in.CustomerID: dep.Customer}, applicant.Student, false, today(ctx, tx, l.PropertyID))
 		if !res.Eligible {
 			fields := []errs.FieldError{}
 			for _, c := range res.Checks {

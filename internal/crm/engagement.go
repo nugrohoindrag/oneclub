@@ -84,7 +84,7 @@ func sensitiveFor(ctx context.Context) bool {
 // registerEngagement adds the P2 CRM routes (EP-23/24): Customer 360,
 // behaviour, staff context, consent, preferences, interactions, segments,
 // feedback and campaigns.
-func (m *Module) registerEngagement(reg *route.Registry, eng *resource.Engine) {
+func (m *Engagement) registerEngagement(reg *route.Registry, eng *resource.Engine) {
 	for _, d := range []*resource.Def{Segments, Campaigns} {
 		eng.Register(reg, d)
 	}
@@ -137,11 +137,11 @@ func (m *Module) registerEngagement(reg *route.Registry, eng *resource.Engine) {
 			return m.Context(ctx, tx, handle.Property(ctx), cid, sensitiveFor(ctx))
 		})})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/crm/customers/{id}:consent", Summary: "Update profiling / marketing consent (UU PDP)",
-		Permission: "crm.customer.update", Request: ConsentInput{}, Response: Customer{}, Status: http.StatusOK,
-		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in ConsentInput) (Customer, error) {
+		Permission: "crm.customer.update", Request: ConsentInput{}, Response: CustomerProfile{}, Status: http.StatusOK,
+		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in ConsentInput) (CustomerProfile, error) {
 			cid, err := custID(ctx, tx, r)
 			if err != nil {
-				return Customer{}, err
+				return CustomerProfile{}, err
 			}
 			return SetConsent(ctx, tx, handle.Property(ctx), cid, in.Profiling, in.Marketing)
 		})})

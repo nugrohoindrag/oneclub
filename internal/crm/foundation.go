@@ -173,8 +173,8 @@ func RemovePreference(ctx context.Context, tx pgx.Tx, property, pid uuid.UUID) e
 }
 
 // SetConsent updates the profiling consent and P1's marketing opt-in (FR-PRF-05).
-func SetConsent(ctx context.Context, tx pgx.Tx, property, customer uuid.UUID, profiling, marketing *bool) (Customer, error) {
-	before, err := GetCustomer(ctx, tx, customer)
+func SetConsent(ctx context.Context, tx pgx.Tx, property, customer uuid.UUID, profiling, marketing *bool) (CustomerProfile, error) {
+	before, err := GetCustomerProfile(ctx, tx, customer)
 	if err != nil {
 		return before, err
 	}
@@ -182,7 +182,7 @@ func SetConsent(ctx context.Context, tx pgx.Tx, property, customer uuid.UUID, pr
 		consent_updated_at = now(), consent_at = coalesce(consent_at, now()), updated_by = $4 WHERE id = $1`, customer, profiling, marketing, actor(ctx)); err != nil {
 		return before, err
 	}
-	after, err := GetCustomer(ctx, tx, customer)
+	after, err := GetCustomerProfile(ctx, tx, customer)
 	if err != nil {
 		return after, err
 	}
@@ -203,8 +203,8 @@ type BehaviorProfile struct {
 }
 
 // Profile derives the behaviour profile; nothing is derived without consent.
-func (m *Module) Profile(ctx context.Context, q dbtx.Querier, property, customer uuid.UUID) (BehaviorProfile, error) {
-	p, err := GetCustomer(ctx, q, customer)
+func (m *Engagement) Profile(ctx context.Context, q dbtx.Querier, property, customer uuid.UUID) (BehaviorProfile, error) {
+	p, err := GetCustomerProfile(ctx, q, customer)
 	if err != nil {
 		return BehaviorProfile{}, err
 	}
@@ -244,7 +244,7 @@ type CustomerContext struct {
 }
 
 // Context builds the personalised context for a staff touchpoint.
-func (m *Module) Context(ctx context.Context, q dbtx.Querier, property, customer uuid.UUID, sensitive bool) (CustomerContext, error) {
+func (m *Engagement) Context(ctx context.Context, q dbtx.Querier, property, customer uuid.UUID, sensitive bool) (CustomerContext, error) {
 	p, err := GetCustomer(ctx, q, customer)
 	if err != nil {
 		return CustomerContext{}, err
@@ -311,7 +311,7 @@ func hideSensitive(o *Overview, allowed bool) {
 }
 
 // View360 assembles the Customer 360.
-func (m *Module) View360(ctx context.Context, tx pgx.Tx, property, customer uuid.UUID, sensitive bool) (Customer360, error) {
+func (m *Engagement) View360(ctx context.Context, tx pgx.Tx, property, customer uuid.UUID, sensitive bool) (Customer360, error) {
 	cid, err := resolveMerged(ctx, tx, customer)
 	if err != nil {
 		return Customer360{}, err
@@ -390,7 +390,7 @@ func LogInteraction(ctx context.Context, tx pgx.Tx, property, customer uuid.UUID
 
 // Interactions merges logged interactions with notifications delivered to
 // the customer (portal user or e-mail) — automatic history.
-func (m *Module) Interactions(ctx context.Context, q dbtx.Querier, customer uuid.UUID, limit int) ([]Interaction, error) {
+func (m *Engagement) Interactions(ctx context.Context, q dbtx.Querier, customer uuid.UUID, limit int) ([]Interaction, error) {
 	return handle.List[Interaction](q.Query(ctx, `
 		SELECT id, channel, direction, subject, body, source, ref_type, ref_id, occurred_at FROM crm.interactions WHERE customer_id = $1
 		UNION ALL
@@ -426,7 +426,7 @@ type SegmentResult struct {
 }
 
 // ComputeSegment evaluates the rules and stores the members.
-func (m *Module) ComputeSegment(ctx context.Context, tx pgx.Tx, property, sid uuid.UUID) (SegmentResult, error) {
+func (m *Engagement) ComputeSegment(ctx context.Context, tx pgx.Tx, property, sid uuid.UUID) (SegmentResult, error) {
 	var raw []byte
 	var code string
 	if err := tx.QueryRow(ctx, `SELECT code, rules FROM crm.segments WHERE id = $1 AND property_id = $2 FOR UPDATE`, sid, property).Scan(&code, &raw); err != nil {
@@ -453,12 +453,12 @@ func (m *Module) ComputeSegment(ctx context.Context, tx pgx.Tx, property, sid uu
 			return SegmentResult{}, err
 		}
 	}
-	profiles, err := handle.List[Customer](tx.Query(ctx, CustomerSelect+` WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL`, property))
+	list, err := profiles(ctx, tx, property)
 	if err != nil {
 		return SegmentResult{}, err
 	}
 	var members []uuid.UUID
-	for _, p := range profiles {
+	for _, p := range list {
 		f := facts[p.ID]
 		switch {
 		case len(r.CustomerTypes) > 0 && !slices.Contains(r.CustomerTypes, p.CustomerType),
@@ -473,7 +473,7 @@ func (m *Module) ComputeSegment(ctx context.Context, tx pgx.Tx, property, sid uu
 			continue
 		}
 		if r.MinAge != nil || r.MaxAge != nil {
-			age, ok := p.AgeOn(now)
+			age, ok := AgeOn(p.Customer, now)
 			if !ok || (r.MinAge != nil && age < *r.MinAge) || (r.MaxAge != nil && age > *r.MaxAge) {
 				continue
 			}
@@ -546,7 +546,7 @@ type FeedbackInvite struct {
 }
 
 // RequestFeedback creates the survey link and sends it (once per context).
-func (m *Module) RequestFeedback(ctx context.Context, tx pgx.Tx, r FeedbackRequest) (*FeedbackInvite, error) {
+func (m *Engagement) RequestFeedback(ctx context.Context, tx pgx.Tx, r FeedbackRequest) (*FeedbackInvite, error) {
 	var existing uuid.UUID
 	err := tx.QueryRow(ctx, `SELECT id FROM crm.feedback_requests WHERE context_type = $1 AND context_id IS NOT DISTINCT FROM $2 AND customer_id = $3`,
 		r.ContextType, r.ContextID, r.CustomerID).Scan(&existing)
@@ -557,7 +557,7 @@ func (m *Module) RequestFeedback(ctx context.Context, tx pgx.Tx, r FeedbackReque
 	if !dbtx.IsNoRows(err) {
 		return nil, err
 	}
-	p, err := GetCustomer(ctx, tx, r.CustomerID)
+	p, err := GetCustomerProfile(ctx, tx, r.CustomerID)
 	if err != nil {
 		return nil, err
 	}
@@ -601,7 +601,7 @@ func (m *Module) RequestFeedback(ctx context.Context, tx pgx.Tx, r FeedbackReque
 	return &inv, err
 }
 
-func (m *Module) invite(ctx context.Context, q dbtx.Querier, fid uuid.UUID) (FeedbackInvite, error) {
+func (m *Engagement) invite(ctx context.Context, q dbtx.Querier, fid uuid.UUID) (FeedbackInvite, error) {
 	rows, err := q.Query(ctx, `SELECT id, token, context_type, context_label, status, expires_at FROM crm.feedback_requests WHERE id = $1`, fid)
 	return handle.One[FeedbackInvite](rows, err, "feedback request")
 }
@@ -648,7 +648,7 @@ var subjectHooks = map[string]SubjectRatingHook{}
 func RegisterSubject(subjectType string, h SubjectRatingHook) { subjectHooks[subjectType] = h }
 
 // SubmitFeedback stores an answer for a token (public link) or directly.
-func (m *Module) SubmitFeedback(ctx context.Context, tx pgx.Tx, token string, in FeedbackInput, channel string) (Feedback, error) {
+func (m *Engagement) SubmitFeedback(ctx context.Context, tx pgx.Tx, token string, in FeedbackInput, channel string) (Feedback, error) {
 	if in.Rating < 1 || in.Rating > 5 {
 		return Feedback{}, handle.Invalid("rating", "invalid_rating", "rating must be between 1 and 5")
 	}
@@ -744,7 +744,7 @@ type CampaignResult struct {
 }
 
 // SendCampaign sends the template to the segment, honouring opt-in.
-func (m *Module) SendCampaign(ctx context.Context, tx pgx.Tx, property, cid uuid.UUID) (CampaignResult, error) {
+func (m *Engagement) SendCampaign(ctx context.Context, tx pgx.Tx, property, cid uuid.UUID) (CampaignResult, error) {
 	var c struct {
 		Code, Event, Channel, Status string
 		Segment                      uuid.UUID

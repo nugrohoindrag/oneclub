@@ -219,15 +219,12 @@ func (m *Module) Enroll(ctx context.Context, tx pgx.Tx, property uuid.UUID, in E
 	eid := id.New()
 	if err == nil && pr.Total().IsPositive() {
 		fee = pr.Total()
-		f, err := m.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: property, BusinessLine: billing.LineSport, CustomerID: &in.CustomerID,
-			SourceType: "class_enrollment", SourceID: &eid})
+		f, err := m.Billing.OpenLineFolio(ctx, tx, billing.LineFolioInput{FolioInput: billing.FolioInput{Property: property, CustomerID: &in.CustomerID, SourceType: "class_enrollment", SourceID: &eid}, BusinessLine: billing.LineSport})
 		if err != nil {
 			return Enrollment{}, err
 		}
 		folio = &f.ID
-		if _, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: f.ID, BusinessLine: billing.LineSport, ReferenceType: "sportclub.enrollment", ReferenceID: &eid,
-			RevenueComponent: "registration_fee", Description: "Registration Fee " + p.Name, Net: pr.Net(), Service: pr.ServiceAmount(), Tax: pr.TaxAmount(),
-			TaxLines: pr.Tax.Lines, SnapshotID: pr.SnapshotID}); err != nil {
+		if _, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: f.ID, ReferenceType: "sportclub.enrollment", ReferenceID: &eid, Description: "Registration Fee " + p.Name, Net: pr.Net(), Service: pr.ServiceAmount(), Tax: pr.TaxAmount(), SnapshotID: pr.SnapshotID}, BusinessLine: billing.LineSport, RevenueComponent: "registration_fee", TaxLines: pr.Tax.Lines}); err != nil {
 			return Enrollment{}, err
 		}
 	}

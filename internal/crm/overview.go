@@ -245,7 +245,6 @@ func (m *Module) overview(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	hideSensitive(&out, sensitiveFor(ctx))
 	if out.Profile.IDNumber != nil && *out.Profile.IDNumber != "" && !canSensitive(ctx, nil) {
 		v := mask.Phone(*out.Profile.IDNumber)
 		out.Profile.IDNumber = &v
