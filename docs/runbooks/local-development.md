@@ -38,6 +38,19 @@ Then `make seed-demo` (prints the demo users and a POS device token once) and ru
 Without `SMTP_HOST`, e-mails are written to the integration log (Settings → System Settings → Integration Logs);
 with Mailpit set `SMTP_HOST=localhost SMTP_PORT=1025`.
 
+Files go to `STORAGE_DIR` by default. To use MinIO like the object storage in production (the compose stack creates
+the bucket `oneclub`), replace `STORAGE_DIR` with:
+
+```
+STORAGE_DRIVER=s3
+S3_ENDPOINT=localhost:9000
+S3_BUCKET=oneclub
+S3_ACCESS_KEY=oneclub
+S3_SECRET_KEY=oneclub-dev-secret
+S3_USE_SSL=false
+S3_REGION=us-east-1
+```
+
 ## 3. Frontend
 
 ```bash
