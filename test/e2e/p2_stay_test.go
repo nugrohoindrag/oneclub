@@ -25,8 +25,16 @@ func TestP2StayAndVenue(t *testing.T) {
 	st := sa.Must(201, "POST", "/api/v1/stay/stays", map[string]any{"kind": "bungalow", "bungalowTypeId": eagle, "arrivalDate": arr, "departureDate": dep,
 		"ratePlan": "STAY_RO", "customerId": guest, "payment": map[string]any{"methodType": "bank_transfer", "reference": "DP-1"}}, "Idempotency-Key", newKey()).JSON()
 	stay := st["stay"].(map[string]any)
-	if st["total"] != "1700000" || st["depositRequired"] != "850000" || st["reservation"].(map[string]any)["status"] != "confirmed" || stay["unitAssigned"] != false {
-		t.Fatalf("bungalow booking: total %v deposit %v status %v", st["total"], st["depositRequired"], st["reservation"].(map[string]any)["status"])
+	if st["total"] != "1700000" || st["depositRequired"] != "850000" || stay["unitAssigned"] != false {
+		t.Fatalf("bungalow booking: total %v deposit %v", st["total"], st["depositRequired"])
+	}
+	// the paid deposit confirms the reservation (billing.payment_settled → reservation)
+	if _, err := inst.App.Dispatcher.DispatchPending(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	rid := str(st["reservation"].(map[string]any)["id"])
+	if rs := sa.Must(200, "GET", "/api/v1/reservation/reservations/"+rid, nil).JSON(); rs["status"] != "confirmed" {
+		t.Fatalf("deposit paid → confirmed: %v", rs["status"])
 	}
 	// second booking of the type gets the other unit; a third is sold out
 	other := sa.Must(201, "POST", "/api/v1/stay/stays", map[string]any{"kind": "bungalow", "bungalowTypeId": eagle, "arrivalDate": arr, "departureDate": dep,
@@ -67,16 +75,24 @@ func TestP2StayAndVenue(t *testing.T) {
 		t.Fatalf("stay code access: %v", a)
 	}
 	// restaurant bill charged to the bungalow (Charge to Stay), then check-out
-	pos := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": guest, "holderName": "Walk-in"}))
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+pos+"/lines", map[string]any{"chargeType": "other", "description": "Dinner", "unitPrice": "275000"})
-	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": pos, "methodType": "folio_transfer", "amount": "275000",
-		"tender": map[string]any{"targetFolioId": stay["folioId"]}})
+	resto := idOf(sa.Must(201, "POST", "/api/v1/commercial/outlets", map[string]any{"code": "STAY-RESTO", "name": "Resort Restaurant", "outletType": "restaurant"}))
+	dinner := idOf(sa.Must(201, "POST", "/api/v1/commercial/products", map[string]any{"code": "STAY-DINNER", "name": "Dinner Set", "productType": "food", "price": "275000"}))
+	ord := sa.Must(201, "POST", "/api/v1/commercial/orders", map[string]any{"outletId": resto, "servingDestination": "bungalow", "destinationRef": "E-01",
+		"customerId": guest, "lines": []map[string]any{{"productId": dinner}}}).JSON()
+	if c := sa.Must(200, "POST", "/api/v1/commercial/orders/"+str(ord["id"])+":charge", map[string]any{"folioId": stay["folioId"]}).JSON(); c["status"] != "charged" {
+		t.Fatalf("charge to stay: %v", c["status"])
+	}
 	if r := sa.Do("POST", "/api/v1/stay/stays/"+sid+":check-out", map[string]any{"at": rfc(time.Now())}); r.Status != 409 {
 		t.Fatalf("check-out with an open balance must fail: %s", r)
 	}
-	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": str(stay["folioId"]), "methodType": "card", "amount": "1125000", "reference": "EDC"})
+	sf := sa.Must(200, "GET", "/api/v1/billing/folios/"+str(stay["folioId"]), nil).JSON()
+	bal := str(sf["summary"].(map[string]any)["balance"])
+	if dec(bal).LessThan(dec("275000")) {
+		t.Fatalf("dinner on the stay folio: balance %s", bal)
+	}
+	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": str(stay["folioId"]), "methodType": "card", "amount": bal, "reference": "EDC"})
 	co := sa.Must(200, "POST", "/api/v1/stay/stays/"+sid+":check-out", map[string]any{"at": rfc(time.Now())}).JSON()
-	if co["stay"].(map[string]any)["status"] != "checked_out" || co["folio"].(map[string]any)["folio"].(map[string]any)["status"] != "closed" {
+	if co["stay"].(map[string]any)["status"] != "checked_out" || co["folio"].(map[string]any)["status"] != "closed" {
 		t.Fatalf("check-out: %v", co["stay"])
 	}
 	if b := sa.Must(200, "GET", "/api/v1/stay/bungalows/"+str(stay["unitId"]), nil).JSON(); b["readiness"] != "not_ready" {

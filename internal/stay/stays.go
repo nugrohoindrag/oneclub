@@ -506,7 +506,8 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 			return StayResult{}, err
 		}
 		paid, _ := decimal.NewFromString(fo.Summary.Payments)
-		if paid.GreaterThanOrEqual(deposit) {
+		held, _ := decimal.NewFromString(fo.Summary.HeldDeposits) // P1 keeps deposits apart until applied
+		if paid.Add(held).GreaterThanOrEqual(deposit) {
 			if _, err := m.Res.Confirm(ctx, tx, res.ID, true); err != nil {
 				return StayResult{}, err
 			}

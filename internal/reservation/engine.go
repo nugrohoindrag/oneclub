@@ -765,8 +765,10 @@ func (e *Engine) Confirm(ctx context.Context, tx pgx.Tx, rid uuid.UUID, force bo
 			if err != nil {
 				return r, err
 			}
+			// P1 keeps a deposit apart from settlement payments until applied
 			paid, _ := decimal.NewFromString(f.Summary.Payments)
-			if paid.LessThan(dep) {
+			held, _ := decimal.NewFromString(f.Summary.HeldDeposits)
+			if paid.Add(held).LessThan(dep) {
 				return r, errs.Conflict("deposit_required", "a deposit of "+dep.StringFixed(0)+" is required before confirmation")
 			}
 		}
