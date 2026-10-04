@@ -110,7 +110,6 @@ func backdate(t *testing.T, flight string, d time.Duration) {
 	sysExec(t, inst, `UPDATE golf.golf_cart_assignments SET assigned_at = assigned_at - $2::interval, out_at = out_at - $2::interval WHERE flight_id = $1`, fid, iv)
 }
 
-
 // EP-05/06/07/08/10/11 acceptance in one round on P1's booking, check-in and
 // starter: caddy rotation & replacement, golf cart inspection lifecycle,
 // caddy tablet with an offline half and a device handover, scorecard with
