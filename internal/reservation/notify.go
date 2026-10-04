@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"oneclub/internal/crm"
 	"oneclub/internal/platform/calendar"
 	"oneclub/internal/platform/notify"
 	"oneclub/internal/platform/outbox"
@@ -35,12 +36,11 @@ func (e *Engine) NotifyConfirmed(ctx context.Context, tx pgx.Tx, ev outbox.Event
 	if err != nil || r.Kind != "booking" || r.CustomerID == nil {
 		return err
 	}
-	var name string
-	var email, phone, locale *string
-	var user *uuid.UUID
-	if err := tx.QueryRow(ctx, `SELECT name, email, phone, locale, user_id FROM crm.customers WHERE id = $1`, *r.CustomerID).Scan(&name, &email, &phone, &locale, &user); err != nil {
+	c, err := crm.GetCustomer(ctx, tx, *r.CustomerID)
+	if err != nil {
 		return err
 	}
+	name := c.Name
 	loc := calendar.Location(ctx, tx)
 	start, resource := "", ""
 	if r.Start != nil {
@@ -55,16 +55,8 @@ func (e *Engine) NotifyConfirmed(ctx context.Context, tx pgx.Tx, ev outbox.Event
 	}
 	msg := notify.Message{Event: "reservation.booking_confirmed", Category: "booking", PropertyID: &r.PropertyID, Link: "/bookings",
 		Data: map[string]any{"name": name, "code": r.Code, "line": ln[0], "resource": resource, "start": start}}
-	switch {
-	case user != nil:
-		msg.UserIDs = []uuid.UUID{*user}
-	case email != nil && *email != "":
-		msg.Email, msg.Channels = *email, []string{notify.ChannelEmail}
-		if locale != nil {
-			msg.Locale = *locale
-		}
-	default:
-		return nil
+	if ok, err := crm.Recipient(ctx, tx, *r.CustomerID, &msg); err != nil || !ok {
+		return err
 	}
 	return e.Notify.Send(ctx, tx, msg)
 }

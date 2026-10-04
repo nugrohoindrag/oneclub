@@ -19,8 +19,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	"oneclub/internal/billing"
-	"oneclub/internal/commercial/pos"
-	"oneclub/internal/commercial/voucher"
+	"oneclub/internal/commercial"
 	"oneclub/internal/crm"
 	"oneclub/internal/golf"
 	"oneclub/internal/platform/notify"
@@ -263,8 +262,8 @@ type Module struct {
 	Billing      *billing.Service
 	Notify       notify.Sender
 	Golf         *golf.Module
-	POS          *pos.Module         // on-course F&B orders from the Caddy Tablet
-	Vouchers     *voucher.Module     // prepaid ball balance (Driving Range)
+	POS          commercial.POS      // on-course F&B orders from the Caddy Tablet
+	Vouchers     commercial.Vouchers // prepaid ball balance (Driving Range)
 	Reservations *reservation.Engine // driving range bays as bookable resources
 	CRM          *crm.Engagement     // post-round feedback, caddy-recorded preferences
 	Files        *storage.Files      // HIO claim package, introduction letters

@@ -17,7 +17,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
-	"oneclub/internal/commercial/voucher"
+	"oneclub/internal/commercial"
 	"oneclub/internal/crm"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
@@ -308,7 +308,7 @@ func (m *Module) IssueBucket(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		}
 		amount, _ = decimal.NewFromString(o.Total)
 	case "prepaid":
-		res, err := m.Vouchers.RedeemBalance(ctx, tx, voucher.RedeemRequest{PropertyID: property, CustomerID: in.CustomerID,
+		res, err := m.Vouchers.RedeemBalance(ctx, tx, commercial.RedeemRequest{PropertyID: property, CustomerID: in.CustomerID,
 			Quantity: decimal.NewFromInt(int64(in.Balls)), ServiceType: "driving_range", SourceType: "golf.range_bucket", SourceID: &bid,
 			IdempotencyKey: key, Reference: "range bucket"}, BallCategory)
 		if err != nil {

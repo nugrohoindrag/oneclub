@@ -188,3 +188,14 @@ func Contribution() catalog.Contribution {
 	rp["crm_admin"] = append(rp["crm_admin"], "commercial.voucher.issue")
 	return catalog.Contribution{Permissions: perms, RolePermissions: rp}
 }
+
+// Types of the public commercial interface (internal/commercial/sales_api.go).
+type (
+	OrderLine  = commercial.OrderLine
+	Bill       = commercial.Bill
+	Order      = commercial.Order
+	LineInput  = commercial.LineInput
+	OrderInput = commercial.OrderInput
+)
+
+var _ commercial.POS = (*Module)(nil)

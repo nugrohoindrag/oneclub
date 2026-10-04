@@ -279,3 +279,14 @@ func (m *Module) publicRates(w http.ResponseWriter, r *http.Request) {
 	}
 	httpx.JSON(w, http.StatusOK, httpx.Page[PublicRate]{Items: out})
 }
+
+// PackageRateMinutes is the duration of a package rate (meeting package),
+// nil when the package has none.
+func PackageRateMinutes(ctx context.Context, q dbtx.Querier, property uuid.UUID, code string) (*int, error) {
+	var mins *int
+	err := q.QueryRow(ctx, `SELECT duration_minutes FROM commercial.package_rates WHERE property_id = $1 AND code = $2`, property, code).Scan(&mins)
+	if dbtx.IsNoRows(err) {
+		return nil, nil
+	}
+	return mins, err
+}

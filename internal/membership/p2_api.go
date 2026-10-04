@@ -201,3 +201,15 @@ func SegmentFacts(ctx context.Context, q dbtx.Querier, property uuid.UUID) (type
 	}
 	return types, programs, rows.Err()
 }
+
+// HasMemberRate tells whether the customer has an active membership that
+// grants the Member Rate (POS member prices, FR-POS-03).
+func HasMemberRate(ctx context.Context, q dbtx.Querier, property, customerID uuid.UUID) (bool, error) {
+	act, err := ActiveFor(ctx, q, property, customerID)
+	for _, a := range act {
+		if a.Entitlements.MemberRate {
+			return true, err
+		}
+	}
+	return false, err
+}

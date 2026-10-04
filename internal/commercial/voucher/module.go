@@ -9,8 +9,10 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 
 	"oneclub/internal/billing"
+	"oneclub/internal/commercial"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/approval"
@@ -68,3 +70,19 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.registerVouchers(reg, eng)
 	m.registerMe(reg)
 }
+
+// Types of the public commercial interface (internal/commercial/sales_api.go).
+type (
+	Voucher       = commercial.Voucher
+	RedeemRequest = commercial.RedeemRequest
+	RedeemResult  = commercial.RedeemResult
+)
+
+// Quota is the remaining quota of a customer (method form for the commercial.Vouchers interface).
+func (m *Module) Quota(ctx context.Context, q dbtx.Querier, property, customerID uuid.UUID, category, item string) (decimal.Decimal, error) {
+	return Quota(ctx, q, property, customerID, category, item)
+}
+
+var (
+	_ commercial.Vouchers = (*Module)(nil)
+)

@@ -13,7 +13,6 @@ import (
 
 	"oneclub/internal/billing"
 	"oneclub/internal/commercial"
-	"oneclub/internal/commercial/pos"
 	"oneclub/internal/crm"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
@@ -72,7 +71,7 @@ const staySelect = `SELECT s.id, s.property_id, s.stay_no, s.kind, s.reservation
 	coalesce(b.name, v.name, mr.name, '') AS unit_name, s.unit_type_id, s.unit_assigned, s.start_at, s.end_at, s.actual_end_at, s.adults, s.children,
 	s.pax, s.layout, s.rate_plan, s.package_code, s.special_requests, s.event_schedule, s.catering, s.id_type, s.id_number_masked, s.status,
 	s.checked_in_at, s.checked_out_at, s.folio_id, s.channel, s.created_at
-	FROM stay.stays s JOIN reservation.reservations r ON r.id = s.reservation_id LEFT JOIN crm.customers c ON c.id = s.customer_id
+	FROM stay.stays s JOIN reservation.reservations r ON r.id = s.reservation_id LEFT JOIN reporting.customer_directory c ON c.id = s.customer_id
 	LEFT JOIN stay.bungalows b ON b.id = s.unit_id LEFT JOIN stay.vip_suites v ON v.id = s.unit_id LEFT JOIN stay.meeting_rooms mr ON mr.id = s.unit_id`
 
 // Get returns a stay.
@@ -431,9 +430,9 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 			qty = fmt.Sprint(max(in.Pax, 1))
 		}
 		fid := f.ID
-		o, err := m.POS.CreateOrder(ctx, tx, property, pos.OrderInput{OutletID: outletID, OrderType: "catering", Source: "meeting_catering",
+		o, err := m.POS.CreateOrder(ctx, tx, property, commercial.OrderInput{OutletID: outletID, OrderType: "catering", Source: "meeting_catering",
 			CustomerID: cid, ServingDestination: "meeting_room", DestinationRef: u.Name, ScheduledFor: &serve, ChargeFolioID: &fid,
-			Lines: []pos.LineInput{{ProductID: pid, Quantity: qty}}, Notes: "Catering " + in.CorporateName})
+			Lines: []commercial.LineInput{{ProductID: pid, Quantity: qty}}, Notes: "Catering " + in.CorporateName})
 		if err != nil {
 			return StayResult{}, err
 		}

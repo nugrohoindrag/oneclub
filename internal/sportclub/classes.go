@@ -13,7 +13,7 @@ import (
 
 	"oneclub/internal/billing"
 	"oneclub/internal/commercial"
-	"oneclub/internal/commercial/voucher"
+	"oneclub/internal/crm"
 	"oneclub/internal/kernel/authz"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
@@ -189,7 +189,7 @@ type Enrollment struct {
 
 const enrollmentSelect = `SELECT e.id, e.program_id, p.name AS program_name, e.customer_id, c.name AS customer_name, e.segment, e.valid_until,
 	trim_scale(e.registration_fee)::text AS registration_fee, e.folio_id, e.status
-	FROM sportclub.enrollments e JOIN sportclub.class_programs p ON p.id = e.program_id JOIN crm.customers c ON c.id = e.customer_id`
+	FROM sportclub.enrollments e JOIN sportclub.class_programs p ON p.id = e.program_id JOIN reporting.customer_directory c ON c.id = e.customer_id`
 
 // Enroll registers a customer to a program and charges the Registration Fee
 // (member vs guest price via pricing service class_registration).
@@ -250,7 +250,7 @@ func (m *Module) Enroll(ctx context.Context, tx pgx.Tx, property uuid.UUID, in E
 	if err != nil {
 		return e, err
 	}
-	q, _ := voucher.Quota(ctx, tx, property, in.CustomerID, "class_package", p.Code)
+	q, _ := m.Vouchers.Quota(ctx, tx, property, in.CustomerID, "class_package", p.Code)
 	e.QuotaRemaining = q.String()
 	return e, audit.Record(ctx, tx, audit.Entry{Module: "sportclub", Action: audit.ActionCreate, EntityType: "sportclub.enrollment",
 		EntityID: eid.String(), EntityLabel: p.Name + " · " + e.CustomerName, PropertyID: &property, After: e})
@@ -284,7 +284,7 @@ type SessionBooking struct {
 }
 
 const bookingSelect = `SELECT b.id, b.session_id, b.customer_id, c.name AS customer_name, b.status, b.quota_used, b.voucher_id, b.marked_at
-	FROM sportclub.session_bookings b JOIN crm.customers c ON c.id = b.customer_id`
+	FROM sportclub.session_bookings b JOIN reporting.customer_directory c ON c.id = b.customer_id`
 
 // BookSession books a seat in a session: registration and quota are checked
 // (the 5th attendance on a 4x package is refused, FR-CLS-05 AC).
@@ -312,7 +312,7 @@ func (m *Module) BookSession(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	if valid.Before(s.Start) {
 		return SessionBooking{}, errs.Conflict("registration_expired", "the registration expired on "+valid.Format("2006-01-02"))
 	}
-	quota, err := voucher.Quota(ctx, tx, property, in.CustomerID, "class_package", p.Code)
+	quota, err := m.Vouchers.Quota(ctx, tx, property, in.CustomerID, "class_package", p.Code)
 	if err != nil {
 		return SessionBooking{}, err
 	}
@@ -497,23 +497,7 @@ func (m *Module) CancelSession(ctx context.Context, tx pgx.Tx, property, sid uui
 }
 
 func customerRecipient(ctx context.Context, tx pgx.Tx, customer uuid.UUID, msg *notify.Message) (bool, error) {
-	var email, locale *string
-	var user *uuid.UUID
-	if err := tx.QueryRow(ctx, `SELECT email, user_id, locale FROM crm.customers WHERE id = $1`, customer).Scan(&email, &user, &locale); err != nil {
-		return false, err
-	}
-	switch {
-	case user != nil:
-		msg.UserIDs = []uuid.UUID{*user}
-	case email != nil && *email != "":
-		msg.Email, msg.Channels = *email, []string{notify.ChannelEmail}
-		if locale != nil {
-			msg.Locale = *locale
-		}
-	default:
-		return false, nil
-	}
-	return true, nil
+	return crm.Recipient(ctx, tx, customer, msg)
 }
 
 // ── instructor fees (FR-CLS-08) ───────────────────────────────────────────

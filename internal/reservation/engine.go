@@ -298,7 +298,7 @@ const reservationSelect = `SELECT r.id, r.property_id, r.code, r.kind, r.busines
 	r.cancelled_at, r.cancel_reason, trim_scale(r.cancellation_fee)::text AS cancellation_fee, r.created_at,
 	(SELECT min(lower(l.period)) FROM reservation.reservation_lines l WHERE l.reservation_id = r.id) AS start_at,
 	(SELECT max(upper(l.period)) FROM reservation.reservation_lines l WHERE l.reservation_id = r.id) AS end_at
-	FROM reservation.reservations r LEFT JOIN crm.customers c ON c.id = r.customer_id`
+	FROM reservation.reservations r LEFT JOIN reporting.customer_directory c ON c.id = r.customer_id`
 
 const lineSelect = `SELECT l.id, l.line_no, l.resource_id, rs.code AS resource_code, rs.name AS resource_name, l.resource_type, l.allocation_mode,
 	lower(l.period) AS start_at, upper(l.period) AS end_at, l.quantity, l.allocation_id, l.status, l.description, l.pricing_snapshot_id,

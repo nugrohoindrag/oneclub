@@ -7,7 +7,6 @@ package inventory
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -100,8 +99,19 @@ var ModifierImpacts = &resource.Def{
 }
 
 // Module is the Inventory module.
+// ProductCatalog is the product data of Commercial that the food cost
+// needs; internal/app wires it (back office does not import Commercial,
+// Tech Doc §4.2).
+type ProductCatalog interface {
+	ComboItems(ctx context.Context, q dbtx.Querier, productID uuid.UUID) (map[uuid.UUID]decimal.Decimal, error)
+	SellingPrice(ctx context.Context, q dbtx.Querier, productID uuid.UUID) (decimal.Decimal, error)
+	ProductNames(ctx context.Context, q dbtx.Querier, ids []uuid.UUID) (map[uuid.UUID]string, error)
+	OutletNames(ctx context.Context, q dbtx.Querier, ids []uuid.UUID) (map[uuid.UUID]string, error)
+}
+
 type Module struct {
-	DB *dbtx.DB
+	DB       *dbtx.DB
+	Products ProductCatalog
 }
 
 func dec(s string) decimal.Decimal { d, _ := decimal.NewFromString(s); return d }
@@ -229,7 +239,7 @@ func costOf(ctx context.Context, q dbtx.Querier, cons map[uuid.UUID]decimal.Deci
 
 // productConsumption explodes one unit of a product: its recipe, or its
 // combo components' recipes (FR-BOM-03), plus modifier impacts.
-func productConsumption(ctx context.Context, q dbtx.Querier, productID uuid.UUID, modifiers []uuid.UUID, depth int) (map[uuid.UUID]decimal.Decimal, bool, error) {
+func (m *Module) productConsumption(ctx context.Context, q dbtx.Querier, productID uuid.UUID, modifiers []uuid.UUID, depth int) (map[uuid.UUID]decimal.Decimal, bool, error) {
 	cons := map[uuid.UUID]decimal.Decimal{}
 	has := false
 	var rid uuid.UUID
@@ -241,23 +251,19 @@ func productConsumption(ctx context.Context, q dbtx.Querier, productID uuid.UUID
 			return nil, true, err
 		}
 	case dbtx.IsNoRows(err):
-		var combo []byte
-		if err := q.QueryRow(ctx, `SELECT combo_items FROM commercial.products WHERE id = $1`, productID).Scan(&combo); err != nil && !dbtx.IsNoRows(err) {
-			return nil, false, err
+		items := map[uuid.UUID]decimal.Decimal{}
+		if m.Products != nil {
+			if items, err = m.Products.ComboItems(ctx, q, productID); err != nil {
+				return nil, false, err
+			}
 		}
-		var items []struct {
-			ProductID uuid.UUID `json:"productId"`
-			Quantity  any       `json:"quantity"`
-		}
-		_ = json.Unmarshal(combo, &items)
 		if depth < 3 {
-			for _, it := range items {
-				sub, ok, err := productConsumption(ctx, q, it.ProductID, nil, depth+1)
+			for pid, qty := range items {
+				sub, ok, err := m.productConsumption(ctx, q, pid, nil, depth+1)
 				if err != nil {
 					return nil, false, err
 				}
 				has = has || ok
-				qty := dec(fmt.Sprint(it.Quantity))
 				if qty.IsZero() {
 					qty = decimal.NewFromInt(1)
 				}
@@ -350,7 +356,7 @@ func (m *Module) SaleCompleted(ctx context.Context, tx pgx.Tx, e outbox.Event) e
 				mods = append(mods, u)
 			}
 		}
-		cons, has, err := productConsumption(ctx, tx, l.ProductID, mods, 0)
+		cons, has, err := m.productConsumption(ctx, tx, l.ProductID, mods, 0)
 		if err != nil {
 			if de, ok := errs.As(err); ok && de.Kind == errs.KindValidation {
 				cons, has = map[uuid.UUID]decimal.Decimal{}, false // recipe data incomplete: record the sale without cost
@@ -445,9 +451,9 @@ func (m *Module) RecipeCost(ctx context.Context, q dbtx.Querier, rid uuid.UUID) 
 		out.Lines = append(out.Lines, CostLine{ItemID: item, Name: name, Quantity: qty.Round(4).String(), UOM: uom, UnitCost: unit[item].String(),
 			Cost: qty.Mul(unit[item]).Round(2).String()})
 	}
-	if r.ProductID != nil {
-		var price string
-		if err := q.QueryRow(ctx, `SELECT price::text FROM commercial.products WHERE id = $1`, *r.ProductID).Scan(&price); err == nil && dec(price).IsPositive() {
+	if r.ProductID != nil && m.Products != nil {
+		if p, err := m.Products.SellingPrice(ctx, q, *r.ProductID); err == nil && p.IsPositive() {
+			price := p.String()
 			out.SellingPrice = &price
 			pct := total.Div(dec(price)).Mul(decimal.NewFromInt(100)).Round(2).String()
 			out.FoodCostPercent = &pct
@@ -499,17 +505,31 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 			if err != nil {
 				return httpx.Page[FoodCostRow]{}, err
 			}
-			key, name := "s.product_id", "p.name"
-			join := "JOIN commercial.products p ON p.id = s.product_id"
-			if r.URL.Query().Get("groupBy") == "outlet" {
-				key, name, join = "s.outlet_id", "o.name", "JOIN commercial.outlets o ON o.id = s.outlet_id"
+			key, byOutlet := "s.product_id", r.URL.Query().Get("groupBy") == "outlet"
+			if byOutlet {
+				key = "s.outlet_id"
 			}
-			return handle.Page(handle.List[FoodCostRow](tx.Query(ctx, `SELECT `+key+` AS key, `+name+` AS name, trim_scale(sum(s.quantity))::text AS quantity,
+			rows, err := handle.List[FoodCostRow](tx.Query(ctx, `SELECT `+key+` AS key, '' AS name, trim_scale(sum(s.quantity))::text AS quantity,
 				trim_scale(sum(s.net_amount))::text AS net_sales, trim_scale(round(sum(s.cost_amount), 2))::text AS theoretical_cost,
 				CASE WHEN sum(s.net_amount) > 0 THEN round(sum(s.cost_amount) / sum(s.net_amount) * 100, 2)::text END AS food_cost_percent,
 				count(*) FILTER (WHERE NOT s.has_recipe)::int AS without_recipe
-				FROM inventory.consumption_sales s `+join+` WHERE s.property_id = $1 AND s.occurred_at >= $2 AND s.occurred_at < $3
-				AND ($4::uuid IS NULL OR s.outlet_id = $4) GROUP BY 1, 2 ORDER BY sum(s.net_amount) DESC`, handle.Property(ctx), from, to, outlet)))
+				FROM inventory.consumption_sales s WHERE s.property_id = $1 AND s.occurred_at >= $2 AND s.occurred_at < $3
+				AND ($4::uuid IS NULL OR s.outlet_id = $4) AND `+key+` IS NOT NULL GROUP BY 1, 2 ORDER BY sum(s.net_amount) DESC`, handle.Property(ctx), from, to, outlet))
+			if err != nil || m.Products == nil {
+				return handle.Page(rows, err)
+			}
+			ids := make([]uuid.UUID, 0, len(rows))
+			for _, x := range rows {
+				ids = append(ids, x.Key)
+			}
+			names, err := m.Products.ProductNames(ctx, tx, ids)
+			if byOutlet {
+				names, err = m.Products.OutletNames(ctx, tx, ids)
+			}
+			for i := range rows {
+				rows[i].Name = names[rows[i].Key]
+			}
+			return handle.Page(rows, err)
 		})})
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/inventory/consumption", Summary: "Theoretical consumption per item (ready for P4 stock)",
 		Permission: "inventory.food_cost.view", Response: Consumption{}, List: true, Query: []route.Param{{Name: "from"}, {Name: "to"}, {Name: "outletId"}},

@@ -11,8 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"oneclub/internal/billing"
-	"oneclub/internal/commercial/pos"
-	"oneclub/internal/commercial/voucher"
+	"oneclub/internal/commercial"
 	"oneclub/internal/kernel/authz"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/id"
@@ -29,8 +28,8 @@ type Module struct {
 	DB       *dbtx.DB
 	Res      *reservation.Engine
 	Billing  *billing.Service
-	POS      *pos.Module     // restaurant orders charged to the stay
-	Vouchers *voucher.Module // voucher & prepaid redemption
+	POS      commercial.POS      // restaurant orders charged to the stay
+	Vouchers commercial.Vouchers // voucher & prepaid redemption
 	Events   *outbox.Bus
 }
 

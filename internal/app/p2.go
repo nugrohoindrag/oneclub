@@ -96,7 +96,7 @@ func (a *App) buildP2(reg *route.Registry, cfg *config.Config, db *dbtx.DB, file
 	a.Sync.Handle("sportclub.access_validate", a.SportClub.SyncAccess)
 	a.Stay = &stay.Module{DB: db, Res: a.Reservations, Billing: a.Billing, POS: a.POS, Vouchers: a.Vouchers, Events: a.Bus}
 	a.Stay.Register(reg, a.Engine)
-	a.Inventory = &inventory.Module{DB: db}
+	a.Inventory = &inventory.Module{DB: db, Products: a.POS}
 	a.Inventory.Register(reg, a.Engine)
 	a.CRM = &crm.Engagement{Module: crmModule, Notify: a.Notification, PublicURL: cfg.PublicBaseURL}
 	a.CRM.RegisterP2(reg, a.Engine)

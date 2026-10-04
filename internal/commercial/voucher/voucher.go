@@ -73,33 +73,6 @@ var (
 	VoucherAdjustType = provision.DocumentType{Code: "voucher_adjust", Module: "commercial", Name: "Voucher Balance Adjustment", Attributes: []provision.DocumentAttribute{{Key: "value", Label: "Value", Type: "number"}}}
 )
 
-// Voucher is a voucher with its type.
-type Voucher struct {
-	ID                uuid.UUID  `json:"id" db:"id"`
-	Code              string     `json:"code" db:"code"`
-	VoucherTypeID     uuid.UUID  `json:"voucherTypeId" db:"voucher_type_id"`
-	TypeCode          string     `json:"typeCode" db:"type_code"`
-	TypeName          string     `json:"typeName" db:"type_name"`
-	Kind              string     `json:"kind" db:"kind" enum:"value,quota,promo"`
-	Category          string     `json:"category" db:"category"`
-	Unit              string     `json:"unit" db:"unit"`
-	Prepaid           bool       `json:"prepaid" db:"prepaid"`
-	Transferable      bool       `json:"transferable" db:"transferable"`
-	CustomerID        *uuid.UUID `json:"customerId" db:"customer_id"`
-	CustomerName      *string    `json:"customerName" db:"customer_name"`
-	Status            string     `json:"status" db:"status" enum:"pending,active,partially_redeemed,redeemed,expired,void"`
-	OriginalQuantity  string     `json:"originalQuantity" db:"original_quantity"`
-	RemainingQuantity string     `json:"remainingQuantity" db:"remaining_quantity"`
-	UnitValue         string     `json:"unitValue" db:"unit_value"`
-	PricePaid         string     `json:"pricePaid" db:"price_paid"`
-	UsesCount         int        `json:"usesCount" db:"uses_count"`
-	IssuedVia         string     `json:"issuedVia" db:"issued_via"`
-	FolioID           *uuid.UUID `json:"folioId" db:"folio_id"`
-	IssuedAt          time.Time  `json:"issuedAt" db:"issued_at"`
-	ExpiresAt         *time.Time `json:"expiresAt" db:"expires_at"`
-	VoidReason        *string    `json:"voidReason" db:"void_reason"`
-}
-
 // LedgerEntry is one voucher usage history row (FR-VCH-04).
 type LedgerEntry struct {
 	ID           uuid.UUID  `json:"id" db:"id"`
@@ -122,7 +95,7 @@ type LedgerEntry struct {
 const voucherSelect = `SELECT v.id, v.code, v.voucher_type_id, t.code AS type_code, t.name AS type_name, t.kind, t.category, t.unit, t.prepaid, t.transferable,
 	v.customer_id, c.name AS customer_name, v.status, trim_scale(v.original_quantity)::text AS original_quantity, trim_scale(v.remaining_quantity)::text AS remaining_quantity, trim_scale(v.unit_value)::text AS unit_value, trim_scale(v.price_paid)::text AS price_paid,
 	v.uses_count, v.issued_via, v.folio_id, v.issued_at, v.expires_at, v.void_reason
-	FROM commercial.vouchers v JOIN commercial.voucher_types t ON t.id = v.voucher_type_id LEFT JOIN crm.customers c ON c.id = v.customer_id`
+	FROM commercial.vouchers v JOIN commercial.voucher_types t ON t.id = v.voucher_type_id LEFT JOIN reporting.customer_directory c ON c.id = v.customer_id`
 
 const ledgerSelect = `SELECT l.id, l.voucher_id, v.code AS voucher_code, l.entry_type, trim_scale(l.quantity)::text AS quantity, trim_scale(l.amount)::text AS amount, trim_scale(l.balance_after)::text AS balance_after, l.service_type,
 	l.terminal, l.reference, l.source_type, l.source_id, l.reason, l.actor_name, l.created_at
@@ -365,34 +338,6 @@ func (m *Module) liabilityOf(ctx context.Context, q dbtx.Querier, vid uuid.UUID)
 	err := q.QueryRow(ctx, `SELECT trim_scale(coalesce(sum(amount), 0))::text FROM billing.deferred_revenue_entries WHERE ref_type = 'commercial.voucher' AND ref_id = $1`, vid).Scan(&raw)
 	d, _ := decimal.NewFromString(raw)
 	return d, err
-}
-
-// RedeemRequest uses (part of) a voucher (FR-VCH-03).
-type RedeemRequest struct {
-	PropertyID     uuid.UUID
-	VoucherID      *uuid.UUID
-	Code           string
-	Quantity       decimal.Decimal // units (quota) or rupiah (value)
-	ServiceType    string
-	ResourceType   string
-	ItemRef        string
-	OutletID       *uuid.UUID
-	CustomerID     *uuid.UUID
-	Terminal       string
-	Reference      string
-	SourceType     string
-	SourceID       *uuid.UUID
-	IdempotencyKey string
-	BaseAmount     decimal.Decimal // promo vouchers: amount the discount applies to
-}
-
-// RedeemResult reports a redemption.
-type RedeemResult struct {
-	Voucher    Voucher `json:"voucher"`
-	Quantity   string  `json:"quantity"`
-	Recognized string  `json:"recognizedRevenue"`
-	Discount   string  `json:"discount" doc:"Promo vouchers: discount granted"`
-	Duplicate  bool    `json:"duplicate" doc:"The same redemption (idempotency key) was already processed"`
 }
 
 // Redeem uses a voucher. The row lock makes concurrent use from two
@@ -947,7 +892,7 @@ func (m *Module) registerVouchers(reg *route.Registry, eng *resource.Engine) {
 			lp := httpx.ParseList(r)
 			return handle.Page(handle.List[PrepaidBalance](tx.Query(ctx, `SELECT v.customer_id, c.name AS customer_name, t.code AS type_code, t.name AS type_name,
 				t.category, t.unit, trim_scale(sum(v.remaining_quantity))::text AS remaining, count(*)::int AS vouchers, min(v.expires_at) AS next_expiry
-				FROM commercial.vouchers v JOIN commercial.voucher_types t ON t.id = v.voucher_type_id JOIN crm.customers c ON c.id = v.customer_id
+				FROM commercial.vouchers v JOIN commercial.voucher_types t ON t.id = v.voucher_type_id JOIN reporting.customer_directory c ON c.id = v.customer_id
 				WHERE v.property_id = $1 AND t.prepaid AND v.status IN ('active', 'partially_redeemed') AND ($2 = '' OR v.customer_id::text = $2)
 				GROUP BY 1, 2, 3, 4, 5, 6 ORDER BY 2, 4`, handle.Property(ctx), lp.Filters["customerId"])))
 		})})

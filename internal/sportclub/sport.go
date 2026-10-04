@@ -14,7 +14,6 @@ import (
 
 	"oneclub/internal/billing"
 	"oneclub/internal/commercial"
-	"oneclub/internal/commercial/voucher"
 	"oneclub/internal/crm"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
@@ -143,7 +142,7 @@ type Entry struct {
 const entrySelect = `SELECT e.id, e.ticket_no, e.facility_id, f.name AS facility_name, e.entry_type, e.customer_id, c.name AS customer_name, e.host_customer_id,
 	e.guest_name, e.adults, e.children, e.visit_date, trim_scale(e.amount)::text AS amount, e.folio_id, e.voucher_id, e.reservation_id, e.qr_token,
 	e.status, e.used_at, e.created_at
-	FROM sportclub.entries e JOIN sportclub.facilities f ON f.id = e.facility_id LEFT JOIN crm.customers c ON c.id = e.customer_id`
+	FROM sportclub.entries e JOIN sportclub.facilities f ON f.id = e.facility_id LEFT JOIN reporting.customer_directory c ON c.id = e.customer_id`
 
 func (m *Module) entry(ctx context.Context, q dbtx.Querier, eid uuid.UUID) (Entry, error) {
 	rows, err := q.Query(ctx, entrySelect+` WHERE e.id = $1`, eid)
@@ -326,7 +325,7 @@ func (m *Module) CreateEntry(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		if key != "" {
 			vk = "entry-" + key
 		}
-		res, err := m.Vouchers.Redeem(ctx, tx, voucher.RedeemRequest{PropertyID: property, Code: in.VoucherCode, Quantity: decimal.NewFromInt(int64(in.Adults + in.Children)),
+		res, err := m.Vouchers.Redeem(ctx, tx, commercial.RedeemRequest{PropertyID: property, Code: in.VoucherCode, Quantity: decimal.NewFromInt(int64(in.Adults + in.Children)),
 			ServiceType: "facility_entry", ItemRef: f.priceItem(), CustomerID: customerID, Terminal: in.Channel, SourceType: "sportclub.entry", IdempotencyKey: vk})
 		if err != nil {
 			return EntryResult{}, err
@@ -376,7 +375,7 @@ func (m *Module) CreateEntry(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		return EntryResult{}, err
 	}
 	if resID != nil {
-		if _, err := tx.Exec(ctx, `UPDATE reservation.reservations SET source_id = $2 WHERE id = $1`, *resID, eid); err != nil {
+		if err := m.Res.SetSource(ctx, tx, *resID, eid); err != nil {
 			return EntryResult{}, err
 		}
 	}
@@ -656,8 +655,12 @@ func (m *Module) ValidateAccess(ctx context.Context, tx pgx.Tx, property uuid.UU
 					}
 				}
 				if fac == "" {
-					if err := tx.QueryRow(ctx, `SELECT coalesce(c.facility_id::text, '') FROM reservation.reservation_lines l
-						JOIN sportclub.courts c ON c.resource_id = l.resource_id WHERE l.reservation_id = $1 LIMIT 1`, r.ID).Scan(&fac); err != nil && !dbtx.IsNoRows(err) {
+					resources, err := m.Res.LineResources(ctx, tx, r.ID)
+					if err != nil {
+						return res, err
+					}
+					if err := tx.QueryRow(ctx, `SELECT coalesce(facility_id::text, '') FROM sportclub.courts WHERE resource_id = ANY($1) LIMIT 1`, resources).
+						Scan(&fac); err != nil && !dbtx.IsNoRows(err) {
 						return res, err
 					}
 				}
@@ -747,7 +750,7 @@ type LockerAssignment struct {
 
 const lockerAssignSelect = `SELECT a.id, a.locker_id, l.code AS locker_code, a.customer_id, c.name AS customer_name, a.guest_name, a.assignment_type,
 	a.start_at, a.end_at, a.returned_at, trim_scale(a.fee)::text AS fee, a.status
-	FROM sportclub.locker_assignments a JOIN sportclub.lockers l ON l.id = a.locker_id LEFT JOIN crm.customers c ON c.id = a.customer_id`
+	FROM sportclub.locker_assignments a JOIN sportclub.lockers l ON l.id = a.locker_id LEFT JOIN reporting.customer_directory c ON c.id = a.customer_id`
 
 // AssignLocker assigns an available locker (one active assignment per locker).
 func (m *Module) AssignLocker(ctx context.Context, tx pgx.Tx, property uuid.UUID, in LockerAssignInput, key string) (LockerAssignment, error) {
@@ -899,12 +902,11 @@ func (m *Module) BookCourt(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 		if key != "" {
 			vk = "court-" + key
 		}
-		if _, err := m.Vouchers.Redeem(ctx, tx, voucher.RedeemRequest{PropertyID: property, Code: in.PackageCode, Quantity: decimal.NewFromInt(1),
+		if _, err := m.Vouchers.Redeem(ctx, tx, commercial.RedeemRequest{PropertyID: property, Code: in.PackageCode, Quantity: decimal.NewFromInt(1),
 			ServiceType: "sport_court", ItemRef: item, CustomerID: cid, SourceType: "reservation.reservation", SourceID: &r.ID, IdempotencyKey: vk}); err != nil {
 			return out, err
 		}
-		if _, err := tx.Exec(ctx, `UPDATE reservation.reservations SET attributes = attributes || jsonb_build_object('packageCode', $2::text) WHERE id = $1`,
-			r.ID, strings.ToUpper(in.PackageCode)); err != nil {
+		if err := m.Res.SetAttribute(ctx, tx, r.ID, "packageCode", strings.ToUpper(in.PackageCode)); err != nil {
 			return out, err
 		}
 	} else {
@@ -932,7 +934,7 @@ func (m *Module) BookCourt(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 			out.Folio = &d
 		}
 	}
-	if _, err := tx.Exec(ctx, `UPDATE reservation.reservations SET source_id = id WHERE id = $1`, r.ID); err != nil {
+	if err := m.Res.SetSource(ctx, tx, r.ID, r.ID); err != nil {
 		return out, err
 	}
 	out.Reservation, err = m.Res.Get(ctx, tx, r.ID, false)
@@ -941,23 +943,35 @@ func (m *Module) BookCourt(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 
 // Occupancy is the live occupancy of capacity facilities (FR-SPT-08).
 type Occupancy struct {
-	FacilityID   uuid.UUID `json:"facilityId" db:"facility_id"`
-	FacilityName string    `json:"facilityName" db:"facility_name"`
-	FacilityType *string   `json:"facilityType" db:"facility_type"`
-	Capacity     *int      `json:"capacity" db:"capacity"`
-	Inside       int       `json:"inside" db:"inside"`
-	EntriesToday int       `json:"entriesToday" db:"entries_today"`
-	Booked       int       `json:"booked" db:"booked" doc:"Places reserved for today (capacity slot)"`
+	FacilityID   uuid.UUID  `json:"facilityId" db:"facility_id"`
+	FacilityName string     `json:"facilityName" db:"facility_name"`
+	FacilityType *string    `json:"facilityType" db:"facility_type"`
+	Capacity     *int       `json:"capacity" db:"capacity"`
+	Inside       int        `json:"inside" db:"inside"`
+	EntriesToday int        `json:"entriesToday" db:"entries_today"`
+	Booked       int        `json:"booked" db:"booked" doc:"Places reserved for today (capacity slot)"`
+	ResourceID   *uuid.UUID `json:"-" db:"resource_id"`
 }
 
 func (m *Module) occupancy(ctx context.Context, q dbtx.Querier, property uuid.UUID) ([]Occupancy, error) {
 	now := localNow(ctx, q)
 	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	return handle.List[Occupancy](q.Query(ctx, `SELECT f.id AS facility_id, f.name AS facility_name, f.facility_type, f.capacity,
+	list, err := handle.List[Occupancy](q.Query(ctx, `SELECT f.id AS facility_id, f.name AS facility_name, f.facility_type, f.capacity,
 		greatest(0, (SELECT count(*) FILTER (WHERE direction = 'in') - count(*) FILTER (WHERE direction = 'out') FROM sportclub.access_events a
 		  WHERE a.facility_id = f.id AND a.result = 'granted' AND a.occurred_at >= $2))::int AS inside,
 		(SELECT coalesce(sum(adults + children), 0) FROM sportclub.entries e WHERE e.facility_id = f.id AND e.visit_date = $3 AND e.status <> 'cancelled')::int AS entries_today,
-		coalesce((SELECT booked FROM reservation.capacity_slots s WHERE s.resource_id = f.resource_id AND s.period @> $2::timestamptz), 0) AS booked
+		0 AS booked, f.resource_id
 		FROM sportclub.facilities f WHERE f.property_id = $1 AND f.status = 'active' AND f.archived_at IS NULL AND f.usage_mode = 'entry' ORDER BY f.name`,
 		property, today, today.Format("2006-01-02")))
+	if err != nil {
+		return nil, err
+	}
+	for i := range list {
+		if list[i].ResourceID != nil {
+			if list[i].Booked, err = m.Res.BookedAt(ctx, q, *list[i].ResourceID, today); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return list, nil
 }

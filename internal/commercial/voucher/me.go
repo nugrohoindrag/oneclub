@@ -44,7 +44,7 @@ func (m *Module) registerMe(reg *route.Registry) {
 			}
 			return handle.Page(handle.List[PrepaidBalance](tx.Query(ctx, `SELECT v.customer_id, c.name AS customer_name, t.code AS type_code, t.name AS type_name,
 				t.category, t.unit, trim_scale(sum(v.remaining_quantity))::text AS remaining, count(*)::int AS vouchers, min(v.expires_at) AS next_expiry
-				FROM commercial.vouchers v JOIN commercial.voucher_types t ON t.id = v.voucher_type_id JOIN crm.customers c ON c.id = v.customer_id
+				FROM commercial.vouchers v JOIN commercial.voucher_types t ON t.id = v.voucher_type_id JOIN reporting.customer_directory c ON c.id = v.customer_id
 				WHERE v.customer_id = $1 AND t.prepaid AND v.status IN ('active', 'partially_redeemed') GROUP BY 1, 2, 3, 4, 5, 6 ORDER BY 4`, p.ID)))
 		})})
 	me(route.Route{Method: http.MethodGet, Path: "/api/v1/member/voucher-history", Summary: "Voucher History & Redemption History", Response: LedgerEntry{}, List: true,

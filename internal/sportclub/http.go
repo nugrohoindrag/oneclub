@@ -64,11 +64,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 				return httpx.Page[reservation.Reservation]{}, err
 			}
 			from := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, now.Location())
-			rows, err := tx.Query(ctx, `SELECT r.id FROM reservation.reservations r WHERE r.property_id = $1 AND r.business_line = 'sportclub'
-				AND r.kind = 'booking' AND r.source_type = 'sportclub.court_booking' AND ($2 = '' OR r.status = $2)
-				AND EXISTS (SELECT 1 FROM reservation.reservation_lines l WHERE l.reservation_id = r.id AND l.period && tstzrange($3, $4, '[)'))
-				ORDER BY r.created_at DESC LIMIT $5`, handle.Property(ctx), lp.Filters["status"], from, from.AddDate(0, 0, 1), lp.Limit)
-			ids, err := collect(rows, err)
+			ids, err := m.Res.IDsInRange(ctx, tx, handle.Property(ctx), "sportclub", "sportclub.court_booking", lp.Filters["status"], from, from.AddDate(0, 0, 1), lp.Limit)
 			if err != nil {
 				return httpx.Page[reservation.Reservation]{}, err
 			}
@@ -131,7 +127,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 			from := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, now.Location())
 			return handle.Page(handle.List[AccessEvent](tx.Query(ctx, `SELECT a.id, a.facility_id, f.name AS facility_name, a.credential_type, a.code_hint,
 				a.customer_id, c.name AS customer_name, a.direction, a.result, a.reason, a.terminal, a.offline, a.occurred_at
-				FROM sportclub.access_events a JOIN sportclub.facilities f ON f.id = a.facility_id LEFT JOIN crm.customers c ON c.id = a.customer_id
+				FROM sportclub.access_events a JOIN sportclub.facilities f ON f.id = a.facility_id LEFT JOIN reporting.customer_directory c ON c.id = a.customer_id
 				WHERE a.property_id = $1 AND a.occurred_at >= $2 AND a.occurred_at < $3 AND ($4 = '' OR a.facility_id::text = $4)
 				AND ($5 = '' OR a.result = $5) AND ($6 = '' OR a.customer_id::text = $6) ORDER BY a.occurred_at DESC LIMIT $7`,
 				handle.Property(ctx), from, from.AddDate(0, 0, 1), lp.Filters["facilityId"], lp.Filters["result"], lp.Filters["customerId"], lp.Limit)))
@@ -172,15 +168,22 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 			if err != nil {
 				return GenerateResult{}, err
 			}
-			// regenerate only sessions that do not exist yet
-			if _, err := tx.Exec(ctx, `DELETE FROM sportclub.class_sessions s WHERE s.schedule_id = $1 AND s.status = 'scheduled' AND lower(s.period) > now()
-				AND NOT EXISTS (SELECT 1 FROM sportclub.session_bookings b WHERE b.session_id = s.id)
-				AND NOT EXISTS (SELECT 1 FROM reservation.capacity_slots c WHERE c.source_id = s.id AND c.booked > 0)`, sid); err != nil {
+			// regenerate only future sessions nobody booked (their capacity slot goes too)
+			old, err := collect(tx.Query(ctx, `SELECT s.id FROM sportclub.class_sessions s WHERE s.schedule_id = $1 AND s.status = 'scheduled' AND lower(s.period) > now()
+				AND NOT EXISTS (SELECT 1 FROM sportclub.session_bookings b WHERE b.session_id = s.id)`, sid))
+			if err != nil {
 				return GenerateResult{}, err
 			}
-			if _, err := tx.Exec(ctx, `DELETE FROM reservation.capacity_slots c WHERE c.source_type = 'sportclub.class_session' AND c.booked = 0
-				AND NOT EXISTS (SELECT 1 FROM sportclub.class_sessions s WHERE s.id = c.source_id)`); err != nil {
-				return GenerateResult{}, err
+			for _, o := range old {
+				gone, err := m.Res.DeleteSlot(ctx, tx, "sportclub.class_session", o)
+				if err != nil {
+					return GenerateResult{}, err
+				}
+				if gone {
+					if _, err := tx.Exec(ctx, `DELETE FROM sportclub.class_sessions WHERE id = $1`, o); err != nil {
+						return GenerateResult{}, err
+					}
+				}
 			}
 			n, err := m.GenerateSessions(ctx, tx, sid)
 			if err != nil {

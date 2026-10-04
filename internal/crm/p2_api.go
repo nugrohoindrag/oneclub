@@ -19,6 +19,7 @@ import (
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/catalog"
+	"oneclub/internal/platform/handle"
 	"oneclub/internal/platform/notify"
 	"oneclub/internal/platform/resource"
 )
@@ -182,3 +183,36 @@ func (m *Engagement) RegisterP2(reg *route.Registry, eng *resource.Engine) {
 
 // EngagementContribution is the P2 part of the CRM catalogue.
 func EngagementContribution() catalog.Contribution { return engagementContribution() }
+
+// Recipient addresses a notification to a customer: the portal user when
+// linked, else the e-mail (in the customer's language). It reports whether
+// the customer can be reached.
+func Recipient(ctx context.Context, q dbtx.Querier, customer uuid.UUID, msg *notify.Message) (bool, error) {
+	p, err := GetCustomerProfile(ctx, q, customer)
+	if err != nil {
+		return false, err
+	}
+	switch {
+	case p.UserID != nil:
+		msg.UserIDs = []uuid.UUID{*p.UserID}
+	case p.Email != "":
+		msg.Email, msg.Name = p.Email, p.Name
+		msg.Channels = []string{notify.ChannelEmail}
+	default:
+		return false, nil
+	}
+	if p.Locale != "" {
+		msg.Locale = p.Locale
+	}
+	return true, nil
+}
+
+// FillBirthDate records the birth date of a customer who has none (age-based
+// prices from website forms).
+func FillBirthDate(ctx context.Context, tx pgx.Tx, customer uuid.UUID, birthDate string) error {
+	if _, err := time.Parse("2006-01-02", birthDate); err != nil {
+		return handle.Invalid("birthDate", "invalid_date", "birthDate must be YYYY-MM-DD")
+	}
+	_, err := tx.Exec(ctx, `UPDATE crm.customers SET birth_date = coalesce(birth_date, $2::date) WHERE id = $1`, customer, birthDate)
+	return err
+}

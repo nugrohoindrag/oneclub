@@ -286,7 +286,7 @@ func (m *Module) ageNotices(ctx context.Context, tx pgx.Tx, property uuid.UUID, 
 	}
 	list, err := handle.List[row](tx.Query(ctx, `SELECT ms.principal_id, c.id AS child_id, c.name AS child_name, c.birth_date, ty.eligibility,
 		pmb.customer_id AS principal_customer
-		FROM membership.memberships ms JOIN membership.members mb ON mb.id = ms.member_id JOIN crm.customers c ON c.id = mb.customer_id
+		FROM membership.memberships ms JOIN membership.members mb ON mb.id = ms.member_id JOIN reporting.customer_directory c ON c.id = mb.customer_id
 		JOIN membership.types ty ON ty.id = ms.type_id JOIN membership.memberships pm ON pm.id = ms.principal_id
 		JOIN membership.members pmb ON pmb.id = pm.member_id
 		WHERE ms.property_id = $1 AND ms.role = 'family' AND ms.relationship = 'child' AND ms.status IN ('active', 'paused') AND c.birth_date IS NOT NULL

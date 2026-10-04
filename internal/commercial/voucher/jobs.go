@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/riverqueue/river"
 
+	"oneclub/internal/crm"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/platform/jobs"
 	"oneclub/internal/platform/notify"
@@ -78,20 +79,12 @@ func (m *Module) SendExpiryReminders(ctx context.Context) (int, error) {
 				if err != nil {
 					return err
 				}
-				var email, locale *string
-				var userID *uuid.UUID
-				if err := tx.QueryRow(sys, `SELECT email, user_id, locale FROM crm.customers WHERE id = $1`, *v.CustomerID).Scan(&email, &userID, &locale); err != nil {
-					return err
-				}
 				msg := notify.Message{Event: "voucher.expiring", Category: "voucher", PropertyID: &r.pid,
 					Data: map[string]any{"name": deref(v.CustomerName), "code": v.Code, "typeName": v.TypeName, "remaining": v.RemainingQuantity,
 						"unit": v.Unit, "expiresAt": v.ExpiresAt.Format("2006-01-02"), "days": days}}
-				switch {
-				case userID != nil:
-					msg.UserIDs = []uuid.UUID{*userID}
-				case email != nil && *email != "":
-					msg.Email, msg.Locale, msg.Channels = *email, deref(locale), []string{notify.ChannelEmail}
-				default:
+				if ok, err := crm.Recipient(sys, tx, *v.CustomerID, &msg); err != nil {
+					return err
+				} else if !ok {
 					continue
 				}
 				if err := m.Notify.Send(sys, tx, msg); err != nil {

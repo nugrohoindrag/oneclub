@@ -4,6 +4,12 @@
 -- (Technical Doc §4.2).
 
 -- +goose Up
+-- ── cross-domain reads of the modules (Tech Doc §4.2) ─────────────────────
+-- Customer names for lists of other modules (orders, vouchers, stays,
+-- sport entries …): modules read this read model instead of crm tables.
+CREATE VIEW reporting.customer_directory WITH (security_invoker = true) AS
+SELECT id, property_id, code, name, birth_date FROM crm.customers;
+
 -- ── golf ──────────────────────────────────────────────────────────────────
 -- Finished rounds per player (Round History, Golf Performance).
 CREATE VIEW reporting.golf_rounds WITH (security_invoker = true) AS
@@ -145,7 +151,7 @@ FROM inventory.consumption_sales s JOIN commercial.products p ON p.id = s.produc
 SELECT platform.grant_app('reporting');
 
 -- +goose Down
-DROP VIEW reporting.food_cost, reporting.pos_shifts, reporting.pos_sales, reporting.stays, reporting.stay_bungalows, reporting.sport_instructor_fees,
+DROP VIEW reporting.customer_directory, reporting.food_cost, reporting.pos_shifts, reporting.pos_sales, reporting.stays, reporting.stay_bungalows, reporting.sport_instructor_fees,
   reporting.sport_class_sessions, reporting.sport_enrollments, reporting.sport_entries, reporting.sport_courts, reporting.opening_hours,
   reporting.reservation_lines, reporting.reservations, reporting.membership_events, reporting.membership_lifecycle, reporting.voucher_ledger,
   reporting.revenue_lines, reporting.golf_reciprocal_visits, reporting.golf_range_buckets, reporting.golf_range_sessions, reporting.golf_hole_in_ones,

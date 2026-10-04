@@ -1,0 +1,191 @@
+package commercial
+
+// Public interface of the P2 commercial sub-parts (PRD P2 §5.4.1:
+// commercial/pos and commercial/voucher). Other modules use POS and voucher
+// only through these types and interfaces (Tech Doc §4.2 #1); internal/app
+// wires the implementations. Additive; review: P1 developer.
+
+import (
+	"context"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/shopspring/decimal"
+
+	"oneclub/internal/kernel/dbtx"
+)
+
+// POS creates and reads F&B orders (on-course order, stay catering, VIP
+// suite add-on).
+type POS interface {
+	CreateOrder(ctx context.Context, tx pgx.Tx, property uuid.UUID, in OrderInput) (Order, error)
+	Order(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (Order, error)
+}
+
+// Vouchers redeems vouchers, prepaid balances and quotas (contract C3).
+type Vouchers interface {
+	Redeem(ctx context.Context, tx pgx.Tx, r RedeemRequest) (RedeemResult, error)
+	RedeemBalance(ctx context.Context, tx pgx.Tx, r RedeemRequest, category string) ([]RedeemResult, error)
+	Quota(ctx context.Context, q dbtx.Querier, property, customerID uuid.UUID, category, item string) (decimal.Decimal, error)
+	UseQuota(ctx context.Context, tx pgx.Tx, property, customerID uuid.UUID, category, item string, qty decimal.Decimal,
+		serviceType, sourceType string, sourceID *uuid.UUID, key string) (*uuid.UUID, error)
+	Restore(ctx context.Context, tx pgx.Tx, voucherID uuid.UUID, qty decimal.Decimal, reason, key string) error
+}
+
+// OrderLine is one line of an order.
+type OrderLine struct {
+	ID             uuid.UUID        `json:"id" db:"id"`
+	LineNo         int              `json:"lineNo" db:"line_no"`
+	ProductID      uuid.UUID        `json:"productId" db:"product_id"`
+	VariantID      *uuid.UUID       `json:"variantId" db:"variant_id"`
+	Name           string           `json:"name" db:"name"`
+	Quantity       string           `json:"quantity" db:"quantity"`
+	UnitPrice      string           `json:"unitPrice" db:"unit_price"`
+	Modifiers      []map[string]any `json:"modifiers" db:"modifiers"`
+	DiscountAmount string           `json:"discountAmount" db:"discount_amount"`
+	DiscountReason *string          `json:"discountReason" db:"discount_reason"`
+	NetAmount      string           `json:"netAmount" db:"net_amount"`
+	ServiceAmount  string           `json:"serviceAmount" db:"service_amount"`
+	TaxAmount      string           `json:"taxAmount" db:"tax_amount"`
+	TotalAmount    string           `json:"totalAmount" db:"total_amount"`
+	KitchenStation *string          `json:"kitchenStation" db:"kitchen_station"`
+	BillID         *uuid.UUID       `json:"billId" db:"bill_id"`
+	Seat           *string          `json:"seat" db:"seat"`
+	Notes          *string          `json:"notes" db:"notes"`
+	Status         string           `json:"status" db:"status" enum:"active,voided"`
+	SentAt         *time.Time       `json:"sentAt" db:"sent_at"`
+	ChargedFolioID *uuid.UUID       `json:"chargedFolioId" db:"charged_folio_id"`
+}
+
+// Bill is a (split) bill of an order.
+type Bill struct {
+	ID         uuid.UUID  `json:"id" db:"id"`
+	BillNo     int        `json:"billNo" db:"bill_no"`
+	Label      *string    `json:"label" db:"label"`
+	CustomerID *uuid.UUID `json:"customerId" db:"customer_id"`
+	Share      *string    `json:"share" db:"share"`
+	FolioID    *uuid.UUID `json:"folioId" db:"folio_id"`
+	Status     string     `json:"status" db:"status" enum:"open,paid,voided"`
+	Total      string     `json:"total" db:"total"`
+	Paid       string     `json:"paid" db:"paid"`
+}
+
+// Order is a POS / F&B order.
+type Order struct {
+	ID                 uuid.UUID   `json:"id" db:"id"`
+	PropertyID         uuid.UUID   `json:"propertyId" db:"property_id"`
+	OrderNo            string      `json:"orderNo" db:"order_no"`
+	OutletID           uuid.UUID   `json:"outletId" db:"outlet_id"`
+	OutletName         string      `json:"outletName" db:"outlet_name"`
+	ShiftID            *uuid.UUID  `json:"shiftId" db:"shift_id"`
+	OrderType          string      `json:"orderType" db:"order_type"`
+	Source             string      `json:"source" db:"source"`
+	TableNo            *string     `json:"tableNo" db:"table_no"`
+	GuestCount         *int        `json:"guestCount" db:"guest_count"`
+	CustomerID         *uuid.UUID  `json:"customerId" db:"customer_id"`
+	CustomerName       *string     `json:"customerName" db:"customer_name"`
+	MemberPricing      bool        `json:"memberPricing" db:"member_pricing"`
+	ServingDestination string      `json:"servingDestination" db:"serving_destination"`
+	DestinationRef     *string     `json:"destinationRef" db:"destination_ref"`
+	ScheduledFor       *time.Time  `json:"scheduledFor" db:"scheduled_for"`
+	Status             string      `json:"status" db:"status" enum:"open,paid,charged,voided,refunded"`
+	ServiceStatus      string      `json:"serviceStatus" db:"service_status" enum:"new,sent,preparing,ready,out_for_delivery,served"`
+	ChargeFolioID      *uuid.UUID  `json:"chargeFolioId" db:"charge_folio_id"`
+	Offline            bool        `json:"offline" db:"offline"`
+	NeedsReview        bool        `json:"needsReview" db:"needs_review"`
+	Notes              *string     `json:"notes" db:"notes"`
+	VoidReason         *string     `json:"voidReason" db:"void_reason"`
+	Total              string      `json:"total" db:"total"`
+	CreatedAt          time.Time   `json:"createdAt" db:"created_at"`
+	Lines              []OrderLine `json:"lines" db:"-"`
+	Bills              []Bill      `json:"bills" db:"-"`
+}
+
+// LineInput is an item ordered.
+type LineInput struct {
+	ProductID   uuid.UUID   `json:"productId"`
+	VariantID   *uuid.UUID  `json:"variantId,omitempty"`
+	Quantity    string      `json:"quantity,omitempty" doc:"Default 1"`
+	ModifierIDs []uuid.UUID `json:"modifierIds,omitempty"`
+	Seat        string      `json:"seat,omitempty"`
+	Notes       string      `json:"notes,omitempty"`
+}
+
+// OrderInput creates an order (POS, member app pre-order, caddy tablet
+// on-course order, VIP suite add-on, meeting catering).
+type OrderInput struct {
+	ID                 *uuid.UUID  `json:"id,omitempty" doc:"Client UUIDv7 (offline terminals); a resubmission returns the existing order"`
+	OutletID           uuid.UUID   `json:"outletId"`
+	ShiftID            *uuid.UUID  `json:"shiftId,omitempty"`
+	OrderType          string      `json:"orderType,omitempty" enum:"dine_in,takeaway,on_course,delivery,catering,pre_order,retail"`
+	Source             string      `json:"source,omitempty" enum:"pos,member_app,caddy_tablet,vip_suite,meeting_catering,website,driving_range"`
+	TableNo            string      `json:"tableNo,omitempty"`
+	GuestCount         int         `json:"guestCount,omitempty"`
+	CustomerID         *uuid.UUID  `json:"customerId,omitempty"`
+	MemberPricing      *bool       `json:"memberPricing,omitempty" doc:"Default: true for customers with an active membership"`
+	ServingDestination string      `json:"servingDestination,omitempty" enum:"table,pickup,hole,halfway_house,vip_suite,meeting_room,bungalow"`
+	DestinationRef     string      `json:"destinationRef,omitempty" doc:"Table, hole number, halfway house, stay number …"`
+	ScheduledFor       *time.Time  `json:"scheduledFor,omitempty" doc:"Pre-order ready time / catering serve time"`
+	ChargeFolioID      *uuid.UUID  `json:"chargeFolioId,omitempty" doc:"Charge to a running stay, VIP suite or meeting room folio"`
+	Lines              []LineInput `json:"lines"`
+	Send               bool        `json:"send,omitempty" doc:"Send to the kitchen immediately"`
+	Notes              string      `json:"notes,omitempty"`
+	Offline            bool        `json:"offline,omitempty"`
+	ClientCreatedAt    *time.Time  `json:"clientCreatedAt,omitempty"`
+}
+
+// Voucher is a voucher with its type.
+type Voucher struct {
+	ID                uuid.UUID  `json:"id" db:"id"`
+	Code              string     `json:"code" db:"code"`
+	VoucherTypeID     uuid.UUID  `json:"voucherTypeId" db:"voucher_type_id"`
+	TypeCode          string     `json:"typeCode" db:"type_code"`
+	TypeName          string     `json:"typeName" db:"type_name"`
+	Kind              string     `json:"kind" db:"kind" enum:"value,quota,promo"`
+	Category          string     `json:"category" db:"category"`
+	Unit              string     `json:"unit" db:"unit"`
+	Prepaid           bool       `json:"prepaid" db:"prepaid"`
+	Transferable      bool       `json:"transferable" db:"transferable"`
+	CustomerID        *uuid.UUID `json:"customerId" db:"customer_id"`
+	CustomerName      *string    `json:"customerName" db:"customer_name"`
+	Status            string     `json:"status" db:"status" enum:"pending,active,partially_redeemed,redeemed,expired,void"`
+	OriginalQuantity  string     `json:"originalQuantity" db:"original_quantity"`
+	RemainingQuantity string     `json:"remainingQuantity" db:"remaining_quantity"`
+	UnitValue         string     `json:"unitValue" db:"unit_value"`
+	PricePaid         string     `json:"pricePaid" db:"price_paid"`
+	UsesCount         int        `json:"usesCount" db:"uses_count"`
+	IssuedVia         string     `json:"issuedVia" db:"issued_via"`
+	FolioID           *uuid.UUID `json:"folioId" db:"folio_id"`
+	IssuedAt          time.Time  `json:"issuedAt" db:"issued_at"`
+	ExpiresAt         *time.Time `json:"expiresAt" db:"expires_at"`
+	VoidReason        *string    `json:"voidReason" db:"void_reason"`
+}
+
+// RedeemRequest uses (part of) a voucher (FR-VCH-03).
+type RedeemRequest struct {
+	PropertyID     uuid.UUID
+	VoucherID      *uuid.UUID
+	Code           string
+	Quantity       decimal.Decimal // units (quota) or rupiah (value)
+	ServiceType    string
+	ResourceType   string
+	ItemRef        string
+	OutletID       *uuid.UUID
+	CustomerID     *uuid.UUID
+	Terminal       string
+	Reference      string
+	SourceType     string
+	SourceID       *uuid.UUID
+	IdempotencyKey string
+	BaseAmount     decimal.Decimal // promo vouchers: amount the discount applies to
+}
+
+// RedeemResult reports a redemption.
+type RedeemResult struct {
+	Voucher    Voucher `json:"voucher"`
+	Quantity   string  `json:"quantity"`
+	Recognized string  `json:"recognizedRevenue"`
+	Discount   string  `json:"discount" doc:"Promo vouchers: discount granted"`
+	Duplicate  bool    `json:"duplicate" doc:"The same redemption (idempotency key) was already processed"`
+}

@@ -22,6 +22,7 @@ import (
 	"oneclub/internal/billing"
 	"oneclub/internal/commercial"
 	"oneclub/internal/commercial/voucher"
+	"oneclub/internal/crm"
 	"oneclub/internal/kernel/authz"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
@@ -53,80 +54,11 @@ var defaultPOSPolicy = POSPolicy{MaxDiscountPercent: "10", OfflineMemberCharge: 
 
 // ── views ─────────────────────────────────────────────────────────────────
 
-// OrderLine is one line of an order.
-type OrderLine struct {
-	ID             uuid.UUID        `json:"id" db:"id"`
-	LineNo         int              `json:"lineNo" db:"line_no"`
-	ProductID      uuid.UUID        `json:"productId" db:"product_id"`
-	VariantID      *uuid.UUID       `json:"variantId" db:"variant_id"`
-	Name           string           `json:"name" db:"name"`
-	Quantity       string           `json:"quantity" db:"quantity"`
-	UnitPrice      string           `json:"unitPrice" db:"unit_price"`
-	Modifiers      []map[string]any `json:"modifiers" db:"modifiers"`
-	DiscountAmount string           `json:"discountAmount" db:"discount_amount"`
-	DiscountReason *string          `json:"discountReason" db:"discount_reason"`
-	NetAmount      string           `json:"netAmount" db:"net_amount"`
-	ServiceAmount  string           `json:"serviceAmount" db:"service_amount"`
-	TaxAmount      string           `json:"taxAmount" db:"tax_amount"`
-	TotalAmount    string           `json:"totalAmount" db:"total_amount"`
-	KitchenStation *string          `json:"kitchenStation" db:"kitchen_station"`
-	BillID         *uuid.UUID       `json:"billId" db:"bill_id"`
-	Seat           *string          `json:"seat" db:"seat"`
-	Notes          *string          `json:"notes" db:"notes"`
-	Status         string           `json:"status" db:"status" enum:"active,voided"`
-	SentAt         *time.Time       `json:"sentAt" db:"sent_at"`
-	ChargedFolioID *uuid.UUID       `json:"chargedFolioId" db:"charged_folio_id"`
-}
-
-// Bill is a (split) bill of an order.
-type Bill struct {
-	ID         uuid.UUID  `json:"id" db:"id"`
-	BillNo     int        `json:"billNo" db:"bill_no"`
-	Label      *string    `json:"label" db:"label"`
-	CustomerID *uuid.UUID `json:"customerId" db:"customer_id"`
-	Share      *string    `json:"share" db:"share"`
-	FolioID    *uuid.UUID `json:"folioId" db:"folio_id"`
-	Status     string     `json:"status" db:"status" enum:"open,paid,voided"`
-	Total      string     `json:"total" db:"total"`
-	Paid       string     `json:"paid" db:"paid"`
-}
-
-// Order is a POS / F&B order.
-type Order struct {
-	ID                 uuid.UUID   `json:"id" db:"id"`
-	PropertyID         uuid.UUID   `json:"propertyId" db:"property_id"`
-	OrderNo            string      `json:"orderNo" db:"order_no"`
-	OutletID           uuid.UUID   `json:"outletId" db:"outlet_id"`
-	OutletName         string      `json:"outletName" db:"outlet_name"`
-	ShiftID            *uuid.UUID  `json:"shiftId" db:"shift_id"`
-	OrderType          string      `json:"orderType" db:"order_type"`
-	Source             string      `json:"source" db:"source"`
-	TableNo            *string     `json:"tableNo" db:"table_no"`
-	GuestCount         *int        `json:"guestCount" db:"guest_count"`
-	CustomerID         *uuid.UUID  `json:"customerId" db:"customer_id"`
-	CustomerName       *string     `json:"customerName" db:"customer_name"`
-	MemberPricing      bool        `json:"memberPricing" db:"member_pricing"`
-	ServingDestination string      `json:"servingDestination" db:"serving_destination"`
-	DestinationRef     *string     `json:"destinationRef" db:"destination_ref"`
-	ScheduledFor       *time.Time  `json:"scheduledFor" db:"scheduled_for"`
-	Status             string      `json:"status" db:"status" enum:"open,paid,charged,voided,refunded"`
-	ServiceStatus      string      `json:"serviceStatus" db:"service_status" enum:"new,sent,preparing,ready,out_for_delivery,served"`
-	ChargeFolioID      *uuid.UUID  `json:"chargeFolioId" db:"charge_folio_id"`
-	Offline            bool        `json:"offline" db:"offline"`
-	NeedsReview        bool        `json:"needsReview" db:"needs_review"`
-	Notes              *string     `json:"notes" db:"notes"`
-	VoidReason         *string     `json:"voidReason" db:"void_reason"`
-	Total              string      `json:"total" db:"total"`
-	CreatedAt          time.Time   `json:"createdAt" db:"created_at"`
-	Lines              []OrderLine `json:"lines" db:"-"`
-	Bills              []Bill      `json:"bills" db:"-"`
-}
-
 const orderSelect = `SELECT o.id, o.property_id, o.order_no, o.outlet_id, ou.name AS outlet_name, o.shift_id, o.order_type, o.source, o.table_no,
 	o.guest_count, o.customer_id, c.name AS customer_name, o.member_pricing, o.serving_destination, o.destination_ref, o.scheduled_for, o.status,
 	o.service_status, o.charge_folio_id, o.offline, o.needs_review, o.notes, o.void_reason, o.created_at,
 	trim_scale(coalesce((SELECT sum(total_amount) FROM commercial.order_lines l WHERE l.order_id = o.id AND l.status = 'active'), 0))::text AS total
-	FROM commercial.orders o JOIN commercial.outlets ou ON ou.id = o.outlet_id LEFT JOIN crm.customers c ON c.id = o.customer_id`
+	FROM commercial.orders o JOIN commercial.outlets ou ON ou.id = o.outlet_id LEFT JOIN reporting.customer_directory c ON c.id = o.customer_id`
 
 const orderLineSelect = `SELECT id, line_no, product_id, variant_id, name, trim_scale(quantity)::text AS quantity, trim_scale(unit_price)::text AS unit_price,
 	modifiers, trim_scale(discount_amount)::text AS discount_amount, discount_reason, trim_scale(net_amount)::text AS net_amount,
@@ -153,39 +85,6 @@ func (m *Module) Order(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (Orde
 }
 
 // ── order entry ───────────────────────────────────────────────────────────
-
-// LineInput is an item ordered.
-type LineInput struct {
-	ProductID   uuid.UUID   `json:"productId"`
-	VariantID   *uuid.UUID  `json:"variantId,omitempty"`
-	Quantity    string      `json:"quantity,omitempty" doc:"Default 1"`
-	ModifierIDs []uuid.UUID `json:"modifierIds,omitempty"`
-	Seat        string      `json:"seat,omitempty"`
-	Notes       string      `json:"notes,omitempty"`
-}
-
-// OrderInput creates an order (POS, member app pre-order, caddy tablet
-// on-course order, VIP suite add-on, meeting catering).
-type OrderInput struct {
-	ID                 *uuid.UUID  `json:"id,omitempty" doc:"Client UUIDv7 (offline terminals); a resubmission returns the existing order"`
-	OutletID           uuid.UUID   `json:"outletId"`
-	ShiftID            *uuid.UUID  `json:"shiftId,omitempty"`
-	OrderType          string      `json:"orderType,omitempty" enum:"dine_in,takeaway,on_course,delivery,catering,pre_order,retail"`
-	Source             string      `json:"source,omitempty" enum:"pos,member_app,caddy_tablet,vip_suite,meeting_catering,website,driving_range"`
-	TableNo            string      `json:"tableNo,omitempty"`
-	GuestCount         int         `json:"guestCount,omitempty"`
-	CustomerID         *uuid.UUID  `json:"customerId,omitempty"`
-	MemberPricing      *bool       `json:"memberPricing,omitempty" doc:"Default: true for customers with an active membership"`
-	ServingDestination string      `json:"servingDestination,omitempty" enum:"table,pickup,hole,halfway_house,vip_suite,meeting_room,bungalow"`
-	DestinationRef     string      `json:"destinationRef,omitempty" doc:"Table, hole number, halfway house, stay number …"`
-	ScheduledFor       *time.Time  `json:"scheduledFor,omitempty" doc:"Pre-order ready time / catering serve time"`
-	ChargeFolioID      *uuid.UUID  `json:"chargeFolioId,omitempty" doc:"Charge to a running stay, VIP suite or meeting room folio"`
-	Lines              []LineInput `json:"lines"`
-	Send               bool        `json:"send,omitempty" doc:"Send to the kitchen immediately"`
-	Notes              string      `json:"notes,omitempty"`
-	Offline            bool        `json:"offline,omitempty"`
-	ClientCreatedAt    *time.Time  `json:"clientCreatedAt,omitempty"`
-}
 
 type outlet struct {
 	ID               uuid.UUID `db:"id"`
@@ -806,7 +705,9 @@ func (m *Module) SetTicketState(ctx context.Context, tx pgx.Tx, tid uuid.UUID, s
 			}
 			if o.CustomerID != nil && (o.Source == "member_app" || o.Source == "website") {
 				var user *uuid.UUID
-				_ = tx.QueryRow(ctx, `SELECT user_id FROM crm.customers WHERE id = $1`, *o.CustomerID).Scan(&user)
+				if c, err := crm.GetCustomer(ctx, tx, *o.CustomerID); err == nil {
+					user = c.UserID
+				}
 				if user != nil {
 					if err := m.Notify.Send(ctx, tx, notify.Message{Event: "commercial.order_ready", Category: "order", UserIDs: []uuid.UUID{*user}, PropertyID: &pid,
 						Channels: []string{notify.ChannelInApp}, Data: map[string]any{"name": deref(o.CustomerName), "orderNo": o.OrderNo,

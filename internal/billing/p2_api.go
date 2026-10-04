@@ -203,3 +203,62 @@ func (s *Service) TakeTender(ctx context.Context, tx pgx.Tx, in TenderPaymentInp
 	}
 	return p, nil
 }
+
+// NetPaid is what was paid on a folio net of refunds; with a tag only the
+// payments whose tender reference carries tag=value (e.g. a POS bill).
+func NetPaid(ctx context.Context, q dbtx.Querier, folioID uuid.UUID, tag, value string) (decimal.Decimal, error) {
+	var raw string
+	err := q.QueryRow(ctx, `SELECT coalesce(sum(amount - refunded_amount), 0)::text FROM billing.payments WHERE folio_id = $1
+		AND status IN ('completed', 'refunded') AND ($2 = '' OR tender_ref->>$2 = $3)`, folioID, tag, value).Scan(&raw)
+	return dec(raw), err
+}
+
+// MethodTotal is the net amount taken with one payment method.
+type MethodTotal struct {
+	MethodType string          `json:"methodType"`
+	Count      int             `json:"count"`
+	Amount     decimal.Decimal `json:"amount"`
+}
+
+// ShiftPayments are the net payments of a POS shift per method.
+func ShiftPayments(ctx context.Context, q dbtx.Querier, shiftID uuid.UUID) ([]MethodTotal, error) {
+	rows, err := q.Query(ctx, `SELECT method_type, count(*)::int, sum(amount - refunded_amount)::text FROM billing.payments
+		WHERE shift_id = $1 AND status IN ('completed', 'refunded') GROUP BY method_type ORDER BY method_type`, shiftID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []MethodTotal{}
+	for rows.Next() {
+		var t MethodTotal
+		var raw string
+		if err := rows.Scan(&t.MethodType, &t.Count, &raw); err != nil {
+			return nil, err
+		}
+		t.Amount = dec(raw)
+		out = append(out, t)
+	}
+	return out, rows.Err()
+}
+
+// TagPayment adds a key to the tender reference of a payment.
+func TagPayment(ctx context.Context, tx pgx.Tx, paymentID uuid.UUID, key, value string) error {
+	_, err := tx.Exec(ctx, `UPDATE billing.payments SET tender_ref = tender_ref || jsonb_build_object($2::text, $3::text) WHERE id = $1`, paymentID, key, value)
+	return err
+}
+
+// ChargedFor is the total charged on a folio for a reference (not voided).
+func ChargedFor(ctx context.Context, q dbtx.Querier, folioID, referenceID uuid.UUID) (decimal.Decimal, error) {
+	var raw string
+	err := q.QueryRow(ctx, `SELECT coalesce(sum(total), 0)::text FROM billing.folio_lines WHERE folio_id = $1 AND reference_id = $2 AND voided_at IS NULL`,
+		folioID, referenceID).Scan(&raw)
+	return dec(raw), err
+}
+
+// DeferredBalance is the open deferred revenue of one document (voucher).
+func DeferredBalance(ctx context.Context, q dbtx.Querier, refType string, refID uuid.UUID) (decimal.Decimal, error) {
+	var raw string
+	err := q.QueryRow(ctx, `SELECT coalesce(sum(amount), 0)::text FROM billing.deferred_revenue_entries WHERE ref_type = $1 AND ref_id = $2`,
+		refType, refID).Scan(&raw)
+	return dec(raw), err
+}

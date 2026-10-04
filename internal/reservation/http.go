@@ -280,7 +280,7 @@ func (e *Engine) Calendar(ctx context.Context, q dbtx.Querier, property uuid.UUI
 		CalendarEntry
 	}](q.Query(ctx, `SELECT l.resource_id, r.id AS reservation_id, l.id AS line_id, r.code, r.kind, r.status, r.business_line,
 		lower(l.period) AS start_at, upper(l.period) AS end_at, l.quantity, coalesce(c.name, r.guest_name, r.corporate_name) AS customer
-		FROM reservation.reservation_lines l JOIN reservation.reservations r ON r.id = l.reservation_id LEFT JOIN crm.customers c ON c.id = r.customer_id
+		FROM reservation.reservation_lines l JOIN reservation.reservations r ON r.id = l.reservation_id LEFT JOIN reporting.customer_directory c ON c.id = r.customer_id
 		WHERE r.property_id = $1 AND l.period && tstzrange($2, $3, '[)') AND r.status NOT IN ('cancelled', 'expired', 'no_show')
 		ORDER BY lower(l.period)`, property, from, to))
 	if err != nil {

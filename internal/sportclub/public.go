@@ -147,8 +147,8 @@ func (m *Module) registerPublic(reg *route.Registry) {
 		Request: PublicEnrollment{}, Response: PublicBooking{},
 		Handler: crm.PublicWrite(db, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, pid uuid.UUID, c crm.Customer, in PublicEnrollment) (PublicBooking, error) {
 			if in.BirthDate != "" {
-				if _, err := tx.Exec(ctx, `UPDATE crm.customers SET birth_date = coalesce(birth_date, $2::date) WHERE id = $1`, c.ID, in.BirthDate); err != nil {
-					return PublicBooking{}, handle.Invalid("birthDate", "invalid_date", "birthDate must be YYYY-MM-DD")
+				if err := crm.FillBirthDate(ctx, tx, c.ID, in.BirthDate); err != nil {
+					return PublicBooking{}, err
 				}
 			}
 			e, err := m.Enroll(ctx, tx, pid, EnrollInput{ProgramID: in.ProgramID, CustomerID: c.ID, Segment: "guest", Channel: "website"}, "")
