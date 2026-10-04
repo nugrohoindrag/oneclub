@@ -1,21 +1,32 @@
 import React from 'react';
 import { Link } from 'react-router';
 import { Icon, useAuth } from '@oneclub/shell';
+import { BANQUET_OPS_ROUTES, BANQUET_OPS_TILES } from '../p3/banquet';
 import { CashierPage, CustomerFoliosPage } from '../p3/billing';
+import { COMMERCIAL_P3_OPS_ROUTES, COMMERCIAL_P3_OPS_TILES } from '../p3/commercial';
+import { ENGAGEMENT_OPS_ROUTES, ENGAGEMENT_OPS_TILES } from '../p3/engagement';
+import { TOURNAMENT_OPS_ROUTES, TOURNAMENT_OPS_TILES } from '../p3/tournament';
+import type { OpsRoute, OpsTile } from '../p3/types';
+import { ACCOUNTING_OPS_ROUTES, ACCOUNTING_OPS_TILES } from '../p4/accounting';
+import { CMS_OPS_ROUTES, CMS_OPS_TILES } from '../p4/cms';
+import { INVENTORY_OPS_ROUTES, INVENTORY_OPS_TILES } from '../p4/inventory';
+import { PROCUREMENT_OPS_ROUTES, PROCUREMENT_OPS_TILES } from '../p4/procurement';
 
-// Operational interfaces of PRD P3 (EP-21, §7.2): Front Desk cashier shift
-// across lines and folios per customer; the event, tournament, POS and
-// kitchen workstations of the P3 areas join here.
+// Operational interfaces of PRD P3 (EP-21, §7.2) and PRD P4: Front Desk
+// cashier shift across lines and folios per customer; the event, tournament,
+// POS, kitchen and warehouse workstations of the areas join from their files.
 
-type Tile = [icon: string, label: string, to: string, perm: string];
-
-const TILES: Tile[] = [
+const TILES: OpsTile[] = [
   ['point_of_sale', 'Cashier', '/ops/front-desk/cashier', 'billing.cashier_shift.operate'],
+  ...BANQUET_OPS_TILES, ...TOURNAMENT_OPS_TILES, ...COMMERCIAL_P3_OPS_TILES, ...ENGAGEMENT_OPS_TILES,
+  ...INVENTORY_OPS_TILES, ...PROCUREMENT_OPS_TILES, ...ACCOUNTING_OPS_TILES, ...CMS_OPS_TILES,
 ];
 
-const ROUTES: { path: string; element: React.ReactNode }[] = [
+const ROUTES: OpsRoute[] = [
   { path: 'front-desk/cashier', element: <CashierPage /> },
   { path: 'front-desk/customer-folios', element: <CustomerFoliosPage /> },
+  ...BANQUET_OPS_ROUTES, ...TOURNAMENT_OPS_ROUTES, ...COMMERCIAL_P3_OPS_ROUTES, ...ENGAGEMENT_OPS_ROUTES,
+  ...INVENTORY_OPS_ROUTES, ...PROCUREMENT_OPS_ROUTES, ...ACCOUNTING_OPS_ROUTES, ...CMS_OPS_ROUTES,
 ];
 
 export const P3_OPS_ROUTES = ROUTES;

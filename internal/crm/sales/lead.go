@@ -682,14 +682,14 @@ func (m *Module) UpdateLead(ctx context.Context, tx pgx.Tx, property, lid uuid.U
 	return LeadDetailOf(ctx, tx, lid)
 }
 
-// AssignInput assigns or reassigns a lead.
-type AssignInput struct {
+// LeadAssignInput assigns or reassigns a lead.
+type LeadAssignInput struct {
 	UserID uuid.UUID `json:"userId"`
 	Reason string    `json:"reason,omitempty"`
 }
 
 // AssignLead assigns a lead manually (Sales Manager reassign).
-func (m *Module) AssignLead(ctx context.Context, tx pgx.Tx, property, lid uuid.UUID, in AssignInput) (LeadDetail, error) {
+func (m *Module) AssignLead(ctx context.Context, tx pgx.Tx, property, lid uuid.UUID, in LeadAssignInput) (LeadDetail, error) {
 	l, err := lockLead(ctx, tx, property, lid)
 	if err != nil {
 		return LeadDetail{}, err

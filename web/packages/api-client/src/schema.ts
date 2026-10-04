@@ -4770,6 +4770,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/sales-users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sales staff of the property: owners of leads, opportunities and quotations, with their sales teams */
+        get: operations["getCrmSalesUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/segments": {
         parameters: {
             query?: never;
@@ -14295,9 +14312,8 @@ export interface components {
             bayId?: string | null;
         };
         AssignInput: {
-            reason?: string;
             /** Format: uuid */
-            userId: string;
+            unitId: string;
         };
         Assignment: {
             /** Format: date-time */
@@ -14552,14 +14568,10 @@ export interface components {
             startsAt: string;
         };
         Board: {
-            openCount: number;
-            openValue: string;
-            /** Format: uuid */
-            pipelineId: string;
-            pipelineName: string;
-            stages: components["schemas"]["BoardStage"][];
-            /** @description Σ value × stage probability of the open opportunities */
-            weightedValue: string;
+            counts: {
+                [key: string]: number;
+            };
+            golfCarts: components["schemas"]["BoardCart"][];
         };
         BoardCart: {
             batteryPercent?: number | null;
@@ -14576,19 +14588,6 @@ export interface components {
             positionAt?: string | null;
             readiness: string;
             serviceDue: boolean;
-        };
-        BoardStage: {
-            code: string;
-            count: number;
-            /** @enum {string} */
-            kind: "open" | "won" | "lost";
-            name: string;
-            opportunities: components["schemas"]["Opportunity"][];
-            probability: string;
-            /** Format: uuid */
-            stageId: string;
-            value: string;
-            weightedValue: string;
         };
         BookInput: {
             /** @enum {string} */
@@ -15515,6 +15514,7 @@ export interface components {
         };
         CancelInput: {
             reason: string;
+            waiveFee?: boolean;
         };
         CancelRequest: {
             reason: string;
@@ -18187,12 +18187,6 @@ export interface components {
         EraseRequest: {
             reason: string;
         };
-        ExperienceBoard: {
-            counts: {
-                [key: string]: number;
-            };
-            golfCarts: components["schemas"]["BoardCart"][];
-        };
         ExperienceConsentInput: {
             /** @enum {string} */
             consent: "granted" | "withdrawn";
@@ -18597,6 +18591,9 @@ export interface components {
             voidReason?: string | null;
             /** Format: date-time */
             voidedAt?: string | null;
+        };
+        FollowUpCancelInput: {
+            reason: string;
         };
         FollowUpInput: {
             close?: boolean;
@@ -20099,6 +20096,11 @@ export interface components {
             unqualifiedReason?: string | null;
             /** Format: date-time */
             updatedAt: string;
+        };
+        LeadAssignInput: {
+            reason?: string;
+            /** Format: uuid */
+            userId: string;
         };
         LeadAssignment: {
             /** Format: date-time */
@@ -22778,6 +22780,29 @@ export interface components {
             file: components["schemas"]["File"];
             request: components["schemas"]["DataRequest"];
         };
+        PipelineBoard: {
+            openCount: number;
+            openValue: string;
+            /** Format: uuid */
+            pipelineId: string;
+            pipelineName: string;
+            stages: components["schemas"]["PipelineBoardStage"][];
+            /** @description Σ value × stage probability of the open opportunities */
+            weightedValue: string;
+        };
+        PipelineBoardStage: {
+            code: string;
+            count: number;
+            /** @enum {string} */
+            kind: "open" | "won" | "lost";
+            name: string;
+            opportunities: components["schemas"]["Opportunity"][];
+            probability: string;
+            /** Format: uuid */
+            stageId: string;
+            value: string;
+            weightedValue: string;
+        };
         Player: {
             checkInMethod?: string | null;
             /** Format: date-time */
@@ -24987,10 +25012,6 @@ export interface components {
             start?: string | null;
             status: string;
         };
-        ReservationCancelInput: {
-            reason: string;
-            waiveFee?: boolean;
-        };
         ReservationCancelResult: {
             fee: string;
             policy: components["schemas"]["PolicyRef"];
@@ -25979,6 +26000,13 @@ export interface components {
             /** Format: uuid */
             toUserId: string;
         };
+        SalesUser: {
+            email: string;
+            fullName: string;
+            /** Format: uuid */
+            id: string;
+            teams: string[];
+        };
         Schedule: {
             /** Format: uuid */
             corporateAccountId?: string | null;
@@ -26804,10 +26832,6 @@ export interface components {
             unitName: string;
             /** Format: uuid */
             unitTypeId?: string | null;
-        };
-        StayAssignInput: {
-            /** Format: uuid */
-            unitId: string;
         };
         StayCancelInput: {
             reason: string;
@@ -45070,7 +45094,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CancelInput"];
+                "application/json": components["schemas"]["FollowUpCancelInput"];
             };
         };
         responses: {
@@ -45861,7 +45885,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AssignInput"];
+                "application/json": components["schemas"]["LeadAssignInput"];
             };
         };
         responses: {
@@ -47447,7 +47471,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Board"];
+                    "application/json": components["schemas"]["PipelineBoard"];
                 };
             };
             /** @description Not authenticated */
@@ -49300,6 +49324,64 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSalesUsers: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SalesUser"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -56297,7 +56379,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ExperienceBoard"];
+                    "application/json": components["schemas"]["Board"];
                 };
             };
             /** @description Not authenticated */
@@ -81700,7 +81782,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ReservationCancelInput"];
+                "application/json": components["schemas"]["CancelInput"];
             };
         };
         responses: {
@@ -88030,7 +88112,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["StayAssignInput"];
+                "application/json": components["schemas"]["AssignInput"];
             };
         };
         responses: {

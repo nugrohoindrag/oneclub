@@ -786,8 +786,8 @@ func listOpportunities(ctx context.Context, q dbtx.Querier, property uuid.UUID, 
 
 // ── kanban & forecast (FR-PIPE-03, FR-PIPE-07) ────────────────────────────
 
-// BoardStage is one kanban column.
-type BoardStage struct {
+// PipelineBoardStage is one kanban column.
+type PipelineBoardStage struct {
 	StageID       uuid.UUID     `json:"stageId"`
 	Code          string        `json:"code"`
 	Name          string        `json:"name"`
@@ -799,20 +799,20 @@ type BoardStage struct {
 	Opportunities []Opportunity `json:"opportunities"`
 }
 
-// Board is the kanban of a pipeline.
-type Board struct {
-	PipelineID    uuid.UUID    `json:"pipelineId"`
-	PipelineName  string       `json:"pipelineName"`
-	Stages        []BoardStage `json:"stages"`
-	OpenCount     int          `json:"openCount"`
-	OpenValue     string       `json:"openValue"`
-	WeightedValue string       `json:"weightedValue" doc:"Σ value × stage probability of the open opportunities"`
+// PipelineBoard is the kanban of a pipeline.
+type PipelineBoard struct {
+	PipelineID    uuid.UUID            `json:"pipelineId"`
+	PipelineName  string               `json:"pipelineName"`
+	Stages        []PipelineBoardStage `json:"stages"`
+	OpenCount     int                  `json:"openCount"`
+	OpenValue     string               `json:"openValue"`
+	WeightedValue string               `json:"weightedValue" doc:"Σ value × stage probability of the open opportunities"`
 }
 
 // BoardOf builds the kanban of a pipeline; won / lost columns show the
 // deals closed within the filter period (default 90 days).
-func BoardOf(ctx context.Context, q dbtx.Querier, property, pipeline uuid.UUID, f map[string]string, me *uuid.UUID) (Board, error) {
-	var b Board
+func BoardOf(ctx context.Context, q dbtx.Querier, property, pipeline uuid.UUID, f map[string]string, me *uuid.UUID) (PipelineBoard, error) {
+	var b PipelineBoard
 	if err := q.QueryRow(ctx, `SELECT id, name FROM crm.sales_pipelines WHERE id = $1 AND property_id = $2`, pipeline, property).
 		Scan(&b.PipelineID, &b.PipelineName); err != nil {
 		if dbtx.IsNoRows(err) {
@@ -826,7 +826,7 @@ func BoardOf(ctx context.Context, q dbtx.Querier, property, pipeline uuid.UUID, 
 		return b, err
 	}
 	for rows.Next() {
-		var s BoardStage
+		var s PipelineBoardStage
 		if err := rows.Scan(&s.StageID, &s.Code, &s.Name, &s.Kind, &s.Probability); err != nil {
 			rows.Close()
 			return b, err

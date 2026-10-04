@@ -104,9 +104,9 @@ func (m *Module) registerLeads(reg *route.Registry) {
 		m.add(reg, route.Route{Method: http.MethodPost, Path: "/api/v1/crm/leads/{id}" + path, Summary: summary, Permission: perm, Request: req,
 			Response: res, Status: http.StatusOK, Handler: action(db, fn)})
 	}
-	leadAction(":assign", "Assign / reassign the lead", "crm.lead.assign", AssignInput{},
+	leadAction(":assign", "Assign / reassign the lead", "crm.lead.assign", LeadAssignInput{},
 		func(ctx context.Context, tx pgx.Tx, lid uuid.UUID, r *http.Request) (any, error) {
-			var in AssignInput
+			var in LeadAssignInput
 			if err := httpx.Decode(r, &in); err != nil {
 				return nil, err
 			}
@@ -147,6 +147,20 @@ func (m *Module) registerLeads(reg *route.Registry) {
 				return Activity{}, err
 			}
 			return m.addActivity(ctx, tx, handle.Property(ctx), activityTarget{lead: &lid}, in, "manual", "")
+		})})
+	m.add(reg, route.Route{Method: http.MethodGet, Path: "/api/v1/crm/sales-users",
+		Summary: "Sales staff of the property: owners of leads, opportunities and quotations, with their sales teams", Permission: "crm.lead.view",
+		Response: SalesUser{}, List: true,
+		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (httpx.Page[SalesUser], error) {
+			p := handle.Property(ctx)
+			ids := holders(ctx, tx, p, "crm.opportunity.create")
+			return handle.Page(handle.List[SalesUser](tx.Query(ctx, `SELECT u.id, u.full_name, u.email,
+				coalesce(array_agg(DISTINCT t.name) FILTER (WHERE t.id IS NOT NULL), '{}') AS teams
+				FROM platform.users u
+				LEFT JOIN crm.sales_team_members tm ON tm.user_id = u.id AND tm.property_id = $2 AND tm.status = 'active'
+				LEFT JOIN crm.sales_teams t ON t.id = tm.team_id AND t.archived_at IS NULL AND t.status = 'active'
+				WHERE u.status = 'active' AND (u.id = ANY ($1) OR tm.id IS NOT NULL)
+				GROUP BY u.id, u.full_name, u.email ORDER BY u.full_name`, ids, p)))
 		})})
 	m.add(reg, route.Route{Method: http.MethodPost, Path: "/api/v1/crm/leads:transfer", Summary: "Transfer leads, opportunities and follow-ups between sales",
 		Permission: "crm.lead.assign", Request: TransferInput{}, Response: TransferResult{}, Status: http.StatusOK,
@@ -210,14 +224,22 @@ func (m *Module) registerLeads(reg *route.Registry) {
 			return m.CompleteFollowUp(ctx, tx, handle.Property(ctx), aid, in)
 		})})
 	m.add(reg, route.Route{Method: http.MethodPost, Path: "/api/v1/crm/follow-ups/{id}:cancel", Summary: "Cancel a follow-up",
-		Permission: "crm.follow_up.manage", Request: CancelInput{}, Response: Activity{}, Status: http.StatusOK,
-		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in CancelInput) (Activity, error) {
+		Permission: "crm.follow_up.manage", Request: FollowUpCancelInput{}, Response: Activity{}, Status: http.StatusOK,
+		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in FollowUpCancelInput) (Activity, error) {
 			aid, err := handle.ID(r)
 			if err != nil {
 				return Activity{}, err
 			}
 			return m.CancelFollowUp(ctx, tx, handle.Property(ctx), aid, in)
 		})})
+}
+
+// SalesUser is a user who can own leads, opportunities and quotations.
+type SalesUser struct {
+	ID       uuid.UUID `json:"id" db:"id"`
+	FullName string    `json:"fullName" db:"full_name"`
+	Email    string    `json:"email" db:"email"`
+	Teams    []string  `json:"teams" db:"teams"`
 }
 
 // ── pipelines & opportunities ─────────────────────────────────────────────
@@ -237,12 +259,12 @@ func (m *Module) registerOpportunities(reg *route.Registry) {
 				EntityID: p.String(), EntityLabel: "Default pipelines", PropertyID: &p, After: res})
 		})})
 	m.add(reg, route.Route{Method: http.MethodGet, Path: "/api/v1/crm/pipelines/{id}/board", Summary: "Sales Pipeline board (opportunities per stage)",
-		Permission: "crm.opportunity.view", Response: Board{},
+		Permission: "crm.opportunity.view", Response: PipelineBoard{},
 		Query: []route.Param{{Name: "filter[ownerUserId]"}, {Name: "filter[line]"}, {Name: "mine"}},
-		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (Board, error) {
+		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (PipelineBoard, error) {
 			pid, err := handle.ID(r)
 			if err != nil {
-				return Board{}, err
+				return PipelineBoard{}, err
 			}
 			var me *uuid.UUID
 			if r.URL.Query().Get("mine") == "true" {

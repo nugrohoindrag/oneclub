@@ -3,6 +3,10 @@ import { useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate, formatNumber } from '@oneclub/i18n';
 import { Card, DataTable, Drawer, ErrorAlert, PageHeader, Skeleton, StatusPill } from '@oneclub/shell';
 import { CheckoutModal } from './p2';
+import { BANQUET_MEMBER_ROUTES } from './areas/banquet';
+import { COMMERCIAL_MEMBER_ROUTES } from './areas/commercial';
+import { ENGAGEMENT_MEMBER_ROUTES } from './areas/engagement';
+import { TOURNAMENT_MEMBER_ROUTES } from './areas/tournament';
 
 // Member App P3 (PRD P3 EP-19): Transactions → Invoices with payment
 // schedules and online payment (FR-APP-P3-07).
@@ -59,7 +63,8 @@ function InvoiceDetail({ id, onClose }: { id: string; onClose: () => void }) {
   );
 }
 
-/** Member App routes of PRD P3. */
+/** Member App routes of PRD P3 (each area adds its pages from src/areas). */
 export const P3_MEMBER_ROUTES = [
   { path: 'transactions/invoices', element: <MyInvoicesPage /> },
+  ...BANQUET_MEMBER_ROUTES, ...TOURNAMENT_MEMBER_ROUTES, ...COMMERCIAL_MEMBER_ROUTES, ...ENGAGEMENT_MEMBER_ROUTES,
 ];

@@ -89,6 +89,9 @@ func TestP3SalesLeads(t *testing.T) {
 	sa.Must(200, "PATCH", "/api/v1/crm/sales-team-members/"+extra, map[string]any{"lines": []string{"banquet"}})
 	sa.Must(422, "PATCH", "/api/v1/crm/sales-team-members/"+extra, map[string]any{"lines": []string{"yacht"}})
 	sa.Must(204, "DELETE", "/api/v1/crm/sales-team-members/"+extra, nil)
+	if us := sx.Must(200, "GET", "/api/v1/crm/sales-users", nil).Items(); !containsID(us, sxID) || !containsID(us, bsID) {
+		t.Fatalf("sales users: %v", us)
+	}
 
 	// Manual lead, auto-assigned round robin with the SLA due.
 	phone := "+62812" + sfx

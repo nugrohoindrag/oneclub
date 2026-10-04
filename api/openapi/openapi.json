@@ -1417,16 +1417,13 @@
       },
       "AssignInput": {
         "properties": {
-          "reason": {
-            "type": "string"
-          },
-          "userId": {
+          "unitId": {
             "format": "uuid",
             "type": "string"
           }
         },
         "required": [
-          "userId"
+          "unitId"
         ],
         "type": "object"
       },
@@ -2266,37 +2263,22 @@
       },
       "Board": {
         "properties": {
-          "openCount": {
-            "type": "integer"
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object"
           },
-          "openValue": {
-            "type": "string"
-          },
-          "pipelineId": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "pipelineName": {
-            "type": "string"
-          },
-          "stages": {
+          "golfCarts": {
             "items": {
-              "$ref": "#/components/schemas/BoardStage"
+              "$ref": "#/components/schemas/BoardCart"
             },
             "type": "array"
-          },
-          "weightedValue": {
-            "description": "Σ value × stage probability of the open opportunities",
-            "type": "string"
           }
         },
         "required": [
-          "pipelineId",
-          "pipelineName",
-          "stages",
-          "openCount",
-          "openValue",
-          "weightedValue"
+          "counts",
+          "golfCarts"
         ],
         "type": "object"
       },
@@ -2351,58 +2333,6 @@
           "readiness",
           "hoursSinceService",
           "serviceDue"
-        ],
-        "type": "object"
-      },
-      "BoardStage": {
-        "properties": {
-          "code": {
-            "type": "string"
-          },
-          "count": {
-            "type": "integer"
-          },
-          "kind": {
-            "enum": [
-              "open",
-              "won",
-              "lost"
-            ],
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "opportunities": {
-            "items": {
-              "$ref": "#/components/schemas/Opportunity"
-            },
-            "type": "array"
-          },
-          "probability": {
-            "type": "string"
-          },
-          "stageId": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "value": {
-            "type": "string"
-          },
-          "weightedValue": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "stageId",
-          "code",
-          "name",
-          "kind",
-          "probability",
-          "count",
-          "value",
-          "weightedValue",
-          "opportunities"
         ],
         "type": "object"
       },
@@ -4848,6 +4778,9 @@
         "properties": {
           "reason": {
             "type": "string"
+          },
+          "waiveFee": {
+            "type": "boolean"
           }
         },
         "required": [
@@ -11948,27 +11881,6 @@
         ],
         "type": "object"
       },
-      "ExperienceBoard": {
-        "properties": {
-          "counts": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "type": "object"
-          },
-          "golfCarts": {
-            "items": {
-              "$ref": "#/components/schemas/BoardCart"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "counts",
-          "golfCarts"
-        ],
-        "type": "object"
-      },
       "ExperienceConsentInput": {
         "properties": {
           "consent": {
@@ -13193,6 +13105,17 @@
           "components",
           "liability",
           "postedAt"
+        ],
+        "type": "object"
+      },
+      "FollowUpCancelInput": {
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
         ],
         "type": "object"
       },
@@ -17355,6 +17278,21 @@
           "slaStatus",
           "createdAt",
           "updatedAt"
+        ],
+        "type": "object"
+      },
+      "LeadAssignInput": {
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId"
         ],
         "type": "object"
       },
@@ -25162,6 +25100,94 @@
         ],
         "type": "object"
       },
+      "PipelineBoard": {
+        "properties": {
+          "openCount": {
+            "type": "integer"
+          },
+          "openValue": {
+            "type": "string"
+          },
+          "pipelineId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "pipelineName": {
+            "type": "string"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineBoardStage"
+            },
+            "type": "array"
+          },
+          "weightedValue": {
+            "description": "Σ value × stage probability of the open opportunities",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pipelineId",
+          "pipelineName",
+          "stages",
+          "openCount",
+          "openValue",
+          "weightedValue"
+        ],
+        "type": "object"
+      },
+      "PipelineBoardStage": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "open",
+              "won",
+              "lost"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "opportunities": {
+            "items": {
+              "$ref": "#/components/schemas/Opportunity"
+            },
+            "type": "array"
+          },
+          "probability": {
+            "type": "string"
+          },
+          "stageId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "weightedValue": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "stageId",
+          "code",
+          "name",
+          "kind",
+          "probability",
+          "count",
+          "value",
+          "weightedValue",
+          "opportunities"
+        ],
+        "type": "object"
+      },
       "Player": {
         "properties": {
           "checkInMethod": {
@@ -31761,20 +31787,6 @@
         ],
         "type": "object"
       },
-      "ReservationCancelInput": {
-        "properties": {
-          "reason": {
-            "type": "string"
-          },
-          "waiveFee": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "reason"
-        ],
-        "type": "object"
-      },
       "ReservationCancelResult": {
         "properties": {
           "fee": {
@@ -34441,6 +34453,33 @@
           "fromUserId",
           "toUserId",
           "reason"
+        ],
+        "type": "object"
+      },
+      "SalesUser": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "teams": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "fullName",
+          "email",
+          "teams"
         ],
         "type": "object"
       },
@@ -37122,18 +37161,6 @@
           "status",
           "channel",
           "createdAt"
-        ],
-        "type": "object"
-      },
-      "StayAssignInput": {
-        "properties": {
-          "unitId": {
-            "format": "uuid",
-            "type": "string"
-          }
-        },
-        "required": [
-          "unitId"
         ],
         "type": "object"
       },
@@ -70136,7 +70163,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CancelInput"
+                "$ref": "#/components/schemas/FollowUpCancelInput"
               }
             }
           },
@@ -71507,7 +71534,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AssignInput"
+                "$ref": "#/components/schemas/LeadAssignInput"
               }
             }
           },
@@ -74231,7 +74258,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Board"
+                  "$ref": "#/components/schemas/PipelineBoard"
                 }
               }
             },
@@ -77565,6 +77592,109 @@
         ],
         "x-module": "crm",
         "x-permission": "crm.sales_team.export"
+      }
+    },
+    "/api/v1/crm/sales-users": {
+      "get": {
+        "operationId": "getCrmSalesUsers",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/SalesUser"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Sales staff of the property: owners of leads, opportunities and quotations, with their sales teams",
+        "tags": [
+          "CRM Sales"
+        ],
+        "x-module": "crm",
+        "x-permission": "crm.lead.view"
       }
     },
     "/api/v1/crm/segments": {
@@ -89736,7 +89866,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ExperienceBoard"
+                  "$ref": "#/components/schemas/Board"
                 }
               }
             },
@@ -132175,7 +132305,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReservationCancelInput"
+                "$ref": "#/components/schemas/CancelInput"
               }
             }
           },
@@ -143300,7 +143430,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/StayAssignInput"
+                "$ref": "#/components/schemas/AssignInput"
               }
             }
           },

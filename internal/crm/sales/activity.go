@@ -97,8 +97,8 @@ type CompleteInput struct {
 	Notes   string `json:"notes,omitempty"`
 }
 
-// CancelInput cancels a follow-up.
-type CancelInput struct {
+// FollowUpCancelInput cancels a follow-up.
+type FollowUpCancelInput struct {
 	Reason string `json:"reason"`
 }
 
@@ -275,7 +275,7 @@ func (m *Module) CompleteFollowUp(ctx context.Context, tx pgx.Tx, property, aid 
 }
 
 // CancelFollowUp cancels an open follow-up.
-func (m *Module) CancelFollowUp(ctx context.Context, tx pgx.Tx, property, aid uuid.UUID, in CancelInput) (Activity, error) {
+func (m *Module) CancelFollowUp(ctx context.Context, tx pgx.Tx, property, aid uuid.UUID, in FollowUpCancelInput) (Activity, error) {
 	before, err := lockActivity(ctx, tx, property, aid)
 	if err != nil {
 		return before, err
