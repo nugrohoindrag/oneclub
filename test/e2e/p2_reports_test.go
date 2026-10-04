@@ -37,7 +37,7 @@ func TestP2ReportsAndDashboards(t *testing.T) {
 		"category": "gift", "unit": "rupiah", "faceValue": "250000", "price": "250000", "validityMonths": 12}))
 	sa.Must(201, "POST", "/api/v1/commercial/vouchers:sell", map[string]any{"voucherTypeId": vt, "guestName": "Report Buyer",
 		"payment": map[string]any{"methodType": "cash"}}, "Idempotency-Key", newKey())
-	today := time.Now().Format("2006-01-02")
+	today := time.Now().In(f.Loc).Format("2006-01-02") // the club's date: the vouchers above were issued on it
 	rep := sa.Must(200, "GET", "/api/v1/reporting/reports/commercial.voucher_liability?params[to]="+today, nil).JSON()
 	sumRep := decimal.Zero
 	for _, r := range rep["rows"].([]any) {
