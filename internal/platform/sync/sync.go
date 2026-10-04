@@ -109,62 +109,16 @@ func (s *Service) handle(w http.ResponseWriter, r *http.Request) {
 	}
 	out := Response{Results: []ItemResult{}}
 	for _, it := range req.Items {
-		res := ItemResult{ID: it.ID}
-		err := s.DB.WithTx(ctx, func(tx pgx.Tx) error {
-			var status string
-			var stored []byte
-			err := tx.QueryRow(ctx, `SELECT status, result FROM platform.sync_items WHERE id = $1 AND user_id = $2`, it.ID, p.UserID).Scan(&status, &stored)
-			if err == nil {
-				res.Status, res.Result = "duplicate", stored
-				return audit.Record(ctx, tx, audit.Entry{Module: "platform", Action: "sync_duplicate", EntityType: "platform.sync_item",
-					EntityID: it.ID.String(), EntityLabel: it.Action, PropertyID: prop})
+		var res ItemResult
+		var err error
+		// A deadlock with a background job (e.g. the handler of the event the
+		// previous item raised) rolls the item back; it runs again.
+		for attempt := 1; ; attempt++ {
+			res, err = s.syncItem(ctx, p, prop, it)
+			if err == nil || attempt == 3 || !dbtx.IsRetryable(err) {
+				break
 			}
-			if !dbtx.IsNoRows(err) {
-				return err
-			}
-			s.mu.RLock()
-			h, ok := s.h[it.Action]
-			s.mu.RUnlock()
-			status = "accepted"
-			var result any
-			if !ok {
-				status, res.Error = "rejected", "unknown action "+it.Action
-			} else {
-				sp, err := tx.Begin(ctx)
-				if err != nil {
-					return err
-				}
-				result, err = h(ctx, sp, it.Payload)
-				if err != nil {
-					_ = sp.Rollback(ctx)
-					if ce, ok := err.(*ConflictError); ok {
-						status, res.Error = "conflict", ce.Message
-					} else if de, ok := errs.As(err); ok && de.Kind != errs.KindInternal {
-						status, res.Error = "rejected", de.Message
-					} else {
-						return err
-					}
-				} else if err := sp.Commit(ctx); err != nil {
-					return err
-				}
-			}
-			raw, _ := json.Marshal(result)
-			if result == nil {
-				raw = []byte("{}")
-			}
-			payload := it.Payload
-			if len(payload) == 0 {
-				payload = json.RawMessage("{}")
-			}
-			if _, err := tx.Exec(ctx, `INSERT INTO platform.sync_items (id, user_id, device_id, property_id, action, payload, status, result, client_time)
-				VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`, it.ID, p.UserID, p.DeviceID, prop, it.Action, []byte(payload), status, raw, it.ClientTime); err != nil {
-				return err
-			}
-			res.Status, res.Result = status, raw
-			return audit.Record(ctx, tx, audit.Entry{Module: "platform", Action: "sync_" + status, EntityType: "platform.sync_item",
-				EntityID: it.ID.String(), EntityLabel: it.Action, PropertyID: prop, After: map[string]any{"action": it.Action, "payload": payload},
-				Metadata: map[string]any{"clientTime": it.ClientTime}})
-		})
+		}
 		if err != nil {
 			httpx.WriteError(w, r, err)
 			return
@@ -172,6 +126,67 @@ func (s *Service) handle(w http.ResponseWriter, r *http.Request) {
 		out.Results = append(out.Results, res)
 	}
 	httpx.JSON(w, http.StatusOK, out)
+}
+
+// syncItem applies one queued action in its own transaction, once per item id.
+func (s *Service) syncItem(ctx context.Context, p *authz.Principal, prop *uuid.UUID, it Item) (ItemResult, error) {
+	res := ItemResult{ID: it.ID}
+	err := s.DB.WithTx(ctx, func(tx pgx.Tx) error {
+		var status string
+		var stored []byte
+		err := tx.QueryRow(ctx, `SELECT status, result FROM platform.sync_items WHERE id = $1 AND user_id = $2`, it.ID, p.UserID).Scan(&status, &stored)
+		if err == nil {
+			res.Status, res.Result = "duplicate", stored
+			return audit.Record(ctx, tx, audit.Entry{Module: "platform", Action: "sync_duplicate", EntityType: "platform.sync_item",
+				EntityID: it.ID.String(), EntityLabel: it.Action, PropertyID: prop})
+		}
+		if !dbtx.IsNoRows(err) {
+			return err
+		}
+		s.mu.RLock()
+		h, ok := s.h[it.Action]
+		s.mu.RUnlock()
+		status = "accepted"
+		var result any
+		if !ok {
+			status, res.Error = "rejected", "unknown action "+it.Action
+		} else {
+			sp, err := tx.Begin(ctx)
+			if err != nil {
+				return err
+			}
+			result, err = h(ctx, sp, it.Payload)
+			if err != nil {
+				_ = sp.Rollback(ctx)
+				if ce, ok := err.(*ConflictError); ok {
+					status, res.Error = "conflict", ce.Message
+				} else if de, ok := errs.As(err); ok && de.Kind != errs.KindInternal {
+					status, res.Error = "rejected", de.Message
+				} else {
+					return err
+				}
+			} else if err := sp.Commit(ctx); err != nil {
+				return err
+			}
+		}
+		raw, _ := json.Marshal(result)
+		if result == nil {
+			raw = []byte("{}")
+		}
+		payload := it.Payload
+		if len(payload) == 0 {
+			payload = json.RawMessage("{}")
+		}
+		if _, err := tx.Exec(ctx, `INSERT INTO platform.sync_items (id, user_id, device_id, property_id, action, payload, status, result, client_time)
+				VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`, it.ID, p.UserID, p.DeviceID, prop, it.Action, []byte(payload), status, raw, it.ClientTime); err != nil {
+			return err
+		}
+		res.Status, res.Result = status, raw
+		return audit.Record(ctx, tx, audit.Entry{Module: "platform", Action: "sync_" + status, EntityType: "platform.sync_item",
+			EntityID: it.ID.String(), EntityLabel: it.Action, PropertyID: prop, After: map[string]any{"action": it.Action, "payload": payload},
+			Metadata: map[string]any{"clientTime": it.ClientTime}})
+	})
+	return res, err
 }
 
 // Register adds POST /api/v1/platform/sync.
