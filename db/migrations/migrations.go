@@ -18,10 +18,12 @@ var Order = []string{
 	"crm",
 	"billing",
 	"commercial",
+	"inventory",
 	"membership",
 	"reservation",
 	"golf",
 	"sportclub",
+	"stay",
 	"procurement",
 	"reporting",
 }

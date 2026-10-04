@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -232,10 +233,15 @@ type FolioInput struct {
 	Property   uuid.UUID
 	CustomerID *uuid.UUID
 	GuestID    *uuid.UUID
-	HolderName string
-	SourceType string // golf_booking | walk_in | membership_fee | membership_renewal | bag_storage | other
+	HolderName string // default: the customer's name
+	SourceType string // golf_booking | walk_in | membership_fee | membership_renewal | bag_storage | other | P2: reservation, stay, pos_order …
 	SourceID   *uuid.UUID
 	SourceRef  string
+	// P2 (EP-03): the business line of the folio and the Reservation
+	// Engine reservation it belongs to.
+	BusinessLine  string
+	ReservationID *uuid.UUID
+	CorporateName string
 }
 
 // FolioRef identifies a folio.
@@ -254,10 +260,20 @@ func (s *Service) OpenFolio(ctx context.Context, tx pgx.Tx, in FolioInput) (Foli
 	if err != nil {
 		return FolioRef{}, err
 	}
+	if in.HolderName == "" && in.CustomerID != nil {
+		_ = tx.QueryRow(ctx, `SELECT name FROM crm.customers WHERE id = $1`, *in.CustomerID).Scan(&in.HolderName)
+	}
+	if in.HolderName == "" {
+		in.HolderName = "Walk-in"
+	}
+	if in.BusinessLine == "" {
+		in.BusinessLine = LineGolf
+	}
 	fid := id.New()
 	if _, err := tx.Exec(ctx, `INSERT INTO billing.folios (id, property_id, number, customer_id, guest_id, holder_name, source_type, source_id, source_ref,
-		currency, created_by, updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$11)`,
-		fid, in.Property, num, in.CustomerID, in.GuestID, in.HolderName, in.SourceType, in.SourceID, nullStr(in.SourceRef), cur, id.Ptr(actor(ctx))); err != nil {
+		currency, business_line, reservation_id, corporate_name, created_by, updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$14)`,
+		fid, in.Property, num, in.CustomerID, in.GuestID, in.HolderName, in.SourceType, in.SourceID, nullStr(in.SourceRef), cur, in.BusinessLine,
+		in.ReservationID, nullStr(in.CorporateName), id.Ptr(actor(ctx))); err != nil {
 		return FolioRef{}, err
 	}
 	ref := FolioRef{ID: fid, Number: num}
@@ -288,7 +304,20 @@ type Charge struct {
 	ReferenceType string
 	ReferenceID   *uuid.UUID
 	Liability     bool
+	// P2 (EP-03): the business line (default: the folio's), the revenue
+	// component (default: the charge type), tax breakdown and the partner the
+	// money is held for (caddy, instructor).
+	BusinessLine     string
+	RevenueComponent string
+	TaxLines         any
+	BeneficiaryType  string
+	BeneficiaryID    *uuid.UUID
 }
+
+// chargeTypes are the P1 charge types; P2 revenue components outside the
+// list are posted as "other" with their component.
+var chargeTypes = []string{"golf_round", "caddy_fee", "cart_fee", "extra_cart", "caddy_tip", "cancellation_fee", "no_show_fee",
+	"membership_fee", "renewal_fee", "bag_storage", "locker", "rain_check_credit", "discount", "other"}
 
 // ErrFolioClosed is returned when posting to a closed folio.
 var ErrFolioClosed = errs.Conflict("folio_closed", "the folio is closed; reopen it first")
@@ -321,17 +350,39 @@ func (s *Service) AddCharge(ctx context.Context, tx pgx.Tx, c Charge) (uuid.UUID
 	if c.Net.IsZero() && !c.Total.IsZero() {
 		c.Net = c.Total.Sub(c.Tax).Sub(c.Service)
 	}
+	if c.UnitPrice.IsZero() && c.Quantity.Equal(decimal.NewFromInt(1)) {
+		c.UnitPrice = c.Net
+	}
+	if c.ChargeType == "" {
+		c.ChargeType = "other"
+		if slices.Contains(chargeTypes, c.RevenueComponent) {
+			c.ChargeType = c.RevenueComponent
+		}
+	}
+	if c.RevenueComponent == "" {
+		c.RevenueComponent = c.ChargeType
+	}
+	if c.BusinessLine == "" {
+		_ = tx.QueryRow(ctx, `SELECT business_line FROM billing.folios WHERE id = $1`, c.FolioID).Scan(&c.BusinessLine)
+	}
 	comps := c.Components
 	if comps == nil {
 		comps = []any{}
 	}
 	raw, _ := json.Marshal(comps)
+	taxes := c.TaxLines
+	if taxes == nil {
+		taxes = []any{}
+	}
+	rawTax, _ := json.Marshal(taxes)
 	lid := id.New()
 	if _, err := tx.Exec(ctx, `INSERT INTO billing.folio_lines (id, property_id, folio_id, charge_type, description, quantity, unit_price, net_amount,
-		tax_amount, service_amount, total, currency, components, pricing_snapshot_id, reference_type, reference_id, liability, posted_by)
-		VALUES ($1,$2,$3,$4,$5,$6::numeric,$7::numeric,$8::numeric,$9::numeric,$10::numeric,$11::numeric,$12,$13,$14,$15,$16,$17,$18)`,
+		tax_amount, service_amount, total, currency, components, pricing_snapshot_id, reference_type, reference_id, liability, posted_by,
+		business_line, revenue_component, tax_lines, beneficiary_type, beneficiary_id)
+		VALUES ($1,$2,$3,$4,$5,$6::numeric,$7::numeric,$8::numeric,$9::numeric,$10::numeric,$11::numeric,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
 		lid, pid, c.FolioID, c.ChargeType, c.Description, c.Quantity.String(), c.UnitPrice.String(), c.Net.String(), c.Tax.String(), c.Service.String(),
-		c.Total.String(), cur, raw, c.SnapshotID, nullStr(c.ReferenceType), c.ReferenceID, c.Liability, id.Ptr(actor(ctx))); err != nil {
+		c.Total.String(), cur, raw, c.SnapshotID, nullStr(c.ReferenceType), c.ReferenceID, c.Liability, id.Ptr(actor(ctx)),
+		c.BusinessLine, c.RevenueComponent, rawTax, nullStr(c.BeneficiaryType), c.BeneficiaryID); err != nil {
 		return uuid.Nil, err
 	}
 	if err := bumpVersion(ctx, tx, c.FolioID); err != nil {
@@ -438,11 +489,18 @@ type Payment struct {
 	ReceivedBy      *uuid.UUID `json:"receivedBy"`
 	ReceivedByName  *string    `json:"receivedByName"`
 	CreatedAt       time.Time  `json:"createdAt"`
+	// P2: tender data (voucher, target folio), POS outlet & shift, offline
+	// recording and the review flag of offline member charges.
+	TenderRef   map[string]any `json:"tenderRef"`
+	OutletID    *uuid.UUID     `json:"outletId"`
+	ShiftID     *uuid.UUID     `json:"shiftId"`
+	Offline     bool           `json:"offline"`
+	NeedsReview bool           `json:"needsReview"`
 }
 
 const paymentCols = `p.id, p.number, p.folio_id, f.number, p.account_id, p.payment_method_id, p.method_type, p.channel, p.purpose, p.amount::text,
 	p.refunded_amount::text, p.currency, p.status, p.integration_code, p.external_id, p.checkout_url, p.qr_string, p.va_number, p.reference,
-	p.payer_name, p.expires_at, p.paid_at, p.received_by, u.full_name, p.created_at`
+	p.payer_name, p.expires_at, p.paid_at, p.received_by, u.full_name, p.created_at, p.tender_ref, p.outlet_id, p.shift_id, p.offline, p.needs_review`
 
 const paymentFrom = ` FROM billing.payments p LEFT JOIN billing.folios f ON f.id = p.folio_id LEFT JOIN platform.users u ON u.id = p.received_by`
 
@@ -450,7 +508,8 @@ func scanPayment(row pgx.Row) (Payment, error) {
 	var p Payment
 	err := row.Scan(&p.ID, &p.Number, &p.FolioID, &p.FolioNumber, &p.AccountID, &p.PaymentMethodID, &p.MethodType, &p.Channel, &p.Purpose,
 		&p.Amount, &p.RefundedAmount, &p.Currency, &p.Status, &p.IntegrationCode, &p.ExternalID, &p.CheckoutURL, &p.QRString, &p.VANumber,
-		&p.Reference, &p.PayerName, &p.ExpiresAt, &p.PaidAt, &p.ReceivedBy, &p.ReceivedByName, &p.CreatedAt)
+		&p.Reference, &p.PayerName, &p.ExpiresAt, &p.PaidAt, &p.ReceivedBy, &p.ReceivedByName, &p.CreatedAt,
+		&p.TenderRef, &p.OutletID, &p.ShiftID, &p.Offline, &p.NeedsReview)
 	return p, err
 }
 
@@ -477,6 +536,15 @@ type PaymentInput struct {
 	Description     string
 	ExpiresAt       *time.Time // online payments
 	SkipCreditCheck bool
+	// P2 (EP-03, EP-20): tender data of voucher_prepaid / folio_transfer,
+	// the POS outlet & shift, offline recording (member charge over the
+	// cached limit is accepted and flagged for review) and a client key
+	// that makes a retried payment return the first one.
+	Tender         map[string]any
+	OutletID       *uuid.UUID
+	ShiftID        *uuid.UUID
+	Offline        bool
+	IdempotencyKey string
 }
 
 var onlineMethods = map[string]bool{"qris": true, "virtual_account": true, "card": true, "payment_gateway": true}
@@ -485,6 +553,16 @@ var onlineMethods = map[string]bool{"qris": true, "virtual_account": true, "card
 // immediately; online payments create a gateway checkout and stay Pending
 // until the signed webhook settles them (FR-PAY-03..05).
 func (s *Service) TakePayment(ctx context.Context, tx pgx.Tx, in PaymentInput) (Payment, error) {
+	if in.IdempotencyKey != "" {
+		var existing uuid.UUID
+		err := tx.QueryRow(ctx, `SELECT id FROM billing.payments WHERE idempotency_key = $1`, in.IdempotencyKey).Scan(&existing)
+		if err == nil {
+			return GetPayment(ctx, tx, existing)
+		}
+		if !dbtx.IsNoRows(err) {
+			return Payment{}, err
+		}
+	}
 	if !in.Amount.IsPositive() {
 		return Payment{}, errs.Validation("invalid_amount", "amount must be positive", errs.Field("amount", "invalid", "positive decimal"))
 	}
@@ -563,26 +641,55 @@ func (s *Service) TakePayment(ctx context.Context, tx pgx.Tx, in PaymentInput) (
 	now := clock.Now()
 	var receivedBy *uuid.UUID
 	var integrationCode, externalID, checkout, qr, va *string
+	tenderRef := map[string]any{}
+	needsReview := false
 
 	switch {
 	case in.MethodType == "member_account":
 		if in.Purpose == "account_settlement" {
 			return Payment{}, errs.Validation("invalid_method", "an account cannot be settled with a member charge")
 		}
+		if in.AccountID == nil && in.FolioID != nil {
+			// signing bill of the folio's customer (any business line, C2)
+			var cust *uuid.UUID
+			_ = tx.QueryRow(ctx, `SELECT customer_id FROM billing.folios WHERE id = $1`, *in.FolioID).Scan(&cust)
+			if cust != nil {
+				if a, err := AccountFor(ctx, tx, property, *cust, "member"); err != nil {
+					return Payment{}, err
+				} else if a != nil {
+					in.AccountID = &a.ID
+				}
+			}
+		}
 		if in.AccountID == nil {
-			return Payment{}, errs.Validation("account_required", "member account is required for a member charge", errs.Field("accountId", "required", "choose the member account"))
+			return Payment{}, errs.Conflict("no_member_account", "the customer has no member account to charge")
 		}
 		a, err := GetAccount(ctx, tx, *in.AccountID)
 		if err != nil {
 			return Payment{}, err
 		}
-		if !in.SkipCreditCheck {
+		if in.Offline {
+			// recorded offline against the cached limit: accepted, always reviewed (PRD P2 FR-POS-11)
+			needsReview = true
+		} else if !in.SkipCreditCheck {
 			if err := CheckCredit(ctx, tx, property, a, in.Amount); err != nil {
 				return Payment{}, err
 			}
 		}
+		tenderRef["accountNumber"] = a.Number
 		in.Channel = "member_account"
 		paidAt = &now
+	case in.MethodType == "voucher_prepaid" || in.MethodType == "folio_transfer":
+		if in.FolioID == nil {
+			return Payment{}, errs.Validation("folio_required", "a folio is required for this payment method")
+		}
+		amt, ref, err := s.applyTender(ctx, tx, property, *in.FolioID, in)
+		if err != nil {
+			return Payment{}, err
+		}
+		in.Amount, tenderRef = amt, ref
+		paidAt = &now
+		receivedBy = id.Ptr(actor(ctx))
 	case in.Channel == "online" || (onlineMethods[in.MethodType] && in.Channel != "venue"):
 		in.Channel = "online"
 		if s.Gateways == nil {
@@ -615,11 +722,14 @@ func (s *Service) TakePayment(ctx context.Context, tx pgx.Tx, in PaymentInput) (
 		u := actor(ctx)
 		receivedBy = id.Ptr(u)
 	}
+	rawTender, _ := json.Marshal(tenderRef)
 	if _, err := tx.Exec(ctx, `INSERT INTO billing.payments (id, property_id, number, folio_id, account_id, payment_method_id, method_type, channel, purpose,
 		amount, currency, status, integration_code, external_id, checkout_url, qr_string, va_number, reference, payer_name, expires_at, paid_at, received_by,
-		created_by, updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::numeric,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$23)`,
+		created_by, updated_by, tender_ref, outlet_id, shift_id, offline, needs_review, idempotency_key)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::numeric,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$23,$24,$25,$26,$27,$28,$29)`,
 		pid, property, num, in.FolioID, in.AccountID, in.PaymentMethodID, in.MethodType, in.Channel, in.Purpose, in.Amount.String(), cur, status,
-		integrationCode, externalID, checkout, qr, va, nullStr(in.Reference), nullStr(in.PayerName), in.ExpiresAt, paidAt, receivedBy, id.Ptr(actor(ctx))); err != nil {
+		integrationCode, externalID, checkout, qr, va, nullStr(in.Reference), nullStr(in.PayerName), in.ExpiresAt, paidAt, receivedBy, id.Ptr(actor(ctx)),
+		rawTender, in.OutletID, in.ShiftID, in.Offline, needsReview, nullStr(in.IdempotencyKey)); err != nil {
 		return Payment{}, err
 	}
 	p, err := GetPayment(ctx, tx, pid)
@@ -649,6 +759,9 @@ func (s *Service) afterSettled(ctx context.Context, tx pgx.Tx, p Payment, proper
 			desc = "Member charge " + *p.FolioNumber
 		}
 		if err := PostEntry(ctx, tx, property, *p.AccountID, "charge", amt, p.Currency, desc, p.FolioID, &p.ID); err != nil {
+			return err
+		}
+		if err := tagEntries(ctx, tx, p.ID); err != nil {
 			return err
 		}
 	case p.Purpose == "account_settlement" && p.AccountID != nil:

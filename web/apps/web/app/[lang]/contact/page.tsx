@@ -1,9 +1,11 @@
-import { copy, getBootstrap, type Lang } from '../../lib';
+import { copy, getBootstrap, getProperty, type Lang } from '../../lib';
+import { ContactForm } from '../booking';
 
 export default async function Contact({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   const t = copy[lang as Lang];
   const b = await getBootstrap();
+  const p = await getProperty();
   return (
     <div className="w-grid">
       <div className="w-card">
@@ -11,6 +13,7 @@ export default async function Contact({ params }: { params: Promise<{ lang: stri
         <p>{t.contactText}</p>
         <p><strong>{b.branding.appName}</strong></p>
       </div>
+      {p && <ContactForm propertyId={p.id} />}
     </div>
   );
 }

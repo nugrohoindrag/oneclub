@@ -25,7 +25,7 @@ Each customer gets its **own database, database roles and Docker Compose stack**
    writes the deploy bundle (`.env` + `secrets/*`, mode 0600).
 
 3. **Secure the bundle**: encrypt with `sops`/`age` or move to the secret store. Never commit it.
-4. **Complete `.env`** with `DOMAIN_BACKOFFICE`, `DOMAIN_MEMBER`, `DOMAIN_OPS`, `DOMAIN_PLATFORM_ADMIN`, `DOMAIN_WEB`,
+4. **Complete `.env`** with `DOMAIN_BACKOFFICE`, `DOMAIN_MEMBER`, `DOMAIN_OPS`, `DOMAIN_PLATFORM_ADMIN`, `DOMAIN_CADDY` (caddy tablet), `DOMAIN_WEB`,
    `ACME_EMAIL`, SMTP and S3 settings; create `.env.pgbouncer`.
 5. **Deploy**: `deploy/scripts/deploy.sh mgcc <version>`.
 6. **First login**: the Super Admin logs in with the printed temporary password, changes it and enrols MFA.

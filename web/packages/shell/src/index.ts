@@ -13,3 +13,5 @@ export * from './settings/access';
 export * from './settings/instance';
 export * from './settings/services';
 export * from './settings/system';
+export * from './settings/auto';
+export * from './components/qr';

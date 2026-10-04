@@ -18,7 +18,7 @@ import { ToastProvider } from './components/toast';
 
 export type Bootstrap = Schemas['Bootstrap'];
 export type Me = Schemas['MeResponse'];
-export type Shell = 'backoffice' | 'management' | 'member' | 'ops' | 'platform-admin';
+export type Shell = 'backoffice' | 'management' | 'member' | 'ops' | 'platform-admin' | 'caddy';
 
 // ── bootstrap (public) ────────────────────────────────────────────────────
 

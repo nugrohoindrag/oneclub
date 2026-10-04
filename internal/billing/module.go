@@ -208,8 +208,10 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 		Scope: route.ScopeProperty, Request: SettingRequest{}, Response: Setting{}, Handler: m.create})
 }
 
-// Contribution returns catalogue entries.
-func Contribution() catalog.Contribution {
+// Contribution returns catalogue entries (P1 foundation + P2 extension).
+func Contribution() catalog.Contribution { return catalog.Merge(p1Contribution(), p2Contribution()) }
+
+func p1Contribution() catalog.Contribution {
 	perms := append(resource.Permissions(PaymentMethods), catalog.P("billing", "payment_method_setting", "manage")...)
 	perms = append(perms, catalog.P("billing", "folio", "view", "create", "add_charge", "void", "close", "reopen")...)
 	perms = append(perms, catalog.P("billing", "payment", "view", "create")...)

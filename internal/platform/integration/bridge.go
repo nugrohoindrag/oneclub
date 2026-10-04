@@ -201,16 +201,23 @@ func (h *HTTP) heartbeat(w http.ResponseWriter, r *http.Request) {
 	if hw == nil {
 		hw = []map[string]any{}
 	}
+	cmds := []any{}
 	err = h.Svc.DB.WithTx(dbtx.System(ctx), func(tx pgx.Tx) error {
-		_, err := tx.Exec(ctx, `UPDATE platform.bridge_agents SET last_heartbeat_at = now(), agent_version = $2, hardware = $3, last_ip = $4 WHERE id = $1`,
-			aid, req.AgentVersion, hw, reqctx.GetMeta(ctx).IP)
+		if _, err := tx.Exec(ctx, `UPDATE platform.bridge_agents SET last_heartbeat_at = now(), agent_version = $2, hardware = $3, last_ip = $4 WHERE id = $1`,
+			aid, req.AgentVersion, hw, reqctx.GetMeta(ctx).IP); err != nil {
+			return err
+		}
+		queued, err := pending(ctx, tx, aid)
+		for _, c := range queued {
+			cmds = append(cmds, c)
+		}
 		return err
 	})
 	if err != nil {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	httpx.JSON(w, http.StatusOK, HeartbeatResponse{AgentID: aid, ServerTime: time.Now().UTC(), NextHeartbeatIn: 30, Commands: []any{}})
+	httpx.JSON(w, http.StatusOK, HeartbeatResponse{AgentID: aid, ServerTime: time.Now().UTC(), NextHeartbeatIn: 30, Commands: cmds})
 }
 
 func (h *HTTP) registerBridge(reg *route.Registry) {

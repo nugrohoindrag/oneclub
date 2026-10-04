@@ -570,6 +570,12 @@ func (m *Module) Activate(ctx context.Context, tx pgx.Tx, aid uuid.UUID, waivePa
 		msID, property, memberID, a.TypeID, a.PackageID, a.CorporateAccountID, day.Format("2006-01-02"), ends.Format("2006-01-02"), aid, id.Ptr(actor(ctx))); err != nil {
 		return a, err
 	}
+	// P2 annual fee (FR-MBL-04): the first due date is a year after the start;
+	// the first period is paid with the package fee.
+	if _, err := tx.Exec(ctx, `UPDATE membership.memberships ms SET next_fee_due = ms.starts_on + interval '1 year' FROM membership.types t
+		WHERE ms.id = $1 AND t.id = ms.type_id AND t.annual_fee > 0`, msID); err != nil {
+		return a, err
+	}
 	if err := history(ctx, tx, property, memberID, &msID, "activated", "pending", "active", map[string]any{"applicationId": aid, "type": t.Name,
 		"endsOn": ends.Format("2006-01-02"), "waivedPayment": waivePayment, "reason": reason}); err != nil {
 		return a, err

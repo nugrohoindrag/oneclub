@@ -73,12 +73,12 @@ var Modules = []Module{
 	{Code: "sportclub", Name: "Sport Club", Layer: "Business Line", SortOrder: 20, Default: true},
 	{Code: "membership", Name: "Membership", Layer: "Shared Core", SortOrder: 30, Default: true},
 	{Code: "reservation", Name: "Booking", Layer: "Shared Core", SortOrder: 40, Default: true},
-	{Code: "stay", Name: "Stay & Venue", Layer: "Business Line", SortOrder: 50},
+	{Code: "stay", Name: "Stay & Venue", Layer: "Business Line", SortOrder: 50, Default: true},
 	{Code: "banquet", Name: "Banquet & Event", Layer: "Business Line", SortOrder: 60},
 	{Code: "crm", Name: "CRM", Layer: "Customer", SortOrder: 70, Default: true},
 	{Code: "commercial", Name: "Commercial", Layer: "Shared Core", SortOrder: 80, Default: true},
 	{Code: "billing", Name: "Billing & Payment", Layer: "Shared Core", SortOrder: 85, Default: true},
-	{Code: "inventory", Name: "Inventory", Layer: "Back Office", SortOrder: 90},
+	{Code: "inventory", Name: "Inventory", Layer: "Back Office", SortOrder: 90, Default: true},
 	{Code: "procurement", Name: "Procurement", Layer: "Back Office", SortOrder: 100, Default: true},
 	{Code: "accounting", Name: "Accounting", Layer: "Back Office", SortOrder: 110},
 	{Code: "hris", Name: "HRIS", Layer: "Back Office", SortOrder: 120},
@@ -188,6 +188,7 @@ const (
 	ShellOps           = "platform.ops.access"
 	ShellMemberPortal  = "platform.member_portal.access"
 	ShellPlatformAdmin = "platform.platform_admin.access"
+	ShellCaddy         = "golf.tablet.use"
 	ManagementView     = "reporting.dashboard.view"
 )
 
@@ -237,7 +238,7 @@ var PropertyAdminPermissions = cat(bo, ops, []string{
 	"platform.system_settings.view",
 	"audit.log.view",
 	ManagementView, "reporting.report.view", "reporting.export.create",
-}, ma("golf", "sportclub", "membership", "reservation", "crm", "commercial", "billing", "procurement", "reporting"))
+}, ma("golf", "sportclub", "membership", "reservation", "stay", "crm", "commercial", "billing", "inventory", "procurement", "reporting"))
 
 // RoleTemplates seeds Product Overview §44 plus the System roles.
 var RoleTemplates = []RoleTemplate{
@@ -377,4 +378,28 @@ func (c *Catalog) Role(code string) (RoleTemplate, bool) {
 		}
 	}
 	return RoleTemplate{}, false
+}
+
+// Merge combines contributions of one module (e.g. a phase extending what an
+// earlier phase contributed): permissions are de-duplicated by code and
+// role permissions are unioned per role.
+func Merge(cs ...Contribution) Contribution {
+	out := Contribution{RolePermissions: map[string][]string{}}
+	seen := map[string]bool{}
+	for _, c := range cs {
+		for _, p := range c.Permissions {
+			if !seen[p.Code] {
+				seen[p.Code] = true
+				out.Permissions = append(out.Permissions, p)
+			}
+		}
+		for role, perms := range c.RolePermissions {
+			for _, p := range perms {
+				if !slices.Contains(out.RolePermissions[role], p) {
+					out.RolePermissions[role] = append(out.RolePermissions[role], p)
+				}
+			}
+		}
+	}
+	return out
 }

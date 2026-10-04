@@ -1,0 +1,152 @@
+package e2e
+
+import (
+	"context"
+	"fmt"
+	"sync"
+	"testing"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+
+	"oneclub/internal/kernel/dbtx"
+	"oneclub/internal/reservation"
+)
+
+// p2 holds shared P2 fixtures of the primary instance (created once).
+type p2Fixtures struct {
+	SA        *Client
+	Loc       *time.Location
+	TaxGolf   string
+	CourtSet  string
+	MonThu    string
+	Fri       string
+	Sat       string
+	SunPH     string
+	EntrySet  string
+	Weekday   string
+	Weekend   string
+	Morning   string // 07–16
+	Evening   string // 16–21
+	CustomerA string // member customer with member account
+	CustomerB string // guest customer
+	AccountA  string
+}
+
+var (
+	p2Once sync.Once
+	p2     *p2Fixtures
+)
+
+// id returns body.id of a response.
+func idOf(r Resp) string { return str(r.JSON()["id"]) }
+
+// nextWeekday returns the next local date (at 00:00) with the given weekday,
+// at least `minDays` days ahead.
+func nextWeekday(loc *time.Location, wd time.Weekday, minDays int) time.Time {
+	n := time.Now().In(loc)
+	d := time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, loc).AddDate(0, 0, minDays)
+	for d.Weekday() != wd {
+		d = d.AddDate(0, 0, 1)
+	}
+	return d
+}
+
+func at(d time.Time, h, m int) time.Time {
+	return time.Date(d.Year(), d.Month(), d.Day(), h, m, 0, 0, d.Location())
+}
+
+func rfc(t time.Time) string { return t.Format(time.RFC3339) }
+
+func past() string { return time.Now().Add(-72 * time.Hour).Format(time.RFC3339) }
+
+// setupP2 creates tax rules, day types, time bands and two customers.
+func setupP2(t *testing.T) *p2Fixtures {
+	t.Helper()
+	p2Once.Do(func() {
+		sa := superAdmin(t, inst)
+		f := &p2Fixtures{SA: sa}
+		loc, _ := time.LoadLocation("Asia/Jakarta")
+		f.Loc = loc
+		// Tax & Service: golf 11% VAT; meeting 15.5% = service 5% + PB1 10% on net + service.
+		sa.Must(201, "POST", "/api/v1/commercial/tax-service-rules", map[string]any{"code": "P2VAT", "name": "PPN 11%", "kind": "tax", "ratePercent": "11",
+			"basis": "net_amount", "pricingMode": "nett", "effectiveFrom": past()})
+		sa.Must(201, "POST", "/api/v1/commercial/tax-service-rules", map[string]any{"code": "P2SVC", "name": "Service 5%", "kind": "service", "ratePercent": "5",
+			"basis": "net_amount", "pricingMode": "plus_plus", "effectiveFrom": past()})
+		sa.Must(201, "POST", "/api/v1/commercial/tax-service-rules", map[string]any{"code": "P2PB1", "name": "PB1 10%", "kind": "tax", "ratePercent": "10",
+			"basis": "net_plus_service", "pricingMode": "plus_plus", "effectiveFrom": past()})
+		f.CourtSet = idOf(sa.Must(201, "POST", "/api/v1/commercial/day-type-sets", map[string]any{"code": "COURT", "name": "Court days", "serviceType": "sport_court"}))
+		dt := func(set, code, name string, days []int, ph bool, prio int) string {
+			return idOf(sa.Must(201, "POST", "/api/v1/commercial/day-types", map[string]any{"code": code, "name": name, "dayTypeSetId": set,
+				"weekdays": days, "publicHoliday": ph, "priority": prio}))
+		}
+		f.MonThu = dt(f.CourtSet, "C-MONTHU", "Mon–Thu", []int{1, 2, 3, 4}, false, 0)
+		f.Fri = dt(f.CourtSet, "C-FRI", "Friday", []int{5}, false, 0)
+		f.Sat = dt(f.CourtSet, "C-SAT", "Saturday", []int{6}, false, 0)
+		f.SunPH = dt(f.CourtSet, "C-SUNPH", "Sunday / Public Holiday", []int{7}, true, 10)
+		f.EntrySet = idOf(sa.Must(201, "POST", "/api/v1/commercial/day-type-sets", map[string]any{"code": "ENTRY", "name": "Entry days"}))
+		f.Weekday = dt(f.EntrySet, "WEEKDAY", "Weekday", []int{1, 2, 3, 4, 5}, false, 0)
+		f.Weekend = dt(f.EntrySet, "WEEKEND", "Weekend / Public Holiday", []int{6, 7}, true, 10)
+		f.Morning = idOf(sa.Must(201, "POST", "/api/v1/commercial/time-bands", map[string]any{"code": "07-16", "name": "07.00–16.00", "startTime": "07:00", "endTime": "16:00"}))
+		f.Evening = idOf(sa.Must(201, "POST", "/api/v1/commercial/time-bands", map[string]any{"code": "16-21", "name": "16.00–21.00", "startTime": "16:00", "endTime": "21:00"}))
+		f.CustomerA = idOf(sa.Must(201, "POST", "/api/v1/crm/customers", map[string]any{"code": "P2-CUST-A", "name": "Hendra Wijaya", "email": "hendra@p2.test"}))
+		f.CustomerB = idOf(sa.Must(201, "POST", "/api/v1/crm/customers", map[string]any{"code": "P2-CUST-B", "name": "Rina Tamu", "phone": "+6281111111"}))
+		f.AccountA = idOf(sa.Must(201, "POST", "/api/v1/billing/member-accounts", map[string]any{"customerId": f.CustomerA, "creditLimit": "50000000"}))
+		p2 = f
+	})
+	if p2 == nil {
+		t.Fatal("P2 fixtures failed")
+	}
+	p2.SA.t = t
+	return p2
+}
+
+// rule creates a pricing rule.
+func rule(t *testing.T, c *Client, body map[string]any) string {
+	t.Helper()
+	if _, ok := body["effectiveFrom"]; !ok {
+		body["effectiveFrom"] = past()
+	}
+	return idOf(c.Must(201, "POST", "/api/v1/commercial/pricing-rules", body))
+}
+
+// price resolves a price and returns the total.
+func price(t *testing.T, c *Client, body map[string]any) map[string]any {
+	t.Helper()
+	return c.Must(200, "POST", "/api/v1/commercial/pricing:resolve", body).JSON()
+}
+
+func total(p map[string]any) string { return str(p["tax"].(map[string]any)["total"]) }
+
+// resourceOf creates a reservation resource directly via the API.
+func resourceOf(t *testing.T, c *Client, code, typ string, capacity *int, attrs map[string]any) string {
+	t.Helper()
+	b := map[string]any{"code": code, "name": code, "resourceType": typ}
+	if capacity != nil {
+		b["capacity"] = *capacity
+	}
+	if attrs != nil {
+		b["attributes"] = attrs
+	}
+	return idOf(c.Must(201, "POST", "/api/v1/reservation/resources", b))
+}
+
+func intp(n int) *int { return &n }
+
+// sysExec runs SQL with an all-properties scope.
+func sysExec(t testing.TB, in *Instance, sql string, args ...any) {
+	t.Helper()
+	ctx := dbtx.System(context.Background())
+	if err := in.DB.WithTx(ctx, func(tx pgx.Tx) error { _, err := tx.Exec(ctx, sql, args...); return err }); err != nil {
+		t.Fatalf("exec %q: %v", sql, err)
+	}
+}
+
+func newKey() string { return uuid.NewString() }
+
+func money(s any) string { return fmt.Sprint(s) }
+
+func reservationExpire(in *Instance) (int64, error) {
+	return reservation.ExpireHolds(context.Background(), in.DB)
+}

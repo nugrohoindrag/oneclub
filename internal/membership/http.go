@@ -99,46 +99,9 @@ func (m *Module) createApplication(channel string) http.HandlerFunc {
 				property = c.PropertyID
 				ctx = withProperty(ctx, property)
 			}
-			ok, err := crm.ExistsInProperty(ctx, tx, property, req.CustomerID)
-			if err != nil {
-				return err
-			}
-			if !ok {
-				return errs.Validation("invalid_customer", "customer not found", errs.Field("customerId", "not_found", "customer not found in this property"))
-			}
-			var pkgType uuid.UUID
-			if err := tx.QueryRow(ctx, `SELECT type_id FROM membership.packages WHERE id = $1 AND property_id = $2 AND status = 'active'`, req.PackageID, property).Scan(&pkgType); err != nil {
-				return errs.Validation("invalid_package", "package not found", errs.Field("packageId", "not_found", "package not found"))
-			}
-			if pkgType != req.TypeID {
-				return errs.Validation("invalid_package", "the package belongs to another membership type", errs.Field("packageId", "invalid", "package of the chosen type"))
-			}
-			num, _, err := docno.Running(ctx, tx, "membership.sequences", property, "APP")
-			if err != nil {
-				return err
-			}
-			deps, _ := json.Marshal(nonNil(req.Dependents))
-			docs, _ := json.Marshal(nonNilDocs(req.Documents))
-			aid := id.New()
-			if _, err := tx.Exec(ctx, `INSERT INTO membership.applications (id, property_id, number, channel, customer_id, type_id, package_id, corporate_account_id,
-				dependents, documents, status, notes, created_by, updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'draft',$11,$12,$12)`,
-				aid, property, num, channel, req.CustomerID, req.TypeID, req.PackageID, req.CorporateAccountID, deps, docs, nullStr(req.Notes), id.Ptr(actor(ctx))); err != nil {
-				if dbtx.IsForeignKeyViolation(err) {
-					return errs.Validation("invalid_reference", "membership type or corporate account not found")
-				}
-				return err
-			}
-			if out, err = GetApplication(ctx, tx, aid); err != nil {
-				return err
-			}
-			if _, err := m.CheckEligibility(ctx, tx, out); err != nil {
-				return err
-			}
-			if out, err = GetApplication(ctx, tx, aid); err != nil {
-				return err
-			}
-			return audit.Record(ctx, tx, audit.Entry{Module: "membership", Action: audit.ActionCreate, EntityType: "membership.application", EntityID: aid.String(),
-				EntityLabel: num, PropertyID: &property, After: out})
+			var err error
+			out, err = m.NewApplication(ctx, tx, property, channel, req)
+			return err
 		})
 		if err != nil {
 			httpx.WriteError(w, r, err)
@@ -146,6 +109,55 @@ func (m *Module) createApplication(channel string) http.HandlerFunc {
 		}
 		httpx.JSON(w, http.StatusCreated, out)
 	}
+}
+
+// NewApplication creates a draft application with its eligibility check
+// (back office, Member Portal, website — FR-MBL-15).
+func (m *Module) NewApplication(ctx context.Context, tx pgx.Tx, property uuid.UUID, channel string, req ApplicationRequest) (Application, error) {
+	var out Application
+	if err := validDeps(req.Dependents); err != nil {
+		return out, err
+	}
+	ok, err := crm.ExistsInProperty(ctx, tx, property, req.CustomerID)
+	if err != nil {
+		return out, err
+	}
+	if !ok {
+		return out, errs.Validation("invalid_customer", "customer not found", errs.Field("customerId", "not_found", "customer not found in this property"))
+	}
+	var pkgType uuid.UUID
+	if err := tx.QueryRow(ctx, `SELECT type_id FROM membership.packages WHERE id = $1 AND property_id = $2 AND status = 'active'`, req.PackageID, property).Scan(&pkgType); err != nil {
+		return out, errs.Validation("invalid_package", "package not found", errs.Field("packageId", "not_found", "package not found"))
+	}
+	if pkgType != req.TypeID {
+		return out, errs.Validation("invalid_package", "the package belongs to another membership type", errs.Field("packageId", "invalid", "package of the chosen type"))
+	}
+	num, _, err := docno.Running(ctx, tx, "membership.sequences", property, "APP")
+	if err != nil {
+		return out, err
+	}
+	deps, _ := json.Marshal(nonNil(req.Dependents))
+	docs, _ := json.Marshal(nonNilDocs(req.Documents))
+	aid := id.New()
+	if _, err := tx.Exec(ctx, `INSERT INTO membership.applications (id, property_id, number, channel, customer_id, type_id, package_id, corporate_account_id,
+		dependents, documents, status, notes, created_by, updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'draft',$11,$12,$12)`,
+		aid, property, num, channel, req.CustomerID, req.TypeID, req.PackageID, req.CorporateAccountID, deps, docs, nullStr(req.Notes), id.Ptr(actor(ctx))); err != nil {
+		if dbtx.IsForeignKeyViolation(err) {
+			return out, errs.Validation("invalid_reference", "membership type or corporate account not found")
+		}
+		return out, err
+	}
+	if out, err = GetApplication(ctx, tx, aid); err != nil {
+		return out, err
+	}
+	if _, err := m.CheckEligibility(ctx, tx, out); err != nil {
+		return out, err
+	}
+	if out, err = GetApplication(ctx, tx, aid); err != nil {
+		return out, err
+	}
+	return out, audit.Record(ctx, tx, audit.Entry{Module: "membership", Action: audit.ActionCreate, EntityType: "membership.application", EntityID: aid.String(),
+		EntityLabel: num, PropertyID: &property, After: out})
 }
 
 func nonNil(d []Dependent) []Dependent {
@@ -393,14 +405,22 @@ type Membership struct {
 	CorporateAccountID *uuid.UUID `json:"corporateAccountId"`
 	StartsOn           string     `json:"startsOn"`
 	EndsOn             *string    `json:"endsOn"`
-	Status             string     `json:"status" enum:"pending,active,expired,inactive"`
+	Status             string     `json:"status" enum:"pending,active,expired,inactive,paused,suspended,cancelled"`
 	DaysToExpiry       *int       `json:"daysToExpiry"`
 	RenewalPending     bool       `json:"renewalPending"`
+	// P2 lifecycle (EP-04)
+	NextFeeDue       *time.Time `json:"nextFeeDue" doc:"Next annual fee due date"`
+	PausedFrom       *time.Time `json:"pausedFrom"`
+	PausedUntil      *time.Time `json:"pausedUntil"`
+	SuspensionKind   *string    `json:"suspensionKind" enum:"arrears,discipline"`
+	SuspensionReason *string    `json:"suspensionReason"`
+	CancelReason     *string    `json:"cancelReason"`
 }
 
 const membershipCols = `ms.id, ms.member_id, mb.code, mb.name, ms.type_id, t.name, ms.package_id, ms.principal_id, ms.role, ms.relationship, ms.corporate_account_id,
 	ms.starts_on, ms.ends_on, ms.status, (ms.ends_on - current_date),
-	EXISTS (SELECT 1 FROM membership.renewals rn WHERE rn.membership_id = ms.id AND rn.status = 'pending')
+	EXISTS (SELECT 1 FROM membership.renewals rn WHERE rn.membership_id = ms.id AND rn.status = 'pending'),
+	ms.next_fee_due, ms.paused_from, ms.paused_until, ms.suspension_kind, ms.suspension_reason, ms.cancel_reason
 	FROM membership.memberships ms JOIN membership.members mb ON mb.id = ms.member_id JOIN membership.types t ON t.id = ms.type_id`
 
 func scanMembership(row pgx.Row) (Membership, error) {
@@ -408,7 +428,8 @@ func scanMembership(row pgx.Row) (Membership, error) {
 	var s time.Time
 	var e *time.Time
 	err := row.Scan(&x.ID, &x.MemberID, &x.MemberNo, &x.MemberName, &x.TypeID, &x.TypeName, &x.PackageID, &x.PrincipalID, &x.Role, &x.Relationship,
-		&x.CorporateAccountID, &s, &e, &x.Status, &x.DaysToExpiry, &x.RenewalPending)
+		&x.CorporateAccountID, &s, &e, &x.Status, &x.DaysToExpiry, &x.RenewalPending,
+		&x.NextFeeDue, &x.PausedFrom, &x.PausedUntil, &x.SuspensionKind, &x.SuspensionReason, &x.CancelReason)
 	x.StartsOn = s.Format("2006-01-02")
 	if e != nil {
 		v := e.Format("2006-01-02")
@@ -1207,6 +1228,7 @@ func (m *Module) RunLifecycle(ctx context.Context) (LifecycleResult, error) {
 // RegisterJobs adds the daily lifecycle job.
 func (m *Module) RegisterJobs(reg *jobs.Registrar, loc func() *time.Location) {
 	river.AddWorker(reg.Workers, &LifecycleWorker{M: m})
+	m.registerDailyJob(reg)
 	reg.Periodic = append(reg.Periodic, river.NewPeriodicJob(jobs.DailyAt{Hour: 0, Minute: 30, Location: loc},
 		func() (river.JobArgs, *river.InsertOpts) { return LifecycleArgs{}, nil }, nil))
 }
@@ -1216,6 +1238,9 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	for _, d := range []*resource.Def{Members, Programs, Types, Packages} {
 		eng.Register(reg, d)
 	}
+	m.registerLifecycle(reg)
+	m.registerMe(reg)
+	m.registerPublic(reg)
 	add := func(rt route.Route) {
 		rt.Module = "membership"
 		if rt.Scope == route.ScopeGlobal && rt.Auth == route.AuthRequired && !strings.HasPrefix(rt.Path, "/api/v1/member/") {

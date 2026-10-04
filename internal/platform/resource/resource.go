@@ -36,6 +36,10 @@ const (
 	Enum
 	Email
 	JSON
+	Time       // time of day "HH:MM" (SQL time)
+	IntList    // SQL int[]; JSON array of integers (Enum/Min/MaxN apply per element)
+	StringList // SQL text[]; JSON array of strings (Enum/Upper apply per element)
+	JSONList   // SQL jsonb holding an array of objects
 )
 
 // Ref is a reference to another table.
@@ -134,6 +138,10 @@ func (d *Def) selectList() string {
 			cols = append(cols, fmt.Sprintf("to_char(%s, 'YYYY-MM-DD') AS %s", f.Column, f.Column))
 		case Int:
 			cols = append(cols, fmt.Sprintf("%s::int8 AS %s", f.Column, f.Column))
+		case Time:
+			cols = append(cols, fmt.Sprintf("to_char(%s, 'HH24:MI') AS %s", f.Column, f.Column))
+		case IntList, StringList:
+			cols = append(cols, fmt.Sprintf("to_jsonb(%s) AS %s", f.Column, f.Column))
 		default:
 			cols = append(cols, f.Column)
 		}
@@ -353,6 +361,78 @@ func coerce(f *Field, v any) (any, *errs.FieldError) {
 			return bad("invalid_type", "must be JSON")
 		}
 		return string(raw), nil
+	case JSONList:
+		if s, ok := v.(string); ok {
+			var arr []any
+			if err := json.Unmarshal([]byte(s), &arr); err != nil {
+				return bad("invalid_type", "must be a JSON array")
+			}
+			v = arr
+		}
+		if _, ok := v.([]any); !ok {
+			return bad("invalid_type", "must be a list")
+		}
+		raw, err := json.Marshal(v)
+		if err != nil {
+			return bad("invalid_type", "must be a JSON array")
+		}
+		return string(raw), nil
+	case Time:
+		s, ok := str()
+		if !ok {
+			return bad("invalid_time", "must be a time (HH:MM)")
+		}
+		s = strings.TrimSpace(s)
+		if s == "" {
+			return nil, nil
+		}
+		if _, err := time.Parse("15:04", s); err != nil {
+			return bad("invalid_time", "must be a time (HH:MM)")
+		}
+		return s, nil
+	case IntList, StringList:
+		var items []any
+		switch t := v.(type) {
+		case []any:
+			items = t
+		case string:
+			for _, p := range strings.Split(t, ",") {
+				if p = strings.TrimSpace(p); p != "" {
+					items = append(items, p)
+				}
+			}
+		default:
+			return bad("invalid_type", "must be a list")
+		}
+		el := *f
+		el.Kind = String
+		if f.Kind == IntList {
+			el.Kind = Int
+		}
+		if f.Kind == IntList {
+			out := []int64{}
+			for _, it := range items {
+				x, fe := coerce(&el, it)
+				if fe != nil {
+					return nil, fe
+				}
+				if x != nil {
+					out = append(out, x.(int64))
+				}
+			}
+			return out, nil
+		}
+		out := []string{}
+		for _, it := range items {
+			x, fe := coerce(&el, it)
+			if fe != nil {
+				return nil, fe
+			}
+			if x != nil {
+				out = append(out, x.(string))
+			}
+		}
+		return out, nil
 	}
 	return v, nil
 }
@@ -367,8 +447,14 @@ func cast(f *Field) string {
 		return "::date"
 	case Timestamp:
 		return "::timestamptz"
-	case JSON:
+	case JSON, JSONList:
 		return "::jsonb"
+	case Time:
+		return "::time"
+	case IntList:
+		return "::int[]"
+	case StringList:
+		return "::text[]"
 	case Int:
 		return "::int8"
 	case Bool:
@@ -419,10 +505,31 @@ func (d *Def) Schema(input bool) *openapi3.Schema {
 			fs = openapi3.NewStringSchema().WithFormat("email")
 		case JSON:
 			fs = openapi3.NewObjectSchema()
+		case JSONList:
+			fs = openapi3.NewArraySchema().WithItems(openapi3.NewObjectSchema())
+		case Time:
+			fs = openapi3.NewStringSchema()
+			fs.Pattern = `^\d{2}:\d{2}$`
+		case IntList:
+			items := openapi3.NewInt64Schema()
+			for _, e := range f.Enum {
+				n, _ := strconv.Atoi(e)
+				items.Enum = append(items.Enum, n)
+			}
+			fs = openapi3.NewArraySchema().WithItems(items)
+		case StringList:
+			items := openapi3.NewStringSchema()
+			for _, e := range f.Enum {
+				items.Enum = append(items.Enum, e)
+			}
+			fs = openapi3.NewArraySchema().WithItems(items)
 		default:
 			fs = openapi3.NewStringSchema()
 		}
 		for _, e := range f.Enum {
+			if f.Kind == IntList || f.Kind == StringList {
+				break
+			}
 			if f.Kind == Int {
 				n, _ := strconv.Atoi(e)
 				fs.Enum = append(fs.Enum, n)
@@ -430,7 +537,7 @@ func (d *Def) Schema(input bool) *openapi3.Schema {
 				fs.Enum = append(fs.Enum, e)
 			}
 		}
-		if f.Max > 0 {
+		if f.Max > 0 && f.Kind != IntList && f.Kind != StringList && f.Kind != JSONList {
 			m := uint64(f.Max)
 			fs.MaxLength = &m
 		}

@@ -19,6 +19,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
+	"oneclub/internal/billing"
 	"oneclub/internal/kernel/authz"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
@@ -29,14 +30,16 @@ import (
 	"oneclub/internal/platform/resource"
 )
 
-// Segments are the golf player segments of P1 (FR-PRC-03).
-var Segments = []string{"member", "guest", "guest_of_member", "non_member", "reciprocal", "senior", "ladies", "junior"}
+// Segments are the golf player segments of P1 (FR-PRC-03) and the P2
+// segments of other lines (FR-PRC-P2-02). An empty segment matches any.
+var Segments = []string{"member", "guest", "guest_of_member", "non_member", "reciprocal", "senior", "ladies", "junior",
+	"walk_in", "student", "child", "residence", "corporate", "family", "staying_guest"}
 
-// ChargeTypes priced by rules.
-var ChargeTypes = []string{"golf_round", "caddy_fee", "cart_fee", "extra_cart"}
+// ChargeTypes priced by golf rules; rules of other services use "other".
+var ChargeTypes = []string{"golf_round", "caddy_fee", "cart_fee", "extra_cart", "other"}
 
 // Channels of booking (FR-BKG-13).
-var Channels = []string{"member_app", "website", "back_office", "walk_in", "import"}
+var Channels = []string{"member_app", "website", "back_office", "walk_in", "import", "ops"}
 
 var (
 	codeRe   = regexp.MustCompile(`^[A-Z0-9][A-Z0-9_-]{0,19}$`)
@@ -54,6 +57,8 @@ var DayTypes = &resource.Def{
 	Key: "commercial.day_type", Module: "commercial", Perm: "commercial.pricing", Path: "/api/v1/commercial/day-types", Table: "commercial.day_types",
 	Name: "Day Type", Plural: "Day Types", Tag: "Pricing", PropertyScoped: true, Archive: true, CodeField: "code", OrderBy: "priority, code, id",
 	Fields: []resource.Field{code20("Code"), resource.Name(),
+		{Name: "dayTypeSetId", Column: "day_type_set_id", Label: "Day Type Set (empty = golf)", Kind: resource.UUID, Filter: true,
+			Ref: &resource.Ref{Table: "commercial.day_type_sets", SameProperty: true, Label: "day type set"}},
 		{Name: "weekdays", Column: "weekdays", Label: "Weekdays (1=Mon … 7=Sun)", Kind: resource.String, Max: 20, Default: "", Pattern: wdRe, PatternMsg: "comma separated 1–7, e.g. 1,2,3,4,5"},
 		{Name: "includesHolidays", Column: "includes_holidays", Label: "Public holidays use this day type", Kind: resource.Bool, Default: false},
 		{Name: "priority", Column: "priority", Label: "Priority", Kind: resource.Int, Default: int64(100)},
@@ -64,7 +69,8 @@ var TimeBands = &resource.Def{
 	Key: "commercial.time_band", Module: "commercial", Perm: "commercial.pricing", Path: "/api/v1/commercial/time-bands", Table: "commercial.time_bands",
 	Name: "Time Band", Plural: "Time Bands", Tag: "Pricing", PropertyScoped: true, Archive: true, CodeField: "code", OrderBy: "start_time, code, id",
 	Fields: []resource.Field{code20("Code"), resource.Name(),
-		{Name: "session", Column: "session", Label: "Session", Kind: resource.Enum, Enum: []string{"morning", "afternoon", "night", "other"}, Required: true, Filter: true},
+		{Name: "session", Column: "session", Label: "Session", Kind: resource.Enum, Enum: []string{"morning", "afternoon", "night", "other"}, Default: "other", Filter: true},
+		serviceTypeField(false),
 		{Name: "startTime", Column: "start_time", Label: "Start (HH:MM)", Kind: resource.String, Required: true, Pattern: timeRe, PatternMsg: "HH:MM"},
 		{Name: "endTime", Column: "end_time", Label: "End (HH:MM)", Kind: resource.String, Required: true, Pattern: timeRe, PatternMsg: "HH:MM"},
 		resource.Status("active", "inactive")},
@@ -75,11 +81,17 @@ var RatePlans = &resource.Def{
 	Name: "Rate Plan", Plural: "Rate Plans", Tag: "Pricing", PropertyScoped: true, Archive: true, CodeField: "code", OrderBy: "effective_from DESC, code, id",
 	Fields: []resource.Field{code20("Code"), resource.Name(),
 		{Name: "description", Column: "description", Label: "Description", Kind: resource.Text, Max: 1000},
-		{Name: "businessLine", Column: "business_line", Label: "Business Line", Kind: resource.Enum, Enum: []string{"golf"}, Default: "golf", Filter: true},
-		{Name: "pricingMode", Column: "pricing_mode", Label: "Nett / ++", Kind: resource.Enum, Enum: []string{"nett", "plus_plus"}, Required: true, Filter: true},
+		{Name: "businessLine", Column: "business_line", Label: "Business Line", Kind: resource.Enum, Enum: []string{"golf", "sportclub", "stay", "pos", "membership", "voucher", "other"}, Default: "golf", Filter: true},
+		serviceTypeField(false),
+		{Name: "pricingMode", Column: "pricing_mode", Label: "Nett / ++", Kind: resource.Enum, Enum: []string{"nett", "plus_plus"}, Default: "nett", Filter: true},
 		{Name: "currency", Column: "currency", Label: "Currency", Kind: resource.String, Max: 3, Upper: true, Default: "IDR"},
-		{Name: "effectiveFrom", Column: "effective_from", Label: "Effective From", Kind: resource.Date, Required: true},
+		{Name: "effectiveFrom", Column: "effective_from", Label: "Effective From (default today)", Kind: resource.Date},
 		{Name: "effectiveTo", Column: "effective_to", Label: "Effective To", Kind: resource.Date},
+		// stay rate plans (FR-PRC-P2-06)
+		{Name: "minNights", Column: "min_nights", Label: "Minimum Nights", Kind: resource.Int, Default: int64(1), Min: resource.Min(0)},
+		{Name: "includesBreakfast", Column: "includes_breakfast", Label: "Includes Breakfast", Kind: resource.Bool, Default: false},
+		{Name: "dayUse", Column: "day_use", Label: "Day-use", Kind: resource.Bool, Default: false},
+		{Name: "facilityAccess", Column: "facility_access", Label: "Facility Access (facility types)", Kind: resource.StringList, Default: []string{}},
 		resource.Status("active", "inactive")},
 }
 
@@ -87,7 +99,7 @@ var PricingRules = &resource.Def{
 	Key: "commercial.pricing_rule", Module: "commercial", Perm: "commercial.pricing", Path: "/api/v1/commercial/pricing-rules", Table: "commercial.pricing_rules",
 	Name: "Pricing Rule", Plural: "Pricing Rules", Tag: "Pricing", PropertyScoped: true, NoDelete: true, OrderBy: "charge_type, priority, code, version DESC",
 	Fields: []resource.Field{
-		{Name: "ratePlanId", Column: "rate_plan_id", Label: "Rate Plan", Kind: resource.UUID, Required: true, Filter: true,
+		{Name: "ratePlanId", Column: "rate_plan_id", Label: "Rate Plan (golf: required)", Kind: resource.UUID, Filter: true,
 			Ref: &resource.Ref{Table: "commercial.rate_plans", SameProperty: true, Label: "rate plan"}},
 		{Name: "code", Column: "code", Label: "Code", Kind: resource.String, Required: true, Max: 40, Upper: true, CreateOnly: true,
 			Pattern: code40Re, PatternMsg: "1–40 characters: A–Z, 0–9, - or _", Search: true, Filter: true},
@@ -103,6 +115,20 @@ var PricingRules = &resource.Def{
 			Ref: &resource.Ref{Table: "golf.playing_routes", SameProperty: true, Label: "playing route"}},
 		{Name: "channel", Column: "channel", Label: "Channel (empty = any)", Kind: resource.Enum, Enum: Channels, Filter: true},
 		{Name: "peak", Column: "peak", Label: "Peak (empty = any)", Kind: resource.Bool},
+		// P2 services of every line (FR-PRC-P2-01..07)
+		{Name: "serviceType", Column: "service_type", Label: "Service Type", Kind: resource.Enum, Enum: ServiceTypes, Default: "golf", CreateOnly: true, Filter: true},
+		{Name: "itemRef", Column: "item_ref", Label: "Item (resource type, resource, product, package …; empty = any)", Kind: resource.String, Max: 80, Filter: true},
+		{Name: "packageRateId", Column: "package_rate_id", Label: "Package Rate", Kind: resource.UUID,
+			Ref: &resource.Ref{Table: "commercial.package_rates", SameProperty: true, Label: "package rate"}},
+		{Name: "unit", Column: "unit", Label: "Unit", Kind: resource.Enum, Enum: Units, Default: "pax"},
+		{Name: "unitMinutes", Column: "unit_minutes", Label: "Unit Length (minutes)", Kind: resource.Int, Min: resource.Min(1)},
+		{Name: "packageQuantity", Column: "package_quantity", Label: "Package Quantity (4x/8x/5x)", Kind: resource.Int, Default: int64(1), Min: resource.Min(1)},
+		{Name: "minQuantity", Column: "min_quantity", Label: "Minimum Quantity (pax / nights)", Kind: resource.Int, Default: int64(0), Min: resource.Min(0)},
+		{Name: "minPolicy", Column: "min_policy", Label: "Below Minimum", Kind: resource.Enum, Enum: []string{"reject", "charge_minimum"}, Default: "reject"},
+		{Name: "overtimePrice", Column: "overtime_price", Label: "Overtime Price per Hour", Kind: resource.Decimal, Min: resource.Min(0)},
+		{Name: "pricingMode", Column: "pricing_mode", Label: "Nett / ++ (empty = rate plan)", Kind: resource.Enum, Enum: []string{"nett", "plus_plus"}},
+		{Name: "taxCodes", Column: "tax_codes", Label: "Tax & Service Codes (empty = all)", Kind: resource.StringList, Upper: true, Default: []string{}},
+		{Name: "revenueComponent", Column: "revenue_component", Label: "Revenue Component", Kind: resource.Enum, Enum: billing.RevenueComponents},
 		{Name: "price", Column: "price", Label: "Price", Kind: resource.Decimal, Required: true, Min: resource.Min(0)},
 		{Name: "components", Column: "components", Label: "Price Components (all-in breakdown)", Kind: resource.JSON},
 		{Name: "priority", Column: "priority", Label: "Priority (lower wins)", Kind: resource.Int, Default: int64(100)},
@@ -258,6 +284,14 @@ func ruleBeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before ma
 	for k, x := range v {
 		m[k] = x
 	}
+	if st := str(m["serviceType"]); st != "" && st != "golf" {
+		// services of other lines match by service type and item, not by golf charge type
+		if before == nil {
+			v["chargeType"], m["chargeType"] = "other", "other"
+		}
+	} else if str(m["ratePlanId"]) == "" {
+		return errs.Validation("rate_plan_required", "golf rules belong to a rate plan", errs.Field("ratePlanId", "required", "choose the rate plan"))
+	}
 	if str(m["status"]) == "inactive" {
 		return nil
 	}
@@ -274,13 +308,16 @@ func ruleBeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before ma
 	var conflict string
 	err := tx.QueryRow(ctx, `SELECT code || ' v' || version FROM commercial.pricing_rules
 		WHERE property_id = $1 AND status = 'active' AND code <> $2 AND charge_type = $3
+		  AND service_type = $13 AND item_ref IS NOT DISTINCT FROM $14 AND package_rate_id IS NOT DISTINCT FROM $15::uuid
+		  AND rate_plan_id IS NOT DISTINCT FROM $16::uuid AND unit = $17
 		  AND segment IS NOT DISTINCT FROM $4 AND day_type_id IS NOT DISTINCT FROM $5::uuid AND time_band_id IS NOT DISTINCT FROM $6::uuid
 		  AND playing_route_id IS NOT DISTINCT FROM $7::uuid AND channel IS NOT DISTINCT FROM $8 AND peak IS NOT DISTINCT FROM $9::bool
 		  AND priority = $10
 		  AND daterange(effective_from, coalesce(effective_to, 'infinity'::date), '[]') && daterange($11::date, coalesce($12::date, 'infinity'::date), '[]')
 		LIMIT 1`,
 		pid, m["code"], str(m["chargeType"]), nullable("segment"), nullable("dayTypeId"), nullable("timeBandId"), nullable("playingRouteId"),
-		nullable("channel"), nullable("peak"), m["priority"], str(m["effectiveFrom"]), nullable("effectiveTo")).Scan(&conflict)
+		nullable("channel"), nullable("peak"), m["priority"], str(m["effectiveFrom"]), nullable("effectiveTo"),
+		orString(m["serviceType"], "golf"), nullable("itemRef"), nullable("packageRateId"), nullable("ratePlanId"), orString(m["unit"], "pax")).Scan(&conflict)
 	if err == nil {
 		return errs.Conflict("rule_conflict", "rule "+conflict+" matches the same segment, day type, time band, route, channel and peak with the same priority in an overlapping period; change the priority or the dimensions")
 	}
@@ -776,5 +813,12 @@ func RateTable(ctx context.Context, q dbtx.Querier, property uuid.UUID, day time
 
 func dec(s string) decimal.Decimal {
 	d, _ := decimal.NewFromString(s)
+	return d
+}
+
+func orString(v any, d string) string {
+	if s := str(v); s != "" {
+		return s
+	}
 	return d
 }

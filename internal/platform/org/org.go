@@ -141,7 +141,7 @@ func (m *Module) Defs() []*resource.Def {
 		Fields: []resource.Field{
 			{Name: "day", Column: "day", Label: "Date", Kind: resource.Date, Required: true, Filter: true},
 			{Name: "name", Column: "name", Label: "Name", Kind: resource.String, Required: true, Max: 120, Search: true},
-			{Name: "kind", Column: "kind", Label: "Kind", Kind: resource.Enum, Enum: []string{"public_holiday", "special"}, Default: "public_holiday", Filter: true},
+			{Name: "kind", Column: "kind", Label: "Kind", Kind: resource.Enum, Enum: []string{"public_holiday", "special", "closed"}, Default: "public_holiday", Filter: true},
 			{Name: "propertyId", Column: "property_id", Label: "Property (empty = all)", Kind: resource.UUID, Filter: true,
 				Ref: &resource.Ref{Table: "platform.properties", Label: "property"}},
 			{Name: "dayTypeCode", Column: "day_type_code", Label: "Day Type (override)", Kind: resource.String, Max: 20, Upper: true},

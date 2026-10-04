@@ -38,6 +38,13 @@ var Customers = &resource.Def{
 		{Name: "photoFileId", Column: "photo_file_id", Label: "Photo", Kind: resource.UUID, Ref: &resource.Ref{Table: "platform.files", Label: "photo"}},
 		{Name: "notes", Column: "notes", Label: "Notes", Kind: resource.Text, Max: 4000},
 		{Name: "resident", Column: "resident", Label: "Modernland Resident", Kind: resource.Bool, Default: false, Filter: true},
+		// P2 eligibility & personalisation (crm/00003).
+		{Name: "residentRef", Column: "resident_ref", Label: "Resident Reference", Kind: resource.String, Max: 80},
+		{Name: "student", Column: "student", Label: "Student", Kind: resource.Bool, Default: false},
+		{Name: "studentValidUntil", Column: "student_valid_until", Label: "Student Card Valid Until", Kind: resource.Date},
+		{Name: "maritalStatus", Column: "marital_status", Label: "Marital Status", Kind: resource.Enum, Enum: []string{"single", "married"}},
+		{Name: "locale", Column: "locale", Label: "Language", Kind: resource.Enum, Enum: []string{"en", "id"}},
+		{Name: "consentProfiling", Column: "consent_profiling", Label: "Profiling Consent (UU PDP)", Kind: resource.Bool, Default: false},
 		{Name: "consentAt", Column: "consent_at", Label: "Consent Given", Kind: resource.Timestamp},
 		{Name: "consentChannel", Column: "consent_channel", Label: "Consent Channel", Kind: resource.String, Max: 40},
 		{Name: "marketingOptIn", Column: "marketing_opt_in", Label: "Marketing Opt-in", Kind: resource.Bool, Default: false},
@@ -109,9 +116,12 @@ var Preferences = &resource.Def{
 	Fields: []resource.Field{
 		{Name: "customerId", Column: "customer_id", Label: "Customer", Kind: resource.UUID, Required: true, Filter: true, CreateOnly: true,
 			Ref: &resource.Ref{Table: "crm.customers", SameProperty: true, Label: "customer"}},
-		{Name: "category", Column: "category", Label: "Category", Kind: resource.Enum, Enum: []string{"golf", "caddy", "golf_cart", "dining", "communication", "other"}, Required: true, Filter: true},
+		{Name: "category", Column: "category", Label: "Category", Kind: resource.Enum, Enum: []string{"golf", "caddy", "golf_cart", "dining", "communication", "other",
+			"favorite_caddy", "tee_time", "diet", "allergy", "food", "beverage", "facility", "note"}, Required: true, Filter: true},
 		{Name: "key", Column: "pref_key", Label: "Preference", Kind: resource.String, Required: true, Max: 60},
 		{Name: "value", Column: "pref_value", Label: "Value", Kind: resource.String, Max: 200},
+		{Name: "source", Column: "source", Label: "Recorded By", Kind: resource.Enum, Enum: []string{"staff", "caddy", "member", "system"}, ReadOnly: true, Filter: true},
+		{Name: "sensitive", Column: "sensitive", Label: "Health Data", Kind: resource.Bool, ReadOnly: true},
 		{Name: "notes", Column: "notes", Label: "Notes", Kind: resource.Text, Max: 1000},
 		resource.Status("active", "inactive")},
 }
@@ -122,6 +132,7 @@ func init() {
 	Customers.Hooks = resource.Hooks{BeforeWrite: customerBeforeWrite, AfterRead: maskCustomer}
 	Guests.Hooks = resource.Hooks{BeforeWrite: guestBeforeWrite, AfterRead: maskGuest}
 	Relationships.Hooks = resource.Hooks{BeforeWrite: relationshipBeforeWrite}
+	Preferences.Hooks = resource.Hooks{AfterRead: maskPreference}
 }
 
 // NormalizePhone keeps digits (and a leading +); 08xx becomes +628xx.
@@ -219,6 +230,15 @@ func maskCustomer(ctx context.Context, row map[string]any) {
 
 func maskGuest(ctx context.Context, row map[string]any) { maskCustomer(ctx, row) }
 
+// maskPreference hides health preferences (diet, allergy) from callers
+// without crm.preference.view_sensitive (FR-PRF-05).
+func maskPreference(ctx context.Context, row map[string]any) {
+	if s, _ := row["sensitive"].(bool); !s || sensitiveFor(ctx) {
+		return
+	}
+	row["key"], row["value"], row["notes"] = "restricted", nil, nil
+}
+
 func canSensitive(ctx context.Context, row map[string]any) bool {
 	p := authz.From(ctx)
 	if p == nil {
@@ -230,8 +250,13 @@ func canSensitive(ctx context.Context, row map[string]any) bool {
 	return p.Can(SensitivePermission, nil)
 }
 
-// Contribution returns catalogue entries.
+// Contribution returns catalogue entries (P1 customer profile + P2 CRM
+// foundation).
 func Contribution() catalog.Contribution {
+	return catalog.Merge(p1Contribution(), engagementContribution())
+}
+
+func p1Contribution() catalog.Contribution {
 	perms := append(resource.Permissions(Customers, Guests, CorporateAccounts),
 		catalog.P("crm", "customer", "view_sensitive", "merge", "erase", "export_personal_data")...)
 	perms = append(perms, catalog.P("crm", "customer_overview", "view")...)
