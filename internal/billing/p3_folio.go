@@ -125,7 +125,12 @@ func (s *Service) EnsureCustomerFolio(ctx context.Context, tx pgx.Tx, property u
 	err := tx.QueryRow(ctx, `SELECT id FROM billing.customer_folios WHERE property_id = $1 AND status = 'open'
 		AND (customer_id = $2 OR corporate_account_id = $3)`, property, in.CustomerID, in.CorporateAccountID).Scan(&existing)
 	if err == nil {
-		return GetCustomerFolio(ctx, tx, existing)
+		d, err := GetCustomerFolio(ctx, tx, existing)
+		if err != nil {
+			return d, err
+		}
+		return d, audit.Record(ctx, tx, audit.Entry{Module: "billing", Action: "open", EntityType: "billing.customer_folio", EntityID: existing.String(),
+			EntityLabel: d.Number, PropertyID: &property})
 	}
 	if !dbtx.IsNoRows(err) {
 		return CustomerFolioDetail{}, err

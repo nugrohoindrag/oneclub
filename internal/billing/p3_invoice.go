@@ -326,14 +326,19 @@ func (h *HTTP) CreateInvoice(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		}
 		accountID, customerID = &a.ID, &a.CustomerID
 		_ = tx.QueryRow(ctx, `SELECT corporate_account_id FROM billing.customer_accounts WHERE id = $1`, a.ID).Scan(&corporateID)
+		// the period is in local dates of the property
+		loc, err := org.Location(ctx, tx, property)
+		if err != nil || loc == nil {
+			loc = time.UTC
+		}
 		fromDate, toDate := time.Time{}, time.Date(9999, 1, 1, 0, 0, 0, 0, time.UTC)
 		if in.From != "" {
-			if fromDate, err = time.Parse("2006-01-02", in.From); err != nil {
+			if fromDate, err = time.ParseInLocation("2006-01-02", in.From, loc); err != nil {
 				return InvoiceDetail{}, handle.Invalid("from", "invalid", "YYYY-MM-DD")
 			}
 		}
 		if in.To != "" {
-			if toDate, err = time.Parse("2006-01-02", in.To); err != nil {
+			if toDate, err = time.ParseInLocation("2006-01-02", in.To, loc); err != nil {
 				return InvoiceDetail{}, handle.Invalid("to", "invalid", "YYYY-MM-DD")
 			}
 			toDate = toDate.AddDate(0, 0, 1)

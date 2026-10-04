@@ -75,6 +75,7 @@ func (a *App) buildP3(reg *route.Registry, cfg *config.Config, db *dbtx.DB, file
 	a.Approvals.RegisterDocumentType(billing.CreditOverrideDocumentType, billingHTTP.CreditOverrideDecision)
 	a.Approvals.RegisterDocumentType(billing.ReopenDocumentType, billingHTTP.ReopenDecision)
 	billingHTTP.RegisterP3Jobs(a.Registrar, a.Instance.Location)
+	a.registerNightAuditChecks()
 	a.Reporting.RegisterP3P4(reg)
 
 	a.buildP3Sales(reg, cfg, db, files)
