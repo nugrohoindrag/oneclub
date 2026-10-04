@@ -9277,6 +9277,7 @@
             "enum": [
               "web",
               "member",
+              "staff",
               "backoffice",
               "ops",
               "platform-admin",
@@ -9317,6 +9318,7 @@
             "enum": [
               "web",
               "member",
+              "staff",
               "backoffice",
               "ops",
               "platform-admin",

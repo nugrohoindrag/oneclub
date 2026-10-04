@@ -1,5 +1,5 @@
 {
-  "name": "@oneclub/backoffice",
+  "name": "@oneclub/staff",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,6 +14,7 @@
   "dependencies": {
     "@oneclub/api-client": "workspace:*",
     "@oneclub/i18n": "workspace:*",
+    "@oneclub/offline": "workspace:*",
     "@oneclub/shell": "workspace:*",
     "@oneclub/ui": "workspace:*",
     "@tanstack/react-query": "^5.104.1",
@@ -28,6 +29,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.2",
+    "vite-plugin-pwa": "^2.0.0",
     "vitest": "^5.0.3"
   }
 }

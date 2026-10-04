@@ -168,7 +168,7 @@ type FeatureFlagUpdate struct {
 
 type Domain struct {
 	ID                uuid.UUID  `json:"id"`
-	Surface           string     `json:"surface" enum:"web,member,backoffice,ops,platform-admin,api"`
+	Surface           string     `json:"surface" enum:"web,member,staff,backoffice,ops,platform-admin,api"`
 	Hostname          string     `json:"hostname"`
 	Status            string     `json:"status" enum:"pending,verified,active,failed"`
 	VerificationName  string     `json:"verificationRecordName" doc:"DNS TXT record name to create"`
@@ -180,7 +180,7 @@ type Domain struct {
 }
 
 type DomainRequest struct {
-	Surface  string `json:"surface" enum:"web,member,backoffice,ops,platform-admin,api"`
+	Surface  string `json:"surface" enum:"web,member,staff,backoffice,ops,platform-admin,api"`
 	Hostname string `json:"hostname"`
 }
 
@@ -726,7 +726,7 @@ func (s *Service) addDomain(w http.ResponseWriter, r *http.Request) {
 	if !hostRe.MatchString(req.Hostname) {
 		fields = append(fields, errs.Field("hostname", "invalid", "e.g. booking.modernclub.com"))
 	}
-	if !slices.Contains([]string{"web", "member", "backoffice", "ops", "platform-admin", "api"}, req.Surface) {
+	if !slices.Contains([]string{"web", "member", "staff", "backoffice", "ops", "platform-admin", "api"}, req.Surface) {
 		fields = append(fields, errs.Field("surface", "invalid", "unknown application surface"))
 	}
 	if len(fields) > 0 {

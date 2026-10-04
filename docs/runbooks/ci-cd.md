@@ -6,7 +6,7 @@ Repository: https://github.com/textedoh/oneclub · workflows in `.github/workflo
 
 | Workflow | Trigger | Jobs |
 |---|---|---|
-| `ci` | every pull request, push to `main`, manual | `lint` (golangci-lint + depguard architecture rules) · `backend` (unit + race, migrations, 41 API acceptance tests on PostgreSQL 18, OpenAPI drift + breaking-change check on PRs) · `frontend` (API-client drift, typecheck, lint, unit tests, build) · `browser` (full stack on the runner + Playwright for every shell) |
+| `ci` | every pull request, push to `main`, manual | `lint` (golangci-lint + depguard architecture rules) · `backend` (unit + race, migrations, 41 API acceptance tests on PostgreSQL 18, OpenAPI drift + breaking-change check on PRs) · `frontend` (API-client drift, typecheck, lint, unit tests, build) · `browser` (full stack on the runner + Playwright for every app and Staff App area, offline POS and caddy tablet) |
 | `ci` (main only) | push to `main` after all checks pass | `images` → build, Trivy scan, push `oneclub`, `oneclub-static`, `oneclub-web` tagged with the commit SHA · `deploy-dev` (only when Dev is configured) |
 | `staging` | push to branch `staging` | VPS images built once — backend obfuscated (garble), frontends without source maps — tagged `<sha>-vps`, Trivy scan, smoke start → deploy to Staging + browser tests (once configured) |
 | `release` | tag `vX.Y.Z` on a `staging` commit | promotes that commit's `<sha>-vps` images to `vX.Y.Z` (no rebuild — Production runs exactly what Staging tested) → GitHub release → `production` per instance after manual approval |
@@ -73,7 +73,7 @@ Settings → Environments → create `dev`, `staging`, `production` (production:
 | variable | `DEV_INSTANCE` | instance code deployed on Dev; enables `deploy-dev` |
 | secret | `DEV_HOST`, `DEV_SSH_KEY` | SSH to the Dev server (user `deploy`) |
 | variable | `STAGING_INSTANCE` | enables the `staging` job |
-| variable | `STAGING_BACKOFFICE_URL`, `STAGING_MEMBER_URL`, `STAGING_OPS_URL`, `STAGING_PLATFORM_ADMIN_URL`, `STAGING_WEB_URL` | browser tests against Staging |
+| variable | `STAGING_STAFF_URL`, `STAGING_MEMBER_URL`, `STAGING_WEB_URL` | browser tests against Staging (Staff App, Member App, website) |
 | secret | `STAGING_HOST`, `STAGING_SSH_KEY`, `STAGING_DEMO_PASSWORD`, `STAGING_DEVICE_TOKEN` | Staging deploy + browser tests |
 | variable | `PRODUCTION_INSTANCES` | JSON list, e.g. `["mgcc"]`; enables `production` |
 | secret | `PRODUCTION_HOST`, `PRODUCTION_SSH_KEY` | Production deploy |
@@ -85,6 +85,7 @@ Servers need `/srv/oneclub/scripts/` (`deploy.sh`, `rollback.sh`, `smoke-test.sh
 
 ## Running the browser tests locally
 
-API and worker on :8080, shells via `pnpm --filter @oneclub/<app> preview` (or `pnpm dev`), then in `web/`:
+API and worker on :8080, the apps via `pnpm --filter @oneclub/<app> preview` (`staff` :5173, `member` :5174) or `pnpm dev`, then in `web/`:
 `PSQL=<path to psql> DEMO_DEVICE_TOKEN=<token from seed-demo> pnpm e2e`
-(`E2E_DATABASE_URL` defaults to the local `oneclub_mgcc` database).
+(`E2E_DATABASE_URL` defaults to the local `oneclub_mgcc` database; `E2E_STAFF`, `E2E_MEMBER` and `E2E_WEB` override the
+URLs, e.g. for a second stack next to `pnpm dev`).

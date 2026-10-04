@@ -6,7 +6,7 @@ INSTANCE="${1:?usage: smoke-test.sh <instance>}"
 ROOT="${ONECLUB_ROOT:-/srv/oneclub}"
 # shellcheck disable=SC1090
 source "$ROOT/instances/$INSTANCE/.env"
-BASE="https://${DOMAIN_BACKOFFICE:?DOMAIN_BACKOFFICE missing in .env}"
+BASE="https://${DOMAIN_STAFF:?DOMAIN_STAFF missing in .env}"
 
 check() {
 	local url="$1" expect="$2"

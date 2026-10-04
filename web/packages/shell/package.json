@@ -2,7 +2,7 @@
   "name": "@oneclub/shell",
   "version": "0.1.0",
   "private": true,
-  "description": "OneClub application shell: providers, layouts, login, header, shared settings pages on top of Morphic.",
+  "description": "OneClub application shell: providers, Staff App areas, layouts, login, header, shared settings pages on top of Morphic.",
   "type": "module",
   "main": "./src/index.ts",
   "exports": {

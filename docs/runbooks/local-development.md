@@ -56,20 +56,27 @@ S3_REGION=us-east-1
 ```bash
 cd web
 pnpm install
-pnpm dev                     # all apps; /api is proxied to :8080
+pnpm dev                     # Staff App :5173, Member App :5174, website :3000; /api is proxied to :8080
 pnpm --filter @oneclub/api-client generate   # after changing the API (make openapi does both)
 ```
 
+The Staff App (`web/apps/staff`) holds every staff area (Technical Doc §6.1): Back Office at `/` (module paths such as
+`/golf/tee-sheet`), Management Dashboard `/management`, Operational `/ops`, Caddy Tablet `/tablet` and Platform
+Administration `/platform`. One login at `/login`; the user lands on their first area in the order Caddy Tablet,
+Operational, Management, Back Office, Platform Administration (or on `?next=` when that area is theirs) and switches
+areas from the user menu. A shared device is registered once at `/login/device` with the token printed by
+`make seed-demo`; afterwards `/login` asks for e-mail + PIN.
+
 ## 4. Demo accounts (seed-demo)
 
-| E-mail | Role | Shell | Notes |
+| E-mail | Role | Staff App areas | Notes |
 |---|---|---|---|
-| gm@demo.oneclub.id | General Manager (MAIN) | Back Office, Management | no MFA |
-| property.admin@demo.oneclub.id | Property Admin (MAIN) | Back Office | MFA enrolment at first login |
-| property.admin2@demo.oneclub.id | Property Admin (MDR) | Back Office | sees only MDR |
-| finance@demo.oneclub.id | Finance Manager | Back Office | MFA, approves step 2 |
-| starter@demo.oneclub.id / cashier@… | Staff | Ops (device + PIN 246810) | |
-| member@demo.oneclub.id | Member | Member Portal | |
+| gm@demo.oneclub.id | General Manager (MAIN) | Management, Back Office | no MFA |
+| property.admin@demo.oneclub.id | Property Admin (MAIN) | Caddy Tablet, Operational, Management, Back Office | MFA enrolment at first login |
+| property.admin2@demo.oneclub.id | Property Admin (MDR) | as above | sees only MDR |
+| finance@demo.oneclub.id | Finance Manager | Management, Back Office | MFA, approves step 2 |
+| starter@demo.oneclub.id / cashier@… | Staff | Operational (device + PIN 246810) | |
+| member@demo.oneclub.id | Member | — (Member App) | |
 
 Password for all: `Demo#Club2026`.
 

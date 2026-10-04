@@ -27,11 +27,8 @@ services:
     image: caddy:2.10
     ports: ["80:80", "443:443"]
     environment:
-      DOMAIN_BACKOFFICE: ${DOMAIN_BACKOFFICE}
+      DOMAIN_STAFF: ${DOMAIN_STAFF}
       DOMAIN_MEMBER: ${DOMAIN_MEMBER}
-      DOMAIN_OPS: ${DOMAIN_OPS}
-      DOMAIN_PLATFORM_ADMIN: ${DOMAIN_PLATFORM_ADMIN}
-      DOMAIN_CADDY: ${DOMAIN_CADDY}
       DOMAIN_WEB: ${DOMAIN_WEB}
       ACME_EMAIL: ${ACME_EMAIL}
     volumes:

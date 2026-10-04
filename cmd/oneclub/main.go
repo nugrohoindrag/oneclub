@@ -251,7 +251,7 @@ func runInstance(args []string) error {
 		fs.StringVar(&o.PlatformAdminEmail, "platform-admin-email", "", "optional OneClub Platform Admin e-mail")
 		fs.StringVar(&o.BundleDir, "bundle-dir", "", "write the deploy bundle (.env + secrets) here")
 		fs.StringVar(&o.DBHostOverride, "db-host", "", "database host name used inside the bundle (e.g. db)")
-		fs.StringVar(&o.PublicBaseURL, "public-url", "", "Back Office URL used in e-mails")
+		fs.StringVar(&o.PublicBaseURL, "public-url", "", "Staff App URL used in e-mails")
 		_ = fs.Parse(args[1:])
 		seeds, err := app.Seeds()
 		if err != nil {

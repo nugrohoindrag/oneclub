@@ -15459,7 +15459,7 @@ export interface components {
             /** @enum {string} */
             status: "pending" | "verified" | "active" | "failed";
             /** @enum {string} */
-            surface: "web" | "member" | "backoffice" | "ops" | "platform-admin" | "api";
+            surface: "web" | "member" | "staff" | "backoffice" | "ops" | "platform-admin" | "api";
             /** @description DNS TXT record name to create */
             verificationRecordName: string;
             verificationRecordValue: string;
@@ -15469,7 +15469,7 @@ export interface components {
         DomainRequest: {
             hostname: string;
             /** @enum {string} */
-            surface: "web" | "member" | "backoffice" | "ops" | "platform-admin" | "api";
+            surface: "web" | "member" | "staff" | "backoffice" | "ops" | "platform-admin" | "api";
         };
         DrivingRangeBay: {
             /** Format: date-time */

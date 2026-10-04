@@ -3,8 +3,8 @@ import { defineConfig } from '@playwright/test';
 /**
  * Browser acceptance tests for the application shells (PRD EP-12, Exit
  * Criteria #7). Run against a running instance:
- *   API on :8080, previews on :5173 (backoffice) :5174 (member) :5175 (ops)
- *   :5176 (platform-admin) :3000 (website). Staging uses E2E_BASE_URL.
+ *   API on :8080, previews on :5173 (Staff App) :5174 (Member App) :3000
+ *   (website). Staging sets E2E_STAFF, E2E_MEMBER and E2E_WEB.
  */
 export default defineConfig({
   testDir: './e2e',

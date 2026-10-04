@@ -48,18 +48,19 @@ Temuan di kode P1 yang dikerjakan bersama P2. Semua minimal; test P1 tetap hijau
 
 ## Penambahan di file frontend P1 (aditif)
 
-Halaman P2 ada di file P2 (`p2.tsx` tiap app, app `caddy`, `web/app/lib-p2.ts`). File P1 hanya mendapat baris tambahan untuk memasangnya; tidak ada baris P1 yang diubah:
+Halaman P2 ada di file P2 (`p2.tsx` tiap app, `web/apps/staff/src/ops/p2.tsx`, area Caddy Tablet `web/apps/staff/src/areas/tablet.tsx`, `web/app/lib-p2.ts`). File P1 hanya mendapat baris tambahan untuk memasangnya; tidak ada baris P1 yang diubah. Sejak Staff App (Tech Doc §6.1) file router P1 back office dan ops menjadi area Staff App:
 
 | File | Tambahan |
 |---|---|
-| `web/apps/backoffice/src/main.tsx` | import `./p2`; `HUBS` ditambahkan ke `P1_MODULES` (hub P2 menggantikan placeholder Sport Club, Stay & Venue, Inventory); `...P2_MANAGEMENT_ROUTES`, `...P2_ROUTES` |
-| `web/apps/ops/src/main.tsx` | import `./p2`; `<P2Tiles />` di Home; `...P2_OPS_ROUTES` |
+| `web/apps/staff/src/areas/backoffice.tsx` (dulu `backoffice/src/main.tsx`) | import `../p2`; `HUBS` ditambahkan ke `P1_MODULES` (hub P2 menggantikan placeholder Sport Club, Stay & Venue, Inventory); `...P2_ROUTES` |
+| `web/apps/staff/src/areas/management.tsx` (dulu `backoffice/src/main.tsx`) | `...P2_MANAGEMENT_ROUTES` |
+| `web/apps/staff/src/areas/ops.tsx` (dulu `ops/src/main.tsx`) | import `../ops/p2`; `<P2Tiles />` di Home; `...P2_OPS_ROUTES` |
 | `web/apps/member/src/main.tsx` | import `./p2`; `...P2_MEMBER_ROUTES` |
-| `web/apps/backoffice/src/p1/business.tsx` | tombol "View all business lines" di Customer 360 (ke Customer 360 lintas lini P2) |
+| `web/apps/staff/src/p1/business.tsx` | tombol "View all business lines" di Customer 360 (ke Customer 360 lintas lini P2) |
 | `web/apps/web/app/[lang]/nav.tsx` | `...p2Nav(lang)` (Sport Club, Stay & Venue, Hall of Fame) |
 | `web/apps/web/app/[lang]/contact/page.tsx` | formulir kontak (`ContactForm`, lead ke CRM) |
 
-Path halaman mengikuti navigasi server (`internal/platform/navigation`, juga aditif). Halaman P2 yang dobel dengan halaman P1 sudah dibuang: kartu digital, membership, transaksi dan booking di member app; starter, caddy queue dan golf front desk di ops.
+Path halaman mengikuti navigasi server (`internal/platform/navigation`, juga aditif). Halaman P2 yang dobel dengan halaman P1 sudah dibuang: kartu digital, membership, transaksi dan booking di member app; starter, caddy queue dan golf front desk di area Operational.
 
 Customer 360 lintas lini P2 (`/crm/customers/{id}/360`, FR-CRM-01) ada di `crm/customers/:id` backoffice. **Diputuskan** (4 Oktober 2026): halaman Customer 360 P1 mendapat tombol "View all business lines" ke sana; halaman P2 punya tautan balik. Penggabungan menjadi satu halaman bisa dikerjakan pada penyempurnaan UI berikutnya.
 

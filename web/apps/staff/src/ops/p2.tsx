@@ -3,6 +3,7 @@ import { API_BASE, qs, request, uuidv7, useGet, useSend, type Page, type Schemas
 import { formatDateTime, formatNumber } from '@oneclub/i18n';
 import { enqueue } from '@oneclub/offline';
 import { Link } from 'react-router';
+import { OUTLET_KEY, read } from '../offline';
 import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, QRCode, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
@@ -323,12 +324,10 @@ export function StayDeskPage() {
 
 // ── POS (EP-20) — orders work offline through the sync queue ──────────────
 
-const OUTLET_KEY = 'oneclub.outlet';
-
 export function POSPage() {
   const toast = useToast();
   const { propertyId } = useAuth();
-  const outlet = localStorage.getItem(OUTLET_KEY) ?? '';
+  const outlet = read(OUTLET_KEY);
   const menu = useGet<Page<Schemas['MenuItem']>>(outlet ? `/api/v1/commercial/outlets/${outlet}/menu` : null);
   const shifts = useGet<Page<Row>>(`/api/v1/commercial/shifts${qs({ 'filter[status]': 'open', 'filter[outletId]': outlet })}`);
   const openShift = useSend<Row>('POST', '/api/v1/commercial/shifts:open', ['/api/v1/commercial/shifts']);
@@ -440,7 +439,7 @@ export function ClubhouseScreenPage() {
   );
 }
 
-// ── routes and home tiles (added to P1's ops shell in main.tsx) ───────────
+// ── routes and home tiles (mounted by areas/ops.tsx) ───────────
 
 /** Ops routes of P2, at the paths of the server navigation. */
 export const P2_OPS_ROUTES = [
@@ -460,9 +459,9 @@ export const P2_OPS_ROUTES = [
 export function P2Tiles() {
   const { can } = useAuth();
   const tiles: [string, string, string, string][] = [
-    ['sports_golf', 'Driving Range', '/driving-range', 'golf.range.operate'], ['sports_tennis', 'Sport Reception', '/sport-reception', 'sportclub.access.validate'],
-    ['school', 'Instructor', '/instructor', 'sportclub.class.attendance'], ['hotel', 'Stay Front Desk', '/stay-desk', 'stay.stay.view'],
-    ['point_of_sale', 'POS', '/pos', 'commercial.order.create'], ['skillet', 'Kitchen', '/kitchen', 'commercial.kitchen.view'],
+    ['sports_golf', 'Driving Range', '/ops/driving-range', 'golf.range.operate'], ['sports_tennis', 'Sport Reception', '/ops/sport-reception', 'sportclub.access.validate'],
+    ['school', 'Instructor', '/ops/instructor', 'sportclub.class.attendance'], ['hotel', 'Stay Front Desk', '/ops/stay-desk', 'stay.stay.view'],
+    ['point_of_sale', 'POS', '/ops/pos', 'commercial.order.create'], ['skillet', 'Kitchen', '/ops/kitchen', 'commercial.kitchen.view'],
   ];
   const shown = tiles.filter((t) => can(t[3]));
   if (shown.length === 0) return null;

@@ -213,6 +213,11 @@ func TestCustomDomain(t *testing.T) {
 		t.Fatalf("hostname not normalised: %v", d)
 	}
 	pa.Must(422, "POST", "/api/v1/platform/domains", map[string]any{"surface": "web", "hostname": "not a host"})
+	// Staff App surface; the surfaces of the former staff apps stay accepted.
+	for _, surface := range []string{"staff", "backoffice"} {
+		s := pa.Must(201, "POST", "/api/v1/platform/domains", map[string]any{"surface": surface, "hostname": surface + ".moderngolf.example"}).JSON()
+		pa.Must(204, "DELETE", "/api/v1/platform/domains/"+str(s["id"]), nil)
+	}
 	anon(t, inst).Must(404, "GET", "/api/v1/public/domains/allowed?domain=booking.moderngolf.example", nil)
 	instance.Resolver = func(ctx context.Context, name string) ([]string, error) { return []string{"something-else"}, nil }
 	if v := pa.Must(200, "POST", "/api/v1/platform/domains/"+str(d["id"])+":verify", nil).JSON(); v["status"] != "failed" {

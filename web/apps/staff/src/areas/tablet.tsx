@@ -1,42 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, Link, Outlet, RouterProvider, useNavigate, useParams } from 'react-router';
-import '@oneclub/shell/shell.css';
+import { useEffect, useState } from 'react';
+import { Link, Outlet, useParams, useRoutes } from 'react-router';
 import { request, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
-import { formatDate, formatDateTime, formatNumber, useTranslation } from '@oneclub/i18n';
-import { cacheGet, cachePut, clearAll, enqueue, flush, setForcedOffline, useOnline, useQueue } from '@oneclub/offline';
+import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
+import { cacheGet, cachePut, enqueue, useOnline } from '@oneclub/offline';
 import {
-  AppProviders, AuthFrame, Brand, Card, DataTable, Empty, ErrorAlert, ErrorBoundary, HeaderActions, Icon, LoginPage, NotFoundPage, PasswordField,
-  ProfilePage, RequireShell, ResetPasswordPage, SelectField, StatusPill, TextField, useAuth, useToast,
+  Brand, Card, DataTable, Empty, ErrorAlert, HeaderActions, Icon, NotFoundPage, NotificationsPage, ProfilePage, SelectField, StatusPill, useAuth, useToast,
 } from '@oneclub/shell';
+import { ConnectivityChip, SyncPage, read, write } from '../offline';
 
 /*
- * Caddy Tablet (PRD P2 EP-06): My Assignments → Current Round (players,
- * scorecard, hole progress, course map, on-course order) → Earnings.
+ * Caddy Tablet area (`/tablet`, PRD P2 EP-06): My Assignments → Current Round
+ * (players, scorecard, hole progress, course map, on-course order) → Earnings.
  * Every round action goes through the offline sync queue (UUIDv7 ids):
  * a hole without signal is recorded and synced later without duplicates.
  */
 
-const DEVICE_KEY = 'oneclub.caddy.deviceToken';
 const TABLET_KEY = 'oneclub.caddy.tabletId';
 type Round = Schemas['RoundInfo'];
 type Row = Record<string, unknown>;
 
-function read(k: string) {
-  try {
-    return localStorage.getItem(k) ?? '';
-  } catch {
-    return '';
-  }
-}
-function write(k: string, v: string) {
-  try {
-    if (v) localStorage.setItem(k, v);
-    else localStorage.removeItem(k);
-  } catch {
-    /* ignore */
-  }
-}
 function tabletId() {
   let id = read(TABLET_KEY);
   if (!id) {
@@ -45,73 +27,26 @@ function tabletId() {
   }
   return id;
 }
-const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : `Rp ${formatNumber(Number(v))}`);
 
-/** Device enrollment + caddy PIN login (FR-CTB-01, FR-IAM-09). */
-function DeviceLoginPage() {
-  const { t } = useTranslation();
-  const nav = useNavigate();
-  const { refresh } = useAuth();
-  const [device, setDevice] = useState(read(DEVICE_KEY));
-  const [token, setToken] = useState('');
-  const [email, setEmail] = useState('');
-  const [pin, setPin] = useState('');
-  const [error, setError] = useState<unknown>(null);
-  if (!device) {
-    return (
-      <AuthFrame>
-        <form className="oc-stack" onSubmit={(e) => { e.preventDefault(); write(DEVICE_KEY, token.trim()); setDevice(token.trim()); }}>
-          <h1 style={{ fontSize: 32 }}>{t('auth.enrollDevice')}</h1>
-          <PasswordField label={t('auth.deviceToken')} value={token} onChange={setToken} required />
-          <button className="oc-btn oc-btn-ink oc-btn-block" disabled={!token.startsWith('ocd_')}>{t('auth.enrollDevice')}</button>
-          <Link className="oc-small" to="/login/password">Password login</Link>
-        </form>
-      </AuthFrame>
-    );
-  }
-  return (
-    <AuthFrame>
-      <form className="oc-stack" onSubmit={async (e) => {
-        e.preventDefault();
-        setError(null);
-        try {
-          await request('POST', '/api/v1/auth/device-login', { deviceToken: device, email, pin });
-          await refresh();
-          nav('/', { replace: true });
-        } catch (err) {
-          setError(err);
-        }
-      }}>
-        <h1 style={{ fontSize: 34 }}>Caddy log in</h1>
-        <TextField label={t('auth.email')} type="email" value={email} onChange={setEmail} required />
-        <TextField label={t('auth.pin')} type="password" inputMode="numeric" maxLength={6} value={pin} onChange={setPin} required />
-        <ErrorAlert error={error} />
-        <button className="oc-btn oc-btn-ink oc-btn-block" disabled={pin.length !== 6 || !email}>{t('auth.login')}</button>
-        <button type="button" className="oc-btn oc-btn-text oc-btn-sm" onClick={() => { write(DEVICE_KEY, ''); setDevice(''); }}>Change device</button>
-      </form>
-    </AuthFrame>
-  );
-}
+const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : `Rp ${formatNumber(Number(v))}`);
 
 function Layout() {
   const online = useOnline();
-  const queue = useQueue();
-  const pending = queue.filter((q) => ['queued', 'sending', 'failed'].includes(q.status)).length;
   return (
     <div className="oc-topnav-frame" style={{ maxWidth: 900 }}>
       <header className="oc-topbar">
         <Brand />
         <span className="oc-spacer" />
-        <Link to="/sync" className="oc-chip"><Icon name={online ? 'cloud_done' : 'cloud_off'} size={18} /> {online ? 'Online' : 'Offline'}{pending > 0 && ` · ${pending}`}</Link>
+        <ConnectivityChip />
         <HeaderActions property={false} />
       </header>
       {!online && <div className="oc-alert oc-alert-warning" role="status" style={{ marginBottom: 12 }}>No signal — round actions are saved on the tablet and synced later.</div>}
       <Outlet />
       <nav className="oc-bottom-nav" data-always="true" aria-label="Main">
-        <Link to="/"><Icon name="assignment" size={26} />Assignments</Link>
-        <Link to="/earnings"><Icon name="payments" size={26} />Earnings</Link>
-        <Link to="/sync"><Icon name="sync" size={26} />Sync</Link>
-        <Link to="/profile"><Icon name="person" size={26} />Profile</Link>
+        <Link to="/tablet"><Icon name="assignment" size={26} />Assignments</Link>
+        <Link to="/tablet/earnings"><Icon name="payments" size={26} />Earnings</Link>
+        <Link to="/tablet/sync"><Icon name="sync" size={26} />Sync</Link>
+        <Link to="/tablet/profile"><Icon name="person" size={26} />Profile</Link>
       </nav>
     </div>
   );
@@ -133,7 +68,7 @@ function AssignmentsPage() {
       <div className="oc-page-head"><div><h1>{a ? `#${a.code} ${a.name}` : 'My Assignments'}</h1>{a && <p><StatusPill status={a.dutyStatus} /></p>}</div></div>
       <ErrorAlert error={my.error} />
       {a?.current && (
-        <Link to={`/round/${a.current.flightId}`} className="oc-card oc-card-ink" style={{ textDecoration: 'none' }}>
+        <Link to={`/tablet/round/${a.current.flightId}`} className="oc-card oc-card-ink" style={{ textDecoration: 'none' }}>
           <div className="oc-small" style={{ opacity: 0.7 }}>Current Round</div>
           <h2 style={{ margin: '4px 0' }}>{a.current.bookingCode ?? 'Walk-in flight'}</h2>
           <div>{a.current.teeTime} · {a.current.playerNames.join(', ')}</div>
@@ -146,7 +81,7 @@ function AssignmentsPage() {
             <div key={n.id} className="oc-row-wrap">
               <strong>{formatDate(n.playDate)} {n.teeTime}</strong><span>{n.bookingCode ?? 'Walk-in flight'}</span><StatusPill status={n.status} /><span className="oc-spacer" />
               {n.status === 'assigned' && <button className="oc-btn oc-btn-ink" onClick={() => void accept(n.id, n.flightId)}>Accept Assignment</button>}
-              <Link className="oc-btn oc-btn-outline" to={`/round/${n.flightId}`}>Open</Link>
+              <Link className="oc-btn oc-btn-outline" to={`/tablet/round/${n.flightId}`}>Open</Link>
             </div>
           ))}
         </div>
@@ -363,50 +298,21 @@ function EarningsPage() {
   );
 }
 
-function SyncPage() {
-  const online = useOnline();
-  const items = useQueue();
-  return (
-    <div className="oc-stack">
-      <div className="oc-page-head"><div><h1>Sync Queue</h1><p>Round actions recorded on this tablet.</p></div><span className="oc-spacer" />
-        <button className="oc-btn oc-btn-outline" onClick={() => setForcedOffline(online)}>{online ? 'Simulate offline' : 'Go back online'}</button>
-        <button className="oc-btn oc-btn-ink" disabled={!online} onClick={() => void flush()}>Sync now</button></div>
-      <div className="oc-card">
-        <DataTable rows={items as unknown as Row[]} columns={[{ key: 'createdAt', header: 'Recorded', render: (i) => formatDateTime(String(i.createdAt)) },
-          { key: 'payload', header: 'Action', render: (i) => String((i.payload as Row)?.op ?? i.action) },
-          { key: 'status', header: 'Status', render: (i) => <div><StatusPill status={String(i.status)} />{i.error ? <div className="oc-small oc-muted">{String(i.error)}</div> : null}</div> }]} />
-      </div>
-    </div>
-  );
-}
-
-const router = createBrowserRouter([
+const routes = [
   {
-    element: <ErrorBoundary><Outlet /></ErrorBoundary>,
+    element: <Layout />,
     children: [
-      { path: '/login', element: <DeviceLoginPage /> },
-      { path: '/login/password', element: <LoginPage shell="caddy" title="Caddy log in" /> },
-      { path: '/reset-password', element: <ResetPasswordPage /> },
-      {
-        path: '/',
-        element: <RequireShell shell="caddy"><Layout /></RequireShell>,
-        children: [
-          { index: true, element: <AssignmentsPage /> },
-          { path: 'round/:id', element: <RoundPage /> },
-          { path: 'earnings', element: <EarningsPage /> },
-          { path: 'sync', element: <SyncPage /> },
-          { path: 'profile', element: <ProfilePage showPin /> },
-          { path: '*', element: <NotFoundPage /> },
-        ],
-      },
+      { index: true, element: <AssignmentsPage /> },
+      { path: 'round/:id', element: <RoundPage /> },
+      { path: 'earnings', element: <EarningsPage /> },
+      { path: 'sync', element: <SyncPage /> },
+      { path: 'notifications', element: <NotificationsPage /> },
+      { path: 'profile', element: <ProfilePage showPin /> },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
-]);
+];
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <AppProviders onLogout={async () => { await clearAll(); if ('caches' in window) await caches.delete('caddy-api'); }}>
-      <RouterProvider router={router} />
-    </AppProviders>
-  </React.StrictMode>,
-);
+export default function TabletArea() {
+  return useRoutes(routes);
+}

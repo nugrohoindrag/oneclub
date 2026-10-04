@@ -11,8 +11,9 @@ P2 runs on top of P1: P1's modules keep their files; P2 lives in sub-packages an
 contract files (`p2_*.go`, `lines.go`, `pricing_p2.go`, `sales_api.go`). What P2 needed from P1 files is listed in
 `docs/p2-contract-review.md`.
 
-Every client is web: website (Next.js), Member App, Ops/POS and Caddy Tablet as installable offline PWAs, Back Office
-and Platform Admin as SPAs. Native apps are out of scope for the whole roadmap (Tech Doc open decision #8 resolved).
+Every client is web: website (Next.js), Member App and the Staff App (Technical Doc §6.1) as installable PWAs. The
+Staff App holds every staff area; its Operational (POS) and Caddy Tablet areas work offline. Native apps are out of
+scope for the whole roadmap (Tech Doc open decision #8 resolved).
 
 ## Audit & route coverage
 
@@ -41,29 +42,29 @@ never exercised successfully. Current run: **521/521 mutating routes exercised, 
 | EP-02 Pricing (multi-line) | `internal/commercial/line_pricing.go`, `pricing_p2.go`: rules of other lines on P1's pricing rules with P1 versioning; their day types in P2's `commercial.line_day_types` (`pricing_rules.line_day_type_id`) | Back Office `commercial/master` | `TestP2PricingRateCards` | ✅ |
 | EP-03 Billing extension | `internal/billing/lines.go`, `p2_api.go` (contracts C1–C3: line folios and charges with revenue components, member charge across lines, tenders, deferred revenue, payouts); statement per line (FR-BIL-P2-02) and accounting export (FR-INT-P2-03) in `finance.go` | Member App Fees & Requests | `TestP2MemberStatement`, `TestP2VoucherPrepaid`, `TestP2MemberApp`, `TestP2SelfServiceCoverage` | ✅ |
 | EP-04 Membership lifecycle | `internal/membership/p2_lifecycle.go`, `p2_api.go` on P1's applications (pause, suspension, cancel, upgrade/downgrade, family & nominees, annual fees, cards; `MembershipDetail` shows the lifecycle state) | Back Office `membership/lifecycle`, Member App Fees & Requests, Website application | `TestP2MembershipLifecycle`, `TestP2SelfServiceCoverage` | ✅ |
-| EP-05 Caddy lifecycle | `internal/golf/experience/caddy.go` on P1's caddies and assignments (levels, clock-in/out, rotation, promotion approval, incidents, settlements with replacement shares, ratings, favourites) | Ops `caddy/incidents`, Back Office `golf/operations` | `TestP2GolfRound`, `TestP2GolfOperationsCoverage` | ✅ |
-| EP-06 Caddy Tablet | `internal/golf/experience/tablet.go`, `rounds.go` (round = P1 flight; tee-off and finish through P1's starter; offline sync `golf.round`, handover, on-course F&B, preferences, earnings) | `apps/caddy` PWA | `TestP2GolfRound`, `TestP2GolfOperationsCoverage`; Playwright Caddy Tablet | ✅ |
-| EP-07 Golf Cart lifecycle | `internal/golf/experience/cart.go` (checklists, inspections, readiness through P1, maintenance, service alerts, GPS ingest, replacement); manual Ready only after a passed inspection (`golf.ReadyGuard`, contract C8) | Ops `golf-staff/inspection` | `TestP2GolfRound`, `TestP2GolfOperationsCoverage`, `TestP1GolfDayOperation` | ✅ |
+| EP-05 Caddy lifecycle | `internal/golf/experience/caddy.go` on P1's caddies and assignments (levels, clock-in/out, rotation, promotion approval, incidents, settlements with replacement shares, ratings, favourites) | Operational `/ops/caddy/incidents`, Back Office `golf/operations` | `TestP2GolfRound`, `TestP2GolfOperationsCoverage` | ✅ |
+| EP-06 Caddy Tablet | `internal/golf/experience/tablet.go`, `rounds.go` (round = P1 flight; tee-off and finish through P1's starter; offline sync `golf.round`, handover, on-course F&B, preferences, earnings) | Staff App Caddy Tablet area (`/tablet`) | `TestP2GolfRound`, `TestP2GolfOperationsCoverage`; Playwright Caddy Tablet (18-hole round offline, `offline.spec.ts`) | ✅ |
+| EP-07 Golf Cart lifecycle | `internal/golf/experience/cart.go` (checklists, inspections, readiness through P1, maintenance, service alerts, GPS ingest, replacement); manual Ready only after a passed inspection (`golf.ReadyGuard`, contract C8) | Operational `/ops/golf-staff/inspection` | `TestP2GolfRound`, `TestP2GolfOperationsCoverage`, `TestP1GolfDayOperation` | ✅ |
 | EP-08 Scorecard & handicap | `internal/golf/experience/scoring.go` (WHS differential into P2's `golf.handicap_indexes`, correction audit, official handicap, statistics; guest rounds on a customer profile, FR-SCR-10) | Member App `golf/scores` | `TestP2GolfRound`, `TestP2GolfOperationsCoverage` | ✅ |
-| EP-09 Playing experience | `internal/golf/experience/tablet.go` pace of play (job every minute, realtime on P1's golf stream), hole assets + GPS distances (`course-maps`) | Ops `starter/pace`, Caddy Tablet | `TestP2GolfPaceAndRange` | ✅ / 🟡 GPS accuracy field test |
+| EP-09 Playing experience | `internal/golf/experience/tablet.go` pace of play (job every minute, realtime on P1's golf stream), hole assets + GPS distances (`course-maps`) | Operational `/ops/starter/pace`, Caddy Tablet | `TestP2GolfPaceAndRange` | ✅ / 🟡 GPS accuracy field test |
 | EP-10 Hole-in-One | `internal/golf/experience/hio.go` (draft from card, insured from P1's all-in `hio` component, manual, verification, claim PDF) | Back Office `golf/operations` | `TestP2GolfRound`, `TestP2GolfOperationsCoverage` | ✅ |
-| EP-11 Hall of Fame | Entries, opt-in consent, curation, kiosk + public API | Website Hall of Fame, Ops Clubhouse Screen, Member App | `TestP2GolfRound`, `TestP2GolfOperationsCoverage` | ✅ |
-| EP-12 Driving Range | `internal/golf/experience/range.go` (bays, queue, buckets, prepaid / complimentary, bridge dispenser) | Ops `driving-range` | `TestP2GolfPaceAndRange`, `TestP2GolfOperationsCoverage` | ✅ |
+| EP-11 Hall of Fame | Entries, opt-in consent, curation, kiosk + public API | Website Hall of Fame, Operational Clubhouse Screen, Member App | `TestP2GolfRound`, `TestP2GolfOperationsCoverage` | ✅ |
+| EP-12 Driving Range | `internal/golf/experience/range.go` (bays, queue, buckets, prepaid / complimentary, bridge dispenser) | Operational `/ops/driving-range` | `TestP2GolfPaceAndRange`, `TestP2GolfOperationsCoverage` | ✅ |
 | EP-13 Reciprocal Club | `internal/golf/experience/reciprocal.go` (agreements, verification, quota, visit linked to P1's reciprocal player, settlement, introduction letters) | Website Reciprocal Clubs, Member App | `TestP2GolfReciprocal`, `TestP2GolfOperationsCoverage` | ✅ |
-| EP-14 Sport Club & Facility | `internal/sportclub` (facilities, courts, entry access, court booking) | Back Office `sport-club`, Ops `sport-reception`, Website, Member App | `TestP2SportClubEntryAccess`, `TestP2Website`, `TestP2SelfServiceCoverage` | ✅ |
-| EP-15 Classes & Training | Programs, schedules, sessions, enrollments, packages, instructor fees | Ops `instructor`, Member App | `TestP2Classes`, `TestP2SelfServiceCoverage` | ✅ |
-| EP-16 Bungalow | `internal/stay` (types, units, rate plans, stays, check-in/out folio) | Ops `stay-desk`, Website, Member App | `TestP2StayAndVenue`, `TestP2Website` | ✅ |
-| EP-17 VIP Suite | Block + overtime, website request | Ops `stay-desk`, Website | `TestP2StayAndVenue`, `TestP2Website` | ✅ |
+| EP-14 Sport Club & Facility | `internal/sportclub` (facilities, courts, entry access, court booking) | Back Office `sport-club`, Operational `/ops/sport-reception`, Website, Member App | `TestP2SportClubEntryAccess`, `TestP2Website`, `TestP2SelfServiceCoverage` | ✅ |
+| EP-15 Classes & Training | Programs, schedules, sessions, enrollments, packages, instructor fees | Operational `/ops/instructor`, Member App | `TestP2Classes`, `TestP2SelfServiceCoverage` | ✅ |
+| EP-16 Bungalow | `internal/stay` (types, units, rate plans, stays, check-in/out folio) | Operational `/ops/stay-desk`, Website, Member App | `TestP2StayAndVenue`, `TestP2Website` | ✅ |
+| EP-17 VIP Suite | Block + overtime, website request | Operational `/ops/stay-desk`, Website | `TestP2StayAndVenue`, `TestP2Website` | ✅ |
 | EP-18 Meeting Room | Layout capacity, packages, equipment, catering on KDS | Website Meeting | `TestP2StayAndVenue` | ✅ |
 | EP-19 Voucher & Prepaid | `internal/commercial/voucher` (row lock + idempotency, breakage, liability ledger, policies) | Back Office `commercial/operations`, Member App Vouchers | `TestP2VoucherPrepaid`; k6 `voucher-redeem.js` | ✅ / 🟡 load run on Staging |
-| EP-20 POS | `internal/commercial/pos` (orders, bills, shifts, Z report, offline sync `commercial.pos_order`) | Ops `pos` (offline queue) | `TestP2POSKitchenBOM`, `TestP2SelfServiceCoverage`; k6 `pos-peak.js` | ✅ / 🟡 load run on Staging |
-| EP-21 F&B experience | KDS realtime, on-course / pre-order, member app order food | Ops `kitchen`, Member App `order-food` | `TestP2POSKitchenBOM`, `TestP2MemberApp` | ✅ |
+| EP-20 POS | `internal/commercial/pos` (orders, bills, shifts, Z report, offline sync `commercial.pos_order`) | Operational `/ops/pos` (offline queue) | `TestP2POSKitchenBOM`, `TestP2SelfServiceCoverage`; Playwright POS sale offline (`offline.spec.ts`); k6 `pos-peak.js` | ✅ / 🟡 load run on Staging |
+| EP-21 F&B experience | KDS realtime, on-course / pre-order, member app order food | Operational `/ops/kitchen`, Member App `order-food` | `TestP2POSKitchenBOM`, `TestP2MemberApp` | ✅ |
 | EP-22 BOM / Recipe | `internal/inventory` recipes, UOM conversions, theoretical food cost | Back Office `inventory` | `TestP2POSKitchenBOM`, `TestP2ResourceDefinitionsCRUD` | ✅ |
 | EP-23 Preferences | `internal/crm/foundation.go`, `p2_api.go` (health categories restricted, also in P1's Customer 360; caddy / staff / member sources) | Member App `preferences`, Caddy Tablet | `TestP2CRM`, `TestP2SelfServiceCoverage` | ✅ |
 | EP-24 CRM foundation | Customer 360 across lines, interactions, segments, feedback, campaigns (opt-in) | Back Office `crm/engagement`, `crm/customers/:id` (from P1's Customer 360) | `TestP2CRM` | ✅ |
 | EP-25 Member & Guest App | `/api/v1/member/*` across modules | `apps/member` PWA on P1's portal (scores, sport club, stay, vouchers, fees & requests, order food, preferences) | `TestP2MemberApp`, `TestP2SelfServiceCoverage`, `TestP2GolfOperationsCoverage`; Playwright Member App | ✅ |
 | EP-26 Website & non-member booking | `/api/v1/public/*` (`crm.PublicWrite`: honeypot, rate limit, dedup) | `apps/web` (Next.js; P2 helpers in `app/lib-p2.ts`) | `TestP2Website`, `TestP2SelfServiceCoverage`; Playwright Website | ✅ |
-| EP-27 Operational interfaces | Navigation trees (additive), SSE with `propertyId` query fallback; events named after their topic | `apps/ops` P2 tiles (Driving Range, Sport Reception, Instructor, Stay Front Desk, POS, Kitchen) next to P1's golf tiles | `TestRolePermissionMatrix`; Playwright Ops | ✅ |
+| EP-27 Operational interfaces | Navigation trees (additive), SSE with `propertyId` query fallback; events named after their topic | Staff App Operational area (`/ops`): P2 tiles (Driving Range, Sport Reception, Instructor, Stay Front Desk, POS, Kitchen) next to P1's golf tiles | `TestRolePermissionMatrix`; Playwright Operational | ✅ |
 | EP-28 Club Policies | `rules.RegisterPolicy`, typed validation, catalogue endpoint | Back Office Club Policies | `TestP2ClubPolicies` | ✅ |
 | EP-29 KPI, Dashboard & Reports | `internal/reporting/p2_reports.go`, `p2_dashboards.go` | Back Office `dashboards/*`, Management Sport Club / Commercial Performance | `TestP2ReportsAndDashboards`; Playwright Management | ✅ |
 | EP-30 Integrations | Payment gateway (mock adapter + webhook), bridge commands (dispenser), GPS ingest, notifications | — | `TestP2MemberApp`, `TestP2GolfOperationsCoverage`, `TestBridgeAgent` | ✅ / 🟡 real vendor adapters |
@@ -79,7 +80,7 @@ never exercised successfully. Current run: **521/521 mutating routes exercised, 
 | FR-REL-P2-03 P1 regression | P0, P1 and P2 suites green together on the integrated branch | ✅ |
 | FR-REL-P2-04 Pen test | Public endpoints rate-limited + honeypot; voucher codes row-locked; tablet scoped to assigned rounds | 🟡 external pen test |
 | FR-REL-P2-05 Field test | — | 🟡 on site |
-| FR-REL-P2-06 VPS build | `garble` + no source maps in the VPS release build, `caddy` shell included in `deploy/docker/Dockerfile.web` (`SOURCEMAPS=false`); `deploy/docker/Dockerfile` garbles the API, Caddyfile `DOMAIN_CADDY` | ✅ build config / 🟡 VPS |
+| FR-REL-P2-06 VPS build | `garble` + no source maps in the VPS release build, Staff App (with the Caddy Tablet area) built in `deploy/docker/Dockerfile.web` (`SOURCEMAPS=false`); `deploy/docker/Dockerfile` garbles the API, Caddyfile `DOMAIN_STAFF` | ✅ build config / 🟡 VPS |
 | FR-REL-P2-07 Training & hypercare | — | ⏳ club activity |
 
 ## Generic master data

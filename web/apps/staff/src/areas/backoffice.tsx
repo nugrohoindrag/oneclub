@@ -1,32 +1,29 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, Navigate, Outlet, RouterProvider } from 'react-router';
-import '@oneclub/shell/shell.css';
+import { Navigate, useRoutes } from 'react-router';
 import {
-  AppProviders, ApiKeysPage, ApprovalDetailPage, ApprovalWorkflowsPage, ApprovalsPage, AuditLogsPage, BackgroundJobsPage, BrandingPage, BridgeAgentsPage,
-  CustomerInstancePage, DepartmentsPage, DevicesPage, EmployeesPage, ErrorBoundary, FeatureFlagsPage, FeaturesPage, IntegrationLogsPage,
-  IntegrationsPage, LocalizationPage, LoginPage, MasterDataImportPage, NotFoundPage, NotificationHistoryPage, NotificationSettingsPage, NotificationsPage,
-  OrganizationPage, PaymentMethodsPage, ProfilePage, PropertiesPage, RequirePermission, RequireShell, ResetPasswordPage, RolesPage, RulesPage, SidebarLayout,
-  SystemSettingsPage, TaxServicePage, TopNavLayout, UsersPage, VenuesPage, ComingSoonPage,
+  ApiKeysPage, ApprovalDetailPage, ApprovalWorkflowsPage, ApprovalsPage, AuditLogsPage, BackgroundJobsPage, BrandingPage, BridgeAgentsPage,
+  CustomerInstancePage, DepartmentsPage, DevicesPage, EmployeesPage, FeatureFlagsPage, FeaturesPage, IntegrationLogsPage, IntegrationsPage,
+  LocalizationPage, MasterDataImportPage, NotFoundPage, NotificationHistoryPage, NotificationSettingsPage, NotificationsPage, OrganizationPage,
+  PaymentMethodsPage, ProfilePage, PropertiesPage, RequirePermission, ResourcePage, RolesPage, RulesPage, SidebarLayout, SystemSettingsPage,
+  TaxServicePage, UsersPage, VenuesPage,
 } from '@oneclub/shell';
-import {
-  DashboardPage, ExecutiveOverviewPage, ExportsPage, MODULE_PAGES, ModulePage, ReportRunPage, ReportsPage, SettingsHomePage,
-} from './pages';
+import { DashboardPage, ExportsPage, MODULE_PAGES, ModulePage, ReportRunPage, ReportsPage, SettingsHomePage } from '../pages';
 import {
   AvailabilityPage, BookingHistoryPage, BookingNewPage, BookingsPage, CaddiesPage, CancellationsPage, CheckInPage, CoursePage, FlightsPage, GolfCartsPage,
   GolfSettingsPage, PlayersPage, RainChecksPage, StarterPage, TeeSheetPage,
-} from './p1/golf';
+} from '../p1/golf';
 import {
-  ApplicationsPage, BookingPerformancePage, CardsPage, CorporateAccountsPage, Customer360Page, CustomerAccountsPage, CustomersPage, DepositsPage,
-  EffectiveDatesPage, FoliosPage, GolfPerformancePage, MemberChargesPage, MembersPage, MembershipHistoryPage, MembershipPerformancePage, PaymentsPage,
-  PricingRulesPage, RatePlansPage, ReconciliationPage, RefundsPage, RenewalsPage, packageCfg, programCfg, typeCfg,
-} from './p1/business';
-import { ResourcePage } from '@oneclub/shell';
+  ApplicationsPage, CardsPage, CorporateAccountsPage, Customer360Page, CustomerAccountsPage, CustomersPage, DepositsPage, EffectiveDatesPage, FoliosPage,
+  MemberChargesPage, MembersPage, MembershipHistoryPage, PaymentsPage, PricingRulesPage, RatePlansPage, ReconciliationPage, RefundsPage, RenewalsPage,
+  packageCfg, programCfg, typeCfg,
+} from '../p1/business';
+import { HUBS, P2_ROUTES } from '../p2';
+
+// Back Office area: module paths at the root, so e-mail links keep working (Technical Doc §6.1).
 
 const rp = (perm: string, el: React.ReactNode) => <RequirePermission perm={perm}>{el}</RequirePermission>;
 
 /** P1 Golf Core MVP pages (PRD P1 §6.1). */
-import { HUBS, P2_MANAGEMENT_ROUTES, P2_ROUTES } from './p2';
 const p1 = [
   { path: 'golf', element: rp('golf.tee_sheet.view', <TeeSheetPage />) },
   { path: 'golf/tee-sheet', element: rp('golf.tee_sheet.view', <TeeSheetPage />) },
@@ -108,52 +105,27 @@ const settings = [
   { path: 'settings/system/notification-history', element: <RequirePermission perm="platform.notification_delivery.view"><NotificationHistoryPage /></RequirePermission> },
 ];
 
-const router = createBrowserRouter([
+const routes = [
   {
-    element: <ErrorBoundary><Outlet /></ErrorBoundary>,
+    element: <SidebarLayout />,
     children: [
-      { path: '/login', element: <LoginPage shell="backoffice" /> },
-      { path: '/reset-password', element: <ResetPasswordPage /> },
-      {
-        path: '/management',
-        element: <RequireShell shell="management"><TopNavLayout shell="management" home="/management" /></RequireShell>,
-        children: [
-          { index: true, element: <ExecutiveOverviewPage /> },
-          { path: 'golf', element: <GolfPerformancePage /> },
-          { path: 'membership', element: <MembershipPerformancePage /> },
-          { path: 'booking', element: <BookingPerformancePage /> },
-          ...P2_MANAGEMENT_ROUTES,
-          { path: 'financial', element: <ComingSoonPage title="Financial Performance" phase="P2" /> },
-          { path: '*', element: <NotFoundPage /> },
-        ],
-      },
-      {
-        path: '/',
-        element: <RequireShell shell="backoffice"><SidebarLayout /></RequireShell>,
-        children: [
-          { index: true, element: <DashboardPage /> },
-          { path: 'approvals', element: <ApprovalsPage /> },
-          { path: 'approvals/:id', element: <ApprovalDetailPage /> },
-          ...p1,
-          ...P2_ROUTES,
-          ...MODULE_PAGES.filter((m) => !P1_MODULES.has(m.path)).map((m) => ({ path: m.path, element: <ModulePage path={m.path} /> })),
-          { path: 'reports', element: <RequirePermission perm="reporting.report.view"><ReportsPage /></RequirePermission> },
-          { path: 'reports/exports', element: <RequirePermission perm="reporting.export.create"><ExportsPage /></RequirePermission> },
-          { path: 'reports/:code', element: <RequirePermission perm="reporting.report.view"><ReportRunPage /></RequirePermission> },
-          ...settings,
-          { path: 'profile', element: <ProfilePage /> },
-          { path: 'notifications', element: <NotificationsPage /> },
-          { path: '*', element: <NotFoundPage /> },
-        ],
-      },
+      { index: true, element: <DashboardPage /> },
+      { path: 'approvals', element: <ApprovalsPage /> },
+      { path: 'approvals/:id', element: <ApprovalDetailPage /> },
+      ...p1,
+      ...P2_ROUTES,
+      ...MODULE_PAGES.filter((m) => !P1_MODULES.has(m.path)).map((m) => ({ path: m.path, element: <ModulePage path={m.path} /> })),
+      { path: 'reports', element: <RequirePermission perm="reporting.report.view"><ReportsPage /></RequirePermission> },
+      { path: 'reports/exports', element: <RequirePermission perm="reporting.export.create"><ExportsPage /></RequirePermission> },
+      { path: 'reports/:code', element: <RequirePermission perm="reporting.report.view"><ReportRunPage /></RequirePermission> },
+      ...settings,
+      { path: 'profile', element: <ProfilePage /> },
+      { path: 'notifications', element: <NotificationsPage /> },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
-]);
+];
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <AppProviders>
-      <RouterProvider router={router} />
-    </AppProviders>
-  </React.StrictMode>,
-);
+export default function BackOfficeArea() {
+  return useRoutes(routes);
+}
