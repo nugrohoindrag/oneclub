@@ -26,8 +26,9 @@ ALTER TABLE billing.folio_lines
   ADD COLUMN tax_lines          jsonb NOT NULL DEFAULT '[]'::jsonb,
   ADD COLUMN beneficiary_type   text,   -- caddy | instructor
   ADD COLUMN beneficiary_id     uuid;
+-- Expand-only (Tech Doc §7.5): P1's AddCharge does not set the component, so
+-- the column stays nullable; readers fall back to charge_type.
 UPDATE billing.folio_lines SET revenue_component = charge_type WHERE revenue_component IS NULL;
-ALTER TABLE billing.folio_lines ALTER COLUMN revenue_component SET NOT NULL;
 CREATE INDEX folio_lines_beneficiary ON billing.folio_lines (beneficiary_type, beneficiary_id, posted_at) WHERE beneficiary_id IS NOT NULL;
 CREATE INDEX folio_lines_component ON billing.folio_lines (property_id, revenue_component, posted_at);
 
