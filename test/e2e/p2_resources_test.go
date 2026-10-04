@@ -22,6 +22,13 @@ func TestP2ResourceDefinitionsCRUD(t *testing.T) {
 		"commercial.outlet": "P0", "commercial.product": "P0", "reservation.resource": "P0", "membership.member": "P0",
 		"commercial.pricing_rule": "versioned rules are covered by the pricing tests",
 	}
+	// Resources of P1 (commit a48e6a3) are covered by the P1 tests.
+	for _, k := range []string{"commercial.day_type", "commercial.rate_plan", "commercial.time_band", "crm.corporate_account", "crm.corporate_nominee",
+		"crm.customer_preference", "crm.customer_relationship", "golf.caddy", "golf.course_asset", "golf.course_section", "golf.golf_cart", "golf.hole",
+		"golf.locker", "golf.playing_route", "golf.tee_set", "golf.tee_sheet_template", "membership.package", "membership.program", "membership.type",
+		"platform.calendar_day", "sportclub.facility"} {
+		skip[k] = "P1"
+	}
 	type made struct {
 		key, path, id, edit string
 		editValue           any
@@ -35,7 +42,8 @@ func TestP2ResourceDefinitionsCRUD(t *testing.T) {
 		}
 	}
 	n := len(todo)
-	// Seed an outlet, a product and two UOMs so dependent resources have references.
+	// Seed a facility, an outlet, a product and two UOMs so dependent resources have references.
+	sa.Must(201, "POST", "/api/v1/sportclub/facilities", map[string]any{"code": fmt.Sprintf("RXF%d", time.Now().Unix()%100000), "name": "RX Facility", "facilityType": "tennis", "capacity": 4})
 	sa.Must(201, "POST", "/api/v1/commercial/outlets", map[string]any{"code": fmt.Sprintf("RXO%d", time.Now().Unix()%100000), "name": "RX Outlet", "outletType": "restaurant"})
 	sa.Must(201, "POST", "/api/v1/commercial/products", map[string]any{"code": fmt.Sprintf("RXP%d", time.Now().Unix()%100000), "name": "RX Product", "productType": "food", "price": "1000"})
 	for i := 0; i < 2; i++ {
@@ -78,23 +86,6 @@ func TestP2ResourceDefinitionsCRUD(t *testing.T) {
 						edit, editValue = name, "2"
 					case "boolean":
 						edit, editValue = name, true
-					}
-				}
-			}
-			if key == "golf.hole" && body["sectionId"] != nil {
-				// Other tests may already have holes in the section: take a free number.
-				used := map[float64]bool{}
-				for _, h := range sa.Must(200, "GET", path+"?limit=200", nil).Items() {
-					if h["sectionId"] == body["sectionId"] {
-						if n, ok := h["number"].(float64); ok {
-							used[n] = true
-						}
-					}
-				}
-				for n := 18; n >= 1; n-- {
-					if !used[float64(n)] {
-						body["number"] = n
-						break
 					}
 				}
 			}
@@ -149,7 +140,7 @@ func TestP2ResourceDefinitionsCRUD(t *testing.T) {
 			problems = append(problems, fmt.Sprintf("%s delete %d %s", m.key, del.Status, del.Body))
 		}
 	}
-	if n < 40 {
+	if n < 33 {
 		t.Fatalf("only %d P2 resource definitions found", n)
 	}
 	if len(problems) > 0 {
@@ -190,15 +181,6 @@ func synth(t *testing.T, c *Client, key, name, typ string, fm map[string]any) (a
 		}
 		return items[0]["id"], true
 	case typ == "number":
-		if name == "number" {
-			return 9, true // hole number: unused in a fresh section
-		}
-		if name == "strokeIndex" {
-			return 18, true
-		}
-		if strings.Contains(strings.ToLower(name), "slope") {
-			return 113, true
-		}
 		return 1, true
 	case typ == "decimal":
 		return "1", true
