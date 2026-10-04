@@ -8,9 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 
-	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/reservation"
 )
 
@@ -133,15 +131,6 @@ func resourceOf(t *testing.T, c *Client, code, typ string, capacity *int, attrs 
 }
 
 func intp(n int) *int { return &n }
-
-// sysExec runs SQL with an all-properties scope.
-func sysExec(t testing.TB, in *Instance, sql string, args ...any) {
-	t.Helper()
-	ctx := dbtx.System(context.Background())
-	if err := in.DB.WithTx(ctx, func(tx pgx.Tx) error { _, err := tx.Exec(ctx, sql, args...); return err }); err != nil {
-		t.Fatalf("exec %q: %v", sql, err)
-	}
-}
 
 func newKey() string { return uuid.NewString() }
 

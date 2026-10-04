@@ -10,7 +10,7 @@ import (
 
 type golfCourse struct {
 	Course, RouteAB, RouteA, TeeSet string
-	Holes                          []map[string]any
+	Holes                           []map[string]any
 }
 
 // setupGolfCourse creates the course with sections A and B (9 holes each),
@@ -417,7 +417,7 @@ func TestP2GolfPaceAndRange(t *testing.T) {
 	if pace == nil || pace["slow"] != true || pace["behindMinutes"].(float64) < 30 {
 		t.Fatalf("pace of play: %v", pace)
 	}
-	n, err := inst.App.Golf.RunPaceCheck(t.Context())
+	n, err := inst.App.Experience.RunPaceCheck(t.Context())
 	if err != nil || n < 1 {
 		t.Fatalf("pace check job: %d %v", n, err)
 	}

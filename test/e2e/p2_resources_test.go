@@ -24,9 +24,9 @@ func TestP2ResourceDefinitionsCRUD(t *testing.T) {
 	}
 	type made struct {
 		key, path, id, edit string
-		editValue       any
-		body            map[string]any
-		noDelete        bool
+		editValue           any
+		body                map[string]any
+		noDelete            bool
 	}
 	var todo []map[string]any
 	for _, d := range defs {

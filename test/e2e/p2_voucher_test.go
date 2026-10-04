@@ -85,7 +85,7 @@ func TestP2VoucherPrepaid(t *testing.T) {
 		sa.Must(200, "POST", "/api/v1/commercial/vouchers:redeem", map[string]any{"code": v2["code"], "serviceType": "facility_entry"}, "Idempotency-Key", newKey())
 	}
 	sysExec(t, inst, `UPDATE commercial.vouchers SET expires_at = now() - interval '1 second' WHERE id = $1`, mustUUID(str(v2["id"])))
-	if n, err := inst.App.Commercial.RunVoucherExpiry(context.Background()); err != nil || n < 1 {
+	if n, err := inst.App.Vouchers.RunVoucherExpiry(context.Background()); err != nil || n < 1 {
 		t.Fatalf("expiry: %d %v", n, err)
 	}
 	var breakage string
@@ -193,7 +193,7 @@ func TestP2VoucherPrepaid(t *testing.T) {
 		}
 	}
 	// Reminder job runs without error (customers with e-mail get H-30/H-7 notices).
-	if _, err := inst.App.Commercial.SendExpiryReminders(context.Background()); err != nil {
+	if _, err := inst.App.Vouchers.SendExpiryReminders(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 }
