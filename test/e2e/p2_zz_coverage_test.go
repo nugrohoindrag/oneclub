@@ -61,6 +61,15 @@ func TestP2GolfOperationsCoverage(t *testing.T) {
 	if u := sa.Must(200, "PATCH", "/api/v1/golf/golf-cart-maintenance/"+str(mt["id"]), map[string]any{"cost": "4500000", "notes": "New lithium pack"}).JSON(); dec(u["cost"]).String() != "4500000" {
 		t.Fatalf("maintenance update: %v", u)
 	}
+	if rel := sa.Must(201, "POST", "/api/v1/golf/golf-cart-maintenance/"+str(mt["id"])+":release", map[string]any{"kind": "release",
+		"results": []map[string]any{{"item": "Battery", "pass": true}}, "batteryPercent": 90}).JSON(); rel["readinessAfter"] != "ready" {
+		t.Fatalf("maintenance release: %v", rel)
+	}
+	ci := sa.Must(201, "POST", "/api/v1/golf/golf-cart-incidents", map[string]any{"subjectType": "golf_cart", "golfCartId": k3, "category": "accident",
+		"severity": "low", "description": "Scraped a cart path kerb"}).JSON()
+	if cl := sa.Must(200, "POST", "/api/v1/golf/golf-cart-incidents/"+str(ci["id"])+":close", map[string]any{"reason": "No damage"}).JSON(); cl["status"] != "closed" {
+		t.Fatalf("cart incident close: %v", cl)
+	}
 	// Both carts passed their inspection (the inspection flow is covered by TestP2GolfRound).
 	sysExec(t, inst, `UPDATE golf.golf_carts SET readiness = 'ready' WHERE id = ANY($1)`, []uuid.UUID{mustUUID(k1), mustUUID(k2)})
 	if r := sa.Must(200, "POST", "/api/v1/golf/golf-cart-positions", []map[string]any{{"golfCartId": k1, "lat": -6.2, "lng": 106.6, "batteryPercent": 88, "at": rfc(now)}}).JSON(); r["updated"].(float64) != 1 {
@@ -148,12 +157,15 @@ func TestP2GolfOperationsCoverage(t *testing.T) {
 	if s := sa.Must(200, "POST", "/api/v1/golf/range-sessions/"+str(waiting["id"])+":cancel", nil).JSON(); s["status"] != "cancelled" {
 		t.Fatalf("cancel range session: %v", s)
 	}
-	ag := sa.Must(201, "POST", "/api/v1/platform/bridge-agents", map[string]any{"name": "Range Bridge (coverage)"}).JSON()
+	// In the second property: the MAIN property keeps the agent of TestBridgeAgent alone.
+	mdr := *sa
+	mdr.Property = inst.MDR
+	ag := mdr.Must(201, "POST", "/api/v1/platform/bridge-agents", map[string]any{"name": "Range Bridge (coverage)"}).JSON()
 	agent := anon(t, inst)
 	agent.Property = uuid.Nil
 	agent.Must(200, "POST", "/api/v1/bridge/heartbeat", map[string]any{"agentVersion": "0.1.0", "hardware": []map[string]any{{"device": "zc_dispenser", "kind": "zc_dispenser"}}},
 		"Authorization", "Bearer "+str(ag["token"]))
-	if b := sa.Must(201, "POST", "/api/v1/golf/range-buckets", map[string]any{"balls": 40, "source": "complimentary", "reason": "Coverage clinic",
+	if b := mdr.Must(201, "POST", "/api/v1/golf/range-buckets", map[string]any{"balls": 40, "source": "complimentary", "reason": "Coverage clinic",
 		"dispenser": "zc_dispenser"}).JSON(); b["dispenseMode"] != "bridge" {
 		t.Fatalf("bridge bucket: %v", b)
 	}
@@ -166,7 +178,7 @@ func TestP2GolfOperationsCoverage(t *testing.T) {
 		"result": map[string]any{"dispensed": 40}}, "Authorization", "Bearer "+str(ag["token"])).JSON(); r["status"] != "succeeded" {
 		t.Fatalf("command result: %v", r)
 	}
-	sa.Must(200, "PATCH", "/api/v1/platform/bridge-agents/"+str(ag["id"]), map[string]any{"status": "inactive"})
+	mdr.Must(200, "PATCH", "/api/v1/platform/bridge-agents/"+str(ag["id"]), map[string]any{"status": "inactive"})
 
 	// Introduction letters: member requests one in the app; a re-issue of an
 	// approved letter renders the PDF again.
@@ -293,6 +305,21 @@ func TestP2SelfServiceCoverage(t *testing.T) {
 	applicant := customer(t, sa, "ZC-APPLICANT", "Calon ZC", map[string]any{"phone": "+6281299887766"})
 	if ms := activeMembership(t, sa, applicant, st, stPkg, nil); ms == "" {
 		t.Fatal("staff application activated")
+	}
+	// A corporate nominee is replaced (lifecycle request, fee per type).
+	corp, corpPkg := membershipType(t, sa, sp, "ZC-CORP", "Corporate ZC", map[string]any{"category": "corporate", "maxNominees": 2})
+	holder := customer(t, sa, "ZC-CORP-H", "Corporate Holder ZC", map[string]any{"phone": "+6281299887700"})
+	ca := idOf(sa.Must(201, "POST", "/api/v1/crm/corporate-accounts", map[string]any{"code": "ZC-CORP-PT", "name": "PT Coverage ZC"}))
+	cms := activeApplication(t, sa, map[string]any{"customerId": holder, "typeId": corp, "packageId": corpPkg, "corporateAccountId": ca})
+	n1 := customer(t, sa, "ZC-NOM-1", "Nominee One ZC", map[string]any{"phone": "+6281299887701"})
+	n2 := customer(t, sa, "ZC-NOM-2", "Nominee Two ZC", map[string]any{"phone": "+6281299887702"})
+	nom := sa.Must(201, "POST", "/api/v1/membership/memberships/"+cms+"/members", map[string]any{"customerId": n1}).JSON()
+	if nom["role"] != "nominee" {
+		t.Fatalf("corporate nominee: %v", nom)
+	}
+	if rq := sa.Must(202, "POST", "/api/v1/membership/memberships/"+cms+":replace-nominee", map[string]any{"coveredMembershipId": nom["id"],
+		"customerId": n2, "reason": "Nominee left the company"}).JSON(); rq["id"] == nil {
+		t.Fatalf("nominee change request: %v", rq)
 	}
 
 	// Billing: staff starts an online payment of a folio; POS order sent to the kitchen later.

@@ -162,6 +162,13 @@ func activeMembership(t *testing.T, c *Client, customer, typeID, packageID strin
 	if dependents != nil {
 		body["dependents"] = dependents
 	}
+	return activeApplication(t, c, body)
+}
+
+// activeApplication runs P1's application flow for an application body
+// (e.g. with a corporate account) and returns the membership id.
+func activeApplication(t *testing.T, c *Client, body map[string]any) string {
+	t.Helper()
 	aid := idOf(c.Must(201, "POST", "/api/v1/membership/applications", body))
 	app := c.Must(200, "POST", "/api/v1/membership/applications/"+aid+":submit", nil).JSON()
 	if app["status"] == "pending" && app["approvalRequestId"] != nil {
