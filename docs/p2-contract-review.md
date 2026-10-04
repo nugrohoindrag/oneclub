@@ -134,7 +134,7 @@ Migration `commercial/00004_vouchers.sql` dan `00005_pos.sql` hanya berisi tabel
 
 ## Catatan untuk P1 (bukan perubahan P2)
 
-Temuan di kode P1 yang sebaiknya ditangani pemilik P1:
+Temuan di kode P1 berikut **akan dikerjakan oleh tim P2 di PR yang sama**, dengan perubahan minimal. Setelah dikerjakan, tiap perubahan dipindah ke bagian "Perubahan di file P1" untuk direview. Selain itu akan dicek juga dampak status membership baru dan `rate_plan_id` NULL terhadap kode P1 (lihat "Ringkasan risiko").
 
 - Overview Customer 360 P1 belum menyembunyikan preferensi sensitif (diet/alergi). P2 hanya memasang mask di resource `Preferences`.
 - `CaddyBoard` P1 belum mengenal clock-out caddy dari P2.

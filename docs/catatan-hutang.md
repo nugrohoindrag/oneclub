@@ -12,7 +12,9 @@ Sumber aturan: Tech Doc §4.2, §7.5, §12.3 dan PRD P2 §5.4. Cek dokumen ini d
 - **File milik P1 tidak diubah isinya.** Pemilik P1 adalah Dian; modulnya golf, billing, crm, membership dan commercial/pricing. Kebutuhan P2 ditaruh di dua tempat:
   - sub-package P2;
   - file kontrak aditif `p2_*.go` / `pricing_p2.go` / `lines.go` / `sales_api.go`, yang wajib direview Dian.
-- **Pengecualian:** requirement PRD yang hanya bisa dipenuhi di file P1 dikerjakan minimal dan dicatat di `docs/p2-contract-review.md`. Saat ini hanya satu: `billing/finance.go` untuk FR-BIL-P2-02, statement per lini.
+- **Pengecualian:** perubahan di file P1 hanya untuk dua hal, dikerjakan minimal dan dicatat di `docs/p2-contract-review.md`:
+  - requirement PRD yang hanya bisa dipenuhi di file P1. Saat ini: `billing/finance.go` untuk FR-BIL-P2-02, statement per lini;
+  - penyesuaian P1 di hutang #6.
 - **Utamakan tabel/file milik P2** bila itu memberi solusi lengkap. Contoh: `commercial.line_day_types`, bukan memperluas `day_types` P1.
 - **Tidak ada query ke schema modul lain.** Gunakan API publik package root, read model `reporting.*`, atau domain event. Pengecualian: `internal/app/rhapsody` (composition root), mengikuti preseden P1.
 - **Migration harus expand-only** (Tech Doc §7.5). Tidak boleh `SET NOT NULL` atau mempersempit CHECK di tabel P1.
@@ -34,6 +36,7 @@ git diff --diff-filter=MD --stat a48e6a3 -- internal/golf internal/billing inter
 | 3 | Test | 🔄 P0/P1 hijau, provision hijau, unit hijau. Test P2: 13 lolos, 7 gagal (lihat sisa pekerjaan) |
 | 4 | OpenAPI & frontend | ⏳ Belum dimulai |
 | 5 | Dokumen | ⏳ Belum dimulai |
+| 6 | Penyesuaian P1 (kita kerjakan, direview Dian) | ⏳ Belum dimulai |
 
 ## Sudah selesai sejak catatan sebelumnya
 
@@ -188,6 +191,33 @@ Test yang masih gagal:
   - komentar yang merujuk tool/route lama;
   - file ini setelah semua hutang selesai.
 - Perbarui memory proyek.
+
+### 6. Penyesuaian P1 (kita kerjakan, direview Dian)
+
+Temuan di kode P1 yang kita kerjakan sendiri dalam PR yang sama. Aturannya:
+- perubahan seminimal mungkin dan tidak mengubah perilaku P1 lain;
+- setiap perubahan ditambahkan ke bagian "Perubahan di file P1" di `docs/p2-contract-review.md`;
+- test P1 harus tetap hijau, dan ditambah test bila perilakunya berubah.
+
+**Perlu dicek karena data P2:**
+
+1. **Status membership baru** (`paused`, `suspended`, `cancelled`). Telusuri kode P1 yang memakai status membership, misalnya `switch status`, enum `Membership.Status`, eligibility booking golf, member rate, member charge, kartu, dan portal. Pastikan status baru diperlakukan sebagai tidak aktif. Enum dokumentasi `Membership.Status` di `membership/http.go` sebaiknya ikut diperluas.
+2. **`pricing_rules.rate_plan_id` NULL** untuk rule non-golf. Cek semua query P1 yang membaca `pricing_rules` (list, export, resolve, snapshot). Pastikan rule tanpa rate plan tidak menimbulkan error scan atau ikut ke golf.
+
+**Temuan di kode P1 sendiri:**
+
+3. **Customer 360 P1** (`crm/overview.go`) belum menyembunyikan preferensi sensitif (diet/alergi) bagi pengguna tanpa `crm.preference.view_sensitive`, padahal P2 sudah memasang mask di resource `Preferences`.
+4. **`CaddyBoard` P1** belum mengenal clock-out caddy dari P2 (`golf.caddy_shifts.clocked_out_at`). Caddy yang sudah pulang masih tampil tersedia.
+5. **Readiness golf cart** bisa diset Ready tanpa inspeksi (PRD P2 §6 #11). Cart yang kembali menjadi Not Ready / Charging; setelah inspeksi post-op, inspeksi pre-op mengubahnya menjadi Ready. Perlu aturan di `golf-carts/{id}:set-readiness`, atau hook kontrak dari P2.
+6. **Query lintas schema di golf P1** (Tech Doc §4.2 #2). Ganti dengan API publik atau read model:
+   - `golf/booking.go` membaca `reservation.allocations`;
+   - `golf/modify.go` membaca `billing.folio_lines`;
+   - `golf/portal.go` membaca `membership.members`;
+   - `golf/teesheet.go` membaca `membership.types`.
+
+**Kecil (opsional):**
+
+7. `POST /billing/customer-accounts` untuk akun yang sudah ada tanpa perubahan mengembalikan 201 tanpa entri audit, sehingga harness audit menandainya. Pilihannya: kembalikan 200 untuk no-op, atau catat audit. Diskusikan dengan Dian.
 
 ## Catatan teknis
 
