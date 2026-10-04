@@ -100,11 +100,11 @@ Tidak satu pun tercatat di catatan lama, dan sebagian besar akan rusak di produc
   - `price()` kini memanggil `pricing:resolve-line`.
 - `setupGolfCourse` memakai skema P1: section, hole dengan nomor 1–18 per course, course asset GeoJSON, `PUT pace-target`/`pace-tolerance`, route `sectionCodes`.
 - `customer()` mengisi `crm.customers.user_id` lewat SQL; tautan portal P1 diisi saat aktivasi.
-- Test P2 yang sudah lolos (14):
-  - PricingRateCards, ReservationEngine, RhapsodyImport, MembershipLifecycle;
-  - MemberApp, StayAndVenue, MemberStatement*, CRM, ClubPolicies, ReportsAndDashboards;
-  - SportClubEntryAccess, Classes, Website, coverage.
-  - \*MemberStatement masih memakai folio walk-in. Lihat sisa pekerjaan.
+- Test P2 yang sudah lolos (13):
+  - PricingRateCards, ReservationEngine, RhapsodyImport, MembershipLifecycle, MemberApp, StayAndVenue;
+  - CRM, ClubPolicies, ReportsAndDashboards, SportClubEntryAccess, Classes;
+  - Website dan coverage (GolfOperationsCoverage, SelfServiceCoverage).
+  - Run penuh terakhir berhenti karena panic di `TestP2VoucherPrepaid`. Website dan coverage terakhir terverifikasi lolos di run sebelumnya; ulangi run penuh setelah VoucherPrepaid diperbaiki.
 
 ## Hutang yang tersisa (urut kerja)
 
