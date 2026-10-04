@@ -1,4 +1,4 @@
-import { idr, type Rate } from '../lib';
+import { rp, type Rate } from '../lib-p2';
 
 /** Structured rate table from pricing (FR-WEB-P2-05) — never a flyer image. */
 export function RateTable({ rates, title }: { rates: Rate[] | undefined; title: string }) {
@@ -16,7 +16,7 @@ export function RateTable({ rates, title }: { rates: Rate[] | undefined; title: 
               <td>{r.dayType ?? 'All'}</td>
               <td>{r.timeBand ?? '—'}</td>
               <td>{r.unit}</td>
-              <td style={{ textAlign: 'right' }}>{idr(r.price)}{r.pricingMode === 'plus_plus' ? '++' : ''}</td>
+              <td style={{ textAlign: 'right' }}>{rp(r.price)}{r.pricingMode === 'plus_plus' ? '++' : ''}</td>
             </tr>
           ))}
         </tbody>

@@ -1,4 +1,4 @@
-import { getProperty, pub } from '../../../lib';
+import { getProperty, pub } from '../../../lib-p2';
 
 interface Club {
   code: string;

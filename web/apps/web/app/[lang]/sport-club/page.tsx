@@ -1,4 +1,4 @@
-import { getProperty, pub, type Rate } from '../../lib';
+import { getProperty, pub, type Rate } from '../../lib-p2';
 import { ClassRegistration, CourtBooking } from '../booking';
 import { RateTable } from '../rates';
 

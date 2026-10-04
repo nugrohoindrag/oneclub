@@ -1,4 +1,4 @@
-import { getProperty, pub } from '../../lib';
+import { getProperty, pub } from '../../lib-p2';
 
 interface Entry {
   id: string;
@@ -10,7 +10,8 @@ interface Entry {
   score?: number | null;
 }
 
-export default async function HallOfFame() {
+export default async function HallOfFame({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
   const p = await getProperty();
   const entries = p ? (await pub<{ items: Entry[] }>(`/api/v1/public/hall-of-fame?propertyId=${p.id}`))?.items ?? [] : [];
   const groups = new Map<string, Entry[]>();
@@ -19,7 +20,7 @@ export default async function HallOfFame() {
     <div className="w-grid">
       <div className="w-card">
         <h1 style={{ marginTop: 0 }}>Hall of Fame</h1>
-        <p>Entries are shown only with each player&apos;s consent.</p>
+        <p>Entries are shown only with each player&apos;s consent. Members travelling abroad: see our <a href={`/${lang}/golf/reciprocal-clubs`}>Reciprocal Clubs</a>.</p>
       </div>
       {[...groups.entries()].map(([cat, list]) => (
         <div key={cat} className="w-card">

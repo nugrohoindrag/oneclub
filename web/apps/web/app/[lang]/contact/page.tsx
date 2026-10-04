@@ -1,4 +1,5 @@
-import { copy, getBootstrap, getProperty, type Lang } from '../../lib';
+import { copy, getBootstrap, type Lang } from '../../lib';
+import { getProperty } from '../../lib-p2';
 import { ContactForm } from '../booking';
 
 export default async function Contact({ params }: { params: Promise<{ lang: string }> }) {

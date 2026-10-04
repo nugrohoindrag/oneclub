@@ -1,4 +1,4 @@
-import { getProperty, pub, type Rate } from '../../lib';
+import { getProperty, pub, type Rate } from '../../lib-p2';
 import { BungalowBooking } from '../booking';
 import { RateTable } from '../rates';
 
@@ -11,7 +11,8 @@ interface Unit {
   facilities: string[];
 }
 
-export default async function Bungalow() {
+export default async function Bungalow({ params }: { params: Promise<{ lang: string }> }) {
+  const { lang } = await params;
   const p = await getProperty();
   if (!p) return <div className="w-card">Not available</div>;
   const [stay, rates] = await Promise.all([
@@ -21,6 +22,10 @@ export default async function Bungalow() {
   const types = stay?.bungalowTypes ?? [];
   return (
     <div className="w-grid">
+      <div className="w-card">
+        <h1 style={{ marginTop: 0 }}>Stay &amp; Venue</h1>
+        <p>Bungalows below; see also the <a href={`/${lang}/vip-suite`}>VIP Suite</a> and <a href={`/${lang}/meeting`}>Meeting Rooms</a>.</p>
+      </div>
       {types.map((t) => (
         <div key={t.id} className="w-card">
           <h2 style={{ marginTop: 0 }}>{t.name}</h2>
