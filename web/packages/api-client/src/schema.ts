@@ -12440,7 +12440,7 @@ export interface components {
         Availability: {
             /** Format: date-time */
             from: string;
-            resourceType: components["schemas"]["ResourceType"];
+            resourceType: components["schemas"]["ReservationResourceType"];
             resources: components["schemas"]["ResourceAvailability"][];
             /** Format: date-time */
             to: string;
@@ -13469,7 +13469,7 @@ export interface components {
         };
         CalendarRow: {
             entries: components["schemas"]["CalendarEntry"][];
-            resource: components["schemas"]["Resource"];
+            resource: components["schemas"]["ReservationResource"];
         };
         Campaign: {
             /** Format: date-time */
@@ -13582,7 +13582,7 @@ export interface components {
             /** @description Encode as oneclub:card:<token> in the QR */
             qrToken: string;
             /** @enum {string} */
-            status: "active" | "inactive";
+            status: "active" | "inactive" | "blocked" | "replaced";
             validUntil?: string | null;
         };
         CardInfo: {
@@ -14654,6 +14654,23 @@ export interface components {
             /** @description Optional initial password (must be changed at first login). Without it an invitation e-mail is sent. */
             password?: string | null;
             phone?: string | null;
+        };
+        CrmCustomer: {
+            /** Format: date-time */
+            birthDate?: string | null;
+            code: string;
+            email: string;
+            gender: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            phone: string;
+            /** Format: uuid */
+            propertyId: string;
+            resident: boolean;
+            status: string;
+            /** Format: uuid */
+            userId?: string | null;
         };
         CrmPreference: {
             category: string;
@@ -15814,6 +15831,13 @@ export interface components {
         ExperienceConsentInput: {
             /** @enum {string} */
             consent: "granted" | "withdrawn";
+        };
+        ExperienceHoleInput: {
+            /** Format: date-time */
+            at?: string | null;
+            deviceId?: string;
+            /** @description Hole sequence on the playing route (1 … 18) now being played */
+            seq: number;
         };
         ExperiencePayInput: {
             /** @enum {string} */
@@ -16995,7 +17019,7 @@ export interface components {
             /** Format: date-time */
             startsOn?: string | null;
             /** @enum {string} */
-            status: "pending" | "active" | "expired" | "inactive" | "none";
+            status: "pending" | "active" | "expired" | "inactive" | "paused" | "suspended" | "cancelled" | "none";
             typeCode: string;
             typeName: string;
         };
@@ -17252,24 +17276,7 @@ export interface components {
             occurredAt?: string | null;
             subject: string;
         };
-        IssueCardRequest: {
-            /** @description Physical card number; generated when empty */
-            cardNumber?: string;
-            /** @enum {string} */
-            cardType: "physical" | "digital";
-            /** @description Card number from Rhapsody */
-            legacyNumber?: string;
-            /** Format: uuid */
-            memberId: string;
-        };
-        IssueInput: {
-            /** Format: uuid */
-            customerId?: string | null;
-            reason: string;
-            /** Format: uuid */
-            voucherTypeId: string;
-        };
-        Item: {
+        InventoryItem: {
             /** Format: date-time */
             archivedAt?: string | null;
             /**
@@ -17309,7 +17316,7 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
-        ItemInput: {
+        InventoryItemInput: {
             /**
              * Format: uuid
              * @description Stock UOM
@@ -17338,6 +17345,35 @@ export interface components {
              * @enum {string|null}
              */
             status?: "active" | "inactive" | null;
+        };
+        IssueCardRequest: {
+            /** @description Physical card number; generated when empty */
+            cardNumber?: string;
+            /** @enum {string} */
+            cardType: "physical" | "digital";
+            /** @description Card number from Rhapsody */
+            legacyNumber?: string;
+            /** Format: uuid */
+            memberId: string;
+        };
+        IssueInput: {
+            /** Format: uuid */
+            customerId?: string | null;
+            reason: string;
+            /** Format: uuid */
+            voucherTypeId: string;
+        };
+        Item: {
+            children?: components["schemas"]["Item"][];
+            /** @description Module is enabled but its features arrive in a later phase */
+            comingSoon?: boolean;
+            /** @description Material Symbols Rounded name */
+            icon?: string;
+            key: string;
+            label: string;
+            module?: string;
+            path: string;
+            phase?: string;
         };
         ItemResult: {
             error?: string;
@@ -17669,33 +17705,35 @@ export interface components {
             archivedAt?: string | null;
             /**
              * @description Area
-             * @enum {string|null}
+             * @enum {string}
              */
-            area?: "male" | "female" | "unisex" | null;
+            area: "male" | "female";
             /** @description Locker No. */
             code: string;
             /** Format: date-time */
             createdAt: string;
-            /**
-             * Format: uuid
-             * @description Facility
-             */
-            facilityId?: string | null;
             /** Format: uuid */
             id: string;
+            /** @description Rhapsody Reference */
+            legacyRef?: string | null;
+            /**
+             * @description Locker Status
+             * @enum {string|null}
+             */
+            lockerStatus?: "available" | "occupied" | "maintenance" | null;
             /** @description Name */
             name: string;
             /** Format: uuid */
             propertyId?: string;
-            /** @description Size */
-            size?: string | null;
             /**
              * @description Status
              * @enum {string|null}
              */
-            status?: "available" | "occupied" | "maintenance" | "out_of_service" | null;
+            status?: "active" | "inactive" | null;
             /** Format: date-time */
             updatedAt: string;
+            /** @description Zone */
+            zone?: string | null;
         };
         LockerAssignInput: {
             /** @enum {string} */
@@ -17755,25 +17793,27 @@ export interface components {
         LockerInput: {
             /**
              * @description Area
-             * @enum {string|null}
+             * @enum {string}
              */
-            area?: "male" | "female" | "unisex" | null;
+            area?: "male" | "female";
             /** @description Locker No. */
             code?: string;
+            /** @description Rhapsody Reference */
+            legacyRef?: string | null;
             /**
-             * Format: uuid
-             * @description Facility
+             * @description Locker Status
+             * @enum {string|null}
              */
-            facilityId?: string | null;
+            lockerStatus?: "available" | "occupied" | "maintenance" | null;
             /** @description Name */
             name?: string;
-            /** @description Size */
-            size?: string | null;
             /**
              * @description Status
              * @enum {string|null}
              */
-            status?: "available" | "occupied" | "maintenance" | "out_of_service" | null;
+            status?: "active" | "inactive" | null;
+            /** @description Zone */
+            zone?: string | null;
         };
         Log: {
             action: string;
@@ -18067,7 +18107,7 @@ export interface components {
             role: "principal" | "family" | "nominee";
             startsOn: string;
             /** @enum {string} */
-            status: "pending" | "active" | "expired" | "inactive";
+            status: "pending" | "active" | "expired" | "inactive" | "paused" | "suspended" | "cancelled";
             /** Format: uuid */
             typeId: string;
             typeName: string;
@@ -18099,7 +18139,7 @@ export interface components {
             role: "principal" | "family" | "nominee";
             startsOn: string;
             /** @enum {string} */
-            status: "pending" | "active" | "expired" | "inactive";
+            status: "pending" | "active" | "expired" | "inactive" | "paused" | "suspended" | "cancelled";
             /** Format: date-time */
             suspendedAt?: string | null;
             /** @enum {string|null} */
@@ -18125,6 +18165,15 @@ export interface components {
             /** Format: date-time */
             occurredAt: string;
             toStatus?: string | null;
+        };
+        MembershipMemberInput: {
+            /** Format: uuid */
+            customerId: string;
+            /**
+             * @description Family member; empty for a corporate nominee
+             * @enum {string}
+             */
+            relationship?: "spouse" | "child" | "parent" | "sibling" | "other";
         };
         MembershipPackage: {
             /** Format: date-time */
@@ -18402,66 +18451,9 @@ export interface components {
             status?: "active" | "inactive" | null;
         };
         Menu: {
-            /** Format: date-time */
-            archivedAt?: string | null;
-            /** @description Available From */
-            availableFrom?: string | null;
-            /** @description Available To */
-            availableTo?: string | null;
-            /** @description Channels */
-            channels?: ("pos" | "member_app" | "caddy_tablet" | "website")[] | null;
-            /** @description Code */
-            code: string;
-            /** Format: date-time */
-            createdAt: string;
-            /** Format: uuid */
-            id: string;
-            /** @description Name */
-            name: string;
-            /**
-             * Format: uuid
-             * @description Outlet
-             */
-            outletId: string;
-            /** @description Products */
-            productIds?: string[] | null;
-            /** Format: uuid */
-            propertyId?: string;
-            /**
-             * @description Status
-             * @enum {string|null}
-             */
-            status?: "active" | "inactive" | null;
-            /** Format: date-time */
-            updatedAt: string;
-            /** @description Weekdays */
-            weekdays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
-        };
-        MenuInput: {
-            /** @description Available From */
-            availableFrom?: string | null;
-            /** @description Available To */
-            availableTo?: string | null;
-            /** @description Channels */
-            channels?: ("pos" | "member_app" | "caddy_tablet" | "website")[] | null;
-            /** @description Code */
-            code?: string;
-            /** @description Name */
-            name?: string;
-            /**
-             * Format: uuid
-             * @description Outlet
-             */
-            outletId?: string;
-            /** @description Products */
-            productIds?: string[] | null;
-            /**
-             * @description Status
-             * @enum {string|null}
-             */
-            status?: "active" | "inactive" | null;
-            /** @description Weekdays */
-            weekdays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
+            items: components["schemas"]["Item"][];
+            /** @enum {string} */
+            shell: "backoffice" | "management" | "member" | "ops" | "platform-admin";
         };
         MenuItem: {
             category?: string | null;
@@ -18853,7 +18845,7 @@ export interface components {
             equipment?: components["schemas"]["EquipmentLine"][];
             /** @description Rundown [{time, item}] */
             eventSchedule?: Record<string, never>[];
-            guest?: components["schemas"]["GuestInput"] | null;
+            guest?: components["schemas"]["StayGuestInput"] | null;
             /** @enum {string} */
             kind: "bungalow" | "vip_suite" | "meeting_room";
             /** @enum {string} */
@@ -19195,6 +19187,68 @@ export interface components {
             status?: "active" | "inactive" | null;
             /** @description Tax & Service Codes (empty = all) */
             taxCodes?: string[] | null;
+        };
+        OutletMenu: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Available From */
+            availableFrom?: string | null;
+            /** @description Available To */
+            availableTo?: string | null;
+            /** @description Channels */
+            channels?: ("pos" | "member_app" | "caddy_tablet" | "website")[] | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Name */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Outlet
+             */
+            outletId: string;
+            /** @description Products */
+            productIds?: string[] | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Weekdays */
+            weekdays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
+        };
+        OutletMenuInput: {
+            /** @description Available From */
+            availableFrom?: string | null;
+            /** @description Available To */
+            availableTo?: string | null;
+            /** @description Channels */
+            channels?: ("pos" | "member_app" | "caddy_tablet" | "website")[] | null;
+            /** @description Code */
+            code?: string;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: uuid
+             * @description Outlet
+             */
+            outletId?: string;
+            /** @description Products */
+            productIds?: string[] | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Weekdays */
+            weekdays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
         };
         Overview: {
             accounts: components["schemas"]["OverviewAccount"][];
@@ -20576,7 +20630,7 @@ export interface components {
             equipment?: components["schemas"]["EquipmentLine"][];
             /** @description Rundown [{time, item}] */
             eventSchedule?: Record<string, never>[];
-            guest: components["schemas"]["GuestInput"] | null;
+            guest: components["schemas"]["StayGuestInput"] | null;
             /** @enum {string} */
             kind: "bungalow" | "vip_suite" | "meeting_room";
             /** @enum {string} */
@@ -21532,6 +21586,39 @@ export interface components {
         ReservationReasonBody: {
             reason?: string;
         };
+        ReservationResource: {
+            attributes: Record<string, never>;
+            capacity?: number | null;
+            code: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: uuid */
+            propertyId: string;
+            resourceType: string;
+            status: string;
+            /** Format: uuid */
+            venueId?: string | null;
+        };
+        ReservationResourceType: {
+            allocationMode: string;
+            bufferAfterMinutes: number;
+            bufferBeforeMinutes: number;
+            businessLine: string;
+            checkInTime?: string | null;
+            checkOutTime?: string | null;
+            closeTime: string;
+            code: string;
+            holdMinutes: number;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            openTime: string;
+            reservationModel: string;
+            serviceType?: string | null;
+            slotMinutes: number;
+            status: string;
+        };
         ReservationSlot: {
             capacity?: number | null;
             /** Format: date-time */
@@ -21604,7 +21691,7 @@ export interface components {
             venueId?: string | null;
         };
         ResourceAvailability: {
-            resource: components["schemas"]["Resource"];
+            resource: components["schemas"]["ReservationResource"];
             slots: components["schemas"]["ReservationSlot"][];
         };
         ResourceInput: {
@@ -22501,6 +22588,62 @@ export interface components {
             /** @description equal: number of bills */
             persons?: number;
         };
+        SportLocker: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /**
+             * @description Area
+             * @enum {string|null}
+             */
+            area?: "male" | "female" | "unisex" | null;
+            /** @description Locker No. */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: uuid
+             * @description Facility
+             */
+            facilityId?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Size */
+            size?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "available" | "occupied" | "maintenance" | "out_of_service" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SportLockerInput: {
+            /**
+             * @description Area
+             * @enum {string|null}
+             */
+            area?: "male" | "female" | "unisex" | null;
+            /** @description Locker No. */
+            code?: string;
+            /**
+             * Format: uuid
+             * @description Facility
+             */
+            facilityId?: string | null;
+            /** @description Name */
+            name?: string;
+            /** @description Size */
+            size?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "available" | "occupied" | "maintenance" | "out_of_service" | null;
+        };
         SportclubGenerateResult: {
             sessions: number;
         };
@@ -22676,6 +22819,11 @@ export interface components {
         StayExtendInput: {
             hours: number;
         };
+        StayGuestInput: {
+            email?: string;
+            name: string;
+            phone?: string;
+        };
         StayInput: {
             adults?: number;
             /** @description Bungalow: YYYY-MM-DD (check-in time from Stay Policies) */
@@ -22702,7 +22850,7 @@ export interface components {
             equipment?: components["schemas"]["EquipmentLine"][];
             /** @description Rundown [{time, item}] */
             eventSchedule?: Record<string, never>[];
-            guest?: components["schemas"]["GuestInput"] | null;
+            guest?: components["schemas"]["StayGuestInput"] | null;
             /** @enum {string} */
             kind: "bungalow" | "vip_suite" | "meeting_room";
             /** @enum {string} */
@@ -22817,8 +22965,19 @@ export interface components {
              */
             status?: "active" | "inactive" | null;
         };
+        SyncItem: {
+            action: string;
+            /** Format: date-time */
+            clientTime?: string | null;
+            /**
+             * Format: uuid
+             * @description Client-generated UUIDv7 (idempotency key)
+             */
+            id: string;
+            payload: Record<string, never>;
+        };
         SyncRequest: {
-            items: components["schemas"]["Item"][];
+            items: components["schemas"]["SyncItem"][];
         };
         TaxServiceRule: {
             /**
@@ -28266,7 +28425,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: components["schemas"]["Menu"][];
+                        items: components["schemas"]["OutletMenu"][];
                         nextCursor?: string;
                     };
                 };
@@ -28314,7 +28473,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["MenuInput"];
+                "application/json": components["schemas"]["OutletMenuInput"];
             };
         };
         responses: {
@@ -28324,7 +28483,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Menu"];
+                    "application/json": components["schemas"]["OutletMenu"];
                 };
             };
             /** @description Not authenticated */
@@ -28376,7 +28535,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Menu"];
+                    "application/json": components["schemas"]["OutletMenu"];
                 };
             };
             /** @description Not authenticated */
@@ -28472,7 +28631,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["MenuInput"];
+                "application/json": components["schemas"]["OutletMenuInput"];
             };
         };
         responses: {
@@ -28482,7 +28641,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Menu"];
+                    "application/json": components["schemas"]["OutletMenu"];
                 };
             };
             /** @description Not authenticated */
@@ -37925,7 +38084,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Customer"];
+                    "application/json": components["schemas"]["CrmCustomer"];
                 };
             };
             /** @description Not authenticated */
@@ -50323,7 +50482,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["HoleInput"];
+                "application/json": components["schemas"]["ExperienceHoleInput"];
             };
         };
         responses: {
@@ -52260,7 +52419,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: components["schemas"]["Item"][];
+                        items: components["schemas"]["InventoryItem"][];
                         nextCursor?: string;
                     };
                 };
@@ -52308,7 +52467,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ItemInput"];
+                "application/json": components["schemas"]["InventoryItemInput"];
             };
         };
         responses: {
@@ -52318,7 +52477,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Item"];
+                    "application/json": components["schemas"]["InventoryItem"];
                 };
             };
             /** @description Not authenticated */
@@ -52370,7 +52529,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Item"];
+                    "application/json": components["schemas"]["InventoryItem"];
                 };
             };
             /** @description Not authenticated */
@@ -52466,7 +52625,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["ItemInput"];
+                "application/json": components["schemas"]["InventoryItemInput"];
             };
         };
         responses: {
@@ -52476,7 +52635,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Item"];
+                    "application/json": components["schemas"]["InventoryItem"];
                 };
             };
             /** @description Not authenticated */
@@ -59411,7 +59570,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["MemberInput"];
+                "application/json": components["schemas"]["MembershipMemberInput"];
             };
         };
         responses: {
@@ -73890,7 +74049,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: components["schemas"]["Locker"][];
+                        items: components["schemas"]["SportLocker"][];
                         nextCursor?: string;
                     };
                 };
@@ -73938,7 +74097,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LockerInput"];
+                "application/json": components["schemas"]["SportLockerInput"];
             };
         };
         responses: {
@@ -73948,7 +74107,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Locker"];
+                    "application/json": components["schemas"]["SportLocker"];
                 };
             };
             /** @description Not authenticated */
@@ -74000,7 +74159,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Locker"];
+                    "application/json": components["schemas"]["SportLocker"];
                 };
             };
             /** @description Not authenticated */
@@ -74096,7 +74255,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["LockerInput"];
+                "application/json": components["schemas"]["SportLockerInput"];
             };
         };
         responses: {
@@ -74106,7 +74265,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Locker"];
+                    "application/json": components["schemas"]["SportLocker"];
                 };
             };
             /** @description Not authenticated */

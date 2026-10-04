@@ -37,7 +37,7 @@ var UOMs = &resource.Def{
 
 var Items = &resource.Def{
 	Key: "inventory.item", Module: "inventory", Perm: "inventory.item", Path: "/api/v1/inventory/items", Table: "inventory.items",
-	Name: "Item", Plural: "Items", Tag: "BOM & Recipes", PropertyScoped: true, Archive: true, CodeField: "code", OrderBy: "name, id",
+	Name: "Item", Plural: "Items", SchemaName: "InventoryItem", Tag: "BOM & Recipes", PropertyScoped: true, Archive: true, CodeField: "code", OrderBy: "name, id",
 	Fields: []resource.Field{resource.Code("Code"), resource.Name(),
 		{Name: "category", Column: "category", Label: "Category", Kind: resource.String, Max: 80, Filter: true},
 		{Name: "itemType", Column: "item_type", Label: "Item Type", Kind: resource.Enum, Enum: []string{"raw", "semi_finished", "packaging", "consumable"}, Default: "raw", Filter: true},

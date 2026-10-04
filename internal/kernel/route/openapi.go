@@ -48,6 +48,14 @@ func (g *Registry) BuildOpenAPI(info Info) (*openapi3.T, error) {
 	}
 	rf := newReflector()
 	rf.owners = owners
+	// Resource schemas keep their names; a Go type with the same name is
+	// prefixed with its package.
+	rf.reserved = map[string]bool{}
+	for _, r := range g.Routes() {
+		if r.ResponseSchema != nil {
+			rf.reserved[r.SchemaName], rf.reserved[r.SchemaName+"Input"] = true, true
+		}
+	}
 	return g.buildOpenAPI(info, rf)
 }
 
@@ -192,6 +200,24 @@ func (g *Registry) buildOpenAPI(info Info, rf *reflector) (*openapi3.T, error) {
 		}
 		item.SetOperation(r.Method, op)
 	}
+	// A resource schema must not take the component name of a Go type (or of
+	// another resource): the later one would silently replace the earlier.
+	resSchemas := map[string]*openapi3.Schema{}
+	for _, r := range g.Routes() {
+		if r.ResponseSchema == nil || rf.reserved == nil { // checked in the final pass
+
+			continue
+		}
+		if prev, ok := resSchemas[r.SchemaName]; ok && prev != r.ResponseSchema {
+			return nil, fmt.Errorf("openapi: two resources use the schema name %q", r.SchemaName)
+		}
+		resSchemas[r.SchemaName] = r.ResponseSchema
+		for t, n := range rf.names {
+			if n == r.SchemaName || n == r.SchemaName+"Input" {
+				return nil, fmt.Errorf("openapi: resource schema %q collides with type %s.%s; set SchemaName", r.SchemaName, t.PkgPath(), t.Name())
+			}
+		}
+	}
 	names := make([]string, 0, len(tags))
 	for t := range tags {
 		names = append(names, t)
@@ -250,6 +276,7 @@ type reflector struct {
 	names      map[reflect.Type]string
 	seen       map[string][]reflect.Type
 	owners     map[string]reflect.Type
+	reserved   map[string]bool // component names of resource schemas
 }
 
 func newReflector() *reflector {
@@ -348,6 +375,9 @@ func (rf *reflector) componentName(t reflect.Type) string {
 				break
 			}
 		}
+	}
+	if rf.reserved[candidate] {
+		candidate = strings.ToUpper(pkg[:1]) + pkg[1:] + name
 	}
 	rf.names[t] = candidate
 	return candidate

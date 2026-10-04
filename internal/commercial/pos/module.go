@@ -112,7 +112,7 @@ var Modifiers = &resource.Def{
 
 var Menus = &resource.Def{
 	Key: "commercial.menu", Module: "commercial", Perm: "commercial.product", Path: "/api/v1/commercial/menus", Table: "commercial.menus",
-	Name: "Menu", Plural: "Menus", Tag: "POS", PropertyScoped: true, Archive: true, CodeField: "code", OrderBy: "name, id",
+	Name: "Menu", Plural: "Menus", SchemaName: "OutletMenu", Tag: "POS", PropertyScoped: true, Archive: true, CodeField: "code", OrderBy: "name, id",
 	Fields: []resource.Field{resource.Code("Code"), resource.Name(),
 		{Name: "outletId", Column: "outlet_id", Label: "Outlet", Kind: resource.UUID, Required: true, Filter: true, Ref: &resource.Ref{Table: "commercial.outlets", SameProperty: true, Label: "outlet"}},
 		{Name: "availableFrom", Column: "available_from", Label: "Available From", Kind: resource.Time},

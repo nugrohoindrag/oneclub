@@ -1221,7 +1221,7 @@
             "type": "string"
           },
           "resourceType": {
-            "$ref": "#/components/schemas/ResourceType"
+            "$ref": "#/components/schemas/ReservationResourceType"
           },
           "resources": {
             "items": {
@@ -4108,7 +4108,7 @@
             "type": "array"
           },
           "resource": {
-            "$ref": "#/components/schemas/Resource"
+            "$ref": "#/components/schemas/ReservationResource"
           }
         },
         "required": [
@@ -4381,7 +4381,9 @@
           "status": {
             "enum": [
               "active",
-              "inactive"
+              "inactive",
+              "blocked",
+              "replaced"
             ],
             "type": "string"
           },
@@ -7125,6 +7127,61 @@
           "email",
           "fullName",
           "assignments"
+        ],
+        "type": "object"
+      },
+      "CrmCustomer": {
+        "properties": {
+          "birthDate": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "gender": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "resident": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "code",
+          "name",
+          "email",
+          "phone",
+          "gender",
+          "resident",
+          "status"
         ],
         "type": "object"
       },
@@ -10227,6 +10284,26 @@
         },
         "required": [
           "consent"
+        ],
+        "type": "object"
+      },
+      "ExperienceHoleInput": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "deviceId": {
+            "type": "string"
+          },
+          "seq": {
+            "description": "Hole sequence on the playing route (1 … 18) now being played",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "seq"
         ],
         "type": "object"
       },
@@ -13424,6 +13501,9 @@
               "active",
               "expired",
               "inactive",
+              "paused",
+              "suspended",
+              "cancelled",
               "none"
             ],
             "type": "string"
@@ -14201,56 +14281,7 @@
         ],
         "type": "object"
       },
-      "IssueCardRequest": {
-        "properties": {
-          "cardNumber": {
-            "description": "Physical card number; generated when empty",
-            "type": "string"
-          },
-          "cardType": {
-            "enum": [
-              "physical",
-              "digital"
-            ],
-            "type": "string"
-          },
-          "legacyNumber": {
-            "description": "Card number from Rhapsody",
-            "type": "string"
-          },
-          "memberId": {
-            "format": "uuid",
-            "type": "string"
-          }
-        },
-        "required": [
-          "memberId",
-          "cardType"
-        ],
-        "type": "object"
-      },
-      "IssueInput": {
-        "properties": {
-          "customerId": {
-            "format": "uuid",
-            "nullable": true,
-            "type": "string"
-          },
-          "reason": {
-            "type": "string"
-          },
-          "voucherTypeId": {
-            "format": "uuid",
-            "type": "string"
-          }
-        },
-        "required": [
-          "voucherTypeId",
-          "reason"
-        ],
-        "type": "object"
-      },
-      "Item": {
+      "InventoryItem": {
         "properties": {
           "archivedAt": {
             "format": "date-time",
@@ -14337,7 +14368,7 @@
         ],
         "type": "object"
       },
-      "ItemInput": {
+      "InventoryItemInput": {
         "properties": {
           "baseUomId": {
             "description": "Stock UOM",
@@ -14393,6 +14424,94 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "IssueCardRequest": {
+        "properties": {
+          "cardNumber": {
+            "description": "Physical card number; generated when empty",
+            "type": "string"
+          },
+          "cardType": {
+            "enum": [
+              "physical",
+              "digital"
+            ],
+            "type": "string"
+          },
+          "legacyNumber": {
+            "description": "Card number from Rhapsody",
+            "type": "string"
+          },
+          "memberId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "memberId",
+          "cardType"
+        ],
+        "type": "object"
+      },
+      "IssueInput": {
+        "properties": {
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "voucherTypeId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "voucherTypeId",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "Item": {
+        "properties": {
+          "children": {
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": "array"
+          },
+          "comingSoon": {
+            "description": "Module is enabled but its features arrive in a later phase",
+            "type": "boolean"
+          },
+          "icon": {
+            "description": "Material Symbols Rounded name",
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "module": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "phase": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "path"
+        ],
         "type": "object"
       },
       "ItemResult": {
@@ -15401,29 +15520,37 @@
             "description": "Area",
             "enum": [
               "male",
-              "female",
-              "unisex"
+              "female"
             ],
-            "nullable": true,
             "type": "string"
           },
           "code": {
             "description": "Locker No.",
-            "maxLength": 40,
+            "maxLength": 20,
             "type": "string"
           },
           "createdAt": {
             "format": "date-time",
             "type": "string"
           },
-          "facilityId": {
-            "description": "Facility",
+          "id": {
             "format": "uuid",
+            "type": "string"
+          },
+          "legacyRef": {
+            "description": "Rhapsody Reference",
+            "maxLength": 60,
             "nullable": true,
             "type": "string"
           },
-          "id": {
-            "format": "uuid",
+          "lockerStatus": {
+            "description": "Locker Status",
+            "enum": [
+              "available",
+              "occupied",
+              "maintenance"
+            ],
+            "nullable": true,
             "type": "string"
           },
           "name": {
@@ -15435,25 +15562,23 @@
             "format": "uuid",
             "type": "string"
           },
-          "size": {
-            "description": "Size",
-            "maxLength": 20,
-            "nullable": true,
-            "type": "string"
-          },
           "status": {
             "description": "Status",
             "enum": [
-              "available",
-              "occupied",
-              "maintenance",
-              "out_of_service"
+              "active",
+              "inactive"
             ],
             "nullable": true,
             "type": "string"
           },
           "updatedAt": {
             "format": "date-time",
+            "type": "string"
+          },
+          "zone": {
+            "description": "Zone",
+            "maxLength": 40,
+            "nullable": true,
             "type": "string"
           }
         },
@@ -15462,7 +15587,8 @@
           "createdAt",
           "updatedAt",
           "code",
-          "name"
+          "name",
+          "area"
         ],
         "type": "object"
       },
@@ -15628,20 +15754,28 @@
             "description": "Area",
             "enum": [
               "male",
-              "female",
-              "unisex"
+              "female"
             ],
-            "nullable": true,
             "type": "string"
           },
           "code": {
             "description": "Locker No.",
-            "maxLength": 40,
+            "maxLength": 20,
             "type": "string"
           },
-          "facilityId": {
-            "description": "Facility",
-            "format": "uuid",
+          "legacyRef": {
+            "description": "Rhapsody Reference",
+            "maxLength": 60,
+            "nullable": true,
+            "type": "string"
+          },
+          "lockerStatus": {
+            "description": "Locker Status",
+            "enum": [
+              "available",
+              "occupied",
+              "maintenance"
+            ],
             "nullable": true,
             "type": "string"
           },
@@ -15650,20 +15784,18 @@
             "maxLength": 160,
             "type": "string"
           },
-          "size": {
-            "description": "Size",
-            "maxLength": 20,
-            "nullable": true,
-            "type": "string"
-          },
           "status": {
             "description": "Status",
             "enum": [
-              "available",
-              "occupied",
-              "maintenance",
-              "out_of_service"
+              "active",
+              "inactive"
             ],
+            "nullable": true,
+            "type": "string"
+          },
+          "zone": {
+            "description": "Zone",
+            "maxLength": 40,
             "nullable": true,
             "type": "string"
           }
@@ -16536,7 +16668,10 @@
               "pending",
               "active",
               "expired",
-              "inactive"
+              "inactive",
+              "paused",
+              "suspended",
+              "cancelled"
             ],
             "type": "string"
           },
@@ -16645,7 +16780,10 @@
               "pending",
               "active",
               "expired",
-              "inactive"
+              "inactive",
+              "paused",
+              "suspended",
+              "cancelled"
             ],
             "type": "string"
           },
@@ -16740,6 +16878,29 @@
           "event",
           "details",
           "occurredAt"
+        ],
+        "type": "object"
+      },
+      "MembershipMemberInput": {
+        "properties": {
+          "customerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "relationship": {
+            "description": "Family member; empty for a corporate nominee",
+            "enum": [
+              "spouse",
+              "child",
+              "parent",
+              "sibling",
+              "other"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "customerId"
         ],
         "type": "object"
       },
@@ -17321,193 +17482,27 @@
       },
       "Menu": {
         "properties": {
-          "archivedAt": {
-            "format": "date-time",
-            "nullable": true,
-            "type": "string"
-          },
-          "availableFrom": {
-            "description": "Available From",
-            "nullable": true,
-            "pattern": "^\\d{2}:\\d{2}$",
-            "type": "string"
-          },
-          "availableTo": {
-            "description": "Available To",
-            "nullable": true,
-            "pattern": "^\\d{2}:\\d{2}$",
-            "type": "string"
-          },
-          "channels": {
-            "description": "Channels",
+          "items": {
             "items": {
-              "enum": [
-                "pos",
-                "member_app",
-                "caddy_tablet",
-                "website"
-              ],
-              "type": "string"
+              "$ref": "#/components/schemas/Item"
             },
-            "nullable": true,
             "type": "array"
           },
-          "code": {
-            "description": "Code",
-            "maxLength": 40,
-            "type": "string"
-          },
-          "createdAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "id": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "name": {
-            "description": "Name",
-            "maxLength": 160,
-            "type": "string"
-          },
-          "outletId": {
-            "description": "Outlet",
-            "format": "uuid",
-            "type": "string"
-          },
-          "productIds": {
-            "description": "Products",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true,
-            "type": "array"
-          },
-          "propertyId": {
-            "format": "uuid",
-            "type": "string"
-          },
-          "status": {
-            "description": "Status",
+          "shell": {
             "enum": [
-              "active",
-              "inactive"
+              "backoffice",
+              "management",
+              "member",
+              "ops",
+              "platform-admin"
             ],
-            "nullable": true,
             "type": "string"
-          },
-          "updatedAt": {
-            "format": "date-time",
-            "type": "string"
-          },
-          "weekdays": {
-            "description": "Weekdays",
-            "items": {
-              "enum": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7
-              ],
-              "format": "int64",
-              "type": "integer"
-            },
-            "nullable": true,
-            "type": "array"
           }
         },
         "required": [
-          "id",
-          "createdAt",
-          "updatedAt",
-          "code",
-          "name",
-          "outletId"
+          "shell",
+          "items"
         ],
-        "type": "object"
-      },
-      "MenuInput": {
-        "properties": {
-          "availableFrom": {
-            "description": "Available From",
-            "nullable": true,
-            "pattern": "^\\d{2}:\\d{2}$",
-            "type": "string"
-          },
-          "availableTo": {
-            "description": "Available To",
-            "nullable": true,
-            "pattern": "^\\d{2}:\\d{2}$",
-            "type": "string"
-          },
-          "channels": {
-            "description": "Channels",
-            "items": {
-              "enum": [
-                "pos",
-                "member_app",
-                "caddy_tablet",
-                "website"
-              ],
-              "type": "string"
-            },
-            "nullable": true,
-            "type": "array"
-          },
-          "code": {
-            "description": "Code",
-            "maxLength": 40,
-            "type": "string"
-          },
-          "name": {
-            "description": "Name",
-            "maxLength": 160,
-            "type": "string"
-          },
-          "outletId": {
-            "description": "Outlet",
-            "format": "uuid",
-            "type": "string"
-          },
-          "productIds": {
-            "description": "Products",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true,
-            "type": "array"
-          },
-          "status": {
-            "description": "Status",
-            "enum": [
-              "active",
-              "inactive"
-            ],
-            "nullable": true,
-            "type": "string"
-          },
-          "weekdays": {
-            "description": "Weekdays",
-            "items": {
-              "enum": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7
-              ],
-              "format": "int64",
-              "type": "integer"
-            },
-            "nullable": true,
-            "type": "array"
-          }
-        },
         "type": "object"
       },
       "MenuItem": {
@@ -18569,7 +18564,7 @@
           "guest": {
             "allOf": [
               {
-                "$ref": "#/components/schemas/GuestInput"
+                "$ref": "#/components/schemas/StayGuestInput"
               }
             ],
             "nullable": true
@@ -19647,6 +19642,197 @@
             "description": "Tax \u0026 Service Codes (empty = all)",
             "items": {
               "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "OutletMenu": {
+        "properties": {
+          "archivedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "availableFrom": {
+            "description": "Available From",
+            "nullable": true,
+            "pattern": "^\\d{2}:\\d{2}$",
+            "type": "string"
+          },
+          "availableTo": {
+            "description": "Available To",
+            "nullable": true,
+            "pattern": "^\\d{2}:\\d{2}$",
+            "type": "string"
+          },
+          "channels": {
+            "description": "Channels",
+            "items": {
+              "enum": [
+                "pos",
+                "member_app",
+                "caddy_tablet",
+                "website"
+              ],
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "code": {
+            "description": "Code",
+            "maxLength": 40,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name",
+            "maxLength": 160,
+            "type": "string"
+          },
+          "outletId": {
+            "description": "Outlet",
+            "format": "uuid",
+            "type": "string"
+          },
+          "productIds": {
+            "description": "Products",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "weekdays": {
+            "description": "Weekdays",
+            "items": {
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "format": "int64",
+              "type": "integer"
+            },
+            "nullable": true,
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "code",
+          "name",
+          "outletId"
+        ],
+        "type": "object"
+      },
+      "OutletMenuInput": {
+        "properties": {
+          "availableFrom": {
+            "description": "Available From",
+            "nullable": true,
+            "pattern": "^\\d{2}:\\d{2}$",
+            "type": "string"
+          },
+          "availableTo": {
+            "description": "Available To",
+            "nullable": true,
+            "pattern": "^\\d{2}:\\d{2}$",
+            "type": "string"
+          },
+          "channels": {
+            "description": "Channels",
+            "items": {
+              "enum": [
+                "pos",
+                "member_app",
+                "caddy_tablet",
+                "website"
+              ],
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "code": {
+            "description": "Code",
+            "maxLength": 40,
+            "type": "string"
+          },
+          "name": {
+            "description": "Name",
+            "maxLength": 160,
+            "type": "string"
+          },
+          "outletId": {
+            "description": "Outlet",
+            "format": "uuid",
+            "type": "string"
+          },
+          "productIds": {
+            "description": "Products",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "weekdays": {
+            "description": "Weekdays",
+            "items": {
+              "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "format": "int64",
+              "type": "integer"
             },
             "nullable": true,
             "type": "array"
@@ -23713,7 +23899,7 @@
           "guest": {
             "allOf": [
               {
-                "$ref": "#/components/schemas/GuestInput"
+                "$ref": "#/components/schemas/StayGuestInput"
               }
             ],
             "nullable": true
@@ -26429,6 +26615,124 @@
         },
         "type": "object"
       },
+      "ReservationResource": {
+        "properties": {
+          "attributes": {
+            "type": "object"
+          },
+          "capacity": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "resourceType": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "venueId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "code",
+          "name",
+          "resourceType",
+          "status",
+          "attributes"
+        ],
+        "type": "object"
+      },
+      "ReservationResourceType": {
+        "properties": {
+          "allocationMode": {
+            "type": "string"
+          },
+          "bufferAfterMinutes": {
+            "type": "integer"
+          },
+          "bufferBeforeMinutes": {
+            "type": "integer"
+          },
+          "businessLine": {
+            "type": "string"
+          },
+          "checkInTime": {
+            "nullable": true,
+            "type": "string"
+          },
+          "checkOutTime": {
+            "nullable": true,
+            "type": "string"
+          },
+          "closeTime": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "holdMinutes": {
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "openTime": {
+            "type": "string"
+          },
+          "reservationModel": {
+            "type": "string"
+          },
+          "serviceType": {
+            "nullable": true,
+            "type": "string"
+          },
+          "slotMinutes": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "businessLine",
+          "reservationModel",
+          "allocationMode",
+          "slotMinutes",
+          "bufferBeforeMinutes",
+          "bufferAfterMinutes",
+          "holdMinutes",
+          "openTime",
+          "closeTime",
+          "status"
+        ],
+        "type": "object"
+      },
       "ReservationSlot": {
         "properties": {
           "capacity": {
@@ -26624,7 +26928,7 @@
       "ResourceAvailability": {
         "properties": {
           "resource": {
-            "$ref": "#/components/schemas/Resource"
+            "$ref": "#/components/schemas/ReservationResource"
           },
           "slots": {
             "items": {
@@ -29410,6 +29714,130 @@
         ],
         "type": "object"
       },
+      "SportLocker": {
+        "properties": {
+          "archivedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "area": {
+            "description": "Area",
+            "enum": [
+              "male",
+              "female",
+              "unisex"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "code": {
+            "description": "Locker No.",
+            "maxLength": 40,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "facilityId": {
+            "description": "Facility",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name",
+            "maxLength": 160,
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "size": {
+            "description": "Size",
+            "maxLength": 20,
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "available",
+              "occupied",
+              "maintenance",
+              "out_of_service"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "code",
+          "name"
+        ],
+        "type": "object"
+      },
+      "SportLockerInput": {
+        "properties": {
+          "area": {
+            "description": "Area",
+            "enum": [
+              "male",
+              "female",
+              "unisex"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "code": {
+            "description": "Locker No.",
+            "maxLength": 40,
+            "type": "string"
+          },
+          "facilityId": {
+            "description": "Facility",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "description": "Name",
+            "maxLength": 160,
+            "type": "string"
+          },
+          "size": {
+            "description": "Size",
+            "maxLength": 20,
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "available",
+              "occupied",
+              "maintenance",
+              "out_of_service"
+            ],
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "SportclubGenerateResult": {
         "properties": {
           "sessions": {
@@ -30010,6 +30438,23 @@
         ],
         "type": "object"
       },
+      "StayGuestInput": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
       "StayInput": {
         "properties": {
           "adults": {
@@ -30077,7 +30522,7 @@
           "guest": {
             "allOf": [
               {
-                "$ref": "#/components/schemas/GuestInput"
+                "$ref": "#/components/schemas/StayGuestInput"
               }
             ],
             "nullable": true
@@ -30392,11 +30837,37 @@
         },
         "type": "object"
       },
+      "SyncItem": {
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "clientTime": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "description": "Client-generated UUIDv7 (idempotency key)",
+            "format": "uuid",
+            "type": "string"
+          },
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "action",
+          "payload"
+        ],
+        "type": "object"
+      },
       "SyncRequest": {
         "properties": {
           "items": {
             "items": {
-              "$ref": "#/components/schemas/Item"
+              "$ref": "#/components/schemas/SyncItem"
             },
             "type": "array"
           }
@@ -40571,7 +41042,7 @@
                   "properties": {
                     "items": {
                       "items": {
-                        "$ref": "#/components/schemas/Menu"
+                        "$ref": "#/components/schemas/OutletMenu"
                       },
                       "type": "array"
                     },
@@ -40660,7 +41131,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MenuInput"
+                "$ref": "#/components/schemas/OutletMenuInput"
               }
             }
           },
@@ -40671,7 +41142,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Menu"
+                  "$ref": "#/components/schemas/OutletMenu"
                 }
               }
             },
@@ -40826,7 +41297,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Menu"
+                  "$ref": "#/components/schemas/OutletMenu"
                 }
               }
             },
@@ -40904,7 +41375,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MenuInput"
+                "$ref": "#/components/schemas/OutletMenuInput"
               }
             }
           },
@@ -40915,7 +41386,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Menu"
+                  "$ref": "#/components/schemas/OutletMenu"
                 }
               }
             },
@@ -57632,7 +58103,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Customer"
+                  "$ref": "#/components/schemas/CrmCustomer"
                 }
               }
             },
@@ -79161,7 +79632,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/HoleInput"
+                "$ref": "#/components/schemas/ExperienceHoleInput"
               }
             }
           },
@@ -82577,7 +83048,7 @@
                   "properties": {
                     "items": {
                       "items": {
-                        "$ref": "#/components/schemas/Item"
+                        "$ref": "#/components/schemas/InventoryItem"
                       },
                       "type": "array"
                     },
@@ -82666,7 +83137,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ItemInput"
+                "$ref": "#/components/schemas/InventoryItemInput"
               }
             }
           },
@@ -82677,7 +83148,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Item"
+                  "$ref": "#/components/schemas/InventoryItem"
                 }
               }
             },
@@ -82832,7 +83303,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Item"
+                  "$ref": "#/components/schemas/InventoryItem"
                 }
               }
             },
@@ -82910,7 +83381,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ItemInput"
+                "$ref": "#/components/schemas/InventoryItemInput"
               }
             }
           },
@@ -82921,7 +83392,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Item"
+                  "$ref": "#/components/schemas/InventoryItem"
                 }
               }
             },
@@ -94387,7 +94858,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/MemberInput"
+                "$ref": "#/components/schemas/MembershipMemberInput"
               }
             }
           },
@@ -118684,7 +119155,7 @@
                   "properties": {
                     "items": {
                       "items": {
-                        "$ref": "#/components/schemas/Locker"
+                        "$ref": "#/components/schemas/SportLocker"
                       },
                       "type": "array"
                     },
@@ -118773,7 +119244,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LockerInput"
+                "$ref": "#/components/schemas/SportLockerInput"
               }
             }
           },
@@ -118784,7 +119255,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Locker"
+                  "$ref": "#/components/schemas/SportLocker"
                 }
               }
             },
@@ -118939,7 +119410,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Locker"
+                  "$ref": "#/components/schemas/SportLocker"
                 }
               }
             },
@@ -119017,7 +119488,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LockerInput"
+                "$ref": "#/components/schemas/SportLockerInput"
               }
             }
           },
@@ -119028,7 +119499,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Locker"
+                  "$ref": "#/components/schemas/SportLocker"
                 }
               }
             },

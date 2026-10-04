@@ -58,7 +58,7 @@ var Courts = &resource.Def{
 
 var Lockers = &resource.Def{
 	Key: "sportclub.locker", Module: "sportclub", Perm: "sportclub.locker", Path: "/api/v1/sportclub/lockers", Table: "sportclub.lockers",
-	Name: "Locker", Plural: "Lockers", Tag: "Sport Club", PropertyScoped: true, Archive: true, CodeField: "code", OrderBy: "code, id",
+	Name: "Locker", Plural: "Lockers", SchemaName: "SportLocker", Tag: "Sport Club", PropertyScoped: true, Archive: true, CodeField: "code", OrderBy: "code, id",
 	Fields: []resource.Field{resource.Code("Locker No."), resource.Name(),
 		{Name: "area", Column: "area", Label: "Area", Kind: resource.Enum, Enum: []string{"male", "female", "unisex"}, Default: "unisex", Filter: true},
 		{Name: "facilityId", Column: "facility_id", Label: "Facility", Kind: resource.UUID, Ref: &resource.Ref{Table: "sportclub.facilities", SameProperty: true, Label: "facility"}},
