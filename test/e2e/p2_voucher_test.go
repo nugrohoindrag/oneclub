@@ -121,9 +121,8 @@ func TestP2VoucherPrepaid(t *testing.T) {
 		"kind": "value", "category": "gift", "unit": "rupiah", "faceValue": "500000", "price": "500000", "validityMonths": 12}))
 	gv := sa.Must(201, "POST", "/api/v1/commercial/vouchers:sell", map[string]any{"voucherTypeId": gift, "guestName": "Buyer",
 		"payment": map[string]any{"methodType": "bank_transfer", "reference": "TRF-77"}}).JSON()["vouchers"].([]any)[0].(map[string]any)
-	folio := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"folioType": "walk_in", "businessLine": "pos", "customerId": f.CustomerB}))
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+"/charges", map[string]any{"businessLine": "pos", "revenueComponent": "fnb",
-		"description": "Nasi Goreng", "amount": "120000"}, "Idempotency-Key", newKey())
+	folio := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": f.CustomerB, "holderName": "Walk-in"}))
+	sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+"/lines", map[string]any{"chargeType": "other", "description": "Nasi Goreng", "unitPrice": "120000"}, "Idempotency-Key", newKey())
 	pay := sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": folio, "methodType": "voucher_prepaid", "amount": "120000",
 		"tender": map[string]any{"code": gv["code"]}}, "Idempotency-Key", newKey()).JSON()
 	if pay["amount"] != "120000" || pay["tenderRef"].(map[string]any)["remaining"] != "380000" {
@@ -208,8 +207,8 @@ func TestP2MemberStatement(t *testing.T) {
 	for _, c := range []struct{ line, comp, desc, amt string }{
 		{"golf", "green_fee", "Green fee 18 holes", "640000"}, {"sportclub", "court", "Futsal court", "245000"}, {"pos", "fnb", "The Spike Bar dinner", "380000"},
 	} {
-		fo := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"folioType": "walk_in", "businessLine": c.line, "customerId": f.CustomerA}))
-		sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/charges", map[string]any{"businessLine": c.line, "revenueComponent": c.comp, "description": c.desc, "amount": c.amt})
+		fo := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": f.CustomerA, "holderName": "Walk-in"}))
+		sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/lines", map[string]any{"chargeType": "other", "description": c.desc, "unitPrice": c.amt})
 		sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": fo, "methodType": "member_account", "amount": c.amt})
 		sa.Must(200, "POST", "/api/v1/billing/folios/"+fo+":close", map[string]any{})
 	}
@@ -227,8 +226,8 @@ func TestP2MemberStatement(t *testing.T) {
 	}
 	// credit limit enforced online; payment against the account reduces it
 	sa.Must(200, "PATCH", "/api/v1/billing/member-accounts/"+f.AccountA, map[string]any{"creditLimit": st["accountBalance"]})
-	fo := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"folioType": "walk_in", "businessLine": "pos", "customerId": f.CustomerA}))
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/charges", map[string]any{"businessLine": "pos", "revenueComponent": "fnb", "description": "Coffee", "amount": "35000"})
+	fo := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": f.CustomerA, "holderName": "Walk-in"}))
+	sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/lines", map[string]any{"chargeType": "other", "description": "Coffee", "unitPrice": "35000"})
 	if r := sa.Do("POST", "/api/v1/billing/payments", map[string]any{"folioId": fo, "methodType": "member_account", "amount": "35000"}); r.Status != 409 {
 		t.Fatalf("credit limit: %s", r)
 	}
@@ -240,7 +239,7 @@ func TestP2MemberStatement(t *testing.T) {
 	sa.Must(200, "POST", "/api/v1/billing/payments/"+str(p["id"])+":refund", map[string]any{"reason": "overpaid"})
 	det := sa.Must(200, "GET", "/api/v1/billing/folios/"+fo, nil).JSON()
 	lineID := str(det["lines"].([]any)[0].(map[string]any)["id"])
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/charges", map[string]any{"businessLine": "pos", "revenueComponent": "fnb", "description": "Wrong", "amount": "1000"})
+	sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/lines", map[string]any{"chargeType": "other", "description": "Wrong", "unitPrice": "1000"})
 	det = sa.Must(200, "GET", "/api/v1/billing/folios/"+fo, nil).JSON()
 	for _, l := range det["lines"].([]any) {
 		lm := l.(map[string]any)

@@ -28,20 +28,23 @@ func TestP2MemberApp(t *testing.T) {
 	sysExec(t, inst, `UPDATE membership.memberships SET starts_on = $2 WHERE id = $1`, mustUUID(msID), dateAgo(0, 8, 0))
 
 	prof := mc.Must(200, "GET", "/api/v1/member/profile", nil).JSON()
-	if prof["profile"].(map[string]any)["id"] != cust {
+	if prof["customerId"] != cust {
 		t.Fatalf("my profile: %v", prof)
 	}
 	mc.Must(201, "POST", "/api/v1/member/preferences", map[string]any{"category": "allergy", "value": "Shellfish"})
-	if p := mc.Must(200, "GET", "/api/v1/member/profile", nil).JSON(); len(p["preferences"].([]any)) != 1 {
+	if p := mc.Must(200, "GET", "/api/v1/member/preferences", nil).JSON(); len(p["preferences"].([]any)) != 1 {
 		t.Fatalf("own health preference visible to the member: %v", p)
 	}
 	mc.Must(200, "POST", "/api/v1/member/consent", map[string]any{"profiling": true})
-	card := mc.Must(200, "GET", "/api/v1/member/card", nil).JSON()
-	if str(card["card"].(map[string]any)["qrToken"]) == "" || len(card["memberships"].([]any)) != 1 {
+	// P1 issues the digital member card; the portal shows it.
+	memberID := str(sa.Must(200, "GET", "/api/v1/membership/memberships/"+msID, nil).JSON()["memberId"])
+	sa.Must(201, "POST", "/api/v1/membership/cards", map[string]any{"memberId": memberID, "cardType": "digital"})
+	card := mc.Must(200, "GET", "/api/v1/member/membership", nil).JSON()
+	if c, ok := card["card"].(map[string]any); !ok || str(c["qrToken"]) == "" {
 		t.Fatalf("digital member card: %v", card)
 	}
 	mine := mc.Must(200, "GET", "/api/v1/member/memberships", nil).Items()
-	if len(mine) != 1 || mine[0]["id"] != msID {
+	if len(mine) != 1 || mine[0]["membershipId"] != msID {
 		t.Fatalf("my memberships: %v", mine)
 	}
 	// Another member's membership is not reachable.
@@ -60,13 +63,13 @@ func TestP2MemberApp(t *testing.T) {
 	mp := integrationID(t, inst, "mock-payment")
 	pa.Must(200, "PATCH", "/api/v1/platform/integrations/"+mp, map[string]any{"enabled": true, "settings": map[string]any{"autoPay": false}})
 	secret := str(pa.Must(200, "POST", "/api/v1/platform/integrations/"+mp+":rotate-webhook-secret", nil).JSON()["webhookSecret"])
-	folio := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"folioType": "walk_in", "businessLine": "golf", "customerId": cust}))
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+"/charges", map[string]any{"businessLine": "golf", "revenueComponent": "golf_other",
-		"description": "Golf lesson", "amount": "350000"}, "Idempotency-Key", newKey())
+	folio := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": cust, "holderName": "Walk-in"}))
+	sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+"/lines", map[string]any{"chargeType": "other", "description": "Golf lesson", "unitPrice": "350000"}, "Idempotency-Key", newKey())
 	op := mc.Must(201, "POST", "/api/v1/member/folios/"+folio+":pay-online", map[string]any{"method": "qris"}).JSON()
-	if op["status"] != "pending" || op["qrString"] == nil || op["amount"] != "350000" {
+	if op["status"] != "pending" || op["qrString"] == nil {
 		t.Fatalf("checkout: %v", op)
 	}
+	eqAmount(t, "checkout amount", op["amount"], 350000)
 	body, _ := json.Marshal(map[string]any{"id": "evt_" + uuid.NewString(), "type": "payment.paid", "data": map[string]any{"externalId": op["externalId"], "status": "paid"}})
 	hook := anon(t, inst)
 	hook.Property = uuid.Nil
@@ -77,12 +80,11 @@ func TestP2MemberApp(t *testing.T) {
 	// A background dispatcher may hold the event; wait for whichever settles it.
 	waitFor(t, 10*time.Second, "webhook settles the checkout", func() bool {
 		_, _ = inst.App.Dispatcher.DispatchPending(t.Context())
-		return mc.Must(200, "GET", "/api/v1/member/online-payments/"+str(op["id"]), nil).JSON()["status"] == "paid"
+		return mc.Must(200, "GET", "/api/v1/member/payments/"+str(op["id"]), nil).JSON()["status"] == "completed"
 	})
-	if fd := mc.Must(200, "GET", "/api/v1/member/folios/"+folio, nil).JSON(); fd["folio"].(map[string]any)["balance"] != "0" {
-		t.Fatalf("folio paid: %v", fd["folio"])
-	}
-	if r := mc.Do("GET", "/api/v1/member/folios/"+idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"folioType": "walk_in", "customerId": other})), nil); r.Status != 404 {
+	fd := mc.Must(200, "GET", "/api/v1/member/folios/"+folio, nil).JSON()
+	eqAmount(t, "folio balance after payment", fd["summary"].(map[string]any)["balance"], 0)
+	if r := mc.Do("GET", "/api/v1/member/folios/"+idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": other, "holderName": "Walk-in"})), nil); r.Status != 404 {
 		t.Fatalf("someone else's folio: %s", r)
 	}
 

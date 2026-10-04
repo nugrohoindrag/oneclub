@@ -67,8 +67,8 @@ func TestP2StayAndVenue(t *testing.T) {
 		t.Fatalf("stay code access: %v", a)
 	}
 	// restaurant bill charged to the bungalow (Charge to Stay), then check-out
-	pos := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"folioType": "walk_in", "businessLine": "pos", "customerId": guest}))
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+pos+"/charges", map[string]any{"businessLine": "pos", "revenueComponent": "fnb", "description": "Dinner", "amount": "275000"})
+	pos := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": guest, "holderName": "Walk-in"}))
+	sa.Must(201, "POST", "/api/v1/billing/folios/"+pos+"/lines", map[string]any{"chargeType": "other", "description": "Dinner", "unitPrice": "275000"})
 	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": pos, "methodType": "folio_transfer", "amount": "275000",
 		"tender": map[string]any{"targetFolioId": stay["folioId"]}})
 	if r := sa.Do("POST", "/api/v1/stay/stays/"+sid+":check-out", map[string]any{"at": rfc(time.Now())}); r.Status != 409 {

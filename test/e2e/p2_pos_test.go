@@ -207,7 +207,7 @@ func TestP2POSKitchenBOM(t *testing.T) {
 	cashier.Must(200, "POST", "/api/v1/commercial/orders/"+str(small["id"])+":void", map[string]any{"reason": "guest left"})
 
 	// Charge to a running stay / reservation folio; equal split; refund.
-	stayFolio := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"folioType": "walk_in", "businessLine": "stay", "customerId": f.CustomerB}))
+	stayFolio := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": f.CustomerB, "holderName": "Walk-in"}))
 	ch2 := sa.Must(201, "POST", "/api/v1/commercial/orders", map[string]any{"outletId": outlet, "servingDestination": "bungalow", "destinationRef": "E-01",
 		"lines": []map[string]any{{"productId": nasi}}}).JSON()
 	if c := sa.Must(200, "POST", "/api/v1/commercial/orders/"+str(ch2["id"])+":charge", map[string]any{"folioId": stayFolio}).JSON(); c["status"] != "charged" {

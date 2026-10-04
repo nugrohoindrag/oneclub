@@ -293,9 +293,8 @@ func TestP2SelfServiceCoverage(t *testing.T) {
 	}
 
 	// Billing: staff starts an online payment of a folio; POS order sent to the kitchen later.
-	folio := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"folioType": "walk_in", "businessLine": "golf", "customerId": me}))
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+"/charges", map[string]any{"businessLine": "golf", "revenueComponent": "golf_other",
-		"description": "Club rental", "amount": "250000"}, "Idempotency-Key", newKey())
+	folio := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": me, "holderName": "Walk-in"}))
+	sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+"/lines", map[string]any{"chargeType": "other", "description": "Club rental", "unitPrice": "250000"}, "Idempotency-Key", newKey())
 	if op := sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+":online-payment", map[string]any{"method": "virtual_account"}).JSON(); op["amount"] != "250000" {
 		t.Fatalf("staff online payment: %v", op)
 	}
