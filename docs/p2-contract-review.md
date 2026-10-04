@@ -2,9 +2,9 @@
 
 Untuk: Dian (pemilik P1). Branch `feat/p2-on-p1`, pembanding P1 commit `a48e6a3`.
 
-Dasar aturan: Tech Doc §4.2, §7.5, §12.3 dan PRD P2 §5.4. Semua kebutuhan P2 di module P1 ada di file baru (aditif) dan migration `00003` per module, dengan **satu pengecualian**: `billing/finance.go` (lihat bagian berikut). Mohon direview per bagian di bawah.
+Dasar aturan: Tech Doc §4.2, §7.5, §12.3 dan PRD P2 §5.4. Semua kebutuhan P2 di module P1 ada di file baru (aditif) dan migration `00003` per module. File P1 yang berubah hanya untuk dua hal: requirement PRD yang hanya bisa dipenuhi di file P1 (`billing/finance.go`) dan penyesuaian P1 hutang #6. Semuanya dirinci di bagian berikut. Mohon direview per bagian.
 
-Cek cepat file P1 yang berubah (hasilnya harus hanya `internal/billing/finance.go`):
+Cek cepat file P1 yang berubah (hasilnya harus tepat: `billing/finance.go`, `crm/overview.go`, `golf/booking.go`, `golf/http.go`, `golf/modify.go`, `golf/operations.go`, `golf/portal.go`, `golf/teesheet.go`, `membership/api.go`, `membership/http.go`):
 
 ```bash
 git diff --diff-filter=MD --stat a48e6a3 -- internal/golf internal/billing internal/crm internal/membership internal/commercial/*.go
@@ -31,6 +31,20 @@ Perilaku P1 lain tidak berubah: saldo, total, notifikasi, dan format baris yang 
 Format kolom P1 (`business_date,section,code,description,amount`) tetap. Baris P1 tidak berubah.
 
 Selain itu, `AddLineCharge` (file P2 `p2_api.go`) kini mengisi `components` setiap baris P2 dengan revenue component-nya. Sebelumnya baris P2 berkomponen kosong dan berjenis `other`, sehingga ekspor P1 menggabungkan F&B (revenue) dengan penjualan voucher (liability) di satu baris `liability,other`.
+
+## Perubahan di file P1: penyesuaian P1 (hutang #6)
+
+Temuan di kode P1 yang kami kerjakan dalam PR ini. Semua minimal; test P1 tetap hijau.
+
+| # | File P1 | Perubahan | Alasan |
+|---|---|---|---|
+| 6.1 | `membership/api.go`, `membership/http.go` | Enum dokumentasi status membership + `paused,suspended,cancelled`; status kartu + `blocked,replaced` (hanya tag `enum`) | Status baru dari `membership/00003`. Logika P1 sudah aman: semua pemeriksaan memakai `status = 'active'` / `Info.Active()`, jadi status baru dianggap tidak aktif (booking golf, member rate, kartu, portal). |
+| 6.2 | — | Tidak ada perubahan | Query P1 atas `pricing_rules` memakai inner join ke `rate_plans` dan filter `charge_type` golf; field snapshot sudah pointer. Rule non-golf tanpa rate plan tidak ikut dan tidak menimbulkan error scan. |
+| 6.3 | `crm/overview.go` (+1) | Handler Customer 360 (Basic) memanggil `hideSensitive` (P2) | Preferensi kesehatan (diet, alergi) disembunyikan tanpa `crm.preference.view_sensitive` (FR-PRF-05). Ekspor data pribadi tetap lengkap. Test: `TestP2CRM`. |
+| 6.4 | `golf/operations.go` (+7/−2) | `CaddyBoard` membaca `golf.caddy_shifts`; caddy yang sudah clock-out berstatus `not_available` | Papan caddy dan auto assignment P1 tidak lagi menawarkan caddy yang sudah pulang. Test: `TestP2GolfOperationsCoverage`. |
+| 6.5 | `golf/http.go` (handler `set-readiness`) | Memanggil `manualReadiness` (file kontrak `p2_contract.go`) | FR-CTL-02 (Must): Ready manual hanya setelah inspeksi lolos, lewat hook `ReadyGuard` (kontrak C8) yang dipasang P2. Tanpa hook, perilaku P1 tetap. **Test P1 diubah:** `p1_golf_test.go` kini mengharapkan 409 untuk Ready manual dari Maintenance, lalu rilis lewat inspeksi. |
+| 6.6 | `golf/booking.go`, `modify.go`, `portal.go`, `teesheet.go` | Query lintas schema diganti API publik: `reservation.HeldAllocations`, `billing.FolioOfLine`, `membership.MemberNo`, `membership.FindMembers`, `membership.MaxBookingWindowDays` | Tech Doc §4.2 #2. Fungsi baru ada di `reservation/module.go`, `billing/p2_api.go`, `membership/p2_api.go`. |
+| 6.7 | — | Belum diubah, **perlu diskusi** | `POST /billing/customer-accounts` untuk akun yang sudah ada tanpa perubahan mengembalikan 201 tanpa entri audit. Pilihan: 200 untuk no-op, atau catat audit. |
 
 ## Penambahan di file frontend P1 (aditif)
 

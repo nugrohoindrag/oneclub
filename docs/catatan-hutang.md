@@ -22,7 +22,7 @@ Sumber aturan: Tech Doc §4.2, §7.5, §12.3 dan PRD P2 §5.4. Cek dokumen ini d
 - **`internal/app`, catalog dan navigasi hanya diubah secara aditif.** Wiring P2 ada di `internal/app/p2.go`. Baris P1 di `app.go` tidak boleh diubah.
 - **Target akhir:** PR ke `main` tanpa conflict, dead code dan catatan yang tidak terpakai sudah dibuang.
 
-Cek cepat file P1 (hasilnya harus hanya `internal/billing/finance.go`):
+Cek cepat file P1 (hasilnya harus sama dengan daftar di `docs/p2-contract-review.md`):
 
 ```bash
 git diff --diff-filter=MD --stat a48e6a3 -- internal/golf internal/billing internal/crm internal/membership internal/commercial/*.go
