@@ -56,10 +56,11 @@ export function AutoResourcePage({ resourceKey }: { resourceKey: string }) {
   return <ResourcePage key={d.key} cfg={configFromMeta(d)} />;
 }
 
-/** Cards linking to every master data resource of a module tag. */
-export function ResourceIndex({ modules, base }: { modules: string[]; base: string }) {
+/** Cards linking to the master data resources of module tags, or of the
+ * listed resource keys only. */
+export function ResourceIndex({ modules = [], only, base }: { modules?: string[]; only?: string[]; base: string }) {
   const defs = useResourceDefs();
-  const items = (defs.data?.items ?? []).filter((d) => modules.includes(d.module));
+  const items = (defs.data?.items ?? []).filter((d) => (only ? only.includes(d.key) : modules.includes(d.module)));
   if (defs.isLoading) return <Skeleton />;
   if (items.length === 0) return null;
   return (
