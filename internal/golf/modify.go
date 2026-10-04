@@ -115,7 +115,7 @@ func (m *Module) Cancel(ctx context.Context, tx pgx.Tx, property, bid uuid.UUID,
 		}
 		// Within the free window: full refund. Otherwise the late fee —
 		// except for unpaid pending online bookings which simply lapse.
-		if hours < float64(pol.Cancellation.FreeCancelHours) && !(b.Status == "pending" && !paidAny) {
+		if hours < float64(pol.Cancellation.FreeCancelHours) && (b.Status != "pending" || paidAny) {
 			fee = total.Mul(dec(pol.Cancellation.LateCancelFeePercent)).Div(hundred).Round(0)
 		}
 	}

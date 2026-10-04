@@ -645,7 +645,8 @@ func (h *HTTP) webhookChallenge(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain")
-	_, _ = w.Write([]byte(answer))
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	_, _ = w.Write([]byte(answer)) //nolint:gosec // G705: handshake echo served as plain text with nosniff, never rendered as HTML
 }
 
 // Register adds the integration routes (PRD §10 Integration).

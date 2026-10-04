@@ -571,7 +571,7 @@ func (m *Module) availabilityHTTP(w http.ResponseWriter, r *http.Request) {
 			course = &u
 		}
 		players := 0
-		fmt.Sscan(q.Get("players"), &players)
+		_, _ = fmt.Sscan(q.Get("players"), &players)
 		var err error
 		out, err = m.availability(ctx, tx, p, day, course, q.Get("session"), players, segmentsParam(r, "member", "guest_of_member", "non_member"), "back_office")
 		return err

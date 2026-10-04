@@ -6,7 +6,6 @@ package e2e
 
 import (
 	"bufio"
-	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -368,7 +367,7 @@ func TestP1TeeSheetRealtime(t *testing.T) {
 	req.Header.Set("X-Property-Id", inst.Main.String())
 	req.Header.Set("Origin", inst.Origin)
 	client := &http.Client{Jar: gm.http.Jar}
-	resp, err := client.Do(req)
+	resp, err := client.Do(req) //nolint:bodyclose // closed by the deferred Close below; the body is read by the scanner goroutine
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -398,7 +397,7 @@ func TestP1TeeSheetRealtime(t *testing.T) {
 				return
 			}
 		case <-time.After(2 * time.Second):
-			t.Fatal(fmt.Sprintf("no SSE event within 2 s of a hold on %s", day))
+			t.Fatalf("no SSE event within 2 s of a hold on %s", day)
 		}
 	}
 }

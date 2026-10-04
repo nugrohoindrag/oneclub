@@ -56,8 +56,6 @@ type Service struct {
 	Gateways Payments
 }
 
-var hundred = decimal.NewFromInt(100)
-
 func places(cur string) int32 {
 	if cur == "IDR" || cur == "JPY" {
 		return 0
@@ -492,8 +490,8 @@ func (s *Service) TakePayment(ctx context.Context, tx pgx.Tx, in PaymentInput) (
 		in.Purpose = "settlement"
 	}
 	if in.Channel == "" {
-		switch {
-		case in.MethodType == "member_account":
+		switch in.MethodType {
+		case "member_account":
 			in.Channel = "member_account"
 		default:
 			in.Channel = "venue"
@@ -712,7 +710,7 @@ func (s *Service) SettleGateway(ctx context.Context, tx pgx.Tx, integrationCode 
 	if err != nil {
 		return err
 	}
-	if current != "pending" && !(current == "cancelled" && status == "paid") {
+	if current != "pending" && (current != "cancelled" || status != "paid") {
 		return nil
 	}
 	switch status {
