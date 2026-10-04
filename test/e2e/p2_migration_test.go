@@ -34,7 +34,8 @@ func TestP2RhapsodyImport(t *testing.T) {
 	files := map[string]string{
 		"customers.csv": string(rune(0xFEFF)) + "legacy_id,name,phone,email,birth_date\nMIG1,Budi Lama,+6281300000001,budi.lama@mig.test,1980-01-01\n" +
 			"MIG2,Sari Lama,+6281300000002,,1990-02-02\n",
-		"members.csv":        "member_no,customer_legacy_id,type_code,starts_on,status\nMIGM1,MIG1,IND," + time.Now().AddDate(0, -3, 0).Format("2006-01-02") + ",A\n",
+		"members.csv": "member_no,customer_legacy_id,type_code,starts_on,ends_on,status\nMIGM1,MIG1,IND," +
+			time.Now().AddDate(0, -3, 0).Format("2006-01-02") + "," + time.Now().AddDate(0, 9, 0).Format("2006-01-02") + ",A\n",
 		"caddies.csv":        "code,name\nMIG-C77,Caddy Lama\n",
 		"outlets.csv":        "code,name,outlet_type\nMIG-RESTO,Resto Lama,restaurant\n",
 		"products.csv":       "code,name,category,product_type,price,member_price\nMIG-NASI,Nasi Lama,Main,food,50000,45000\n",
@@ -76,7 +77,7 @@ func TestP2RhapsodyImport(t *testing.T) {
 	for _, r := range reps {
 		got[r.Entity] = r
 	}
-	for _, e := range []string{"outlets", "products", "member_charges", "vouchers", "reservations", "enrollments", "caddy_profiles", "hio", "hall_of_fame"} {
+	for _, e := range []string{"customers", "members", "outlets", "products", "member_charges", "vouchers", "reservations", "enrollments", "caddy_profiles", "hio", "hall_of_fame"} {
 		if got[e].Inserted == 0 {
 			t.Fatalf("%s not loaded: %+v", e, got[e])
 		}

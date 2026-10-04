@@ -69,12 +69,12 @@ func TestP2StayAndVenue(t *testing.T) {
 	// restaurant bill charged to the bungalow (Charge to Stay), then check-out
 	pos := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"folioType": "walk_in", "businessLine": "pos", "customerId": guest}))
 	sa.Must(201, "POST", "/api/v1/billing/folios/"+pos+"/charges", map[string]any{"businessLine": "pos", "revenueComponent": "fnb", "description": "Dinner", "amount": "275000"})
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+pos+"/payments", map[string]any{"methodType": "folio_transfer", "amount": "275000",
+	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": pos, "methodType": "folio_transfer", "amount": "275000",
 		"tender": map[string]any{"targetFolioId": stay["folioId"]}})
 	if r := sa.Do("POST", "/api/v1/stay/stays/"+sid+":check-out", map[string]any{"at": rfc(time.Now())}); r.Status != 409 {
 		t.Fatalf("check-out with an open balance must fail: %s", r)
 	}
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+str(stay["folioId"])+"/payments", map[string]any{"methodType": "card", "amount": "1125000", "reference": "EDC"})
+	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": str(stay["folioId"]), "methodType": "card", "amount": "1125000", "reference": "EDC"})
 	co := sa.Must(200, "POST", "/api/v1/stay/stays/"+sid+":check-out", map[string]any{"at": rfc(time.Now())}).JSON()
 	if co["stay"].(map[string]any)["status"] != "checked_out" || co["folio"].(map[string]any)["folio"].(map[string]any)["status"] != "closed" {
 		t.Fatalf("check-out: %v", co["stay"])

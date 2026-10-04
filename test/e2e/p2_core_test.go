@@ -65,7 +65,7 @@ func TestP2PricingRateCards(t *testing.T) {
 	}
 	// Public holiday on a weekday uses the weekend rate.
 	ph := nextWeekday(f.Loc, time.Wednesday, 8)
-	sa.Must(201, "POST", "/api/v1/platform/calendar-dates", map[string]any{"date": ph.Format("2006-01-02"), "kind": "public_holiday", "name": "Test Holiday"})
+	sa.Must(201, "POST", "/api/v1/platform/calendar-days", map[string]any{"day": ph.Format("2006-01-02"), "kind": "public_holiday", "name": "Test Holiday"})
 	if got := total(price(t, sa, map[string]any{"serviceType": "facility_entry", "segment": "walk_in", "start": rfc(at(ph, 9, 0))})); got != "255000" {
 		t.Fatalf("entry on public holiday = %s, want weekend 255000", got)
 	}
@@ -105,7 +105,8 @@ func TestP2PricingRateCards(t *testing.T) {
 		t.Fatal("persist=true must store a snapshot")
 	}
 	snap := sa.Must(200, "GET", "/api/v1/commercial/pricing-snapshots/"+str(mp["snapshotId"]), nil).JSON()
-	if str(snap["totalAmount"]) != "18942000" || str(snap["ruleCode"]) != "MEETING-FULLDAY" {
+	eqAmount(t, "snapshot total", snap["total"], 18942000)
+	if str(snap["ruleCode"]) != "MEETING-FULLDAY" {
 		t.Fatalf("snapshot %v", snap)
 	}
 	if r := sa.Do("POST", "/api/v1/commercial/pricing:resolve", map[string]any{"serviceType": "meeting_package", "package": "FULL_DAY", "quantity": 20,
@@ -244,7 +245,7 @@ func TestP2ReservationEngine(t *testing.T) {
 	}
 	// pay the folio, then cancel within the free period → full refund, no fee
 	folio := str(conf["folioId"])
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+"/payments", map[string]any{"methodType": "qris", "amount": "245000"}, "Idempotency-Key", newKey())
+	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": folio, "methodType": "card", "amount": "245000", "reference": "EDC-1"}, "Idempotency-Key", newKey())
 	can := sa.Must(200, "POST", "/api/v1/reservation/reservations/"+hid+":cancel", map[string]any{"reason": "customer request"}).JSON()
 	if can["fee"] != "0" || can["refunded"] != "245000" {
 		t.Fatalf("cancel: %v", can)

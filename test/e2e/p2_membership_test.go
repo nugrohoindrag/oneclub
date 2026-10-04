@@ -76,7 +76,7 @@ func TestP2MembershipLifecycle(t *testing.T) {
 	if r := sa.Do("POST", "/api/v1/membership/applications/"+str(app["id"])+":activate", map[string]any{}); r.Status != 409 {
 		t.Fatalf("activation before payment must fail: %s", r)
 	}
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+str(app["folioId"])+"/payments", map[string]any{"methodType": "bank_transfer", "amount": "8000000", "reference": "TRF-MB1"})
+	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": str(app["folioId"]), "methodType": "bank_transfer", "amount": "8000000", "reference": "TRF-MB1"})
 	var msID string
 	waitFor(t, 20*time.Second, "activation after payment", func() bool {
 		a := sa.Must(200, "GET", "/api/v1/membership/applications/"+str(app["id"]), nil).JSON()
@@ -179,7 +179,7 @@ func TestP2MembershipLifecycle(t *testing.T) {
 	if len(fees) != 1 {
 		t.Fatalf("due fee: %v", fees)
 	}
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+str(fees[0]["folioId"])+"/payments", map[string]any{"methodType": "cash", "amount": fees[0]["amount"]})
+	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": str(fees[0]["folioId"]), "methodType": "cash", "amount": fees[0]["amount"]})
 	waitFor(t, 20*time.Second, "lift after payment", func() bool {
 		return sa.Must(200, "GET", "/api/v1/membership/memberships/"+lid, nil).JSON()["status"] == "active"
 	})

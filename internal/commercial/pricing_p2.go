@@ -154,6 +154,9 @@ func ruleP2BeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before 
 	if before == nil {
 		v["chargeType"], m["chargeType"] = "other", "other"
 	}
+	if err := lineRuleVersion(ctx, tx, v, before); err != nil {
+		return err
+	}
 	if str(m["status"]) == "inactive" {
 		return nil
 	}
@@ -181,6 +184,47 @@ func ruleP2BeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before 
 		return err
 	}
 	return nil
+}
+
+// lineRuleVersion applies P1's rule versioning (FR-PRC-04) to the rules of
+// other lines, whose conflicts P1's hook cannot judge: an effective version
+// is immutable, and the same code creates the next version from a later
+// date, ending the previous versions the day before.
+func lineRuleVersion(ctx context.Context, tx pgx.Tx, v map[string]any, before map[string]any) error {
+	if comps, ok := v["components"]; ok {
+		if _, err := ParseComponents(comps); err != nil {
+			return err
+		}
+	}
+	today := clock.Now().Format("2006-01-02")
+	if before != nil {
+		if str(before["effectiveFrom"]) <= today {
+			for k := range v {
+				if k != "status" && k != "effectiveTo" {
+					return errs.Conflict("rule_already_effective", "this rule version is already effective; add a new version (same code) with a later effective date instead")
+				}
+			}
+		}
+		return nil
+	}
+	pid, _ := reqctx.Property(ctx)
+	var maxV *int
+	if err := tx.QueryRow(ctx, `SELECT max(version) FROM commercial.pricing_rules WHERE property_id = $1 AND code = $2`, pid, v["code"]).Scan(&maxV); err != nil {
+		return err
+	}
+	v["version"] = int64(1)
+	if maxV == nil {
+		return nil
+	}
+	if str(v["effectiveFrom"]) <= today {
+		return errs.Validation("effective_date_past", "a new version must take effect after today",
+			errs.Field("effectiveFrom", "past", "existing bookings keep their snapshot; choose a future date"))
+	}
+	v["version"] = int64(*maxV + 1)
+	_, err := tx.Exec(ctx, `UPDATE commercial.pricing_rules SET effective_to = ($3::date - 1)
+		WHERE property_id = $1 AND code = $2 AND (effective_to IS NULL OR effective_to >= $3::date) AND effective_from < $3::date`,
+		pid, v["code"], v["effectiveFrom"])
+	return err
 }
 
 // LineResolveRequest prices a service of a non-golf line (PRD P2 EP-02).

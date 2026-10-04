@@ -124,7 +124,7 @@ func TestP2VoucherPrepaid(t *testing.T) {
 	folio := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"folioType": "walk_in", "businessLine": "pos", "customerId": f.CustomerB}))
 	sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+"/charges", map[string]any{"businessLine": "pos", "revenueComponent": "fnb",
 		"description": "Nasi Goreng", "amount": "120000"}, "Idempotency-Key", newKey())
-	pay := sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+"/payments", map[string]any{"methodType": "voucher_prepaid", "amount": "120000",
+	pay := sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": folio, "methodType": "voucher_prepaid", "amount": "120000",
 		"tender": map[string]any{"code": gv["code"]}}, "Idempotency-Key", newKey()).JSON()
 	if pay["amount"] != "120000" || pay["tenderRef"].(map[string]any)["remaining"] != "380000" {
 		t.Fatalf("voucher tender: %v", pay)
@@ -210,7 +210,7 @@ func TestP2MemberStatement(t *testing.T) {
 	} {
 		fo := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"folioType": "walk_in", "businessLine": c.line, "customerId": f.CustomerA}))
 		sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/charges", map[string]any{"businessLine": c.line, "revenueComponent": c.comp, "description": c.desc, "amount": c.amt})
-		sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/payments", map[string]any{"methodType": "member_account", "amount": c.amt})
+		sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": fo, "methodType": "member_account", "amount": c.amt})
 		sa.Must(200, "POST", "/api/v1/billing/folios/"+fo+":close", map[string]any{})
 	}
 	st := sa.Must(200, "GET", "/api/v1/billing/member-accounts/"+f.AccountA+"/statement", nil).JSON()
@@ -229,14 +229,14 @@ func TestP2MemberStatement(t *testing.T) {
 	sa.Must(200, "PATCH", "/api/v1/billing/member-accounts/"+f.AccountA, map[string]any{"creditLimit": st["accountBalance"]})
 	fo := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"folioType": "walk_in", "businessLine": "pos", "customerId": f.CustomerA}))
 	sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/charges", map[string]any{"businessLine": "pos", "revenueComponent": "fnb", "description": "Coffee", "amount": "35000"})
-	if r := sa.Do("POST", "/api/v1/billing/folios/"+fo+"/payments", map[string]any{"methodType": "member_account", "amount": "35000"}); r.Status != 409 {
+	if r := sa.Do("POST", "/api/v1/billing/payments", map[string]any{"folioId": fo, "methodType": "member_account", "amount": "35000"}); r.Status != 409 {
 		t.Fatalf("credit limit: %s", r)
 	}
 	sa.Must(200, "POST", "/api/v1/billing/member-accounts/"+f.AccountA+"/entries", map[string]any{"entryType": "payment", "amount": "500000", "description": "Bank transfer"})
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/payments", map[string]any{"methodType": "member_account", "amount": "35000"})
+	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": fo, "methodType": "member_account", "amount": "35000"})
 	sa.Must(200, "PATCH", "/api/v1/billing/member-accounts/"+f.AccountA, map[string]any{"creditLimit": "50000000"})
 	// refund, void, reopen, reconciliation, export
-	p := sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/payments", map[string]any{"methodType": "cash", "amount": "10000"}).JSON()
+	p := sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": fo, "methodType": "cash", "amount": "10000"}).JSON()
 	sa.Must(200, "POST", "/api/v1/billing/payments/"+str(p["id"])+":refund", map[string]any{"reason": "overpaid"})
 	det := sa.Must(200, "GET", "/api/v1/billing/folios/"+fo, nil).JSON()
 	lineID := str(det["lines"].([]any)[0].(map[string]any)["id"])
