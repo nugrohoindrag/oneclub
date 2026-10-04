@@ -144,7 +144,7 @@ test('Platform Administration shows the §6.2 menu only to Platform Admin', asyn
 
 test('Member Portal: member logs in, top pill navigation, mobile bottom navigation', async ({ page }) => {
   await login(page, MEMBER, email('member'));
-  await expect(page.getByText('Digital Member Card')).toBeVisible();
+  await expect(page.getByText('Digital Member Card').first()).toBeVisible();
   expect(await menuLabels(page)).toEqual(expect.arrayContaining(['Home', 'Profile']));
   await page.setViewportSize({ width: 390, height: 800 });
   await expect(page.locator('.oc-bottom-nav')).toBeVisible(); // FR-SH-06 mobile

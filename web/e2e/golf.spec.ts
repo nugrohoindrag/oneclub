@@ -32,14 +32,18 @@ test('golf day: booking → payment → caddy & golf cart → check-in → tee-o
   const gm = await (await browser.newContext()).newPage();
   await login(gm, BO, 'golf.manager@demo.oneclub.id');
 
-  // tee sheet of the day (generated on demand)
+  // tee sheet of the day (generated on demand) on course MGC; the demo seed
+  // has more courses (P0), so every page below keeps its courseId
   await gm.goto(`${BO}/golf/settings`);
+  await gm.getByLabel('Course').selectOption({ label: 'Modern Golf Championship Course (MGC)' });
+  await gm.waitForURL(/courseId=/);
+  const mgc = new URL(gm.url()).searchParams.get('courseId')!;
   await gm.getByLabel('Date').fill(day);
   await gm.getByRole('button', { name: 'Generate' }).click();
   await expect(gm.getByText(/Created \d+/)).toBeVisible();
 
   // book the first open slot: the demo member and one guest
-  await gm.goto(`${BO}/golf/tee-sheet?date=${day}`);
+  await gm.goto(`${BO}/golf/tee-sheet?courseId=${mgc}&date=${day}`);
   await gm.getByRole('button', { name: 'Book', exact: true }).first().click();
   const dialog = gm.getByRole('dialog');
   await dialog.getByLabel('Member No.').fill('D0001');
@@ -49,30 +53,37 @@ test('golf day: booking → payment → caddy & golf cart → check-in → tee-o
   const drawer = gm.getByRole('dialog', { name: /Booking BK-/ });
   await expect(drawer).toBeVisible();
   const code = (await drawer.getAttribute('aria-label'))!.replace('Booking ', '');
-  await expect(drawer.getByText('Confirmed')).toBeVisible();
+  await expect(drawer.getByText('Confirmed').first()).toBeVisible();
 
   // caddies present, assigned from the queue; golf carts from Ready
-  await gm.goto(`${BO}/golf/caddies?date=${day}`);
-  await gm.getByRole('button', { name: 'Mark all present' }).click();
+  await gm.goto(`${BO}/golf/caddies?courseId=${mgc}&date=${day}`);
+  // each action waits for the server before the page changes
+  const saved = (path: string, method: string) => gm.waitForResponse((r) => r.url().includes(path) && r.request().method() === method);
+  await Promise.all([saved('/api/v1/golf/caddy-availability', 'PUT'), gm.getByRole('button', { name: 'Mark all present' }).click()]);
   await gm.getByRole('tab', { name: 'Caddy Assignment' }).click();
-  await gm.getByRole('button', { name: 'Assign from queue' }).first().click();
-  await gm.goto(`${BO}/golf/golf-carts?date=${day}`);
+  const [caddy] = await Promise.all([saved('/api/v1/golf/caddy-assignments', 'POST'), gm.getByRole('button', { name: 'Assign from queue' }).first().click()]);
+  expect(caddy.status()).toBe(201);
+  await gm.goto(`${BO}/golf/golf-carts?courseId=${mgc}&date=${day}`);
   await gm.getByRole('tab', { name: 'Golf Cart Assignment' }).click();
-  await gm.getByRole('button', { name: 'Assign Ready carts' }).first().click();
+  const [cart] = await Promise.all([saved('/api/v1/golf/golf-cart-assignments', 'POST'), gm.getByRole('button', { name: 'Assign Ready carts' }).first().click()]);
+  expect(cart.status()).toBe(201);
 
   // payment at the Front Desk (ops, password login)
   const fd = await (await browser.newContext()).newPage();
   await login(fd, OPS, 'front.desk@demo.oneclub.id', '/login/password');
+  // API calls carry what the app sends: the active property and the origin (CSRF)
+  const property = await fd.evaluate(() => localStorage.getItem('oneclub.activeProperty') ?? '');
+  const headers = { 'X-Property-Id': property, Origin: OPS };
   const api = fd.request;
-  const b = await (await api.get(`${OPS}/api/v1/golf/bookings?q=${code}&limit=1`)).json();
-  const booking = await (await api.get(`${OPS}/api/v1/golf/bookings/${b.items[0].id}`)).json();
+  const b = await (await api.get(`${OPS}/api/v1/golf/bookings?q=${code}&limit=1`, { headers })).json();
+  const booking = await (await api.get(`${OPS}/api/v1/golf/bookings/${b.items[0].id}`, { headers })).json();
   const pay = await api.post(`${OPS}/api/v1/billing/payments`, {
-    data: { folioId: booking.folioId, amount: booking.folio.balance, methodType: 'cash', channel: 'venue' },
+    headers, data: { folioId: booking.folioId, amount: booking.folio.balance, methodType: 'cash', channel: 'venue' },
   });
   expect(pay.status()).toBe(201);
 
   // check-in by booking code → the flight becomes Ready
-  await gm.goto(`${BO}/golf/check-in`);
+  await gm.goto(`${BO}/golf/check-in?courseId=${mgc}`);
   await gm.getByLabel('Value').fill(code);
   await gm.getByLabel('Date').fill(day);
   await gm.getByRole('button', { name: 'Find' }).click();
@@ -80,7 +91,7 @@ test('golf day: booking → payment → caddy & golf cart → check-in → tee-o
   await expect(gm.getByText(/Checked in 2 player/)).toBeVisible();
 
   // starter: tee-off moves the flight to In Play
-  await gm.goto(`${BO}/golf/starter?date=${day}`);
+  await gm.goto(`${BO}/golf/starter?courseId=${mgc}&date=${day}`);
   const row = gm.getByRole('row', { name: new RegExp(code) });
   await row.getByRole('button', { name: 'Tee-Off' }).click();
   await expect(gm.getByText(/In Play \(\d+\)/)).toBeVisible();
