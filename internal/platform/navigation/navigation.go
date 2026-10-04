@@ -207,13 +207,16 @@ var Trees = map[string][]Item{
 			s("membership-benefits", "Membership Benefits", "/membership/benefits", catalog.ShellMemberPortal),
 			s("family-members", "Family Members", "/membership/family", catalog.ShellMemberPortal),
 			s("membership-statement", "Membership Statement", "/membership/statements", catalog.ShellMemberPortal),
+			s("membership-services", "Fees & Requests", "/membership/services", catalog.ShellMemberPortal),
 		}},
 		{Key: "vouchers", Label: "Voucher & Prepaid", Path: "/vouchers", Icon: "redeem", Module: "commercial", Permission: catalog.ShellMemberPortal},
+		{Key: "order-food", Label: "Order Food", Path: "/order-food", Icon: "restaurant", Module: "commercial", Permission: catalog.ShellMemberPortal},
 		{Key: "transactions", Label: "Transactions", Path: "/transactions", Icon: "receipt_long", Module: "billing", Permission: catalog.ShellMemberPortal, Children: []Item{
 			s("my-transactions", "My Transactions", "/transactions", catalog.ShellMemberPortal),
 			s("member-payments", "Payments", "/transactions/payments", catalog.ShellMemberPortal),
 			s("my-member-charges", "Member Charges", "/transactions/member-charges", catalog.ShellMemberPortal),
 		}},
+		{Key: "preferences", Label: "Preferences", Path: "/preferences", Icon: "tune", Module: "crm", Permission: catalog.ShellMemberPortal},
 		{Key: "profile", Label: "Profile", Path: "/profile", Icon: "person", Permission: catalog.ShellMemberPortal},
 	},
 	"ops": {
