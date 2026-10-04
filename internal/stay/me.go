@@ -24,8 +24,8 @@ type MyStayInput struct {
 
 func (m *Module) registerMe(reg *route.Registry) {
 	db := m.DB
-	me := func(rt route.Route) { crm.MeRoute(reg, "stay", "Member App", rt) }
-	me(route.Route{Method: http.MethodGet, Path: "/api/v1/me/bungalow-availability", Summary: "Bungalow availability per type",
+	me := func(rt route.Route) { crm.MeRoute(reg, "stay", "Member Portal", rt) }
+	me(route.Route{Method: http.MethodGet, Path: "/api/v1/member/bungalow-availability", Summary: "Bungalow availability per type",
 		Response: TypeAvailability{}, List: true, Query: []route.Param{{Name: "from", Description: "YYYY-MM-DD"}, {Name: "nights", Type: "integer"}},
 		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (httpx.Page[TypeAvailability], error) {
 			p, err := crm.Me(ctx, tx)
@@ -38,7 +38,7 @@ func (m *Module) registerMe(reg *route.Registry) {
 			}
 			return handle.Page(m.BungalowAvailability(ctx, tx, p.PropertyID, from, max(handle.QueryInt(r, "nights", 1), 1)))
 		})})
-	me(route.Route{Method: http.MethodPost, Path: "/api/v1/me/stays", Summary: "Book Bungalow, VIP Suite or Meeting Room", Request: MyStayInput{},
+	me(route.Route{Method: http.MethodPost, Path: "/api/v1/member/stays", Summary: "Book Bungalow, VIP Suite or Meeting Room", Request: MyStayInput{},
 		Response: StayResult{}, Idempotent: true,
 		Handler: handle.Write(db, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, in MyStayInput) (StayResult, error) {
 			p, err := crm.Me(ctx, tx)
@@ -51,7 +51,7 @@ func (m *Module) registerMe(reg *route.Registry) {
 			}
 			return m.Book(ctx, tx, p.PropertyID, in.StayInput, r.Header.Get("Idempotency-Key"))
 		})})
-	me(route.Route{Method: http.MethodGet, Path: "/api/v1/me/stays", Summary: "My Stay (bungalow, VIP suite, meeting room)", Response: Stay{}, List: true,
+	me(route.Route{Method: http.MethodGet, Path: "/api/v1/member/stays", Summary: "My Stay (bungalow, VIP suite, meeting room)", Response: Stay{}, List: true,
 		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (httpx.Page[Stay], error) {
 			p, err := crm.Me(ctx, tx)
 			if err != nil {
