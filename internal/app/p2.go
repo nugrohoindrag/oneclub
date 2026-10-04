@@ -71,6 +71,7 @@ type P2 struct {
 
 // buildP2 wires the P2 services and routes after P1's.
 func (a *App) buildP2(reg *route.Registry, cfg *config.Config, db *dbtx.DB, files *storage.Files, billingHTTP *billing.HTTP) {
+	a.Engine.RegisterMeta(reg) // resource definitions the shell renders settings screens from
 	billingHTTP.RegisterP2(reg)
 	(&commercial.Module{DB: db}).RegisterP2(reg, a.Engine)
 	a.Reporting.RegisterP2(reg)

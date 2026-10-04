@@ -154,9 +154,6 @@ func ruleP2BeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before 
 	if before == nil {
 		v["chargeType"], m["chargeType"] = "other", "other"
 	}
-	if str(m["effectiveFrom"]) == "" {
-		v["effectiveFrom"], m["effectiveFrom"] = clock.Now().Format("2006-01-02"), clock.Now().Format("2006-01-02")
-	}
 	if str(m["status"]) == "inactive" {
 		return nil
 	}

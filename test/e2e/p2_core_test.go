@@ -35,7 +35,7 @@ func TestP2PricingRateCards(t *testing.T) {
 	}
 	// Conflicting rule (same dimensions, overlapping period) is rejected on save.
 	r := sa.Do("POST", "/api/v1/commercial/pricing-rules", map[string]any{"code": "FUTSAL-DUP", "name": "dup", "serviceType": "sport_court", "itemRef": "FUTSAL",
-		"lineDayTypeId": f.MonThu, "timeBandId": f.Morning, "unit": "slot", "unitMinutes": 60, "price": "1", "effectiveFrom": past()})
+		"lineDayTypeId": f.MonThu, "timeBandId": f.Morning, "unit": "slot", "unitMinutes": 60, "price": "1", "effectiveFrom": pastDate()})
 	if r.Status != http.StatusConflict {
 		t.Fatalf("conflicting rule: %s", r)
 	}
@@ -123,7 +123,7 @@ func TestP2PricingRateCards(t *testing.T) {
 	sa.Must(200, "PATCH", "/api/v1/commercial/pricing-rules/"+str(rules[0]["id"]), map[string]any{"status": "active"})
 	v2 := sa.Must(201, "POST", "/api/v1/commercial/pricing-rules", map[string]any{"code": "FUTSAL-MT-AM", "name": "Futsal Mon–Thu 07–16 (2027)",
 		"serviceType": "sport_court", "itemRef": "FUTSAL", "lineDayTypeId": f.MonThu, "timeBandId": f.Morning, "unit": "slot", "unitMinutes": 60,
-		"price": "185000", "effectiveFrom": rfc(time.Now().AddDate(1, 0, 0))}).JSON()
+		"price": "185000", "effectiveFrom": time.Now().AddDate(1, 0, 0).Format("2006-01-02")}).JSON()
 	if v2["version"].(float64) != 2 {
 		t.Fatalf("new version: %v", v2)
 	}

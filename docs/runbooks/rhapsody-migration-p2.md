@@ -33,7 +33,7 @@ UTF-8 CSV (BOM allowed), one file per entity, header row required. Dates `YYYY-M
 | `member_charges.csv` | legacy_id, customer_legacy_id, amount | description | Member Account opening balance (FR-MIG-P2-02) |
 | `vouchers.csv` | legacy_id, code, voucher_type_code, original_quantity, remaining_quantity, price_paid | customer_legacy_id, expires_on | Voucher with remaining liability (FR-MIG-P2-03) |
 | `memberships.csv` | legacy_id, customer_legacy_id, type_code, membership_no, start_date | end_date, card_no, legacy_card_no | Membership + card (FR-MIG-P2-04) |
-| `reservations.csv` | legacy_id, resource_code, start, end | customer_legacy_id, guest_name, business_line, notes | Confirmed future booking (FR-MIG-P2-05) |
+| `reservations.csv` | legacy_id, resource_code, start_at, end_at | customer_legacy_id, guest_name, business_line, notes | Confirmed future booking (FR-MIG-P2-05) |
 | `enrollments.csv` | legacy_id, program_code, customer_legacy_id, valid_until | | Class participant (no fee charged again) |
 | `caddies.csv` | legacy_id, code, name | level_code, joined_on, phone, gender | Caddy & level (FR-MIG-P2-06) |
 | `hio.csv` | legacy_id, player_name, section_code, hole_number, achieved_on | customer_legacy_id, witnesses (`;`-separated) | Hole-in-One history (Completed) |

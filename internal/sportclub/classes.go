@@ -241,7 +241,7 @@ func (m *Module) Enroll(ctx context.Context, tx pgx.Tx, property uuid.UUID, in E
 		return Enrollment{}, err
 	}
 	if folio != nil {
-		if err := m.settle(ctx, tx, *folio, in.Payment, nonEmpty(in.Channel, "ops"), key); err != nil {
+		if err := m.settle(ctx, tx, *folio, in.Payment, key); err != nil {
 			return Enrollment{}, err
 		}
 	}

@@ -186,7 +186,7 @@ func TestP2VoucherPrepaid(t *testing.T) {
 		t.Fatal("public voucher check must be rate limited")
 	}
 	// Accounting export: voucher sales are a liability, redemptions and breakage deferred movements.
-	exp := string(sa.Must(200, "GET", "/api/v1/billing/accounting-export", nil).Body)
+	exp := string(sa.Must(200, "GET", "/api/v1/billing/accounting-exports", nil).Body)
 	for _, want := range []string{"liability,voucher,voucher_deferred", "deferred_recognition,voucher,sport_entry", "deferred_breakage,voucher,breakage"} {
 		if !contains(exp, want) {
 			t.Fatalf("accounting export lacks %q:\n%s", want, exp)
@@ -251,20 +251,20 @@ func TestP2MemberStatement(t *testing.T) {
 	_ = lineID
 	sa.Must(200, "POST", "/api/v1/billing/folios/"+fo+":close", map[string]any{})
 	sa.Must(200, "POST", "/api/v1/billing/folios/"+fo+":reopen", map[string]any{"reason": "late tip"})
-	if n := len(sa.Must(200, "GET", "/api/v1/billing/payment-summary", nil).Items()); n == 0 {
+	if n := len(sa.Must(200, "GET", "/api/v1/billing/daily-payment-summary", nil).Items()); n == 0 {
 		t.Fatal("payment summary")
 	}
-	exp := sa.Must(200, "GET", "/api/v1/billing/accounting-export", nil)
+	exp := sa.Must(200, "GET", "/api/v1/billing/accounting-exports", nil)
 	if !contains(string(exp.Body), "revenue,golf,green_fee") || !contains(string(exp.Body), "payment,back_office,member_account") {
 		t.Fatalf("export: %s", exp.Body)
 	}
 	if n := len(sa.Must(200, "GET", "/api/v1/billing/folios?filter[customerId]="+f.CustomerA, nil).Items()); n < 3 {
 		t.Fatalf("folios %d", n)
 	}
-	if n := len(sa.Must(200, "GET", "/api/v1/billing/member-accounts?q=Hendra", nil).Items()); n != 1 {
+	if n := len(sa.Must(200, "GET", "/api/v1/billing/customer-accounts?q=Hendra", nil).Items()); n != 1 {
 		t.Fatalf("accounts %d", n)
 	}
-	if n := len(sa.Must(200, "GET", "/api/v1/billing/member-accounts:limit-cache", nil).Items()); n < 1 {
+	if n := len(sa.Must(200, "GET", "/api/v1/billing/customer-accounts:limit-cache", nil).Items()); n < 1 {
 		t.Fatalf("limit cache %d", n)
 	}
 }

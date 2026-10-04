@@ -9,10 +9,19 @@ import (
 func customer(t *testing.T, c *Client, code, name string, extra map[string]any) string {
 	t.Helper()
 	b := map[string]any{"code": code, "name": name}
+	user := ""
 	for k, v := range extra {
+		if k == "userId" {
+			user = str(v) // the portal login link is set by P1's activation, not the API
+			continue
+		}
 		b[k] = v
 	}
-	return idOf(c.Must(201, "POST", "/api/v1/crm/customers", b))
+	cid := idOf(c.Must(201, "POST", "/api/v1/crm/customers", b))
+	if user != "" {
+		sysExec(t, inst, `UPDATE crm.customers SET user_id = $2 WHERE id = $1`, mustUUID(cid), mustUUID(user))
+	}
+	return cid
 }
 
 func dateAgo(years, months, days int) string {
@@ -24,8 +33,8 @@ func dateAgo(years, months, days int) string {
 func TestP2MembershipLifecycle(t *testing.T) {
 	f := setupP2(t)
 	sa := f.SA
-	golf := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "GOLF", "name": "Golf Membership", "programKind": "golf"}))
-	sport := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "SPORT", "name": "Sport Club Membership", "programKind": "sportclub"}))
+	golf := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "P2-GOLF", "name": "Golf Membership", "programKind": "golf"}))
+	sport := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "SPORT", "name": "Sport Club Membership", "programKind": "sport_club"}))
 	famRes := idOf(sa.Must(201, "POST", "/api/v1/membership/types", map[string]any{"code": "SC-FAM-RES", "name": "Family Residence", "programId": sport,
 		"category": "family", "joiningFee": "5000000", "annualFee": "3000000", "graceDays": 30, "rank": 2, "maxMembers": 5,
 		"eligibility":  map[string]any{"residentRequired": true, "family": map[string]any{"maxAdults": 2, "maxChildren": 3, "maxChildAge": 21, "childrenUnmarried": true}},
@@ -162,7 +171,7 @@ func TestP2MembershipLifecycle(t *testing.T) {
 	if ls["status"] != "suspended" || ls["suspensionKind"] != "arrears" {
 		t.Fatalf("auto suspension: %v", ls["status"])
 	}
-	acc := sa.Must(200, "GET", "/api/v1/billing/member-accounts?filter[customerId]="+late, nil).Items()
+	acc := sa.Must(200, "GET", "/api/v1/billing/customer-accounts?filter[customerId]="+late, nil).Items()
 	if len(acc) != 1 || acc[0]["status"] != "suspended" {
 		t.Fatalf("member account suspended: %v", acc)
 	}

@@ -59,6 +59,8 @@ func rfc(t time.Time) string { return t.Format(time.RFC3339) }
 
 func past() string { return time.Now().Add(-72 * time.Hour).Format(time.RFC3339) }
 
+func pastDate() string { return time.Now().AddDate(0, 0, -3).Format("2006-01-02") }
+
 // setupP2 creates tax rules, day types, time bands and two customers.
 func setupP2(t *testing.T) *p2Fixtures {
 	t.Helper()
@@ -91,7 +93,7 @@ func setupP2(t *testing.T) *p2Fixtures {
 		f.Evening = idOf(sa.Must(201, "POST", "/api/v1/commercial/time-bands", map[string]any{"code": "16-21", "name": "16.00–21.00", "startTime": "16:00", "endTime": "21:00"}))
 		f.CustomerA = idOf(sa.Must(201, "POST", "/api/v1/crm/customers", map[string]any{"code": "P2-CUST-A", "name": "Hendra Wijaya", "email": "hendra@p2.test"}))
 		f.CustomerB = idOf(sa.Must(201, "POST", "/api/v1/crm/customers", map[string]any{"code": "P2-CUST-B", "name": "Rina Tamu", "phone": "+6281111111"}))
-		f.AccountA = idOf(sa.Must(201, "POST", "/api/v1/billing/member-accounts", map[string]any{"customerId": f.CustomerA, "creditLimit": "50000000"}))
+		f.AccountA = idOf(sa.Must(201, "POST", "/api/v1/billing/customer-accounts", map[string]any{"customerId": f.CustomerA, "accountType": "member", "creditLimit": "50000000"}))
 		p2 = f
 	})
 	if p2 == nil {
@@ -105,15 +107,15 @@ func setupP2(t *testing.T) *p2Fixtures {
 func rule(t *testing.T, c *Client, body map[string]any) string {
 	t.Helper()
 	if _, ok := body["effectiveFrom"]; !ok {
-		body["effectiveFrom"] = past()
+		body["effectiveFrom"] = pastDate()
 	}
 	return idOf(c.Must(201, "POST", "/api/v1/commercial/pricing-rules", body))
 }
 
-// price resolves a price and returns the total.
+// price resolves the price of a non-golf service.
 func price(t *testing.T, c *Client, body map[string]any) map[string]any {
 	t.Helper()
-	return c.Must(200, "POST", "/api/v1/commercial/pricing:resolve", body).JSON()
+	return c.Must(200, "POST", "/api/v1/commercial/pricing:resolve-line", body).JSON()
 }
 
 func total(p map[string]any) string { return str(p["tax"].(map[string]any)["total"]) }

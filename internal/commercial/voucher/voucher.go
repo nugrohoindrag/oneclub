@@ -1045,7 +1045,7 @@ func (m *Module) Sell(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sel
 		price, _ = decimal.NewFromString(*vt.MemberPrice)
 	}
 	var snapshot *uuid.UUID
-	preq := commercial.PriceRequest{ServiceType: "voucher_sale", ItemRef: vt.Code, Segment: in.Segment, Start: clock.Now()}
+	preq := commercial.PriceRequest{ServiceType: "voucher_sale", ItemRef: vt.Code, Segment: in.Segment, Channel: in.Channel, Start: clock.Now()}
 	if pr, err := (commercial.Pricer{}).Resolve(ctx, tx, property, preq); err == nil {
 		if _, err := (commercial.Pricer{}).Snapshot(ctx, tx, property, preq, &pr); err != nil {
 			return SaleResult{}, err
@@ -1053,10 +1053,6 @@ func (m *Module) Sell(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sel
 		price, snapshot = pr.Total(), pr.SnapshotID
 	} else if !errs.Is(err, errs.KindValidation) {
 		return SaleResult{}, err
-	}
-	channel := in.Channel
-	if channel == "" {
-		channel = "back_office"
 	}
 	var folioID uuid.UUID
 	if in.FolioID != nil {
@@ -1091,7 +1087,7 @@ func (m *Module) Sell(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sel
 		if key != "" {
 			pkey = key + "-payment"
 		}
-		if _, err := m.Billing.TakeTender(ctx, tx, billing.TenderPaymentInput{PaymentInput: billing.PaymentInput{FolioID: &folioID, MethodType: in.Payment.MethodType, Amount: amt, Reference: in.Payment.Reference, Channel: channel}, Tender: in.Payment.Tender, IdempotencyKey: pkey}); err != nil {
+		if _, err := m.Billing.TakeTender(ctx, tx, billing.TenderPaymentInput{PaymentInput: billing.PaymentInput{FolioID: &folioID, MethodType: in.Payment.MethodType, Amount: amt, Reference: in.Payment.Reference}, Tender: in.Payment.Tender, IdempotencyKey: pkey}); err != nil {
 			return out, err
 		}
 		f, err := billing.GetFolio(ctx, tx, folioID)

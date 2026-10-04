@@ -40,7 +40,7 @@ var p2Entities = []Entity{
 	{Name: "member_charges", Key: "legacy_id", Columns: []string{"legacy_id", "member_no", "amount"}, Optional: []string{"description"}},
 	{Name: "vouchers", Key: "code", Columns: []string{"code", "voucher_type_code", "original_quantity", "remaining_quantity", "price_paid"},
 		Optional: []string{"customer_legacy_id", "expires_on"}},
-	{Name: "reservations", Key: "legacy_id", Columns: []string{"legacy_id", "resource_code", "start", "end"},
+	{Name: "reservations", Key: "legacy_id", Columns: []string{"legacy_id", "resource_code", "start_at", "end_at"},
 		Optional: []string{"business_line", "customer_legacy_id", "guest_name", "notes"}},
 	{Name: "enrollments", Key: "legacy_id", Columns: []string{"legacy_id", "program_code", "customer_legacy_id", "valid_until"}},
 	{Name: "caddy_profiles", Key: "caddy_code", Columns: []string{"caddy_code"}, Optional: []string{"level_code", "joined_on"}},
@@ -172,10 +172,10 @@ func (d *Deps) p2Row(ctx context.Context, tx pgx.Tx, property uuid.UUID, entity 
 		if err := tx.QueryRow(ctx, `SELECT id FROM reservation.resources WHERE property_id = $1 AND code = upper($2)`, property, r["resource_code"]).Scan(&rid); err != nil {
 			return uuid.Nil, fmt.Errorf("resource %s not found", r["resource_code"])
 		}
-		st, err1 := time.Parse(time.RFC3339, r["start"])
-		en, err2 := time.Parse(time.RFC3339, r["end"])
+		st, err1 := time.Parse(time.RFC3339, r["start_at"])
+		en, err2 := time.Parse(time.RFC3339, r["end_at"])
 		if err1 != nil || err2 != nil {
-			return uuid.Nil, fmt.Errorf("start and end must be RFC 3339")
+			return uuid.Nil, fmt.Errorf("start_at and end_at must be RFC 3339")
 		}
 		cust, err := d.optionalCustomer(ctx, tx, property, r["customer_legacy_id"])
 		if err != nil {

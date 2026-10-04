@@ -384,7 +384,7 @@ func (m *Module) CreateEntry(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		if _, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: *folioID, ReferenceType: "sportclub.entry", ReferenceID: &eid, Description: "Entry " + f.Name + " (" + strings.ReplaceAll(in.EntryType, "_", " ") + ")", Quantity: decimal.NewFromInt(int64(quantity)), Net: amount, SnapshotID: snapshot}, BusinessLine: billing.LineSport, RevenueComponent: "sport_entry"}); err != nil {
 			return EntryResult{}, err
 		}
-		if err := m.settle(ctx, tx, *folioID, in.Payment, in.Channel, key); err != nil {
+		if err := m.settle(ctx, tx, *folioID, in.Payment, key); err != nil {
 			return EntryResult{}, err
 		}
 		d, err := billing.GetFolio(ctx, tx, *folioID)
@@ -410,7 +410,7 @@ func guestName(g *GuestInput) string {
 }
 
 // settle pays a walk-in folio and closes it when fully paid.
-func (m *Module) settle(ctx context.Context, tx pgx.Tx, folioID uuid.UUID, p *PaymentInput, channel, key string) error {
+func (m *Module) settle(ctx context.Context, tx pgx.Tx, folioID uuid.UUID, p *PaymentInput, key string) error {
 	if p == nil {
 		return nil
 	}
@@ -430,7 +430,7 @@ func (m *Module) settle(ctx context.Context, tx pgx.Tx, folioID uuid.UUID, p *Pa
 	if key != "" {
 		pk = key + "-pay"
 	}
-	if _, err := m.Billing.TakeTender(ctx, tx, billing.TenderPaymentInput{PaymentInput: billing.PaymentInput{FolioID: &folioID, MethodType: p.MethodType, Amount: amt, Reference: p.Reference, Channel: channel}, Tender: p.Tender, IdempotencyKey: pk}); err != nil {
+	if _, err := m.Billing.TakeTender(ctx, tx, billing.TenderPaymentInput{PaymentInput: billing.PaymentInput{FolioID: &folioID, MethodType: p.MethodType, Amount: amt, Reference: p.Reference}, Tender: p.Tender, IdempotencyKey: pk}); err != nil {
 		return err
 	}
 	f, err = billing.GetFolio(ctx, tx, folioID)
@@ -798,7 +798,7 @@ func (m *Module) AssignLocker(ctx context.Context, tx pgx.Tx, property uuid.UUID
 		return LockerAssignment{}, err
 	}
 	if folio != nil {
-		if err := m.settle(ctx, tx, *folio, in.Payment, "ops", key); err != nil {
+		if err := m.settle(ctx, tx, *folio, in.Payment, key); err != nil {
 			return LockerAssignment{}, err
 		}
 	}
@@ -917,7 +917,7 @@ func (m *Module) BookCourt(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 		}
 		out.Total = total.String()
 		if in.Payment != nil && r.FolioID != nil {
-			if err := m.settle(ctx, tx, *r.FolioID, in.Payment, in.Channel, key); err != nil {
+			if err := m.settle(ctx, tx, *r.FolioID, in.Payment, key); err != nil {
 				return out, err
 			}
 			if r.Status == reservation.StatusDraft {

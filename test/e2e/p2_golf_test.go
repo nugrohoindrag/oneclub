@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -21,24 +22,37 @@ func setupGolfCourse(t *testing.T, c *Client, prefix string) golfCourse {
 	g := golfCourse{}
 	g.Course = idOf(c.Must(201, "POST", "/api/v1/golf/courses", map[string]any{"code": prefix, "name": prefix + " Course", "venueId": venue, "holes": 18}))
 	pars := []int{4, 4, 3, 5, 4, 4, 3, 4, 5}
-	var sections []string
+	// green and hazard points are P1 course assets (GeoJSON, [lng, lat])
+	point := func(lat float64) map[string]any {
+		return map[string]any{"type": "Point", "coordinates": []float64{106.6, lat}}
+	}
 	for si, sec := range []string{"A", "B"} {
-		sid := idOf(c.Must(201, "POST", "/api/v1/golf/course-sections", map[string]any{"code": prefix + "-" + sec, "name": "Section " + sec, "courseId": g.Course}))
-		sections = append(sections, sid)
+		sid := idOf(c.Must(201, "POST", "/api/v1/golf/course-sections", map[string]any{"code": prefix + "-" + sec, "name": "Section " + sec,
+			"courseId": g.Course, "sequence": si + 1}))
 		for i, par := range pars {
-			geo := map[string]any{"tee": []float64{-6.2 + float64(i)*0.001, 106.6}, "greenFront": []float64{-6.2 + float64(i)*0.001 + 0.003, 106.6},
-				"greenCenter": []float64{-6.2 + float64(i)*0.001 + 0.0032, 106.6}, "greenBack": []float64{-6.2 + float64(i)*0.001 + 0.0034, 106.6},
-				"hazards": []map[string]any{{"name": "Bunker", "lat": -6.2 + float64(i)*0.001 + 0.002, "lng": 106.6}}}
-			c.Must(201, "POST", "/api/v1/golf/holes", map[string]any{"sectionId": sid, "number": i + 1, "par": par, "strokeIndex": 2*i + 1 + si,
-				"targetMinutes": 14, "geo": geo})
+			n := si*9 + i + 1
+			code := fmt.Sprintf("%s-H%02d", prefix, n)
+			hid := idOf(c.Must(201, "POST", "/api/v1/golf/holes", map[string]any{"courseId": g.Course, "sectionId": sid, "code": code, "number": n,
+				"par": par, "strokeIndex": 2*i + 1 + si}))
+			c.Must(204, "PUT", "/api/v1/golf/holes/"+hid+"/pace-target", map[string]any{"targetMinutes": 14})
+			tee := -6.2 + float64(i)*0.001
+			for _, a := range []struct {
+				typ, name string
+				lat       float64
+			}{{"green_front", "Green front", tee + 0.003}, {"green_center", "Green center", tee + 0.0032}, {"green_back", "Green back", tee + 0.0034},
+				{"hazard", "Bunker", tee + 0.002}} {
+				c.Must(201, "POST", "/api/v1/golf/course-assets", map[string]any{"courseId": g.Course, "holeId": hid, "code": code + "-" + strings.ToUpper(a.typ),
+					"assetType": a.typ, "name": a.name, "geometry": point(a.lat)})
+			}
 		}
 	}
 	g.TeeSet = idOf(c.Must(201, "POST", "/api/v1/golf/tee-sets", map[string]any{"code": prefix + "-BLUE", "name": "Blue", "courseId": g.Course,
-		"courseRating": "72.0", "slopeRating": 130}))
+		"courseRating": "72.0", "slope": 130}))
 	g.RouteAB = idOf(c.Must(201, "POST", "/api/v1/golf/playing-routes", map[string]any{"code": prefix + "-AB", "name": "A+B", "courseId": g.Course,
-		"sectionIds": sections, "toleranceMinutes": 10}))
+		"sectionCodes": prefix + "-A," + prefix + "-B"}))
+	c.Must(204, "PUT", "/api/v1/golf/playing-routes/"+g.RouteAB+"/pace-tolerance", map[string]any{"toleranceMinutes": 10})
 	g.RouteA = idOf(c.Must(201, "POST", "/api/v1/golf/playing-routes", map[string]any{"code": prefix + "-A", "name": "A only", "courseId": g.Course,
-		"sectionIds": sections[:1]}))
+		"sectionCodes": prefix + "-A"}))
 	g.Holes = c.Must(200, "GET", "/api/v1/golf/playing-routes/"+g.RouteAB+"/holes?teeSetId="+g.TeeSet, nil).Items()
 	return g
 }
@@ -80,14 +94,14 @@ func TestP2GolfRound(t *testing.T) {
 	if r := sa.Do("POST", "/api/v1/golf/caddy-attendance:clock-in", map[string]any{"caddyId": c1}); r.Status != 409 {
 		t.Fatalf("double clock-in: %s", r)
 	}
-	q := sa.Must(200, "GET", "/api/v1/golf/caddy-queue", nil).Items()
+	q := sa.Must(200, "GET", "/api/v1/golf/caddy-rotation", nil).Items()
 	if len(q) != 2 || q[0]["caddyId"] != c1 {
 		t.Fatalf("rotation by arrival: %v", q)
 	}
 
 	// Golf carts: only an inspected cart is Ready.
-	sa.Must(201, "POST", "/api/v1/golf/cart-checklists", map[string]any{"code": "PREOP", "name": "Pre-op", "inspectionKind": "pre_op", "items": []string{"Brakes", "Battery", "Tyres"}})
-	sa.Must(201, "POST", "/api/v1/golf/cart-checklists", map[string]any{"code": "POSTOP", "name": "Post-op", "inspectionKind": "post_op", "items": []string{"Body", "Battery"}})
+	sa.Must(201, "POST", "/api/v1/golf/golf-cart-checklists", map[string]any{"code": "PREOP", "name": "Pre-op", "inspectionKind": "pre_op", "items": []string{"Brakes", "Battery", "Tyres"}})
+	sa.Must(201, "POST", "/api/v1/golf/golf-cart-checklists", map[string]any{"code": "POSTOP", "name": "Post-op", "inspectionKind": "post_op", "items": []string{"Body", "Battery"}})
 	b1 := idOf(sa.Must(201, "POST", "/api/v1/golf/golf-carts", map[string]any{"code": "B01", "name": "Buggy 01", "serviceThresholdHours": "1"}))
 	b2 := idOf(sa.Must(201, "POST", "/api/v1/golf/golf-carts", map[string]any{"code": "B02", "name": "Buggy 02"}))
 	ok3 := []map[string]any{{"item": "Brakes", "pass": true}, {"item": "Battery", "pass": true}, {"item": "Tyres", "pass": true}}
@@ -144,7 +158,7 @@ func TestP2GolfRound(t *testing.T) {
 
 	// Caddy tablet: My Assignments, accept, round information.
 	cad := roleUser(t, inst, "caddy")
-	my := cad.Must(200, "GET", "/api/v1/golf/tablet/assignments", nil).JSON()
+	my := cad.Must(200, "GET", "/api/v1/golf/my-assignments", nil).JSON()
 	if len(my["next"].([]any)) != 1 {
 		t.Fatalf("my assignments: %v", my)
 	}
@@ -153,9 +167,9 @@ func TestP2GolfRound(t *testing.T) {
 	if len(ri["holes"].([]any)) != 18 || len(ri["players"].([]any)) != 2 {
 		t.Fatalf("round info: %v", ri)
 	}
-	cad.Must(201, "POST", "/api/v1/golf/tablet/customers/"+f.CustomerA+"/preferences", map[string]any{"category": "beverage", "value": "Es Teh Tawar"})
+	cad.Must(201, "POST", "/api/v1/golf/customers/"+f.CustomerA+"/preferences", map[string]any{"category": "beverage", "value": "Es Teh Tawar"})
 	other := roleUser(t, inst, "golf_staff")
-	if r := other.Do("GET", "/api/v1/golf/tablet/assignments", nil); r.Status != 403 {
+	if r := other.Do("GET", "/api/v1/golf/my-assignments", nil); r.Status != 403 {
 		t.Fatalf("tablet is for caddies: %s", r)
 	}
 
@@ -219,11 +233,11 @@ func TestP2GolfRound(t *testing.T) {
 	// Caddy Replacement at hole 10 (staff); holes 10–18 online from TAB-2.
 	sa.Must(200, "POST", "/api/v1/golf/caddy-assignments/"+str(ca["id"])+":replace", map[string]any{"newId": c2, "reason": "Caddy unwell", "atSeq": 10})
 	for s := 10; s <= 18; s++ {
-		cad.Do("POST", "/api/v1/golf/rounds/"+fid+":hole", map[string]any{"seq": s, "at": rfc(holeAt(s)), "deviceId": "TAB-2"})
+		cad.Do("POST", "/api/v1/golf/rounds/"+fid+":hole-progress", map[string]any{"seq": s, "at": rfc(holeAt(s)), "deviceId": "TAB-2"})
 		sa.Must(200, "POST", "/api/v1/golf/scorecards/"+cardA+"/scores", map[string]any{"source": "caddy", "entries": []map[string]any{{"seq": s, "strokes": strokesA[s-1], "putts": 2}}})
 		sa.Must(200, "POST", "/api/v1/golf/scorecards/"+cardV+"/scores", map[string]any{"entries": []map[string]any{{"seq": s, "strokes": strokesV[s-1]}}})
 	}
-	fin := sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":finish", map[string]any{"at": rfc(holeAt(18).Add(13 * time.Minute))}).JSON()
+	fin := sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":complete", map[string]any{"at": rfc(holeAt(18).Add(13 * time.Minute))}).JSON()
 	if fin["status"] != "finished" {
 		t.Fatalf("finish: %v", fin)
 	}
@@ -292,18 +306,18 @@ func TestP2GolfRound(t *testing.T) {
 	if r := other.Do("GET", "/api/v1/golf/scorecards/"+cardA, nil); r.Status != 403 {
 		t.Fatalf("score privacy: %s", r)
 	}
-	stats := sa.Must(200, "GET", "/api/v1/golf/players/"+f.CustomerA+"/stats", nil).JSON()
+	stats := sa.Must(200, "GET", "/api/v1/golf/players/"+f.CustomerA+"/statistics", nil).JSON()
 	if stats["rounds"].(float64) != 1 || stats["birdiesOrBetter"].(float64) < 2 {
 		t.Fatalf("round statistics: %v", stats)
 	}
 
 	// Hole-in-One: draft from the card → verification → Hall of Fame (opt-in) → claim.
-	hios := sa.Must(200, "GET", "/api/v1/golf/hio?filter[status]=draft", nil).Items()
+	hios := sa.Must(200, "GET", "/api/v1/golf/hole-in-ones?filter[status]=draft", nil).Items()
 	if len(hios) != 1 || hios[0]["insured"] != true || hios[0]["caddyId"] != c1 {
 		t.Fatalf("HIO draft: %v", hios)
 	}
 	hid := str(hios[0]["id"])
-	if v := sa.Must(200, "POST", "/api/v1/golf/hio/"+hid+":submit", map[string]any{"witnesses": []map[string]any{{"name": "Tamu Visitor", "statement": "Saw it drop"}}}).JSON(); v["status"] != "verified" {
+	if v := sa.Must(200, "POST", "/api/v1/golf/hole-in-ones/"+hid+":submit", map[string]any{"witnesses": []map[string]any{{"name": "Tamu Visitor", "statement": "Saw it drop"}}}).JSON(); v["status"] != "verified" {
 		t.Fatalf("HIO verified: %v", v)
 	}
 	hof := sa.Must(200, "GET", "/api/v1/golf/hall-of-fame?filter[category]=hole_in_one", nil).Items()
@@ -322,11 +336,11 @@ func TestP2GolfRound(t *testing.T) {
 	if k := pub.Must(200, "GET", "/api/v1/public/hall-of-fame/kiosk?propertyId="+inst.Main.String(), nil).JSON(); len(k["entries"].([]any)) != 1 {
 		t.Fatalf("kiosk after opt-in: %v", k)
 	}
-	claim := sa.Must(200, "POST", "/api/v1/golf/hio/"+hid+":claim", map[string]any{"submittedOn": time.Now().Format("2006-01-02"), "providerRef": "INS-77"}).JSON()
+	claim := sa.Must(200, "POST", "/api/v1/golf/hole-in-ones/"+hid+":claim", map[string]any{"submittedOn": time.Now().Format("2006-01-02"), "providerRef": "INS-77"}).JSON()
 	if claim["status"] != "claimed" || len(claim["claimDocuments"].([]any)) != 1 {
 		t.Fatalf("claim: %v", claim)
 	}
-	if done := sa.Must(200, "POST", "/api/v1/golf/hio/"+hid+":claim-update", map[string]any{"claimStatus": "paid", "paidAmount": "25000000"}).JSON(); done["status"] != "completed" {
+	if done := sa.Must(200, "POST", "/api/v1/golf/hole-in-ones/"+hid+":update-claim", map[string]any{"claimStatus": "paid", "paidAmount": "25000000"}).JSON(); done["status"] != "completed" {
 		t.Fatalf("claim paid: %v", done)
 	}
 
@@ -346,7 +360,7 @@ func TestP2GolfRound(t *testing.T) {
 			t.Fatalf("liability after payment: %v", l)
 		}
 	}
-	earn := cad.Must(200, "GET", "/api/v1/golf/tablet/earnings", nil).JSON()
+	earn := cad.Must(200, "GET", "/api/v1/golf/my-earnings", nil).JSON()
 	if earn["caddyFee"] != "200000" || earn["tips"] != "50000" {
 		t.Fatalf("tablet earnings: %v", earn)
 	}
@@ -381,9 +395,9 @@ func TestP2GolfRound(t *testing.T) {
 		t.Fatalf("utilization: %v", u)
 	}
 	// Golf cart damage incident → approval → charged to the player's folio.
-	inc := sa.Must(201, "POST", "/api/v1/golf/cart-incidents", map[string]any{"cartId": b1, "flightId": fid, "playerId": pA["id"], "category": "damage",
+	inc := sa.Must(201, "POST", "/api/v1/golf/golf-cart-incidents", map[string]any{"cartId": b1, "flightId": fid, "playerId": pA["id"], "category": "damage",
 		"severity": "medium", "description": "Cracked windscreen", "damageAmount": "750000"}).JSON()
-	if got := sa.Must(200, "GET", "/api/v1/golf/incidents?filter[cartId]="+b1, nil).Items(); got[0]["damageStatus"] != "charged" {
+	if got := sa.Must(200, "GET", "/api/v1/golf/caddy-incidents?filter[cartId]="+b1, nil).Items(); got[0]["damageStatus"] != "charged" {
 		t.Fatalf("damage charge: %v (incident %v)", got, inc["incidentNo"])
 	}
 	// Customer context on the tablet carries the caddy-recorded preference.
@@ -407,9 +421,9 @@ func TestP2GolfPaceAndRange(t *testing.T) {
 	fid := str(fl["id"])
 	sa.Must(200, "POST", "/api/v1/golf/flights/"+fid+":check-in", map[string]any{"noCharge": true})
 	sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":tee-off", map[string]any{"at": rfc(now.Add(-60 * time.Minute))})
-	sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":hole", map[string]any{"seq": 2, "at": rfc(now.Add(-40 * time.Minute))})
+	sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":hole-progress", map[string]any{"seq": 2, "at": rfc(now.Add(-40 * time.Minute))})
 	var pace map[string]any
-	for _, p := range sa.Must(200, "GET", "/api/v1/golf/pace", nil).Items() {
+	for _, p := range sa.Must(200, "GET", "/api/v1/golf/pace-of-play", nil).Items() {
 		if p["flightId"] == fid {
 			pace = p
 		}
@@ -431,13 +445,13 @@ func TestP2GolfPaceAndRange(t *testing.T) {
 	if bays := sa.Must(200, "GET", "/api/v1/golf/range-bays", nil).Items(); bays[0]["resourceId"] == nil {
 		t.Fatalf("bay is a bookable resource: %v", bays)
 	}
-	s1 := sa.Must(201, "POST", "/api/v1/golf/range/sessions", map[string]any{"customerId": f.CustomerB}).JSON()
-	s2 := sa.Must(201, "POST", "/api/v1/golf/range/sessions", map[string]any{"guestName": "Queue Guest"}).JSON()
+	s1 := sa.Must(201, "POST", "/api/v1/golf/range-sessions", map[string]any{"customerId": f.CustomerB}).JSON()
+	s2 := sa.Must(201, "POST", "/api/v1/golf/range-sessions", map[string]any{"guestName": "Queue Guest"}).JSON()
 	if s1["status"] != "active" || s2["status"] != "waiting" || s2["queuePosition"].(float64) != 1 {
 		t.Fatalf("bay assignment & queue: %v / %v", s1, s2)
 	}
-	sa.Must(200, "POST", "/api/v1/golf/range/sessions/"+str(s1["id"])+":end", nil)
-	if s := sa.Must(200, "GET", "/api/v1/golf/range/sessions?filter[status]=active", nil).Items(); len(s) != 1 || s[0]["id"] != s2["id"] {
+	sa.Must(200, "POST", "/api/v1/golf/range-sessions/"+str(s1["id"])+":end", nil)
+	if s := sa.Must(200, "GET", "/api/v1/golf/range-sessions?filter[status]=active", nil).Items(); len(s) != 1 || s[0]["id"] != s2["id"] {
 		t.Fatalf("next in queue gets the bay: %v", s)
 	}
 	balls := idOf(sa.Must(201, "POST", "/api/v1/commercial/voucher-types", map[string]any{"code": "RNG5000", "name": "Paket 5.000 Bola (range)",
@@ -446,18 +460,18 @@ func TestP2GolfPaceAndRange(t *testing.T) {
 	sa.Must(201, "POST", "/api/v1/commercial/vouchers:sell", map[string]any{"voucherTypeId": balls, "customerId": cust, "payment": map[string]any{"methodType": "cash"}},
 		"Idempotency-Key", newKey())
 	key := newKey()
-	b := sa.Must(201, "POST", "/api/v1/golf/range/buckets", map[string]any{"customerId": cust, "balls": 50, "source": "prepaid"}, "Idempotency-Key", key).JSON()
+	b := sa.Must(201, "POST", "/api/v1/golf/range-buckets", map[string]any{"customerId": cust, "balls": 50, "source": "prepaid"}, "Idempotency-Key", key).JSON()
 	if b["remainingBalance"] != "4950" || b["dispenseMode"] != "manual" || len(str(b["dispenserCode"])) != 6 {
 		t.Fatalf("prepaid bucket: %v", b)
 	}
-	if again := sa.Must(201, "POST", "/api/v1/golf/range/buckets", map[string]any{"customerId": cust, "balls": 50, "source": "prepaid"}, "Idempotency-Key", key).JSON(); again["id"] != b["id"] {
+	if again := sa.Must(201, "POST", "/api/v1/golf/range-buckets", map[string]any{"customerId": cust, "balls": 50, "source": "prepaid"}, "Idempotency-Key", key).JSON(); again["id"] != b["id"] {
 		t.Fatalf("idempotent bucket: %v", again)
 	}
-	if r := sa.Do("POST", "/api/v1/golf/range/buckets", map[string]any{"balls": 50, "source": "complimentary"}); r.Status != 422 {
+	if r := sa.Do("POST", "/api/v1/golf/range-buckets", map[string]any{"balls": 50, "source": "complimentary"}); r.Status != 422 {
 		t.Fatalf("complimentary needs a reason: %s", r)
 	}
-	sa.Must(201, "POST", "/api/v1/golf/range/buckets", map[string]any{"balls": 30, "source": "complimentary", "reason": "Junior clinic"})
-	u := sa.Must(200, "GET", "/api/v1/golf/range/usage", nil).JSON()
+	sa.Must(201, "POST", "/api/v1/golf/range-buckets", map[string]any{"balls": 30, "source": "complimentary", "reason": "Junior clinic"})
+	u := sa.Must(200, "GET", "/api/v1/golf/range-usage", nil).JSON()
 	if u["balls"].(float64) != 80 || u["ballsBySource"].(map[string]any)["prepaid"].(float64) != 50 || u["sessions"].(float64) < 2 {
 		t.Fatalf("range usage: %v", u)
 	}

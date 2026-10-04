@@ -41,7 +41,7 @@ func TestP2RhapsodyImport(t *testing.T) {
 		"member_charges.csv": "legacy_id,member_no,amount,description\nMC1,MIGM1,1250000,F&B outstanding Sep\nMC2,MIGM404,10000,unknown member\n",
 		"vouchers.csv": "code,voucher_type_code,customer_legacy_id,original_quantity,remaining_quantity,price_paid,expires_on\n" +
 			"MIGBALL0001,MIG-BALL,MIG2,5000,2000,4600000," + time.Now().AddDate(0, 3, 0).Format("2006-01-02") + "\n",
-		"reservations.csv": "legacy_id,resource_code,start,end,customer_legacy_id,business_line,notes\nRR1," + resCode + "," + start.Format(time.RFC3339) + "," +
+		"reservations.csv": "legacy_id,resource_code,start_at,end_at,customer_legacy_id,business_line,notes\nRR1," + resCode + "," + start.Format(time.RFC3339) + "," +
 			start.Add(time.Hour).Format(time.RFC3339) + ",MIG1,sportclub,Weekly squash\n",
 		"enrollments.csv":    "legacy_id,program_code,customer_legacy_id,valid_until\nRE1,MIG-SWIM,MIG2," + time.Now().AddDate(0, 6, 0).Format("2006-01-02") + "\n",
 		"caddy_profiles.csv": "caddy_code,level_code,joined_on\nMIG-C77,MIG-SR,2015-05-05\n",

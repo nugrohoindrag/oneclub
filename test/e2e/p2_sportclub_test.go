@@ -49,7 +49,7 @@ func TestP2SportClubEntryAccess(t *testing.T) {
 	}
 
 	// Member with Sport Club membership; Guest of Member requires the member present.
-	prog := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "SPORT-SC", "name": "Sport Club", "programKind": "sportclub"}))
+	prog := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "SPORT-SC", "name": "Sport Club", "programKind": "sport_club"}))
 	ind := idOf(sa.Must(201, "POST", "/api/v1/membership/types", map[string]any{"code": "SC-IND", "name": "Individual", "programId": prog,
 		"entitlements": map[string]any{"memberRate": true, "freeEntry": true, "memberCharge": true}}))
 	member := customer(t, sa, "SC-MEMBER", "Sari Member", map[string]any{"birthDate": dateAgo(35, 0, 0)})
@@ -193,7 +193,7 @@ func TestP2SportClubEntryAccess(t *testing.T) {
 func TestP2Classes(t *testing.T) {
 	f := setupP2(t)
 	sa := f.SA
-	prog := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "SPORT-CL", "name": "Sport Club (classes)", "programKind": "sportclub"}))
+	prog := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "SPORT-CL", "name": "Sport Club (classes)", "programKind": "sport_club"}))
 	ind := idOf(sa.Must(201, "POST", "/api/v1/membership/types", map[string]any{"code": "SC-CL", "name": "Individual", "programId": prog,
 		"entitlements": map[string]any{"memberRate": true}}))
 	member := customer(t, sa, "CL-MEMBER", "Member Swimmer", nil)
