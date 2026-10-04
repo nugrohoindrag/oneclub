@@ -17,7 +17,7 @@ and Platform Admin as SPAs. Native apps are out of scope for the whole roadmap (
 ## Audit & route coverage
 
 The e2e harness fails the run when a mutating route succeeds without an audit entry, or when any mutating route is
-never exercised successfully. Current run: **AUDIT_COVERAGE mutating routes exercised, 0 without audit** (P0 + P1 + P2).
+never exercised successfully. Current run: **521/521 mutating routes exercised, 0 without audit** (P0 + P1 + P2).
 
 ## Exit criteria (PRD §13.1)
 
