@@ -110,7 +110,6 @@ func backdate(t *testing.T, flight string, d time.Duration) {
 	sysExec(t, inst, `UPDATE golf.golf_cart_assignments SET assigned_at = assigned_at - $2::interval, out_at = out_at - $2::interval WHERE flight_id = $1`, fid, iv)
 }
 
-var _ = decimal.Zero
 
 // EP-05/06/07/08/10/11 acceptance in one round on P1's booking, check-in and
 // starter: caddy rotation & replacement, golf cart inspection lifecycle,
@@ -455,12 +454,20 @@ func TestP2GolfPaceAndRange(t *testing.T) {
 	f := setupP2(t)
 	sa := f.SA
 	g := setupGolfCourse(t, sa, "PC")
+	day := clubDay(inst, 26, isWeekday)
+	bk, fid := golfBooking(t, sa, day, teeTimes(t, sa, g.Course, day)[0]["id"], []map[string]any{
+		{"playerType": "non_member", "name": "Slow Player", "phone": "+628120000555"}})
+	playDay, _ := time.ParseInLocation("2006-01-02", day, clubLoc(inst))
+	caddy := idOf(sa.Must(201, "POST", "/api/v1/golf/caddies", map[string]any{"code": "C031", "name": "Caddy Pace", "gender": "female"}))
+	sa.Must(201, "POST", "/api/v1/golf/caddy-attendance:clock-in", map[string]any{"caddyId": caddy, "at": rfc(at(playDay, 5, 30))})
+	sa.Must(201, "POST", "/api/v1/golf/caddy-assignments", map[string]any{"flightId": fid, "auto": true})
+	sa.Must(201, "POST", "/api/v1/golf/golf-cart-assignments", map[string]any{"flightId": fid, "auto": true})
+	checkIn(t, sa, day, bk)
+	// The tablet starts the round (tee-off through P1's starter) an hour ago.
 	now := time.Now()
-	fl := sa.Must(201, "POST", "/api/v1/golf/flights", map[string]any{"routeId": g.RouteAB, "teeTime": rfc(now.Add(-70 * time.Minute)),
-		"players": []map[string]any{{"name": "Slow Player", "playerType": "visitor"}}}).JSON()
-	fid := str(fl["id"])
-	sa.Must(200, "POST", "/api/v1/golf/flights/"+fid+":check-in", map[string]any{"noCharge": true})
-	sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":tee-off", map[string]any{"at": rfc(now.Add(-60 * time.Minute))})
+	sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":start", map[string]any{"at": rfc(now.Add(-60 * time.Minute))})
+	backdate(t, fid, time.Hour)
+	dispatch(t)
 	sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":hole-progress", map[string]any{"seq": 2, "at": rfc(now.Add(-40 * time.Minute))})
 	var pace map[string]any
 	for _, p := range sa.Must(200, "GET", "/api/v1/golf/pace-of-play", nil).Items() {
@@ -475,9 +482,14 @@ func TestP2GolfPaceAndRange(t *testing.T) {
 	if err != nil || n < 1 {
 		t.Fatalf("pace check job: %d %v", n, err)
 	}
-	d := sa.Must(200, "GET", fmt.Sprintf("/api/v1/golf/holes/%s/distances?lat=%f&lng=106.6", str(g.Holes[0]["holeId"]), -6.2), nil).Items()
-	if len(d) != 4 || d[1]["target"] != "greenCenter" || d[1]["meters"].(float64) < 300 || d[1]["meters"].(float64) > 400 {
+	d := sa.Must(200, "GET", fmt.Sprintf("/api/v1/golf/course-maps/%s?lat=%f&lng=106.6", str(g.Holes[0]["holeId"]), -6.2), nil).JSON()["distances"].([]any)
+	if len(d) != 4 {
 		t.Fatalf("GPS distances: %v", d)
+	}
+	for _, x := range d {
+		if xm := x.(map[string]any); xm["target"] == "green_center" && (xm["meters"].(float64) < 300 || xm["meters"].(float64) > 400) {
+			t.Fatalf("distance to the green center: %v", xm)
+		}
 	}
 
 	// Driving Range: bays, queue, prepaid balls and complimentary buckets.
@@ -517,43 +529,59 @@ func TestP2GolfPaceAndRange(t *testing.T) {
 	}
 }
 
-// EP-13: reciprocal verification with agreement, card and quota; letters.
+// EP-13: reciprocal verification with agreement, card and quota on the
+// visit day; the verified visit is linked to P1's reciprocal booking player
+// and carries its charge; introduction letters.
 func TestP2GolfReciprocal(t *testing.T) {
 	f := setupP2(t)
 	sa := f.SA
 	g := setupGolfCourse(t, sa, "RC")
 	today := time.Now().In(f.Loc).Format("2006-01-02")
+	day := clubDay(inst, 18, isWeekday)
 	club := idOf(sa.Must(201, "POST", "/api/v1/golf/reciprocal-clubs", map[string]any{"code": "SGCC", "name": "Singapore Country Club", "country": "Singapore",
-		"city": "Singapore", "agreementFrom": "2025-01-01", "agreementTo": "2030-12-31", "visitQuota": 1, "quotaPeriod": "month", "rateItem": "RC-AB",
-		"settlementMode": "periodic"}))
-	if r := sa.Do("POST", "/api/v1/golf/reciprocal-visits:verify", map[string]any{"clubId": club, "visitorName": "Lim", "homeCardNo": "SG-1",
-		"cardValidUntil": "2020-01-01", "letterRef": "SG/2026/01"}); r.Status != 409 {
+		"city": "Singapore", "agreementFrom": "2025-01-01", "agreementTo": "2030-12-31", "visitQuota": 1, "quotaPeriod": "month", "settlementMode": "periodic"}))
+	verify := func(body map[string]any) Resp {
+		body["clubId"], body["visitDate"] = club, day
+		return sa.Do("POST", "/api/v1/golf/reciprocal-visits", body)
+	}
+	if r := verify(map[string]any{"visitorName": "Lim", "homeCardNo": "SG-1", "cardValidUntil": "2020-01-01", "letterRef": "SG/2026/01"}); r.Status != 409 {
 		t.Fatalf("expired home card: %s", r)
 	}
-	if r := sa.Do("POST", "/api/v1/golf/reciprocal-visits:verify", map[string]any{"clubId": club, "visitorName": "Lim", "homeCardNo": "SG-1",
-		"cardValidUntil": "2030-01-01"}); r.Status != 422 {
+	if r := verify(map[string]any{"visitorName": "Lim", "homeCardNo": "SG-1", "cardValidUntil": "2030-01-01"}); r.Status != 422 {
 		t.Fatalf("introduction letter required: %s", r)
 	}
-	v := sa.Must(201, "POST", "/api/v1/golf/reciprocal-visits:verify", map[string]any{"clubId": club, "visitorName": "Lim Wei", "email": "lim@sgcc.test",
-		"homeCardNo": "SG-1", "cardValidUntil": "2030-01-01", "letterRef": "SG/2026/01", "letterDate": today}).JSON()
+	vr := verify(map[string]any{"visitorName": "Lim Wei", "email": "lim@sgcc.test", "homeCardNo": "SG-1", "cardValidUntil": "2030-01-01",
+		"letterRef": "SG/2026/01", "letterDate": today})
+	if vr.Status != 201 {
+		t.Fatalf("verify: %s", vr)
+	}
+	v := vr.JSON()
 	if v["verified"] != true || v["settlementStatus"] != "open" {
 		t.Fatalf("verified visit: %v", v)
 	}
-	if r := sa.Do("POST", "/api/v1/golf/reciprocal-visits:verify", map[string]any{"clubId": club, "visitorName": "Tan", "homeCardNo": "SG-2",
-		"cardValidUntil": "2030-01-01", "letterRef": "SG/2026/02"}); r.Status != 409 {
+	if r := verify(map[string]any{"visitorName": "Tan", "homeCardNo": "SG-2", "cardValidUntil": "2030-01-01", "letterRef": "SG/2026/02"}); r.Status != 409 {
 		t.Fatalf("visit quota per agreement: %s", r)
 	}
-	rule(t, sa, map[string]any{"code": "GF-RECIP", "name": "Reciprocal green fee", "serviceType": "golf", "itemRef": "RC-AB", "segment": "reciprocal",
-		"unit": "pax", "price": "900000", "revenueComponent": "green_fee"})
-	fl := sa.Must(201, "POST", "/api/v1/golf/flights", map[string]any{"routeId": g.RouteAB, "teeTime": rfc(time.Now().Add(time.Hour)),
-		"players": []map[string]any{{"customerId": v["customerId"], "reciprocalVisitId": v["id"]}}}).JSON()
-	if fl["players"].([]any)[0].(map[string]any)["playerType"] != "reciprocal" {
-		t.Fatalf("reciprocal player: %v", fl["players"])
+	// P1 books the reciprocal player; the verified visit is linked to it.
+	bk, fid := golfBooking(t, sa, day, teeTimes(t, sa, g.Course, day)[0]["id"], []map[string]any{
+		{"playerType": "reciprocal", "customerId": v["customerId"], "name": "Lim Wei", "reciprocalClub": "Singapore Country Club"}})
+	player := bk["players"].([]any)[0].(map[string]any)
+	linked := sa.Must(200, "POST", "/api/v1/golf/reciprocal-visits/"+str(v["id"])+":link-player", map[string]any{"playerId": player["id"]}).JSON()
+	if linked["playerId"] != player["id"] {
+		t.Fatalf("linked visit: %v", linked)
 	}
-	sa.Must(200, "POST", "/api/v1/golf/flights/"+str(fl["id"])+":check-in", map[string]any{})
-	visits := sa.Must(200, "GET", "/api/v1/golf/reciprocal-visits?filter[direction]=inbound", nil).Items()
-	if len(visits) != 1 || visits[0]["chargeAmount"] != "900000" {
-		t.Fatalf("reciprocal visits with charges: %v", visits)
+	if p := sa.Must(200, "GET", "/api/v1/golf/bookings/"+str(bk["id"]), nil).JSON()["players"].([]any)[0].(map[string]any); p["reciprocalVerified"] != true {
+		t.Fatalf("P1 reciprocal player verified by the visit: %v", p)
+	}
+	playDay, _ := time.ParseInLocation("2006-01-02", day, clubLoc(inst))
+	caddy := idOf(sa.Must(201, "POST", "/api/v1/golf/caddies", map[string]any{"code": "C032", "name": "Caddy Reciprocal", "gender": "female"}))
+	sa.Must(201, "POST", "/api/v1/golf/caddy-attendance:clock-in", map[string]any{"caddyId": caddy, "at": rfc(at(playDay, 5, 30))})
+	sa.Must(201, "POST", "/api/v1/golf/caddy-assignments", map[string]any{"flightId": fid, "auto": true})
+	sa.Must(201, "POST", "/api/v1/golf/golf-cart-assignments", map[string]any{"flightId": fid, "auto": true})
+	checkIn(t, sa, day, bk)
+	visits := sa.Must(200, "GET", "/api/v1/golf/reciprocal-visits?filter[direction]=inbound&from="+day+"&to="+day, nil).Items()
+	if len(visits) != 1 || !dec(visits[0]["chargeAmount"]).Equal(dec(player["priceTotal"])) || !dec(player["priceTotal"]).IsPositive() {
+		t.Fatalf("reciprocal visits with charges: %v (player price %v)", visits, player["priceTotal"])
 	}
 	if n := sa.Must(200, "POST", "/api/v1/golf/reciprocal-visits:settle", map[string]any{"visitIds": []any{v["id"]}, "status": "invoiced"}).JSON(); n["count"].(float64) != 1 {
 		t.Fatalf("club settlement: %v", n)
