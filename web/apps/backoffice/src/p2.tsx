@@ -269,7 +269,8 @@ export function CustomerLines360Page() {
   const sections = v.data.sections as Record<string, unknown>;
   return (
     <div className="oc-stack">
-      <PageHeader title={p.name} help={[p.code, p.email, p.phone].filter(Boolean).join(' · ')} />
+      <PageHeader title={p.name} help={[p.code, p.email, p.phone].filter(Boolean).join(' · ')}
+        actions={<Link className="oc-btn oc-btn-neutral" to={`/crm/customer-360?id=${id}`}>Back to Customer 360</Link>} />
       <div className="oc-grid-2">
         <Card title="Preferences" icon="favorite">
           {v.data.preferences.length === 0 ? <div className="oc-muted oc-small">No preferences recorded</div> : (

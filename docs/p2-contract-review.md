@@ -55,12 +55,13 @@ Halaman P2 ada di file P2 (`p2.tsx` tiap app, app `caddy`, `web/app/lib-p2.ts`).
 | `web/apps/backoffice/src/main.tsx` | import `./p2`; `HUBS` ditambahkan ke `P1_MODULES` (hub P2 menggantikan placeholder Sport Club, Stay & Venue, Inventory); `...P2_MANAGEMENT_ROUTES`, `...P2_ROUTES` |
 | `web/apps/ops/src/main.tsx` | import `./p2`; `<P2Tiles />` di Home; `...P2_OPS_ROUTES` |
 | `web/apps/member/src/main.tsx` | import `./p2`; `...P2_MEMBER_ROUTES` |
+| `web/apps/backoffice/src/p1/business.tsx` | tombol "View all business lines" di Customer 360 (ke Customer 360 lintas lini P2) |
 | `web/apps/web/app/[lang]/nav.tsx` | `...p2Nav(lang)` (Sport Club, Stay & Venue, Hall of Fame) |
 | `web/apps/web/app/[lang]/contact/page.tsx` | formulir kontak (`ContactForm`, lead ke CRM) |
 
 Path halaman mengikuti navigasi server (`internal/platform/navigation`, juga aditif). Halaman P2 yang dobel dengan halaman P1 sudah dibuang: kartu digital, membership, transaksi dan booking di member app; starter, caddy queue dan golf front desk di ops.
 
-**Perlu keputusan:** Customer 360 lintas lini P2 (`/crm/customers/{id}/360`, FR-CRM-01) ada di `crm/customers/:id` backoffice, tetapi baru terjangkau bila halaman Customer 360 P1 (`p1/business.tsx`) diberi tautan ke sana, atau bagian lintas lini dimasukkan ke halaman P1.
+Customer 360 lintas lini P2 (`/crm/customers/{id}/360`, FR-CRM-01) ada di `crm/customers/:id` backoffice. **Diputuskan** (4 Oktober 2026): halaman Customer 360 P1 mendapat tombol "View all business lines" ke sana; halaman P2 punya tautan balik. Penggabungan menjadi satu halaman bisa dikerjakan pada penyempurnaan UI berikutnya.
 
 ## Ringkasan risiko untuk kode P1
 
