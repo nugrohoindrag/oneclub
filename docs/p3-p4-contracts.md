@@ -44,8 +44,17 @@ so `propertyId` is also on the event envelope.
 }
 ```
 
+### `crm.quotation_sent` — consumed by `banquet` (tentative venue hold until the option date, FR-QUO-04 / EP-15)
+`{ quotationId, number, version, customerId, corporateAccountId?, opportunityId?, line, title, eventType?, eventDate?, endDate?, pax?,
+   venueResourceId?, optionDate?, packageRef?, total, currency, validUntil, channels: [email|whatsapp] }`
+Sent again after a revision (new quotationId, same number): the hold follows the latest version.
+
 ### `crm.quotation_rejected`, `crm.quotation_expired`
-`{ quotationId, number, version, customerId, opportunityId? }`
+`{ quotationId, number, version, customerId, opportunityId? }` — release holds of the quotation.
+
+### `crm.opportunity_won` — consumed by `crm/loyalty` (member referral reward, FR-LEAD-04 / EP-09)
+`{ opportunityId, number, quotationId, quotationNumber, customerId, corporateAccountId?, line, value, currency, ownerUserId?, leadId?,
+   referrerCustomerId? }`
 
 ### `crm.loyalty_points_changed`
 `{ accountId, customerId, kind: earned|redeemed|expired|adjusted|reversed, points, balance, sourceType, sourceId }`

@@ -1343,7 +1343,9 @@ func (m *Module) SendQuotation(ctx context.Context, tx pgx.Tx, property, qid uui
 		return QuotationDetail{}, err
 	}
 	if _, err := m.Events.Publish(ctx, tx, EventQuotationSent, "crm.quotation", &qid, &property, map[string]any{"quotationId": qid,
-		"number": q.Number, "version": q.Version, "customerId": q.CustomerID, "opportunityId": q.OpportunityID, "total": q.Total,
+		"number": q.Number, "version": q.Version, "customerId": q.CustomerID, "corporateAccountId": q.CorporateAccountID,
+		"opportunityId": q.OpportunityID, "line": q.Line, "title": q.Title, "eventType": q.EventType, "eventDate": q.EventDate, "endDate": q.EndDate,
+		"pax": q.Pax, "venueResourceId": q.VenueResourceID, "optionDate": q.OptionDate, "packageRef": q.PackageRef, "total": q.Total,
 		"currency": q.Currency, "validUntil": q.ValidUntil, "channels": channels}); err != nil {
 		return QuotationDetail{}, err
 	}
