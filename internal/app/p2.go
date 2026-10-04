@@ -104,6 +104,7 @@ func (a *App) buildP2(reg *route.Registry, cfg *config.Config, db *dbtx.DB, file
 	a.Experience = &experience.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Billing: a.Billing, Notify: a.Notification, Golf: a.Golf,
 		POS: a.POS, Vouchers: a.Vouchers, Reservations: a.Reservations, CRM: a.CRM, Files: files}
 	a.Experience.Register(reg, a.Engine)
+	a.Golf.SetReadyGuard(a.Experience.ReadyGuard) // FR-CTL-02 through contract C8
 	a.Experience.RegisterSync(a.Sync)
 	a.Experience.RegisterFeedbackSubject()
 	for _, dt := range experience.DocumentTypes() {

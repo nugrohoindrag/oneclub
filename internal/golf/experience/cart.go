@@ -559,3 +559,21 @@ func (m *Module) SetCartProfile(ctx context.Context, tx pgx.Tx, property, cart u
 	}
 	return after, record(ctx, tx, "golf.cart_profile", cart, "golf cart profile", audit.ActionUpdate, property, before, after, "")
 }
+
+// ReadyGuard allows a manual Ready only when the cart's latest inspection
+// passed and it has not been out or into maintenance since (FR-CTL-02);
+// otherwise the cart becomes Ready through a pre-op or release inspection.
+func (m *Module) ReadyGuard(ctx context.Context, q dbtx.Querier, property, cart uuid.UUID) error {
+	var ok bool
+	if err := q.QueryRow(ctx, `WITH last AS (SELECT passed, inspected_at FROM golf.cart_inspections WHERE golf_cart_id = $1 AND property_id = $2
+		ORDER BY inspected_at DESC LIMIT 1)
+		SELECT coalesce((SELECT passed FROM last), false)
+		  AND NOT EXISTS (SELECT 1 FROM golf.golf_cart_assignments a, last WHERE a.golf_cart_id = $1 AND a.returned_at > last.inspected_at)
+		  AND NOT EXISTS (SELECT 1 FROM golf.cart_maintenance mt WHERE mt.golf_cart_id = $1 AND mt.status = 'open')`, cart, property).Scan(&ok); err != nil {
+		return err
+	}
+	if !ok {
+		return errs.Conflict("inspection_required", "a golf cart becomes Ready after a passed pre-op or release inspection")
+	}
+	return nil
+}

@@ -7,11 +7,13 @@ package golf
 
 import (
 	"context"
+	"sync/atomic"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
 	"oneclub/internal/kernel/clock"
+	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
 	"oneclub/internal/platform/audit"
@@ -58,4 +60,25 @@ func (m *Module) VerifyReciprocalPlayer(ctx context.Context, tx pgx.Tx, property
 	}
 	return audit.Record(ctx, tx, audit.Entry{Module: "golf", Action: "reciprocal_verified", EntityType: "golf.booking_player", EntityID: playerID.String(),
 		PropertyID: &property, After: map[string]any{"reciprocalClub": club}})
+}
+
+// ReadyGuard decides whether a golf cart may be set Ready by hand (PRD P2
+// FR-CTL-02: Ready only after a passed inspection). The P2 golf experience
+// sets it; without one, P1's behaviour is kept.
+type ReadyGuard func(ctx context.Context, q dbtx.Querier, property, cart uuid.UUID) error
+
+var readyGuard atomic.Pointer[ReadyGuard]
+
+// SetReadyGuard installs the guard of manual Ready (contract C8).
+func (m *Module) SetReadyGuard(g ReadyGuard) { readyGuard.Store(&g) }
+
+// manualReadiness is Set Golf Cart Readiness from the board: a manual Ready
+// passes the guard first; inspections set Ready through SetReadiness.
+func (m *Module) manualReadiness(ctx context.Context, tx pgx.Tx, property, cart uuid.UUID, req ReadinessRequest) (CartBoardEntry, error) {
+	if g := readyGuard.Load(); g != nil && req.Readiness == "ready" {
+		if err := (*g)(ctx, tx, property, cart); err != nil {
+			return CartBoardEntry{}, err
+		}
+	}
+	return m.SetReadiness(ctx, tx, property, cart, req)
 }
