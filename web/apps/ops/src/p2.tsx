@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { API_BASE, qs, request, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime, formatNumber } from '@oneclub/i18n';
 import { enqueue } from '@oneclub/offline';
+import { Link } from 'react-router';
 import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, QRCode, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
@@ -10,18 +11,22 @@ type Row = Record<string, unknown>;
 const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : `Rp ${formatNumber(Number(v))}`);
 const idem = () => ({ 'Idempotency-Key': uuidv7() });
 
-/** Re-renders when the server pushes an event on an SSE stream (Technical Doc §3.4). */
-export function useLive(path: string, onEvent: () => void) {
+/** Re-renders when the server pushes one of the topics on an SSE stream
+ * (Technical Doc §3.4); the hub names each SSE event after its topic. */
+export function useLive(path: string, topics: string[], onEvent: () => void) {
   const { propertyId } = useAuth();
+  const key = topics.join(',');
   useEffect(() => {
     if (!propertyId || typeof EventSource === 'undefined') return;
     const es = new EventSource(`${API_BASE}${path}?propertyId=${propertyId}`, { withCredentials: true });
     const h = () => onEvent();
-    es.onmessage = h;
-    for (const k of ['hole', 'teed_off', 'finished', 'slow', 'readiness', 'positions', 'bay', 'ticket', 'order_ready', 'clock_in', 'assigned']) es.addEventListener(k, h);
+    for (const t of key.split(',')) es.addEventListener(t, h);
     return () => es.close();
-  }, [path, propertyId, onEvent]);
+  }, [path, key, propertyId, onEvent]);
 }
+
+/** P1's golf stream carries every golf.* topic, P2's included. */
+const GOLF_STREAM = '/api/v1/golf/tee-sheet/stream';
 
 function Head({ title, help }: { title: string; help?: string }) {
   return <div className="oc-page-head"><div><h1>{title}</h1>{help && <p>{help}</p>}</div></div>;
@@ -29,72 +34,74 @@ function Head({ title, help }: { title: string; help?: string }) {
 
 // ── Starter: Pace of Play (FR-PLX-04) ─────────────────────────────────────
 
-export function StarterPage() {
-  const pace = useGet<Page<Schemas['PaceFlight']>>('/api/v1/golf/pace', { refetchInterval: 60_000 });
-  const today = new Date().toISOString().slice(0, 10);
-  const flights = useGet<Page<Schemas['Flight']>>(`/api/v1/golf/flights${qs({ date: today })}`);
-  const refetch = useMemo(() => () => { void pace.refetch(); void flights.refetch(); }, [pace, flights]);
-  useLive('/api/v1/golf/pace/stream', refetch);
-  const toast = useToast();
-  const teeOff = useSend<Row>('POST', (b) => `/api/v1/golf/rounds/${b.id}:tee-off`, ['/api/v1/golf']);
+export function PaceOfPlayPage() {
+  const pace = useGet<Page<Schemas['PaceFlight']>>('/api/v1/golf/pace-of-play', { refetchInterval: 60_000 });
+  useLive(GOLF_STREAM, ['golf.pace'], useMemo(() => () => void pace.refetch(), [pace]));
   return (
     <div className="oc-stack">
-      <Head title="Starter" help="Pace of Play updates live from the caddy tablets." />
-      <ErrorAlert error={teeOff.error} />
-      <Card title="Pace of Play" icon="timer">
+      <Head title="Pace of Play" help="Updates live from the caddy tablets." />
+      <div className="oc-card">
         <DataTable rows={pace.data?.items as unknown as Row[]} loading={pace.isLoading} rowKey={(r) => String(r.flightId)} columns={[
-          { key: 'flightNo', header: 'Flight' }, { key: 'routeName', header: 'Route' }, { key: 'hole', header: 'Hole' },
+          { key: 'label', header: 'Flight' }, { key: 'playingRouteName', header: 'Route' }, { key: 'hole', header: 'Hole' },
           { key: 'elapsedMinutes', header: 'Elapsed' }, { key: 'targetMinutes', header: 'Target' },
           { key: 'behindMinutes', header: 'Behind', render: (r) => <strong style={{ color: r.slow ? 'var(--md-sys-color-error)' : undefined }}>{String(r.behindMinutes)}</strong> },
-          { key: 'aheadFlightNo', header: 'Flight ahead', render: (r) => r.aheadFlightNo ? `${r.aheadFlightNo} (+${r.gapHoles} holes)` : '—' },
+          { key: 'aheadLabel', header: 'Flight ahead', render: (r) => r.aheadLabel ? `${String(r.aheadLabel)} (+${String(r.gapHoles)} holes)` : '—' },
           { key: 'slow', header: 'Status', render: (r) => <StatusPill status={r.slow ? 'slow' : 'on_pace'} label={r.slow ? 'Slow' : 'On pace'} /> }]} />
-      </Card>
-      <Card title="Today's flights" icon="golf_course">
-        <DataTable rows={flights.data?.items as unknown as Row[]} columns={[{ key: 'teeTime', header: 'Tee time', render: (r) => formatDateTime(String(r.teeTime)) },
-          { key: 'flightNo', header: 'Flight' }, { key: 'routeName', header: 'Route' }, { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> }]}
-          actions={(r) => r.status === 'checked_in' ? <button className="oc-btn oc-btn-ink oc-btn-sm" onClick={() => teeOff.mutate({ id: r.id }, { onSuccess: () => toast('Teed off') })}>Tee off</button> : null} />
-      </Card>
+      </div>
     </div>
   );
 }
 
-// ── Caddy Master: attendance, rotation, assignment (FR-CDL-03/04) ─────────
+// ── Caddy Master: clock-in / clock-out and incidents (FR-CDL-03, FR-CDL-08) ─
 
-export function CaddyMasterPage() {
+export function CaddyIncidentsPage() {
   const toast = useToast();
   const today = new Date().toISOString().slice(0, 10);
-  const queue = useGet<Page<Schemas['QueueEntry']>>('/api/v1/golf/caddy-queue', { refetchInterval: 30_000 });
   const att = useGet<Page<Schemas['Attendance']>>(`/api/v1/golf/caddy-attendance${qs({ date: today })}`);
   const caddies = useGet<Page<Row>>('/api/v1/golf/caddies?filter[status]=active&limit=500');
-  const flights = useGet<Page<Schemas['Flight']>>(`/api/v1/golf/flights${qs({ date: today })}`);
-  const clockIn = useSend<Row>('POST', '/api/v1/golf/caddy-attendance:clock-in', ['/api/v1/golf']);
-  const clockOut = useSend<Row>('POST', '/api/v1/golf/caddy-attendance:clock-out', ['/api/v1/golf']);
-  const assign = useSend<Row>('POST', (b) => `/api/v1/golf/flights/${b.flightId}/caddies`, ['/api/v1/golf']);
+  const incidents = useGet<Page<Schemas['Incident']>>('/api/v1/golf/caddy-incidents?filter[status]=open');
+  const clockIn = useSend<Row>('POST', '/api/v1/golf/caddy-attendance:clock-in', ['/api/v1/golf/caddy-attendance']);
+  const clockOut = useSend<Row>('POST', '/api/v1/golf/caddy-attendance:clock-out', ['/api/v1/golf/caddy-attendance']);
+  const report = useSend<Row>('POST', '/api/v1/golf/caddy-incidents', ['/api/v1/golf/caddy-incidents']);
+  const close = useSend<Row>('POST', (b) => `/api/v1/golf/caddy-incidents/${b.id}:close`, ['/api/v1/golf/caddy-incidents']);
   const [caddy, setCaddy] = useState('');
-  const present = new Set((att.data?.items ?? []).filter((a) => !a.clockOut).map((a) => a.caddyId));
+  const [category, setCategory] = useState('late');
+  const [severity, setSeverity] = useState('low');
+  const [description, setDescription] = useState('');
+  const present = new Set((att.data?.items ?? []).filter((a) => a.clockedInAt && !a.clockedOutAt).map((a) => a.caddyId));
+  const caddyOptions = (caddies.data?.items ?? []).map((c) => ({ value: String(c.id), label: `${String(c.code)} · ${String(c.name)}` }));
   return (
     <div className="oc-stack">
-      <Head title="Caddy Master" help="Rotation follows the Caddy Policies (arrival, round robin or per level)." />
-      <ErrorAlert error={clockIn.error ?? clockOut.error ?? assign.error} />
+      <Head title="Incidents & Attendance" help="Clock-in puts the caddy in the rotation; clock-out takes the caddy out." />
+      <ErrorAlert error={clockIn.error ?? clockOut.error ?? report.error ?? close.error} />
       <Card title="Caddy Attendance" icon="how_to_reg">
         <div className="oc-row-wrap">
-          <div style={{ width: 280 }}><SelectField label="Caddy" value={caddy} onChange={setCaddy} placeholder="Select caddy"
-            options={(caddies.data?.items ?? []).map((c) => ({ value: String(c.id), label: `${c.code} · ${c.name}` }))} /></div>
+          <div style={{ width: 280 }}><SelectField label="Caddy" value={caddy} onChange={setCaddy} placeholder="Select caddy" options={caddyOptions} /></div>
           <button className="oc-btn oc-btn-ink" style={{ alignSelf: 'flex-end' }} disabled={!caddy || present.has(caddy)}
             onClick={() => clockIn.mutate({ caddyId: caddy }, { onSuccess: () => toast('Clocked in') })}>Clock in</button>
           <button className="oc-btn oc-btn-outline" style={{ alignSelf: 'flex-end' }} disabled={!caddy || !present.has(caddy)}
             onClick={() => clockOut.mutate({ caddyId: caddy }, { onSuccess: () => toast('Clocked out') })}>Clock out</button>
         </div>
       </Card>
-      <Card title="Next Assignment" icon="format_list_numbered">
-        <DataTable rows={queue.data?.items as unknown as Row[]} rowKey={(r) => String(r.caddyId)} columns={[
-          { key: 'position', header: '#' }, { key: 'code', header: 'Caddy No.' }, { key: 'name', header: 'Caddy' }, { key: 'level', header: 'Level' },
-          { key: 'roundsToday', header: 'Rounds today' }]} />
+      <Card title="Report an incident" icon="report">
+        <div className="oc-row-wrap">
+          <div style={{ width: 160 }}><SelectField label="Category" value={category} onChange={setCategory}
+            options={['late', 'misconduct', 'lost_item', 'accident', 'other'].map((c) => ({ value: c, label: c.replace('_', ' ') }))} /></div>
+          <div style={{ width: 140 }}><SelectField label="Severity" value={severity} onChange={setSeverity}
+            options={['low', 'medium', 'high', 'critical'].map((c) => ({ value: c, label: c }))} /></div>
+          <div style={{ flex: 1, minWidth: 240 }}><TextField label="Description" value={description} onChange={setDescription} /></div>
+          <button className="oc-btn oc-btn-ink" style={{ alignSelf: 'flex-end' }} disabled={!caddy || !description}
+            onClick={() => report.mutate({ subjectType: 'caddy', caddyId: caddy, category, severity, description }, { onSuccess: () => { setDescription(''); toast('Incident recorded'); } })}>Report</button>
+        </div>
       </Card>
-      <Card title="Flights waiting for a caddy" icon="golf_course">
-        <DataTable rows={(flights.data?.items ?? []).filter((f) => ['booked', 'checked_in'].includes(f.status) && f.caddies.every((c) => ['cancelled', 'replaced'].includes(c.status))) as unknown as Row[]}
-          columns={[{ key: 'teeTime', header: 'Tee time', render: (r) => formatDateTime(String(r.teeTime)) }, { key: 'flightNo', header: 'Flight' }, { key: 'routeName', header: 'Route' }]}
-          actions={(r) => <button className="oc-btn oc-btn-primary oc-btn-sm" onClick={() => assign.mutate({ flightId: r.id }, { onSuccess: () => toast('Next caddy assigned') })}>Assign next</button>} />
+      <Card title="Open incidents" icon="list_alt">
+        <DataTable rows={incidents.data?.items as unknown as Row[]} loading={incidents.isLoading} columns={[{ key: 'number', header: 'Incident' },
+          { key: 'category', header: 'Category' }, { key: 'severity', header: 'Severity' }, { key: 'description', header: 'Description' },
+          { key: 'occurredAt', header: 'When', render: (r) => formatDateTime(String(r.occurredAt)) }]}
+          actions={(r) => <button className="oc-btn oc-btn-outline oc-btn-sm" onClick={() => {
+            const action = window.prompt('Action taken');
+            if (action) close.mutate({ id: r.id, reason: action }, { onSuccess: () => toast('Closed') });
+          }}>Close</button>} />
       </Card>
     </div>
   );
@@ -102,11 +109,11 @@ export function CaddyMasterPage() {
 
 // ── Golf Staff: readiness board & inspection (FR-CTL-01/07) ───────────────
 
-export function GolfStaffPage() {
+export function GolfCartInspectionPage() {
   const toast = useToast();
-  const board = useGet<Schemas['Board']>('/api/v1/golf/golf-carts/board');
-  useLive('/api/v1/golf/golf-carts/stream', useMemo(() => () => void board.refetch(), [board]));
-  const checklists = useGet<Page<Row>>('/api/v1/golf/cart-checklists?filter[status]=active');
+  const board = useGet<Schemas['Board']>('/api/v1/golf/golf-cart-readiness');
+  useLive(GOLF_STREAM, ['golf.cart'], useMemo(() => () => void board.refetch(), [board]));
+  const checklists = useGet<Page<Row>>('/api/v1/golf/golf-cart-checklists?filter[status]=active');
   const [cart, setCart] = useState<Row | null>(null);
   const [kind, setKind] = useState('pre_op');
   const [results, setResults] = useState<Record<string, boolean>>({});
@@ -116,20 +123,21 @@ export function GolfStaffPage() {
     const c = (checklists.data?.items ?? []).find((x) => x.inspectionKind === kind && (!cart || x.cartType === (cart as Row).cartType || true));
     return (c?.items as string[] | undefined) ?? ['Brakes', 'Battery', 'Tyres', 'Body', 'Lights'];
   }, [checklists.data, kind, cart]);
-  const inspect = useSend<Row, Schemas['Inspection']>('POST', (b) => `/api/v1/golf/golf-carts/${b.cartId}/inspections`, ['/api/v1/golf/golf-carts']);
-  const suggestKind = (r: Row) => (r.readiness === 'maintenance' ? 'release' : r.readiness === 'under_inspection' ? 'post_op' : 'pre_op');
+  const inspect = useSend<Row, Schemas['Inspection']>('POST', '/api/v1/golf/golf-cart-inspections', ['/api/v1/golf/golf-cart-readiness']);
+  // A returned cart (Not Ready / Charging) is checked post-op first; the server enforces the order.
+  const suggestKind = (r: Row) => (r.readiness === 'maintenance' ? 'release' : r.readiness === 'ready' ? 'pre_op' : 'post_op');
   return (
     <div className="oc-stack">
-      <Head title="Golf Staff" help="A buggy is Ready only after a passed inspection." />
+      <Head title="Golf Cart Inspection" help="A golf cart is Ready only after a passed inspection." />
       <div className="oc-row-wrap">{Object.entries(board.data?.counts ?? {}).map(([k, v]) => <span key={k} className="oc-chip"><StatusPill status={k} /> {v}</span>)}</div>
       <ErrorAlert error={inspect.error} />
       <div className="oc-grid">
-        {board.data?.carts.map((c) => (
+        {board.data?.golfCarts.map((c) => (
           <button key={c.id} className="oc-card" style={{ textAlign: 'left', cursor: 'pointer', outline: cart?.id === c.id ? '2px solid var(--md-sys-color-primary)' : undefined }}
             onClick={() => { setCart(c as unknown as Row); setKind(suggestKind(c as unknown as Row)); setResults({}); }}>
             <div className="oc-row"><strong>{c.code}</strong><span className="oc-spacer" /><StatusPill status={c.readiness} /></div>
-            <div className="oc-small">Battery {c.batteryPercent ?? '—'}% · {c.usageHours} h{c.serviceDue ? ' · service due' : ''}</div>
-            {c.flightNo && <div className="oc-small">Flight {c.flightNo}</div>}
+            <div className="oc-small">Battery {c.batteryPercent ?? '—'}% · {c.hoursSinceService} h since service{c.serviceDue ? ' · service due' : ''}</div>
+            {c.bookingCode && <div className="oc-small">Booking {c.bookingCode}</div>}
           </button>
         ))}
       </div>
@@ -145,7 +153,7 @@ export function GolfStaffPage() {
               <div style={{ flex: 1, minWidth: 220 }}><TextField label="Notes" value={notes} onChange={setNotes} /></div>
             </div>
             <button className="oc-btn oc-btn-ink" onClick={() => inspect.mutate({
-              cartId: cart.id, kind, notes, batteryPercent: battery ? Number(battery) : undefined,
+              golfCartId: cart.id, kind, notes, batteryPercent: battery ? Number(battery) : undefined,
               results: items.map((it) => ({ item: it, pass: results[it] ?? true })),
             }, { onSuccess: (r) => { toast(`Inspection saved — ${r.readinessAfter.replace('_', ' ')}`); setCart(null); } })}>Save inspection</button>
           </div>
@@ -159,11 +167,11 @@ export function GolfStaffPage() {
 
 export function DrivingRangePage() {
   const toast = useToast();
-  const sessions = useGet<Page<Schemas['RangeSession']>>('/api/v1/golf/range/sessions', { refetchInterval: 20_000 });
-  useLive('/api/v1/golf/range/stream', useMemo(() => () => void sessions.refetch(), [sessions]));
-  const start = useSend<Row>('POST', '/api/v1/golf/range/sessions', ['/api/v1/golf/range']);
-  const end = useSend<Row>('POST', (b) => `/api/v1/golf/range/sessions/${b.id}:end`, ['/api/v1/golf/range']);
-  const bucket = useSend<Row, Schemas['Bucket']>('POST', '/api/v1/golf/range/buckets', ['/api/v1/golf/range'], idem);
+  const sessions = useGet<Page<Schemas['RangeSession']>>('/api/v1/golf/range-sessions', { refetchInterval: 20_000 });
+  useLive(GOLF_STREAM, ['golf.range'], useMemo(() => () => void sessions.refetch(), [sessions]));
+  const start = useSend<Row>('POST', '/api/v1/golf/range-sessions', ['/api/v1/golf/range-sessions']);
+  const end = useSend<Row>('POST', (b) => `/api/v1/golf/range-sessions/${b.id}:end`, ['/api/v1/golf/range-sessions']);
+  const bucket = useSend<Row, Schemas['Bucket']>('POST', '/api/v1/golf/range-buckets', ['/api/v1/golf/range-sessions'], idem);
   const [guest, setGuest] = useState('');
   const [area, setArea] = useState('outdoor');
   const [last, setLast] = useState<Schemas['Bucket'] | null>(null);
@@ -181,7 +189,7 @@ export function DrivingRangePage() {
       </Card>
       {last && <div className="oc-alert oc-alert-info">Dispenser code <strong className="oc-code">{last.dispenserCode}</strong> · {last.balls} balls{last.dispenseMode === 'bridge' ? ' (sent to dispenser)' : ''}{last.remainingBalance ? ` · balance ${last.remainingBalance}` : ''}</div>}
       <div className="oc-card">
-        <DataTable rows={sessions.data?.items as unknown as Row[]} columns={[{ key: 'sessionNo', header: 'Session' }, { key: 'bayCode', header: 'Bay' },
+        <DataTable rows={sessions.data?.items as unknown as Row[]} columns={[{ key: 'number', header: 'Session' }, { key: 'bayCode', header: 'Bay' },
           { key: 'customerName', header: 'Customer', render: (r) => String(r.customerName ?? r.guestName ?? '—') }, { key: 'queuePosition', header: 'Queue' },
           { key: 'balls', header: 'Balls' }, { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> }]}
           actions={(r) => (
@@ -278,9 +286,9 @@ export function InstructorPage() {
   );
 }
 
-// ── Front Desk: stays & meetings (EP-16..18) ──────────────────────────────
+// ── Stay Front Desk: stays & meetings (EP-16..18) ──────────────────────────────
 
-export function FrontDeskPage() {
+export function StayDeskPage() {
   const toast = useToast();
   const today = new Date();
   const from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1).toISOString();
@@ -291,12 +299,12 @@ export function FrontDeskPage() {
   const confirm = useSend<Row>('POST', (b) => `/api/v1/stay/stays/${b.id}:confirm`, ['/api/v1/stay/stays']);
   return (
     <div className="oc-stack">
-      <Head title="Front Desk" help="Arrivals, in-house and departures (bungalow, VIP suite, meeting room)." />
+      <Head title="Stay Front Desk" help="Arrivals, in-house and departures (bungalow, VIP suite, meeting room)." />
       <ErrorAlert error={checkIn.error ?? checkOut.error ?? confirm.error} />
       <div className="oc-card">
         <DataTable rows={stays.data?.items as unknown as Row[]} loading={stays.isLoading} columns={[{ key: 'stayNo', header: 'Booking' }, { key: 'kind', header: 'Kind' },
           { key: 'unitName', header: 'Unit' }, { key: 'customerName', header: 'Guest', render: (r) => String(r.customerName ?? r.guestName ?? r.corporateName ?? '—') },
-          { key: 'startAt', header: 'From', render: (r) => formatDateTime(String(r.startAt)) }, { key: 'endAt', header: 'To', render: (r) => formatDateTime(String(r.endAt)) },
+          { key: 'start', header: 'From', render: (r) => formatDateTime(String(r.start)) }, { key: 'end', header: 'To', render: (r) => formatDateTime(String(r.end)) },
           { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> }]}
           actions={(r) => (
             <div className="oc-row">
@@ -379,7 +387,7 @@ export function KitchenPage() {
   const toast = useToast();
   const [station, setStation] = useState('');
   const tickets = useGet<Page<Schemas['Ticket']>>(`/api/v1/commercial/kitchen-orders${qs({ station })}`, { refetchInterval: 30_000 });
-  useLive('/api/v1/commercial/kds/stream', useMemo(() => () => void tickets.refetch(), [tickets]));
+  useLive('/api/v1/commercial/kds/stream', ['commercial.kds'], useMemo(() => () => void tickets.refetch(), [tickets]));
   const state = useSend<Row>('POST', (b) => `/api/v1/commercial/kitchen-orders/${b.id}:state`, ['/api/v1/commercial/kitchen-orders']);
   const cols: [string, string][] = [['received', 'Received'], ['preparing', 'Preparing'], ['ready', 'Ready']];
   const next: Record<string, string> = { received: 'preparing', preparing: 'ready', ready: 'served' };
@@ -428,6 +436,43 @@ export function ClubhouseScreenPage() {
       <h1 style={{ fontSize: 48, margin: '12px 0' }}>{e.title}</h1>
       <div style={{ fontSize: 28 }}>{e.playerName}</div>
       <div style={{ opacity: 0.7 }}>{e.year ?? ''}{e.teeSet ? ` · ${e.teeSet}` : ''}{e.score ? ` · ${e.score}` : ''}</div>
+    </div>
+  );
+}
+
+// ── routes and home tiles (added to P1's ops shell in main.tsx) ───────────
+
+/** Ops routes of P2, at the paths of the server navigation. */
+export const P2_OPS_ROUTES = [
+  { path: 'starter/pace', element: <PaceOfPlayPage /> },
+  { path: 'caddy/incidents', element: <CaddyIncidentsPage /> },
+  { path: 'golf-staff/inspection', element: <GolfCartInspectionPage /> },
+  { path: 'stay-desk', element: <StayDeskPage /> },
+  { path: 'driving-range', element: <DrivingRangePage /> },
+  { path: 'sport-reception', element: <SportReceptionPage /> },
+  { path: 'instructor', element: <InstructorPage /> },
+  { path: 'pos', element: <POSPage /> },
+  { path: 'kitchen', element: <KitchenPage /> },
+  { path: 'clubhouse-screen', element: <ClubhouseScreenPage /> },
+];
+
+/** Home tiles of the P2 workstations (P1's golf tiles come first). */
+export function P2Tiles() {
+  const { can } = useAuth();
+  const tiles: [string, string, string, string][] = [
+    ['sports_golf', 'Driving Range', '/driving-range', 'golf.range.operate'], ['sports_tennis', 'Sport Reception', '/sport-reception', 'sportclub.access.validate'],
+    ['school', 'Instructor', '/instructor', 'sportclub.class.attendance'], ['hotel', 'Stay Front Desk', '/stay-desk', 'stay.stay.view'],
+    ['point_of_sale', 'POS', '/pos', 'commercial.order.create'], ['skillet', 'Kitchen', '/kitchen', 'commercial.kitchen.view'],
+  ];
+  const shown = tiles.filter((t) => can(t[3]));
+  if (shown.length === 0) return null;
+  return (
+    <div className="oc-grid">
+      {shown.map(([icon, label, to]) => (
+        <Link key={label} to={to} className="oc-card" style={{ minHeight: 120, textDecoration: 'none' }}>
+          <div className="oc-card-head"><span className="oc-icon-circle"><Icon name={icon} size={22} /></span><h3>{label}</h3></div>
+        </Link>
+      ))}
     </div>
   );
 }

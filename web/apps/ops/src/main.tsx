@@ -13,6 +13,7 @@ import {
   BagDropPage, BagStoragePage, CaddyAssignmentPage, CaddyQueuePage, CartAssignmentPage, CartReadinessPage, FrontDeskFoliosPage, FrontDeskPage,
   FrontDeskPaymentsPage, GuestPage, LockersPage, OpsCheckInPage, OpsTeeSheetPage, OpsTiles, StarterQueuePage,
 } from './golf';
+import { P2_OPS_ROUTES, P2Tiles } from './p2';
 
 const DEVICE_KEY = 'oneclub.deviceToken';
 const OUTLET_KEY = 'oneclub.outlet';
@@ -175,6 +176,7 @@ function HomePage() {
         </form>
       </Card>
       <OpsTiles />
+      <P2Tiles />
     </div>
   );
 }
@@ -240,6 +242,7 @@ const router = createBrowserRouter([
           { path: 'golf-staff/lockers', element: <LockersPage /> },
           { path: 'golf-staff/golf-carts', element: <CartReadinessPage /> },
           { path: 'golf-staff/golf-cart-assignment', element: <CartAssignmentPage /> },
+          ...P2_OPS_ROUTES,
           { path: 'notifications', element: <NotificationsPage /> },
           { path: 'profile', element: <ProfilePage showPin /> },
           { path: 'home', element: <Navigate to="/" /> },
