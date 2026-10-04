@@ -27,9 +27,12 @@ git diff --diff-filter=MD --stat a48e6a3 -- internal/golf internal/billing inter
 2. **Push dan PR ke `main`** setelah urutan di atas disepakati.
 3. **Keputusan untuk Dian** (rinci di `docs/p2-contract-review.md`):
    - Customer 360 lintas lini (`crm/customers/:id`) belum terjangkau dari halaman Customer 360 P1. Pilihannya: tambah tautan di `p1/business.tsx`, atau masukkan bagian lintas lini ke halaman P1.
-   - #6.7: `POST /billing/customer-accounts` no-op mengembalikan 201 tanpa audit.
 4. **Jalankan spec Playwright** `web/e2e/p2.spec.ts`. Spec sudah memakai path baru tetapi belum pernah dijalankan; butuh API dan preview yang berjalan (`web/playwright.config.ts`), atau dijalankan di CI.
-5. **Rating caddy dari member app**: endpoint ada, tetapi `member/golf/my-flights` (P1) tidak mengembalikan id assignment sehingga belum ada tombolnya. Rating lewat link feedback setelah ronde tetap berjalan.
+
+## Diputuskan (4 Oktober 2026)
+
+- #6.7: `POST /billing/customer-accounts` untuk akun yang sudah ada tanpa perubahan tetap mengembalikan 201 tanpa entri audit (perilaku P1 dipertahankan).
+- Rating caddy dari member app: belum ada tombol (`member/golf/my-flights` P1 tidak mengembalikan id assignment); rating lewat link feedback setelah ronde.
 
 ## Aturan (berlaku sampai PR di-merge)
 
