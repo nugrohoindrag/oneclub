@@ -204,7 +204,7 @@ test('public website renders branding in Indonesian and English', async ({ page 
   await page.goto(WEB);
   await expect(page).toHaveURL(/\/id$/);
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Selamat datang');
-  await page.getByRole('link', { name: 'EN' }).click();
+  await page.getByRole('link', { name: 'EN', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Welcome');
   await page.getByRole('link', { name: 'Contact' }).click();
   await expect(page.getByRole('heading', { name: 'Contact' })).toBeVisible();

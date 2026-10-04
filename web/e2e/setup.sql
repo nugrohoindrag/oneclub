@@ -18,3 +18,15 @@ UPDATE platform.users SET mfa_enabled = false, mfa_secret_enc = NULL, mfa_pendin
 WHERE email LIKE 'e2e.%@test.oneclub.id';
 
 UPDATE platform.feature_flags SET value = 'true' WHERE key = 'ui.theme_switch';
+
+-- P2 shells: the member account has a customer profile (Member App) and the
+-- caddy account a caddy (Caddy Tablet).
+INSERT INTO crm.customers (id, property_id, code, name, email, user_id)
+SELECT gen_random_uuid(), p.id, 'E2E-MEMBER', 'Member (E2E)', u.email, u.id
+FROM platform.properties p, platform.users u WHERE p.code = 'MAIN' AND u.email = 'e2e.member@test.oneclub.id'
+  AND NOT EXISTS (SELECT 1 FROM crm.customers c WHERE c.user_id = u.id);
+
+INSERT INTO golf.caddy_profiles (caddy_id, property_id, user_id)
+SELECT c.id, c.property_id, u.id FROM golf.caddies c, platform.users u
+WHERE c.code = 'C001' AND u.email = 'e2e.caddy@test.oneclub.id'
+ON CONFLICT (caddy_id) DO UPDATE SET user_id = EXCLUDED.user_id;

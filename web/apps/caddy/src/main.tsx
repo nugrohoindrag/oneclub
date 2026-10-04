@@ -107,7 +107,7 @@ function Layout() {
       </header>
       {!online && <div className="oc-alert oc-alert-warning" role="status" style={{ marginBottom: 12 }}>No signal — round actions are saved on the tablet and synced later.</div>}
       <Outlet />
-      <nav className="oc-bottom-nav" aria-label="Main">
+      <nav className="oc-bottom-nav" data-always="true" aria-label="Main">
         <Link to="/"><Icon name="assignment" size={26} />Assignments</Link>
         <Link to="/earnings"><Icon name="payments" size={26} />Earnings</Link>
         <Link to="/sync"><Icon name="sync" size={26} />Sync</Link>
