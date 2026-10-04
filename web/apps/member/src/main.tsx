@@ -13,6 +13,7 @@ import {
   MyPaymentsPage, OtpLoginPage, StatementsPage, TransactionsPage,
 } from './golf';
 import { P2_MEMBER_ROUTES } from './p2';
+import { P3_MEMBER_ROUTES } from './p3';
 
 /** Member home: digital card placeholder, latest notifications (dashboard style). */
 function HomePage() {
@@ -79,6 +80,7 @@ const router = createBrowserRouter([
           { path: 'transactions/member-charges', element: <MyChargesPage /> },
           { path: 'profile', element: <MemberProfilePage /> },
           ...P2_MEMBER_ROUTES,
+          ...P3_MEMBER_ROUTES,
           { path: 'notifications', element: <NotificationsPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],

@@ -58,7 +58,7 @@ export function MembershipServicesPage() {
   );
 }
 
-function CheckoutModal({ checkout, onClose }: { checkout: Schemas['Payment'] | null; onClose: () => void }) {
+export function CheckoutModal({ checkout, onClose }: { checkout: Schemas['Payment'] | null; onClose: () => void }) {
   const st = useGet<Schemas['Payment']>(checkout ? `/api/v1/member/payments/${checkout.id}` : null, { refetchInterval: 4000 });
   if (!checkout) return null;
   const status = st.data?.status ?? checkout.status;

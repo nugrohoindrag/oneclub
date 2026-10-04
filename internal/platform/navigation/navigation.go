@@ -226,6 +226,7 @@ var Trees = map[string][]Item{
 			s("my-transactions", "My Transactions", "/transactions", catalog.ShellMemberPortal),
 			s("member-payments", "Payments", "/transactions/payments", catalog.ShellMemberPortal),
 			s("my-member-charges", "Member Charges", "/transactions/member-charges", catalog.ShellMemberPortal),
+			s("my-invoices", "Invoices", "/transactions/invoices", catalog.ShellMemberPortal),
 		}},
 		{Key: "preferences", Label: "Preferences", Path: "/preferences", Icon: "tune", Module: "crm", Permission: catalog.ShellMemberPortal},
 		{Key: "profile", Label: "Profile", Path: "/profile", Icon: "person", Permission: catalog.ShellMemberPortal},
