@@ -1,7 +1,7 @@
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, type Plugin, type PreviewServer, type ViteDevServer } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
-import { AREAS } from '../../packages/shell/src/area-list';
+import { AREAS, SURFACES, type Surface } from '../../packages/shell/src/area-list';
 
 // Staff App: every staff area in one SPA (Technical Doc §6.1). In development
 // /api is proxied to the Go API; in production Caddy serves both on the same
@@ -41,22 +41,64 @@ function offlineAreaFiles(): Plugin & { files: Set<string> } {
 
 const offline = offlineAreaFiles();
 
+// One build on four domains (Technical Doc §6.1). Caddy serves each domain
+// its `/surface.json` and rewrites `/manifest.webmanifest` to the manifest
+// of the surface, so a tablet installs "Caddy", not "OneClub Staff".
+const MANIFEST = {
+  name: 'OneClub Staff',
+  short_name: 'OneClub',
+  start_url: '/',
+  display: 'standalone' as const,
+  orientation: 'any' as const,
+  background_color: '#F1F3F5',
+  theme_color: '#254E09',
+  icons: [{ src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
+};
+const SURFACE_NAMES: Record<Surface, string> = { dashboard: 'OneClub', cashier: 'Cashier', caddy: 'Caddy', kitchen: 'Kitchen' };
+
+/**
+ * Emits manifest-<surface>.webmanifest. In development and preview it also
+ * plays Caddy's part for <surface>.localhost (browsers resolve *.localhost
+ * to this machine), so the surfaces are tried on one port: e.g.
+ * http://cashier.localhost:5173. Plain localhost has no surface.
+ */
+function surfaces(): Plugin {
+  const serve = (server: ViteDevServer | PreviewServer) => {
+    server.middlewares.use((req, res, next) => {
+      const m = /^(dashboard|cashier|caddy|kitchen)\.localhost(:\d+)?$/.exec(req.headers.host ?? '');
+      if (!m) return next();
+      const surface = m[1] as Surface;
+      if (req.url === '/surface.json') {
+        const domains = Object.fromEntries(SURFACES.map((s) => [s, `http://${s}.localhost${m[2] ?? ''}`]));
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Cache-Control', 'no-cache');
+        return res.end(JSON.stringify({ surface, domains }));
+      }
+      if (req.url === '/manifest.webmanifest') req.url = `/manifest-${surface}.webmanifest`;
+      next();
+    });
+  };
+  return {
+    name: 'oneclub-surfaces',
+    configureServer: serve,
+    configurePreviewServer: serve,
+    generateBundle() {
+      for (const s of SURFACES) {
+        const name = s === 'dashboard' ? MANIFEST.name : `OneClub ${SURFACE_NAMES[s]}`;
+        this.emitFile({ type: 'asset', fileName: `manifest-${s}.webmanifest`, source: JSON.stringify({ ...MANIFEST, name, short_name: SURFACE_NAMES[s] }) });
+      }
+    },
+  };
+}
+
 export default defineConfig({
   plugins: [
     react(),
     offline,
+    surfaces(),
     VitePWA({
       registerType: 'autoUpdate',
-      manifest: {
-        name: 'OneClub Staff',
-        short_name: 'OneClub',
-        start_url: '/',
-        display: 'standalone',
-        orientation: 'any',
-        background_color: '#F1F3F5',
-        theme_color: '#254E09',
-        icons: [{ src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
-      },
+      manifest: MANIFEST,
       workbox: {
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],

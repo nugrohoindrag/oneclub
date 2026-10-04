@@ -1,24 +1,30 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 import { request } from '@oneclub/api-client';
 import { useTranslation } from '@oneclub/i18n';
-import { AuthFrame, ErrorAlert, LoginPage, PasswordField, TextField, landingPath, useAuth, type Me } from '@oneclub/shell';
+import { AuthFrame, ErrorAlert, LoginPage, PasswordField, TextField, currentSurface, landingPath, useAuth, type Me } from '@oneclub/shell';
 import { DEVICE_KEY, read, write } from './offline';
 
 /*
- * One login for every staff area (Technical Doc §6.1). A registered shared
- * device (POS, ops tablet, caddy tablet; FR-IAM-09) logs staff in with their
- * PIN for the shift; a personal device uses e-mail + password (+ MFA). Both
- * land on the user's first area.
+ * One login for every staff area (Technical Doc §6.1). On the device domains
+ * (cashier, caddy, kitchen) a registered shared device (POS, ops tablet,
+ * caddy tablet, KDS; FR-IAM-09) logs staff in with their PIN for the shift;
+ * the dashboard domain and a personal device use e-mail + password (+ MFA).
+ * Both land on the user's first area of the domain. The device token is kept
+ * per domain (browser storage is per origin).
  */
+
+/** The dashboard domain never runs in device mode. */
+const deviceMode = () => currentSurface() !== 'dashboard';
 
 /** /login: PIN on a registered device, otherwise e-mail + password. */
 export function StaffLoginPage() {
-  return read(DEVICE_KEY) ? <DevicePinPage /> : <PasswordLoginPage />;
+  return deviceMode() && read(DEVICE_KEY) ? <DevicePinPage /> : <PasswordLoginPage />;
 }
 
 /** /login/password: e-mail + password, also on a registered device. */
 export function PasswordLoginPage() {
+  if (!deviceMode()) return <LoginPage />;
   return (
     <LoginPage footer={
       <p className="oc-small oc-muted" style={{ margin: 0 }}>
@@ -33,6 +39,7 @@ export function DeviceEnrollPage() {
   const { t } = useTranslation();
   const nav = useNavigate();
   const [token, setToken] = useState('');
+  if (!deviceMode()) return <Navigate to="/login" replace />;
   return (
     <AuthFrame>
       <form className="oc-stack" onSubmit={(e) => { e.preventDefault(); write(DEVICE_KEY, token.trim()); nav('/login', { replace: true }); }}>

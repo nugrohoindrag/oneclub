@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { MEMBER, STAFF, WEB, email, login } from './helpers';
+import { CADDY, CASHIER, DASHBOARD, MEMBER, WEB, email, login } from './helpers';
 
 /**
  * PRD P2 browser acceptance (FR-REL-P2-02): module hubs and KPI dashboards,
@@ -8,43 +8,43 @@ import { MEMBER, STAFF, WEB, email, login } from './helpers';
  */
 
 test('Back Office: P2 module hubs list master data and operations', async ({ page }) => {
-  await login(page, STAFF, email('golf_manager'));
-  await page.goto(`${STAFF}/golf/operations`);
+  await login(page, DASHBOARD, email('golf_manager'));
+  await page.goto(`${DASHBOARD}/golf/operations`);
   await expect(page.getByRole('heading', { name: 'Round Operations', level: 1 })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Caddy Settlement' })).toBeVisible();
-  await page.goto(`${STAFF}/golf/master`);
+  await page.goto(`${DASHBOARD}/golf/master`);
   await expect(page.getByRole('heading', { name: 'Caddy Levels' })).toBeVisible(); // generated from the resource definitions
   await page.getByRole('link', { name: /Caddy Levels/ }).first().click();
   await expect(page.getByRole('button', { name: /Add Caddy Level/ })).toBeVisible();
 });
 
 test('Management: KPI dashboards show P2 figures', async ({ page }) => {
-  await login(page, STAFF, email('general_manager'));
+  await login(page, DASHBOARD, email('general_manager'));
   for (const [path, title] of [['sport-club-performance', 'Sport Club Performance'], ['commercial-performance', 'Commercial Performance']]) {
-    await page.goto(`${STAFF}/management/${path}`);
+    await page.goto(`${DASHBOARD}/management/${path}`);
     await expect(page.getByRole('heading', { name: title })).toBeVisible();
     await expect(page.locator('.oc-metric').first()).toBeVisible();
   }
 });
 
 test('Ops: Starter sees Pace of Play; Sport Reception validates access', async ({ page }) => {
-  await login(page, STAFF, email('starter_marshal'));
-  await page.goto(`${STAFF}/ops/starter/pace`);
+  await login(page, CASHIER, email('starter_marshal'));
+  await page.goto(`${CASHIER}/ops/starter/pace`);
   await expect(page.getByRole('heading', { name: 'Pace of Play' })).toBeVisible();
   const ctx = await page.context().browser()!.newContext();
   const p = await ctx.newPage();
-  await login(p, STAFF, email('sport_club_receptionist'));
-  await p.goto(`${STAFF}/ops/sport-reception`);
+  await login(p, CASHIER, email('sport_club_receptionist'));
+  await p.goto(`${CASHIER}/ops/sport-reception`);
   await expect(p.getByRole('heading', { name: 'Facility Access' })).toBeVisible();
   await ctx.close();
 });
 
 test('Caddy Tablet: assignments, earnings and the offline queue', async ({ page }) => {
-  await login(page, STAFF, email('caddy'));
+  await login(page, CADDY, email('caddy'));
   await expect(page.locator('.oc-bottom-nav')).toBeVisible();
-  await page.goto(`${STAFF}/tablet/earnings`);
+  await page.goto(`${CADDY}/tablet/earnings`);
   await expect(page.getByRole('heading', { name: 'Earnings' })).toBeVisible();
-  await page.goto(`${STAFF}/tablet/sync`);
+  await page.goto(`${CADDY}/tablet/sync`);
   await page.getByRole('button', { name: 'Simulate offline' }).click();
   await expect(page.getByText(/No signal/)).toBeVisible();
   await page.getByRole('button', { name: 'Go back online' }).click();

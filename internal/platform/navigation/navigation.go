@@ -262,8 +262,6 @@ var Trees = map[string][]Item{
 		{Key: "sport-reception", Label: "Sport Reception", Path: "/ops/sport-reception", Icon: "sports_tennis", Module: "sportclub", Permission: "sportclub.access.validate"},
 		{Key: "instructor", Label: "Instructor", Path: "/ops/instructor", Icon: "school", Module: "sportclub", Permission: "sportclub.class.attendance"},
 		{Key: "pos", Label: "POS", Path: "/ops/pos", Icon: "point_of_sale", Module: "commercial", Permission: "commercial.order.create"},
-		{Key: "kitchen", Label: "Kitchen", Path: "/ops/kitchen", Icon: "skillet", Module: "commercial", Permission: "commercial.kitchen.view"},
-		{Key: "clubhouse-screen", Label: "Clubhouse Screen", Path: "/ops/clubhouse-screen", Icon: "tv", Module: "golf", Permission: catalog.ShellOps},
 		{Key: "sync", Label: "Sync Queue", Path: "/ops/sync", Icon: "sync", Permission: catalog.ShellOps},
 		{Key: "notifications", Label: "Notifications", Path: "/ops/notifications", Icon: "notifications", Permission: catalog.ShellOps},
 	},

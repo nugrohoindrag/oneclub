@@ -73,7 +73,7 @@ Settings → Environments → create `dev`, `staging`, `production` (production:
 | variable | `DEV_INSTANCE` | instance code deployed on Dev; enables `deploy-dev` |
 | secret | `DEV_HOST`, `DEV_SSH_KEY` | SSH to the Dev server (user `deploy`) |
 | variable | `STAGING_INSTANCE` | enables the `staging` job |
-| variable | `STAGING_STAFF_URL`, `STAGING_MEMBER_URL`, `STAGING_WEB_URL` | browser tests against Staging (Staff App, Member App, website) |
+| variable | `STAGING_DASHBOARD_URL`, `STAGING_CASHIER_URL`, `STAGING_CADDY_URL`, `STAGING_KITCHEN_URL`, `STAGING_MEMBER_URL`, `STAGING_WEB_URL` | browser tests against Staging (the four Staff App domains, Member App, website) |
 | secret | `STAGING_HOST`, `STAGING_SSH_KEY`, `STAGING_DEMO_PASSWORD`, `STAGING_DEVICE_TOKEN` | Staging deploy + browser tests |
 | variable | `PRODUCTION_INSTANCES` | JSON list, e.g. `["mgcc"]`; enables `production` |
 | secret | `PRODUCTION_HOST`, `PRODUCTION_SSH_KEY` | Production deploy |
@@ -88,4 +88,5 @@ Servers need `/srv/oneclub/scripts/` (`deploy.sh`, `rollback.sh`, `smoke-test.sh
 API and worker on :8080, the apps via `pnpm --filter @oneclub/<app> preview` (`staff` :5173, `member` :5174) or `pnpm dev`, then in `web/`:
 `PSQL=<path to psql> DEMO_DEVICE_TOKEN=<token from seed-demo> pnpm e2e`
 (`E2E_DATABASE_URL` defaults to the local `oneclub_mgcc` database; `E2E_STAFF`, `E2E_MEMBER` and `E2E_WEB` override the
-URLs, e.g. for a second stack next to `pnpm dev`).
+URLs, e.g. for a second stack next to `pnpm dev`). The Staff App domains are tested on `<surface>.localhost` at the
+port of `E2E_STAFF`; the tests of development without a surface run only locally.

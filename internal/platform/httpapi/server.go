@@ -12,6 +12,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"runtime/debug"
 	"slices"
 	"strings"
@@ -210,6 +211,13 @@ func (s *Server) securityHeaders(next http.Handler) http.Handler {
 	})
 }
 
+// sameHost reports whether an Origin header names the host the request was
+// sent to (a same-origin request, never a cross-site one).
+func sameHost(origin, host string) bool {
+	u, err := url.Parse(origin)
+	return err == nil && host != "" && strings.EqualFold(u.Host, host)
+}
+
 func (s *Server) cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
@@ -338,9 +346,11 @@ func (s *Server) authorize(ctx context.Context, r *http.Request, rt *route.Route
 	}
 
 	// CSRF defence for cookie sessions: browsers always send Origin on
-	// cross-site mutations; it must be one of the OneClub app origins.
+	// cross-site mutations; it must be the origin the request was sent to
+	// (each app domain proxies /api, custom domains included) or one of the
+	// OneClub app origins.
 	if rt.Mutating() && p.Kind != authz.ActorAPIKey {
-		if o := r.Header.Get("Origin"); o != "" && !slices.Contains(s.Cfg.AllowedOrigins, o) {
+		if o := r.Header.Get("Origin"); o != "" && !sameHost(o, r.Host) && !slices.Contains(s.Cfg.AllowedOrigins, o) {
 			return ctx, errs.Forbidden("origin not allowed")
 		}
 	}

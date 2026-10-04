@@ -9274,14 +9274,18 @@
             "type": "string"
           },
           "surface": {
+            "description": "Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces",
             "enum": [
               "web",
               "member",
-              "staff",
+              "dashboard",
+              "cashier",
+              "caddy",
+              "kitchen",
+              "api",
               "backoffice",
               "ops",
-              "platform-admin",
-              "api"
+              "platform-admin"
             ],
             "type": "string"
           },
@@ -9315,14 +9319,18 @@
             "type": "string"
           },
           "surface": {
+            "description": "Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces",
             "enum": [
               "web",
               "member",
-              "staff",
+              "dashboard",
+              "cashier",
+              "caddy",
+              "kitchen",
+              "api",
               "backoffice",
               "ops",
-              "platform-admin",
-              "api"
+              "platform-admin"
             ],
             "type": "string"
           }
@@ -109929,7 +109937,7 @@
           }
         },
         "security": [],
-        "summary": "Caddy on-demand TLS check",
+        "summary": "Caddy on-demand TLS check and the surface served on a custom domain",
         "tags": [
           "Customer Instance"
         ],

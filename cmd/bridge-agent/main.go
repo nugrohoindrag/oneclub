@@ -3,7 +3,7 @@
 // the hardware (locker, turnstile, ball dispenser) and connects outbound to
 // the OneClub API, so hardware is never exposed to the internet.
 //
-//	ONECLUB_API_URL=https://backoffice.club.example ONECLUB_AGENT_TOKEN=ocb_... bridge-agent
+//	ONECLUB_API_URL=https://dashboard.club.example ONECLUB_AGENT_TOKEN=ocb_... bridge-agent
 //
 // P0 sends heartbeats with the hardware inventory; command execution is
 // added with the first hardware vendor (P2).

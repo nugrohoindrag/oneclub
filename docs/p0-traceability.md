@@ -16,7 +16,7 @@ Chrome), unit tests next to the code.
 | 4 | Audit strategy for all transactions | Route middleware + e2e harness: **116/116 mutating routes exercised, 0 succeeded without an audit entry**; append-only proved in `provision_test` | ✅ |
 | 5 | API contract available | `api/openapi/openapi.json` (209 operations, validated); `GET /api/v1/openapi.json`; CI drift + oasdiff breaking check | ✅ (⚠ see FR-TEC-02) |
 | 6 | Multi-property boundary | RLS on every `property_id` table (`TestRLSOnEveryPropertyTable`), property switcher (Playwright), cross-property tests | ✅ |
-| 7 | Every surface logs in and shows role-appropriate menus | Playwright: Staff App areas Back Office (GM, Super Admin+MFA), Management, Platform Administration, Operational (device+PIN), Caddy Tablet; Member App; Website | ✅ |
+| 7 | Every surface logs in and shows role-appropriate menus | Playwright: Staff App areas on their domains: Back Office (GM, Super Admin+MFA), Management, Platform Administration, Clubhouse Screen on `dashboard`; Operational (device+PIN) on `cashier`; Caddy Tablet (device+PIN) on `caddy`; Kitchen Display on `kitchen`; other areas refused per domain; Member App; Website | ✅ |
 
 ## Functional requirements
 
@@ -83,8 +83,8 @@ Chrome), unit tests next to the code.
 | FR-BRD-03 | 5 presets + custom accent generated server-side with WCAG AA checks | `internal/platform/instance/accent_test.go` | ✅ |
 | FR-BRD-04 | Light/Dark per user, instance default | Profile, header toggle | ✅ |
 | FR-SH-01 | All apps on Morphic (`packages/ui`) + generated API client | builds | ✅ |
-| FR-SH-02/03 | Server-built navigation; property switcher, user menu (with the Staff App area switcher), notifications, language in header | Playwright | ✅ |
-| FR-SH-04 | 403 (with links to the user's Staff App areas), 404, error, maintenance pages | Playwright (403) | ✅ |
+| FR-SH-02/03 | Server-built navigation; property switcher, user menu (with the Staff App area switcher on `dashboard`; none on the device domains), notifications, language in header | Playwright | ✅ |
+| FR-SH-04 | 403 (with links to the user's Staff App areas, and to the right domain for an area of another domain), 404, error, maintenance pages | Playwright (403), `areas.test.ts` | ✅ |
 | FR-SH-05 | Operational area opens offline, action queued, synced when online (one service worker; precache only Operational and Caddy Tablet) | Playwright Operational + `offline.spec.ts` + `offline.test.ts` + `TestOfflineSync` | ✅ |
 | FR-SH-06 | Desktop/tablet; member mobile bottom nav | Playwright (390 px) | ✅ |
 | FR-SH-07/08/09 | Login per reference, dashboard style, status pills | Playwright + screenshots | ✅ |

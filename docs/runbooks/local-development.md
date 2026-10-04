@@ -61,21 +61,37 @@ pnpm --filter @oneclub/api-client generate   # after changing the API (make open
 ```
 
 The Staff App (`web/apps/staff`) holds every staff area (Technical Doc §6.1): Back Office at `/` (module paths such as
-`/golf/tee-sheet`), Management Dashboard `/management`, Operational `/ops`, Caddy Tablet `/tablet` and Platform
-Administration `/platform`. One login at `/login`; the user lands on their first area in the order Caddy Tablet,
-Operational, Management, Back Office, Platform Administration (or on `?next=` when that area is theirs) and switches
-areas from the user menu. A shared device is registered once at `/login/device` with the token printed by
-`make seed-demo`; afterwards `/login` asks for e-mail + PIN.
+`/golf/tee-sheet`), Management Dashboard `/management`, Platform Administration `/platform`, Clubhouse Screen
+`/screen`, Operational `/ops`, Caddy Tablet `/tablet` and Kitchen Display `/kitchen`. One login at `/login`; the user
+lands on their first area in the order Management, Back Office, Platform Administration, Clubhouse Screen, Caddy
+Tablet, Kitchen Display, Operational (or on `?next=` when that area is theirs) and switches areas from the user menu.
+
+In production the one build is served on four domains, and the domain (its *surface*, from `/surface.json`) locks the
+areas: `dashboard` (Back Office, Management, Platform Administration, Clubhouse Screen; password login only),
+`cashier` (Operational), `caddy` (Caddy Tablet), `kitchen` (Kitchen Display). Locally:
+
+| URL | Surface | Opens |
+|---|---|---|
+| `http://localhost:5173` | none | every area by path (development) |
+| `http://dashboard.localhost:5173` | `dashboard` | office areas; device areas show 403 with a link to their domain |
+| `http://cashier.localhost:5173` | `cashier` | Operational only |
+| `http://caddy.localhost:5173` | `caddy` | Caddy Tablet only |
+| `http://kitchen.localhost:5173` | `kitchen` | Kitchen Display only |
+
+Browsers resolve `*.localhost` to this machine; `vite.config.ts` serves each subdomain its `/surface.json` and manifest
+the way Caddy does in production. Each domain keeps its own session, device registration and service worker. On a
+device domain a shared device is registered once at `/login/device` with the token printed by `make seed-demo`;
+afterwards `/login` asks for e-mail + PIN.
 
 ## 4. Demo accounts (seed-demo)
 
 | E-mail | Role | Staff App areas | Notes |
 |---|---|---|---|
 | gm@demo.oneclub.id | General Manager (MAIN) | Management, Back Office | no MFA |
-| property.admin@demo.oneclub.id | Property Admin (MAIN) | Caddy Tablet, Operational, Management, Back Office | MFA enrolment at first login |
+| property.admin@demo.oneclub.id | Property Admin (MAIN) | Management, Back Office on `dashboard`; Operational, Caddy Tablet, Kitchen Display on their domains | MFA enrolment at first login |
 | property.admin2@demo.oneclub.id | Property Admin (MDR) | as above | sees only MDR |
 | finance@demo.oneclub.id | Finance Manager | Management, Back Office | MFA, approves step 2 |
-| starter@demo.oneclub.id / cashier@… | Staff | Operational (device + PIN 246810) | |
+| starter@demo.oneclub.id / cashier@… | Staff | Operational on `cashier` (device + PIN 246810) | |
 | member@demo.oneclub.id | Member | — (Member App) | |
 
 Password for all: `Demo#Club2026`.

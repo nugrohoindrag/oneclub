@@ -14,7 +14,7 @@ Each customer gets its **own database, database roles and Docker Compose stack**
      -legal-name "PT Modern Golf Indonesia" -property-code MAIN -property-name "Modern Golf & Country Club" \
      -locale id -currency IDR -timezone Asia/Jakarta \
      -super-admin-email it@moderngolf.id -platform-admin-email platform@oneclub.id \
-     -public-url https://backoffice.moderngolf.id \
+     -public-url https://dashboard.moderngolf.id \
      -bundle-dir /srv/oneclub/instances -db-host db
    ```
 
@@ -25,8 +25,21 @@ Each customer gets its **own database, database roles and Docker Compose stack**
    writes the deploy bundle (`.env` + `secrets/*`, mode 0600).
 
 3. **Secure the bundle**: encrypt with `sops`/`age` or move to the secret store. Never commit it.
-4. **Complete `.env`** with `DOMAIN_STAFF` (Staff App: every staff area; the host of `PUBLIC_BASE_URL`), `DOMAIN_MEMBER`, `DOMAIN_WEB`,
-   `ACME_EMAIL`, SMTP and S3 settings; create `.env.pgbouncer`.
+4. **DNS and `.env`.** The Staff App is one build on four domains (Technical Doc §6.1); create an A/AAAA record
+   to the App Host for each domain below, then complete `.env`:
+
+   | Variable | Example | Serves |
+   |---|---|---|
+   | `DOMAIN_DASHBOARD` | `dashboard.moderngolf.id` | Back Office, Management Dashboard, Platform Administration, Clubhouse Screen; the host of `PUBLIC_BASE_URL` (`-public-url`) |
+   | `DOMAIN_CASHIER` | `cashier.moderngolf.id` | Operational Interface on shared devices (POS, front desk, starter, …) |
+   | `DOMAIN_CADDY` | `caddy.moderngolf.id` | Caddy Tablet |
+   | `DOMAIN_KITCHEN` | `kitchen.moderngolf.id` | Kitchen Display |
+   | `DOMAIN_MEMBER` | `app.moderngolf.id` | Member App |
+   | `DOMAIN_WEB` | `www.moderngolf.id` | Website |
+
+   Every domain proxies `/api`, so requests stay same-origin; set `ALLOWED_ORIGINS` to the six `https://` origins
+   (comma-separated) all the same. Add `ACME_EMAIL`, SMTP and S3 settings; create `.env.pgbouncer`. Custom domains
+   (FR-INS-06) need no `.env` entry: Platform Administration → Custom Domain registers them with their surface.
 5. **Deploy**: `deploy/scripts/deploy.sh mgcc <version>`.
 6. **First login**: the Super Admin logs in with the printed temporary password, changes it and enrols MFA.
 7. **Verify isolation**: `make e2e` covers it automatically (`TestInstanceIsolation`); on staging also try the app

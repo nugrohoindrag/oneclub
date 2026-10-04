@@ -10159,7 +10159,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Caddy on-demand TLS check */
+        /** Caddy on-demand TLS check and the surface served on a custom domain */
         get: operations["getPublicDomainsAllowed"];
         put?: never;
         post?: never;
@@ -15458,8 +15458,11 @@ export interface components {
             lastError?: string | null;
             /** @enum {string} */
             status: "pending" | "verified" | "active" | "failed";
-            /** @enum {string} */
-            surface: "web" | "member" | "staff" | "backoffice" | "ops" | "platform-admin" | "api";
+            /**
+             * @description Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces
+             * @enum {string}
+             */
+            surface: "web" | "member" | "dashboard" | "cashier" | "caddy" | "kitchen" | "api" | "backoffice" | "ops" | "platform-admin";
             /** @description DNS TXT record name to create */
             verificationRecordName: string;
             verificationRecordValue: string;
@@ -15468,8 +15471,11 @@ export interface components {
         };
         DomainRequest: {
             hostname: string;
-            /** @enum {string} */
-            surface: "web" | "member" | "staff" | "backoffice" | "ops" | "platform-admin" | "api";
+            /**
+             * @description Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces
+             * @enum {string}
+             */
+            surface: "web" | "member" | "dashboard" | "cashier" | "caddy" | "kitchen" | "api" | "backoffice" | "ops" | "platform-admin";
         };
         DrivingRangeBay: {
             /** Format: date-time */

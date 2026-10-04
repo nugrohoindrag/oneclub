@@ -36,7 +36,7 @@ resolving generated-file and migration conflicts) and CI/CD setup: [`docs/runboo
 
 | Application | App | Port (dev) | Who |
 |---|---|---|---|
-| Staff App (PWA): Back Office `/`, Management Dashboard `/management`, Operational `/ops` (offline, device + PIN), Caddy Tablet `/tablet` (offline), Platform Administration `/platform` | `web/apps/staff` | 5173 | every staff member; the role decides the areas |
+| Staff App (PWA), one build on four domains: `dashboard` (Back Office `/`, Management Dashboard `/management`, Platform Administration `/platform`, Clubhouse Screen `/screen`), `cashier` (Operational `/ops`: offline, device + PIN), `caddy` (Caddy Tablet `/tablet`: offline), `kitchen` (Kitchen Display `/kitchen`) | `web/apps/staff` | 5173 (`<domain>.localhost:5173` per domain) | every staff member; the domain locks the areas, the role decides which open |
 | Member & Guest Portal (PWA) | `web/apps/member` | 5174 | members, guests |
 | Website (Next.js SSR) | `web/apps/web` | 3000 | public |
 | Morphic showcase | `web/packages/ui` (`pnpm showcase`) | 5199 | designers, engineers |
@@ -47,7 +47,7 @@ resolving generated-file and migration conflicts) and CI/CD setup: [`docs/runboo
 make unit                                  # Go unit + architecture boundary tests
 make e2e                                   # P0 + P1 acceptance tests on a real PostgreSQL (fresh instances per run)
 cd web && pnpm -r typecheck && pnpm -r test
-cd web && pnpm exec playwright test        # browser tests of every app and Staff App area, golf flow, offline POS and tablet (needs running API + previews)
+cd web && pnpm exec playwright test        # browser tests of every app, Staff App area and domain, golf flow, offline POS and tablet (needs running API + previews)
 k6 run test/load/teetime-rush.js           # load tests (see docs/runbooks/production-readiness.md §4)
 ```
 

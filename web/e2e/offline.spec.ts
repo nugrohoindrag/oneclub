@@ -1,5 +1,5 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
-import { MEMBER, STAFF, apiOf, email, login, playDay } from './helpers';
+import { CADDY, CASHIER, DASHBOARD, MEMBER, apiOf, email, login, playDay } from './helpers';
 
 /**
  * Offline areas of the Staff App (Technical Doc §6.4, PRD FR-SH-05,
@@ -35,7 +35,7 @@ async function syncAll(page: Page, context: BrowserContext, actions: number) {
 test('POS: a sale without connection is queued and synced as one order', async ({ browser }) => {
   // Outlet, product and menu for this run (the demo seed has no outlet).
   const admin = await (await browser.newContext()).newPage();
-  await login(admin, STAFF, SA, '/');
+  await login(admin, DASHBOARD, SA, '/');
   const api = await apiOf(admin);
   const outlet = await api.post('/api/v1/commercial/outlets', { code: `E2E-${stamp}`, name: `E2E Kiosk ${stamp}`, outletType: 'restaurant' });
   const coffee = await api.post('/api/v1/commercial/products', { code: `E2E-KOPI-${stamp}`, name: `Kopi ${stamp}`, category: 'Drinks', productType: 'beverage', price: '25000' });
@@ -43,7 +43,7 @@ test('POS: a sale without connection is queued and synced as one order', async (
 
   const context = await browser.newContext();
   const page = await context.newPage();
-  await login(page, STAFF, email('cashier'));
+  await login(page, CASHIER, email('cashier'));
   await expect(page).toHaveURL(/\/ops$/);
   await page.getByRole('button', { name: outlet.name }).click();
   await page.getByRole('link', { name: 'POS' }).click();
@@ -70,7 +70,7 @@ test('POS: a sale without connection is queued and synced as one order', async (
 test('Caddy Tablet: an 18-hole round without signal syncs once; the member rates the caddy', async ({ browser }) => {
   // A checked-in flight of course MGC with the e2e caddy (C001, e2e/setup.sql).
   const admin = await (await browser.newContext()).newPage();
-  await login(admin, STAFF, SA, '/');
+  await login(admin, DASHBOARD, SA, '/');
   const api = await apiOf(admin);
   const mgc = (await api.get('/api/v1/golf/courses?limit=100')).items.find((c: { code: string }) => c.code === 'MGC');
   // One caddy per player (Caddy Policy); C001 is the e2e caddy's (e2e/setup.sql).
@@ -114,7 +114,7 @@ test('Caddy Tablet: an 18-hole round without signal syncs once; the member rates
 
   const context = await browser.newContext();
   const page = await context.newPage();
-  await login(page, STAFF, email('caddy'));
+  await login(page, CADDY, email('caddy'));
   await expect(page).toHaveURL(/\/tablet$/);
   await page.locator('.oc-row-wrap', { hasText: bk!.code }).getByRole('link', { name: 'Open' }).click();
   await expect(page.getByRole('heading', { name: bk!.code })).toBeVisible();

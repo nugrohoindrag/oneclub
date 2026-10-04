@@ -87,6 +87,8 @@ export const en = {
     goHome: 'Go to home',
     switchArea: 'Switch area',
     yourAreas: 'Areas you can open',
+    otherDomainHelp: '{{area}} does not open on this device. Open it on its own domain.',
+    openOn: 'Open on {{host}}',
   },
   validation: {
     required: 'This field is required.',
@@ -219,6 +221,8 @@ export const id: Resources = {
     goHome: 'Ke beranda',
     switchArea: 'Pindah area',
     yourAreas: 'Area yang bisa Anda buka',
+    otherDomainHelp: '{{area}} tidak dibuka di perangkat ini. Buka di domainnya sendiri.',
+    openOn: 'Buka di {{host}}',
   },
   validation: {
     required: 'Wajib diisi.',

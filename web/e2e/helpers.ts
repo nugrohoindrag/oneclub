@@ -5,7 +5,20 @@ import { dirname, resolve } from 'node:path';
 
 /** Base URLs and accounts of the browser tests (e2e/setup.sql). */
 export const PASSWORD = process.env.E2E_PASSWORD ?? 'Demo#Club2026';
+/** Staff App without a surface (development): every area opens by path. Local runs only. */
 export const STAFF = process.env.E2E_STAFF ?? 'http://localhost:5173';
+/**
+ * The Staff App domains (Technical Doc §6.1). Locally <surface>.localhost on
+ * the Staff App port, where vite.config.ts serves each /surface.json like
+ * Caddy does; Staging sets E2E_DASHBOARD, E2E_CASHIER, E2E_CADDY, E2E_KITCHEN.
+ */
+const staffDomain = (surface: string) => process.env[`E2E_${surface.toUpperCase()}`] ?? `http://${surface}.localhost:${new URL(STAFF).port}`;
+export const DASHBOARD = staffDomain('dashboard');
+export const CASHIER = staffDomain('cashier');
+export const CADDY = staffDomain('caddy');
+export const KITCHEN = staffDomain('kitchen');
+/** Staging runs against the deployed domains; the surface-less origin exists only locally. */
+export const LOCAL = !process.env.E2E_DASHBOARD;
 export const MEMBER = process.env.E2E_MEMBER ?? 'http://localhost:5174';
 export const WEB = process.env.E2E_WEB ?? 'http://localhost:3000';
 export const DEVICE = process.env.DEMO_DEVICE_TOKEN ?? '';
@@ -65,16 +78,34 @@ export async function login(page: Page, base: string, user: string, next?: strin
   await page.waitForURL((u) => !u.pathname.startsWith('/login'));
 }
 
+/** Response of an API call made by apiOf. */
+export interface ApiResponse {
+  status(): number;
+  ok(): boolean;
+  text(): Promise<string>;
+  json(): Promise<any>;
+}
+
 /**
- * API calls with the session of a logged-in page, sent like the app sends
- * them: property MAIN (where the e2e accounts work) and Origin for CSRF.
+ * API calls with the session of a logged-in page, sent the way the app sends
+ * them: by the page itself (its domain, cookie and Origin) with property MAIN,
+ * where the e2e accounts work. The browser also resolves the
+ * <surface>.localhost domains, which Node does not reliably do.
  */
 export async function apiOf(page: Page) {
-  const me = await (await page.request.get(`${STAFF}/api/v1/auth/me`)).json();
-  const property = me.properties.find((p: { code: string }) => p.code === 'MAIN').id;
-  const headers = { 'X-Property-Id': property, Origin: STAFF };
   /** Any status; the caller decides. */
-  const send = (method: string, path: string, data?: unknown) => page.request.fetch(`${STAFF}${path}`, { method, headers, data });
+  const raw = async (method: string, path: string, data: unknown, property: string): Promise<ApiResponse> => {
+    const r = await page.evaluate(async ([method, path, body, property]) => {
+      const headers: Record<string, string> = body === undefined ? {} : { 'Content-Type': 'application/json' };
+      if (property) headers['X-Property-Id'] = property;
+      const res = await fetch(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body), cache: 'no-store' });
+      return { status: res.status, body: await res.text() };
+    }, [method, path, data, property] as const);
+    return { status: () => r.status, ok: () => r.status >= 200 && r.status < 300, text: async () => r.body, json: async () => JSON.parse(r.body) };
+  };
+  const me = await (await raw('GET', '/api/v1/auth/me', undefined, '')).json();
+  const property: string = me.properties.find((p: { code: string }) => p.code === 'MAIN').id;
+  const send = (method: string, path: string, data?: unknown) => raw(method, path, data, property);
   const call = async (method: string, path: string, data?: unknown) => {
     const r = await send(method, path, data);
     expect(r.ok(), `${method} ${path}: ${r.status()} ${await r.text()}`).toBeTruthy();
