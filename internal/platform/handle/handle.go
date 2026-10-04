@@ -70,24 +70,6 @@ func Read[Res any](db *dbtx.DB, fn func(ctx context.Context, tx pgx.Tx, r *http.
 	}
 }
 
-// Report runs fn read-only on the reporting replica (dashboards, reports).
-func Report[Res any](db *dbtx.DB, fn func(ctx context.Context, tx pgx.Tx, r *http.Request) (Res, error)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		var res Res
-		err := db.WithReportTx(ctx, func(tx pgx.Tx) error {
-			var err error
-			res, err = fn(ctx, tx, r)
-			return err
-		})
-		if err != nil {
-			httpx.WriteError(w, r, err)
-			return
-		}
-		httpx.JSON(w, http.StatusOK, res)
-	}
-}
-
 // List collects rows into []T using `db` struct tags (missing columns are
 // left zero). A nil result is returned as an empty slice.
 func List[T any](rows pgx.Rows, err error) ([]T, error) {

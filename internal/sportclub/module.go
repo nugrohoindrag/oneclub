@@ -6,7 +6,6 @@ package sportclub
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
@@ -313,22 +312,6 @@ func Contribution() catalog.Contribution {
 			"reservation_staff":       {"sportclub.facility.view", "sportclub.court.view", "sportclub.booking.view", "sportclub.booking.create", "sportclub.class.view", "sportclub.class.enroll"},
 		},
 	}
-}
-
-func jsonMap(v any) map[string]any {
-	switch t := v.(type) {
-	case map[string]any:
-		return t
-	case []byte:
-		var m map[string]any
-		_ = json.Unmarshal(t, &m)
-		return m
-	case string:
-		var m map[string]any
-		_ = json.Unmarshal([]byte(t), &m)
-		return m
-	}
-	return nil
 }
 
 var errNotFound = errs.NotFound

@@ -147,13 +147,6 @@ func nzs(s string) *string {
 	return &s
 }
 
-func deref(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
-}
-
 // unitHook keeps the reservation resource of a unit in sync.
 func (m *Module) unitHook(table, prefix, rtype string, capacity func(map[string]any) *int, item func(context.Context, pgx.Tx, map[string]any) string) resource.Hooks {
 	sync := func(ctx context.Context, tx pgx.Tx, row map[string]any) error {

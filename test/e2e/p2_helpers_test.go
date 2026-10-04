@@ -2,7 +2,6 @@ package e2e
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -208,8 +207,6 @@ func accountingExport(t *testing.T, c *Client) string {
 func intp(n int) *int { return &n }
 
 func newKey() string { return uuid.NewString() }
-
-func money(s any) string { return fmt.Sprint(s) }
 
 func reservationExpire(in *Instance) (int64, error) {
 	return reservation.ExpireHolds(context.Background(), in.DB)

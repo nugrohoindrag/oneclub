@@ -379,27 +379,3 @@ func (c *Catalog) Role(code string) (RoleTemplate, bool) {
 	}
 	return RoleTemplate{}, false
 }
-
-// Merge combines contributions of one module (e.g. a phase extending what an
-// earlier phase contributed): permissions are de-duplicated by code and
-// role permissions are unioned per role.
-func Merge(cs ...Contribution) Contribution {
-	out := Contribution{RolePermissions: map[string][]string{}}
-	seen := map[string]bool{}
-	for _, c := range cs {
-		for _, p := range c.Permissions {
-			if !seen[p.Code] {
-				seen[p.Code] = true
-				out.Permissions = append(out.Permissions, p)
-			}
-		}
-		for role, perms := range c.RolePermissions {
-			for _, p := range perms {
-				if !slices.Contains(out.RolePermissions[role], p) {
-					out.RolePermissions[role] = append(out.RolePermissions[role], p)
-				}
-			}
-		}
-	}
-	return out
-}

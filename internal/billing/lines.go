@@ -147,28 +147,6 @@ func (s *Service) applyTender(ctx context.Context, tx pgx.Tx, property, folioID 
 
 // ── C1: folio lookups and cancellation ────────────────────────────────────
 
-// FolioBySource returns the open folio of a source (e.g. a stay), if any.
-func FolioBySource(ctx context.Context, q dbtx.Querier, sourceType string, sourceID uuid.UUID) (*uuid.UUID, error) {
-	var fid uuid.UUID
-	err := q.QueryRow(ctx, `SELECT id FROM billing.folios WHERE source_type = $1 AND source_id = $2 AND status = 'open'
-		ORDER BY created_at DESC LIMIT 1`, sourceType, sourceID).Scan(&fid)
-	if dbtx.IsNoRows(err) {
-		return nil, nil
-	}
-	return &fid, err
-}
-
-// FolioByReservation returns the open folio of a reservation, if any.
-func FolioByReservation(ctx context.Context, q dbtx.Querier, reservationID uuid.UUID) (*uuid.UUID, error) {
-	var fid uuid.UUID
-	err := q.QueryRow(ctx, `SELECT id FROM billing.folios WHERE reservation_id = $1 AND status = 'open' ORDER BY created_at DESC LIMIT 1`,
-		reservationID).Scan(&fid)
-	if dbtx.IsNoRows(err) {
-		return nil, nil
-	}
-	return &fid, err
-}
-
 // VoidSourceCharges voids the open charges of a source document and
 // returns their total.
 func (s *Service) VoidSourceCharges(ctx context.Context, tx pgx.Tx, referenceType string, referenceID uuid.UUID, reason string) (decimal.Decimal, error) {

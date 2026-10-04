@@ -204,12 +204,6 @@ func (m *Module) cartPolicy(ctx context.Context, q dbtx.Querier, property uuid.U
 	return p, err
 }
 
-// p1CartPolicy is P1's Golf Cart Policies (what happens to a returned cart).
-func (m *Module) p1CartPolicy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (golf.CartPolicy, error) {
-	p, err := golf.LoadPolicies(ctx, q, property, clock.Now())
-	return p.Cart, err
-}
-
 func (m *Module) reciprocalPolicy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (ReciprocalPolicy, error) {
 	p, _, err := rules.PolicyAt(ctx, q, "golf.reciprocal", property, defaultReciprocalPolicy)
 	return p, err
