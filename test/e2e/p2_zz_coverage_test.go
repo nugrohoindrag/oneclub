@@ -46,6 +46,16 @@ func TestP2GolfOperationsCoverage(t *testing.T) {
 	if a := sa.Must(200, "POST", "/api/v1/golf/caddy-attendance:clock-out", map[string]any{"caddyId": c2}).JSON(); a["clockedOutAt"] == nil {
 		t.Fatalf("clock-out: %v", a)
 	}
+	// P1's caddy board (and its auto assignment) no longer offers a caddy who went home.
+	gone := false
+	for _, b := range sa.Must(200, "GET", "/api/v1/golf/caddy-availability", nil).Items() {
+		if b["caddyId"] == c2 {
+			gone = b["status"] == "not_available"
+		}
+	}
+	if !gone {
+		t.Fatal("clocked-out caddy still available on the caddy board")
+	}
 	inc := sa.Must(201, "POST", "/api/v1/golf/caddy-incidents", map[string]any{"subjectType": "caddy", "caddyId": c2, "category": "late", "severity": "low",
 		"description": "Arrived 20 minutes late"}).JSON()
 	if cl := sa.Must(200, "POST", "/api/v1/golf/caddy-incidents/"+str(inc["id"])+":close", map[string]any{"reason": "Verbal warning"}).JSON(); cl["status"] != "closed" {
