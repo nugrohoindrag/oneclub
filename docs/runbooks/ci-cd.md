@@ -19,48 +19,47 @@ Deploy jobs are skipped until their server is configured, so CI is green before 
 ## Branches and promotion
 
 ```text
-feat/pN-<topic> ──PR──▶ main ──PR──▶ staging ──tag vX.Y.Z──▶ Production
-                        (Dev)        (Staging)               (manual approval)
+develop ──PR──▶ main ──PR──▶ staging ──tag vX.Y.Z──▶ Production
+(work)          (Dev)        (Staging)               (manual approval)
 ```
 
-| Branch | Environment | Who merges | How |
-|---|---|---|---|
-| `feat/pN-*` | — (CI on the PR) | developer | short-lived, one feature |
-| `main` | Dev (automatic) | both developers | PR with green CI + 1 approval, squash merge |
-| `staging` | Staging (automatic) | release owner | PR `main → staging` (merge commit, never squash) when a set of features is ready for UAT |
-| tag `vX.Y.Z` | Production | release owner | `git tag vX.Y.Z origin/staging && git push origin vX.Y.Z` after UAT sign-off; approve the `production` environment |
+There are three long-lived branches and no others:
 
-Rules: nothing is committed to `staging` directly — it only receives `main`. A fix found on Staging is made on a
-`feat/*` branch → `main` → promoted to `staging` again, so `main` always contains everything that is on Staging.
+| Branch | Environment | How it changes |
+|---|---|---|
+| `develop` | — (CI on the PR) | every commit goes here; push often |
+| `main` | Dev (automatic) | PR `develop → main` with green CI, **merge commit** (never squash) |
+| `staging` | Staging (automatic) | PR `main → staging` (merge commit, never squash) when a set of features is ready for UAT |
+| tag `vX.Y.Z` | Production | `git tag vX.Y.Z origin/staging && git push origin vX.Y.Z` after UAT sign-off; approve the `production` environment |
 
-## Working in parallel (P1–P6)
+Rules: nothing is committed to `main` or `staging` directly. A fix found on Staging is committed on `develop` →
+`main` → promoted to `staging` again, so `main` always contains everything that is on Staging.
 
-Phases are built in pairs by two developers at the same time: P1 ‖ P2, then P3 ‖ P4, then P5 ‖ P6
-(Technical Documentation §12.3). Each pair branches from a `main` that already contains the previous pair.
+## Working on develop
 
-1. Branch from `main` per feature, prefixed with the phase: `feat/p1-<topic>`, `feat/p2-<topic>`, … `feat/p6-<topic>`.
-   Keep branches short-lived (days, not weeks) and rebase on `main` often — small, early merges keep two phases
-   from drifting apart.
-2. Open a pull request; merge only when `lint`, `backend`, `frontend` and `browser` are green
-   (enforced by branch protection — see below). Squash merge keeps `main` linear.
-3. Typical conflict points and how to resolve them:
-   - `api/openapi/openapi.json` and `web/packages/api-client/src/schema.ts` are generated — never merge them by hand.
-     After rebasing run `make openapi` and commit the result; CI fails with "stale" otherwise.
-   - Migrations: each module has its own goose sequence (`db/migrations/<module>/`). Two branches adding the same
-     number to the same module conflict on file name — renumber yours to the next free number after rebasing.
-     Migrations must stay expand-only (no drop/rename in the same release).
-   - `internal/app/app.go` (module wiring) and `internal/platform/catalog` (permissions, roles): additive edits;
-     keep entries in the existing order and resolve by keeping both sides.
-4. Before pushing: `make lint unit` (and `make e2e` when touching API/DB code).
+Development continues with one developer (Technical Documentation §12.3), so phases follow one another:
+P1 + P2, then P3, P4, P5, P6.
+
+1. Commit on `develop`. Before pushing: `make lint unit` (and `make e2e` when touching API/DB code).
+2. When a set of changes is ready, open a pull request `develop → main` and merge it with a **merge commit** once
+   `lint`, `backend`, `frontend` and `browser` are green. A squash merge would give `main` commits that
+   `develop` does not have, and the next pull request would conflict.
+3. After the merge, bring `develop` level with `main` again before the next commit:
+   `git switch develop && git pull --ff-only origin main && git push origin develop`.
+4. Generated files: `api/openapi/openapi.json` and `web/packages/api-client/src/schema.ts` are never edited by hand.
+   Run `make openapi` and commit the result; CI fails with "stale" otherwise.
+5. Migrations: each module has its own goose sequence (`db/migrations/<module>/`) and stays expand-only
+   (no drop/rename in the same release).
 
 ## Branch protection (recommended)
 
 Settings → Branches → Add rule:
 
-- `main`: require a pull request (1 approval), require status checks `lint`, `backend`, `frontend`, `browser`,
-  require branches to be up to date, block force pushes and deletion.
+- `main`: require a pull request (no required approvals; there is no second developer), require status checks
+  `lint`, `backend`, `frontend`, `browser`, block force pushes and deletion.
 - `staging`: require a pull request (from `main` only, by convention), require the same status checks,
   block force pushes and deletion.
+- `develop`: block force pushes and deletion.
 
 ## Configuration when servers exist
 
