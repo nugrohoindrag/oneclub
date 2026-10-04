@@ -40,17 +40,18 @@ async function login(page: Page, base: string, user: string, path = '/login') {
 
 test('Back Office: P2 module hubs list master data and operations', async ({ page }) => {
   await login(page, BO, email('golf_manager'));
-  await page.goto(`${BO}/golf`);
-  await expect(page.getByRole('heading', { name: 'Golf', level: 1 })).toBeVisible();
+  await page.goto(`${BO}/golf/operations`);
+  await expect(page.getByRole('heading', { name: 'Round Operations', level: 1 })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Caddy Settlement' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Caddies' })).toBeVisible(); // generated from the resource definitions
-  await page.getByRole('link', { name: /Golf Carts/ }).first().click();
-  await expect(page.getByRole('button', { name: /Add Golf Cart/ })).toBeVisible();
+  await page.goto(`${BO}/golf/master`);
+  await expect(page.getByRole('heading', { name: 'Caddy Levels' })).toBeVisible(); // generated from the resource definitions
+  await page.getByRole('link', { name: /Caddy Levels/ }).first().click();
+  await expect(page.getByRole('button', { name: /Add Caddy Level/ })).toBeVisible();
 });
 
 test('Management: KPI dashboards show P2 figures', async ({ page }) => {
   await login(page, BO, email('general_manager'));
-  for (const [path, title] of [['golf-performance', 'Golf Performance'], ['commercial-performance', 'Commercial Performance']]) {
+  for (const [path, title] of [['sport-club-performance', 'Sport Club Performance'], ['commercial-performance', 'Commercial Performance']]) {
     await page.goto(`${BO}/management/${path}`);
     await expect(page.getByRole('heading', { name: title })).toBeVisible();
     await expect(page.locator('.oc-metric').first()).toBeVisible();
@@ -59,7 +60,7 @@ test('Management: KPI dashboards show P2 figures', async ({ page }) => {
 
 test('Ops: Starter sees Pace of Play; Sport Reception validates access', async ({ page }) => {
   await login(page, OPS, email('starter_marshal'), '/login/password');
-  await page.goto(`${OPS}/starter`);
+  await page.goto(`${OPS}/starter/pace`);
   await expect(page.getByRole('heading', { name: 'Pace of Play' })).toBeVisible();
   const ctx = await page.context().browser()!.newContext();
   const p = await ctx.newPage();
@@ -80,10 +81,10 @@ test('Caddy Tablet: assignments, earnings and the offline queue', async ({ page 
   await page.getByRole('button', { name: 'Go back online' }).click();
 });
 
-test('Member App: card, membership, vouchers and transactions pages', async ({ page }) => {
+test('Member App: scores, sport club, vouchers, fees & requests and preferences', async ({ page }) => {
   await login(page, MEMBER, email('member'));
-  await expect(page.getByText('Digital Member Card')).toBeVisible();
-  for (const [path, title] of [['membership', 'Membership'], ['vouchers', 'Voucher & Prepaid'], ['transactions', 'Transactions'], ['golf', 'Golf']]) {
+  for (const [path, title] of [['golf/scores', 'Scores & Handicap'], ['sport-club', 'Sport Club'], ['vouchers', 'Voucher & Prepaid'],
+    ['membership/services', 'Fees & Requests'], ['preferences', 'Preferences']]) {
     await page.goto(`${MEMBER}/${path}`);
     await expect(page.getByRole('heading', { name: title, level: 1 })).toBeVisible();
   }

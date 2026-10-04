@@ -32,6 +32,22 @@ Format kolom P1 (`business_date,section,code,description,amount`) tetap. Baris P
 
 Selain itu, `AddLineCharge` (file P2 `p2_api.go`) kini mengisi `components` setiap baris P2 dengan revenue component-nya. Sebelumnya baris P2 berkomponen kosong dan berjenis `other`, sehingga ekspor P1 menggabungkan F&B (revenue) dengan penjualan voucher (liability) di satu baris `liability,other`.
 
+## Penambahan di file frontend P1 (aditif)
+
+Halaman P2 ada di file P2 (`p2.tsx` tiap app, app `caddy`, `web/app/lib-p2.ts`). File P1 hanya mendapat baris tambahan untuk memasangnya; tidak ada baris P1 yang diubah:
+
+| File | Tambahan |
+|---|---|
+| `web/apps/backoffice/src/main.tsx` | import `./p2`; `HUBS` ditambahkan ke `P1_MODULES` (hub P2 menggantikan placeholder Sport Club, Stay & Venue, Inventory); `...P2_MANAGEMENT_ROUTES`, `...P2_ROUTES` |
+| `web/apps/ops/src/main.tsx` | import `./p2`; `<P2Tiles />` di Home; `...P2_OPS_ROUTES` |
+| `web/apps/member/src/main.tsx` | import `./p2`; `...P2_MEMBER_ROUTES` |
+| `web/apps/web/app/[lang]/nav.tsx` | `...p2Nav(lang)` (Sport Club, Stay & Venue, Hall of Fame) |
+| `web/apps/web/app/[lang]/contact/page.tsx` | formulir kontak (`ContactForm`, lead ke CRM) |
+
+Path halaman mengikuti navigasi server (`internal/platform/navigation`, juga aditif). Halaman P2 yang dobel dengan halaman P1 sudah dibuang: kartu digital, membership, transaksi dan booking di member app; starter, caddy queue dan golf front desk di ops.
+
+**Perlu keputusan:** Customer 360 lintas lini P2 (`/crm/customers/{id}/360`, FR-CRM-01) ada di `crm/customers/:id` backoffice, tetapi baru terjangkau bila halaman Customer 360 P1 (`p1/business.tsx`) diberi tautan ke sana, atau bagian lintas lini dimasukkan ke halaman P1.
+
 ## Ringkasan risiko untuk kode P1
 
 Hal yang perlu diperhatikan saat review, urut dari yang paling berdampak ke kode P1:
