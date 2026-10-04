@@ -213,3 +213,50 @@ func HasMemberRate(ctx context.Context, q dbtx.Querier, property, customerID uui
 	}
 	return false, err
 }
+
+// MemberNo returns the member number of a member ("" when unknown).
+func MemberNo(ctx context.Context, q dbtx.Querier, memberID uuid.UUID) (string, error) {
+	var no string
+	err := q.QueryRow(ctx, `SELECT code FROM membership.members WHERE id = $1`, memberID).Scan(&no)
+	if dbtx.IsNoRows(err) {
+		return "", nil
+	}
+	return no, err
+}
+
+// MemberRef is an active member found by FindMembers.
+type MemberRef struct {
+	ID   uuid.UUID
+	No   string
+	Name string
+}
+
+// FindMembers returns up to 20 active members other than self: the given
+// ids (e.g. family) and the members matching query by exact member number
+// or by name (3 letters or more).
+func FindMembers(ctx context.Context, q dbtx.Querier, property, self uuid.UUID, ids []uuid.UUID, query string) ([]MemberRef, error) {
+	rows, err := q.Query(ctx, `SELECT id, code, name FROM membership.members WHERE property_id = $1 AND status = 'active' AND id <> $2
+		AND (id = ANY($3) OR ($4 <> '' AND (upper(code) = upper($4) OR (length($4) >= 3 AND name ILIKE '%' || $4 || '%')))) ORDER BY name LIMIT 20`,
+		property, self, ids, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []MemberRef
+	for rows.Next() {
+		var m MemberRef
+		if err := rows.Scan(&m.ID, &m.No, &m.Name); err != nil {
+			return nil, err
+		}
+		out = append(out, m)
+	}
+	return out, rows.Err()
+}
+
+// MaxBookingWindowDays is the longest golf booking window of the active
+// membership types (nil without one).
+func MaxBookingWindowDays(ctx context.Context, q dbtx.Querier, property uuid.UUID) (*int, error) {
+	var mx *int
+	err := q.QueryRow(ctx, `SELECT max(booking_window_days) FROM membership.types WHERE property_id = $1 AND status = 'active'`, property).Scan(&mx)
+	return mx, err
+}

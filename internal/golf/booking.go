@@ -1062,19 +1062,10 @@ func (m *Module) CreateBooking(ctx context.Context, tx pgx.Tx, property uuid.UUI
 	// seats: holds keep their allocations; extra players get more seats
 	var holdAllocations []uuid.UUID
 	if fromHold {
-		rows, err := tx.Query(ctx, `SELECT id FROM reservation.allocations WHERE reservation_id = $1 AND status = 'held' ORDER BY created_at`, bookingID)
-		if err != nil {
+		var err error
+		if holdAllocations, err = reservation.HeldAllocations(ctx, tx, bookingID); err != nil {
 			return Booking{}, err
 		}
-		for rows.Next() {
-			var a uuid.UUID
-			if err := rows.Scan(&a); err != nil {
-				rows.Close()
-				return Booking{}, err
-			}
-			holdAllocations = append(holdAllocations, a)
-		}
-		rows.Close()
 		if len(resolved) < len(holdAllocations) {
 			if err := reservation.ReleaseAllocations(ctx, tx, holdAllocations[len(resolved):]); err != nil {
 				return Booking{}, err

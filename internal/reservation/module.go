@@ -259,3 +259,22 @@ func Status(ctx context.Context, q dbtx.Querier, allocationID uuid.UUID) (string
 		allocationID).Scan(&st)
 	return st, err
 }
+
+// HeldAllocations returns the held allocations of a reservation, oldest
+// first (a booking made from a tee hold keeps its seats).
+func HeldAllocations(ctx context.Context, q dbtx.Querier, reservationID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.Query(ctx, `SELECT id FROM reservation.allocations WHERE reservation_id = $1 AND status = 'held' ORDER BY created_at`, reservationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []uuid.UUID
+	for rows.Next() {
+		var a uuid.UUID
+		if err := rows.Scan(&a); err != nil {
+			return nil, err
+		}
+		out = append(out, a)
+	}
+	return out, rows.Err()
+}

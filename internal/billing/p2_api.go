@@ -268,3 +268,13 @@ func DeferredBalance(ctx context.Context, q dbtx.Querier, refType string, refID 
 		refType, refID).Scan(&raw)
 	return dec(raw), err
 }
+
+// FolioOfLine returns the folio of a charge line.
+func FolioOfLine(ctx context.Context, q dbtx.Querier, lineID uuid.UUID) (uuid.UUID, error) {
+	var fid uuid.UUID
+	err := q.QueryRow(ctx, `SELECT folio_id FROM billing.folio_lines WHERE id = $1`, lineID).Scan(&fid)
+	if dbtx.IsNoRows(err) {
+		return fid, errs.NotFound("folio line")
+	}
+	return fid, err
+}
