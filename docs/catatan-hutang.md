@@ -31,6 +31,7 @@ git diff --diff-filter=MD --stat a48e6a3 -- internal/golf internal/billing inter
 
 - #6.7: `POST /billing/customer-accounts` untuk akun yang sudah ada tanpa perubahan tetap mengembalikan 201 tanpa entri audit (perilaku P1 dipertahankan).
 - Customer 360: tombol "View all business lines" di halaman Customer 360 P1 membuka Customer 360 lintas lini P2 (`crm/customers/:id`).
+- Cek breaking-change OpenAPI di CI (oasdiff): enum respons yang bertambah nilai menjadi warning (`.github/oasdiff/severity-levels.txt`); perubahan kontrak yang disengaja dicatat setelah direview di `.github/oasdiff/err-ignore.txt`. Generator OpenAPI kini menolak nama skema yang bentrok.
 - Rating caddy dari member app: belum ada tombol (`member/golf/my-flights` P1 tidak mengembalikan id assignment); rating lewat link feedback setelah ronde.
 
 ## Aturan (berlaku sampai PR di-merge)
