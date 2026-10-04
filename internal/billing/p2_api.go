@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"slices"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -83,6 +84,11 @@ func (s *Service) AddLineCharge(ctx context.Context, tx pgx.Tx, c LineCharge) (u
 	}
 	if c.RevenueComponent == "" {
 		c.RevenueComponent = c.ChargeType
+	}
+	if c.Components == nil {
+		// P1's accounting export splits revenue and liability per component.
+		c.Components = []map[string]any{{"code": c.RevenueComponent, "name": strings.ReplaceAll(c.RevenueComponent, "_", " "),
+			"amount": c.Total.Sub(c.Tax).Sub(c.Service).String(), "liability": c.Liability}}
 	}
 	lid, err := s.AddCharge(ctx, tx, c.Charge)
 	if err != nil {

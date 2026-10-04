@@ -20,6 +20,18 @@ PRD P2 EP-03 menetapkan billing diimplementasikan P1 lewat kontrak C1–C3. **FR
 
 Perilaku P1 lain tidak berubah: saldo, total, notifikasi, dan format baris yang sudah ada.
 
+## Perubahan di file P1: Accounting Export (FR-INT-P2-03)
+
+**FR-INT-P2-03 (Must)** mewajibkan accounting export memuat revenue component P2, pergerakan deferred dan breakage voucher, settlement caddy, honor instruktur, dan shift POS. `BuildAccountingExport` P1 tidak punya titik ekstensi, jadi baris `return` terakhirnya diganti dengan pemanggilan `appendLineExport` (+1/−1 baris). Fungsi itu ada di file P2 `lines.go` dan menambah baris setelah baris P1:
+
+- `deferred_<entry_type>`, per revenue component, dari `billing.deferred_revenue_entries` (sale, recognition, breakage, reversal);
+- `payout`, per jenis payout dan metode, dari `billing.payouts`;
+- `pos_shift`, pembayaran per shift dan metode, dari `billing.payments.shift_id`.
+
+Format kolom P1 (`business_date,section,code,description,amount`) tetap. Baris P1 tidak berubah.
+
+Selain itu, `AddLineCharge` (file P2 `p2_api.go`) kini mengisi `components` setiap baris P2 dengan revenue component-nya. Sebelumnya baris P2 berkomponen kosong dan berjenis `other`, sehingga ekspor P1 menggabungkan F&B (revenue) dengan penjualan voucher (liability) di satu baris `liability,other`.
+
 ## Ringkasan risiko untuk kode P1
 
 Hal yang perlu diperhatikan saat review, urut dari yang paling berdampak ke kode P1:

@@ -191,7 +191,7 @@ func TestP2VoucherPrepaid(t *testing.T) {
 	}
 	// Accounting export: voucher sales are a liability, redemptions and breakage deferred movements.
 	exp := accountingExport(t, sa)
-	for _, want := range []string{"liability,voucher,voucher_deferred", "deferred_recognition,voucher,sport_entry", "deferred_breakage,voucher,breakage"} {
+	for _, want := range []string{"liability,voucher_deferred,", "revenue,fnb,", "deferred_recognition,sport_entry,voucher recognition", "deferred_breakage,breakage,voucher breakage"} {
 		if !contains(exp, want) {
 			t.Fatalf("accounting export lacks %q:\n%s", want, exp)
 		}

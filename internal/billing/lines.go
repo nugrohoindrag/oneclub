@@ -360,6 +360,41 @@ func Liability(ctx context.Context, q dbtx.Querier, property uuid.UUID, liabilit
 	return dec(raw), err
 }
 
+// ── accounting export (FR-INT-P2-03) ──────────────────────────────────────
+
+// appendLineExport adds what P2 brings to P1's accounting export of a day:
+// deferred revenue movements per entry type and component, partner payouts
+// (caddy fee settlement, instructor fees) and payments per POS shift.
+func appendLineExport(ctx context.Context, q dbtx.Querier, out []ExportRow, property uuid.UUID, from, to time.Time, pl int32) ([]ExportRow, error) {
+	for _, sql := range []string{
+		`SELECT 'deferred_' || entry_type, revenue_component, liability_type || ' ' || entry_type, sum(amount)::text
+			FROM billing.deferred_revenue_entries WHERE property_id = $1 AND occurred_at >= $2 AND occurred_at < $3 GROUP BY 1, 2, 3 ORDER BY 1, 2, 3`,
+		`SELECT 'payout', payout_type, replace(payout_type, '_', ' ') || ' (' || replace(method_type, '_', ' ') || ')', sum(amount)::text
+			FROM billing.payouts WHERE property_id = $1 AND paid_at >= $2 AND paid_at < $3 GROUP BY 1, 2, 3 ORDER BY 1, 2, 3`,
+		`SELECT 'pos_shift', method_type, 'shift ' || shift_id::text, sum(amount)::text FROM billing.payments WHERE property_id = $1
+			AND shift_id IS NOT NULL AND status IN ('completed','refunded') AND paid_at >= $2 AND paid_at < $3 GROUP BY 1, 2, 3 ORDER BY 3, 2`,
+	} {
+		rows, err := q.Query(ctx, sql, property, from, to)
+		if err != nil {
+			return nil, err
+		}
+		for rows.Next() {
+			var r ExportRow
+			if err := rows.Scan(&r.Section, &r.Code, &r.Description, &r.Amount); err != nil {
+				rows.Close()
+				return nil, err
+			}
+			r.Amount = dec(r.Amount).StringFixed(pl)
+			out = append(out, r)
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			return nil, err
+		}
+	}
+	return out, nil
+}
+
 // ── payouts ───────────────────────────────────────────────────────────────
 
 // PayoutRequest records money paid to a partner (caddy, instructor).

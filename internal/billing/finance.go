@@ -831,7 +831,7 @@ func BuildAccountingExport(ctx context.Context, q dbtx.Querier, property uuid.UU
 		return nil, err
 	}
 	out = append(out, ExportRow{Section: "refund", Code: "refund", Description: "Refunds", Amount: dec(refunds).StringFixed(pl)})
-	return out, nil
+	return appendLineExport(ctx, q, out, property, from, to, pl) // FR-INT-P2-03
 }
 
 // SaveAccountingExport builds and stores the export file of a day.
