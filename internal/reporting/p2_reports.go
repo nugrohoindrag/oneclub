@@ -12,6 +12,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/calendar"
 	"oneclub/internal/platform/catalog"
 )
@@ -249,3 +250,12 @@ func P2Permissions() ([]catalog.Permission, map[string][]string) {
 			"reporting.commercial_shift.view", "reporting.golf_caddy_settlement.view", "reporting.sportclub_instructor_fee.view"},
 	}
 }
+
+// P2Contribution is the P2 part of the reporting catalogue.
+func P2Contribution() catalog.Contribution {
+	perms, roles := P2Permissions()
+	return catalog.Contribution{Permissions: perms, RolePermissions: roles}
+}
+
+// RegisterP2 adds the P2 KPI dashboards (wired by internal/app).
+func (s *Service) RegisterP2(reg *route.Registry) { s.registerPerformance(reg) }

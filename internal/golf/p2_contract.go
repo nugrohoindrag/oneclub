@@ -13,6 +13,7 @@ import (
 
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/errs"
+	"oneclub/internal/kernel/id"
 	"oneclub/internal/platform/audit"
 )
 
@@ -41,4 +42,20 @@ func (m *Module) StartCartAssignment(ctx context.Context, tx pgx.Tx, property, a
 	}
 	return audit.Record(ctx, tx, audit.Entry{Module: "golf", Action: "golf_cart_out", EntityType: "golf.golf_cart_assignment", EntityID: aid.String(),
 		PropertyID: &property})
+}
+
+// VerifyReciprocalPlayer marks a reciprocal booking player as verified with
+// the partner club (PRD P2 FR-RCP-03: the P2 reciprocal visit replaces the
+// free-text check).
+func (m *Module) VerifyReciprocalPlayer(ctx context.Context, tx pgx.Tx, property, playerID uuid.UUID, club string) error {
+	tag, err := tx.Exec(ctx, `UPDATE golf.booking_players SET reciprocal_club = $3, reciprocal_verified = true, updated_by = $4
+		WHERE id = $1 AND property_id = $2 AND player_type = 'reciprocal'`, playerID, property, club, id.Ptr(actor(ctx)))
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return errs.NotFound("reciprocal player")
+	}
+	return audit.Record(ctx, tx, audit.Entry{Module: "golf", Action: "reciprocal_verified", EntityType: "golf.booking_player", EntityID: playerID.String(),
+		PropertyID: &property, After: map[string]any{"reciprocalClub": club}})
 }

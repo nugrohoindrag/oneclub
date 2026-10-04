@@ -12,10 +12,12 @@ import (
 
 	"oneclub/internal/billing"
 	"oneclub/internal/kernel/dbtx"
+	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/approval"
 	"oneclub/internal/platform/handle"
 	"oneclub/internal/platform/notify"
 	"oneclub/internal/platform/outbox"
+	"oneclub/internal/platform/resource"
 	"oneclub/internal/platform/rules"
 )
 
@@ -59,4 +61,10 @@ func nullStr(s string) *string {
 func ActiveVouchers(ctx context.Context, q dbtx.Querier, customer uuid.UUID) ([]Voucher, error) {
 	return handle.List[Voucher](q.Query(ctx, voucherSelect+` WHERE v.customer_id = $1 AND v.status IN ('active', 'partially_redeemed')
 		ORDER BY v.expires_at NULLS LAST`, customer))
+}
+
+// Register adds the voucher routes (wired by internal/app).
+func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
+	m.registerVouchers(reg, eng)
+	m.registerMe(reg)
 }

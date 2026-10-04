@@ -159,7 +159,9 @@ func (m *Module) CheckPace(ctx context.Context, tx pgx.Tx, property uuid.UUID) (
 		if p.Slow {
 			st = "slow"
 		}
-		tag, err := tx.Exec(ctx, `UPDATE golf.flights SET pace_status = $2, behind_minutes = $3 WHERE id = $1 AND pace_status <> $2`, p.FlightID, st, p.BehindMinutes)
+		tag, err := tx.Exec(ctx, `INSERT INTO golf.round_progress (flight_id, property_id, pace_status, behind_minutes) VALUES ($1,$4,$2,$3)
+			ON CONFLICT (flight_id) DO UPDATE SET pace_status = EXCLUDED.pace_status, behind_minutes = EXCLUDED.behind_minutes
+			WHERE golf.round_progress.pace_status <> EXCLUDED.pace_status`, p.FlightID, st, p.BehindMinutes, property)
 		if err != nil {
 			return n, err
 		}
@@ -364,7 +366,8 @@ func (m *Module) Handover(ctx context.Context, tx pgx.Tx, fid uuid.UUID, in Hand
 	if r.Status == "completed" || r.Status == "cancelled" {
 		return RoundInfo{}, errs.Conflict("round_closed", "flight is "+r.Status)
 	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.flights SET tablet_device = $2 WHERE id = $1`, fid, in.DeviceID); err != nil {
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.round_progress (flight_id, property_id, tablet_device) VALUES ($1,$3,$2)
+		ON CONFLICT (flight_id) DO UPDATE SET tablet_device = EXCLUDED.tablet_device`, fid, in.DeviceID, r.PropertyID); err != nil {
 		return RoundInfo{}, err
 	}
 	if err := record(ctx, tx, "golf.flight", fid, r.Label(), "device_handover", r.PropertyID, map[string]any{"deviceId": r.DeviceID},

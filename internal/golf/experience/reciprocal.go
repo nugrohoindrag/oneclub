@@ -422,7 +422,7 @@ func (m *Module) LinkPlayer(ctx context.Context, tx pgx.Tx, property, vid, playe
 		return v, errs.Conflict("not_verified", "only verified inbound visits can be linked to a player")
 	}
 	var ptype string
-	if err := tx.QueryRow(ctx, `SELECT player_type FROM golf.booking_players WHERE id = $1 AND property_id = $2 FOR UPDATE`, player, property).Scan(&ptype); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT player_type FROM golf.booking_players WHERE id = $1 AND property_id = $2 `, player, property).Scan(&ptype); err != nil {
 		if dbtx.IsNoRows(err) {
 			return v, errs.NotFound("player")
 		}
@@ -431,8 +431,7 @@ func (m *Module) LinkPlayer(ctx context.Context, tx pgx.Tx, property, vid, playe
 	if ptype != "reciprocal" {
 		return v, errs.Conflict("not_reciprocal", "the player is not a reciprocal player")
 	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.booking_players SET reciprocal_visit_id = $2, reciprocal_club = $3, reciprocal_verified = true, updated_by = $4
-		WHERE id = $1`, player, vid, v.ClubName, actorPtr(ctx)); err != nil {
+	if err := m.Golf.VerifyReciprocalPlayer(ctx, tx, property, player, v.ClubName); err != nil {
 		return v, err
 	}
 	if _, err := tx.Exec(ctx, `UPDATE golf.reciprocal_visits SET booking_player_id = $2, customer_id = coalesce(customer_id,
