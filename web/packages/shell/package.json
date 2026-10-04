@@ -21,6 +21,7 @@
     "@oneclub/ui": "workspace:*",
     "@tanstack/react-query": "^5.104.1",
     "motion": "^14.0.0",
+    "qrcode-generator": "1.4.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router": "^8.4.0"

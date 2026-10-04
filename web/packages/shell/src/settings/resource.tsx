@@ -13,7 +13,7 @@ export type Row = Record<string, unknown> & { id: string };
 export interface FieldDef {
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'number' | 'decimal' | 'textarea' | 'date' | 'datetime' | 'boolean' | 'select' | 'reference';
+  type?: 'text' | 'email' | 'number' | 'decimal' | 'textarea' | 'date' | 'datetime' | 'boolean' | 'select' | 'reference' | 'json' | 'list' | 'intlist' | 'time';
   required?: boolean;
   options?: Option[];
   /** For type=reference: list endpoint and label key. */
@@ -50,6 +50,8 @@ export const dateTimeCol = (key: string, header: string): Column<Row> => ({ key,
 function toInput(f: FieldDef, v: unknown): string | boolean {
   if (f.type === 'boolean') return Boolean(v);
   if (v === null || v === undefined) return '';
+  if (f.type === 'list' || f.type === 'intlist') return Array.isArray(v) ? v.join(', ') : String(v);
+  if (f.type === 'json') return typeof v === 'string' ? v : JSON.stringify(v, null, 2);
   if (f.type === 'datetime' && typeof v === 'string') return v.slice(0, 16);
   return String(v);
 }
@@ -58,6 +60,15 @@ function fromInput(f: FieldDef, v: string | boolean): unknown {
   if (f.type === 'boolean') return v;
   if (v === '') return null;
   if (f.type === 'number') return Number(v);
+  if (f.type === 'list') return String(v).split(',').map((s) => s.trim()).filter(Boolean);
+  if (f.type === 'intlist') return String(v).split(',').map((s) => Number(s.trim())).filter((n) => !Number.isNaN(n));
+  if (f.type === 'json') {
+    try {
+      return JSON.parse(String(v));
+    } catch {
+      return v;
+    }
+  }
   if (f.type === 'datetime') return new Date(v as string).toISOString();
   return v;
 }
@@ -101,6 +112,7 @@ export function ResourceForm({ cfg, row, onDone }: { cfg: ResourceConfig; row?: 
           const disabled = editing && f.createOnly;
           const common = { label: f.label, required: f.required, error: fe[f.name], help: f.help, span: f.span };
           switch (f.type) {
+            case 'json':
             case 'textarea':
               return <TextArea key={f.name} {...common} span value={String(values[f.name])} onChange={set(f.name)} />;
             case 'boolean':

@@ -297,8 +297,7 @@ func (m *Module) memberBook(w http.ResponseWriter, r *http.Request) {
 			req.Players = []PlayerInput{{PlayerType: "member", MemberID: &mc.memberID}}
 		}
 		// the member must be in the booking (FR-APP-03: diri sendiri, family, other members, guests)
-		var ownNo string
-		_ = tx.QueryRow(ctx, `SELECT code FROM membership.members WHERE id = $1`, mc.memberID).Scan(&ownNo)
+		ownNo, _ := membership.MemberNo(ctx, tx, mc.memberID)
 		self := false
 		for i, p := range req.Players {
 			if p.PlayerType == "member" && p.MemberID == nil && ownNo != "" && strings.EqualFold(strings.TrimSpace(p.MemberNo), ownNo) {
@@ -452,22 +451,14 @@ func (m *Module) memberDirectory(w http.ResponseWriter, r *http.Request) {
 			famSet[f] = true
 		}
 		// family members always; other members by exact member number or name (≥ 3 letters)
-		rows, err := tx.Query(ctx, `SELECT id, code, name FROM membership.members WHERE property_id = $1 AND status = 'active' AND id <> $2
-			AND (id = ANY($3) OR ($4 <> '' AND (upper(code) = upper($4) OR (length($4) >= 3 AND name ILIKE '%' || $4 || '%')))) ORDER BY name LIMIT 20`,
-			mc.property, mc.memberID, fam, q)
+		found, err := membership.FindMembers(ctx, tx, mc.property, mc.memberID, fam, q)
 		if err != nil {
 			return nil, err
 		}
-		defer rows.Close()
-		for rows.Next() {
-			var x MemberLookup
-			if err := rows.Scan(&x.MemberID, &x.MemberNo, &x.Name); err != nil {
-				return nil, err
-			}
-			x.Family = famSet[x.MemberID]
-			out = append(out, x)
+		for _, f := range found {
+			out = append(out, MemberLookup{MemberID: f.ID, MemberNo: f.No, Name: f.Name, Family: famSet[f.ID]})
 		}
-		return httpx.Page[MemberLookup]{Items: out}, rows.Err()
+		return httpx.Page[MemberLookup]{Items: out}, nil
 	})
 }
 

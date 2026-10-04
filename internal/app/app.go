@@ -54,10 +54,10 @@ var Version = "dev"
 
 // Contributions are the module catalogue contributions.
 func Contributions() []catalog.Contribution {
-	return []catalog.Contribution{
+	return append([]catalog.Contribution{
 		reporting.Contribution(), golf.Contribution(), billing.Contribution(), commercial.Contribution(),
 		crm.Contribution(), membership.Contribution(), sportclub.Contribution(), reservation.Contribution(), procurement.Contribution(),
-	}
+	}, p2Contributions()...)
 }
 
 // Flags are the default feature flags (FR-INS-05).
@@ -68,12 +68,14 @@ var Flags = []provision.Flag{
 	{Key: "member.self_registration", Description: "Member Portal shows Create an Account (P1)", Type: "boolean", Default: false, ClientVisible: true},
 }
 
-// Reports registered in P0.
-var Reports = append([]*reporting.Report{reporting.UserAccessReport, reporting.VenueDirectoryReport}, reporting.P1Reports...)
+// Reports registered in P0, P1 and P2.
+var Reports = append(append([]*reporting.Report{reporting.UserAccessReport, reporting.VenueDirectoryReport}, reporting.P1Reports...), reporting.P2Reports...)
 
 // DocumentTypes registered by the modules (approval engine, FR-APR-09).
 var DocumentTypes = []provision.DocumentType{approval.TestDocumentType, org.VenueActivationType, billing.RefundDocumentType,
 	membership.ApplicationDocumentType, golf.PriceOverrideType, golf.CancellationWaiverType}
+
+func init() { DocumentTypes = append(DocumentTypes, p2DocumentTypes...) }
 
 // Seeds builds the catalogue synchronised into instance databases.
 func Seeds() (provision.Seeds, error) {
@@ -85,7 +87,7 @@ func Seeds() (provision.Seeds, error) {
 	for _, r := range Reports {
 		rs.Add(r)
 	}
-	return provision.Seeds{Catalog: cat, DocumentTypes: DocumentTypes, Reports: rs.Seeds(), Templates: notification.DefaultTemplates(), Flags: Flags}, nil
+	return provision.Seeds{Catalog: cat, DocumentTypes: DocumentTypes, Reports: rs.Seeds(), Templates: append(notification.DefaultTemplates(), p2Templates()...), Flags: Flags}, nil
 }
 
 // App holds the wired application.
@@ -114,6 +116,7 @@ type App struct {
 	Golf         *golf.Module
 	Membership   *membership.Module
 	Sync         *syncsvc.Service
+	P2
 }
 
 // Options control process-specific wiring.
@@ -214,6 +217,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 	a.Golf.RegisterSync(a.Sync)
 	a.Approvals.RegisterDocumentType(golf.PriceOverrideType, a.Golf.OverrideDecision)
 	a.Approvals.RegisterDocumentType(golf.CancellationWaiverType, a.Golf.WaiverDecision)
+	a.buildP2(reg, cfg, db, files, billingHTTP)
 
 	// Workers and schedules.
 	a.Dispatcher = &outbox.Dispatcher{DB: db, Bus: a.Bus}
@@ -230,6 +234,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 	a.Golf.RegisterJobs(a.Registrar, a.Instance.Location)
 
 	a.subscribe()
+	a.subscribeP2()
 
 	if db != nil {
 		jc, err := jobs.New(db.Primary, a.Registrar, jobs.Options{Process: o.Worker, Concurrency: o.Concurrency, TestOnly: o.TestOnly,

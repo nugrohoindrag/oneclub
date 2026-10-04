@@ -26,6 +26,7 @@ import (
 	"oneclub/internal/kernel/ratelimit"
 	"oneclub/internal/kernel/reqctx"
 	"oneclub/internal/kernel/route"
+	"oneclub/internal/membership"
 	"oneclub/internal/platform/approval"
 	"oneclub/internal/platform/audit"
 	"oneclub/internal/platform/integration"
@@ -327,8 +328,7 @@ func (m *Module) maxWindow(ctx context.Context, q dbtx.Querier, property uuid.UU
 			mx = v
 		}
 	}
-	var typeMax *int
-	_ = q.QueryRow(ctx, `SELECT max(booking_window_days) FROM membership.types WHERE property_id = $1 AND status = 'active'`, property).Scan(&typeMax)
+	typeMax, _ := membership.MaxBookingWindowDays(ctx, q, property)
 	if typeMax != nil && *typeMax > mx {
 		mx = *typeMax
 	}

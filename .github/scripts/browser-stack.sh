@@ -41,7 +41,7 @@ nohup ./bin/oneclub api > "$LOGS/api.log" 2>&1 &
 nohup ./bin/oneclub worker > "$LOGS/worker.log" 2>&1 &
 
 cd web
-for app in backoffice member ops platform-admin; do
+for app in backoffice member ops platform-admin caddy; do
 	nohup pnpm --filter "@oneclub/$app" preview > "$LOGS/$app.log" 2>&1 &
 done
 nohup pnpm --filter @oneclub/web start > "$LOGS/web.log" 2>&1 &
@@ -55,5 +55,5 @@ wait_for() {
 	return 1
 }
 wait_for http://localhost:8080/readyz
-for port in 5173 5174 5175 5176 3000; do wait_for "http://localhost:$port/"; done
+for port in 5173 5174 5175 5176 5177 3000; do wait_for "http://localhost:$port/"; done
 echo "stack ready"

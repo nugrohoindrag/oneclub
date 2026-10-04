@@ -12,6 +12,7 @@ import {
   BenefitsPage, BookGolfPage, CardPage, FamilyPage, HomeShortcuts, MemberCard, MemberProfilePage, MyBookingsPage, MyChargesPage, MyFlightsPage, MyMembershipPage,
   MyPaymentsPage, OtpLoginPage, StatementsPage, TransactionsPage,
 } from './golf';
+import { P2_MEMBER_ROUTES } from './p2';
 
 /** Member home: digital card placeholder, latest notifications (dashboard style). */
 function HomePage() {
@@ -77,6 +78,7 @@ const router = createBrowserRouter([
           { path: 'transactions/payments', element: <MyPaymentsPage /> },
           { path: 'transactions/member-charges', element: <MyChargesPage /> },
           { path: 'profile', element: <MemberProfilePage /> },
+          ...P2_MEMBER_ROUTES,
           { path: 'notifications', element: <NotificationsPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],

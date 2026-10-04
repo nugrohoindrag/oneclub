@@ -393,7 +393,7 @@ type Membership struct {
 	CorporateAccountID *uuid.UUID `json:"corporateAccountId"`
 	StartsOn           string     `json:"startsOn"`
 	EndsOn             *string    `json:"endsOn"`
-	Status             string     `json:"status" enum:"pending,active,expired,inactive"`
+	Status             string     `json:"status" enum:"pending,active,expired,inactive,paused,suspended,cancelled"`
 	DaysToExpiry       *int       `json:"daysToExpiry"`
 	RenewalPending     bool       `json:"renewalPending"`
 }
@@ -533,7 +533,7 @@ type Card struct {
 	QRToken      string     `json:"qrToken" doc:"Encode as oneclub:card:<token> in the QR"`
 	IssuedAt     time.Time  `json:"issuedAt"`
 	ValidUntil   *string    `json:"validUntil"`
-	Status       string     `json:"status" enum:"active,inactive"`
+	Status       string     `json:"status" enum:"active,inactive,blocked,replaced"`
 }
 
 const cardCols = `c.id, c.member_id, m.code, m.name, c.membership_id, c.card_number, c.legacy_number, c.card_type, c.qr_token, c.issued_at, c.valid_until, c.status

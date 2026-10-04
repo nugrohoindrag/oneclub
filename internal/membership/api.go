@@ -37,7 +37,7 @@ type Info struct {
 	TypeCode     string     `json:"typeCode"`
 	TypeName     string     `json:"typeName"`
 	Role         string     `json:"role"`
-	Status       string     `json:"status" enum:"pending,active,expired,inactive,none"`
+	Status       string     `json:"status" enum:"pending,active,expired,inactive,paused,suspended,cancelled,none"`
 	StartsOn     *time.Time `json:"startsOn"`
 	EndsOn       *time.Time `json:"endsOn"`
 	Privileges   Privileges `json:"privileges"`

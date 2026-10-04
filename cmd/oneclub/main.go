@@ -399,7 +399,8 @@ func runImport(args []string) error {
 	if err != nil {
 		return err
 	}
-	d := &rhapsody.Deps{DB: db, Engine: a.Engine, Golf: a.Golf, Billing: a.Billing, Location: a.Instance.Location}
+	d := &rhapsody.Deps{DB: db, Engine: a.Engine, Golf: a.Golf, Billing: a.Billing, Location: a.Instance.Location,
+		P2: rhapsody.P2Deps{Vouchers: a.Vouchers, Reservations: a.Reservations, Experience: a.Experience}}
 	switch step {
 	case "validate":
 		issues, err := d.Validate(ctx, property)

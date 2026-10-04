@@ -25,7 +25,41 @@ type Info struct {
 // The document is generated per build and checked for drift / breaking
 // changes in CI (FR-TEC-02).
 func (g *Registry) BuildOpenAPI(info Info) (*openapi3.T, error) {
+	// Pass 1 finds every Go type per component name; on a collision the
+	// platform / kernel type keeps the plain name and module types are
+	// prefixed with their package, independent of route order.
+	first := newReflector()
+	if _, err := g.buildOpenAPI(info, first); err != nil {
+		return nil, err
+	}
+	owners := map[string]reflect.Type{}
+	for name, types := range first.seen {
+		if len(types) < 2 {
+			continue
+		}
+		owner := types[0]
+		for _, t := range types {
+			if strings.Contains(t.PkgPath(), "/platform/") || strings.Contains(t.PkgPath(), "/kernel/") {
+				owner = t
+				break
+			}
+		}
+		owners[name] = owner
+	}
 	rf := newReflector()
+	rf.owners = owners
+	// Resource schemas keep their names; a Go type with the same name is
+	// prefixed with its package.
+	rf.reserved = map[string]bool{}
+	for _, r := range g.Routes() {
+		if r.ResponseSchema != nil {
+			rf.reserved[r.SchemaName], rf.reserved[r.SchemaName+"Input"] = true, true
+		}
+	}
+	return g.buildOpenAPI(info, rf)
+}
+
+func (g *Registry) buildOpenAPI(info Info, rf *reflector) (*openapi3.T, error) {
 	doc := &openapi3.T{
 		OpenAPI: "3.0.3",
 		Info: &openapi3.Info{
@@ -166,6 +200,24 @@ func (g *Registry) BuildOpenAPI(info Info) (*openapi3.T, error) {
 		}
 		item.SetOperation(r.Method, op)
 	}
+	// A resource schema must not take the component name of a Go type (or of
+	// another resource): the later one would silently replace the earlier.
+	resSchemas := map[string]*openapi3.Schema{}
+	for _, r := range g.Routes() {
+		if r.ResponseSchema == nil || rf.reserved == nil { // checked in the final pass
+
+			continue
+		}
+		if prev, ok := resSchemas[r.SchemaName]; ok && prev != r.ResponseSchema {
+			return nil, fmt.Errorf("openapi: two resources use the schema name %q", r.SchemaName)
+		}
+		resSchemas[r.SchemaName] = r.ResponseSchema
+		for t, n := range rf.names {
+			if n == r.SchemaName || n == r.SchemaName+"Input" {
+				return nil, fmt.Errorf("openapi: resource schema %q collides with type %s.%s; set SchemaName", r.SchemaName, t.PkgPath(), t.Name())
+			}
+		}
+	}
 	names := make([]string, 0, len(tags))
 	for t := range tags {
 		names = append(names, t)
@@ -222,10 +274,13 @@ type Problem struct {
 type reflector struct {
 	components openapi3.Schemas
 	names      map[reflect.Type]string
+	seen       map[string][]reflect.Type
+	owners     map[string]reflect.Type
+	reserved   map[string]bool // component names of resource schemas
 }
 
 func newReflector() *reflector {
-	return &reflector{components: openapi3.Schemas{}, names: map[reflect.Type]string{}}
+	return &reflector{components: openapi3.Schemas{}, names: map[reflect.Type]string{}, seen: map[string][]reflect.Type{}}
 }
 
 var (
@@ -307,12 +362,22 @@ func (rf *reflector) componentName(t reflect.Type) string {
 	}
 	pkg := t.PkgPath()
 	pkg = pkg[strings.LastIndex(pkg, "/")+1:]
+	if !slices.Contains(rf.seen[name], t) {
+		rf.seen[name] = append(rf.seen[name], t)
+	}
 	candidate := name
-	for other, n := range rf.names {
-		if n == candidate && other != t {
-			candidate = strings.ToUpper(pkg[:1]) + pkg[1:] + name
-			break
+	if owner, ok := rf.owners[name]; ok && owner != t {
+		candidate = strings.ToUpper(pkg[:1]) + pkg[1:] + name
+	} else {
+		for other, n := range rf.names {
+			if n == candidate && other != t {
+				candidate = strings.ToUpper(pkg[:1]) + pkg[1:] + name
+				break
+			}
 		}
+	}
+	if rf.reserved[candidate] {
+		candidate = strings.ToUpper(pkg[:1]) + pkg[1:] + name
 	}
 	rf.names[t] = candidate
 	return candidate

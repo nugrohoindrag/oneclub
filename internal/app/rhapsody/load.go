@@ -29,6 +29,7 @@ type Deps struct {
 	Golf     *golf.Module
 	Billing  *billing.Service
 	Location func() *time.Location
+	P2       P2Deps // PRD P2 wave-2 entities (p2.go)
 }
 
 // Issue is one validation finding.
@@ -500,6 +501,9 @@ func (d *Deps) customer(ctx context.Context, tx pgx.Tx, property uuid.UUID, lega
 
 // loadRow loads one row of the non-master entities; inserted reports a new record.
 func (d *Deps) loadRow(ctx context.Context, tx pgx.Tx, property uuid.UUID, entity string, r map[string]string) (bool, error) {
+	if inserted, handled, err := d.p2Load(ctx, tx, property, entity, r); handled {
+		return inserted, err
+	}
 	switch entity {
 	case "corporate_nominees":
 		corp, err := crm.ByLegacyRef(ctx, tx, property, "corporate_accounts", r["corporate_legacy_id"])

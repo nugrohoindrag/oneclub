@@ -249,6 +249,7 @@ func (m *Module) overview(w http.ResponseWriter, r *http.Request) {
 		v := mask.Phone(*out.Profile.IDNumber)
 		out.Profile.IDNumber = &v
 	}
+	hideSensitive(&out, sensitiveFor(ctx)) // health preferences (FR-PRF-05)
 	httpx.JSON(w, http.StatusOK, out)
 }
 

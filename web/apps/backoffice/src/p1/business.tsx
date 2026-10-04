@@ -274,6 +274,7 @@ export function Customer360Page() {
       <PageHeader title={x ? String(x.profile.name) : 'Customer 360'} help={x ? `${String(x.profile.code)} · ${String(x.profile.phone ?? '')}` : undefined}
         actions={<>
           <button className="oc-btn oc-btn-neutral" onClick={() => setParams({})}>Search</button>
+          {can('crm.customer.view') && <Link className="oc-btn oc-btn-outline" to={`/crm/customers/${id}`}>View all business lines</Link>}
           {can('crm.customer.export_personal_data') && <button className="oc-btn oc-btn-neutral" disabled={exp.isPending}
             onClick={() => exp.mutate({}, { onSuccess: (r) => { toast('Personal data exported'); window.open(String((r.file as R).url), '_blank'); } })}>Export personal data</button>}
           {can('crm.customer.erase') && <ActionButton label="Erase personal data" path={`/api/v1/crm/customers/${id}:erase`} invalidate={['/api/v1/crm']} reason="required" danger

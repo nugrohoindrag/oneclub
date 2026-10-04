@@ -196,6 +196,14 @@ type Bootstrap struct {
 	EnabledModules []string          `json:"enabledModules"`
 	Flags          map[string]any    `json:"flags"`
 	Labels         map[string]string `json:"moduleLabels"`
+	Properties     []PublicProperty  `json:"properties" doc:"Active properties (website booking, public endpoints)"`
+}
+
+// PublicProperty is a property shown on the public website.
+type PublicProperty struct {
+	ID   uuid.UUID `json:"id"`
+	Code string    `json:"code"`
+	Name string    `json:"name"`
 }
 
 // ── loading ───────────────────────────────────────────────────────────────
@@ -877,6 +885,25 @@ func (s *Service) bootstrap(w http.ResponseWriter, r *http.Request) {
 		var v any
 		_ = json.Unmarshal(f.Value, &v)
 		b.Flags[f.Key] = v
+	}
+	b.Properties = []PublicProperty{}
+	if err := s.DB.WithReadTx(dbtx.System(ctx), func(tx pgx.Tx) error {
+		rows, err := tx.Query(ctx, `SELECT id, code, name FROM platform.properties WHERE status = 'active' AND archived_at IS NULL ORDER BY name`)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var p PublicProperty
+			if err := rows.Scan(&p.ID, &p.Code, &p.Name); err != nil {
+				return err
+			}
+			b.Properties = append(b.Properties, p)
+		}
+		return rows.Err()
+	}); err != nil {
+		httpx.WriteError(w, r, err)
+		return
 	}
 	w.Header().Set("Cache-Control", "no-cache")
 	httpx.JSON(w, http.StatusOK, b)

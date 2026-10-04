@@ -75,6 +75,16 @@
 	}
 }
 
+{$DOMAIN_CADDY} {
+	import security
+	import api
+	handle {
+		root * /srv/caddy
+		header /sw.js Cache-Control "no-cache"
+		import spa
+	}
+}
+
 {$DOMAIN_PLATFORM_ADMIN} {
 	import security
 	import api

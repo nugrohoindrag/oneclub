@@ -675,4 +675,5 @@ func (h *HTTP) Register(reg *route.Registry) {
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/webhooks/{integration}", Summary: "Webhook subscription handshake (e.g. WhatsApp Cloud API verify token)",
 		Auth: route.AuthSignature, RawContent: "text/plain", Handler: h.webhookChallenge})
 	h.registerBridge(reg)
+	h.registerBridgeCommands(reg)
 }

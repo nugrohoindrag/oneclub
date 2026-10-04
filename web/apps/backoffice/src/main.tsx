@@ -26,6 +26,7 @@ import { ResourcePage } from '@oneclub/shell';
 const rp = (perm: string, el: React.ReactNode) => <RequirePermission perm={perm}>{el}</RequirePermission>;
 
 /** P1 Golf Core MVP pages (PRD P1 §6.1). */
+import { HUBS, P2_MANAGEMENT_ROUTES, P2_ROUTES } from './p2';
 const p1 = [
   { path: 'golf', element: rp('golf.tee_sheet.view', <TeeSheetPage />) },
   { path: 'golf/tee-sheet', element: rp('golf.tee_sheet.view', <TeeSheetPage />) },
@@ -72,6 +73,7 @@ const p1 = [
   { path: 'billing/reconciliation', element: rp('billing.reconciliation.view', <ReconciliationPage />) },
 ];
 const P1_MODULES = new Set(['golf', 'membership', 'booking', 'crm', 'commercial']);
+HUBS.forEach((h) => P1_MODULES.add(h.path)); // P2 hubs replace the module placeholders
 
 const settings = [
   { path: 'settings', element: <SettingsHomePage /> },
@@ -120,6 +122,7 @@ const router = createBrowserRouter([
           { path: 'golf', element: <GolfPerformancePage /> },
           { path: 'membership', element: <MembershipPerformancePage /> },
           { path: 'booking', element: <BookingPerformancePage /> },
+          ...P2_MANAGEMENT_ROUTES,
           { path: 'financial', element: <ComingSoonPage title="Financial Performance" phase="P2" /> },
           { path: '*', element: <NotFoundPage /> },
         ],
@@ -132,6 +135,7 @@ const router = createBrowserRouter([
           { path: 'approvals', element: <ApprovalsPage /> },
           { path: 'approvals/:id', element: <ApprovalDetailPage /> },
           ...p1,
+          ...P2_ROUTES,
           ...MODULE_PAGES.filter((m) => !P1_MODULES.has(m.path)).map((m) => ({ path: m.path, element: <ModulePage path={m.path} /> })),
           { path: 'reports', element: <RequirePermission perm="reporting.report.view"><ReportsPage /></RequirePermission> },
           { path: 'reports/exports', element: <RequirePermission perm="reporting.export.create"><ExportsPage /></RequirePermission> },

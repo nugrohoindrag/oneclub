@@ -269,3 +269,8 @@ a { color: inherit; }
   .oc-bottom-nav a { display: flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; color: var(--md-sys-color-on-surface-variant); font-size: 11px; min-width: 64px; }
   .oc-bottom-nav a.active { color: var(--md-sys-color-on-surface); font-weight: 700; }
 }
+/* Caddy Tablet: the bottom navigation is its only menu, on every width. */
+.oc-bottom-nav[data-always='true'] { display: flex; position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; height: 68px; background: var(--md-sys-color-surface);
+  border-top: 1px solid var(--md-sys-color-outline-variant); justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom); }
+.oc-bottom-nav[data-always='true'] a { display: flex; flex-direction: column; align-items: center; gap: 2px; text-decoration: none; color: var(--md-sys-color-on-surface-variant); font-size: 11px; min-width: 64px; }
+.oc-topnav-frame:has(> .oc-bottom-nav[data-always='true']) { padding-bottom: 96px; }

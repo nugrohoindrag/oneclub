@@ -1,1 +1,47 @@
 # Intentional, reviewed contract changes: METHOD PATH and the oasdiff message.
+
+# P2 (PRD P2 EP-02): rules of other business lines have no rate plan; rate plan effectiveFrom /
+# pricingMode and time band session are optional on input and filled with defaults (pricing_p2.go).
+GET /api/v1/commercial/pricing-rules the response property `items/items/ratePlanId` became nullable for the status `200`
+GET /api/v1/commercial/pricing-rules the response property `items/items/ratePlanId` became optional for the status `200`
+POST /api/v1/commercial/pricing-rules the response property `ratePlanId` became nullable for the status `201`
+POST /api/v1/commercial/pricing-rules the response property `ratePlanId` became optional for the status `201`
+GET /api/v1/commercial/pricing-rules/{id} the response property `ratePlanId` became nullable for the status `200`
+GET /api/v1/commercial/pricing-rules/{id} the response property `ratePlanId` became optional for the status `200`
+PATCH /api/v1/commercial/pricing-rules/{id} the response property `ratePlanId` became nullable for the status `200`
+PATCH /api/v1/commercial/pricing-rules/{id} the response property `ratePlanId` became optional for the status `200`
+GET /api/v1/commercial/rate-plans the response property `items/items/effectiveFrom` became nullable for the status `200`
+GET /api/v1/commercial/rate-plans the response property `items/items/pricingMode` became nullable for the status `200`
+GET /api/v1/commercial/rate-plans the response property `items/items/effectiveFrom` became optional for the status `200`
+GET /api/v1/commercial/rate-plans the response property `items/items/pricingMode` became optional for the status `200`
+POST /api/v1/commercial/rate-plans the response property `effectiveFrom` became nullable for the status `201`
+POST /api/v1/commercial/rate-plans the response property `pricingMode` became nullable for the status `201`
+POST /api/v1/commercial/rate-plans the response property `effectiveFrom` became optional for the status `201`
+POST /api/v1/commercial/rate-plans the response property `pricingMode` became optional for the status `201`
+GET /api/v1/commercial/rate-plans/{id} the response property `effectiveFrom` became nullable for the status `200`
+GET /api/v1/commercial/rate-plans/{id} the response property `pricingMode` became nullable for the status `200`
+GET /api/v1/commercial/rate-plans/{id} the response property `effectiveFrom` became optional for the status `200`
+GET /api/v1/commercial/rate-plans/{id} the response property `pricingMode` became optional for the status `200`
+PATCH /api/v1/commercial/rate-plans/{id} the response property `effectiveFrom` became nullable for the status `200`
+PATCH /api/v1/commercial/rate-plans/{id} the response property `pricingMode` became nullable for the status `200`
+PATCH /api/v1/commercial/rate-plans/{id} the response property `effectiveFrom` became optional for the status `200`
+PATCH /api/v1/commercial/rate-plans/{id} the response property `pricingMode` became optional for the status `200`
+GET /api/v1/commercial/time-bands the response property `items/items/session` became nullable for the status `200`
+GET /api/v1/commercial/time-bands the response property `items/items/session` became optional for the status `200`
+POST /api/v1/commercial/time-bands the response property `session` became nullable for the status `201`
+POST /api/v1/commercial/time-bands the response property `session` became optional for the status `201`
+GET /api/v1/commercial/time-bands/{id} the response property `session` became nullable for the status `200`
+GET /api/v1/commercial/time-bands/{id} the response property `session` became optional for the status `200`
+PATCH /api/v1/commercial/time-bands/{id} the response property `session` became nullable for the status `200`
+PATCH /api/v1/commercial/time-bands/{id} the response property `session` became optional for the status `200`
+
+# P2: the guest upgrade returns crm.Customer; the spec now names that type instead of the Customer
+# resource schema that used to replace it (generator reserves resource schema names). Wire format unchanged.
+POST /api/v1/crm/guests/{id}:upgrade the `code` response property's maxLength was unset from `40` for the response status `201`
+POST /api/v1/crm/guests/{id}:upgrade the `email` response property's maxLength was unset from `254` for the response status `201`
+POST /api/v1/crm/guests/{id}:upgrade the `name` response property's maxLength was unset from `160` for the response status `201`
+POST /api/v1/crm/guests/{id}:upgrade the `phone` response property's maxLength was unset from `40` for the response status `201`
+POST /api/v1/crm/guests/{id}:upgrade the `birthDate` response's property `format` changed from `date` to `date-time` for status `201`
+POST /api/v1/crm/guests/{id}:upgrade the `email` response's property `format` changed from `email` to `none` for status `201`
+POST /api/v1/crm/guests/{id}:upgrade removed the required property `createdAt` from the response with the `201` status
+POST /api/v1/crm/guests/{id}:upgrade removed the required property `updatedAt` from the response with the `201` status
