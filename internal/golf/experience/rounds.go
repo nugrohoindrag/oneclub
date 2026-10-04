@@ -34,6 +34,7 @@ const (
 type RoundPlayer struct {
 	ID            uuid.UUID  `json:"id" db:"id"`
 	CustomerID    *uuid.UUID `json:"customerId" db:"customer_id"`
+	GuestID       *uuid.UUID `json:"-" db:"guest_id"`
 	Name          string     `json:"name" db:"name"`
 	PlayerType    string     `json:"playerType" db:"player_type" enum:"member,guest_of_member,reciprocal,non_member"`
 	Status        string     `json:"status" db:"status" enum:"booked,checked_in,no_show,cancelled,removed"`
@@ -96,7 +97,7 @@ func (m *Module) GetRound(ctx context.Context, q dbtx.Querier, fid uuid.UUID) (R
 	if err != nil {
 		return r, err
 	}
-	if r.Players, err = handle.List[RoundPlayer](q.Query(ctx, `SELECT p.id, p.customer_id, p.name, p.player_type, p.status,
+	if r.Players, err = handle.List[RoundPlayer](q.Query(ctx, `SELECT p.id, p.customer_id, p.guest_id, p.name, p.player_type, p.status,
 		trim_scale(p.handicap_index)::text AS handicap_index, s.id AS scorecard_id FROM golf.booking_players p
 		LEFT JOIN golf.scorecards s ON s.booking_player_id = p.id WHERE p.flight_id = $1 AND p.status NOT IN ('cancelled', 'removed') ORDER BY p.seq`, fid)); err != nil {
 		return r, err

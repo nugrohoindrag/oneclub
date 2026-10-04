@@ -5,12 +5,14 @@ package experience
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
+	"oneclub/internal/billing"
 	"oneclub/internal/crm"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
@@ -85,14 +87,18 @@ func (m *Module) draftHIO(ctx context.Context, tx pgx.Tx, sc Scorecard, h ScoreH
 			return err
 		}
 	}
+	insured, err := hioInsured(ctx, tx, sc)
+	if err != nil {
+		return err
+	}
 	no, err := number(ctx, tx, sc.PropertyID, "HIO")
 	if err != nil {
 		return err
 	}
 	hid := id.New()
 	if _, err := tx.Exec(ctx, `INSERT INTO golf.hio_records (id, property_id, number, scorecard_id, flight_id, booking_player_id, customer_id, player_name, hole_id,
-		tee_set_id, caddy_id, achieved_on, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`, hid, sc.PropertyID, no,
-		sc.ID, sc.FlightID, sc.PlayerID, sc.CustomerID, sc.PlayerName, h.HoleID, sc.TeeSetID, caddyID, sc.PlayedOn, actorPtr(ctx)); err != nil {
+		tee_set_id, caddy_id, achieved_on, insured, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`, hid, sc.PropertyID, no,
+		sc.ID, sc.FlightID, sc.PlayerID, sc.CustomerID, sc.PlayerName, h.HoleID, sc.TeeSetID, caddyID, sc.PlayedOn, insured, actorPtr(ctx)); err != nil {
 		return err
 	}
 	return m.publish(ctx, tx, "golf.hio_recorded", "golf.hio_record", hid, sc.PropertyID, map[string]any{"hioId": hid, "customerId": sc.CustomerID})
@@ -111,6 +117,44 @@ type HIOInput struct {
 	Insured     bool       `json:"insured,omitempty"`
 	PolicyRef   string     `json:"policyRef,omitempty"`
 	Notes       string     `json:"notes,omitempty"`
+}
+
+// hioInsured reports whether the player's round charge carried the HIO
+// insurance component of P1's all-in rate (FR-HIO-01).
+func hioInsured(ctx context.Context, tx pgx.Tx, sc Scorecard) (bool, error) {
+	if sc.PlayerID == nil || sc.FlightID == nil {
+		return false, nil
+	}
+	var folio *uuid.UUID
+	if err := tx.QueryRow(ctx, `SELECT b.folio_id FROM golf.flights f JOIN golf.bookings b ON b.id = f.booking_id WHERE f.id = $1`, *sc.FlightID).Scan(&folio); err != nil {
+		if dbtx.IsNoRows(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	if folio == nil {
+		return false, nil
+	}
+	lines, err := billing.LinesOf(ctx, tx, *folio)
+	if err != nil {
+		return false, err
+	}
+	for _, l := range lines {
+		if l.ReferenceType != "golf_player" || l.ReferenceID == nil || *l.ReferenceID != *sc.PlayerID {
+			continue
+		}
+		var comps []struct {
+			Code   string `json:"code"`
+			Amount string `json:"amount"`
+		}
+		_ = json.Unmarshal(l.Components, &comps)
+		for _, c := range comps {
+			if (c.Code == "hio" || c.Code == "hio_insurance") && dec(c.Amount).IsPositive() {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
 }
 
 // CreateHIO records a Hole-in-One manually (paper card, migration).

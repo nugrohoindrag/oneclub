@@ -465,8 +465,9 @@ func (m *Module) Earnings(ctx context.Context, q dbtx.Querier, property, caddy u
 	df, dt := from.In(loc).Format("2006-01-02"), to.In(loc).Format("2006-01-02")
 	var err error
 	if e.Lines, err = handle.List[EarningLine](q.Query(ctx, `SELECT a.play_date AS day, 'caddy_fee' AS component, NULL::text AS method,
-		  trim_scale(a.fee_amount)::text AS amount, coalesce(b.code, 'Flight') AS description
+		  trim_scale(coalesce(fs.share_amount, a.fee_amount))::text AS amount, coalesce(b.code, 'Flight') AS description
 		FROM golf.caddy_assignments a JOIN golf.flights f ON f.id = a.flight_id LEFT JOIN golf.bookings b ON b.id = f.booking_id
+		LEFT JOIN golf.caddy_fee_shares fs ON fs.assignment_id = a.id
 		WHERE a.property_id = $1 AND a.caddy_id = $2 AND a.status IN ('completed', 'replaced') AND a.play_date >= $3::date AND a.play_date < $4::date
 		UNION ALL
 		SELECT t.tip_date, 'caddy_tip', t.method, trim_scale(t.amount)::text, 'Tip'
@@ -487,8 +488,11 @@ func (m *Module) Earnings(ctx context.Context, q dbtx.Querier, property, caddy u
 	if e.Settlements, err = handle.List[Settlement](q.Query(ctx, settlementSelect+` WHERE s.caddy_id = $1 ORDER BY s.period_start DESC LIMIT 12`, caddy)); err != nil {
 		return e, err
 	}
-	if e.Attendance, err = handle.List[Attendance](q.Query(ctx, attendanceSelect+` WHERE a.caddy_id = $1 AND a.work_date >= $2::date AND a.work_date < $3::date
-		ORDER BY a.work_date DESC`, caddy, df, dt)); err != nil {
+	if e.Attendance, err = handle.List[Attendance](q.Query(ctx, `SELECT c.id AS caddy_id, c.code AS caddy_code, c.name AS caddy_name, a.work_date, a.status,
+		a.queue_no::float8 AS queue_no, s.shift, s.clocked_in_at, s.clocked_out_at,
+		(SELECT count(*) FROM golf.caddy_assignments x WHERE x.caddy_id = c.id AND x.play_date = a.work_date AND x.status IN ('assigned', 'in_play', 'completed'))::int AS rounds
+		FROM golf.caddy_attendance a JOIN golf.caddies c ON c.id = a.caddy_id LEFT JOIN golf.caddy_shifts s ON s.caddy_id = a.caddy_id AND s.work_date = a.work_date
+		WHERE a.property_id = $1 AND a.caddy_id = $2 AND a.work_date >= $3::date AND a.work_date < $4::date ORDER BY a.work_date DESC`, property, caddy, df, dt)); err != nil {
 		return e, err
 	}
 	e.Assignments, err = golf.ListCaddyAssignments(ctx, q, loc, "a.caddy_id = $1 AND a.play_date >= $2::date AND a.play_date < $3::date", caddy, df, dt)

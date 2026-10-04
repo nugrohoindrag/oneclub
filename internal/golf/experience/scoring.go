@@ -86,10 +86,25 @@ func (m *Module) openScorecard(ctx context.Context, tx pgx.Tx, r Round, p RoundP
 	if r.RouteID == nil || len(holes) == 0 {
 		return nil
 	}
+	customer := p.CustomerID
+	if customer == nil && p.GuestID != nil {
+		// FR-SCR-10: the round of a guest is kept on a customer profile.
+		name, email, phone, err := crm.Contact(ctx, tx, nil, p.GuestID)
+		if err != nil {
+			return err
+		}
+		if phone != "" || email != "" {
+			c, _, err := crm.FindOrCreate(ctx, tx, r.PropertyID, crm.Identity{Name: name, Phone: phone, Email: email})
+			if err != nil {
+				return err
+			}
+			customer = &c.ID
+		}
+	}
 	var tee *uuid.UUID
 	var gender *string
-	if p.CustomerID != nil {
-		if c, err := crm.GetCustomer(ctx, tx, *p.CustomerID); err == nil && c.Gender != "" {
+	if customer != nil {
+		if c, err := crm.GetCustomer(ctx, tx, *customer); err == nil && c.Gender != "" {
 			gender = &c.Gender
 		}
 	}
@@ -107,7 +122,7 @@ func (m *Module) openScorecard(ctx context.Context, tx pgx.Tx, r Round, p RoundP
 		played_on, holes, par, course_rating, slope, created_by)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8::uuid,$9::date,$10,$11,(SELECT course_rating FROM golf.tee_sets WHERE id = $8::uuid),
 		(SELECT slope FROM golf.tee_sets WHERE id = $8::uuid),$12)
-		ON CONFLICT (booking_player_id) DO NOTHING`, sid, r.PropertyID, r.FlightID, p.ID, p.CustomerID, p.Name, *r.RouteID, tee,
+		ON CONFLICT (booking_player_id) DO NOTHING`, sid, r.PropertyID, r.FlightID, p.ID, customer, p.Name, *r.RouteID, tee,
 		at.In(location(ctx, tx, r.PropertyID)).Format("2006-01-02"), len(holes), par, actorPtr(ctx))
 	if err != nil || tag.RowsAffected() == 0 {
 		return err
