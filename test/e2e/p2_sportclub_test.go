@@ -19,9 +19,9 @@ func TestP2SportClubEntryAccess(t *testing.T) {
 	for _, e := range []struct{ seg, wd, we string }{{"walk_in", "185000", "255000"}, {"guest_of_member", "145000", "210000"}, {"child", "95000", "135000"},
 		{"family", "425000", "615000"}, {"member", "0", "0"}} {
 		rule(t, sa, map[string]any{"code": "POOL-" + e.seg + "-WD", "name": "Pool " + e.seg, "serviceType": "facility_entry", "itemRef": "POOL",
-			"segment": e.seg, "dayTypeId": f.Weekday, "unit": "entry", "price": e.wd, "revenueComponent": "sport_entry"})
+			"segment": e.seg, "lineDayTypeId": f.Weekday, "unit": "entry", "price": e.wd, "revenueComponent": "sport_entry"})
 		rule(t, sa, map[string]any{"code": "POOL-" + e.seg + "-WE", "name": "Pool " + e.seg + " weekend", "serviceType": "facility_entry", "itemRef": "POOL",
-			"segment": e.seg, "dayTypeId": f.Weekend, "unit": "entry", "price": e.we, "revenueComponent": "sport_entry"})
+			"segment": e.seg, "lineDayTypeId": f.Weekend, "unit": "entry", "price": e.we, "revenueComponent": "sport_entry"})
 	}
 	pool := idOf(sa.Must(201, "POST", "/api/v1/sportclub/facilities", map[string]any{"code": "POOL-OLY", "name": "Olympic Pool", "facilityType": "swimming_pool",
 		"capacity": 200, "usageMode": "entry", "priceItem": "POOL", "openingHours": allDay}))

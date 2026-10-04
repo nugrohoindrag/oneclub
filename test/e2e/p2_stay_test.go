@@ -97,9 +97,9 @@ func TestP2StayAndVenue(t *testing.T) {
 	// VIP Suite: 8-hour block weekday 4,000,000 nett; overtime 500,000 per hour.
 	suite := idOf(sa.Must(201, "POST", "/api/v1/stay/vip-suites", map[string]any{"code": "VIP1", "name": "VIP Suite", "blockHours": 8,
 		"facilities": []string{"karaoke", "bar", "massage_room"}}))
-	rule(t, sa, map[string]any{"code": "VIP-WD", "name": "VIP Suite weekday", "serviceType": "vip_suite", "itemRef": "VIP1", "dayTypeId": f.Weekday,
+	rule(t, sa, map[string]any{"code": "VIP-WD", "name": "VIP Suite weekday", "serviceType": "vip_suite", "itemRef": "VIP1", "lineDayTypeId": f.Weekday,
 		"unit": "block", "unitMinutes": 480, "price": "4000000", "overtimePrice": "500000", "revenueComponent": "vip_suite"})
-	rule(t, sa, map[string]any{"code": "VIP-WE", "name": "VIP Suite weekend", "serviceType": "vip_suite", "itemRef": "VIP1", "dayTypeId": f.Weekend,
+	rule(t, sa, map[string]any{"code": "VIP-WE", "name": "VIP Suite weekend", "serviceType": "vip_suite", "itemRef": "VIP1", "lineDayTypeId": f.Weekend,
 		"unit": "block", "unitMinutes": 480, "price": "5000000", "overtimePrice": "500000", "revenueComponent": "vip_suite"})
 	wed := nextWeekday(f.Loc, time.Wednesday, 2)
 	vip := sa.Must(201, "POST", "/api/v1/stay/stays", map[string]any{"kind": "vip_suite", "unitId": suite, "start": rfc(at(wed, 10, 0)), "customerId": guest}).JSON()

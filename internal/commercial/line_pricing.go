@@ -52,6 +52,23 @@ var DayTypeSets = &resource.Def{
 	Fields: []resource.Field{code20("Code"), resource.Name(), serviceTypeField(false), resource.Status("active", "inactive")},
 }
 
+// LineDayTypes are the day types of a set, mapped like P1's golf day types
+// (weekdays, public holidays, lower priority wins) but kept apart from them,
+// so golf's tee sheet and pricing never see them.
+var LineDayTypes = &resource.Def{
+	Key: "commercial.line_day_type", Module: "commercial", Perm: "commercial.pricing", Path: "/api/v1/commercial/line-day-types",
+	Table: "commercial.line_day_types", Name: "Line Day Type", Plural: "Line Day Types", Tag: "Pricing", PropertyScoped: true, Archive: true,
+	OrderBy: "day_type_set_id, priority, code, id",
+	Fields: []resource.Field{
+		{Name: "dayTypeSetId", Column: "day_type_set_id", Label: "Day Type Set", Kind: resource.UUID, Required: true, CreateOnly: true, Filter: true,
+			Ref: &resource.Ref{Table: "commercial.day_type_sets", SameProperty: true, Label: "day type set"}},
+		code20("Code"), resource.Name(),
+		{Name: "weekdays", Column: "weekdays", Label: "Weekdays (1=Mon … 7=Sun)", Kind: resource.String, Max: 20, Default: "", Pattern: wdRe, PatternMsg: "comma separated 1–7, e.g. 1,2,3,4,5"},
+		{Name: "includesHolidays", Column: "includes_holidays", Label: "Public holidays use this day type", Kind: resource.Bool, Default: false},
+		{Name: "priority", Column: "priority", Label: "Priority (lower wins)", Kind: resource.Int, Default: int64(100)},
+		resource.Status("active", "inactive")},
+}
+
 // PackageRates are single-line packages (FR-PRC-P2-07).
 var PackageRates = &resource.Def{
 	Key: "commercial.package_rate", Module: "commercial", Perm: "commercial.pricing", Path: "/api/v1/commercial/package-rates",
@@ -192,8 +209,8 @@ func dayTypesOn(ctx context.Context, q dbtx.Querier, property uuid.UUID, local t
 	if wd == 0 {
 		wd = 7
 	}
-	rows, err := q.Query(ctx, `SELECT id, coalesce(day_type_set_id, '00000000-0000-0000-0000-000000000000'::uuid), weekdays, includes_holidays
-		FROM commercial.day_types WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL ORDER BY priority, code`, property)
+	rows, err := q.Query(ctx, `SELECT id, day_type_set_id, weekdays, includes_holidays
+		FROM commercial.line_day_types WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL ORDER BY priority, code`, property)
 	if err != nil {
 		return nil, err
 	}
@@ -253,8 +270,8 @@ func (Pricer) Resolve(ctx context.Context, q dbtx.Querier, property uuid.UUID, r
 	if err != nil {
 		return LinePrice{}, err
 	}
-	rules, err := handle.List[ruleRow](q.Query(ctx, `SELECT r.id, r.code, r.version, r.name, r.item_ref, r.segment, r.day_type_id,
-		dt.code AS day_type_code, coalesce(dt.day_type_set_id, '00000000-0000-0000-0000-000000000000'::uuid) AS day_type_set_id,
+	rules, err := handle.List[ruleRow](q.Query(ctx, `SELECT r.id, r.code, r.version, r.name, r.item_ref, r.segment, r.line_day_type_id AS day_type_id,
+		dt.code AS day_type_code, dt.day_type_set_id,
 		r.time_band_id, tb.code AS time_band_code, tb.start_time AS band_start, tb.end_time AS band_end,
 		rp.code AS rate_plan_code, rp.min_nights AS rate_plan_min_nights, pk.code AS package_code, pk.min_pax AS package_min_pax,
 		r.channel, r.unit, r.unit_minutes, r.package_quantity, r.min_quantity, r.min_policy, r.price::text AS price, r.overtime_price::text AS overtime_price,
@@ -262,7 +279,7 @@ func (Pricer) Resolve(ctx context.Context, q dbtx.Querier, property uuid.UUID, r
 		coalesce(r.pricing_mode, rp.pricing_mode, 'nett') AS pricing_mode, r.tax_codes,
 		coalesce(r.revenue_component, 'other') AS revenue_component, r.components, r.priority, r.effective_from
 		FROM commercial.pricing_rules r
-		LEFT JOIN commercial.day_types dt ON dt.id = r.day_type_id
+		LEFT JOIN commercial.line_day_types dt ON dt.id = r.line_day_type_id
 		LEFT JOIN commercial.time_bands tb ON tb.id = r.time_band_id
 		LEFT JOIN commercial.rate_plans rp ON rp.id = r.rate_plan_id
 		LEFT JOIN commercial.package_rates pk ON pk.id = r.package_rate_id
@@ -558,7 +575,7 @@ func PublicRates(ctx context.Context, q dbtx.Querier, property uuid.UUID, types 
 		r.price::text AS price, coalesce(r.pricing_mode, rp.pricing_mode, 'nett') AS pricing_mode,
 		coalesce(r.currency, rp.currency, (SELECT currency FROM platform.instance)) AS currency
 		FROM commercial.pricing_rules r
-		LEFT JOIN commercial.day_types dt ON dt.id = r.day_type_id
+		LEFT JOIN commercial.line_day_types dt ON dt.id = r.line_day_type_id
 		LEFT JOIN commercial.time_bands tb ON tb.id = r.time_band_id
 		LEFT JOIN commercial.rate_plans rp ON rp.id = r.rate_plan_id
 		LEFT JOIN commercial.package_rates pk ON pk.id = r.package_rate_id

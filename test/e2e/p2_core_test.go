@@ -15,10 +15,10 @@ func TestP2PricingRateCards(t *testing.T) {
 	sa := f.SA
 	// Futsal synthetic, Mon–Thu: 07–16 = 175,000; 16–21 = 245,000 (nett).
 	rule(t, sa, map[string]any{"code": "FUTSAL-MT-AM", "name": "Futsal Mon–Thu 07–16", "serviceType": "sport_court", "itemRef": "FUTSAL",
-		"dayTypeId": f.MonThu, "timeBandId": f.Morning, "unit": "slot", "unitMinutes": 60, "price": "175000", "pricingMode": "nett",
+		"lineDayTypeId": f.MonThu, "timeBandId": f.Morning, "unit": "slot", "unitMinutes": 60, "price": "175000", "pricingMode": "nett",
 		"taxCodes": []string{"P2VAT"}, "revenueComponent": "court"})
 	rule(t, sa, map[string]any{"code": "FUTSAL-MT-PM", "name": "Futsal Mon–Thu 16–21", "serviceType": "sport_court", "itemRef": "FUTSAL",
-		"dayTypeId": f.MonThu, "timeBandId": f.Evening, "unit": "slot", "unitMinutes": 60, "price": "245000", "pricingMode": "nett",
+		"lineDayTypeId": f.MonThu, "timeBandId": f.Evening, "unit": "slot", "unitMinutes": 60, "price": "245000", "pricingMode": "nett",
 		"taxCodes": []string{"P2VAT"}, "revenueComponent": "court"})
 	mon := nextWeekday(f.Loc, time.Monday, 1)
 	tue := nextWeekday(f.Loc, time.Tuesday, 1)
@@ -35,7 +35,7 @@ func TestP2PricingRateCards(t *testing.T) {
 	}
 	// Conflicting rule (same dimensions, overlapping period) is rejected on save.
 	r := sa.Do("POST", "/api/v1/commercial/pricing-rules", map[string]any{"code": "FUTSAL-DUP", "name": "dup", "serviceType": "sport_court", "itemRef": "FUTSAL",
-		"dayTypeId": f.MonThu, "timeBandId": f.Morning, "unit": "slot", "unitMinutes": 60, "price": "1", "effectiveFrom": past()})
+		"lineDayTypeId": f.MonThu, "timeBandId": f.Morning, "unit": "slot", "unitMinutes": 60, "price": "1", "effectiveFrom": past()})
 	if r.Status != http.StatusConflict {
 		t.Fatalf("conflicting rule: %s", r)
 	}
@@ -52,9 +52,9 @@ func TestP2PricingRateCards(t *testing.T) {
 		seg, wd, we string
 	}{{"walk_in", "185000", "255000"}, {"guest_of_member", "145000", "210000"}, {"child", "95000", "135000"}, {"family", "425000", "615000"}} {
 		rule(t, sa, map[string]any{"code": "ENTRY-" + e.seg + "-WD", "name": "Entry " + e.seg + " weekday", "serviceType": "facility_entry",
-			"segment": e.seg, "dayTypeId": f.Weekday, "unit": "entry", "price": e.wd, "revenueComponent": "sport_entry"})
+			"segment": e.seg, "lineDayTypeId": f.Weekday, "unit": "entry", "price": e.wd, "revenueComponent": "sport_entry"})
 		rule(t, sa, map[string]any{"code": "ENTRY-" + e.seg + "-WE", "name": "Entry " + e.seg + " weekend", "serviceType": "facility_entry",
-			"segment": e.seg, "dayTypeId": f.Weekend, "unit": "entry", "price": e.we, "revenueComponent": "sport_entry"})
+			"segment": e.seg, "lineDayTypeId": f.Weekend, "unit": "entry", "price": e.we, "revenueComponent": "sport_entry"})
 		wed, sun := nextWeekday(f.Loc, time.Wednesday, 1), nextWeekday(f.Loc, time.Sunday, 1)
 		if got := total(price(t, sa, map[string]any{"serviceType": "facility_entry", "segment": e.seg, "start": rfc(at(wed, 9, 0))})); got != e.wd {
 			t.Fatalf("entry %s weekday = %s want %s", e.seg, got, e.wd)
@@ -122,7 +122,7 @@ func TestP2PricingRateCards(t *testing.T) {
 	}
 	sa.Must(200, "PATCH", "/api/v1/commercial/pricing-rules/"+str(rules[0]["id"]), map[string]any{"status": "active"})
 	v2 := sa.Must(201, "POST", "/api/v1/commercial/pricing-rules", map[string]any{"code": "FUTSAL-MT-AM", "name": "Futsal Mon–Thu 07–16 (2027)",
-		"serviceType": "sport_court", "itemRef": "FUTSAL", "dayTypeId": f.MonThu, "timeBandId": f.Morning, "unit": "slot", "unitMinutes": 60,
+		"serviceType": "sport_court", "itemRef": "FUTSAL", "lineDayTypeId": f.MonThu, "timeBandId": f.Morning, "unit": "slot", "unitMinutes": 60,
 		"price": "185000", "effectiveFrom": rfc(time.Now().AddDate(1, 0, 0))}).JSON()
 	if v2["version"].(float64) != 2 {
 		t.Fatalf("new version: %v", v2)

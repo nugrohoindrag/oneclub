@@ -45,9 +45,6 @@ func init() {
 	relax(TimeBands, "session")       // default other
 	setDefault(RatePlans, "pricingMode", "nett")
 	setDefault(TimeBands, "session", "other")
-	DayTypes.Fields = insertBeforeStatus(DayTypes.Fields, []resource.Field{
-		{Name: "dayTypeSetId", Column: "day_type_set_id", Label: "Day Type Set (empty = golf)", Kind: resource.UUID, Filter: true,
-			Ref: &resource.Ref{Table: "commercial.day_type_sets", SameProperty: true, Label: "day type set"}}})
 	TimeBands.Fields = insertBeforeStatus(TimeBands.Fields, []resource.Field{serviceTypeField(false)})
 	RatePlans.Fields = insertBeforeStatus(RatePlans.Fields, []resource.Field{serviceTypeField(false),
 		{Name: "minNights", Column: "min_nights", Label: "Minimum Nights", Kind: resource.Int, Default: int64(1), Min: resource.Min(0)},
@@ -59,6 +56,8 @@ func init() {
 		{Name: "itemRef", Column: "item_ref", Label: "Item (resource type, resource, product, package …; empty = any)", Kind: resource.String, Max: 80, Filter: true},
 		{Name: "packageRateId", Column: "package_rate_id", Label: "Package Rate", Kind: resource.UUID,
 			Ref: &resource.Ref{Table: "commercial.package_rates", SameProperty: true, Label: "package rate"}},
+		{Name: "lineDayTypeId", Column: "line_day_type_id", Label: "Line Day Type (non-golf; empty = any)", Kind: resource.UUID, Filter: true,
+			Ref: &resource.Ref{Table: "commercial.line_day_types", SameProperty: true, Label: "line day type"}},
 		{Name: "unit", Column: "unit", Label: "Unit", Kind: resource.Enum, Enum: Units, Default: "pax"},
 		{Name: "unitMinutes", Column: "unit_minutes", Label: "Unit Length (minutes)", Kind: resource.Int, Min: resource.Min(1)},
 		{Name: "packageQuantity", Column: "package_quantity", Label: "Package Quantity (4x/8x/5x)", Kind: resource.Int, Default: int64(1), Min: resource.Min(1)},
@@ -138,6 +137,9 @@ func ruleP2BeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before 
 	}
 	st := str(m["serviceType"])
 	if st == "" || st == "golf" {
+		if str(m["lineDayTypeId"]) != "" {
+			return errs.Validation("golf_day_type", "golf rules use golf day types", errs.Field("lineDayTypeId", "not_allowed", "use dayTypeId"))
+		}
 		if str(m["ratePlanId"]) == "" {
 			return errs.Validation("rate_plan_required", "golf rules belong to a rate plan", errs.Field("ratePlanId", "required", "choose the rate plan"))
 		}
@@ -145,6 +147,9 @@ func ruleP2BeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before 
 			return p1(ctx, tx, v, before)
 		}
 		return nil
+	}
+	if str(m["dayTypeId"]) != "" {
+		return errs.Validation("line_day_type", "golf day types price golf only", errs.Field("dayTypeId", "not_allowed", "use lineDayTypeId (a day type of a set)"))
 	}
 	if before == nil {
 		v["chargeType"], m["chargeType"] = "other", "other"
@@ -166,11 +171,11 @@ func ruleP2BeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before 
 	err := tx.QueryRow(ctx, `SELECT code || ' v' || version FROM commercial.pricing_rules
 		WHERE property_id = $1 AND status = 'active' AND code <> $2 AND service_type = $3 AND item_ref IS NOT DISTINCT FROM $4
 		  AND package_rate_id IS NOT DISTINCT FROM $5::uuid AND rate_plan_id IS NOT DISTINCT FROM $6::uuid AND unit = $7
-		  AND segment IS NOT DISTINCT FROM $8 AND day_type_id IS NOT DISTINCT FROM $9::uuid AND time_band_id IS NOT DISTINCT FROM $10::uuid
+		  AND segment IS NOT DISTINCT FROM $8 AND line_day_type_id IS NOT DISTINCT FROM $9::uuid AND time_band_id IS NOT DISTINCT FROM $10::uuid
 		  AND channel IS NOT DISTINCT FROM $11 AND priority = $12
 		  AND daterange(effective_from, coalesce(effective_to, 'infinity'::date), '[]') && daterange($13::date, coalesce($14::date, 'infinity'::date), '[]')
 		LIMIT 1`, pid, m["code"], st, nullable("itemRef"), nullable("packageRateId"), nullable("ratePlanId"), nonEmpty(str(m["unit"]), "pax"),
-		nullable("segment"), nullable("dayTypeId"), nullable("timeBandId"), nullable("channel"), m["priority"], str(m["effectiveFrom"]),
+		nullable("segment"), nullable("lineDayTypeId"), nullable("timeBandId"), nullable("channel"), m["priority"], str(m["effectiveFrom"]),
 		nullable("effectiveTo")).Scan(&conflict)
 	if err == nil {
 		return errs.Conflict("rule_conflict", "rule "+conflict+" prices the same service, item, segment, day type, time band and channel with the same priority in an overlapping period")
@@ -198,7 +203,7 @@ type LineResolveRequest struct {
 // RegisterP2 adds the P2 pricing resources and routes (wired by
 // internal/app).
 func (m *Module) RegisterP2(reg *route.Registry, eng *resource.Engine) {
-	for _, d := range []*resource.Def{DayTypeSets, PackageRates} {
+	for _, d := range []*resource.Def{DayTypeSets, LineDayTypes, PackageRates} {
 		eng.Register(reg, d)
 	}
 	reg.Add(route.Route{Method: http.MethodPost, Path: "/api/v1/commercial/pricing:resolve-line", Module: "commercial", Tag: "Pricing",

@@ -75,9 +75,9 @@ func setupP2(t *testing.T) *p2Fixtures {
 		sa.Must(201, "POST", "/api/v1/commercial/tax-service-rules", map[string]any{"code": "P2PB1", "name": "PB1 10%", "kind": "tax", "ratePercent": "10",
 			"basis": "net_plus_service", "pricingMode": "plus_plus", "effectiveFrom": past()})
 		f.CourtSet = idOf(sa.Must(201, "POST", "/api/v1/commercial/day-type-sets", map[string]any{"code": "COURT", "name": "Court days", "serviceType": "sport_court"}))
-		// P1 day types: weekdays "1,2,3,4", includesHolidays, lower priority wins
+		// day types of a set: weekdays "1,2,3,4", includesHolidays, lower priority wins
 		dt := func(set, code, name, days string, ph bool) string {
-			return idOf(sa.Must(201, "POST", "/api/v1/commercial/day-types", map[string]any{"code": code, "name": name, "dayTypeSetId": set,
+			return idOf(sa.Must(201, "POST", "/api/v1/commercial/line-day-types", map[string]any{"code": code, "name": name, "dayTypeSetId": set,
 				"weekdays": days, "includesHolidays": ph}))
 		}
 		f.MonThu = dt(f.CourtSet, "C-MONTHU", "Mon–Thu", "1,2,3,4", false)
@@ -85,8 +85,8 @@ func setupP2(t *testing.T) *p2Fixtures {
 		f.Sat = dt(f.CourtSet, "C-SAT", "Saturday", "6", false)
 		f.SunPH = dt(f.CourtSet, "C-SUNPH", "Sunday / Public Holiday", "7", true)
 		f.EntrySet = idOf(sa.Must(201, "POST", "/api/v1/commercial/day-type-sets", map[string]any{"code": "ENTRY", "name": "Entry days"}))
-		f.Weekday = dt(f.EntrySet, "E-WEEKDAY", "Weekday", "1,2,3,4,5", false)
-		f.Weekend = dt(f.EntrySet, "E-WEEKEND", "Weekend / Public Holiday", "6,7", true)
+		f.Weekday = dt(f.EntrySet, "WEEKDAY", "Weekday", "1,2,3,4,5", false)
+		f.Weekend = dt(f.EntrySet, "WEEKEND", "Weekend / Public Holiday", "6,7", true)
 		f.Morning = idOf(sa.Must(201, "POST", "/api/v1/commercial/time-bands", map[string]any{"code": "07-16", "name": "07.00–16.00", "startTime": "07:00", "endTime": "16:00"}))
 		f.Evening = idOf(sa.Must(201, "POST", "/api/v1/commercial/time-bands", map[string]any{"code": "16-21", "name": "16.00–21.00", "startTime": "16:00", "endTime": "21:00"}))
 		f.CustomerA = idOf(sa.Must(201, "POST", "/api/v1/crm/customers", map[string]any{"code": "P2-CUST-A", "name": "Hendra Wijaya", "email": "hendra@p2.test"}))

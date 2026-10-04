@@ -6,8 +6,9 @@
 -- resolving by charge type as in P1. Expand-only.
 
 -- +goose Up
--- Day type sets group day types per business line (FR-PRC-P2-03); P1's
--- golf day types have no set.
+-- Day type sets group day types per business line (FR-PRC-P2-03). P1's
+-- commercial.day_types stay golf's: its tee sheet, golf pricing and calendar
+-- overrides never see the day types of a set.
 CREATE TABLE commercial.day_type_sets (
   id            uuid PRIMARY KEY,
   property_id   uuid NOT NULL REFERENCES platform.properties (id),
@@ -24,7 +25,28 @@ CREATE TABLE commercial.day_type_sets (
 );
 SELECT platform.enable_property_rls('commercial.day_type_sets');
 SELECT platform.add_touch_trigger('commercial.day_type_sets');
-ALTER TABLE commercial.day_types ADD COLUMN day_type_set_id uuid REFERENCES commercial.day_type_sets (id);
+
+-- Day types of a set, mapped like P1's: weekdays, public holidays, lower
+-- priority wins. Codes are unique within the set.
+CREATE TABLE commercial.line_day_types (
+  id                 uuid PRIMARY KEY,
+  property_id        uuid NOT NULL REFERENCES platform.properties (id),
+  day_type_set_id    uuid NOT NULL REFERENCES commercial.day_type_sets (id),
+  code               text NOT NULL CHECK (code ~ '^[A-Z0-9][A-Z0-9_-]{0,19}$'),
+  name               text NOT NULL,
+  weekdays           text NOT NULL DEFAULT '' CHECK (weekdays ~ '^([1-7](,[1-7])*)?$'),
+  includes_holidays  boolean NOT NULL DEFAULT false,
+  priority           int NOT NULL DEFAULT 100,
+  status             text NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+  created_at         timestamptz NOT NULL DEFAULT now(),
+  created_by         uuid,
+  updated_at         timestamptz NOT NULL DEFAULT now(),
+  updated_by         uuid,
+  archived_at        timestamptz,
+  UNIQUE (day_type_set_id, code)
+);
+SELECT platform.enable_property_rls('commercial.line_day_types');
+SELECT platform.add_touch_trigger('commercial.line_day_types');
 
 -- Time bands per service (FR-PRC-P2-04); the session stays P1's (default other).
 ALTER TABLE commercial.time_bands
@@ -88,6 +110,7 @@ ALTER TABLE commercial.pricing_rules
   ADD COLUMN service_type       text NOT NULL DEFAULT 'golf',
   ADD COLUMN item_ref           text,          -- resource type code, resource id, product id, package code … (NULL = any item)
   ADD COLUMN package_rate_id    uuid REFERENCES commercial.package_rates (id),
+  ADD COLUMN line_day_type_id   uuid REFERENCES commercial.line_day_types (id),   -- day type of a set (non-golf rules)
   ADD COLUMN unit               text NOT NULL DEFAULT 'pax' CHECK (unit IN ('slot', 'hour', 'block', 'night', 'day_use_hour', 'pax',
                                   'session', 'package', 'bucket', 'ball', 'entry', 'item', 'registration', 'month', 'year')),
   ADD COLUMN unit_minutes       int CHECK (unit_minutes IS NULL OR unit_minutes > 0),
@@ -126,11 +149,11 @@ ALTER TABLE commercial.pricing_snapshots DROP COLUMN gross_amount, DROP COLUMN p
 DROP INDEX commercial.pricing_rules_service;
 ALTER TABLE commercial.pricing_rules DROP COLUMN revenue_component, DROP COLUMN tax_codes, DROP COLUMN pricing_mode, DROP COLUMN currency,
   DROP COLUMN overtime_price, DROP COLUMN min_policy, DROP COLUMN min_quantity, DROP COLUMN package_quantity, DROP COLUMN unit_minutes,
-  DROP COLUMN unit, DROP COLUMN package_rate_id, DROP COLUMN item_ref, DROP COLUMN service_type;
+  DROP COLUMN unit, DROP COLUMN line_day_type_id, DROP COLUMN package_rate_id, DROP COLUMN item_ref, DROP COLUMN service_type;
 DROP TABLE commercial.package_rates;
 ALTER TABLE commercial.rate_plans DROP COLUMN facility_access, DROP COLUMN day_use, DROP COLUMN includes_breakfast, DROP COLUMN min_nights,
   DROP COLUMN service_type;
 ALTER TABLE commercial.time_bands DROP COLUMN service_type;
-ALTER TABLE commercial.day_types DROP COLUMN day_type_set_id;
+DROP TABLE commercial.line_day_types;
 DROP TABLE commercial.day_type_sets;
 DROP FUNCTION commercial.forbid_change();

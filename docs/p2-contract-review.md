@@ -109,15 +109,15 @@ Sub-package `golf/experience` **membaca** tabel golf P1 (booking, flight, caddy,
 - **`pricing_p2.go`** (kontrak C4). Endpoint `pricing:resolve-line` berdiri di samping `pricing:resolve` P1.
   - `init()` memperluas enum `segment`, `channel`, `chargeType` dan `businessLine`.
   - `Required` dilonggarkan untuk `ratePlanId`, `effectiveFrom`, `pricingMode` dan `session` (default: hari ini, `nett`, `other`).
-  - Field P2 ditambahkan ke `DayTypes`, `TimeBands`, `RatePlans` dan `PricingRules`.
+  - Field P2 ditambahkan ke `TimeBands`, `RatePlans` dan `PricingRules`. Resource `DayTypes` P1 tidak disentuh.
   - Hook `BeforeWrite` P1 dibungkus: hook P1 tetap dipanggil, dan rule golf tetap wajib rate plan.
 - **`line_pricing.go`**: resolver multi-lini. Aturannya sama dengan P1: rule paling spesifik menang, lalu angka priority terkecil, lalu effective date terbaru. Golf tetap memakai `Resolve` P1.
 - **`sales_api.go`**: interface `commercial.POS` dan `commercial.Vouchers` untuk module lain. Implementasinya ada di sub-package `pos` dan `voucher` milik P2.
 
 **Migration** `commercial/00003_p2_pricing.sql`:
 
-- Tabel baru `day_type_sets` dan `package_rates`.
-- Kolom P2 di `day_types`, `time_bands`, `rate_plans`, `pricing_rules` dan `pricing_snapshots`.
+- Tabel baru `day_type_sets`, `line_day_types` dan `package_rates`. Day type lini lain disimpan di `line_day_types` (kode unik per set), sehingga `commercial.day_types` tetap khusus golf: tee sheet, harga golf dan override kalender P1 tidak pernah melihat day type lini lain.
+- Kolom P2 di `time_bands`, `rate_plans`, `pricing_rules` (termasuk `line_day_type_id` untuk rule non-golf) dan `pricing_snapshots`. Rule golf hanya boleh memakai `day_type_id`, rule lini lain hanya `line_day_type_id`; ini ditegakkan oleh `ruleP2BeforeWrite`.
 - `pricing_rules.rate_plan_id` menjadi nullable (lihat risiko #2).
 
 Migration `commercial/00004_vouchers.sql` dan `00005_pos.sql` hanya berisi tabel milik P2.
