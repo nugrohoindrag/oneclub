@@ -258,6 +258,8 @@ var Trees = map[string][]Item{
 			s("guest", "Guest", "/ops/front-desk/guest", "crm.guest.view"),
 			s("fd-payments", "Payments", "/ops/front-desk/payments", "billing.payment.create"),
 			s("fd-folios", "Folios", "/ops/front-desk/folios", "billing.folio.view"),
+			s("fd-customer-folios", "Customer Folios", "/ops/front-desk/customer-folios", "billing.customer_folio.view"),
+			s("fd-cashier", "Cashier", "/ops/front-desk/cashier", "billing.cashier_shift.operate"),
 		}},
 		{Key: "stay-front-desk", Label: "Stay Front Desk", Path: "/ops/stay-desk", Icon: "hotel", Module: "stay", Permission: "stay.stay.view"},
 		{Key: "golf-staff", Label: "Golf Staff", Path: "/ops/golf-staff", Icon: "golf_course", Module: "golf", Permission: "golf.bag.manage", Children: []Item{

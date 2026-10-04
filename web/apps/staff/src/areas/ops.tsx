@@ -9,6 +9,7 @@ import {
   FrontDeskPaymentsPage, GuestPage, LockersPage, OpsCheckInPage, OpsTeeSheetPage, OpsTiles, StarterQueuePage,
 } from '../ops/golf';
 import { P2_OPS_ROUTES, P2Tiles } from '../ops/p2';
+import { P3_OPS_ROUTES, P3Tiles } from '../ops/p3';
 import { ConnectivityChip, OUTLET_KEY, SyncPage, read, write } from '../offline';
 
 // Operational area (`/ops`): touch-first, offline-capable (Technical Doc §6.4, PRD FR-SH-05).
@@ -84,6 +85,7 @@ function HomePage() {
       </Card>
       <OpsTiles />
       <P2Tiles />
+      <P3Tiles />
     </div>
   );
 }
@@ -115,6 +117,7 @@ const routes = [
       { path: 'golf-staff/golf-carts', element: <CartReadinessPage /> },
       { path: 'golf-staff/golf-cart-assignment', element: <CartAssignmentPage /> },
       ...P2_OPS_ROUTES,
+      ...P3_OPS_ROUTES,
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'profile', element: <ProfilePage showPin /> },
       { path: 'home', element: <Navigate to="/ops" /> },
