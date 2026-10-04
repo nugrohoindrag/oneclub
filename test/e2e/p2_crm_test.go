@@ -22,6 +22,13 @@ func TestP2CRM(t *testing.T) {
 	if ps := fd.Must(200, "GET", "/api/v1/crm/customers/"+c+"/preferences", nil).Items(); len(ps) != 1 || ps[0]["category"] != "beverage" {
 		t.Fatalf("health preferences need view_sensitive: %v", ps)
 	}
+	// P1's Customer 360 (Basic) hides them too; staff with the permission see both.
+	if ps := fd.Must(200, "GET", "/api/v1/crm/customers/"+c+"/overview", nil).JSON()["preferences"].([]any); len(ps) != 1 {
+		t.Fatalf("Customer 360 shows health preferences without view_sensitive: %v", ps)
+	}
+	if ps := sa.Must(200, "GET", "/api/v1/crm/customers/"+c+"/overview", nil).JSON()["preferences"].([]any); len(ps) != 2 {
+		t.Fatalf("Customer 360 preferences for view_sensitive: %v", ps)
+	}
 	// Profiling needs consent (UU PDP).
 	if b := sa.Must(200, "GET", "/api/v1/crm/customers/"+c+"/behavior", nil).JSON(); b["consent"] != false || len(b["lines"].(map[string]any)) != 0 {
 		t.Fatalf("no profiling without consent: %v", b)
