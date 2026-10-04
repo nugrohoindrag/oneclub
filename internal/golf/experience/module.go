@@ -397,7 +397,6 @@ func Contribution() catalog.Contribution {
 	add("cart_maintenance", "view", "manage")
 	add("cart_incident", "view", "create", "manage")
 	add("scorecard", "view", "enter", "finalize", "correct", "view_all")
-	add("handicap", "view", "manage")
 	add("hio", "view", "manage", "claim")
 	add("hall_of_fame", "publish")
 	add("range", "view", "operate")

@@ -76,9 +76,6 @@ func insertBeforeStatus(fields, extra []resource.Field) []resource.Field {
 
 // Register adds the POS routes (wired by internal/app).
 func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
-	for _, d := range []*resource.Def{ProductVariants, ModifierGroups, Modifiers, Menus} {
-		eng.Register(reg, d)
-	}
 	m.registerMe(reg)
 	m.registerPOS(reg, eng)
 }
@@ -129,10 +126,9 @@ var Menus = &resource.Def{
 // Contribution is the P2 commercial catalogue: POS, vouchers and the P2
 // roles of the pricing and foundation resources.
 func Contribution() catalog.Contribution {
-	perms := append(append(catalog.P("commercial", "tax_service", "view", "create", "update", "export"),
-		resource.Permissions(commercial.Products)...), resource.Permissions(commercial.Outlets)...)
-	perms = append(perms, resource.Permissions(commercial.PricingRules)...)
-	perms = append(perms, resource.Permissions(voucher.VoucherTypes)...)
+	// Tax & service, products, outlets and pricing permissions are P1's
+	// (commercial.Contribution); P2 adds roles to them only.
+	perms := resource.Permissions(voucher.VoucherTypes)
 	perms = append(perms, catalog.P("commercial", "order", "view", "create", "pay", "void", "refund")...)
 	perms = append(perms, catalog.P("commercial", "pos", "discount", "discount_override")...)
 	perms = append(perms, catalog.P("commercial", "shift", "view", "manage")...)
@@ -141,19 +137,11 @@ func Contribution() catalog.Contribution {
 	voucherFront := []string{"commercial.voucher_type.view", "commercial.voucher.view", "commercial.voucher.sell", "commercial.voucher.redeem"}
 	voucherAll := append(append(resource.AllActions(voucher.VoucherTypes), voucherFront...), "commercial.voucher.issue", "commercial.voucher.transfer",
 		"commercial.voucher.extend", "commercial.voucher.adjust", "commercial.voucher.void")
-	pricingAll := resource.AllActions(commercial.PricingRules)
 	pricingView := []string{"commercial.pricing.view"}
-	rp := map[string][]string{
-		"property_admin":  append(append([]string{"commercial.tax_service.view", "commercial.tax_service.create", "commercial.tax_service.update", "commercial.tax_service.export"}, resource.AllActions(commercial.Products, commercial.Outlets)...), pricingAll...),
-		"finance_manager": append([]string{"commercial.tax_service.view", "commercial.tax_service.create", "commercial.tax_service.update"}, pricingAll...),
-		"accountant":      append([]string{"commercial.tax_service.view"}, pricingView...),
-		"outlet_manager":  append([]string{"commercial.product.view", "commercial.outlet.view"}, pricingView...),
-		"cashier":         append([]string{"commercial.outlet.view"}, pricingView...),
-		"pos_staff":       append([]string{"commercial.outlet.view"}, pricingView...),
-		"kitchen_staff":   {"commercial.outlet.view"},
-	}
-	for _, role := range []string{"general_manager", "club_manager", "resort_manager", "golf_manager", "golf_admin", "sport_club_manager",
-		"sport_club_receptionist", "reservation_staff", "front_desk", "membership_admin", "membership_manager", "driving_range_staff", "banquet_sales"} {
+	rp := map[string][]string{}
+	// pricing view for the P2 roles P1 does not grant it to
+	for _, role := range []string{"outlet_manager", "cashier", "pos_staff", "resort_manager", "sport_club_manager", "sport_club_receptionist",
+		"membership_manager", "driving_range_staff", "banquet_sales"} {
 		rp[role] = append(rp[role], pricingView...)
 	}
 	for _, role := range []string{"property_admin", "finance_manager", "outlet_manager", "sport_club_manager"} {
