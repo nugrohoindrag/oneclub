@@ -270,8 +270,7 @@ func (m *Module) resolveLine(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := r.Context()
 	pid, _ := reqctx.Property(ctx)
-	pr := PriceRequest{ServiceType: req.ServiceType, ItemRef: req.ItemRef, Segment: req.Segment, Start: req.Start, End: req.End, Quantity: req.Quantity,
-		RatePlan: req.RatePlan, Package: req.Package, Channel: req.Channel, Persist: req.Persist}
+	pr := PriceRequest(req)
 	if pr.Start.IsZero() {
 		pr.Start = clock.Now()
 	}

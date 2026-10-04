@@ -597,7 +597,7 @@ func (m *Module) result(ctx context.Context, tx pgx.Tx, sid uuid.UUID) (StayResu
 			return out, err
 		}
 		out.Folio = &d
-		out.Total = d.Folio.Charges
+		out.Total = d.Charges
 	}
 	return out, nil
 }

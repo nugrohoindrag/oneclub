@@ -127,7 +127,7 @@ func (m *Module) registerPublic(reg *route.Registry) {
 			}
 			out := PublicBooking{Reference: res.Reservation.Code, Status: res.Reservation.Status}
 			if res.Folio != nil {
-				co, err := m.Billing.Checkout(ctx, tx, billing.CheckoutRequest{FolioID: res.Folio.Folio.ID, VoucherCode: in.VoucherCode, Method: in.PayMethod,
+				co, err := m.Billing.Checkout(ctx, tx, billing.CheckoutRequest{FolioID: res.Folio.ID, VoucherCode: in.VoucherCode, Method: in.PayMethod,
 					Description: "Court booking " + res.Reservation.Code})
 				if err != nil {
 					return out, err

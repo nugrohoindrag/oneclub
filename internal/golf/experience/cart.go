@@ -154,7 +154,7 @@ func (m *Module) Inspect(ctx context.Context, tx pgx.Tx, property, cart uuid.UUI
 		passed = false
 		in.Results = append(in.Results, CheckResult{Item: "Battery level", Pass: false, Note: "below the Golf Cart Policies minimum"})
 	}
-	after := readiness
+	var after string
 	var maint *uuid.UUID
 	switch {
 	case in.Kind == "post_op" && passed:

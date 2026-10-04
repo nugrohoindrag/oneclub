@@ -535,10 +535,7 @@ func (e *Engine) Register(reg *route.Registry, eng *resource.Engine) {
 			if err != nil {
 				return httpx.Page[CalendarRow]{}, err
 			}
-			var types []string
-			for _, t := range splitComma(r.URL.Query().Get("resourceType")) {
-				types = append(types, t)
-			}
+			types := splitComma(r.URL.Query().Get("resourceType"))
 			if types == nil {
 				types = []string{}
 			}
