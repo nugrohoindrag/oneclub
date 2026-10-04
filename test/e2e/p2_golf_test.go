@@ -278,9 +278,14 @@ func TestP2GolfRound(t *testing.T) {
 		t.Fatalf("finish: %v", fin)
 	}
 	dispatch(t)
+	// A hole without a pace target uses the default target (15 minutes).
+	sysExec(t, inst, `DELETE FROM golf.hole_pace_targets WHERE hole_id = $1`, mustUUID(str(g.Holes[0]["holeId"])))
 	times := sa.Must(200, "GET", "/api/v1/golf/rounds/"+fid+"/times", nil).JSON()
 	if len(times["holes"].([]any)) != 18 || times["roundMinutes"] == nil {
 		t.Fatalf("hole progress without duplicates: %v", times)
+	}
+	if h := times["holes"].([]any)[0].(map[string]any); h["targetMinutes"].(float64) != 15 {
+		t.Fatalf("default pace target: %v", h)
 	}
 
 	// Caddy fee of the replaced caddy split by holes served: 9 (c1) and 9 (c3).

@@ -28,12 +28,14 @@
 	}
 }
 
+# Argument: the geolocation allowlist, "(self)" only where the caddy tablet
+# measures GPS distances (FR-CTB-11), "()" elsewhere.
 (security) {
 	header {
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		X-Content-Type-Options nosniff
 		Referrer-Policy strict-origin-when-cross-origin
-		Permissions-Policy "camera=(), geolocation=(), microphone=()"
+		Permissions-Policy "camera=(), geolocation={args[0]}, microphone=()"
 		Content-Security-Policy "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'"
 		-Server
 	}
@@ -47,17 +49,61 @@
 	file_server
 }
 
-{$DOMAIN_BACKOFFICE} {
-	import security
-	import api
+# Staff App: one build served on four domains (Technical Doc §6.1).
+# Argument: the surface (dashboard, cashier, caddy, kitchen). The app reads
+# its surface and the instance's other Staff App domains from /surface.json;
+# the manifest names the installed app after the surface.
+(staff-app) {
+	handle /surface.json {
+		header Content-Type application/json
+		header Cache-Control no-cache
+		respond `{"surface":"{args[0]}","domains":{"dashboard":"https://{$DOMAIN_DASHBOARD}","cashier":"https://{$DOMAIN_CASHIER}","caddy":"https://{$DOMAIN_CADDY}","kitchen":"https://{$DOMAIN_KITCHEN}"}}` 200
+	}
 	handle {
-		root * /srv/backoffice
+		root * /srv/staff
+		rewrite /manifest.webmanifest /manifest-{args[0]}.webmanifest
+		header /sw.js Cache-Control "no-cache"
 		import spa
 	}
 }
 
+# Back Office, Management Dashboard, Platform Administration, Clubhouse
+# Screen; the host of PUBLIC_BASE_URL (links in e-mails).
+{$DOMAIN_DASHBOARD} {
+	import security ()
+	import api
+	handle {
+		import staff-app dashboard
+	}
+}
+
+# Operational Interface (POS, front desk, starter, …) on shared devices.
+{$DOMAIN_CASHIER} {
+	import security ()
+	import api
+	handle {
+		import staff-app cashier
+	}
+}
+
+{$DOMAIN_CADDY} {
+	import security (self)
+	import api
+	handle {
+		import staff-app caddy
+	}
+}
+
+{$DOMAIN_KITCHEN} {
+	import security ()
+	import api
+	handle {
+		import staff-app kitchen
+	}
+}
+
 {$DOMAIN_MEMBER} {
-	import security
+	import security ()
 	import api
 	handle {
 		root * /srv/member
@@ -65,52 +111,39 @@
 	}
 }
 
-{$DOMAIN_OPS} {
-	import security
-	import api
-	handle {
-		root * /srv/ops
-		header /sw.js Cache-Control "no-cache"
-		import spa
-	}
-}
-
-{$DOMAIN_CADDY} {
-	import security
-	import api
-	handle {
-		root * /srv/caddy
-		header /sw.js Cache-Control "no-cache"
-		import spa
-	}
-}
-
-{$DOMAIN_PLATFORM_ADMIN} {
-	import security
-	import api
-	handle {
-		root * /srv/platform-admin
-		import spa
-	}
-}
-
 {$DOMAIN_WEB} {
-	import security
+	import security ()
 	import api
 	handle {
 		reverse_proxy web:3000
 	}
 }
 
-# Verified custom domains of this instance (any surface) are served here;
-# the API decides which hostnames are allowed.
+# Verified custom domains of this instance (any surface) are served here.
+# The API decides which hostnames are allowed and answers which application
+# they serve (X-Surface); a Staff App surface gets its own /surface.json.
 https:// {
 	tls {
 		on_demand
 	}
-	import security
+	import security (self)
 	import api
 	handle {
-		reverse_proxy web:3000
+		forward_auth api:8080 {
+			uri /api/v1/public/domains/allowed?domain={host}
+			copy_headers X-Surface
+		}
+		@staff header_regexp X-Surface ^(dashboard|cashier|caddy|kitchen)$
+		handle @staff {
+			import staff-app {http.request.header.X-Surface}
+		}
+		@member header X-Surface member
+		handle @member {
+			root * /srv/member
+			import spa
+		}
+		handle {
+			reverse_proxy web:3000
+		}
 	}
 }

@@ -27,11 +27,12 @@ services:
     image: caddy:2.10
     ports: ["80:80", "443:443"]
     environment:
-      DOMAIN_BACKOFFICE: ${DOMAIN_BACKOFFICE}
-      DOMAIN_MEMBER: ${DOMAIN_MEMBER}
-      DOMAIN_OPS: ${DOMAIN_OPS}
-      DOMAIN_PLATFORM_ADMIN: ${DOMAIN_PLATFORM_ADMIN}
+      # Staff App: one build on four domains (Technical Doc §6.1)
+      DOMAIN_DASHBOARD: ${DOMAIN_DASHBOARD}
+      DOMAIN_CASHIER: ${DOMAIN_CASHIER}
       DOMAIN_CADDY: ${DOMAIN_CADDY}
+      DOMAIN_KITCHEN: ${DOMAIN_KITCHEN}
+      DOMAIN_MEMBER: ${DOMAIN_MEMBER}
       DOMAIN_WEB: ${DOMAIN_WEB}
       ACME_EMAIL: ${ACME_EMAIL}
     volumes:

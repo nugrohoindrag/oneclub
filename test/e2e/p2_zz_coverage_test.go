@@ -131,7 +131,22 @@ func TestP2GolfOperationsCoverage(t *testing.T) {
 		t.Fatalf("my card submitted: %v", sc)
 	}
 	// Ratings and favourites (member app and staff on behalf of the guest).
-	mc.Must(204, "POST", "/api/v1/member/golf/caddy-assignments/"+str(ca[0]["id"])+":rate", map[string]any{"rating": 5, "comment": "Great reads"})
+	// Player rows (tee sheet, the member's My Flights) carry the caddy
+	// assignment the Member App rates.
+	var toRate string
+	for _, s := range sa.Must(200, "GET", "/api/v1/golf/tee-sheet?courseId="+g.Course+"&date="+day, nil).JSON()["slots"].([]any) {
+		for _, fl := range s.(map[string]any)["flights"].([]any) {
+			for _, p := range fl.(map[string]any)["players"].([]any) {
+				if id, _ := p.(map[string]any)["caddyAssignmentId"].(string); id == str(ca[0]["id"]) {
+					toRate = id
+				}
+			}
+		}
+	}
+	if toRate == "" {
+		t.Fatal("player rows without the caddy assignment to rate")
+	}
+	mc.Must(204, "POST", "/api/v1/member/golf/caddy-assignments/"+toRate+":rate", map[string]any{"rating": 5, "comment": "Great reads"})
 	sa.Must(204, "POST", "/api/v1/golf/caddy-ratings", map[string]any{"assignmentId": ca[1]["id"], "rating": 4, "customerId": f.CustomerB})
 	mc.Must(204, "POST", "/api/v1/member/golf/caddies/"+c1+":favorite", map[string]any{"favorite": true})
 	sa.Must(204, "POST", "/api/v1/golf/caddies/"+c1+":favorite", map[string]any{"customerId": f.CustomerB, "favorite": true})

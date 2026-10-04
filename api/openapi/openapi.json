@@ -9274,13 +9274,18 @@
             "type": "string"
           },
           "surface": {
+            "description": "Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces",
             "enum": [
               "web",
               "member",
+              "dashboard",
+              "cashier",
+              "caddy",
+              "kitchen",
+              "api",
               "backoffice",
               "ops",
-              "platform-admin",
-              "api"
+              "platform-admin"
             ],
             "type": "string"
           },
@@ -9314,13 +9319,18 @@
             "type": "string"
           },
           "surface": {
+            "description": "Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces",
             "enum": [
               "web",
               "member",
+              "dashboard",
+              "cashier",
+              "caddy",
+              "kitchen",
+              "api",
               "backoffice",
               "ops",
-              "platform-admin",
-              "api"
+              "platform-admin"
             ],
             "type": "string"
           }
@@ -29153,6 +29163,12 @@
           },
           "bookingId": {
             "format": "uuid",
+            "type": "string"
+          },
+          "caddyAssignmentId": {
+            "description": "Rate the caddy after the round (Member App)",
+            "format": "uuid",
+            "nullable": true,
             "type": "string"
           },
           "caddyCode": {
@@ -109921,7 +109937,7 @@
           }
         },
         "security": [],
-        "summary": "Caddy on-demand TLS check",
+        "summary": "Caddy on-demand TLS check and the surface served on a custom domain",
         "tags": [
           "Customer Instance"
         ],

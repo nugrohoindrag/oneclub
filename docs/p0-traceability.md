@@ -3,7 +3,7 @@
 Status: ✅ implemented and verified by an automated test · 🟡 implemented, not executable on the dev machine yet
 (needs Docker / a VPS / GitHub) · ⚠ implemented with a deliberate deviation · ⏳ open.
 
-Test locations: `test/e2e/*_test.go` (Go acceptance tests on real PostgreSQL), `web/e2e/shells.spec.ts` (Playwright,
+Test locations: `test/e2e/*_test.go` (Go acceptance tests on real PostgreSQL), `web/e2e/shells.spec.ts` and `offline.spec.ts` (Playwright,
 Chrome), unit tests next to the code.
 
 ## Exit criteria (PRD §12.1)
@@ -16,7 +16,7 @@ Chrome), unit tests next to the code.
 | 4 | Audit strategy for all transactions | Route middleware + e2e harness: **116/116 mutating routes exercised, 0 succeeded without an audit entry**; append-only proved in `provision_test` | ✅ |
 | 5 | API contract available | `api/openapi/openapi.json` (209 operations, validated); `GET /api/v1/openapi.json`; CI drift + oasdiff breaking check | ✅ (⚠ see FR-TEC-02) |
 | 6 | Multi-property boundary | RLS on every `property_id` table (`TestRLSOnEveryPropertyTable`), property switcher (Playwright), cross-property tests | ✅ |
-| 7 | Every surface logs in and shows role-appropriate menus | Playwright: Back Office (GM, Super Admin+MFA), Management, Platform Admin, Member, Ops (device+PIN), Website | ✅ |
+| 7 | Every surface logs in and shows role-appropriate menus | Playwright: Staff App areas on their domains: Back Office (GM, Super Admin+MFA), Management, Platform Administration, Clubhouse Screen on `dashboard`; Operational (device+PIN) on `cashier`; Caddy Tablet (device+PIN) on `caddy`; Kitchen Display on `kitchen`; other areas refused per domain; Member App; Website | ✅ |
 
 ## Functional requirements
 
@@ -37,7 +37,7 @@ Chrome), unit tests next to the code.
 | FR-IAM-04 | Reset e-mail, password policy, lockout after 5 failures (15 min) | `TestPasswordResetFlow`, `TestLockoutAndNoEnumeration` | ✅ |
 | FR-IAM-05/06 | `<module>.<object>.<action>` catalogue; 46 role templates from Product Overview §44 | `TestRolePermissionMatrix` | ✅ |
 | FR-IAM-07/08 | Per-property assignments, instance vs property scope, escalation guard | `TestPropertyAdminBoundaries` | ✅ |
-| FR-IAM-09 | Devices, enrolment token, PIN login confined to device property | `TestDevicePINLogin`, Playwright Ops | ✅ |
+| FR-IAM-09 | Devices, enrolment token, PIN login confined to device property | `TestDevicePINLogin`, Playwright Operational (device registered at `/login/device`) | ✅ |
 | FR-IAM-10 | Session list/revoke (own and admin) | `TestSessions` | ✅ |
 | FR-IAM-11 | Single `authz` + route registry; UI only hides | matrix test + `RequirePermission` 403 page (Playwright) | ✅ |
 | FR-IAM-12 | Role/permission/assignment changes audited (security category) | audit coverage check | ✅ |
@@ -51,7 +51,7 @@ Chrome), unit tests next to the code.
 | FR-NOT-02 | Templates per event × channel × language, editable | same | ✅ |
 | FR-NOT-03 | River jobs, exponential backoff | same (2 failures → sent on attempt 3) | ✅ |
 | FR-NOT-04 | Delivery history Pending/Sent/Failed | `TestFailedJobRetry` | ✅ |
-| FR-NOT-05 | Notification center in every shell | Playwright | ✅ |
+| FR-NOT-05 | Notification center in every app and Staff App area | Playwright | ✅ |
 | FR-NOT-06 | Opt-out per non-mandatory category | `TestNotificationsDeliveryAndRetry` | ✅ |
 | FR-APR-01..06, 09 | Approval engine, conditions, steps, inbox, notifications, public `Submit` + hook | `TestApprovalTwoStepWorkflow` | ✅ |
 | FR-APR-07/08 | Delegation, SLA reminders | `TestApprovalDelegationAndReminder` | ✅ |
@@ -82,10 +82,10 @@ Chrome), unit tests next to the code.
 | FR-BRD-01/02 | Logo, favicon, login photo, colours, names; applied at runtime | `TestBrandingAndLocalization`, `TestUnusedDeletesAndBrandingUpload` | ✅ |
 | FR-BRD-03 | 5 presets + custom accent generated server-side with WCAG AA checks | `internal/platform/instance/accent_test.go` | ✅ |
 | FR-BRD-04 | Light/Dark per user, instance default | Profile, header toggle | ✅ |
-| FR-SH-01 | All shells on Morphic (`packages/ui`) + generated API client | builds | ✅ |
-| FR-SH-02/03 | Server-built navigation; property switcher, user menu, notifications, language in header | Playwright | ✅ |
-| FR-SH-04 | 403, 404, error, maintenance pages | Playwright (403) | ✅ |
-| FR-SH-05 | Ops opens offline, action queued, synced when online | Playwright Ops + `offline.test.ts` + `TestOfflineSync` | ✅ |
+| FR-SH-01 | All apps on Morphic (`packages/ui`) + generated API client | builds | ✅ |
+| FR-SH-02/03 | Server-built navigation; property switcher, user menu (with the Staff App area switcher on `dashboard`; none on the device domains), notifications, language in header | Playwright | ✅ |
+| FR-SH-04 | 403 (with links to the user's Staff App areas, and to the right domain for an area of another domain), 404, error, maintenance pages | Playwright (403), `areas.test.ts` | ✅ |
+| FR-SH-05 | Operational area opens offline, action queued, synced when online (one service worker; precache only Operational and Caddy Tablet) | Playwright Operational + `offline.spec.ts` + `offline.test.ts` + `TestOfflineSync` | ✅ |
 | FR-SH-06 | Desktop/tablet; member mobile bottom nav | Playwright (390 px) | ✅ |
 | FR-SH-07/08/09 | Login per reference, dashboard style, status pills | Playwright + screenshots | ✅ |
 | FR-TEC-01 | Modular monolith + arch rules (`internal/archtest`, depguard) | `TestModuleBoundaries` | ✅ |
@@ -106,5 +106,5 @@ Chrome), unit tests next to the code.
 - **sqlc** (Technical Doc §2) not used: queries are explicit pgx SQL; the generic master data engine builds SQL from typed field definitions.
 - **Turborepo** not used: `pnpm -r` is sufficient for now.
 - **NFR performance** (p95 < 300 ms) and the **OWASP ASVS L2 security review** are scheduled for the final P0 load/security pass on Staging.
-- **Morphic gap #4** (accessibility audit of Morphic Select/overlay/date picker): shells use native selects and an own focus-trapped dialog; the Morphic components themselves are not audited yet.
+- **Morphic gap #4** (accessibility audit of Morphic Select/overlay/date picker): the apps use native selects and an own focus-trapped dialog; the Morphic components themselves are not audited yet.
 - Open Questions in PRD §14 (hosting, e-mail provider, object storage, WhatsApp BSP, member login method, …) remain open; the code keeps them configurable (SMTP or e-mail integration, `STORAGE_DRIVER=fs|s3`, messaging adapter interface).

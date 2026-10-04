@@ -1,29 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { API_BASE, qs, request, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
+import React, { useMemo, useState } from 'react';
+import { qs, request, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime, formatNumber } from '@oneclub/i18n';
 import { enqueue } from '@oneclub/offline';
 import { Link } from 'react-router';
+import { useLive } from '../live';
+import { OUTLET_KEY, read } from '../offline';
 import {
-  Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, QRCode, SelectField, StatusPill, TextField, useAuth, useToast,
+  Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
 
 type Row = Record<string, unknown>;
 const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : `Rp ${formatNumber(Number(v))}`);
 const idem = () => ({ 'Idempotency-Key': uuidv7() });
-
-/** Re-renders when the server pushes one of the topics on an SSE stream
- * (Technical Doc §3.4); the hub names each SSE event after its topic. */
-export function useLive(path: string, topics: string[], onEvent: () => void) {
-  const { propertyId } = useAuth();
-  const key = topics.join(',');
-  useEffect(() => {
-    if (!propertyId || typeof EventSource === 'undefined') return;
-    const es = new EventSource(`${API_BASE}${path}?propertyId=${propertyId}`, { withCredentials: true });
-    const h = () => onEvent();
-    for (const t of key.split(',')) es.addEventListener(t, h);
-    return () => es.close();
-  }, [path, key, propertyId, onEvent]);
-}
 
 /** P1's golf stream carries every golf.* topic, P2's included. */
 const GOLF_STREAM = '/api/v1/golf/tee-sheet/stream';
@@ -323,12 +311,10 @@ export function StayDeskPage() {
 
 // ── POS (EP-20) — orders work offline through the sync queue ──────────────
 
-const OUTLET_KEY = 'oneclub.outlet';
-
 export function POSPage() {
   const toast = useToast();
   const { propertyId } = useAuth();
-  const outlet = localStorage.getItem(OUTLET_KEY) ?? '';
+  const outlet = read(OUTLET_KEY);
   const menu = useGet<Page<Schemas['MenuItem']>>(outlet ? `/api/v1/commercial/outlets/${outlet}/menu` : null);
   const shifts = useGet<Page<Row>>(`/api/v1/commercial/shifts${qs({ 'filter[status]': 'open', 'filter[outletId]': outlet })}`);
   const openShift = useSend<Row>('POST', '/api/v1/commercial/shifts:open', ['/api/v1/commercial/shifts']);
@@ -381,66 +367,7 @@ export function POSPage() {
   );
 }
 
-// ── Kitchen Display (EP-21) ───────────────────────────────────────────────
-
-export function KitchenPage() {
-  const toast = useToast();
-  const [station, setStation] = useState('');
-  const tickets = useGet<Page<Schemas['Ticket']>>(`/api/v1/commercial/kitchen-orders${qs({ station })}`, { refetchInterval: 30_000 });
-  useLive('/api/v1/commercial/kds/stream', ['commercial.kds'], useMemo(() => () => void tickets.refetch(), [tickets]));
-  const state = useSend<Row>('POST', (b) => `/api/v1/commercial/kitchen-orders/${b.id}:state`, ['/api/v1/commercial/kitchen-orders']);
-  const cols: [string, string][] = [['received', 'Received'], ['preparing', 'Preparing'], ['ready', 'Ready']];
-  const next: Record<string, string> = { received: 'preparing', preparing: 'ready', ready: 'served' };
-  return (
-    <div className="oc-stack">
-      <div className="oc-page-head"><div><h1>Kitchen</h1></div><span className="oc-spacer" />
-        <div style={{ width: 200 }}><TextField label="Station" value={station} onChange={setStation} placeholder="kitchen, bar…" /></div></div>
-      <ErrorAlert error={state.error} />
-      <div className="oc-grid-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
-        {cols.map(([s, label]) => (
-          <div key={s} className="oc-stack">
-            <h3>{label}</h3>
-            {(tickets.data?.items ?? []).filter((t) => t.status === s).map((t) => (
-              <div key={t.id} className="oc-card">
-                <div className="oc-row"><strong>{t.orderNo}</strong><span className="oc-spacer" /><span className="oc-small">{t.tableNo ? `Table ${t.tableNo}` : t.destinationRef ?? t.servingDestination}</span></div>
-                <div className="oc-small oc-muted">{t.outletName} · {formatDateTime(t.receivedAt)}</div>
-                <ul style={{ margin: '8px 0', paddingLeft: 18 }}>{(t.items as unknown as Row[]).map((i, n) => <li key={n}>{String(i.quantity)} × {String(i.name)}{i.notes ? ` (${String(i.notes)})` : ''}</li>)}</ul>
-                <button className="oc-btn oc-btn-ink oc-btn-sm oc-btn-block" onClick={() => state.mutate({ id: t.id, state: next[s] }, { onSuccess: () => toast('Updated') })}>
-                  {next[s] === 'served' ? 'Served' : next[s] === 'ready' ? 'Ready' : 'Start'}</button>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ── Clubhouse Screen: Hall of Fame kiosk (FR-HOF-05) ──────────────────────
-
-export function ClubhouseScreenPage() {
-  const { propertyId } = useAuth();
-  const feed = useGet<Schemas['Kiosk']>(propertyId ? `/api/v1/public/hall-of-fame/kiosk?propertyId=${propertyId}` : null, { refetchInterval: 10 * 60_000 });
-  const [i, setI] = useState(0);
-  const entries = feed.data?.entries ?? [];
-  useEffect(() => {
-    const t = setInterval(() => setI((x) => x + 1), (feed.data?.rotateSeconds ?? 12) * 1000);
-    return () => clearInterval(t);
-  }, [feed.data?.rotateSeconds]);
-  if (entries.length === 0) return <Empty title="Hall of Fame" help="No published entries yet." icon="emoji_events" />;
-  const e = entries[i % entries.length];
-  return (
-    <div className="oc-card oc-card-ink" style={{ minHeight: '70vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
-      <Icon name="emoji_events" size={72} />
-      <div className="oc-small" style={{ opacity: 0.7, textTransform: 'uppercase', letterSpacing: 2 }}>{e.category.replace(/_/g, ' ')}</div>
-      <h1 style={{ fontSize: 48, margin: '12px 0' }}>{e.title}</h1>
-      <div style={{ fontSize: 28 }}>{e.playerName}</div>
-      <div style={{ opacity: 0.7 }}>{e.year ?? ''}{e.teeSet ? ` · ${e.teeSet}` : ''}{e.score ? ` · ${e.score}` : ''}</div>
-    </div>
-  );
-}
-
-// ── routes and home tiles (added to P1's ops shell in main.tsx) ───────────
+// ── routes and home tiles (mounted by areas/ops.tsx) ───────────
 
 /** Ops routes of P2, at the paths of the server navigation. */
 export const P2_OPS_ROUTES = [
@@ -452,17 +379,15 @@ export const P2_OPS_ROUTES = [
   { path: 'sport-reception', element: <SportReceptionPage /> },
   { path: 'instructor', element: <InstructorPage /> },
   { path: 'pos', element: <POSPage /> },
-  { path: 'kitchen', element: <KitchenPage /> },
-  { path: 'clubhouse-screen', element: <ClubhouseScreenPage /> },
 ];
 
 /** Home tiles of the P2 workstations (P1's golf tiles come first). */
 export function P2Tiles() {
   const { can } = useAuth();
   const tiles: [string, string, string, string][] = [
-    ['sports_golf', 'Driving Range', '/driving-range', 'golf.range.operate'], ['sports_tennis', 'Sport Reception', '/sport-reception', 'sportclub.access.validate'],
-    ['school', 'Instructor', '/instructor', 'sportclub.class.attendance'], ['hotel', 'Stay Front Desk', '/stay-desk', 'stay.stay.view'],
-    ['point_of_sale', 'POS', '/pos', 'commercial.order.create'], ['skillet', 'Kitchen', '/kitchen', 'commercial.kitchen.view'],
+    ['sports_golf', 'Driving Range', '/ops/driving-range', 'golf.range.operate'], ['sports_tennis', 'Sport Reception', '/ops/sport-reception', 'sportclub.access.validate'],
+    ['school', 'Instructor', '/ops/instructor', 'sportclub.class.attendance'], ['hotel', 'Stay Front Desk', '/ops/stay-desk', 'stay.stay.view'],
+    ['point_of_sale', 'POS', '/ops/pos', 'commercial.order.create'],
   ];
   const shown = tiles.filter((t) => can(t[3]));
   if (shown.length === 0) return null;

@@ -198,5 +198,9 @@ func IsCheckViolation(err error) (bool, string) {
 // IsInsufficientPrivilege reports SQLSTATE 42501 (e.g. RLS WITH CHECK).
 func IsInsufficientPrivilege(err error) bool { c, _ := pgCode(err); return c == "42501" }
 
+// IsRetryable reports a deadlock (40P01) or serialization failure (40001):
+// PostgreSQL rolled the transaction back and it can run again.
+func IsRetryable(err error) bool { c, _ := pgCode(err); return c == "40P01" || c == "40001" }
+
 // IsNoRows reports pgx.ErrNoRows.
 func IsNoRows(err error) bool { return errors.Is(err, pgx.ErrNoRows) }

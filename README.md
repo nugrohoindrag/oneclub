@@ -26,7 +26,7 @@ make provision-dev            # creates database oneclub_mgcc, roles, migrations
 # copy the printed DATABASE_URL / DATABASE_OWNER_URL / DATABASE_REPLICA_URL / APP_SECRET into .env.local
 make seed-demo                # demo properties, venues, users per role (password Demo#Club2026, PIN 246810)
 make api & make worker        # API on :8080, River worker
-cd web && pnpm install && pnpm dev   # backoffice :5173, member :5174, ops :5175, platform-admin :5176, web :3000
+cd web && pnpm install && pnpm dev   # staff :5173, member :5174, web :3000
 ```
 
 See [`docs/runbooks/local-development.md`](docs/runbooks/local-development.md). Team workflow (branches, pull requests,
@@ -34,12 +34,10 @@ resolving generated-file and migration conflicts) and CI/CD setup: [`docs/runboo
 
 ## Applications (application surfaces)
 
-| Shell | App | Port (dev) | Who |
+| Application | App | Port (dev) | Who |
 |---|---|---|---|
-| Back Office + Management Dashboard (`/management`) | `web/apps/backoffice` | 5173 | admins, back office, management |
+| Staff App (PWA), one build on four domains: `dashboard` (Back Office `/`, Management Dashboard `/management`, Platform Administration `/platform`, Clubhouse Screen `/screen`), `cashier` (Operational `/ops`: offline, device + PIN), `caddy` (Caddy Tablet `/tablet`: offline), `kitchen` (Kitchen Display `/kitchen`) | `web/apps/staff` | 5173 (`<domain>.localhost:5173` per domain) | every staff member; the domain locks the areas, the role decides which open |
 | Member & Guest Portal (PWA) | `web/apps/member` | 5174 | members, guests |
-| Operational Staff (offline PWA, device + PIN) | `web/apps/ops` | 5175 | starters, cashiers, front desk … |
-| Platform Administration | `web/apps/platform-admin` | 5176 | OneClub Platform Admin |
 | Website (Next.js SSR) | `web/apps/web` | 3000 | public |
 | Morphic showcase | `web/packages/ui` (`pnpm showcase`) | 5199 | designers, engineers |
 
@@ -49,7 +47,7 @@ resolving generated-file and migration conflicts) and CI/CD setup: [`docs/runboo
 make unit                                  # Go unit + architecture boundary tests
 make e2e                                   # P0 + P1 acceptance tests on a real PostgreSQL (fresh instances per run)
 cd web && pnpm -r typecheck && pnpm -r test
-cd web && pnpm exec playwright test        # browser tests of every shell + golf flow (needs running API + previews)
+cd web && pnpm exec playwright test        # browser tests of every app, Staff App area and domain, golf flow, offline POS and tablet (needs running API + previews)
 k6 run test/load/teetime-rush.js           # load tests (see docs/runbooks/production-readiness.md §4)
 ```
 

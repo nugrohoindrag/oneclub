@@ -297,6 +297,8 @@ func Shells(p *authz.Principal) []string {
 		{"member", catalog.ShellMemberPortal},
 		{"platform-admin", catalog.ShellPlatformAdmin},
 		{"caddy", catalog.ShellCaddy},
+		{"kitchen", catalog.ShellKitchen},
+		{"screen", catalog.ShellScreen},
 	} {
 		if p.Can(sh.perm, nil) {
 			out = append(out, sh.code)

@@ -1,5 +1,5 @@
 # OneClub frontend images.
-#   target "static": Back Office, Member Portal, Ops, Platform Admin SPAs/PWAs
+#   target "static": Staff App and Member Portal SPAs/PWAs
 #                    built once and served by Caddy (no runtime config needed:
 #                    branding/flags are fetched from /api/v1/public/bootstrap,
 #                    FR-BRD-02).
@@ -12,11 +12,8 @@ WORKDIR /web
 RUN corepack enable
 COPY web/package.json web/pnpm-lock.yaml web/pnpm-workspace.yaml ./
 COPY web/apps/web/package.json apps/web/
-COPY web/apps/backoffice/package.json apps/backoffice/
+COPY web/apps/staff/package.json apps/staff/
 COPY web/apps/member/package.json apps/member/
-COPY web/apps/ops/package.json apps/ops/
-COPY web/apps/platform-admin/package.json apps/platform-admin/
-COPY web/apps/caddy/package.json apps/caddy/
 COPY web/packages/ui/package.json packages/ui/
 COPY web/packages/api-client/package.json packages/api-client/
 COPY web/packages/i18n/package.json packages/i18n/
@@ -31,11 +28,8 @@ COPY web/ ./
 RUN pnpm -r --filter "./apps/*" build
 
 FROM busybox:1.37 AS static
-COPY --from=build /web/apps/backoffice/dist /srv/backoffice
+COPY --from=build /web/apps/staff/dist /srv/staff
 COPY --from=build /web/apps/member/dist /srv/member
-COPY --from=build /web/apps/ops/dist /srv/ops
-COPY --from=build /web/apps/platform-admin/dist /srv/platform-admin
-COPY --from=build /web/apps/caddy/dist /srv/caddy
 CMD ["sh", "-c", "cp -r /srv/. /export/ && echo copied"]
 
 FROM node:24-alpine AS web

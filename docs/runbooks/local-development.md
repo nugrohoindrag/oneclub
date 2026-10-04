@@ -56,20 +56,43 @@ S3_REGION=us-east-1
 ```bash
 cd web
 pnpm install
-pnpm dev                     # all apps; /api is proxied to :8080
+pnpm dev                     # Staff App :5173, Member App :5174, website :3000; /api is proxied to :8080
 pnpm --filter @oneclub/api-client generate   # after changing the API (make openapi does both)
 ```
 
+The Staff App (`web/apps/staff`) holds every staff area (Technical Doc §6.1): Back Office at `/` (module paths such as
+`/golf/tee-sheet`), Management Dashboard `/management`, Platform Administration `/platform`, Clubhouse Screen
+`/screen`, Operational `/ops`, Caddy Tablet `/tablet` and Kitchen Display `/kitchen`. One login at `/login`; the user
+lands on their first area in the order Management, Back Office, Platform Administration, Clubhouse Screen, Caddy
+Tablet, Kitchen Display, Operational (or on `?next=` when that area is theirs) and switches areas from the user menu.
+
+In production the one build is served on four domains, and the domain (its *surface*, from `/surface.json`) locks the
+areas: `dashboard` (Back Office, Management, Platform Administration, Clubhouse Screen; password login only),
+`cashier` (Operational), `caddy` (Caddy Tablet), `kitchen` (Kitchen Display). Locally:
+
+| URL | Surface | Opens |
+|---|---|---|
+| `http://localhost:5173` | none | every area by path (development) |
+| `http://dashboard.localhost:5173` | `dashboard` | office areas; device areas show 403 with a link to their domain |
+| `http://cashier.localhost:5173` | `cashier` | Operational only |
+| `http://caddy.localhost:5173` | `caddy` | Caddy Tablet only |
+| `http://kitchen.localhost:5173` | `kitchen` | Kitchen Display only |
+
+Browsers resolve `*.localhost` to this machine; `vite.config.ts` serves each subdomain its `/surface.json` and manifest
+the way Caddy does in production. Each domain keeps its own session, device registration and service worker. On a
+device domain a shared device is registered once at `/login/device` with the token printed by `make seed-demo`;
+afterwards `/login` asks for e-mail + PIN.
+
 ## 4. Demo accounts (seed-demo)
 
-| E-mail | Role | Shell | Notes |
+| E-mail | Role | Staff App areas | Notes |
 |---|---|---|---|
-| gm@demo.oneclub.id | General Manager (MAIN) | Back Office, Management | no MFA |
-| property.admin@demo.oneclub.id | Property Admin (MAIN) | Back Office | MFA enrolment at first login |
-| property.admin2@demo.oneclub.id | Property Admin (MDR) | Back Office | sees only MDR |
-| finance@demo.oneclub.id | Finance Manager | Back Office | MFA, approves step 2 |
-| starter@demo.oneclub.id / cashier@… | Staff | Ops (device + PIN 246810) | |
-| member@demo.oneclub.id | Member | Member Portal | |
+| gm@demo.oneclub.id | General Manager (MAIN) | Management, Back Office | no MFA |
+| property.admin@demo.oneclub.id | Property Admin (MAIN) | Management, Back Office on `dashboard`; Operational, Caddy Tablet, Kitchen Display on their domains | MFA enrolment at first login |
+| property.admin2@demo.oneclub.id | Property Admin (MDR) | as above | sees only MDR |
+| finance@demo.oneclub.id | Finance Manager | Management, Back Office | MFA, approves step 2 |
+| starter@demo.oneclub.id / cashier@… | Staff | Operational on `cashier` (device + PIN 246810) | |
+| member@demo.oneclub.id | Member | — (Member App) | |
 
 Password for all: `Demo#Club2026`.
 
@@ -78,3 +101,10 @@ Password for all: `Demo#Club2026`.
 `make e2e` provisions two throw-away instances per run (`ONECLUB_TEST_ADMIN_URL`), starts the API and River worker
 in-process and drives them over HTTP. At the end it fails if any mutating route returned 2xx without an audit
 entry or was never exercised.
+
+- One test while iterating: `ONECLUB_REQUIRE_FULL_COVERAGE=false go test -count=1 -run TestX ./test/e2e/`.
+- Money is a 4-decimal string; compare amounts numerically, not as text. A settled payment has status `completed`.
+- Rounds and caddy fee splits are computed from timestamps; golf tests move them back with SQL instead of waiting.
+- Dead code: `go run golang.org/x/tools/cmd/deadcode@latest -test ./...`.
+- API paths in the frontend and in `test/e2e` are plain strings, so typecheck does not catch a wrong path; compare
+  them with the paths printed by `go run ./cmd/oneclub openapi` after renaming a route.

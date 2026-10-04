@@ -76,9 +76,9 @@ function Btn({ label, onClick, kind = 'neutral', disabled }: { label: string; on
 export function OpsTiles() {
   const { can } = useAuth();
   const tiles: [string, string, string, string][] = [
-    ['flag', 'Starter', '/starter', 'golf.starter.view'], ['hiking', 'Caddy Master', '/caddy', 'golf.caddy.view'],
-    ['concierge', 'Front Desk', '/front-desk', 'golf.check_in.perform'], ['golf_course', 'Golf Staff', '/golf-staff', 'golf.bag.manage'],
-    ['how_to_reg', 'Check-in', '/check-in', 'golf.check_in.perform'],
+    ['flag', 'Starter', '/ops/starter', 'golf.starter.view'], ['hiking', 'Caddy Master', '/ops/caddy', 'golf.caddy.view'],
+    ['concierge', 'Front Desk', '/ops/front-desk', 'golf.check_in.perform'], ['golf_course', 'Golf Staff', '/ops/golf-staff', 'golf.bag.manage'],
+    ['how_to_reg', 'Check-in', '/ops/check-in', 'golf.check_in.perform'],
   ];
   return (
     <div className="oc-grid">
@@ -309,7 +309,7 @@ export function FrontDeskPage() {
   const [paying, setPaying] = useState<R | null>(null);
   return (
     <div className="oc-stack">
-      <Head title="Reservations" help={`${date}${bookings.offline ? ' · offline copy' : ''}`} actions={<Link className="oc-btn oc-btn-ink" to="/check-in">Check-in</Link>} />
+      <Head title="Reservations" help={`${date}${bookings.offline ? ' · offline copy' : ''}`} actions={<Link className="oc-btn oc-btn-ink" to="/ops/check-in">Check-in</Link>} />
       <DataTable rows={bookings.data?.items} loading={bookings.isLoading} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'code', header: 'Booking' },
         { key: 'contactName', header: 'Booked by' }, { key: 'playerCount', header: 'Players', align: 'right' }, { key: 'status', header: 'Status', render: pill('status') }]}
         actions={(b) => !bookings.offline && ['confirmed', 'pending', 'checked_in'].includes(String(b.status)) && <Btn label="Folio" onClick={() => setPaying(b)} />} />

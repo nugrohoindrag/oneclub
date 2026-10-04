@@ -1,51 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
-import { TOTP } from 'otpauth';
-
-const PASSWORD = process.env.E2E_PASSWORD ?? 'Demo#Club2026';
-const BO = process.env.E2E_BACKOFFICE ?? 'http://localhost:5173';
-const MEMBER = process.env.E2E_MEMBER ?? 'http://localhost:5174';
-const OPS = process.env.E2E_OPS ?? 'http://localhost:5175';
-const PA = process.env.E2E_PLATFORM_ADMIN ?? 'http://localhost:5176';
-const WEB = process.env.E2E_WEB ?? 'http://localhost:3000';
-const DEVICE = process.env.DEMO_DEVICE_TOKEN ?? '';
-
-const email = (role: string) => `e2e.${role}@test.oneclub.id`;
-
-/** Logs in through the login page (FR-SH-07), completing MFA when asked. */
-async function login(page: Page, base: string, user: string) {
-  await page.goto(`${base}/login`);
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  await page.getByLabel(/^Email Address/).fill(user);
-  await page.getByLabel(/^Password/).fill(PASSWORD);
-  await page.getByRole('button', { name: 'Log in', exact: true }).click();
-  const setup = page.getByText(/Setup key|Kunci pengaturan/);
-  const code = page.getByLabel(/Authentication code|Kode autentikasi/);
-  await Promise.race([
-    page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 15_000 }).catch(() => undefined),
-    code.waitFor({ timeout: 15_000 }).catch(() => undefined),
-  ]);
-  if (await code.isVisible().catch(() => false)) {
-    // First login enrols (QR + setup key); later logins only ask for the code.
-    const enrolling = await page.getByRole('heading', { name: /Set up two-step|Aktifkan verifikasi/ }).isVisible().catch(() => false);
-    if (enrolling) {
-      await expect(setup).toBeVisible();
-      await expect(page.locator('code.oc-code').first()).toHaveText(/\S+/);
-      secrets.set(user, (await page.locator('code.oc-code').first().textContent())!.trim());
-    }
-    const secret = secrets.get(user);
-    if (!secret) throw new Error(`no TOTP secret known for ${user}`);
-    await code.fill(new TOTP({ secret, digits: 6, period: 30 }).generate());
-    await page.getByRole('button', { name: 'Verify' }).click();
-  }
-  await page.waitForURL((u) => !u.pathname.startsWith('/login'));
-}
-
-const secrets = new Map<string, string>();
+import { CADDY, CASHIER, DASHBOARD, DEVICE, KITCHEN, LOCAL, MEMBER, PASSWORD, STAFF, WEB, email, login } from './helpers';
 
 /** Visible link labels of the main navigation (icons and phase badges removed). */
 async function menuLabels(page: Page) {
   const nav = page.getByRole('navigation', { name: 'Main' }).first();
-  await expect(nav.getByRole('link').first()).toBeVisible();
+  await expect(nav.locator('a:not(.oc-brand)').first()).toBeVisible(); // the menu, not only the logo
   return nav.getByRole('link').evaluateAll((els) =>
     els.map((e) => {
       const c = e.cloneNode(true) as HTMLElement;
@@ -55,8 +14,14 @@ async function menuLabels(page: Page) {
   );
 }
 
+/** Opens the user menu and picks an area of the area switcher. */
+async function switchArea(page: Page, label: string) {
+  await page.locator('button.oc-user').click();
+  await page.getByRole('menuitem', { name: label }).click();
+}
+
 test('login page follows the reference (split layout, pill inputs, black button, forgot password)', async ({ page }) => {
-  await page.goto(`${BO}/login`);
+  await page.goto(`${DASHBOARD}/login`);
   await expect(page.locator('.oc-login-visual')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Log in' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Forgot Password?' })).toBeVisible();
@@ -69,24 +34,125 @@ test('login page follows the reference (split layout, pill inputs, black button,
   await expect(page.getByRole('alert')).toContainText(/incorrect|salah/);
 });
 
-test('General Manager sees modules and management menus but not user administration', async ({ page }) => {
-  await login(page, BO, email('general_manager'));
+test('General Manager lands on Management and switches to the Back Office; 403 links to their areas', async ({ page }) => {
+  await login(page, DASHBOARD, email('general_manager'));
+  // Landing order (Technical Doc §6.1): Management comes before Back Office.
+  await expect(page).toHaveURL(/\/management$/);
+  await expect(page.getByRole('heading', { name: 'Executive Overview' })).toBeVisible();
+  expect(await menuLabels(page)).toContain('Executive Overview');
+  await switchArea(page, 'Back Office');
+  await expect(page).toHaveURL(`${DASHBOARD}/`);
   const labels = await menuLabels(page);
   for (const l of ['Dashboard', 'Approvals', 'Golf', 'Membership', 'Booking', 'Reports']) expect(labels).toContain(l);
   expect(labels).not.toContain('Users');
-  await page.goto(`${BO}/settings/users`);
-  await expect(page.getByText('403')).toBeVisible(); // FR-SH-04
-  await page.goto(`${BO}/management`);
+  // FR-SH-04: 403 with links to the areas the user may open
+  await page.goto(`${DASHBOARD}/settings/users`);
+  await expect(page.getByText('403')).toBeVisible();
+  const areas = page.getByRole('navigation', { name: 'Areas you can open' });
+  await expect(areas.getByRole('link', { name: 'Management Dashboard' })).toBeVisible();
+  await expect(areas.getByRole('link', { name: 'Back Office' })).toBeVisible();
+  await expect(areas.getByRole('link', { name: 'Platform Administration' })).toHaveCount(0);
+  await page.goto(`${DASHBOARD}/platform/users`);
+  await expect(page.getByText('403')).toBeVisible();
+  await areas.getByRole('link', { name: 'Management Dashboard' }).click();
   await expect(page.getByRole('heading', { name: 'Executive Overview' })).toBeVisible();
-  const pills = await menuLabels(page);
-  expect(pills).toContain('Executive Overview');
+});
+
+test('caddy domain: the caddy logs in with the PIN, lands on the tablet and cannot open the Back Office', async ({ page }) => {
+  if (DEVICE) {
+    // The device token is kept per domain: the tablet registers on the caddy domain.
+    await page.goto(`${CADDY}/login`);
+    await page.getByRole('link', { name: 'Register this device' }).click();
+    await page.getByLabel(/Device token|Token perangkat/).fill(DEVICE);
+    await page.getByRole('button', { name: /Register this device|Daftarkan/ }).click();
+    await page.getByLabel(/^Email Address/).fill(email('caddy'));
+    await page.getByLabel(/^PIN/).fill('246810');
+    await page.getByRole('button', { name: 'Log in', exact: true }).click();
+  } else {
+    await login(page, CADDY, email('caddy'));
+  }
+  await expect(page).toHaveURL(/\/tablet$/);
+  await expect(page.locator('.oc-bottom-nav')).toBeVisible();
+  await page.goto(`${CADDY}/`);
+  await expect(page).toHaveURL(/\/tablet$/); // the app root opens the caddy's own area
+  await page.locator('button.oc-user').click();
+  await expect(page.getByText('Switch area')).toHaveCount(0); // a device domain has no area switcher
+  await page.keyboard.press('Escape');
+  // The Back Office opens on the dashboard domain only.
+  await page.goto(`${CADDY}/golf/tee-sheet`);
+  await expect(page.getByText('403')).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Open on / })).toHaveAttribute('href', `${DASHBOARD}/golf/tee-sheet`);
+  const areas = page.getByRole('navigation', { name: 'Areas you can open' });
+  await expect(areas.getByRole('link', { name: 'Caddy Tablet' })).toBeVisible();
+  await expect(areas.getByRole('link', { name: 'Back Office' })).toHaveCount(0);
+});
+
+test('dashboard domain: administrators land on Management, never on a device area; device areas are refused', async ({ browser }) => {
+  for (const role of ['super_admin', 'platform_admin', 'property_admin']) {
+    const ctx = await browser.newContext();
+    const page = await ctx.newPage();
+    await login(page, DASHBOARD, email(role));
+    await expect(page).toHaveURL(`${DASHBOARD}/management`);
+    for (const path of ['/ops', '/tablet', '/kitchen']) {
+      await page.goto(`${DASHBOARD}${path}`);
+      await expect(page.getByText('403')).toBeVisible();
+    }
+    await expect(page.getByRole('link', { name: /^Open on / })).toHaveAttribute('href', `${KITCHEN}/kitchen`);
+    await ctx.close();
+  }
+});
+
+test('dashboard domain: password login only; the Screen role opens the Clubhouse Screen full screen', async ({ page }) => {
+  await page.goto(`${DASHBOARD}/login`);
+  await expect(page.getByRole('heading', { name: 'Log in' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Register this device' })).toHaveCount(0);
+  await login(page, DASHBOARD, email('screen'));
+  await expect(page).toHaveURL(`${DASHBOARD}/screen`);
+  await expect(page.locator('.oc-screen h1')).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0); // no menu
+  await expect(page.locator('.oc-header, .oc-topbar, .oc-bottom-nav')).toHaveCount(0);
+  await page.goto(`${DASHBOARD}/golf/tee-sheet`);
+  await expect(page.getByText('403')).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Areas you can open' }).getByRole('link')).toHaveText([/Clubhouse Screen/]);
+});
+
+test('cashier domain: the cashier opens Operational; the Back Office is refused', async ({ page }) => {
+  await login(page, CASHIER, email('cashier'));
+  await expect(page).toHaveURL(`${CASHIER}/ops`);
+  await page.goto(`${CASHIER}/golf/tee-sheet`);
+  await expect(page.getByText('403')).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Open on / })).toHaveAttribute('href', `${DASHBOARD}/golf/tee-sheet`);
+  await page.goto(`${CASHIER}/kitchen`);
+  await expect(page.getByText('403')).toBeVisible();
+});
+
+test('kitchen domain: kitchen staff get the Kitchen Display full width, other areas are refused', async ({ page }) => {
+  await login(page, KITCHEN, email('kitchen_staff'));
+  await expect(page).toHaveURL(`${KITCHEN}/kitchen`);
+  await expect(page.getByRole('heading', { name: 'Kitchen' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Preparing' })).toBeVisible();
+  await expect(page.locator('.oc-bottom-nav')).toHaveCount(0); // no Operational menu
+  await page.goto(`${KITCHEN}/ops`);
+  await expect(page.getByText('403')).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Open on / })).toHaveAttribute('href', `${CASHIER}/ops`);
+});
+
+test('development without a surface: every area opens by path', async ({ page }) => {
+  test.skip(!LOCAL, 'Staging serves only the four domains');
+  await login(page, STAFF, email('super_admin'));
+  await expect(page).toHaveURL(`${STAFF}/management`);
+  for (const [path, heading] of [['/ops', /Super Admin/], ['/kitchen', 'Kitchen'], ['/screen', /./]] as const) {
+    await page.goto(`${STAFF}${path}`);
+    await expect(page.getByText('403')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: heading }).first()).toBeVisible();
+  }
 });
 
 test('Super Admin (MFA) reaches Settings; property switcher, notifications and language switch work', async ({ page }) => {
-  await login(page, BO, email('super_admin'));
+  await login(page, DASHBOARD, email('super_admin'), '/');
   const labels = await menuLabels(page);
   expect(labels).toContain('Settings');
-  await page.goto(`${BO}/settings/venues`);
+  await page.goto(`${DASHBOARD}/settings/venues`);
   await expect(page.getByRole('heading', { name: 'Venues' })).toBeVisible();
   await expect(page.locator('.oc-status').first()).toBeVisible(); // status pills (FR-SH-09)
   // property switcher (two properties in the demo)
@@ -101,13 +167,12 @@ test('Super Admin (MFA) reaches Settings; property switcher, notifications and l
   await page.getByRole('button', { name: /Notifications/ }).click();
   await expect(page.locator('.oc-popover')).toBeVisible();
   // audit logs page renders entries
-  await page.goto(`${BO}/settings/audit-logs`);
+  await page.goto(`${DASHBOARD}/settings/audit-logs`);
   await expect(page.locator('table.oc-table tbody tr').first()).toBeVisible();
 });
 
-test('a module disabled for the instance disappears from the menu', async ({ page, request }) => {
-  await login(page, PA, email('platform_admin'));
-  await page.goto(`${PA}/enabled-modules`);
+test('a module disabled for the instance disappears from the menu', async ({ page }) => {
+  await login(page, DASHBOARD, email('platform_admin'), '/platform/enabled-modules');
   const row = page.locator('tr', { hasText: 'Stay & Venue' });
   await expect(row).toBeVisible();
   // enable Stay & Venue, check it appears for GM, then disable again
@@ -117,28 +182,26 @@ test('a module disabled for the instance disappears from the menu', async ({ pag
   await expect(row.locator('.oc-status')).toHaveText('Enabled');
   const gm = await page.context().browser()!.newContext();
   const gmPage = await gm.newPage();
-  await login(gmPage, BO, email('general_manager'));
+  await login(gmPage, DASHBOARD, email('general_manager'), '/');
   expect(await menuLabels(gmPage)).toContain('Stay & Venue');
   await toggle.click();
   await expect(row.locator('.oc-status')).toHaveText('Disabled');
   await gmPage.reload();
   expect(await menuLabels(gmPage)).not.toContain('Stay & Venue');
   await gm.close();
-  void request;
 });
 
 test('Platform Administration shows the §6.2 menu only to Platform Admin', async ({ page }) => {
-  await login(page, PA, email('platform_admin'));
+  await login(page, DASHBOARD, email('platform_admin'), '/platform');
   const labels = await menuLabels(page);
   for (const l of ['Customer Instances', 'Instance Configuration', 'Enabled Modules', 'Feature Configuration', 'Branding', 'Custom Domain',
     'Users', 'Roles', 'Permissions', 'Integrations', 'Feature Flags', 'Locale', 'Currency', 'Timezone']) expect(labels).toContain(l);
+  // Super Admin runs the club but not the platform (FR-SH-04).
   const other = await page.context().browser()!.newContext();
   const p2 = await other.newPage();
-  await p2.goto(`${PA}/login`);
-  await p2.getByLabel(/^Email Address/).fill(email('general_manager'));
-  await p2.getByLabel(/^Password/).fill(PASSWORD);
-  await p2.getByRole('button', { name: 'Log in', exact: true }).click();
-  await expect(p2.getByText(/do not have access|tidak memiliki akses/)).toBeVisible();
+  await login(p2, DASHBOARD, email('super_admin'));
+  await p2.goto(`${DASHBOARD}/platform`);
+  await expect(p2.getByText('403')).toBeVisible();
   await other.close();
 });
 
@@ -159,14 +222,17 @@ test('Member Portal: member logs in, top pill navigation, mobile bottom navigati
   await ctx.close();
 });
 
-test('Ops: device + PIN login, works offline and syncs the queue when back online (FR-SH-05)', async ({ page, context }) => {
+test('cashier domain: registered device + PIN, works offline and syncs the queue when back online (FR-SH-05)', async ({ page, context }) => {
   test.skip(!DEVICE, 'DEMO_DEVICE_TOKEN not set');
-  await page.goto(`${OPS}/login`);
+  await page.goto(`${CASHIER}/login`);
+  await page.getByRole('link', { name: 'Register this device' }).click();
   await page.getByLabel(/Device token|Token perangkat/).fill(DEVICE);
   await page.getByRole('button', { name: /Register this device|Daftarkan/ }).click();
+  // a registered device logs in with the staff PIN and opens the user's area
   await page.getByLabel(/^Email Address/).fill(email('starter_marshal'));
   await page.getByLabel(/^PIN/).fill('246810');
   await page.getByRole('button', { name: 'Log in', exact: true }).click();
+  await expect(page).toHaveURL(/\/ops$/);
   await expect(page.getByText('Shift note')).toBeVisible();
   // service worker controls the page → app opens offline
   await page.waitForFunction(() => navigator.serviceWorker?.controller !== null, null, { timeout: 20_000 }).catch(() => undefined);

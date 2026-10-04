@@ -40,10 +40,9 @@ type Config struct {
 	DatabaseURL        string
 	DatabaseReplicaURL string
 	AppSecret          string
-	PublicBaseURL      string // Back Office base URL used in e-mail links
+	PublicBaseURL      string // Staff App base URL (Back Office paths) used in e-mail links
 	MemberPortalURL    string // Member & Guest Portal base URL (activation, booking links)
 	WebsiteURL         string // public website base URL (manage booking links)
-	OpsURL             string // Operational Staff app base URL
 	AllowedOrigins     []string
 	CookieSecure       bool
 	SessionTTL         time.Duration
@@ -106,7 +105,6 @@ func Load(requireDB bool) (*Config, error) {
 		PublicBaseURL:      strings.TrimRight(get("PUBLIC_BASE_URL", "http://localhost:5173"), "/"),
 		MemberPortalURL:    strings.TrimRight(get("MEMBER_PORTAL_URL", "http://localhost:5174"), "/"),
 		WebsiteURL:         strings.TrimRight(get("WEBSITE_URL", "http://localhost:3000"), "/"),
-		OpsURL:             strings.TrimRight(get("OPS_URL", "http://localhost:5175"), "/"),
 		CookieSecure:       getBool("COOKIE_SECURE", env == "staging" || env == "production"),
 		SessionTTL:         time.Duration(getInt("SESSION_TTL_HOURS", 12)) * time.Hour,
 		AuditStrict:        getBool("AUDIT_STRICT", env == "dev" || env == "test"),
@@ -131,7 +129,7 @@ func Load(requireDB bool) (*Config, error) {
 			Region:    get("S3_REGION", ""),
 		},
 	}
-	for _, o := range strings.Split(get("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:3000"), ",") {
+	for _, o := range strings.Split(get("ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:3000"), ",") {
 		if o = strings.TrimSpace(o); o != "" {
 			c.AllowedOrigins = append(c.AllowedOrigins, o)
 		}

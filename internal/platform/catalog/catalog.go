@@ -165,6 +165,7 @@ var PlatformPermissions = flat(
 	P("platform", "backoffice", "access"),
 	P("platform", "ops", "access"),
 	P("platform", "member_portal", "access"),
+	[]Permission{{Code: ShellScreen, Description: "Open the Clubhouse Screen (clubhouse TV); no Back Office access"}},
 	P("audit", "log", "view", "export", "view_sensitive"),
 )
 
@@ -189,7 +190,11 @@ const (
 	ShellMemberPortal  = "platform.member_portal.access"
 	ShellPlatformAdmin = "platform.platform_admin.access"
 	ShellCaddy         = "golf.tablet.use"
-	ManagementView     = "reporting.dashboard.view"
+	ShellScreen        = "platform.screen.access"
+	// ShellKitchen opens the Kitchen Display. Cashiers only view kitchen
+	// orders, so they never get the area.
+	ShellKitchen   = "commercial.kitchen.update"
+	ManagementView = "reporting.dashboard.view"
 )
 
 func ma(mods ...string) []string {
@@ -246,6 +251,8 @@ var RoleTemplates = []RoleTemplate{
 	{Code: "platform_admin", Name: "Platform Admin", Category: "System", Scope: "platform", MFARequired: true, AllPermissions: true, IncludePlatformOnly: true},
 	{Code: "super_admin", Name: "Super Admin", Category: "System", Scope: "instance", MFARequired: true, AllPermissions: true},
 	{Code: "property_admin", Name: "Property Admin", Category: "System", Scope: "property", MFARequired: true, Permissions: PropertyAdminPermissions},
+	// The clubhouse TV: signs in on the dashboard domain and opens only the Clubhouse Screen (Technical Doc §6.1).
+	{Code: "screen", Name: "Screen", Category: "System", Scope: "property", Permissions: []string{ShellScreen}},
 	// Management
 	{Code: "general_manager", Name: "General Manager", Category: "Management", Scope: "property", Permissions: cat(management, []string{"audit.log.view", "platform.approval.view_all"}, ma("golf", "sportclub", "membership", "reservation", "stay", "banquet", "crm", "commercial", "billing", "inventory", "procurement", "accounting", "hris", "reporting"))},
 	{Code: "club_manager", Name: "Club Manager", Category: "Management", Scope: "property", Permissions: cat(management, []string{"audit.log.view"}, ma("golf", "sportclub", "membership", "reservation", "crm", "commercial", "reporting"))},

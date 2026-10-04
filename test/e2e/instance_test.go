@@ -2,7 +2,9 @@ package e2e
 
 import (
 	"context"
+	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"testing"
 
@@ -213,20 +215,98 @@ func TestCustomDomain(t *testing.T) {
 		t.Fatalf("hostname not normalised: %v", d)
 	}
 	pa.Must(422, "POST", "/api/v1/platform/domains", map[string]any{"surface": "web", "hostname": "not a host"})
+	pa.Must(422, "POST", "/api/v1/platform/domains", map[string]any{"surface": "staff", "hostname": "staff.moderngolf.example"})
 	anon(t, inst).Must(404, "GET", "/api/v1/public/domains/allowed?domain=booking.moderngolf.example", nil)
 	instance.Resolver = func(ctx context.Context, name string) ([]string, error) { return []string{"something-else"}, nil }
 	if v := pa.Must(200, "POST", "/api/v1/platform/domains/"+str(d["id"])+":verify", nil).JSON(); v["status"] != "failed" {
 		t.Fatalf("expected failed: %v", v)
 	}
-	instance.Resolver = func(ctx context.Context, name string) ([]string, error) {
-		return []string{str(d["verificationRecordValue"])}, nil
+	var records []string
+	instance.Resolver = func(ctx context.Context, name string) ([]string, error) { return records, nil }
+	verify := func(d map[string]any) {
+		t.Helper()
+		records = []string{str(d["verificationRecordValue"])}
+		if v := pa.Must(200, "POST", "/api/v1/platform/domains/"+str(d["id"])+":verify", nil).JSON(); v["status"] != "active" {
+			t.Fatalf("expected active: %v", v)
+		}
 	}
-	if v := pa.Must(200, "POST", "/api/v1/platform/domains/"+str(d["id"])+":verify", nil).JSON(); v["status"] != "active" {
-		t.Fatalf("expected active: %v", v)
+	verify(d)
+	// Caddy asks before issuing the certificate; the answer also names the
+	// application to serve there (Technical Doc §6.1).
+	if r := anon(t, inst).Must(200, "GET", "/api/v1/public/domains/allowed?domain=booking.moderngolf.example", nil); r.Header.Get("X-Surface") != "web" {
+		t.Fatalf("surface of a website domain: %s", r)
 	}
-	anon(t, inst).Must(200, "GET", "/api/v1/public/domains/allowed?domain=booking.moderngolf.example", nil)
+	// Staff App surfaces; the surfaces of the former staff apps stay accepted
+	// and are served as their Staff App surface.
+	for surface, served := range map[string]string{"dashboard": "dashboard", "cashier": "cashier", "caddy": "caddy", "kitchen": "kitchen",
+		"backoffice": "dashboard", "platform-admin": "dashboard", "ops": "cashier"} {
+		host := surface + ".moderngolf.example"
+		s := pa.Must(201, "POST", "/api/v1/platform/domains", map[string]any{"surface": surface, "hostname": host}).JSON()
+		verify(s)
+		r := anon(t, inst).Must(200, "GET", "/api/v1/public/domains/allowed?domain="+host, nil)
+		if r.Header.Get("X-Surface") != served || r.JSON()["surface"] != served {
+			t.Fatalf("%s is served as %s: %s", surface, served, r)
+		}
+		pa.Must(204, "DELETE", "/api/v1/platform/domains/"+str(s["id"]), nil)
+	}
+	// A custom domain proxies /api like the instance's own domains: a
+	// request from the page it serves passes the CSRF check, another site's does not.
+	cashier := roleUser(t, inst, "cashier")
+	from := func(origin, host string) int {
+		t.Helper()
+		req, _ := http.NewRequest("PATCH", inst.Server.URL+"/api/v1/auth/me/preferences", strings.NewReader(`{"locale":"id"}`))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Property-Id", inst.Main.String())
+		req.Header.Set("Origin", origin)
+		for _, ck := range cashier.http.Jar.Cookies(req.URL) {
+			req.AddCookie(ck) // the jar would match the cookie against Host
+		}
+		req.Host = host
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resp.Body.Close()
+		return resp.StatusCode
+	}
+	if got := from("https://pos.moderngolf.example", "pos.moderngolf.example"); got != 204 {
+		t.Fatalf("same-origin request from a custom domain: %d", got)
+	}
+	if got := from("https://evil.example", "pos.moderngolf.example"); got != 403 {
+		t.Fatalf("cross-site request: %d", got)
+	}
 	pa.Must(200, "GET", "/api/v1/platform/domains", nil)
 	pa.Must(204, "DELETE", "/api/v1/platform/domains/"+str(d["id"]), nil)
+}
+
+// Technical Doc §6.1: GET /auth/me lists the Staff App areas of the user's
+// roles. The Screen role opens only the Clubhouse Screen; the Kitchen
+// Display is for kitchen staff, not for cashiers who view kitchen orders.
+func TestStaffAppAreas(t *testing.T) {
+	for role, want := range map[string][]string{
+		"screen":          {"screen"},
+		"kitchen_staff":   {"ops", "kitchen"},
+		"cashier":         {"ops"},
+		"caddy":           {"ops", "caddy"},
+		"general_manager": {"backoffice", "management"},
+	} {
+		var got []string
+		for _, s := range roleUser(t, inst, role).Must(200, "GET", "/api/v1/auth/me", nil).JSON()["shells"].([]any) {
+			got = append(got, str(s))
+		}
+		if !slices.Equal(got, want) {
+			t.Errorf("%s: shells %v, want %v", role, got, want)
+		}
+	}
+	screen := roleUser(t, inst, "screen")
+	screen.Must(403, "GET", "/api/v1/golf/courses", nil) // no Back Office data
+	screen.Must(200, "GET", "/api/v1/public/hall-of-fame/kiosk?propertyId="+inst.Main.String(), nil)
+	// The Clubhouse Screen and the Kitchen Display left the Operational menu.
+	for _, it := range superAdmin(t, inst).Must(200, "GET", "/api/v1/platform/navigation?shell=ops", nil).JSON()["items"].([]any) {
+		if k := it.(map[string]any)["key"]; k == "kitchen" || k == "clubhouse-screen" {
+			t.Errorf("ops menu still has %v", k)
+		}
+	}
 }
 
 // FR-BRD-01..03: branding with preset or custom accent passing WCAG AA.

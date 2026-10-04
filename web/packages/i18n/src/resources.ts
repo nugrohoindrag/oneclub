@@ -85,6 +85,10 @@ export const en = {
     maintenanceTitle: 'Under maintenance',
     maintenanceHelp: 'This club’s OneClub instance is temporarily unavailable. Please try again later.',
     goHome: 'Go to home',
+    switchArea: 'Switch area',
+    yourAreas: 'Areas you can open',
+    otherDomainHelp: '{{area}} does not open on this device. Open it on its own domain.',
+    openOn: 'Open on {{host}}',
   },
   validation: {
     required: 'This field is required.',
@@ -215,6 +219,10 @@ export const id: Resources = {
     maintenanceTitle: 'Sedang pemeliharaan',
     maintenanceHelp: 'Instance OneClub club ini sementara tidak tersedia. Silakan coba beberapa saat lagi.',
     goHome: 'Ke beranda',
+    switchArea: 'Pindah area',
+    yourAreas: 'Area yang bisa Anda buka',
+    otherDomainHelp: '{{area}} tidak dibuka di perangkat ini. Buka di domainnya sendiri.',
+    openOn: 'Buka di {{host}}',
   },
   validation: {
     required: 'Wajib diisi.',

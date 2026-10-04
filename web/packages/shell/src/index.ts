@@ -1,4 +1,5 @@
 export * from './context';
+export * from './areas';
 export * from './theme';
 export * from './components/ui';
 export * from './components/toast';

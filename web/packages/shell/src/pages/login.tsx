@@ -5,6 +5,7 @@ import { ApiError, request, type Schemas } from '@oneclub/api-client';
 import { useTranslation } from '@oneclub/i18n';
 import { useAuth, useBootstrap, type Me, type Shell } from '../context';
 import { ErrorAlert, Icon, PasswordField, TextField, fieldErrors } from '../components/ui';
+import { landingPath, useArea } from '../areas';
 
 type LoginResponse = Schemas['LoginResponse'];
 type Step = 'credentials' | 'mfa-setup' | 'mfa-verify' | 'password' | 'denied';
@@ -41,8 +42,12 @@ function messageFor(e: unknown, t: (k: string) => string) {
   return undefined;
 }
 
-/** Staff/admin login: e-mail + password → MFA → temporary password change. */
-export function LoginPage({ shell, title, footer }: { shell: Shell; title?: string; footer?: React.ReactNode }) {
+/**
+ * Staff and member login: e-mail + password → MFA → temporary password change.
+ * The Member App passes its shell; in the Staff App the user
+ * goes to `next` when its area is theirs, otherwise to their first area.
+ */
+export function LoginPage({ shell, footer }: { shell?: Shell; footer?: React.ReactNode }) {
   const { t } = useTranslation();
   const { refresh, me, locale, changeLocale } = useAuth();
   const nav = useNavigate();
@@ -56,7 +61,9 @@ export function LoginPage({ shell, title, footer }: { shell: Shell; title?: stri
   const [setup, setSetup] = useState<Schemas['MFASetupResponse'] | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
-  const next = params.get('next') || '/';
+  const next = params.get('next');
+  const staff = useArea() !== null;
+  const target = (m: Me) => (staff ? landingPath(m, next) : shell && m.shells.includes(shell) ? next || '/' : null);
 
   const finish = async () => {
     await qc.invalidateQueries();
@@ -64,7 +71,8 @@ export function LoginPage({ shell, title, footer }: { shell: Shell; title?: stri
     const m = r.data ?? null;
     if (m && m.mfaPending) return setStep('mfa-verify');
     if (m && m.passwordChangeRequired) return setStep('password');
-    if (m && m.shells.includes(shell)) nav(next, { replace: true });
+    const to = m && target(m);
+    if (to) nav(to, { replace: true });
     else setStep('denied');
   };
 
@@ -73,7 +81,10 @@ export function LoginPage({ shell, title, footer }: { shell: Shell; title?: stri
     if (!me) return;
     if (me.mfaPending) setStep(me.mfaEnabled ? 'mfa-verify' : 'mfa-setup');
     else if (me.passwordChangeRequired) setStep('password');
-    else if (me.shells.includes(shell)) nav(next, { replace: true });
+    else {
+      const to = target(me);
+      if (to) nav(to, { replace: true });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me]);
 
@@ -137,7 +148,7 @@ export function LoginPage({ shell, title, footer }: { shell: Shell; title?: stri
       {step === 'credentials' && (
         <form className="oc-stack" onSubmit={submitCredentials} noValidate>
           <div>
-            <h1>{title ?? t('auth.loginTitle')}</h1>
+            <h1>{t('auth.loginTitle')}</h1>
             <p className="oc-muted" style={{ margin: '8px 0 0' }}>{t('auth.loginSubtitle')}</p>
           </div>
           <TextField label={t('auth.email')} type="email" autoComplete="username" value={email} onChange={setEmail} required error={fe.email} />

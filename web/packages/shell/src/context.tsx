@@ -18,7 +18,8 @@ import { ToastProvider } from './components/toast';
 
 export type Bootstrap = Schemas['Bootstrap'];
 export type Me = Schemas['MeResponse'];
-export type Shell = 'backoffice' | 'management' | 'member' | 'ops' | 'platform-admin' | 'caddy';
+/** Server shell codes: `GET /auth/me` → `shells`, `GET /platform/navigation?shell=` (FR-SH-02). */
+export type Shell = 'backoffice' | 'management' | 'member' | 'ops' | 'platform-admin' | 'caddy' | 'kitchen' | 'screen';
 
 // ── bootstrap (public) ────────────────────────────────────────────────────
 
