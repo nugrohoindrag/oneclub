@@ -139,8 +139,15 @@ func (m *Engagement) registerPublic(reg *route.Registry) {
 			if topic == "" {
 				topic = "general"
 			}
-			_, err := LogInteraction(ctx, tx, pid, c.ID, InteractionInput{Channel: "other", Direction: "inbound", Subject: "Website contact · " + topic,
-				Body: in.Message}, "manual", "website.contact", nil)
-			return ContactResult{Status: "received"}, err
+			if _, err := LogInteraction(ctx, tx, pid, c.ID, InteractionInput{Channel: "other", Direction: "inbound", Subject: "Website contact · " + topic,
+				Body: in.Message}, "manual", "website.contact", nil); err != nil {
+				return ContactResult{}, err
+			}
+			if salesContactHook != nil {
+				if err := salesContactHook(ctx, tx, pid, c, in.Guest, topic, in.Message); err != nil {
+					return ContactResult{}, err
+				}
+			}
+			return ContactResult{Status: "received"}, nil
 		})})
 }

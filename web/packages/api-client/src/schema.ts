@@ -3110,6 +3110,196 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/commission-adjustments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Book a manual commission adjustment */
+        post: operations["postCrmCommissionAdjustments"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/commission-lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Commission lines (earned, clawed back, adjusted) */
+        get: operations["getCrmCommissionLines"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/commission-schemes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Commission Schemes */
+        get: operations["getCrmCommissionSchemes"];
+        put?: never;
+        /** Add Commission Scheme */
+        post: operations["postCrmCommissionSchemes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/commission-schemes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Commission Scheme */
+        get: operations["getCrmCommissionSchemesById"];
+        put?: never;
+        post?: never;
+        /** Delete Commission Scheme (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCrmCommissionSchemesById"];
+        options?: never;
+        head?: never;
+        /** Edit Commission Scheme */
+        patch: operations["patchCrmCommissionSchemesById"];
+        trace?: never;
+    };
+    "/api/v1/crm/commission-schemes:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Commission Schemes (CSV/XLSX) */
+        get: operations["getCrmCommissionSchemesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/commission-statements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Commission statements */
+        get: operations["getCrmCommissionStatements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/commission-statements/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Commission statement with its lines */
+        get: operations["getCrmCommissionStatementsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/commission-statements/{id}:mark-paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark an approved statement paid */
+        post: operations["postCrmCommissionStatementsByIdMarkPaid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/commission-statements/{id}:submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit the statement for approval */
+        post: operations["postCrmCommissionStatementsByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/commission-statements:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Commission statements of a month (CSV for payroll) */
+        get: operations["getCrmCommissionStatementsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/commission-statements:generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate the commission statements of a month */
+        post: operations["postCrmCommissionStatementsGenerate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/corporate-accounts": {
         parameters: {
             query?: never;
@@ -3654,6 +3844,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/follow-ups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Follow-ups (mine by default; all with crm.lead.assign) */
+        get: operations["getCrmFollowUps"];
+        put?: never;
+        /** Schedule a follow-up on a lead, an opportunity or a customer */
+        post: operations["postCrmFollowUps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/follow-ups/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a follow-up */
+        post: operations["postCrmFollowUpsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/follow-ups/{id}:complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete a follow-up */
+        post: operations["postCrmFollowUpsByIdComplete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/guests": {
         parameters: {
             query?: never;
@@ -3725,6 +3967,458 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/leads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leads (filter by status, line, source, owner, SLA) */
+        get: operations["getCrmLeads"];
+        put?: never;
+        /** Create Lead (manual, with source; duplicates are warned) */
+        post: operations["postCrmLeads"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/leads/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lead with duplicates, activities and assignments */
+        get: operations["getCrmLeadsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update a lead */
+        patch: operations["patchCrmLeadsById"];
+        trace?: never;
+    };
+    "/api/v1/crm/leads/{id}/activities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Log an activity or schedule a follow-up on a lead */
+        post: operations["postCrmLeadsByIdActivities"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/leads/{id}:assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign / reassign the lead */
+        post: operations["postCrmLeadsByIdAssign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/leads/{id}:convert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Convert the lead into a customer (and corporate account) with an opportunity */
+        post: operations["postCrmLeadsByIdConvert"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/leads/{id}:disqualify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark the lead Unqualified with a reason */
+        post: operations["postCrmLeadsByIdDisqualify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/leads/{id}:qualify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark the lead Qualified */
+        post: operations["postCrmLeadsByIdQualify"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/leads:capture-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Capture an inbound e-mail of a department mailbox as a lead */
+        post: operations["postCrmLeadsCaptureEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/leads:import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import leads from a sales spreadsheet (CSV; preview or commit) */
+        post: operations["postCrmLeadsImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/leads:transfer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Transfer leads, opportunities and follow-ups between sales */
+        post: operations["postCrmLeadsTransfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/opportunities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Opportunities */
+        get: operations["getCrmOpportunities"];
+        put?: never;
+        /** Create an opportunity */
+        post: operations["postCrmOpportunities"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/opportunities/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Opportunity with stage history, quotations and activities */
+        get: operations["getCrmOpportunitiesById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update an opportunity */
+        patch: operations["patchCrmOpportunitiesById"];
+        trace?: never;
+    };
+    "/api/v1/crm/opportunities/{id}/activities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Log an activity or schedule a follow-up on an opportunity */
+        post: operations["postCrmOpportunitiesByIdActivities"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/opportunities/{id}/venue-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Venue availability around the event date of the opportunity */
+        get: operations["getCrmOpportunitiesByIdVenueAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/opportunities/{id}:lose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark the opportunity Lost with a reason */
+        post: operations["postCrmOpportunitiesByIdLose"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/opportunities/{id}:move-stage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move the opportunity to another stage */
+        post: operations["postCrmOpportunitiesByIdMoveStage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/opportunities/{id}:reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reopen a lost opportunity */
+        post: operations["postCrmOpportunitiesByIdReopen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/opportunities/{id}:win": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark the opportunity Won (requires an accepted quotation) */
+        post: operations["postCrmOpportunitiesByIdWin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/pipeline-stages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Pipeline Stages */
+        get: operations["getCrmPipelineStages"];
+        put?: never;
+        /** Add Pipeline Stage */
+        post: operations["postCrmPipelineStages"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/pipeline-stages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Pipeline Stage */
+        get: operations["getCrmPipelineStagesById"];
+        put?: never;
+        post?: never;
+        /** Delete Pipeline Stage (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCrmPipelineStagesById"];
+        options?: never;
+        head?: never;
+        /** Edit Pipeline Stage */
+        patch: operations["patchCrmPipelineStagesById"];
+        trace?: never;
+    };
+    "/api/v1/crm/pipeline-stages:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Pipeline Stages (CSV/XLSX) */
+        get: operations["getCrmPipelineStagesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/pipelines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sales Pipelines */
+        get: operations["getCrmPipelines"];
+        put?: never;
+        /** Add Sales Pipeline */
+        post: operations["postCrmPipelines"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/pipelines/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Sales Pipeline */
+        get: operations["getCrmPipelinesById"];
+        put?: never;
+        post?: never;
+        /** Delete Sales Pipeline (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCrmPipelinesById"];
+        options?: never;
+        head?: never;
+        /** Edit Sales Pipeline */
+        patch: operations["patchCrmPipelinesById"];
+        trace?: never;
+    };
+    "/api/v1/crm/pipelines/{id}/board": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sales Pipeline board (opportunities per stage) */
+        get: operations["getCrmPipelinesByIdBoard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/pipelines:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Sales Pipelines (CSV/XLSX) */
+        get: operations["getCrmPipelinesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/pipelines:seed-defaults": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create the default pipelines and stages per business line (PRD P3 §16.1) */
+        post: operations["postCrmPipelinesSeedDefaults"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/preferences/{id}:remove": {
         parameters: {
             query?: never;
@@ -3736,6 +4430,340 @@ export interface paths {
         put?: never;
         /** Remove a preference */
         post: operations["postCrmPreferencesByIdRemove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/quotations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Quotations (latest versions by default) */
+        get: operations["getCrmQuotations"];
+        put?: never;
+        /** Create a quotation (priced, tax & service, payment terms) */
+        post: operations["postCrmQuotations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/quotations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Quotation with lines, versions, link and decision */
+        get: operations["getCrmQuotationsById"];
+        /** Edit a draft quotation (re-priced) */
+        put: operations["putCrmQuotationsById"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/quotations/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Quotation PDF */
+        get: operations["getCrmQuotationsByIdPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/quotations/{id}:accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept for the customer (signed copy / verbal confirmation) */
+        post: operations["postCrmQuotationsByIdAccept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/quotations/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the customer's rejection */
+        post: operations["postCrmQuotationsByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/quotations/{id}:revise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revise: the quotation becomes Revised and a new draft version is created */
+        post: operations["postCrmQuotationsByIdRevise"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/quotations/{id}:send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send the quotation (PDF + secure acceptance link) by e-mail / WhatsApp */
+        post: operations["postCrmQuotationsByIdSend"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/quotations/{id}:submit-approval": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit the discount above the Sales Policies limit for approval */
+        post: operations["postCrmQuotationsByIdSubmitApproval"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/sales-forecast": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Weighted pipeline forecast per month */
+        get: operations["getCrmSalesForecast"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/sales-target-achievements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sales vs target per sales and period */
+        get: operations["getCrmSalesTargetAchievements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/sales-targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sales Targets */
+        get: operations["getCrmSalesTargets"];
+        put?: never;
+        /** Add Sales Target */
+        post: operations["postCrmSalesTargets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/sales-targets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Sales Target */
+        get: operations["getCrmSalesTargetsById"];
+        put?: never;
+        post?: never;
+        /** Delete Sales Target (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCrmSalesTargetsById"];
+        options?: never;
+        head?: never;
+        /** Edit Sales Target */
+        patch: operations["patchCrmSalesTargetsById"];
+        trace?: never;
+    };
+    "/api/v1/crm/sales-targets:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Sales Targets (CSV/XLSX) */
+        get: operations["getCrmSalesTargetsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/sales-team-members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sales Team Members */
+        get: operations["getCrmSalesTeamMembers"];
+        put?: never;
+        /** Add Sales Team Member */
+        post: operations["postCrmSalesTeamMembers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/sales-team-members/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Sales Team Member */
+        get: operations["getCrmSalesTeamMembersById"];
+        put?: never;
+        post?: never;
+        /** Delete Sales Team Member (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCrmSalesTeamMembersById"];
+        options?: never;
+        head?: never;
+        /** Edit Sales Team Member */
+        patch: operations["patchCrmSalesTeamMembersById"];
+        trace?: never;
+    };
+    "/api/v1/crm/sales-team-members:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Sales Team Members (CSV/XLSX) */
+        get: operations["getCrmSalesTeamMembersExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/sales-teams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Sales Teams */
+        get: operations["getCrmSalesTeams"];
+        put?: never;
+        /** Add Sales Team */
+        post: operations["postCrmSalesTeams"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/sales-teams/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Sales Team */
+        get: operations["getCrmSalesTeamsById"];
+        put?: never;
+        post?: never;
+        /** Delete Sales Team (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCrmSalesTeamsById"];
+        options?: never;
+        head?: never;
+        /** Edit Sales Team */
+        patch: operations["patchCrmSalesTeamsById"];
+        trace?: never;
+    };
+    "/api/v1/crm/sales-teams:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Sales Teams (CSV/XLSX) */
+        get: operations["getCrmSalesTeamsExport"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -10975,6 +12003,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/inquiries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Inquiry form (wedding, banquet, MICE, corporate golf, tournament, membership) → Lead */
+        post: operations["postPublicInquiries"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/invoices/{token}": {
         parameters: {
             query?: never;
@@ -11054,6 +12099,57 @@ export interface paths {
         put?: never;
         /** Request the Member Portal activation link (member number + e-mail + date of birth) */
         post: operations["postPublicMembershipActivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/quotations/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Quotation behind its secure link */
+        get: operations["getPublicQuotationsByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/quotations/{token}:accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept the quotation (name and terms; recorded with IP and time) */
+        post: operations["postPublicQuotationsByTokenAccept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/quotations/{token}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject the quotation with a reason */
+        post: operations["postPublicQuotationsByTokenReject"];
         delete?: never;
         options?: never;
         head?: never;
@@ -12820,6 +13916,11 @@ export interface components {
                 [key: string]: string;
             };
         };
+        AcceptInput: {
+            /** @description Signatory (default: the customer) */
+            acceptedByName?: string;
+            note?: string;
+        };
         AccessEvent: {
             codeHint?: string | null;
             credentialType: string;
@@ -12981,6 +14082,64 @@ export interface components {
             typeCode: string;
             typeName: string;
         };
+        Activity: {
+            /** Format: uuid */
+            assignedTo?: string | null;
+            assignedToName?: string | null;
+            /** Format: date-time */
+            completedAt?: string | null;
+            contactName?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            createdBy?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** @enum {string} */
+            direction: "inbound" | "outbound" | "internal";
+            /** Format: date-time */
+            dueAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            leadId?: string | null;
+            leadNumber?: string | null;
+            notes?: string | null;
+            /** Format: date-time */
+            occurredAt?: string | null;
+            /** Format: uuid */
+            opportunityId?: string | null;
+            opportunityNumber?: string | null;
+            outcome?: string | null;
+            overdue: boolean;
+            /** @enum {string} */
+            source: "manual" | "whatsapp" | "email" | "website" | "system";
+            /** @enum {string} */
+            status: "open" | "completed" | "cancelled";
+            subject: string;
+            /** @enum {string} */
+            type: "call" | "whatsapp" | "email" | "meeting" | "site_visit" | "food_tasting" | "note" | "task";
+        };
+        ActivityInput: {
+            /**
+             * Format: uuid
+             * @description Default: the lead / opportunity owner, else me
+             */
+            assignedTo?: string | null;
+            /** @enum {string} */
+            direction?: "inbound" | "outbound" | "internal";
+            /**
+             * Format: date-time
+             * @description Schedules a follow-up (open until completed)
+             */
+            dueAt?: string | null;
+            notes?: string;
+            /** Format: date-time */
+            occurredAt?: string | null;
+            subject: string;
+            /** @enum {string} */
+            type: "call" | "whatsapp" | "email" | "meeting" | "site_visit" | "food_tasting" | "note" | "task";
+        };
         AdapterInfo: {
             capability: string;
             credentials: components["schemas"]["Field"][];
@@ -13136,8 +14295,9 @@ export interface components {
             bayId?: string | null;
         };
         AssignInput: {
+            reason?: string;
             /** Format: uuid */
-            unitId: string;
+            userId: string;
         };
         Assignment: {
             /** Format: date-time */
@@ -13392,10 +14552,14 @@ export interface components {
             startsAt: string;
         };
         Board: {
-            counts: {
-                [key: string]: number;
-            };
-            golfCarts: components["schemas"]["BoardCart"][];
+            openCount: number;
+            openValue: string;
+            /** Format: uuid */
+            pipelineId: string;
+            pipelineName: string;
+            stages: components["schemas"]["BoardStage"][];
+            /** @description Σ value × stage probability of the open opportunities */
+            weightedValue: string;
         };
         BoardCart: {
             batteryPercent?: number | null;
@@ -13412,6 +14576,19 @@ export interface components {
             positionAt?: string | null;
             readiness: string;
             serviceDue: boolean;
+        };
+        BoardStage: {
+            code: string;
+            count: number;
+            /** @enum {string} */
+            kind: "open" | "won" | "lost";
+            name: string;
+            opportunities: components["schemas"]["Opportunity"][];
+            probability: string;
+            /** Format: uuid */
+            stageId: string;
+            value: string;
+            weightedValue: string;
         };
         BookInput: {
             /** @enum {string} */
@@ -14338,7 +15515,6 @@ export interface components {
         };
         CancelInput: {
             reason: string;
-            waiveFee?: boolean;
         };
         CancelRequest: {
             reason: string;
@@ -14351,6 +15527,13 @@ export interface components {
             feeWaived: boolean;
             refunds: components["schemas"]["Refund"][];
             waiverPending: boolean;
+        };
+        CaptureResult: {
+            /** Format: uuid */
+            leadId: string;
+            number: string;
+            /** @enum {string} */
+            status: "created" | "appended" | "duplicate";
         };
         Card: {
             cardNumber: string;
@@ -14876,6 +16059,179 @@ export interface components {
             result?: Record<string, never>;
             success: boolean;
         };
+        CommissionLine: {
+            amount: string;
+            basisAmount: string;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "earned" | "clawback" | "adjustment";
+            line?: string | null;
+            /** Format: uuid */
+            opportunityId?: string | null;
+            period: string;
+            /** Format: uuid */
+            quotationId?: string | null;
+            quotationNumber?: string | null;
+            ratePercent?: string | null;
+            reason?: string | null;
+            recognizedOn: string;
+            /** @enum {string} */
+            sourceType: "deal" | "refund" | "invoice_void" | "manual";
+            /** Format: uuid */
+            statementId?: string | null;
+            /** Format: uuid */
+            userId: string;
+            userName?: string | null;
+        };
+        CommissionScheme: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /**
+             * @description Basis
+             * @enum {string|null}
+             */
+            basis?: "net" | "total" | null;
+            /**
+             * Format: int64
+             * @description Clawback Window (days)
+             */
+            clawbackDays?: number | null;
+            /** @description Scheme Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: date
+             * @description Effective From
+             */
+            effectiveFrom: string;
+            /**
+             * Format: date
+             * @description Effective To
+             */
+            effectiveTo?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Rates per Business Line ([{line, percent, flatAmount}]) */
+            rates?: Record<string, never>[] | null;
+            /**
+             * @description Scheme Type
+             * @enum {string|null}
+             */
+            schemeType?: "percent" | "tiered" | "flat" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: uuid
+             * @description Sales Team (empty: all)
+             */
+            teamId?: string | null;
+            /** @description Tiers ([{minAchievementPercent, percent}]) */
+            tiers?: Record<string, never>[] | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: uuid
+             * @description Sales Executive (empty: all)
+             */
+            userId?: string | null;
+        };
+        CommissionSchemeInput: {
+            /**
+             * @description Basis
+             * @enum {string|null}
+             */
+            basis?: "net" | "total" | null;
+            /**
+             * Format: int64
+             * @description Clawback Window (days)
+             */
+            clawbackDays?: number | null;
+            /** @description Scheme Code */
+            code?: string;
+            /**
+             * Format: date
+             * @description Effective From
+             */
+            effectiveFrom?: string;
+            /**
+             * Format: date
+             * @description Effective To
+             */
+            effectiveTo?: string | null;
+            /** @description Name */
+            name?: string;
+            /** @description Rates per Business Line ([{line, percent, flatAmount}]) */
+            rates?: Record<string, never>[] | null;
+            /**
+             * @description Scheme Type
+             * @enum {string|null}
+             */
+            schemeType?: "percent" | "tiered" | "flat" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: uuid
+             * @description Sales Team (empty: all)
+             */
+            teamId?: string | null;
+            /** @description Tiers ([{minAchievementPercent, percent}]) */
+            tiers?: Record<string, never>[] | null;
+            /**
+             * Format: uuid
+             * @description Sales Executive (empty: all)
+             */
+            userId?: string | null;
+        };
+        CommissionStatement: {
+            adjustments: string;
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            clawback: string;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            earned: string;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: date-time */
+            paidAt?: string | null;
+            paidReference?: string | null;
+            period: string;
+            periodEnd: string;
+            periodStart: string;
+            rejectedReason?: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "approved" | "rejected" | "paid";
+            /** Format: date-time */
+            submittedAt?: string | null;
+            total: string;
+            userEmail?: string | null;
+            /** Format: uuid */
+            userId: string;
+            userName?: string | null;
+        };
+        CompleteInput: {
+            notes?: string;
+            outcome?: string;
+        };
         Component: {
             amount?: string;
             code: string;
@@ -14921,6 +16277,42 @@ export interface components {
             pair: string;
             pass: boolean;
             ratio: number;
+        };
+        ConvertInput: {
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** @description Default: true when the lead has a company name */
+            createCorporateAccount?: boolean | null;
+            /** @description Default true */
+            createOpportunity?: boolean | null;
+            /**
+             * Format: uuid
+             * @description Use this customer (default: the matched customer, else a new one)
+             */
+            customerId?: string | null;
+            /** Format: date */
+            expectedCloseDate?: string | null;
+            /** @description Default: the lead budget */
+            expectedValue?: string;
+            /**
+             * Format: uuid
+             * @description Default: the lead owner
+             */
+            ownerUserId?: string | null;
+            /**
+             * Format: uuid
+             * @description Default: the pipeline of the lead's line
+             */
+            pipelineId?: string | null;
+            title?: string;
+        };
+        ConvertResult: {
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** Format: uuid */
+            customerId: string;
+            lead: components["schemas"]["Lead"];
+            opportunity?: components["schemas"]["Opportunity"] | null;
         };
         CorporateAccount: {
             /** @description Address */
@@ -16365,6 +17757,11 @@ export interface components {
             percent?: string;
             reason: string;
         };
+        DisqualifyInput: {
+            note?: string;
+            /** @enum {string} */
+            reason: "not_interested" | "budget" | "date_unavailable" | "duplicate" | "spam" | "no_response" | "competitor" | "other";
+        };
         Distance: {
             meters: number;
             name?: string;
@@ -16530,6 +17927,19 @@ export interface components {
             checkedAt: string;
             checks: components["schemas"]["Check"][];
             eligible: boolean;
+        };
+        EmailLeadInput: {
+            /** @description Sender address */
+            from: string;
+            fromName?: string;
+            /** @description Message-ID (captured once) */
+            messageId: string;
+            /** Format: date-time */
+            receivedAt?: string | null;
+            subject?: string;
+            text?: string;
+            /** @description Department mailbox, e.g. banquet@club.id */
+            to: string;
         };
         Employee: {
             /** Format: date-time */
@@ -16776,6 +18186,12 @@ export interface components {
         };
         EraseRequest: {
             reason: string;
+        };
+        ExperienceBoard: {
+            counts: {
+                [key: string]: number;
+            };
+            golfCarts: components["schemas"]["BoardCart"][];
         };
         ExperienceConsentInput: {
             /** @enum {string} */
@@ -17195,6 +18611,25 @@ export interface components {
             netSales: string;
             quantity: string;
             theoreticalCost: string;
+        };
+        Forecast: {
+            from: string;
+            rows: components["schemas"]["ForecastRow"][];
+            to: string;
+            value: string;
+            weightedValue: string;
+        };
+        ForecastRow: {
+            count: number;
+            line: string;
+            /** @description YYYY-MM of the expected close date */
+            month: string;
+            value: string;
+            weightedValue: string;
+        };
+        GenerateInput: {
+            /** @description YYYY-MM */
+            period: string;
         };
         GenerateRequest: {
             /** Format: uuid */
@@ -17867,6 +19302,13 @@ export interface components {
             totalRows: number;
             updatedRows: number;
         };
+        ImportRowError: {
+            code: string;
+            field?: string;
+            message: string;
+            /** @description 1-based line (header = 1) */
+            row: number;
+        };
         InboundInput: {
             /** @description YYYY-MM-DD */
             cardValidUntil?: string;
@@ -17974,6 +19416,34 @@ export interface components {
         };
         IngestResult: {
             updated: number;
+        };
+        InquiryInput: {
+            budget?: string;
+            /** @description Page or campaign (UTM) of the form */
+            channel?: string;
+            companyName?: string;
+            /** @description Marketing consent (UU PDP) */
+            consent?: boolean;
+            /** Format: date */
+            eventDate?: string | null;
+            /** @enum {string} */
+            eventType?: "wedding" | "meeting" | "conference" | "gathering" | "birthday" | "tournament" | "other";
+            guest: components["schemas"]["PublicGuest"];
+            /**
+             * @description Default: inferred from the message
+             * @enum {string}
+             */
+            line?: "wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other";
+            message: string;
+            pax?: number | null;
+            /** Format: uuid */
+            propertyId: string;
+        };
+        InquiryResult: {
+            /** @description Lead number */
+            reference?: string;
+            /** @enum {string} */
+            status: "received";
         };
         Inspection: {
             batteryPercent?: number | null;
@@ -18557,6 +20027,261 @@ export interface components {
             entries: components["schemas"]["PublicEntry"][];
             rotateSeconds: number;
         };
+        Lead: {
+            /** Format: date-time */
+            assignedAt?: string | null;
+            assignmentMethod?: string | null;
+            budget?: string | null;
+            /** @description Business number, department mailbox or campaign */
+            channel?: string | null;
+            companyName?: string | null;
+            /** Format: date-time */
+            consentAt?: string | null;
+            /** Format: date-time */
+            convertedAt?: string | null;
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            /**
+             * Format: uuid
+             * @description Matched (duplicate) or converted customer — Customer 360
+             */
+            customerId?: string | null;
+            customerName?: string | null;
+            email?: string | null;
+            eventDate?: string | null;
+            eventType?: string | null;
+            externalRef?: string | null;
+            /** Format: date-time */
+            firstRespondedAt?: string | null;
+            /** Format: date-time */
+            firstResponseDueAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            lastActivityAt?: string | null;
+            /** @enum {string} */
+            line: "wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other";
+            marketingConsent: boolean;
+            /** @description First inbound message */
+            message?: string | null;
+            name: string;
+            notes?: string | null;
+            number: string;
+            /** Format: uuid */
+            opportunityId?: string | null;
+            ownerName?: string | null;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            pax?: number | null;
+            phone?: string | null;
+            /** Format: date-time */
+            qualifiedAt?: string | null;
+            /**
+             * Format: uuid
+             * @description Referring member (Member Referral)
+             */
+            referrerCustomerId?: string | null;
+            referrerName?: string | null;
+            /** Format: date-time */
+            slaEscalatedAt?: string | null;
+            /** @enum {string} */
+            slaStatus: "pending" | "met" | "breached" | "overdue" | "none";
+            /** @enum {string} */
+            source: "whatsapp" | "instagram" | "facebook" | "tiktok" | "website_form" | "walk_in" | "member_referral" | "email" | "phone" | "event" | "import" | "other";
+            /** @enum {string} */
+            status: "new" | "contacted" | "qualified" | "unqualified" | "converted";
+            /** Format: date-time */
+            unqualifiedAt?: string | null;
+            unqualifiedNote?: string | null;
+            unqualifiedReason?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        LeadAssignment: {
+            /** Format: date-time */
+            assignedAt: string;
+            fromName?: string | null;
+            /** Format: uuid */
+            fromUserId?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            method: "manual" | "round_robin" | "fixed" | "transfer" | "import";
+            reason?: string | null;
+            toName?: string | null;
+            /** Format: uuid */
+            toUserId?: string | null;
+        };
+        LeadDetail: {
+            activities: components["schemas"]["Activity"][];
+            /** Format: date-time */
+            assignedAt?: string | null;
+            assignmentMethod?: string | null;
+            assignments: components["schemas"]["LeadAssignment"][];
+            budget?: string | null;
+            /** @description Business number, department mailbox or campaign */
+            channel?: string | null;
+            companyName?: string | null;
+            /** Format: date-time */
+            consentAt?: string | null;
+            /** Format: date-time */
+            convertedAt?: string | null;
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            /**
+             * Format: uuid
+             * @description Matched (duplicate) or converted customer — Customer 360
+             */
+            customerId?: string | null;
+            customerName?: string | null;
+            /** @description Possible duplicates (warning, FR-LEAD-03) */
+            duplicates: components["schemas"]["LeadDuplicate"][];
+            email?: string | null;
+            eventDate?: string | null;
+            eventType?: string | null;
+            externalRef?: string | null;
+            /** Format: date-time */
+            firstRespondedAt?: string | null;
+            /** Format: date-time */
+            firstResponseDueAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            lastActivityAt?: string | null;
+            /** @enum {string} */
+            line: "wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other";
+            marketingConsent: boolean;
+            /** @description First inbound message */
+            message?: string | null;
+            name: string;
+            notes?: string | null;
+            number: string;
+            /** Format: uuid */
+            opportunityId?: string | null;
+            ownerName?: string | null;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            pax?: number | null;
+            phone?: string | null;
+            /** Format: date-time */
+            qualifiedAt?: string | null;
+            /**
+             * Format: uuid
+             * @description Referring member (Member Referral)
+             */
+            referrerCustomerId?: string | null;
+            referrerName?: string | null;
+            /** Format: date-time */
+            slaEscalatedAt?: string | null;
+            /** @enum {string} */
+            slaStatus: "pending" | "met" | "breached" | "overdue" | "none";
+            /** @enum {string} */
+            source: "whatsapp" | "instagram" | "facebook" | "tiktok" | "website_form" | "walk_in" | "member_referral" | "email" | "phone" | "event" | "import" | "other";
+            /** @enum {string} */
+            status: "new" | "contacted" | "qualified" | "unqualified" | "converted";
+            /** Format: date-time */
+            unqualifiedAt?: string | null;
+            unqualifiedNote?: string | null;
+            unqualifiedReason?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        LeadDuplicate: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "customer" | "lead";
+            /** @enum {string} */
+            matchedOn: "phone" | "email";
+            name: string;
+            /** @description Customer code or lead number */
+            reference: string;
+            status: string;
+        };
+        LeadImportInput: {
+            /** @description Header row with: externalRef (required), name, companyName, phone, email, source, line, eventType, eventDate, pax, budget, notes, ownerEmail, status (new|contacted|qualified|unqualified), createdAt (YYYY-MM-DD), opportunityTitle, expectedValue, stage (code or name), expectedCloseDate */
+            csv: string;
+            /**
+             * @description preview validates without saving
+             * @enum {string}
+             */
+            mode: "preview" | "commit";
+        };
+        LeadImportResult: {
+            created: number;
+            errors: components["schemas"]["ImportRowError"][];
+            /** @description Rows already imported (same externalRef) */
+            existing: number;
+            failed: number;
+            /** @enum {string} */
+            mode: "preview" | "commit";
+            opportunities: number;
+            totalRows: number;
+        };
+        LeadInput: {
+            budget?: string;
+            channel?: string;
+            companyName?: string;
+            /**
+             * Format: uuid
+             * @description Existing customer (Customer 360)
+             */
+            customerId?: string | null;
+            /** @description Save although an open lead with the same phone / e-mail exists */
+            duplicateAcknowledged?: boolean;
+            email?: string;
+            /** Format: date */
+            eventDate?: string | null;
+            /** @enum {string} */
+            eventType?: "wedding" | "meeting" | "conference" | "gathering" | "birthday" | "tournament" | "other";
+            /** @enum {string} */
+            line?: "wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other";
+            /** @description Marketing consent given (UU PDP) */
+            marketingConsent?: boolean;
+            message?: string;
+            name: string;
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Assign manually (otherwise Sales Policies assignment)
+             */
+            ownerUserId?: string | null;
+            pax?: number | null;
+            phone?: string;
+            /**
+             * Format: uuid
+             * @description Referring member (Member Referral)
+             */
+            referrerCustomerId?: string | null;
+            /** @enum {string} */
+            source: "whatsapp" | "instagram" | "facebook" | "tiktok" | "website_form" | "walk_in" | "member_referral" | "email" | "phone" | "event" | "other";
+        };
+        LeadUpdate: {
+            budget?: string | null;
+            channel?: string | null;
+            companyName?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            email?: string | null;
+            /** Format: date */
+            eventDate?: string | null;
+            eventType?: string | null;
+            /** @enum {string|null} */
+            line?: "wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other" | null;
+            marketingConsent?: boolean | null;
+            name?: string | null;
+            notes?: string | null;
+            pax?: number | null;
+            phone?: string | null;
+            /** Format: uuid */
+            referrerCustomerId?: string | null;
+        };
         LedgerEntry: {
             actorName?: string | null;
             amount: string;
@@ -18998,6 +20723,11 @@ export interface components {
             passwordChangeRequired: boolean;
             user: components["schemas"]["UserSummary"];
         };
+        LoseInput: {
+            note?: string;
+            /** @enum {string} */
+            reason: "price" | "date_unavailable" | "competitor" | "cancelled" | "budget" | "no_response" | "other";
+        };
         MFASetupResponse: {
             otpauthUrl: string;
             /** @description data: URL of a QR code image */
@@ -19038,6 +20768,10 @@ export interface components {
         MaintenanceUpdate: {
             cost?: string;
             notes?: string;
+        };
+        MarkPaidInput: {
+            /** @description Payroll batch / transfer reference */
+            reference?: string;
         };
         MeResponse: {
             allProperties: boolean;
@@ -19823,6 +21557,11 @@ export interface components {
             /** Format: uuid */
             playerId: string;
         };
+        MoveStageInput: {
+            note?: string;
+            /** Format: uuid */
+            stageId: string;
+        };
         MyAssignments: {
             /** Format: uuid */
             caddyId: string;
@@ -20117,6 +21856,187 @@ export interface components {
             openingFloat?: string;
             /** @enum {string} */
             station: "front_desk" | "sport_reception" | "banquet" | "golf" | "stay_desk" | "other";
+        };
+        Opportunity: {
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            corporateName?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            endDate?: string | null;
+            eventDate?: string | null;
+            eventType?: string | null;
+            expectedCloseDate?: string | null;
+            expectedValue: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            leadId?: string | null;
+            line: string;
+            /** Format: date-time */
+            lostAt?: string | null;
+            lostNote?: string | null;
+            /** @enum {string|null} */
+            lostReason?: "price" | "date_unavailable" | "competitor" | "cancelled" | "budget" | "no_response" | "other" | null;
+            notes?: string | null;
+            number: string;
+            ownerName?: string | null;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            packageRef?: string | null;
+            pax?: number | null;
+            /** Format: uuid */
+            pipelineId: string;
+            pipelineName: string;
+            /** @description Percent of the stage */
+            probability: string;
+            /** Format: date-time */
+            stageChangedAt: string;
+            /** Format: uuid */
+            stageId: string;
+            /** @enum {string} */
+            stageKind: "open" | "won" | "lost";
+            stageName: string;
+            /** @enum {string} */
+            status: "open" | "won" | "lost";
+            title: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            venueResourceId?: string | null;
+            /** @description Expected value × probability */
+            weightedValue: string;
+            /** Format: date-time */
+            wonAt?: string | null;
+            /** Format: uuid */
+            wonQuotationId?: string | null;
+        };
+        OpportunityDetail: {
+            activities: components["schemas"]["Activity"][];
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            corporateName?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            endDate?: string | null;
+            eventDate?: string | null;
+            eventType?: string | null;
+            expectedCloseDate?: string | null;
+            expectedValue: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            leadId?: string | null;
+            line: string;
+            /** Format: date-time */
+            lostAt?: string | null;
+            lostNote?: string | null;
+            /** @enum {string|null} */
+            lostReason?: "price" | "date_unavailable" | "competitor" | "cancelled" | "budget" | "no_response" | "other" | null;
+            notes?: string | null;
+            number: string;
+            ownerName?: string | null;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            packageRef?: string | null;
+            pax?: number | null;
+            /** Format: uuid */
+            pipelineId: string;
+            pipelineName: string;
+            /** @description Percent of the stage */
+            probability: string;
+            quotations: components["schemas"]["QuotationBrief"][];
+            /** Format: date-time */
+            stageChangedAt: string;
+            stageHistory: components["schemas"]["StageMove"][];
+            /** Format: uuid */
+            stageId: string;
+            /** @enum {string} */
+            stageKind: "open" | "won" | "lost";
+            stageName: string;
+            /** @enum {string} */
+            status: "open" | "won" | "lost";
+            title: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: uuid */
+            venueResourceId?: string | null;
+            /** @description Expected value × probability */
+            weightedValue: string;
+            /** Format: date-time */
+            wonAt?: string | null;
+            /** Format: uuid */
+            wonQuotationId?: string | null;
+        };
+        OpportunityInput: {
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** Format: date */
+            endDate?: string | null;
+            /** Format: date */
+            eventDate?: string | null;
+            /** @enum {string} */
+            eventType?: "wedding" | "meeting" | "conference" | "gathering" | "birthday" | "tournament" | "other";
+            /** Format: date */
+            expectedCloseDate?: string | null;
+            expectedValue?: string;
+            /** Format: uuid */
+            leadId?: string | null;
+            /** @enum {string} */
+            line?: "wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other";
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Default: me
+             */
+            ownerUserId?: string | null;
+            packageRef?: string;
+            pax?: number | null;
+            /**
+             * Format: uuid
+             * @description Default: the pipeline of the line
+             */
+            pipelineId?: string | null;
+            /**
+             * Format: uuid
+             * @description Default: the first open stage
+             */
+            stageId?: string | null;
+            title: string;
+            /** Format: uuid */
+            venueResourceId?: string | null;
+        };
+        OpportunityUpdate: {
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** Format: date */
+            endDate?: string | null;
+            /** Format: date */
+            eventDate?: string | null;
+            eventType?: string | null;
+            /** Format: date */
+            expectedCloseDate?: string | null;
+            expectedValue?: string | null;
+            notes?: string | null;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            packageRef?: string | null;
+            pax?: number | null;
+            title?: string | null;
+            /** Format: uuid */
+            venueResourceId?: string | null;
         };
         Order: {
             bills: components["schemas"]["Bill"][];
@@ -20815,6 +22735,27 @@ export interface components {
             count: number;
             methodType: string;
             purpose: string;
+        };
+        PaymentTerm: {
+            amount: string;
+            byAmount?: boolean;
+            daysBeforeEvent?: number | null;
+            dueDate: string;
+            dueDays?: number | null;
+            fixedDate?: boolean;
+            label: string;
+            percent: string;
+        };
+        PaymentTermInput: {
+            amount?: string;
+            /** @description Due N days before the event */
+            daysBeforeEvent?: number | null;
+            /** Format: date */
+            dueDate?: string | null;
+            /** @description Due N days after acceptance */
+            dueDays?: number | null;
+            label: string;
+            percent?: string;
         };
         PerformanceDashboard: {
             code: string;
@@ -21592,6 +23533,13 @@ export interface components {
             name: string;
             timezone?: string | null;
         };
+        PublicAcceptInput: {
+            /** @description Name of the person accepting */
+            name: string;
+            note?: string;
+            /** @description The terms & conditions are accepted */
+            termsAccepted: boolean;
+        };
         PublicActivateRequest: {
             /** Format: date */
             birthDate: string;
@@ -21805,6 +23753,39 @@ export interface components {
             id: string;
             name: string;
         };
+        PublicQuotation: {
+            /** Format: date-time */
+            acceptedAt?: string | null;
+            acceptedByName?: string | null;
+            companyName?: string | null;
+            currency: string;
+            customerName?: string | null;
+            discount: string;
+            endDate?: string | null;
+            eventDate?: string | null;
+            eventType?: string | null;
+            lines: components["schemas"]["PublicQuotationLine"][];
+            number: string;
+            pax?: number | null;
+            paymentTerms: components["schemas"]["PaymentTerm"][];
+            serviceAmount: string;
+            /** @enum {string} */
+            status: "sent" | "accepted" | "rejected" | "expired" | "revised";
+            subtotal: string;
+            taxAmount: string;
+            terms?: string | null;
+            title: string;
+            total: string;
+            validUntil: string;
+            version: number;
+        };
+        PublicQuotationLine: {
+            description: string;
+            discount: string;
+            quantity: string;
+            total: string;
+            unitPrice: string;
+        };
         PublicRate: {
             currency: string;
             dayType?: string | null;
@@ -21819,6 +23800,9 @@ export interface components {
             serviceType: string;
             timeBand?: string | null;
             unit: string;
+        };
+        PublicRejectInput: {
+            reason: string;
         };
         PublicSportClub: {
             classPrograms: components["schemas"]["PublicProgram"][];
@@ -21929,6 +23913,9 @@ export interface components {
             name: string;
             sizeSqm?: string | null;
         };
+        QualifyInput: {
+            note?: string;
+        };
         QueueEntry: {
             bookingCode?: string | null;
             /** Format: date-time */
@@ -21952,6 +23939,233 @@ export interface components {
             /** @enum {string} */
             status: "waiting" | "on_hold" | "dispatched" | "removed";
             waitMinutes: number;
+        };
+        QuotationBrief: {
+            /** Format: date-time */
+            acceptedAt?: string | null;
+            approvalStatus: string;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            /** Format: uuid */
+            id: string;
+            line: string;
+            number: string;
+            /** Format: uuid */
+            opportunityId?: string | null;
+            ownerName?: string | null;
+            /** Format: date-time */
+            sentAt?: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "sent" | "accepted" | "rejected" | "expired" | "revised";
+            title: string;
+            total: string;
+            validUntil: string;
+            version: number;
+        };
+        QuotationDecision: {
+            /** Format: date-time */
+            decidedAt: string;
+            /** @enum {string} */
+            decision: "accepted" | "rejected";
+            ip?: string | null;
+            name?: string | null;
+            note?: string | null;
+            termsAccepted: boolean;
+            /** @enum {string} */
+            via: "staff" | "public_link";
+        };
+        QuotationDetail: {
+            /** Format: date-time */
+            acceptedAt?: string | null;
+            acceptedByName?: string | null;
+            /** @enum {string|null} */
+            acceptedVia?: "staff" | "public_link" | null;
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** @enum {string} */
+            approvalStatus: "not_required" | "required" | "pending" | "approved" | "rejected";
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            corporateName?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            decision?: components["schemas"]["QuotationDecision"] | null;
+            discount: string;
+            discountPercent: string;
+            endDate?: string | null;
+            eventDate?: string | null;
+            eventType?: string | null;
+            /** Format: date-time */
+            expiredAt?: string | null;
+            headerDiscount: string;
+            headerDiscountPercent?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            leadId?: string | null;
+            line: string;
+            lines: components["schemas"]["QuotationLine"][];
+            netAmount: string;
+            notes?: string | null;
+            number: string;
+            /** Format: uuid */
+            opportunityId?: string | null;
+            optionDate?: string | null;
+            ownerName?: string | null;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            packageRef?: string | null;
+            /** @description Money received for the deal (commission recognition) */
+            paidAmount: string;
+            /**
+             * Format: date-time
+             * @description Deal paid in full
+             */
+            paidAt?: string | null;
+            pax?: number | null;
+            paymentTerms: components["schemas"]["PaymentTerm"][];
+            policyVersion: number;
+            /** @enum {string} */
+            pricingMode: "nett" | "plus_plus";
+            /** @description Secure acceptance link (sent quotations) */
+            publicLink?: string | null;
+            rejectReason?: string | null;
+            /** Format: date-time */
+            rejectedAt?: string | null;
+            /** Format: uuid */
+            revisedFromId?: string | null;
+            /** Format: date-time */
+            sentAt?: string | null;
+            sentVia: string[];
+            serviceAmount: string;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "sent" | "accepted" | "rejected" | "expired" | "revised";
+            subtotal: string;
+            taxAmount: string;
+            taxCodes: string[];
+            terms?: string | null;
+            title: string;
+            total: string;
+            /** Format: date-time */
+            updatedAt: string;
+            validUntil: string;
+            /** Format: uuid */
+            venueResourceId?: string | null;
+            version: number;
+            versions: components["schemas"]["QuotationVersion"][];
+        };
+        QuotationInput: {
+            clearOptionDate?: boolean;
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            currency?: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** @description Discount on the total (amount) */
+            discount?: string | null;
+            /** @description Discount on the total (percent) */
+            discountPercent?: string | null;
+            /** Format: date */
+            endDate?: string | null;
+            /** Format: date */
+            eventDate?: string | null;
+            /** @enum {string} */
+            eventType?: "wedding" | "meeting" | "conference" | "gathering" | "birthday" | "tournament" | "other";
+            /** Format: uuid */
+            leadId?: string | null;
+            /** @enum {string} */
+            line?: "wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other";
+            lines?: components["schemas"]["QuotationLineInput"][];
+            notes?: string | null;
+            /** Format: uuid */
+            opportunityId?: string | null;
+            /**
+             * Format: date
+             * @description Option date of the tentative venue hold
+             */
+            optionDate?: string | null;
+            /**
+             * Format: uuid
+             * @description Sales credited with the deal (default: the opportunity owner)
+             */
+            ownerUserId?: string | null;
+            packageRef?: string;
+            pax?: number | null;
+            /** @description Default: Sales Policies payment terms */
+            paymentTerms?: components["schemas"]["PaymentTermInput"][];
+            /**
+             * @description Of manually priced lines; default Sales Policies
+             * @enum {string}
+             */
+            pricingMode?: "nett" | "plus_plus";
+            /** @description Terms & conditions (default Sales Policies) */
+            terms?: string | null;
+            title?: string;
+            /**
+             * Format: date
+             * @description Default: today + Sales Policies validity
+             */
+            validUntil?: string | null;
+            /** Format: uuid */
+            venueResourceId?: string | null;
+        };
+        QuotationLine: {
+            description: string;
+            /** @description Line discount + share of the quotation discount */
+            discount: string;
+            /** @description Incl. tax & service */
+            grossTotal: string;
+            /** Format: uuid */
+            id: string;
+            itemRef?: string | null;
+            /** @enum {string} */
+            itemType: "banquet_package" | "venue" | "product" | "service" | "package" | "other";
+            lineDiscount: string;
+            lineNo: number;
+            netAmount: string;
+            /** @enum {string} */
+            priceSource: "manual" | "pricing_rule" | "product";
+            pricing: Record<string, never>;
+            quantity: string;
+            serviceAmount: string;
+            serviceType?: string | null;
+            taxAmount: string;
+            /** @description Quantity × unit price − discount */
+            total: string;
+            unitPrice: string;
+        };
+        QuotationLineInput: {
+            description: string;
+            /** @description Line discount amount */
+            discount?: string;
+            /** @description Line discount percent (instead of an amount) */
+            discountPercent?: string;
+            /** @description Banquet package code, venue / product id, package code … */
+            itemRef?: string;
+            /** @enum {string} */
+            itemType: "banquet_package" | "venue" | "product" | "service" | "package" | "other";
+            quantity: string;
+            /** @description Commercial service type to price from the pricing rules (e.g. meeting_package) */
+            serviceType?: string;
+            /** @description Manual unit price; empty = from the pricing engine */
+            unitPrice?: string;
+        };
+        QuotationVersion: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            status: string;
+            total: string;
+            version: number;
         };
         RainCheck: {
             bookingCode: string;
@@ -22588,6 +24802,9 @@ export interface components {
             paymentId: string;
             reason: string;
         };
+        RejectInput: {
+            reason: string;
+        };
         RenewRequest: {
             /** Format: uuid */
             packageId?: string | null;
@@ -22769,6 +24986,10 @@ export interface components {
             /** Format: date-time */
             start?: string | null;
             status: string;
+        };
+        ReservationCancelInput: {
+            reason: string;
+            waiveFee?: boolean;
         };
         ReservationCancelResult: {
             fee: string;
@@ -23377,6 +25598,387 @@ export interface components {
             folio: components["schemas"]["FolioDetail"];
             vouchers: components["schemas"]["Voucher"][];
         };
+        SalesAdjustInput: {
+            /** @description Signed amount (negative = deduction / clawback) */
+            amount: string;
+            /** @description YYYY-MM; default the current month */
+            period?: string;
+            /** Format: uuid */
+            quotationId?: string | null;
+            reason: string;
+            /** Format: uuid */
+            userId: string;
+        };
+        SalesFollowUpInput: {
+            /**
+             * Format: uuid
+             * @description Default: the lead / opportunity owner, else me
+             */
+            assignedTo?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** @enum {string} */
+            direction?: "inbound" | "outbound" | "internal";
+            /**
+             * Format: date-time
+             * @description Schedules a follow-up (open until completed)
+             */
+            dueAt?: string | null;
+            /** Format: uuid */
+            leadId?: string | null;
+            notes?: string;
+            /** Format: date-time */
+            occurredAt?: string | null;
+            /** Format: uuid */
+            opportunityId?: string | null;
+            subject: string;
+            /** @enum {string} */
+            type: "call" | "whatsapp" | "email" | "meeting" | "site_visit" | "food_tasting" | "note" | "task";
+        };
+        SalesPipeline: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Pipeline Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Business Lines (default pipeline of) */
+            lines?: ("wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other")[] | null;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SalesPipelineInput: {
+            /** @description Pipeline Code */
+            code?: string;
+            /** @description Business Lines (default pipeline of) */
+            lines?: ("wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other")[] | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        SalesPipelineStage: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Stage Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Stage Kind
+             * @enum {string|null}
+             */
+            kind?: "open" | "won" | "lost" | null;
+            /** @description Name */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Pipeline
+             */
+            pipelineId: string;
+            /** @description Probability (%) */
+            probability?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SalesPipelineStageInput: {
+            /** @description Stage Code */
+            code?: string;
+            /**
+             * @description Stage Kind
+             * @enum {string|null}
+             */
+            kind?: "open" | "won" | "lost" | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: uuid
+             * @description Pipeline
+             */
+            pipelineId?: string;
+            /** @description Probability (%) */
+            probability?: string | null;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        SalesReopenInput: {
+            note?: string;
+            /**
+             * Format: uuid
+             * @description Default: the first open stage
+             */
+            stageId?: string | null;
+        };
+        SalesSendInput: {
+            /**
+             * @description Default: e-mail, plus WhatsApp when a phone is known
+             * @enum {array}
+             */
+            channels?: "email" | "whatsapp";
+            /** @description Override the customer e-mail */
+            email?: string;
+            message?: string;
+            /** @description Override the customer phone */
+            phone?: string;
+        };
+        SalesTarget: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Currency */
+            currency?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Business Line (empty: all)
+             * @enum {string|null}
+             */
+            line?: "wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other" | null;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * Format: date
+             * @description Period End
+             */
+            periodEnd: string;
+            /**
+             * Format: date
+             * @description Period Start
+             */
+            periodStart: string;
+            /**
+             * @description Period
+             * @enum {string|null}
+             */
+            periodType?: "month" | "quarter" | "year" | "custom" | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: int64
+             * @description Target Deals
+             */
+            targetDeals?: number | null;
+            /** @description Target Revenue */
+            targetRevenue?: string | null;
+            /**
+             * Format: uuid
+             * @description Sales Team
+             */
+            teamId?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: uuid
+             * @description Sales Executive (empty: team or club)
+             */
+            userId?: string | null;
+        };
+        SalesTargetInput: {
+            /** @description Currency */
+            currency?: string | null;
+            /**
+             * @description Business Line (empty: all)
+             * @enum {string|null}
+             */
+            line?: "wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other" | null;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * Format: date
+             * @description Period End
+             */
+            periodEnd?: string;
+            /**
+             * Format: date
+             * @description Period Start
+             */
+            periodStart?: string;
+            /**
+             * @description Period
+             * @enum {string|null}
+             */
+            periodType?: "month" | "quarter" | "year" | "custom" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: int64
+             * @description Target Deals
+             */
+            targetDeals?: number | null;
+            /** @description Target Revenue */
+            targetRevenue?: string | null;
+            /**
+             * Format: uuid
+             * @description Sales Team
+             */
+            teamId?: string | null;
+            /**
+             * Format: uuid
+             * @description Sales Executive (empty: team or club)
+             */
+            userId?: string | null;
+        };
+        SalesTeam: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Team Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Business Lines (empty: all) */
+            lines?: ("wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other")[] | null;
+            /**
+             * Format: uuid
+             * @description Sales Manager
+             */
+            managerUserId?: string | null;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SalesTeamInput: {
+            /** @description Team Code */
+            code?: string;
+            /** @description Business Lines (empty: all) */
+            lines?: ("wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other")[] | null;
+            /**
+             * Format: uuid
+             * @description Sales Manager
+             */
+            managerUserId?: string | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        SalesTeamMember: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: date-time
+             * @description Last Lead Assigned
+             */
+            lastAssignedAt?: string | null;
+            /** @description Business Lines (empty: the team's) */
+            lines?: ("wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other")[] | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: uuid
+             * @description Sales Team
+             */
+            teamId: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: uuid
+             * @description Sales Executive
+             */
+            userId: string;
+        };
+        SalesTeamMemberInput: {
+            /** @description Business Lines (empty: the team's) */
+            lines?: ("wedding" | "banquet" | "mice" | "event" | "tournament" | "stay" | "golf" | "package" | "membership" | "other")[] | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: uuid
+             * @description Sales Team
+             */
+            teamId?: string;
+            /**
+             * Format: uuid
+             * @description Sales Executive
+             */
+            userId?: string;
+        };
+        SalesTransferInput: {
+            /** Format: uuid */
+            fromUserId: string;
+            /** @description Also move open opportunities and follow-ups (default true) */
+            opportunities?: boolean | null;
+            reason: string;
+            /** Format: uuid */
+            toUserId: string;
+        };
         Schedule: {
             /** Format: uuid */
             corporateAccountId?: string | null;
@@ -23537,6 +26139,10 @@ export interface components {
             /** Format: uuid */
             teeSetId?: string | null;
             teeSetName?: string | null;
+        };
+        SeedResult: {
+            pipelines: number;
+            stages: number;
         };
         SegmentCost: {
             price: string;
@@ -24050,6 +26656,19 @@ export interface components {
             /** @enum {string} */
             status: "scheduled" | "completed" | "cancelled";
         };
+        StageMove: {
+            /** Format: date-time */
+            changedAt: string;
+            /** Format: uuid */
+            changedBy?: string | null;
+            changedByName?: string | null;
+            fromStage?: string | null;
+            /** Format: uuid */
+            id: string;
+            note?: string | null;
+            probability: string;
+            toStage: string;
+        };
         StarterAction: {
             /** @description Finish: holes actually played */
             holesPlayed?: number | null;
@@ -24087,6 +26706,38 @@ export interface components {
             sentAt?: string | null;
             totalCharges: string;
             totalPayments: string;
+        };
+        StatementDetail: {
+            adjustments: string;
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            clawback: string;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            earned: string;
+            /** Format: uuid */
+            id: string;
+            lines: components["schemas"]["CommissionLine"][];
+            number: string;
+            /** Format: date-time */
+            paidAt?: string | null;
+            paidReference?: string | null;
+            period: string;
+            periodEnd: string;
+            periodStart: string;
+            rejectedReason?: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "approved" | "rejected" | "paid";
+            /** Format: date-time */
+            submittedAt?: string | null;
+            total: string;
+            userEmail?: string | null;
+            /** Format: uuid */
+            userId: string;
+            userName?: string | null;
         };
         StatementEntry: {
             amount: string;
@@ -24153,6 +26804,10 @@ export interface components {
             unitName: string;
             /** Format: uuid */
             unitTypeId?: string | null;
+        };
+        StayAssignInput: {
+            /** Format: uuid */
+            unitId: string;
         };
         StayCancelInput: {
             reason: string;
@@ -24320,6 +26975,30 @@ export interface components {
         };
         SyncRequest: {
             items: components["schemas"]["SyncItem"][];
+        };
+        TargetAchievement: {
+            achievedDeals: number;
+            /** @description Deals won and paid in the period (commission basis) */
+            achievedRevenue: string;
+            achievementPercent: string;
+            bookedDeals: number;
+            /** @description Deals won (accepted) in the period, paid or not */
+            bookedRevenue: string;
+            currency: string;
+            line?: string | null;
+            periodEnd: string;
+            periodStart: string;
+            periodType: string;
+            targetDeals: number;
+            /** Format: uuid */
+            targetId: string;
+            targetRevenue: string;
+            /** Format: uuid */
+            teamId?: string | null;
+            teamName?: string | null;
+            /** Format: uuid */
+            userId?: string | null;
+            userName?: string | null;
         };
         TaxServiceRule: {
             /**
@@ -24807,6 +27486,11 @@ export interface components {
             customerId: string;
             reason?: string;
         };
+        TransferResult: {
+            followUps: number;
+            leads: number;
+            opportunities: number;
+        };
         TypeAvailability: {
             nights: components["schemas"]["Night"][];
             /** Format: uuid */
@@ -25120,6 +27804,23 @@ export interface components {
              */
             venueType?: "golf" | "sport" | "stay" | "banquet" | "dining" | "other" | null;
         };
+        VenueAvailability: {
+            available: boolean;
+            busy: components["schemas"]["VenueBusy"][];
+            capacity?: number | null;
+            code: string;
+            name: string;
+            /** Format: uuid */
+            resourceId: string;
+            resourceType: string;
+        };
+        VenueBusy: {
+            /** Format: date-time */
+            end: string;
+            /** Format: date-time */
+            start: string;
+            status: string;
+        };
         VenueInput: {
             /** @description Code */
             code?: string;
@@ -25367,6 +28068,14 @@ export interface components {
             /** @enum {string} */
             status: "available" | "coming_soon";
             value?: number | null;
+        };
+        WinInput: {
+            note?: string;
+            /**
+             * Format: uuid
+             * @description The accepted quotation (default: the latest accepted one of the opportunity, else of the customer without an opportunity)
+             */
+            quotationId?: string | null;
         };
         Witness: {
             name: string;
@@ -38721,6 +41430,799 @@ export interface operations {
             };
         };
     };
+    postCrmCommissionAdjustments: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesAdjustInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommissionLine"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmCommissionLines: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[userId]"?: string;
+                "filter[statementId]"?: string;
+                "filter[quotationId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CommissionLine"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmCommissionSchemes: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[schemeType]"?: string;
+                "filter[userId]"?: string;
+                "filter[teamId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CommissionScheme"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmCommissionSchemes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommissionSchemeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommissionScheme"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmCommissionSchemesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommissionScheme"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCrmCommissionSchemesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmCommissionSchemesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommissionSchemeInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommissionScheme"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmCommissionSchemesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[schemeType]"?: string;
+                "filter[userId]"?: string;
+                "filter[teamId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmCommissionStatements: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[period]"?: string;
+                "filter[status]"?: string;
+                "filter[userId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CommissionStatement"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmCommissionStatementsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatementDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmCommissionStatementsByIdMarkPaid: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarkPaidInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatementDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmCommissionStatementsByIdSubmit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatementDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmCommissionStatementsExport: {
+        parameters: {
+            query?: {
+                period?: string;
+                status?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmCommissionStatementsGenerate: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CommissionStatement"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCrmCorporateAccounts: {
         parameters: {
             query?: {
@@ -41437,6 +44939,235 @@ export interface operations {
             };
         };
     };
+    getCrmFollowUps: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description open (default), completed, cancelled, all */
+                "filter[status]"?: string;
+                "filter[assignedTo]"?: string;
+                /** @description true: only overdue */
+                overdue?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Activity"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmFollowUps: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesFollowUpInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Activity"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmFollowUpsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Activity"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmFollowUpsByIdComplete: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompleteInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Activity"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCrmGuests: {
         parameters: {
             query?: {
@@ -41831,6 +45562,2031 @@ export interface operations {
             };
         };
     };
+    getCrmLeads: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+                "filter[status]"?: string;
+                "filter[line]"?: string;
+                "filter[source]"?: string;
+                "filter[ownerUserId]"?: string;
+                /** @description pending, overdue, met, breached */
+                "filter[slaStatus]"?: string;
+                /** @description true: only my leads */
+                mine?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Lead"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLeads: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeadInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLeadsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmLeadsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeadUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLeadsByIdActivities: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActivityInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Activity"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLeadsByIdAssign: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLeadsByIdConvert: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConvertInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConvertResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLeadsByIdDisqualify: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DisqualifyInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLeadsByIdQualify: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QualifyInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLeadsCaptureEmail: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailLeadInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaptureResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLeadsImport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeadImportInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeadImportResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLeadsTransfer: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesTransferInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransferResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmOpportunities: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+                "filter[status]"?: string;
+                "filter[line]"?: string;
+                "filter[pipelineId]"?: string;
+                "filter[stageId]"?: string;
+                "filter[ownerUserId]"?: string;
+                "filter[customerId]"?: string;
+                mine?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Opportunity"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmOpportunities: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpportunityInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunityDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmOpportunitiesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunityDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmOpportunitiesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpportunityUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunityDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmOpportunitiesByIdActivities: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActivityInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Activity"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmOpportunitiesByIdVenueAvailability: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description default banquet_venue */
+                resourceType?: string;
+                from?: string;
+                to?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["VenueAvailability"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmOpportunitiesByIdLose: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoseInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunityDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmOpportunitiesByIdMoveStage: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveStageInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunityDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmOpportunitiesByIdReopen: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesReopenInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunityDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmOpportunitiesByIdWin: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WinInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpportunityDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmPipelineStages: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[pipelineId]"?: string;
+                "filter[kind]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SalesPipelineStage"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmPipelineStages: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesPipelineStageInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesPipelineStage"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmPipelineStagesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesPipelineStage"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCrmPipelineStagesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmPipelineStagesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesPipelineStageInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesPipelineStage"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmPipelineStagesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[pipelineId]"?: string;
+                "filter[kind]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmPipelines: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SalesPipeline"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmPipelines: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesPipelineInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesPipeline"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmPipelinesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesPipeline"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCrmPipelinesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmPipelinesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesPipelineInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesPipeline"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmPipelinesByIdBoard: {
+        parameters: {
+            query?: {
+                "filter[ownerUserId]"?: string;
+                "filter[line]"?: string;
+                mine?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Board"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmPipelinesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmPipelinesSeedDefaults: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeedResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postCrmPreferencesByIdRemove: {
         parameters: {
             query?: never;
@@ -41851,6 +47607,1700 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmQuotations: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+                "filter[status]"?: string;
+                "filter[line]"?: string;
+                "filter[opportunityId]"?: string;
+                "filter[customerId]"?: string;
+                "filter[ownerUserId]"?: string;
+                /** @description true: include revised versions */
+                allVersions?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["QuotationBrief"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmQuotations: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuotationInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuotationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmQuotationsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuotationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putCrmQuotationsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuotationInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuotationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmQuotationsByIdPdf: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmQuotationsByIdAccept: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuotationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmQuotationsByIdReject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuotationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmQuotationsByIdRevise: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuotationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmQuotationsByIdSend: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesSendInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuotationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmQuotationsByIdSubmitApproval: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuotationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSalesForecast: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                line?: string;
+                ownerUserId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Forecast"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSalesTargetAchievements: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+                userId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TargetAchievement"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSalesTargets: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[userId]"?: string;
+                "filter[teamId]"?: string;
+                "filter[line]"?: string;
+                "filter[periodType]"?: string;
+                "filter[periodStart]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SalesTarget"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmSalesTargets: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesTargetInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesTarget"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSalesTargetsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesTarget"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCrmSalesTargetsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmSalesTargetsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesTargetInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesTarget"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSalesTargetsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[userId]"?: string;
+                "filter[teamId]"?: string;
+                "filter[line]"?: string;
+                "filter[periodType]"?: string;
+                "filter[periodStart]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSalesTeamMembers: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[teamId]"?: string;
+                "filter[userId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SalesTeamMember"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmSalesTeamMembers: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesTeamMemberInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesTeamMember"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSalesTeamMembersById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesTeamMember"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCrmSalesTeamMembersById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmSalesTeamMembersById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesTeamMemberInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesTeamMember"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSalesTeamMembersExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[teamId]"?: string;
+                "filter[userId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSalesTeams: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[managerUserId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SalesTeam"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmSalesTeams: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesTeamInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesTeam"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSalesTeamsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesTeam"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCrmSalesTeamsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmSalesTeamsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SalesTeamInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SalesTeam"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSalesTeamsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[managerUserId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
             };
             /** @description Not authenticated */
             401: {
@@ -48847,7 +56297,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Board"];
+                    "application/json": components["schemas"]["ExperienceBoard"];
                 };
             };
             /** @description Not authenticated */
@@ -72950,6 +80400,39 @@ export interface operations {
             };
         };
     };
+    postPublicInquiries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InquiryInput"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InquiryResult"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getPublicInvoicesByToken: {
         parameters: {
             query?: never;
@@ -73110,6 +80593,107 @@ export interface operations {
                     "application/json": {
                         [key: string]: string;
                     };
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicQuotationsByToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicQuotation"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicQuotationsByTokenAccept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicAcceptInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicQuotation"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicQuotationsByTokenReject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicRejectInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicQuotation"];
                 };
             };
             /** @description Problem Details (RFC 9457) */
@@ -74116,7 +81700,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CancelInput"];
+                "application/json": components["schemas"]["ReservationCancelInput"];
             };
         };
         responses: {
@@ -80446,7 +88030,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AssignInput"];
+                "application/json": components["schemas"]["StayAssignInput"];
             };
         };
         responses: {

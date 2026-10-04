@@ -235,15 +235,14 @@ type InvoiceInput struct {
 }
 
 type draftLine struct {
-	folioLine, entry          *uuid.UUID
-	desc                      string
-	qty, unit                 decimal.Decimal
-	net, svc, tax, total      decimal.Decimal
-	line, component           *string
-	folioOf                   *uuid.UUID
-	depositOf                 *uuid.UUID // a "less: received" line of a folio
-	isReceipt                 bool
-	folioNumberForDescription string
+	folioLine, entry     *uuid.UUID
+	desc                 string
+	qty, unit            decimal.Decimal
+	net, svc, tax, total decimal.Decimal
+	line, component      *string
+	folioOf              *uuid.UUID
+	depositOf            *uuid.UUID // a "less: received" line of a folio
+	isReceipt            bool
 }
 
 // CreateInvoice builds a draft invoice from a folio, a customer folio, an

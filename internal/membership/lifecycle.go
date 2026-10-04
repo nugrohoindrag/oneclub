@@ -623,7 +623,7 @@ func (m *Module) Activate(ctx context.Context, tx pgx.Tx, aid uuid.UUID, waivePa
 		return a, err
 	}
 	if _, err := m.Events.Publish(ctx, tx, EventActivated, "membership.membership", &msID, &property, map[string]any{"membershipId": msID,
-		"memberId": memberID, "memberNo": memberNo, "customerId": a.CustomerID, "endsOn": ends.Format("2006-01-02")}); err != nil {
+		"memberId": memberID, "memberNo": memberNo, "customerId": a.CustomerID, "applicationId": aid, "endsOn": ends.Format("2006-01-02")}); err != nil {
 		return a, err
 	}
 	applicant, _ = crm.GetCustomer(ctx, tx, a.CustomerID)
