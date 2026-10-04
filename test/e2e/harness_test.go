@@ -101,18 +101,40 @@ func checkAudit() int {
 	for k := range inst2.App.Server.ExercisedMutations() {
 		exercised[k] = true
 	}
-	// ONECLUB_COVERAGE_MODULES=banquet,crm limits the check to the routes of
-	// those modules (an area running its own tests with -run).
+	// ONECLUB_COVERAGE_MODULES=banquet,crm and / or ONECLUB_COVERAGE_PATHS=
+	// /api/v1/crm/leads,/api/v1/public/quotations limit the check to the
+	// routes of those modules / path prefixes (an area running its own tests
+	// with -run).
 	only := map[string]bool{}
 	for _, m := range strings.Split(os.Getenv("ONECLUB_COVERAGE_MODULES"), ",") {
 		if m = strings.TrimSpace(m); m != "" {
 			only[m] = true
 		}
 	}
+	var prefixes []string
+	for _, p := range strings.Split(os.Getenv("ONECLUB_COVERAGE_PATHS"), ",") {
+		if p = strings.TrimSpace(p); p != "" {
+			prefixes = append(prefixes, p)
+		}
+	}
+	selected := func(module, path string) bool {
+		if len(only) == 0 && len(prefixes) == 0 {
+			return true
+		}
+		if only[module] {
+			return true
+		}
+		for _, p := range prefixes {
+			if strings.HasPrefix(path, p) {
+				return true
+			}
+		}
+		return false
+	}
 	var missing []string
 	total := 0
 	for _, rt := range inst.App.Registry.Routes() {
-		if !rt.Mutating() || (len(only) > 0 && !only[rt.Module]) {
+		if !rt.Mutating() || !selected(rt.Module, rt.Path) {
 			continue
 		}
 		total++
