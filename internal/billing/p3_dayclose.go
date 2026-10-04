@@ -621,6 +621,9 @@ func (h *HTTP) RequestReopen(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	if status != "closed" {
 		return BusinessDay{}, errs.Conflict("not_closed", "the business day is not closed")
 	}
+	if err := ensureOpenPeriod(ctx, tx, property, day, "the business day can no longer be reopened"); err != nil {
+		return BusinessDay{}, err
+	}
 	ds := day.Format("2006-01-02")
 	docID := id.New()
 	if _, err := tx.Exec(ctx, `UPDATE billing.business_days SET reopen_reason = $3, reopen_request_id = $4 WHERE property_id = $1 AND business_date = $2`,

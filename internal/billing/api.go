@@ -361,10 +361,11 @@ func bumpVersion(ctx context.Context, tx pgx.Tx, fid uuid.UUID) error {
 
 // VoidCharge voids a line (never deleted).
 func (s *Service) VoidCharge(ctx context.Context, tx pgx.Tx, lineID uuid.UUID, reason string) error {
-	var fid uuid.UUID
-	var voided *time.Time
+	var fid, property uuid.UUID
+	var voided, bday *time.Time
 	var total string
-	if err := tx.QueryRow(ctx, `SELECT folio_id, voided_at, total::text FROM billing.folio_lines WHERE id = $1`, lineID).Scan(&fid, &voided, &total); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT folio_id, property_id, voided_at, total::text, business_date FROM billing.folio_lines WHERE id = $1`, lineID).
+		Scan(&fid, &property, &voided, &total, &bday); err != nil {
 		if dbtx.IsNoRows(err) {
 			return errs.NotFound("folio line")
 		}
@@ -372,6 +373,11 @@ func (s *Service) VoidCharge(ctx context.Context, tx pgx.Tx, lineID uuid.UUID, r
 	}
 	if voided != nil {
 		return nil
+	}
+	if bday != nil {
+		if err := ensureOpenPeriod(ctx, tx, property, *bday, "post a correcting charge instead of voiding"); err != nil {
+			return err
+		}
 	}
 	pid, status, _, err := lockFolio(ctx, tx, fid)
 	if err != nil {

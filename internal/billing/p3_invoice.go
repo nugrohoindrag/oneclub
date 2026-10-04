@@ -1057,8 +1057,14 @@ func (s *Service) VoidInvoice(ctx context.Context, tx pgx.Tx, iid uuid.UUID, rea
 		return Invoice{}, errs.Conflict("invoice_settled", "the invoice has payments, credit notes or write-offs; credit it instead of voiding")
 	}
 	var property uuid.UUID
-	if err := tx.QueryRow(ctx, `SELECT property_id FROM billing.invoices WHERE id = $1`, iid).Scan(&property); err != nil {
+	var issued *time.Time
+	if err := tx.QueryRow(ctx, `SELECT property_id, issue_date FROM billing.invoices WHERE id = $1`, iid).Scan(&property, &issued); err != nil {
 		return Invoice{}, err
+	}
+	if issued != nil {
+		if err := ensureOpenPeriod(ctx, tx, property, *issued, "issue a credit note instead of voiding"); err != nil {
+			return Invoice{}, err
+		}
 	}
 	// reverse the AR transfers made at issue
 	rows, err := tx.Query(ctx, `SELECT id, (amount - refunded_amount)::text FROM billing.payments WHERE tender_ref->>'invoiceTransfer' = $1
