@@ -28,14 +28,17 @@ WHERE f.status = 'completed' AND bp.status = 'checked_in';
 
 CREATE VIEW reporting.golf_caddies WITH (security_invoker = true) AS
 SELECT c.id AS caddy_id, c.property_id, c.code, c.name, l.name AS level_name, c.status
-FROM golf.caddies c LEFT JOIN golf.caddy_levels l ON l.id = c.level_id WHERE c.archived_at IS NULL;
+FROM golf.caddies c LEFT JOIN golf.caddy_profiles cp ON cp.caddy_id = c.id LEFT JOIN golf.caddy_levels l ON l.id = cp.level_id
+WHERE c.archived_at IS NULL;
 
 -- Attendance days with duty hours (arrival → departure).
 CREATE VIEW reporting.golf_caddy_duty WITH (security_invoker = true) AS
-SELECT a.caddy_id, a.property_id, a.work_date, a.status, a.shift, a.arrived_at, a.departed_at,
-       CASE WHEN a.status = 'present' AND a.arrived_at IS NOT NULL
-            THEN extract(epoch FROM coalesce(a.departed_at, least(now(), a.arrived_at + interval '12 hours')) - a.arrived_at) / 3600 END AS duty_hours
-FROM golf.caddy_attendance a;
+SELECT a.caddy_id, a.property_id, a.work_date, a.status, coalesce(s.shift, 'full_day') AS shift,
+       coalesce(s.clocked_in_at, a.arrived_at) AS arrived_at, s.clocked_out_at AS departed_at,
+       CASE WHEN a.status = 'present' AND coalesce(s.clocked_in_at, a.arrived_at) IS NOT NULL
+            THEN extract(epoch FROM coalesce(s.clocked_out_at, least(now(), coalesce(s.clocked_in_at, a.arrived_at) + interval '12 hours'))
+                 - coalesce(s.clocked_in_at, a.arrived_at)) / 3600 END AS duty_hours
+FROM golf.caddy_attendance a LEFT JOIN golf.caddy_shifts s ON s.caddy_id = a.caddy_id AND s.work_date = a.work_date;
 
 CREATE VIEW reporting.golf_caddy_settlements WITH (security_invoker = true) AS
 SELECT s.id AS settlement_id, s.property_id, s.number, c.code AS caddy_code, c.name AS caddy_name, s.period_start, s.period_end, s.rounds, s.caddy_fee,
@@ -44,8 +47,9 @@ FROM golf.caddy_settlements s JOIN golf.caddies c ON c.id = s.caddy_id;
 
 CREATE VIEW reporting.golf_cart_maintenance WITH (security_invoker = true) AS
 SELECT m.id AS maintenance_id, m.property_id, m.number, g.code AS golf_cart_code, m.category, m.description, m.cost, m.status, m.opened_at, m.closed_at,
-       g.hours_since_service
-FROM golf.cart_maintenance m JOIN golf.golf_carts g ON g.id = m.golf_cart_id;
+       coalesce((SELECT sum(extract(epoch FROM coalesce(a.returned_at, now()) - a.out_at)) / 3600 FROM golf.golf_cart_assignments a
+                 WHERE a.golf_cart_id = g.id AND a.out_at IS NOT NULL AND a.out_at > coalesce(cp.last_service_at, '-infinity')), 0) AS hours_since_service
+FROM golf.cart_maintenance m JOIN golf.golf_carts g ON g.id = m.golf_cart_id LEFT JOIN golf.cart_profiles cp ON cp.golf_cart_id = g.id;
 
 CREATE VIEW reporting.golf_hole_in_ones WITH (security_invoker = true) AS
 SELECT r.id AS hio_id, r.property_id, r.number, r.player_name, s.code || '-' || h.number AS hole, r.achieved_on, r.status, r.insured, r.claim_status,
@@ -60,7 +64,7 @@ SELECT id AS bucket_id, property_id, session_id, balls, source, amount, created_
 
 CREATE VIEW reporting.golf_reciprocal_visits WITH (security_invoker = true) AS
 SELECT v.id AS visit_id, v.property_id, v.number, v.direction, c.name AS club_name, c.country, v.visitor_name, v.visit_date, v.verified, v.settlement_status,
-       coalesce((SELECT sum(p.price_total) FROM golf.booking_players p WHERE p.reciprocal_visit_id = v.id AND p.status IN ('booked', 'checked_in')),
+       coalesce((SELECT p.price_total FROM golf.booking_players p WHERE p.id = v.booking_player_id AND p.status IN ('booked', 'checked_in')),
                 v.charge_amount) AS charge
 FROM golf.reciprocal_visits v JOIN golf.reciprocal_clubs c ON c.id = v.club_id;
 
