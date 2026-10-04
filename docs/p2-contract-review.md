@@ -1,10 +1,10 @@
-# Review Kontrak P2 di Module P1
+# Perubahan Kontrak P2 di Module P1
 
-Untuk: Dian (pemilik P1). Branch `feat/p2-on-p1`, pembanding P1 commit `a48e6a3`.
+Catatan perubahan yang dibawa P2 ke module dan file milik P1. Pembanding: commit P1 `a48e6a3`.
 
-Dasar aturan: Tech Doc §4.2, §7.5, §12.3 dan PRD P2 §5.4. Semua kebutuhan P2 di module P1 ada di file baru (aditif) dan migration `00003` per module. File P1 yang berubah hanya untuk dua hal: requirement PRD yang hanya bisa dipenuhi di file P1 (`billing/finance.go`) dan penyesuaian P1 hutang #6. Semuanya dirinci di bagian berikut. Mohon direview per bagian.
+Dasar aturan: Tech Doc §4.2, §7.5, §12.3 dan PRD P2 §5.4. Semua kebutuhan P2 di module P1 ada di file baru (aditif) dan migration `00003` per module. File P1 yang berubah hanya untuk dua hal: requirement PRD yang hanya bisa dipenuhi di file P1 (`billing/finance.go`) dan penyesuaian kode P1 (bagian 6.x). Semuanya dirinci di bagian berikut.
 
-Cek cepat file P1 yang berubah (hasilnya harus tepat: `billing/finance.go`, `crm/overview.go`, `golf/booking.go`, `golf/http.go`, `golf/modify.go`, `golf/operations.go`, `golf/portal.go`, `golf/teesheet.go`, `membership/api.go`, `membership/http.go`):
+File P1 yang berubah (hasilnya harus tepat: `billing/finance.go`, `crm/overview.go`, `golf/booking.go`, `golf/http.go`, `golf/modify.go`, `golf/operations.go`, `golf/portal.go`, `golf/teesheet.go`, `membership/api.go`, `membership/http.go`):
 
 ```bash
 git diff --diff-filter=MD --stat a48e6a3 -- internal/golf internal/billing internal/crm internal/membership internal/commercial/*.go
@@ -32,9 +32,9 @@ Format kolom P1 (`business_date,section,code,description,amount`) tetap. Baris P
 
 Selain itu, `AddLineCharge` (file P2 `p2_api.go`) kini mengisi `components` setiap baris P2 dengan revenue component-nya. Sebelumnya baris P2 berkomponen kosong dan berjenis `other`, sehingga ekspor P1 menggabungkan F&B (revenue) dengan penjualan voucher (liability) di satu baris `liability,other`.
 
-## Perubahan di file P1: penyesuaian P1 (hutang #6)
+## Perubahan di file P1: penyesuaian kode P1
 
-Temuan di kode P1 yang kami kerjakan dalam PR ini. Semua minimal; test P1 tetap hijau.
+Temuan di kode P1 yang dikerjakan bersama P2. Semua minimal; test P1 tetap hijau.
 
 | # | File P1 | Perubahan | Alasan |
 |---|---|---|---|
@@ -63,11 +63,11 @@ Path halaman mengikuti navigasi server (`internal/platform/navigation`, juga adi
 
 Customer 360 lintas lini P2 (`/crm/customers/{id}/360`, FR-CRM-01) ada di `crm/customers/:id` backoffice. **Diputuskan** (4 Oktober 2026): halaman Customer 360 P1 mendapat tombol "View all business lines" ke sana; halaman P2 punya tautan balik. Penggabungan menjadi satu halaman bisa dikerjakan pada penyempurnaan UI berikutnya.
 
-## Ringkasan risiko untuk kode P1
+## Dampak ke kode P1
 
-Hal yang perlu diperhatikan saat review, urut dari yang paling berdampak ke kode P1:
+Urut dari yang paling berdampak:
 
-1. **Status membership bertambah** (`membership/00003`). CHECK `memberships.status` dan `members.status` sekarang juga menerima `paused`, `suspended` dan `cancelled`. Kode P1 yang memakai `switch status` atau mengecek `status = 'active'` perlu dipastikan memperlakukan status baru itu sebagai tidak aktif.
+1. **Status membership bertambah** (`membership/00003`). CHECK `memberships.status` dan `members.status` sekarang juga menerima `paused`, `suspended` dan `cancelled`. Kode P1 memperlakukan status baru itu sebagai tidak aktif (6.1).
 2. **`pricing_rules.rate_plan_id` boleh NULL** (`commercial/00003`). Rule non-golf tidak wajib punya rate plan. Resolve P1 memakai `JOIN rate_plans`, jadi rule P2 tanpa rate plan otomatis tidak ikut ke golf. Rule golf tetap wajib `ratePlanId`; ini ditegakkan oleh `ruleP2BeforeWrite`.
 3. **Resource P1 diperluas saat runtime** (`init()` di file kontrak): field, enum dan hook tambahan pada resource P1. Perilaku P1 dipertahankan, karena hook P1 tetap dipanggil di dalam hook P2.
 4. **Kolom baru di tabel billing P1** semuanya nullable atau punya default, jadi `AddCharge` dan `TakePayment` P1 tetap jalan tanpa perubahan.
@@ -149,7 +149,7 @@ Sub-package `golf/experience` **membaca** tabel golf P1 (booking, flight, caddy,
 **Migration** `membership/00003_p2_lifecycle.sql`:
 
 - `types`: tambah `annual_fee`, `grace_days`, `rank`, `entitlements`, fee kartu/reaktivasi/nominee; `category` diperluas.
-- `memberships`: status diperluas (lihat risiko #1); tambah kolom pause, suspensi dan cancel, serta `next_fee_due`.
+- `memberships`: status diperluas (lihat "Dampak ke kode P1" #1); tambah kolom pause, suspensi dan cancel, serta `next_fee_due`.
 - `cards`: status `blocked`/`replaced`; tambah `blocked_at`, `block_reason`, `replaced_by`.
 - `applications.channel`: tambah `website`.
 - Tabel baru `fees`, `fee_reminders`, `requests`.
@@ -171,19 +171,6 @@ Sub-package `golf/experience` **membaca** tabel golf P1 (booking, flight, caddy,
 
 - Tabel baru `day_type_sets`, `line_day_types` dan `package_rates`. Day type lini lain disimpan di `line_day_types` (kode unik per set), sehingga `commercial.day_types` tetap khusus golf: tee sheet, harga golf dan override kalender P1 tidak pernah melihat day type lini lain.
 - Kolom P2 di `time_bands`, `rate_plans`, `pricing_rules` (termasuk `line_day_type_id` untuk rule non-golf) dan `pricing_snapshots`. Rule golf hanya boleh memakai `day_type_id`, rule lini lain hanya `line_day_type_id`; ini ditegakkan oleh `ruleP2BeforeWrite`.
-- `pricing_rules.rate_plan_id` menjadi nullable (lihat risiko #2).
+- `pricing_rules.rate_plan_id` menjadi nullable (lihat "Dampak ke kode P1" #2).
 
 Migration `commercial/00004_vouchers.sql` dan `00005_pos.sql` hanya berisi tabel milik P2.
-
-## Catatan untuk P1 (bukan perubahan P2)
-
-Temuan di kode P1 berikut **akan dikerjakan oleh tim P2 di PR yang sama**, dengan perubahan minimal. Setelah dikerjakan, tiap perubahan dipindah ke bagian "Perubahan di file P1" untuk direview. Selain itu akan dicek juga dampak status membership baru dan `rate_plan_id` NULL terhadap kode P1 (lihat "Ringkasan risiko").
-
-- Overview Customer 360 P1 belum menyembunyikan preferensi sensitif (diet/alergi). P2 hanya memasang mask di resource `Preferences`.
-- `CaddyBoard` P1 belum mengenal clock-out caddy dari P2.
-- Readiness cart bisa diubah menjadi Ready tanpa inspeksi. Menurut PRD P2 §6 #11, cart yang kembali menjadi Not Ready / Charging, lalu inspeksi pre-op mengubahnya menjadi Ready.
-- Kode P1 masih membaca schema module lain langsung, yang melanggar Tech Doc §4.2 #2:
-  - `golf/booking.go` membaca `reservation.allocations`;
-  - `golf/modify.go` membaca `billing.folio_lines`;
-  - `golf/portal.go` membaca `membership.members`;
-  - `golf/teesheet.go` membaca `membership.types`.

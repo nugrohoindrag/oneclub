@@ -78,3 +78,10 @@ Password for all: `Demo#Club2026`.
 `make e2e` provisions two throw-away instances per run (`ONECLUB_TEST_ADMIN_URL`), starts the API and River worker
 in-process and drives them over HTTP. At the end it fails if any mutating route returned 2xx without an audit
 entry or was never exercised.
+
+- One test while iterating: `ONECLUB_REQUIRE_FULL_COVERAGE=false go test -count=1 -run TestX ./test/e2e/`.
+- Money is a 4-decimal string; compare amounts numerically, not as text. A settled payment has status `completed`.
+- Rounds and caddy fee splits are computed from timestamps; golf tests move them back with SQL instead of waiting.
+- Dead code: `go run golang.org/x/tools/cmd/deadcode@latest -test ./...`.
+- API paths in the frontend and in `test/e2e` are plain strings, so typecheck does not catch a wrong path; compare
+  them with the paths printed by `go run ./cmd/oneclub openapi` after renaming a route.

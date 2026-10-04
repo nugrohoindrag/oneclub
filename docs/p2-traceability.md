@@ -7,7 +7,7 @@ Test locations: `test/e2e/p2_*_test.go` (Go acceptance tests on real PostgreSQL,
 suites), `web/e2e/p2.spec.ts` (Playwright, run in CI by `.github/scripts/browser-stack.sh`), `test/load/*.js` (k6),
 unit tests next to the code.
 
-P2 runs on top of P1 (branch `feat/p2-on-p1`): P1's modules keep their files; P2 lives in sub-packages and additive
+P2 runs on top of P1: P1's modules keep their files; P2 lives in sub-packages and additive
 contract files (`p2_*.go`, `lines.go`, `pricing_p2.go`, `sales_api.go`). What P2 needed from P1 files is listed in
 `docs/p2-contract-review.md`.
 

@@ -50,6 +50,9 @@ P1 + P2, then P3, P4, P5, P6.
    Run `make openapi` and commit the result; CI fails with "stale" otherwise.
 5. Migrations: each module has its own goose sequence (`db/migrations/<module>/`) and stays expand-only
    (no drop/rename in the same release).
+6. Breaking API changes: on pull requests oasdiff compares the OpenAPI document with the base branch. A new value
+   in a response enum is only a warning (`.github/oasdiff/severity-levels.txt`). An intentional contract change is
+   added, with a comment saying why, to `.github/oasdiff/err-ignore.txt`.
 
 ## Branch protection (recommended)
 
