@@ -24,7 +24,6 @@ import (
 	"oneclub/internal/platform/audit"
 	"oneclub/internal/platform/handle"
 	"oneclub/internal/platform/integration"
-	"oneclub/internal/platform/numbering"
 	"oneclub/internal/platform/resource"
 	"oneclub/internal/reservation"
 )
@@ -45,7 +44,7 @@ func (m *Module) rangeHooks() {
 			st = "inactive"
 		}
 		one := 1
-		rid, err := m.Res.EnsureResource(ctx, tx, existing, reservation.ResourceRequest{PropertyID: pid, Code: "BAY-" + str(row["code"]), Name: str(row["name"]),
+		rid, err := m.Reservations.EnsureResource(ctx, tx, existing, reservation.ResourceRequest{PropertyID: pid, Code: "BAY-" + str(row["code"]), Name: str(row["name"]),
 			ResourceType: "driving_range_bay", Capacity: &one, Status: st, Attributes: map[string]any{"priceItem": "BAY-" + str(row["area"]), "bayId": str(row["id"])}})
 		if err != nil {
 			return err
@@ -62,7 +61,7 @@ func (m *Module) rangeHooks() {
 // RangeSession is a walk-in or booked range visit.
 type RangeSession struct {
 	ID           uuid.UUID  `json:"id" db:"id"`
-	SessionNo    string     `json:"sessionNo" db:"session_no"`
+	Number       string     `json:"number" db:"number"`
 	BayID        *uuid.UUID `json:"bayId" db:"bay_id"`
 	BayCode      *string    `json:"bayCode" db:"bay_code"`
 	Area         string     `json:"area" db:"area"`
@@ -77,7 +76,7 @@ type RangeSession struct {
 	Balls        int        `json:"balls" db:"balls"`
 }
 
-const sessionSelect = `SELECT s.id, s.session_no, s.bay_id, b.code AS bay_code, s.area, s.customer_id, c.name AS customer_name, s.guest_name, s.status,
+const sessionSelect = `SELECT s.id, s.number, s.bay_id, b.code AS bay_code, s.area, s.customer_id, c.name AS customer_name, s.guest_name, s.status,
 	CASE WHEN s.status = 'waiting' THEN (SELECT count(*) FROM golf.range_sessions w WHERE w.property_id = s.property_id AND w.status = 'waiting'
 	  AND w.area = s.area AND w.queued_at <= s.queued_at)::int END AS queue_pos,
 	s.queued_at, s.started_at, s.ended_at, coalesce((SELECT sum(balls) FROM golf.range_buckets k WHERE k.session_id = s.id), 0)::int AS balls
@@ -104,13 +103,13 @@ func (m *Module) StartSession(ctx context.Context, tx pgx.Tx, property uuid.UUID
 	if in.Area == "" {
 		in.Area = "outdoor"
 	}
-	no, err := numbering.Next(ctx, tx, property, "RNG", localNow(ctx, tx))
+	no, err := number(ctx, tx, property, "RNG")
 	if err != nil {
 		return RangeSession{}, err
 	}
 	sid := id.New()
-	if _, err := tx.Exec(ctx, `INSERT INTO golf.range_sessions (id, property_id, session_no, area, customer_id, guest_name, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-		sid, property, no, in.Area, in.CustomerID, nzs(in.GuestName), actor(ctx)); err != nil {
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.range_sessions (id, property_id, number, area, customer_id, guest_name, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+		sid, property, no, in.Area, in.CustomerID, nullStr(in.GuestName), actorPtr(ctx)); err != nil {
 		return RangeSession{}, err
 	}
 	if err := m.tryAssignBay(ctx, tx, property, sid, in.Area, in.BayID); err != nil {
@@ -180,7 +179,7 @@ func (m *Module) AssignBay(ctx context.Context, tx pgx.Tx, property, sid uuid.UU
 	if after.Status != "active" {
 		return after, errs.Conflict("no_bay_free", "no bay is free in the "+s.Area+" area")
 	}
-	return after, record(ctx, tx, "golf.range_session", sid, s.SessionNo, "assign_bay", property, s, after, "")
+	return after, record(ctx, tx, "golf.range_session", sid, s.Number, "assign_bay", property, s, after, "")
 }
 
 // EndSession frees the bay and moves the next waiting guest in.
@@ -221,7 +220,7 @@ func (m *Module) EndSession(ctx context.Context, tx pgx.Tx, property, sid uuid.U
 	if err != nil {
 		return after, err
 	}
-	return after, record(ctx, tx, "golf.range_session", sid, s.SessionNo, audit.ActionStatusChange, property, s, after, "")
+	return after, record(ctx, tx, "golf.range_session", sid, s.Number, audit.ActionStatusChange, property, s, after, "")
 }
 
 // ── buckets & dispenser (FR-RNG-03/04/05) ─────────────────────────────────
@@ -340,7 +339,7 @@ func (m *Module) IssueBucket(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	}
 	if _, err := tx.Exec(ctx, `INSERT INTO golf.range_buckets (id, property_id, session_id, customer_id, balls, source, order_id, voucher_id, amount,
 		dispenser_code, dispense_mode, idempotency_key, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::numeric,$10,$11,$12,$13)`, bid, property, in.SessionID,
-		in.CustomerID, in.Balls, in.Source, in.OrderID, voucher, amount.String(), code, mode, nzs(key), actor(ctx)); err != nil {
+		in.CustomerID, in.Balls, in.Source, in.OrderID, voucher, amount.String(), code, mode, nullStr(key), actorPtr(ctx)); err != nil {
 		return Bucket{}, err
 	}
 	b, err := handle.Get[Bucket](tx.Query(ctx, bucketSelect+` WHERE id = $1`, bid))

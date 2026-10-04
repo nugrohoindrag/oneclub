@@ -27,10 +27,10 @@ import (
 // PaceFlight is one flight on the Starter / Marshal pace screen.
 type PaceFlight struct {
 	FlightID       uuid.UUID  `json:"flightId"`
-	FlightNo       string     `json:"flightNo"`
-	RouteName      string     `json:"routeName"`
+	Label          string     `json:"label" doc:"Booking code or flight number"`
+	RouteName      *string    `json:"playingRouteName"`
 	TeeTime        time.Time  `json:"teeTime"`
-	TeedOffAt      time.Time  `json:"teedOffAt"`
+	TeeOffAt       time.Time  `json:"teeOffAt"`
 	CurrentSeq     int        `json:"currentSeq"`
 	Holes          int        `json:"holes"`
 	Hole           string     `json:"hole"`
@@ -38,7 +38,7 @@ type PaceFlight struct {
 	TargetMinutes  int        `json:"targetMinutes" doc:"Cumulative target through the current hole"`
 	BehindMinutes  int        `json:"behindMinutes" doc:"Positive: behind the target"`
 	Slow           bool       `json:"slow" doc:"Behind more than the route tolerance"`
-	AheadFlightNo  *string    `json:"aheadFlightNo"`
+	AheadLabel     *string    `json:"aheadLabel"`
 	GapHoles       *int       `json:"gapHoles" doc:"Holes between this flight and the flight ahead"`
 	GapMinutes     *int       `json:"gapMinutes" doc:"Minutes since the flight ahead started this hole"`
 	Players        []string   `json:"players"`
@@ -47,37 +47,34 @@ type PaceFlight struct {
 	HoleStartedAt  *time.Time `json:"holeStartedAt"`
 }
 
-// Pace computes pace of play for flights on course.
+// Pace computes pace of play for flights in play (FR-PLX-04).
 func (m *Module) Pace(ctx context.Context, q dbtx.Querier, property uuid.UUID) ([]PaceFlight, error) {
-	type row struct {
-		ID        uuid.UUID `db:"id"`
-		No        string    `db:"flight_no"`
-		RouteID   uuid.UUID `db:"route_id"`
-		Route     string    `db:"route_name"`
-		Tolerance int       `db:"tolerance_minutes"`
-		TeeTime   time.Time `db:"tee_time"`
-		TeedOff   time.Time `db:"teed_off_at"`
-		Seq       int       `db:"current_seq"`
-	}
-	flights, err := handle.List[row](q.Query(ctx, `SELECT f.id, f.flight_no, f.route_id, r.name AS route_name, r.tolerance_minutes, f.tee_time, f.teed_off_at, f.current_seq
-		FROM golf.flights f JOIN golf.playing_routes r ON r.id = f.route_id WHERE f.property_id = $1 AND f.status = 'on_course' ORDER BY f.teed_off_at`, property))
+	ids, err := collectIDs(q.Query(ctx, `SELECT id FROM golf.flights WHERE property_id = $1 AND status = 'in_play' AND tee_off_at IS NOT NULL ORDER BY tee_off_at`, property))
 	if err != nil {
 		return nil, err
 	}
 	now := clock.Now()
 	routeHoles := map[uuid.UUID][]RouteHole{}
-	out := make([]PaceFlight, 0, len(flights))
+	rounds := make([]Round, 0, len(ids))
+	out := make([]PaceFlight, 0, len(ids))
 	starts := map[uuid.UUID]map[int]time.Time{}
-	for _, f := range flights {
-		holes, ok := routeHoles[f.RouteID]
-		if !ok {
-			if holes, err = RouteHoles(ctx, q, f.RouteID, nil); err != nil {
-				return nil, err
+	for _, fid := range ids {
+		r, err := m.GetRound(ctx, q, fid)
+		if err != nil {
+			return nil, err
+		}
+		var holes []RouteHole
+		if r.RouteID != nil {
+			var ok bool
+			if holes, ok = routeHoles[*r.RouteID]; !ok {
+				if holes, err = m.roundHoles(ctx, q, r); err != nil {
+					return nil, err
+				}
+				routeHoles[*r.RouteID] = holes
 			}
-			routeHoles[f.RouteID] = holes
 		}
 		st := map[int]time.Time{}
-		rows, err := q.Query(ctx, `SELECT seq, started_at FROM golf.hole_progress WHERE flight_id = $1`, f.ID)
+		rows, err := q.Query(ctx, `SELECT seq, started_at FROM golf.hole_progress WHERE flight_id = $1`, fid)
 		if err != nil {
 			return nil, err
 		}
@@ -91,38 +88,50 @@ func (m *Module) Pace(ctx context.Context, q dbtx.Querier, property uuid.UUID) (
 			st[s] = t
 		}
 		rows.Close()
-		starts[f.ID] = st
+		starts[fid] = st
 		target := 0
-		for i := 0; i < f.Seq && i < len(holes); i++ {
+		for i := 0; i < r.CurrentSeq && i < len(holes); i++ {
 			target += holes[i].TargetMinutes
 		}
-		elapsed := int(now.Sub(f.TeedOff).Minutes())
-		p := PaceFlight{FlightID: f.ID, FlightNo: f.No, RouteName: f.Route, TeeTime: f.TeeTime, TeedOffAt: f.TeedOff, CurrentSeq: f.Seq, Holes: len(holes),
-			ElapsedMinutes: elapsed, TargetMinutes: target, BehindMinutes: elapsed - target, Players: []string{}, Caddies: []string{}, GolfCarts: []string{}}
-		p.Slow = p.BehindMinutes > f.Tolerance
-		if f.Seq >= 1 && f.Seq <= len(holes) {
-			p.Hole = holes[f.Seq-1].SectionCode + "-" + itoa(holes[f.Seq-1].Number)
+		elapsed := int(now.Sub(*r.TeeOffAt).Minutes())
+		p := PaceFlight{FlightID: fid, Label: r.Label(), RouteName: r.RouteName, TeeTime: r.TeeTime, TeeOffAt: *r.TeeOffAt, CurrentSeq: r.CurrentSeq,
+			Holes: len(holes), ElapsedMinutes: elapsed, TargetMinutes: target, BehindMinutes: elapsed - target, Players: []string{}, Caddies: []string{},
+			GolfCarts: []string{}}
+		p.Slow = p.BehindMinutes > r.Tolerance
+		if r.CurrentSeq >= 1 && r.CurrentSeq <= len(holes) {
+			p.Hole = holes[r.CurrentSeq-1].SectionCode + "-" + itoa(holes[r.CurrentSeq-1].Number)
 		}
-		if t, ok := st[f.Seq]; ok {
+		if t, ok := st[r.CurrentSeq]; ok {
 			p.HoleStartedAt = &t
 		}
-		_ = q.QueryRow(ctx, `SELECT coalesce(array_agg(name ORDER BY created_at), '{}') FROM golf.flight_players WHERE flight_id = $1 AND status = 'playing'`, f.ID).Scan(&p.Players)
-		_ = q.QueryRow(ctx, `SELECT coalesce(array_agg(c.code ORDER BY a.from_seq), '{}') FROM golf.caddy_assignments a JOIN golf.caddies c ON c.id = a.caddy_id
-			WHERE a.flight_id = $1 AND a.status = 'active'`, f.ID).Scan(&p.Caddies)
-		_ = q.QueryRow(ctx, `SELECT coalesce(array_agg(g.code), '{}') FROM golf.cart_assignments a JOIN golf.golf_carts g ON g.id = a.cart_id
-			WHERE a.flight_id = $1 AND a.status = 'in_use'`, f.ID).Scan(&p.GolfCarts)
+		for _, pl := range r.Players {
+			if pl.Status == "checked_in" {
+				p.Players = append(p.Players, pl.Name)
+			}
+		}
+		for _, c := range r.Caddies {
+			if c.Status == "in_play" {
+				p.Caddies = append(p.Caddies, c.CaddyCode)
+			}
+		}
+		for _, c := range r.GolfCarts {
+			if c.Status == "in_use" {
+				p.GolfCarts = append(p.GolfCarts, c.CartCode)
+			}
+		}
+		rounds = append(rounds, r)
 		out = append(out, p)
 	}
 	// Gap to the flight ahead on the same route (teed off earlier).
 	for i := range out {
 		for j := i - 1; j >= 0; j-- {
-			if flights[j].RouteID != flights[i].RouteID {
+			if rounds[j].RouteID == nil || rounds[i].RouteID == nil || *rounds[j].RouteID != *rounds[i].RouteID {
 				continue
 			}
-			no := out[j].FlightNo
+			label := out[j].Label
 			gh := out[j].CurrentSeq - out[i].CurrentSeq
-			out[i].AheadFlightNo, out[i].GapHoles = &no, &gh
-			if t, ok := starts[flights[j].ID][out[i].CurrentSeq]; ok && out[i].HoleStartedAt != nil {
+			out[i].AheadLabel, out[i].GapHoles = &label, &gh
+			if t, ok := starts[rounds[j].FlightID][out[i].CurrentSeq]; ok && out[i].HoleStartedAt != nil {
 				gm := int(out[i].HoleStartedAt.Sub(t).Minutes())
 				out[i].GapMinutes = &gm
 			}
@@ -132,8 +141,8 @@ func (m *Module) Pace(ctx context.Context, q dbtx.Querier, property uuid.UUID) (
 	return out, nil
 }
 
-// CheckPace flags flights that became slow (periodic job, ≤ 1 minute) and
-// pushes an alert to the Starter / Marshal screens.
+// CheckPace flags flights that became slow (periodic job) and pushes an alert
+// to the Starter / Marshal screens.
 func (m *Module) CheckPace(ctx context.Context, tx pgx.Tx, property uuid.UUID) (int, error) {
 	list, err := m.Pace(ctx, tx, property)
 	if err != nil {
@@ -145,13 +154,13 @@ func (m *Module) CheckPace(ctx context.Context, tx pgx.Tx, property uuid.UUID) (
 		if p.Slow {
 			st = "slow"
 		}
-		tag, err := tx.Exec(ctx, `UPDATE golf.flights SET pace_status = $2 WHERE id = $1 AND pace_status <> $2`, p.FlightID, st)
+		tag, err := tx.Exec(ctx, `UPDATE golf.flights SET pace_status = $2, behind_minutes = $3 WHERE id = $1 AND pace_status <> $2`, p.FlightID, st, p.BehindMinutes)
 		if err != nil {
 			return n, err
 		}
 		if tag.RowsAffected() > 0 && p.Slow {
 			n++
-			if err := m.live(ctx, tx, "golf.pace", property, "slow", p.FlightID.String(), map[string]any{"flightNo": p.FlightNo, "behind": p.BehindMinutes,
+			if err := m.live(ctx, tx, "golf.pace", property, "slow", p.FlightID.String(), map[string]any{"label": p.Label, "behind": p.BehindMinutes,
 				"hole": p.Hole}); err != nil {
 				return n, err
 			}
@@ -167,15 +176,13 @@ type caddyRow struct {
 	PropertyID uuid.UUID `db:"property_id"`
 	Code       string    `db:"code"`
 	Name       string    `db:"name"`
-	DutyStatus string    `db:"duty_status"`
 }
 
 // myCaddy resolves the caddy of the signed-in tablet user.
 func (m *Module) myCaddy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (caddyRow, error) {
-	rows, err := q.Query(ctx, `SELECT id, property_id, code, name, duty_status FROM golf.caddies WHERE property_id = $1 AND user_id = $2 AND archived_at IS NULL`,
+	rows, err := q.Query(ctx, `SELECT id, property_id, code, name FROM golf.caddies WHERE property_id = $1 AND user_id = $2 AND archived_at IS NULL`,
 		property, handle.UserID(ctx))
-	c, err := handle.One[caddyRow](rows, err, "caddy profile of this user")
-	return c, err
+	return handle.One[caddyRow](rows, err, "caddy profile of this user")
 }
 
 // MyAssignments is the caddy's My Assignments screen.
@@ -183,7 +190,7 @@ type MyAssignments struct {
 	CaddyID    uuid.UUID         `json:"caddyId"`
 	Code       string            `json:"code"`
 	Name       string            `json:"name"`
-	DutyStatus string            `json:"dutyStatus"`
+	DutyStatus string            `json:"dutyStatus" enum:"off_duty,available,assigned,in_play"`
 	Current    *CaddyAssignment  `json:"current"`
 	Next       []CaddyAssignment `json:"next"`
 	QueueNo    *int              `json:"queuePosition" doc:"Position in today's rotation when no assignment is waiting"`
@@ -194,21 +201,34 @@ func (m *Module) MyAssignments(ctx context.Context, q dbtx.Querier, property uui
 	if err != nil {
 		return MyAssignments{}, err
 	}
-	out := MyAssignments{CaddyID: c.ID, Code: c.Code, Name: c.Name, DutyStatus: c.DutyStatus, Next: []CaddyAssignment{}}
-	list, err := handle.List[CaddyAssignment](q.Query(ctx, caddyAssignmentSelect+` WHERE a.caddy_id = $1 AND a.status IN ('assigned', 'accepted', 'active')
-		ORDER BY (a.status = 'active') DESC, f.tee_time`, c.ID))
+	out := MyAssignments{CaddyID: c.ID, Code: c.Code, Name: c.Name, DutyStatus: "off_duty", Next: []CaddyAssignment{}}
+	loc := location(ctx, q, property)
+	list, err := ListCaddyAssignments(ctx, q, loc, "a.caddy_id = $1 AND a.status IN ('assigned', 'in_play')", c.ID)
 	if err != nil {
 		return out, err
 	}
-	for i := range list {
-		if list[i].Status == "active" && out.Current == nil {
+	for i := len(list) - 1; i >= 0; i-- { // listed latest first: next assignments in tee time order
+		if list[i].Status == "in_play" && out.Current == nil {
 			out.Current = &list[i]
+			out.DutyStatus = "in_play"
 		} else {
 			out.Next = append(out.Next, list[i])
 		}
 	}
+	if out.Current == nil && len(out.Next) > 0 {
+		out.DutyStatus = "assigned"
+	}
+	today := localDay(clock.Now(), loc)
 	if out.Current == nil && len(out.Next) == 0 {
-		qe, err := m.Queue(ctx, q, property, nil)
+		var present bool
+		if err := q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.caddy_attendance WHERE caddy_id = $1 AND work_date = $2::date AND status = 'present'
+			AND departed_at IS NULL)`, c.ID, today.Format("2006-01-02")).Scan(&present); err != nil {
+			return out, err
+		}
+		if present {
+			out.DutyStatus = "available"
+		}
+		qe, err := m.Rotation(ctx, q, property, today, nil)
 		if err != nil {
 			return out, err
 		}
@@ -223,13 +243,13 @@ func (m *Module) MyAssignments(ctx context.Context, q dbtx.Querier, property uui
 }
 
 // canSeeFlight: staff with golf.flight.view, or a caddy assigned to it.
-func (m *Module) canSeeFlight(ctx context.Context, q dbtx.Querier, f Flight) error {
-	if can(ctx, "golf.flight.view", f.PropertyID) {
+func (m *Module) canSeeFlight(ctx context.Context, q dbtx.Querier, r Round) error {
+	if can(ctx, "golf.flight.view", r.PropertyID) {
 		return nil
 	}
 	var ok bool
 	if err := q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.caddy_assignments a JOIN golf.caddies c ON c.id = a.caddy_id
-		WHERE a.flight_id = $1 AND c.user_id = $2 AND a.status <> 'cancelled')`, f.ID, handle.UserID(ctx)).Scan(&ok); err != nil {
+		WHERE a.flight_id = $1 AND c.user_id = $2 AND a.status <> 'cancelled')`, r.FlightID, handle.UserID(ctx)).Scan(&ok); err != nil {
 		return err
 	}
 	if !ok {
@@ -238,7 +258,7 @@ func (m *Module) canSeeFlight(ctx context.Context, q dbtx.Querier, f Flight) err
 	return nil
 }
 
-// PlayerContext is the customer context shown on the tablet (FR-CTB-04):
+// PlayerContext is the customer context shown on the tablet (FR-TAB-03):
 // name, preferences, history with this caddy — nothing else personal.
 type PlayerContext struct {
 	PlayerID        uuid.UUID        `json:"playerId"`
@@ -256,7 +276,7 @@ type PlayerContext struct {
 
 // RoundInfo is everything the tablet needs for a round (cached offline).
 type RoundInfo struct {
-	Flight     Flight          `json:"flight"`
+	Round      Round           `json:"round"`
 	Holes      []RouteHole     `json:"holes"`
 	Players    []PlayerContext `json:"players"`
 	Scorecards []Scorecard     `json:"scorecards"`
@@ -265,57 +285,54 @@ type RoundInfo struct {
 }
 
 func (m *Module) RoundInfo(ctx context.Context, q dbtx.Querier, fid uuid.UUID) (RoundInfo, error) {
-	f, err := m.GetFlight(ctx, q, fid)
+	r, err := m.GetRound(ctx, q, fid)
 	if err != nil {
 		return RoundInfo{}, err
 	}
-	if err := m.canSeeFlight(ctx, q, f); err != nil {
+	if err := m.canSeeFlight(ctx, q, r); err != nil {
 		return RoundInfo{}, err
 	}
-	ri := RoundInfo{Flight: f, Players: []PlayerContext{}, Scorecards: []Scorecard{}, ServerTime: clock.Now()}
-	if ri.Holes, err = RouteHoles(ctx, q, f.RouteID, f.TeeSetID); err != nil {
+	ri := RoundInfo{Round: r, Players: []PlayerContext{}, Scorecards: []Scorecard{}, ServerTime: clock.Now()}
+	if ri.Holes, err = m.roundHoles(ctx, q, r); err != nil {
 		return ri, err
 	}
 	var me *uuid.UUID
-	if c, err := m.myCaddy(ctx, q, f.PropertyID); err == nil {
+	if c, err := m.myCaddy(ctx, q, r.PropertyID); err == nil {
 		me = &c.ID
 	}
-	for _, p := range f.Players {
-		pc := PlayerContext{PlayerID: p.ID, Name: p.Name, PlayerType: p.PlayerType, Preferences: []crm.Preference{}, Highlights: []string{}, ScorecardID: p.ScorecardID}
-		if p.TeeSetID != nil {
-			var n string
-			if err := q.QueryRow(ctx, `SELECT name FROM golf.tee_sets WHERE id = $1`, *p.TeeSetID).Scan(&n); err == nil {
-				pc.TeeSet = &n
-			}
-		}
+	for _, p := range r.Players {
+		pc := PlayerContext{PlayerID: p.ID, Name: p.Name, PlayerType: p.PlayerType, Handicap: p.HandicapIndex, Preferences: []crm.Preference{},
+			Highlights: []string{}, ScorecardID: p.ScorecardID}
 		if p.CustomerID != nil {
-			_ = q.QueryRow(ctx, `SELECT coalesce(official_index, local_index)::text FROM golf.handicaps WHERE customer_id = $1`, *p.CustomerID).Scan(&pc.Handicap)
+			if pc.Handicap == nil {
+				pc.Handicap = currentHandicap(ctx, q, *p.CustomerID)
+			}
 			if m.CRM != nil {
-				cc, err := m.CRM.Context(ctx, q, f.PropertyID, *p.CustomerID, false)
+				cc, err := m.CRM.Context(ctx, q, r.PropertyID, *p.CustomerID, false)
 				if err != nil {
 					return ri, err
 				}
 				pc.Preferences, pc.Highlights = cc.Preferences, cc.Highlights
 			}
 			if me != nil {
-				if err := q.QueryRow(ctx, `SELECT count(DISTINCT a.flight_id)::int, max(fl.tee_time),
+				if err := q.QueryRow(ctx, `SELECT count(DISTINCT a.flight_id)::int, max(lower(a.period)),
 					EXISTS (SELECT 1 FROM golf.caddy_favorites fv WHERE fv.caddy_id = $1 AND fv.customer_id = $2)
-					FROM golf.caddy_assignments a JOIN golf.flights fl ON fl.id = a.flight_id
-					JOIN golf.flight_players pl ON pl.flight_id = a.flight_id AND (a.player_id IS NULL OR a.player_id = pl.id)
+					FROM golf.caddy_assignments a JOIN golf.booking_players pl ON pl.id = ANY(a.player_ids)
 					WHERE a.caddy_id = $1 AND pl.customer_id = $2 AND a.status IN ('completed', 'replaced') AND a.flight_id <> $3`,
-					*me, *p.CustomerID, f.ID).Scan(&pc.RoundsWithMe, &pc.LastRoundWithMe, &pc.FavoriteOfMine); err != nil {
+					*me, *p.CustomerID, r.FlightID).Scan(&pc.RoundsWithMe, &pc.LastRoundWithMe, &pc.FavoriteOfMine); err != nil {
 					return ri, err
 				}
 			}
 		}
-		ri.Players = append(ri.Players, pc)
 		if p.ScorecardID != nil {
 			sc, err := m.GetScorecard(ctx, q, *p.ScorecardID)
 			if err != nil {
 				return ri, err
 			}
+			pc.TeeSet = sc.TeeSetName
 			ri.Scorecards = append(ri.Scorecards, sc)
 		}
+		ri.Players = append(ri.Players, pc)
 	}
 	ri.Times, err = m.RoundTimes(ctx, q, fid)
 	return ri, err
@@ -325,26 +342,26 @@ type HandoverInput struct {
 	DeviceID string `json:"deviceId"`
 }
 
-// Handover moves the round to a replacement tablet (FR-CTB-09): every hole
+// Handover moves the round to a replacement tablet (FR-TAB-08): every hole
 // and score already synced stays on the server; the new device continues.
 func (m *Module) Handover(ctx context.Context, tx pgx.Tx, fid uuid.UUID, in HandoverInput) (RoundInfo, error) {
 	if err := handle.Required("deviceId", in.DeviceID); err != nil {
 		return RoundInfo{}, err
 	}
-	f, err := m.lockFlight(ctx, tx, fid)
+	r, err := m.lockRound(ctx, tx, fid)
 	if err != nil {
 		return RoundInfo{}, err
 	}
-	if err := m.canSeeFlight(ctx, tx, f); err != nil {
+	if err := m.canSeeFlight(ctx, tx, r); err != nil {
 		return RoundInfo{}, err
 	}
-	if f.Status != "on_course" && f.Status != "checked_in" {
-		return RoundInfo{}, errs.Conflict("not_on_course", "flight is "+f.Status)
+	if r.Status == "completed" || r.Status == "cancelled" {
+		return RoundInfo{}, errs.Conflict("round_closed", "flight is "+r.Status)
 	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.flights SET device_id = $2 WHERE id = $1`, fid, in.DeviceID); err != nil {
+	if _, err := tx.Exec(ctx, `UPDATE golf.flights SET tablet_device = $2 WHERE id = $1`, fid, in.DeviceID); err != nil {
 		return RoundInfo{}, err
 	}
-	if err := record(ctx, tx, "golf.flight", fid, f.FlightNo, "device_handover", f.PropertyID, map[string]any{"deviceId": f.DeviceID},
+	if err := record(ctx, tx, "golf.flight", fid, r.Label(), "device_handover", r.PropertyID, map[string]any{"deviceId": r.DeviceID},
 		map[string]any{"deviceId": in.DeviceID}, ""); err != nil {
 		return RoundInfo{}, err
 	}
@@ -365,14 +382,14 @@ type CourseOrderInput struct {
 
 // CourseOrder places an on-course F&B order charged to the player's folio.
 func (m *Module) CourseOrder(ctx context.Context, tx pgx.Tx, in CourseOrderInput) (commercial.Order, error) {
-	f, err := m.GetFlight(ctx, tx, in.FlightID)
+	f, err := m.GetRound(ctx, tx, in.FlightID)
 	if err != nil {
 		return commercial.Order{}, err
 	}
 	if err := m.canSeeFlight(ctx, tx, f); err != nil {
 		return commercial.Order{}, err
 	}
-	var player *Player
+	var player *RoundPlayer
 	for i := range f.Players {
 		if f.Players[i].ID == in.PlayerID {
 			player = &f.Players[i]
@@ -381,7 +398,7 @@ func (m *Module) CourseOrder(ctx context.Context, tx pgx.Tx, in CourseOrderInput
 	if player == nil {
 		return commercial.Order{}, handle.Invalid("playerId", "not_in_flight", "player is not in this flight")
 	}
-	if player.FolioID == nil {
+	if player.Status != "checked_in" || f.FolioID == nil {
 		return commercial.Order{}, errs.Conflict("no_folio", "the player is not checked in")
 	}
 	dest, ref := "hole", itoa(min(f.CurrentSeq+1, max(f.Holes, 1)))
@@ -389,7 +406,7 @@ func (m *Module) CourseOrder(ctx context.Context, tx pgx.Tx, in CourseOrderInput
 		dest, ref = "halfway_house", "Halfway House"
 	}
 	return m.Commercial.CreateOrder(ctx, tx, f.PropertyID, commercial.OrderInput{ID: in.ID, OutletID: in.OutletID, OrderType: "on_course", Source: "caddy_tablet",
-		CustomerID: player.CustomerID, ServingDestination: dest, DestinationRef: ref, ChargeFolioID: player.FolioID, Lines: in.Lines, Send: true, Notes: in.Notes})
+		CustomerID: player.CustomerID, ServingDestination: dest, DestinationRef: ref, ChargeFolioID: f.FolioID, Lines: in.Lines, Send: true, Notes: in.Notes})
 }
 
 // RecordPreference records a preference noticed by the caddy for a player of
@@ -398,7 +415,7 @@ func (m *Module) RecordPreference(ctx context.Context, tx pgx.Tx, property, cust
 	if !can(ctx, "crm.preference.manage", property) {
 		var ok bool
 		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.caddy_assignments a JOIN golf.caddies c ON c.id = a.caddy_id
-			JOIN golf.flight_players p ON p.flight_id = a.flight_id WHERE c.user_id = $1 AND p.customer_id = $2 AND a.status IN ('accepted', 'active', 'completed')
+			JOIN golf.booking_players p ON p.id = ANY(a.player_ids) WHERE c.user_id = $1 AND p.customer_id = $2 AND a.status IN ('assigned', 'in_play', 'completed')
 			AND a.assigned_at > now() - interval '1 day')`, handle.UserID(ctx), customer).Scan(&ok); err != nil {
 			return crm.Preference{}, err
 		}
@@ -409,13 +426,15 @@ func (m *Module) RecordPreference(ctx context.Context, tx pgx.Tx, property, cust
 	return crm.RecordPreference(ctx, tx, property, customer, in, "caddy")
 }
 
-// ── earnings (FR-CTB-10) ──────────────────────────────────────────────────
+// ── earnings (FR-TAB-09) ──────────────────────────────────────────────────
 
+// EarningLine is a caddy fee of a finished round or a tip.
 type EarningLine struct {
-	PostedAt  time.Time `json:"postedAt" db:"posted_at"`
-	Component string    `json:"component" db:"revenue_component" enum:"caddy_fee,caddy_tip"`
-	Amount    string    `json:"amount" db:"amount"`
-	Desc      string    `json:"description" db:"description"`
+	Date        time.Time `json:"date" db:"day"`
+	Component   string    `json:"component" db:"component" enum:"caddy_fee,caddy_tip"`
+	Method      *string   `json:"method" db:"method" enum:"cash,non_cash"`
+	Amount      string    `json:"amount" db:"amount"`
+	Description string    `json:"description" db:"description"`
 }
 
 type Earnings struct {
@@ -432,10 +451,17 @@ type Earnings struct {
 
 func (m *Module) Earnings(ctx context.Context, q dbtx.Querier, property, caddy uuid.UUID, from, to time.Time) (Earnings, error) {
 	e := Earnings{CaddyID: caddy, From: from, To: to}
+	loc := location(ctx, q, property)
+	df, dt := from.In(loc).Format("2006-01-02"), to.In(loc).Format("2006-01-02")
 	var err error
-	if e.Lines, err = handle.List[EarningLine](q.Query(ctx, `SELECT posted_at, revenue_component, trim_scale(total_amount)::text AS amount, description
-		FROM billing.folio_lines WHERE property_id = $1 AND beneficiary_type = 'caddy' AND beneficiary_id = $2 AND status = 'posted'
-		AND posted_at >= $3 AND posted_at < $4 ORDER BY posted_at DESC`, property, caddy, from, to)); err != nil {
+	if e.Lines, err = handle.List[EarningLine](q.Query(ctx, `SELECT a.play_date AS day, 'caddy_fee' AS component, NULL::text AS method,
+		  trim_scale(a.fee_amount)::text AS amount, coalesce(b.code, 'Flight') AS description
+		FROM golf.caddy_assignments a JOIN golf.flights f ON f.id = a.flight_id LEFT JOIN golf.bookings b ON b.id = f.booking_id
+		WHERE a.property_id = $1 AND a.caddy_id = $2 AND a.status IN ('completed', 'replaced') AND a.play_date >= $3::date AND a.play_date < $4::date
+		UNION ALL
+		SELECT t.tip_date, 'caddy_tip', t.method, trim_scale(t.amount)::text, 'Tip'
+		FROM golf.caddy_tips t WHERE t.property_id = $1 AND t.caddy_id = $2 AND t.tip_date >= $3::date AND t.tip_date < $4::date
+		ORDER BY day DESC`, property, caddy, df, dt)); err != nil {
 		return e, err
 	}
 	fee, tip := decimal.Zero, decimal.Zero
@@ -451,16 +477,15 @@ func (m *Module) Earnings(ctx context.Context, q dbtx.Querier, property, caddy u
 	if e.Settlements, err = handle.List[Settlement](q.Query(ctx, settlementSelect+` WHERE s.caddy_id = $1 ORDER BY s.period_start DESC LIMIT 12`, caddy)); err != nil {
 		return e, err
 	}
-	if e.Attendance, err = handle.List[Attendance](q.Query(ctx, attendanceSelect+` WHERE a.caddy_id = $1 AND a.clock_in >= $2 AND a.clock_in < $3
-		ORDER BY a.work_date DESC`, caddy, from, to)); err != nil {
+	if e.Attendance, err = handle.List[Attendance](q.Query(ctx, attendanceSelect+` WHERE a.caddy_id = $1 AND a.work_date >= $2::date AND a.work_date < $3::date
+		ORDER BY a.work_date DESC`, caddy, df, dt)); err != nil {
 		return e, err
 	}
-	e.Assignments, err = handle.List[CaddyAssignment](q.Query(ctx, caddyAssignmentSelect+` WHERE a.caddy_id = $1 AND f.tee_time >= $2 AND f.tee_time < $3
-		ORDER BY f.tee_time DESC`, caddy, from, to))
+	e.Assignments, err = ListCaddyAssignments(ctx, q, loc, "a.caddy_id = $1 AND a.play_date >= $2::date AND a.play_date < $3::date", caddy, df, dt)
 	return e, err
 }
 
-// ── offline sync (FR-CTB-08) ──────────────────────────────────────────────
+// ── offline sync (FR-TAB-07) ──────────────────────────────────────────────
 
 // RoundSync is one queued tablet action.
 type RoundSync struct {
@@ -482,18 +507,18 @@ func (m *Module) SyncHandler(ctx context.Context, tx pgx.Tx, payload json.RawMes
 	if err := json.Unmarshal(payload, &in); err != nil {
 		return nil, errs.Validation("invalid_payload", "invalid round payload")
 	}
-	f, err := m.GetFlight(ctx, tx, in.FlightID)
+	r, err := m.GetRound(ctx, tx, in.FlightID)
 	if err != nil {
 		return nil, err
 	}
-	if err := m.canSeeFlight(ctx, tx, f); err != nil {
+	if err := m.canSeeFlight(ctx, tx, r); err != nil {
 		return nil, &syncsvc.ConflictError{Message: "assignment changed on the server: " + err.Error()}
 	}
 	need := "golf.round.operate"
 	if in.Op == "score" {
 		need = "golf.scorecard.enter"
 	}
-	if err := authz.RequireAt(ctx, need, f.PropertyID); err != nil {
+	if err := authz.RequireAt(ctx, need, r.PropertyID); err != nil {
 		return nil, err
 	}
 	switch in.Op {
@@ -503,14 +528,14 @@ func (m *Module) SyncHandler(ctx context.Context, tx pgx.Tx, payload json.RawMes
 		}
 		return m.AcceptAssignment(ctx, tx, *in.AssignmentID)
 	case "tee_off":
-		r, err := m.TeeOff(ctx, tx, in.FlightID, RoundEvent{At: in.At, DeviceID: in.DeviceID})
-		return map[string]any{"status": r.Status, "currentSeq": r.CurrentSeq}, err
+		out, err := m.StartRound(ctx, tx, in.FlightID, RoundEvent{At: in.At, DeviceID: in.DeviceID})
+		return map[string]any{"status": out.Status, "currentSeq": out.CurrentSeq}, err
 	case "hole":
-		r, err := m.RecordHole(ctx, tx, in.FlightID, HoleInput{Seq: in.Seq, At: in.At, DeviceID: in.DeviceID})
-		return map[string]any{"status": r.Status, "currentSeq": r.CurrentSeq}, err
+		out, err := m.RecordHole(ctx, tx, in.FlightID, HoleInput{Seq: in.Seq, At: in.At, DeviceID: in.DeviceID})
+		return map[string]any{"status": out.Status, "currentSeq": out.CurrentSeq}, err
 	case "finish":
-		r, err := m.FinishRound(ctx, tx, in.FlightID, RoundEvent{At: in.At, DeviceID: in.DeviceID})
-		return map[string]any{"status": r.Status}, err
+		out, err := m.FinishRound(ctx, tx, in.FlightID, RoundEvent{At: in.At, DeviceID: in.DeviceID})
+		return map[string]any{"status": out.Status}, err
 	case "score":
 		if in.ScorecardID == nil {
 			return nil, errs.Validation("scorecard_required", "scorecardId is required")

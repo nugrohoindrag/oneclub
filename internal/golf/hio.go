@@ -17,8 +17,6 @@ import (
 	"oneclub/internal/platform/approval"
 	"oneclub/internal/platform/audit"
 	"oneclub/internal/platform/handle"
-	"oneclub/internal/platform/numbering"
-	"oneclub/internal/platform/pdf"
 	"oneclub/internal/platform/storage"
 )
 
@@ -30,10 +28,10 @@ type Witness struct {
 // HIO is a Hole-in-One record.
 type HIO struct {
 	ID              uuid.UUID  `json:"id" db:"id"`
-	HIONo           string     `json:"hioNo" db:"hio_no"`
+	Number          string     `json:"number" db:"number"`
 	ScorecardID     *uuid.UUID `json:"scorecardId" db:"scorecard_id"`
 	FlightID        *uuid.UUID `json:"flightId" db:"flight_id"`
-	PlayerID        *uuid.UUID `json:"playerId" db:"player_id"`
+	PlayerID        *uuid.UUID `json:"playerId" db:"booking_player_id" doc:"Booking player"`
 	CustomerID      *uuid.UUID `json:"customerId" db:"customer_id"`
 	PlayerName      string     `json:"playerName" db:"player_name"`
 	HoleID          uuid.UUID  `json:"holeId" db:"hole_id"`
@@ -57,7 +55,7 @@ type HIO struct {
 	CreatedAt       time.Time  `json:"createdAt" db:"created_at"`
 }
 
-const hioSelect = `SELECT r.id, r.hio_no, r.scorecard_id, r.flight_id, r.player_id, r.customer_id, r.player_name, r.hole_id,
+const hioSelect = `SELECT r.id, r.number, r.scorecard_id, r.flight_id, r.booking_player_id, r.customer_id, r.player_name, r.hole_id,
 	s.code || '-' || h.number AS hole_label, r.tee_set_id, r.caddy_id, r.achieved_on, r.witnesses, r.attachments, r.insured, r.policy_ref, r.status,
 	r.approval_request_id, r.verified_at, r.claim_submitted_on, r.claim_provider_ref, r.claim_documents, r.claim_status,
 	trim_scale(r.claim_paid_amount)::text AS claim_paid_amount, r.notes, r.created_at
@@ -74,26 +72,26 @@ func (m *Module) draftHIO(ctx context.Context, tx pgx.Tx, sc Scorecard, h ScoreH
 	if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.hio_records WHERE scorecard_id = $1 AND hole_id = $2)`, sc.ID, h.HoleID).Scan(&exists); err != nil || exists {
 		return err
 	}
-	var insured bool
-	var policy, caddy *string
-	if sc.PlayerID != nil {
-		_ = tx.QueryRow(ctx, `SELECT p.hio_insured, p.hio_policy_ref, (SELECT a.caddy_id::text FROM golf.caddy_assignments a WHERE a.flight_id = p.flight_id
-			AND (a.player_id IS NULL OR a.player_id = p.id) AND a.from_seq <= $2 AND coalesce(a.to_seq, 99) >= $2 AND a.status IN ('completed', 'replaced', 'active')
-			LIMIT 1) FROM golf.flight_players p WHERE p.id = $1`, *sc.PlayerID, h.Seq).Scan(&insured, &policy, &caddy)
+	var caddyID *uuid.UUID
+	if sc.PlayerID != nil && sc.FlightID != nil {
+		var c uuid.UUID
+		if err := tx.QueryRow(ctx, `SELECT a.caddy_id FROM golf.caddy_assignments a LEFT JOIN golf.hole_progress p ON p.flight_id = a.flight_id AND p.seq = $3
+			WHERE a.flight_id = $1 AND $2 = ANY(a.player_ids) AND a.status IN ('completed', 'replaced', 'in_play')
+			ORDER BY (p.started_at IS NOT NULL AND p.started_at >= coalesce(a.started_at, a.assigned_at) AND p.started_at < coalesce(a.finished_at, 'infinity')) DESC,
+			  a.assigned_at DESC LIMIT 1`, *sc.FlightID, *sc.PlayerID, h.Seq).Scan(&c); err == nil {
+			caddyID = &c
+		} else if !dbtx.IsNoRows(err) {
+			return err
+		}
 	}
-	no, err := numbering.Next(ctx, tx, sc.PropertyID, "HIO", localNow(ctx, tx))
+	no, err := number(ctx, tx, sc.PropertyID, "HIO")
 	if err != nil {
 		return err
 	}
 	hid := id.New()
-	var caddyID *uuid.UUID
-	if caddy != nil {
-		c, _ := uuid.Parse(*caddy)
-		caddyID = &c
-	}
-	if _, err := tx.Exec(ctx, `INSERT INTO golf.hio_records (id, property_id, hio_no, scorecard_id, flight_id, player_id, customer_id, player_name, hole_id,
-		tee_set_id, caddy_id, achieved_on, insured, policy_ref, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`, hid, sc.PropertyID, no,
-		sc.ID, sc.FlightID, sc.PlayerID, sc.CustomerID, sc.PlayerName, h.HoleID, sc.TeeSetID, caddyID, sc.PlayedOn, insured, policy, actor(ctx)); err != nil {
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.hio_records (id, property_id, number, scorecard_id, flight_id, booking_player_id, customer_id, player_name, hole_id,
+		tee_set_id, caddy_id, achieved_on, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`, hid, sc.PropertyID, no,
+		sc.ID, sc.FlightID, sc.PlayerID, sc.CustomerID, sc.PlayerName, h.HoleID, sc.TeeSetID, caddyID, sc.PlayedOn, actorPtr(ctx)); err != nil {
 		return err
 	}
 	return m.publish(ctx, tx, "golf.hio_recorded", "golf.hio_record", hid, sc.PropertyID, map[string]any{"hioId": hid, "customerId": sc.CustomerID})
@@ -132,7 +130,7 @@ func (m *Module) CreateHIO(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 	if err := handle.Required("playerName", name); err != nil {
 		return HIO{}, err
 	}
-	no, err := numbering.Next(ctx, tx, property, "HIO", localNow(ctx, tx))
+	no, err := number(ctx, tx, property, "HIO")
 	if err != nil {
 		return HIO{}, err
 	}
@@ -143,11 +141,11 @@ func (m *Module) CreateHIO(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 		in.Attachments = []string{}
 	}
 	hid := id.New()
-	if _, err := tx.Exec(ctx, `INSERT INTO golf.hio_records (id, property_id, hio_no, flight_id, customer_id, player_name, hole_id, tee_set_id, caddy_id,
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.hio_records (id, property_id, number, flight_id, customer_id, player_name, hole_id, tee_set_id, caddy_id,
 		achieved_on, witnesses, attachments, insured, policy_ref, notes, created_by)
 		SELECT $1,$2,$3,$4,$5,$6,h.id,$8,$9,$10,$11,$12,$13,$14,$15,$16 FROM golf.holes h WHERE h.id = $7 AND h.property_id = $2`,
 		hid, property, no, in.FlightID, in.CustomerID, name, in.HoleID, in.TeeSetID, in.CaddyID, d, jsonOf(in.Witnesses), in.Attachments, in.Insured,
-		nzs(in.PolicyRef), nzs(in.Notes), actor(ctx)); err != nil {
+		nullStr(in.PolicyRef), nullStr(in.Notes), actorPtr(ctx)); err != nil {
 		return HIO{}, err
 	}
 	r, err := m.hio(ctx, tx, hid)
@@ -180,10 +178,10 @@ func (m *Module) SubmitHIO(ctx context.Context, tx pgx.Tx, property, hid uuid.UU
 		in.Attachments = r.Attachments
 	}
 	if _, err := tx.Exec(ctx, `UPDATE golf.hio_records SET witnesses = $2, attachments = $3, notes = coalesce($4, notes), status = 'pending_verification',
-		updated_by = $5 WHERE id = $1`, hid, jsonOf(in.Witnesses), in.Attachments, nzs(in.Notes), actor(ctx)); err != nil {
+		updated_by = $5 WHERE id = $1`, hid, jsonOf(in.Witnesses), in.Attachments, nullStr(in.Notes), actorPtr(ctx)); err != nil {
 		return r, err
 	}
-	rid, _, err := m.Approvals.Submit(ctx, tx, approval.SubmitRequest{DocumentType: HIOType.Code, DocumentID: hid, DocumentRef: r.HIONo,
+	rid, _, err := m.Approvals.Submit(ctx, tx, approval.SubmitRequest{DocumentType: HIOType.Code, DocumentID: hid, DocumentRef: r.Number,
 		Title: "Hole-in-One verification · " + r.PlayerName + " · " + r.HoleLabel, PropertyID: property})
 	if err != nil {
 		return r, err
@@ -195,7 +193,7 @@ func (m *Module) SubmitHIO(ctx context.Context, tx pgx.Tx, property, hid uuid.UU
 	if err != nil {
 		return after, err
 	}
-	return after, record(ctx, tx, "golf.hio_record", hid, r.HIONo, "submit", property, r, after, "")
+	return after, record(ctx, tx, "golf.hio_record", hid, r.Number, "submit", property, r, after, "")
 }
 
 func (m *Module) hioDecision(ctx context.Context, tx pgx.Tx, d approval.Decision) error {
@@ -211,9 +209,7 @@ func (m *Module) hioDecision(ctx context.Context, tx pgx.Tx, d approval.Decision
 	}
 	// Automatic Hall of Fame entry (FR-HIO-05), subject to the player's opt-in.
 	sc := Scorecard{PropertyID: d.PropertyID, CustomerID: r.CustomerID, PlayerName: r.PlayerName, PlayedOn: r.AchievedOn}
-	if r.TeeSetID != nil {
-		sc.TeeSetID = *r.TeeSetID
-	}
+	sc.TeeSetID = r.TeeSetID
 	one := 1
 	if err := m.autoEntry(ctx, tx, sc, "hole_in_one", "Hole-in-One · hole "+r.HoleLabel, &r.HoleID, &one, "golf.hio_record", r.ID, false); err != nil {
 		return err
@@ -249,11 +245,11 @@ func (m *Module) ClaimHIO(ctx context.Context, tx pgx.Tx, property, hid uuid.UUI
 		docs = []string{}
 	}
 	if m.Files != nil && m.Files.Blob != nil {
-		var doc pdf.Doc
-		doc.Title = "Hole-in-One Claim " + r.HIONo
+		doc := newTextDoc()
+		doc.Title = "Hole-in-One Claim " + r.Number
 		doc.Heading("Hole-in-One Insurance Claim", 16)
 		doc.Blank()
-		doc.Add("Record: %s", r.HIONo)
+		doc.Add("Record: %s", r.Number)
 		doc.Add("Player: %s", r.PlayerName)
 		doc.Add("Hole: %s", r.HoleLabel)
 		doc.Add("Date: %s", r.AchievedOn.Format("2 January 2006"))
@@ -267,21 +263,21 @@ func (m *Module) ClaimHIO(ctx context.Context, tx pgx.Tx, property, hid uuid.UUI
 		doc.Blank()
 		doc.Add("Verified: %s", r.VerifiedAt.Format("2 January 2006 15:04 MST"))
 		b := doc.Bytes()
-		f, err := m.Files.Save(ctx, tx, "hio-claim-"+r.HIONo+".pdf", "application/pdf", "attachment", false, bytes.NewReader(b), int64(len(b)))
+		f, err := m.Files.Save(ctx, tx, "hio-claim-"+r.Number+".pdf", "application/pdf", "attachment", false, bytes.NewReader(b), int64(len(b)))
 		if err != nil {
 			return r, err
 		}
 		docs = append(docs, storage.URLFor(f.ID))
 	}
 	if _, err := tx.Exec(ctx, `UPDATE golf.hio_records SET status = 'claimed', claim_submitted_on = $2, claim_provider_ref = $3, claim_documents = $4,
-		claim_status = 'submitted', updated_by = $5 WHERE id = $1`, hid, d, nzs(in.ProviderRef), docs, actor(ctx)); err != nil {
+		claim_status = 'submitted', updated_by = $5 WHERE id = $1`, hid, d, nullStr(in.ProviderRef), docs, actorPtr(ctx)); err != nil {
 		return r, err
 	}
 	after, err := m.hio(ctx, tx, hid)
 	if err != nil {
 		return after, err
 	}
-	return after, record(ctx, tx, "golf.hio_record", hid, r.HIONo, "claim", property, r, after, "")
+	return after, record(ctx, tx, "golf.hio_record", hid, r.Number, "claim", property, r, after, "")
 }
 
 type ClaimUpdateInput struct {
@@ -322,14 +318,14 @@ func (m *Module) UpdateClaim(ctx context.Context, tx pgx.Tx, property, hid uuid.
 		paid = &s
 	}
 	if _, err := tx.Exec(ctx, `UPDATE golf.hio_records SET claim_status = $2, claim_paid_amount = coalesce($3::numeric, claim_paid_amount),
-		claim_provider_ref = coalesce($4, claim_provider_ref), status = $5, updated_by = $6 WHERE id = $1`, hid, in.ClaimStatus, paid, nzs(in.ProviderRef), status, actor(ctx)); err != nil {
+		claim_provider_ref = coalesce($4, claim_provider_ref), status = $5, updated_by = $6 WHERE id = $1`, hid, in.ClaimStatus, paid, nullStr(in.ProviderRef), status, actorPtr(ctx)); err != nil {
 		return r, err
 	}
 	after, err := m.hio(ctx, tx, hid)
 	if err != nil {
 		return after, err
 	}
-	return after, record(ctx, tx, "golf.hio_record", hid, r.HIONo, audit.ActionStatusChange, property, r, after, "")
+	return after, record(ctx, tx, "golf.hio_record", hid, r.Number, audit.ActionStatusChange, property, r, after, "")
 }
 
 // ── Hall of Fame (EP-11) ──────────────────────────────────────────────────
@@ -343,17 +339,14 @@ func (m *Module) autoEntry(ctx context.Context, tx pgx.Tx, sc Scorecard, categor
 	if err != nil {
 		return err
 	}
-	var tee *uuid.UUID
-	if sc.TeeSetID != uuid.Nil {
-		tee = &sc.TeeSetID
-	}
+	tee := sc.TeeSetID
 	year := sc.PlayedOn.Year()
 	_, err = tx.Exec(ctx, `INSERT INTO golf.hall_of_fame (id, property_id, category, title, year, customer_id, player_name, tee_set_id, hole_id, score, achieved_on,
 		source_type, source_id, needs_verification, published, published_at, created_by)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15, CASE WHEN $15 THEN now() END,$16)
 		ON CONFLICT (source_type, source_id, category) WHERE source_id IS NOT NULL DO UPDATE SET score = EXCLUDED.score`,
 		id.New(), sc.PropertyID, category, title, year, sc.CustomerID, sc.PlayerName, tee, hole, score, sc.PlayedOn, srcType, src, verify,
-		pol.AutoPublish && !verify, actor(ctx))
+		pol.AutoPublish && !verify, actorPtr(ctx))
 	return err
 }
 

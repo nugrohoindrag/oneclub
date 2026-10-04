@@ -26,7 +26,7 @@ type ScoreHole struct {
 	HoleNumber  int        `json:"holeNumber" db:"hole_number"`
 	SectionCode string     `json:"sectionCode" db:"section_code"`
 	Par         int        `json:"par" db:"par"`
-	StrokeIndex int        `json:"strokeIndex" db:"stroke_index"`
+	StrokeIndex *int       `json:"strokeIndex" db:"stroke_index"`
 	Strokes     *int       `json:"strokes" db:"strokes"`
 	Putts       *int       `json:"putts" db:"putts"`
 	Penalties   *int       `json:"penalties" db:"penalties"`
@@ -40,18 +40,18 @@ type Scorecard struct {
 	ID           uuid.UUID   `json:"id" db:"id"`
 	PropertyID   uuid.UUID   `json:"propertyId" db:"property_id"`
 	FlightID     *uuid.UUID  `json:"flightId" db:"flight_id"`
-	PlayerID     *uuid.UUID  `json:"playerId" db:"player_id"`
+	PlayerID     *uuid.UUID  `json:"playerId" db:"booking_player_id" doc:"Booking player"`
 	CustomerID   *uuid.UUID  `json:"customerId" db:"customer_id"`
 	PlayerName   string      `json:"playerName" db:"player_name"`
-	RouteID      uuid.UUID   `json:"routeId" db:"route_id"`
-	RouteName    string      `json:"routeName" db:"route_name"`
-	TeeSetID     uuid.UUID   `json:"teeSetId" db:"tee_set_id"`
-	TeeSetName   string      `json:"teeSetName" db:"tee_set_name"`
+	RouteID      uuid.UUID   `json:"playingRouteId" db:"playing_route_id"`
+	RouteName    string      `json:"playingRouteName" db:"route_name"`
+	TeeSetID     *uuid.UUID  `json:"teeSetId" db:"tee_set_id"`
+	TeeSetName   *string     `json:"teeSetName" db:"tee_set_name"`
 	PlayedOn     time.Time   `json:"playedOn" db:"played_on"`
 	Holes        int         `json:"holes" db:"holes"`
 	Par          int         `json:"par" db:"par"`
-	CourseRating string      `json:"courseRating" db:"course_rating"`
-	SlopeRating  int         `json:"slopeRating" db:"slope_rating"`
+	CourseRating *string     `json:"courseRating" db:"course_rating"`
+	SlopeRating  *int        `json:"slopeRating" db:"slope"`
 	Gross        *int        `json:"gross" db:"gross"`
 	Putts        *int        `json:"putts" db:"putts"`
 	Differential *string     `json:"differential" db:"differential"`
@@ -62,10 +62,10 @@ type Scorecard struct {
 	Scores       []ScoreHole `json:"scores" db:"-"`
 }
 
-const scorecardSelect = `SELECT s.id, s.property_id, s.flight_id, s.player_id, s.customer_id, s.player_name, s.route_id, r.name AS route_name, s.tee_set_id,
-	t.name AS tee_set_name, s.played_on, s.holes, s.par, s.course_rating::text AS course_rating, s.slope_rating, s.gross, s.putts,
+const scorecardSelect = `SELECT s.id, s.property_id, s.flight_id, s.booking_player_id, s.customer_id, s.player_name, s.playing_route_id, r.name AS route_name, s.tee_set_id,
+	t.name AS tee_set_name, s.played_on, s.holes, s.par, s.course_rating::text AS course_rating, s.slope, s.gross, s.putts,
 	trim_scale(s.differential)::text AS differential, s.status, s.attested_by, s.flags, s.finalized_at
-	FROM golf.scorecards s JOIN golf.playing_routes r ON r.id = s.route_id JOIN golf.tee_sets t ON t.id = s.tee_set_id`
+	FROM golf.scorecards s JOIN golf.playing_routes r ON r.id = s.playing_route_id LEFT JOIN golf.tee_sets t ON t.id = s.tee_set_id`
 
 // GetScorecard loads a scorecard with its holes.
 func (m *Module) GetScorecard(ctx context.Context, q dbtx.Querier, sid uuid.UUID) (Scorecard, error) {
@@ -79,44 +79,35 @@ func (m *Module) GetScorecard(ctx context.Context, q dbtx.Querier, sid uuid.UUID
 	return sc, err
 }
 
-func (m *Module) openScorecard(ctx context.Context, tx pgx.Tx, f Flight, p Player, holes []RouteHole, at time.Time) error {
-	tee := p.TeeSetID
-	if tee == nil {
-		tee = f.TeeSetID
+// openScorecard opens a player's digital scorecard at tee-off; the tee set
+// follows the player's gender (or the first tee set of the course).
+func (m *Module) openScorecard(ctx context.Context, tx pgx.Tx, r Round, p RoundPlayer, holes []RouteHole, at time.Time) error {
+	if r.RouteID == nil || len(holes) == 0 {
+		return nil
 	}
-	if tee == nil {
-		var t uuid.UUID
-		if err := tx.QueryRow(ctx, `SELECT t.id FROM golf.tee_sets t JOIN golf.playing_routes r ON r.course_id = t.course_id
-			WHERE r.id = $1 AND t.status = 'active' ORDER BY t.code LIMIT 1`, f.RouteID).Scan(&t); err != nil {
-			if dbtx.IsNoRows(err) {
-				return nil // course without tee sets: no digital scorecard
-			}
-			return err
-		}
-		tee = &t
-	}
-	if tee != f.TeeSetID {
-		var err error
-		if holes, err = RouteHoles(ctx, tx, f.RouteID, tee); err != nil {
-			return err
-		}
+	var tee *uuid.UUID
+	if err := tx.QueryRow(ctx, `SELECT t.id FROM golf.tee_sets t LEFT JOIN crm.customers c ON c.id = $2
+		WHERE t.course_id = $1 AND t.status = 'active' AND t.archived_at IS NULL
+		ORDER BY (t.gender IS NOT DISTINCT FROM c.gender) DESC, (t.gender = 'any') DESC, t.sequence, t.code LIMIT 1`, r.CourseID, p.CustomerID).Scan(&tee); err != nil && !dbtx.IsNoRows(err) {
+		return err
 	}
 	par := 0
 	for _, h := range holes {
 		par += h.Par
 	}
 	sid := id.New()
-	tag, err := tx.Exec(ctx, `INSERT INTO golf.scorecards (id, property_id, flight_id, player_id, customer_id, player_name, route_id, tee_set_id, played_on,
-		holes, par, course_rating, slope_rating, created_by)
-		SELECT $1,$2,$3,$4,$5,$6,$7,t.id,$9,$10,$11,t.course_rating,t.slope_rating,$12 FROM golf.tee_sets t WHERE t.id = $8
-		ON CONFLICT (player_id) DO NOTHING`, sid, f.PropertyID, f.ID, p.ID, p.CustomerID, p.Name, f.RouteID, *tee,
-		at.In(localNow(ctx, tx).Location()).Format("2006-01-02"), len(holes), par, actor(ctx))
+	tag, err := tx.Exec(ctx, `INSERT INTO golf.scorecards (id, property_id, flight_id, booking_player_id, customer_id, player_name, playing_route_id, tee_set_id,
+		played_on, holes, par, course_rating, slope, created_by)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8::uuid,$9::date,$10,$11,(SELECT course_rating FROM golf.tee_sets WHERE id = $8::uuid),
+		(SELECT slope FROM golf.tee_sets WHERE id = $8::uuid),$12)
+		ON CONFLICT (booking_player_id) DO NOTHING`, sid, r.PropertyID, r.FlightID, p.ID, p.CustomerID, p.Name, *r.RouteID, tee,
+		at.In(location(ctx, tx, r.PropertyID)).Format("2006-01-02"), len(holes), par, actorPtr(ctx))
 	if err != nil || tag.RowsAffected() == 0 {
 		return err
 	}
 	for _, h := range holes {
 		if _, err := tx.Exec(ctx, `INSERT INTO golf.scorecard_holes (scorecard_id, property_id, seq, hole_id, hole_number, section_code, par, stroke_index)
-			VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`, sid, f.PropertyID, h.Seq, h.HoleID, h.Number, h.SectionCode, h.Par, h.StrokeIndex); err != nil {
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`, sid, r.PropertyID, h.Sequence, h.HoleID, h.Number, h.SectionCode, h.Par, h.StrokeIndex); err != nil {
 			return err
 		}
 	}
@@ -180,7 +171,7 @@ func (m *Module) EnterScores(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in S
 		}
 		same := eqInt(before.Strokes, e.Strokes) && eqInt(before.Putts, e.Putts) && eqInt(before.Penalties, e.Penalties)
 		if _, err := tx.Exec(ctx, `UPDATE golf.scorecard_holes SET strokes = coalesce($3, strokes), putts = coalesce($4, putts), penalties = coalesce($5, penalties),
-			source = $6, entered_at = $7, entered_by = $8 WHERE scorecard_id = $1 AND seq = $2`, sid, e.Seq, e.Strokes, e.Putts, e.Penalties, in.Source, at, actor(ctx)); err != nil {
+			source = $6, entered_at = $7, entered_by = $8 WHERE scorecard_id = $1 AND seq = $2`, sid, e.Seq, e.Strokes, e.Putts, e.Penalties, in.Source, at, actorPtr(ctx)); err != nil {
 			return Scorecard{}, err
 		}
 		if same {
@@ -189,7 +180,7 @@ func (m *Module) EnterScores(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in S
 		if _, err := tx.Exec(ctx, `INSERT INTO golf.score_audit (id, property_id, scorecard_id, seq, kind, before, after, source, device_id, client_at, created_by)
 			VALUES ($1,$2,$3,$4,'entry',$5,$6,$7,$8,$9,$10)`, id.New(), pid, sid, e.Seq,
 			map[string]any{"strokes": before.Strokes, "putts": before.Putts, "penalties": before.Penalties},
-			map[string]any{"strokes": e.Strokes, "putts": e.Putts, "penalties": e.Penalties}, in.Source, nzs(in.DeviceID), at, actor(ctx)); err != nil {
+			map[string]any{"strokes": e.Strokes, "putts": e.Putts, "penalties": e.Penalties}, in.Source, nullStr(in.DeviceID), at, actorPtr(ctx)); err != nil {
 			return Scorecard{}, err
 		}
 	}
@@ -305,7 +296,7 @@ func (m *Module) SubmitScorecard(ctx context.Context, tx pgx.Tx, sid uuid.UUID, 
 	if len(missing) > 0 {
 		return sc, errs.Validation("incomplete", "scores are missing for holes "+join(missing))
 	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.scorecards SET status = 'submitted', attested_by = coalesce($2, attested_by) WHERE id = $1`, sid, nzs(in.AttestedBy)); err != nil {
+	if _, err := tx.Exec(ctx, `UPDATE golf.scorecards SET status = 'submitted', attested_by = coalesce($2, attested_by) WHERE id = $1`, sid, nullStr(in.AttestedBy)); err != nil {
 		return sc, err
 	}
 	after, err := m.GetScorecard(ctx, tx, sid)
@@ -349,7 +340,7 @@ func (m *Module) FinalizeScorecard(ctx context.Context, tx pgx.Tx, sid uuid.UUID
 			return sc, errs.Validation("incomplete", "every hole needs a score before finalization")
 		}
 	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.scorecards SET status = 'finalized', finalized_at = now(), finalized_by = $2 WHERE id = $1`, sid, actor(ctx)); err != nil {
+	if _, err := tx.Exec(ctx, `UPDATE golf.scorecards SET status = 'finalized', finalized_at = now(), finalized_by = $2 WHERE id = $1`, sid, actorPtr(ctx)); err != nil {
 		return sc, err
 	}
 	if err := m.afterFinal(ctx, tx, sid); err != nil {
@@ -372,9 +363,8 @@ func (m *Module) afterFinal(ctx context.Context, tx pgx.Tx, sid uuid.UUID) error
 	if err != nil {
 		return err
 	}
-	if sc.CustomerID != nil && sc.Holes == 18 {
-		var idx *string
-		_ = tx.QueryRow(ctx, `SELECT coalesce(official_index, local_index)::text FROM golf.handicaps WHERE customer_id = $1`, *sc.CustomerID).Scan(&idx)
+	if sc.CustomerID != nil && sc.Holes == 18 && sc.CourseRating != nil && sc.SlopeRating != nil {
+		idx := currentHandicap(ctx, tx, *sc.CustomerID)
 		diff := differential(sc, idx)
 		if _, err := tx.Exec(ctx, `UPDATE golf.scorecards SET differential = $2::numeric WHERE id = $1`, sid, diff.String()); err != nil {
 			return err
@@ -407,12 +397,12 @@ func (m *Module) afterFinal(ctx context.Context, tx pgx.Tx, sid uuid.UUID) error
 	}
 	if sc.Gross != nil && sc.Holes >= pol.CourseRecordMinHoles {
 		var best *int
-		if err := tx.QueryRow(ctx, `SELECT min(gross) FROM golf.scorecards WHERE tee_set_id = $1 AND route_id = $2 AND status = 'finalized' AND id <> $3`,
+		if err := tx.QueryRow(ctx, `SELECT min(gross) FROM golf.scorecards WHERE tee_set_id IS NOT DISTINCT FROM $1 AND playing_route_id = $2 AND status = 'finalized' AND id <> $3`,
 			sc.TeeSetID, sc.RouteID, sid).Scan(&best); err != nil {
 			return err
 		}
 		if best != nil && *sc.Gross < *best {
-			if err := m.autoEntry(ctx, tx, sc, "course_record", "Course Record · "+sc.TeeSetName+" · "+sc.RouteName, nil, sc.Gross, "golf.scorecard", sid, true); err != nil {
+			if err := m.autoEntry(ctx, tx, sc, "course_record", "Course Record · "+deref(sc.TeeSetName)+" · "+sc.RouteName, nil, sc.Gross, "golf.scorecard", sid, true); err != nil {
 				return err
 			}
 		}
@@ -423,12 +413,13 @@ func (m *Module) afterFinal(ctx context.Context, tx pgx.Tx, sid uuid.UUID) error
 // differential = (113 / slope) × (adjusted gross − course rating); each hole
 // is capped at net double bogey (WHS), or par + 5 without a handicap.
 func differential(sc Scorecard, index *string) decimal.Decimal {
-	cr, _ := decimal.NewFromString(sc.CourseRating)
+	cr, _ := decimal.NewFromString(*sc.CourseRating)
+	slope := *sc.SlopeRating
 	var courseHcp int
 	hasIndex := index != nil
 	if hasIndex {
 		hi, _ := decimal.NewFromString(*index)
-		v, _ := hi.Mul(decimal.NewFromInt(int64(sc.SlopeRating))).Div(decimal.NewFromInt(113)).Add(cr).Sub(decimal.NewFromInt(int64(sc.Par))).Float64()
+		v, _ := hi.Mul(decimal.NewFromInt(int64(slope))).Div(decimal.NewFromInt(113)).Add(cr).Sub(decimal.NewFromInt(int64(sc.Par))).Float64()
 		courseHcp = int(math.Round(v))
 	}
 	adj := 0
@@ -439,7 +430,11 @@ func differential(sc Scorecard, index *string) decimal.Decimal {
 			received := 0
 			if courseHcp > 0 {
 				received = courseHcp / 18
-				if h.StrokeIndex <= courseHcp%18 {
+				si := h.Seq
+				if h.StrokeIndex != nil {
+					si = *h.StrokeIndex
+				}
+				if si <= courseHcp%18 {
 					received++
 				}
 			}
@@ -447,7 +442,7 @@ func differential(sc Scorecard, index *string) decimal.Decimal {
 		}
 		adj += min(s, limit)
 	}
-	return decimal.NewFromInt(113).Div(decimal.NewFromInt(int64(sc.SlopeRating))).Mul(decimal.NewFromInt(int64(adj)).Sub(cr)).Round(1)
+	return decimal.NewFromInt(113).Div(decimal.NewFromInt(int64(slope))).Mul(decimal.NewFromInt(int64(adj)).Sub(cr)).Round(1)
 }
 
 // whsCount maps the number of differentials to (best n, adjustment).
@@ -503,9 +498,17 @@ func (m *Module) recomputeHandicap(ctx context.Context, tx pgx.Tx, property, cus
 		s := decimal.NewFromFloat(v).StringFixed(1)
 		index = &s
 	}
-	_, err = tx.Exec(ctx, `INSERT INTO golf.handicaps (property_id, customer_id, local_index, rounds_counted, computed_at) VALUES ($1,$2,$3::numeric,$4,now())
-		ON CONFLICT (property_id, customer_id) DO UPDATE SET local_index = EXCLUDED.local_index, rounds_counted = EXCLUDED.rounds_counted, computed_at = now()`,
-		property, customer, index, len(diffs))
+	if index == nil {
+		return nil
+	}
+	var last *string
+	_ = tx.QueryRow(ctx, `SELECT trim_scale(handicap_index)::text FROM golf.handicaps WHERE customer_id = $1 AND source = 'whs' ORDER BY effective_at DESC LIMIT 1`,
+		customer).Scan(&last)
+	if last != nil && dec(*last).Equal(dec(*index)) {
+		return nil
+	}
+	_, err = tx.Exec(ctx, `INSERT INTO golf.handicaps (id, property_id, customer_id, handicap_index, source, rounds_counted, notes, created_by)
+		VALUES ($1,$2,$3,$4::numeric,'whs',$5,'WHS index from finalized scorecards',$6)`, id.New(), property, customer, *index, len(diffs), actorPtr(ctx))
 	return err
 }
 
@@ -539,13 +542,13 @@ func (m *Module) CorrectScorecard(ctx context.Context, tx pgx.Tx, sid uuid.UUID,
 		}
 		b := sc.Scores[e.Seq-1]
 		if _, err := tx.Exec(ctx, `UPDATE golf.scorecard_holes SET strokes = coalesce($3, strokes), putts = coalesce($4, putts), penalties = coalesce($5, penalties),
-			source = 'correction', entered_at = now(), entered_by = $6 WHERE scorecard_id = $1 AND seq = $2`, sid, e.Seq, e.Strokes, e.Putts, e.Penalties, actor(ctx)); err != nil {
+			source = 'correction', entered_at = now(), entered_by = $6 WHERE scorecard_id = $1 AND seq = $2`, sid, e.Seq, e.Strokes, e.Putts, e.Penalties, actorPtr(ctx)); err != nil {
 			return sc, err
 		}
 		if _, err := tx.Exec(ctx, `INSERT INTO golf.score_audit (id, property_id, scorecard_id, seq, kind, before, after, reason, source, created_by)
 			VALUES ($1,$2,$3,$4,'correction',$5,$6,$7,'staff',$8)`, id.New(), sc.PropertyID, sid, e.Seq,
 			map[string]any{"strokes": b.Strokes, "putts": b.Putts, "penalties": b.Penalties},
-			map[string]any{"strokes": e.Strokes, "putts": e.Putts, "penalties": e.Penalties}, in.Reason, actor(ctx)); err != nil {
+			map[string]any{"strokes": e.Strokes, "putts": e.Putts, "penalties": e.Penalties}, in.Reason, actorPtr(ctx)); err != nil {
 			return sc, err
 		}
 	}
@@ -615,7 +618,9 @@ func (m *Module) Stats(ctx context.Context, q dbtx.Querier, customer uuid.UUID, 
 		Scan(&st.AveragePar3, &st.AveragePar4, &st.AveragePar5, &st.BirdiesOrBetter); err != nil {
 		return st, err
 	}
-	_ = q.QueryRow(ctx, `SELECT local_index::text, official_index::text FROM golf.handicaps WHERE customer_id = $1`, customer).Scan(&st.HandicapIndex, &st.OfficialIndex)
+	_ = q.QueryRow(ctx, `SELECT (SELECT trim_scale(handicap_index)::text FROM golf.handicaps WHERE customer_id = $1 AND source = 'whs' ORDER BY effective_at DESC LIMIT 1),
+		(SELECT trim_scale(handicap_index)::text FROM golf.handicaps WHERE customer_id = $1 AND source = 'federation' ORDER BY effective_at DESC LIMIT 1)`, customer).
+		Scan(&st.HandicapIndex, &st.OfficialIndex)
 	var err error
 	st.History, err = handle.List[Scorecard](q.Query(ctx, scorecardSelect+` WHERE s.customer_id = $1 ORDER BY s.played_on DESC, s.created_at DESC LIMIT $2`, customer, limit))
 	return st, err
@@ -635,16 +640,16 @@ type HoleTime struct {
 // RoundTimes returns Hole Progress / Hole Duration / Round Duration.
 type RoundTimes struct {
 	FlightID     uuid.UUID  `json:"flightId"`
-	TeedOffAt    *time.Time `json:"teedOffAt"`
-	FinishedAt   *time.Time `json:"finishedAt"`
+	TeeOffAt     *time.Time `json:"teeOffAt"`
+	FinishedAt   *time.Time `json:"roundFinishAt"`
 	RoundMinutes *string    `json:"roundMinutes"`
 	Holes        []HoleTime `json:"holes"`
 }
 
 func (m *Module) RoundTimes(ctx context.Context, q dbtx.Querier, fid uuid.UUID) (RoundTimes, error) {
 	rt := RoundTimes{FlightID: fid}
-	if err := q.QueryRow(ctx, `SELECT teed_off_at, finished_at, trim_scale(round((extract(epoch FROM finished_at - teed_off_at) / 60)::numeric, 1))::text
-		FROM golf.flights WHERE id = $1`, fid).Scan(&rt.TeedOffAt, &rt.FinishedAt, &rt.RoundMinutes); err != nil {
+	if err := q.QueryRow(ctx, `SELECT tee_off_at, round_finish_at, trim_scale(round((extract(epoch FROM round_finish_at - tee_off_at) / 60)::numeric, 1))::text
+		FROM golf.flights WHERE id = $1`, fid).Scan(&rt.TeeOffAt, &rt.FinishedAt, &rt.RoundMinutes); err != nil {
 		if dbtx.IsNoRows(err) {
 			return rt, errs.NotFound("flight")
 		}
@@ -672,10 +677,17 @@ func (m *Module) SetOfficialHandicap(ctx context.Context, tx pgx.Tx, property, c
 	if v.IsNegative() || v.GreaterThan(decimal.NewFromInt(54)) {
 		return handle.Invalid("index", "invalid_index", "handicap index must be between 0 and 54")
 	}
-	if _, err := tx.Exec(ctx, `INSERT INTO golf.handicaps (property_id, customer_id, official_index, official_source, official_updated_at)
-		VALUES ($1,$2,$3::numeric,$4,now()) ON CONFLICT (property_id, customer_id) DO UPDATE SET official_index = EXCLUDED.official_index,
-		official_source = EXCLUDED.official_source, official_updated_at = now()`, property, customer, v.String(), nzs(in.Source)); err != nil {
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.handicaps (id, property_id, customer_id, handicap_index, source, notes, created_by)
+		VALUES ($1,$2,$3,$4::numeric,'federation',$5,$6)`, id.New(), property, customer, v.String(), nullStr(in.Source), actorPtr(ctx)); err != nil {
 		return err
 	}
 	return record(ctx, tx, "golf.handicap", customer, "official handicap", audit.ActionUpdate, property, nil, in, "")
+}
+
+// currentHandicap is the latest handicap index of P1's history (manual,
+// import, WHS or federation).
+func currentHandicap(ctx context.Context, q dbtx.Querier, customer uuid.UUID) *string {
+	var idx *string
+	_ = q.QueryRow(ctx, `SELECT trim_scale(handicap_index)::text FROM golf.handicaps WHERE customer_id = $1 ORDER BY effective_at DESC LIMIT 1`, customer).Scan(&idx)
+	return idx
 }

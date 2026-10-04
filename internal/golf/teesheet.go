@@ -16,6 +16,7 @@ import (
 
 	"oneclub/internal/billing"
 	"oneclub/internal/commercial"
+	"oneclub/internal/crm"
 	"oneclub/internal/kernel/authz"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/config"
@@ -33,6 +34,8 @@ import (
 	"oneclub/internal/platform/notify"
 	"oneclub/internal/platform/org"
 	"oneclub/internal/platform/realtime"
+	"oneclub/internal/platform/storage"
+	"oneclub/internal/reservation"
 )
 
 // Publisher publishes domain events.
@@ -52,6 +55,12 @@ type Module struct {
 	Integrations *integration.Service
 	Cfg          *config.Config
 	Limiter      *ratelimit.Limiter
+	// P2 (EP-05 … EP-13)
+	Commercial   *commercial.Module  // on-course F&B orders from the Caddy Tablet
+	Reservations *reservation.Engine // driving range bays as bookable resources
+	CRM          *crm.Module         // post-round feedback, caddy-recorded preferences
+	Files        *storage.Files      // HIO claim package, introduction letters
+	GPS          GPSAdapter          // golf cart positions (vendor adapter)
 }
 
 func prop(ctx context.Context) uuid.UUID {
@@ -1052,13 +1061,14 @@ func (m *Module) cancelBlock(w http.ResponseWriter, r *http.Request) {
 // ── playing route holes (FR-CRS-03) ───────────────────────────────────────
 
 type RouteHole struct {
-	Sequence    int             `json:"sequence"`
-	HoleID      uuid.UUID       `json:"holeId"`
-	Number      int             `json:"number"`
-	Par         int             `json:"par"`
-	StrokeIndex *int            `json:"strokeIndex"`
-	SectionCode string          `json:"sectionCode"`
-	Distances   json.RawMessage `json:"distances"`
+	Sequence      int             `json:"sequence"`
+	HoleID        uuid.UUID       `json:"holeId"`
+	Number        int             `json:"number"`
+	Par           int             `json:"par"`
+	StrokeIndex   *int            `json:"strokeIndex"`
+	SectionCode   string          `json:"sectionCode"`
+	Distances     json.RawMessage `json:"distances"`
+	TargetMinutes int             `json:"targetMinutes" doc:"Pace of play target (PRD P2 FR-PLX-04)"`
 }
 
 type RouteHoles struct {
@@ -1085,14 +1095,14 @@ func LoadRouteHoles(ctx context.Context, q dbtx.Querier, routeID uuid.UUID) (Rou
 	rh.Holes = []RouteHole{}
 	seq := 0
 	for _, sc := range strings.Split(codes, ",") {
-		rows, err := q.Query(ctx, `SELECT h.id, h.number, h.par, h.stroke_index, s.code, h.distances FROM golf.holes h JOIN golf.course_sections s ON s.id = h.section_id
+		rows, err := q.Query(ctx, `SELECT h.id, h.number, h.par, h.stroke_index, s.code, h.distances, h.target_minutes FROM golf.holes h JOIN golf.course_sections s ON s.id = h.section_id
 			WHERE s.course_id = $1 AND s.code = $2 AND h.status = 'active' ORDER BY h.number`, course, sc)
 		if err != nil {
 			return rh, err
 		}
 		for rows.Next() {
 			var h RouteHole
-			if err := rows.Scan(&h.HoleID, &h.Number, &h.Par, &h.StrokeIndex, &h.SectionCode, &h.Distances); err != nil {
+			if err := rows.Scan(&h.HoleID, &h.Number, &h.Par, &h.StrokeIndex, &h.SectionCode, &h.Distances, &h.TargetMinutes); err != nil {
 				rows.Close()
 				return rh, err
 			}

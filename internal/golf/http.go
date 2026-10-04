@@ -1117,6 +1117,7 @@ func (m *Module) policiesHTTP(w http.ResponseWriter, r *http.Request) {
 
 // RegisterSync registers the offline actions of the Operational Staff app.
 func (m *Module) RegisterSync(s *syncsvc.Service) {
+	s.Handle("golf.round", m.SyncHandler)
 	s.Handle("golf.check_in", func(ctx context.Context, tx pgx.Tx, payload json.RawMessage) (any, error) {
 		var req CheckInRequest
 		if err := json.Unmarshal(payload, &req); err != nil {
@@ -1302,4 +1303,5 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/bag-storage/{id}:end", Tag: tk, Summary: "End a bag storage", Permission: "golf.bag.manage",
 		Response: BagStorage{}, Status: http.StatusOK, Handler: m.endBagHTTP})
 	m.registerPortal(reg)
+	m.registerP2(reg, eng)
 }

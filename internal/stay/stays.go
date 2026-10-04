@@ -684,7 +684,7 @@ func (m *Module) CheckIn(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Check
 		}
 		if amt.IsPositive() {
 			if _, err := m.Billing.TakePayment(ctx, tx, billing.PaymentInput{FolioID: s.FolioID, Purpose: "deposit", MethodType: in.Deposit.MethodType,
-				Amount: amt, Reference: in.Deposit.Reference, }); err != nil {
+				Amount: amt, Reference: in.Deposit.Reference}); err != nil {
 				return StayResult{}, err
 			}
 		}

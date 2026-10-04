@@ -84,6 +84,7 @@ var Holes = &resource.Def{
 		{Name: "strokeIndex", Column: "stroke_index", Label: "Stroke Index", Kind: resource.Int, Min: resource.Min(1), MaxN: resource.Max(36)},
 		{Name: "distances", Column: "distances", Label: "Distance per tee set (m)", Kind: resource.JSON},
 		{Name: "description", Column: "description", Label: "Hole-by-Hole description", Kind: resource.Text, Max: 4000},
+		{Name: "targetMinutes", Column: "target_minutes", Label: "Pace target (minutes)", Kind: resource.Int, Default: int64(15), Min: resource.Min(5), MaxN: resource.Max(40)},
 		resource.Status("active", "inactive")},
 }
 
@@ -95,6 +96,7 @@ var PlayingRoutes = &resource.Def{
 			Pattern: regexp.MustCompile(`^[A-Z0-9_-]+(,[A-Z0-9_-]+)*$`), PatternMsg: "comma separated section codes"},
 		{Name: "holeCount", Column: "hole_count", Label: "Holes", Kind: resource.Int, ReadOnly: true},
 		{Name: "isDefault", Column: "is_default", Label: "Default route", Kind: resource.Bool, Default: false},
+		{Name: "toleranceMinutes", Column: "tolerance_minutes", Label: "Pace tolerance (minutes)", Kind: resource.Int, Default: int64(10), Min: resource.Min(0)},
 		resource.Status("active", "inactive")},
 }
 
@@ -147,6 +149,11 @@ var Caddies = &resource.Def{
 		{Name: "phone", Column: "phone", Label: "Phone", Kind: resource.String, Max: 40},
 		{Name: "photoFileId", Column: "photo_file_id", Label: "Photo", Kind: resource.UUID, Ref: &resource.Ref{Table: "platform.files", Label: "photo"}},
 		{Name: "partnershipStatus", Column: "partnership_status", Label: "Partnership", Kind: resource.Enum, Enum: []string{"partner", "trainee", "employee"}, Default: "partner", Filter: true},
+		// P2 (EP-05 / EP-06): level and Caddy Tablet login
+		{Name: "levelId", Column: "level_id", Label: "Caddy Level", Kind: resource.UUID, Filter: true,
+			Ref: &resource.Ref{Table: "golf.caddy_levels", SameProperty: true, Label: "caddy level"}},
+		{Name: "userId", Column: "user_id", Label: "Tablet User", Kind: resource.UUID, Ref: &resource.Ref{Table: "platform.users", Label: "user"}},
+		{Name: "joinedOn", Column: "joined_on", Label: "Joined On", Kind: resource.Date},
 		{Name: "legacyRef", Column: "legacy_ref", Label: "Rhapsody Reference", Kind: resource.String, Max: 60},
 		resource.Status("active", "inactive")},
 }
@@ -160,8 +167,13 @@ var GolfCarts = &resource.Def{
 		{Name: "cartType", Column: "cart_type", Label: "Type", Kind: resource.Enum, Enum: []string{"electric", "gasoline", "other"}, Default: "electric", Filter: true},
 		{Name: "capacity", Column: "capacity", Label: "Capacity", Kind: resource.Int, Default: int64(2), Min: resource.Min(1), MaxN: resource.Max(6)},
 		{Name: "readiness", Column: "readiness", Label: "Readiness", Kind: resource.Enum, ReadOnly: true, Filter: true,
-			Enum: []string{"ready", "not_ready", "in_use", "charging", "maintenance", "out_of_service"}},
+			Enum: []string{"ready", "not_ready", "in_use", "charging", "maintenance", "out_of_service", "under_inspection"}},
 		{Name: "readinessReason", Column: "readiness_reason", Label: "Readiness reason", Kind: resource.String, ReadOnly: true},
+		// P2 (EP-07): service hours and GPS
+		{Name: "serviceThresholdHours", Column: "service_threshold_hours", Label: "Service every (hours)", Kind: resource.Decimal, Min: resource.Min(0)},
+		{Name: "hoursSinceService", Column: "hours_since_service", Label: "Hours since service", Kind: resource.Decimal, ReadOnly: true},
+		{Name: "batteryPercent", Column: "battery_percent", Label: "Battery %", Kind: resource.Int, ReadOnly: true},
+		{Name: "gpsDeviceId", Column: "gps_device_id", Label: "GPS Device", Kind: resource.String, Max: 80},
 		{Name: "legacyRef", Column: "legacy_ref", Label: "Rhapsody Reference", Kind: resource.String, Max: 60},
 		resource.Status("active", "inactive")},
 }
@@ -267,8 +279,10 @@ func templateBeforeWrite(_ context.Context, _ pgx.Tx, v map[string]any, before m
 
 func p(obj string, actions ...string) []catalog.Permission { return catalog.P("golf", obj, actions...) }
 
-// Contribution returns catalogue entries.
-func Contribution() catalog.Contribution {
+// Contribution returns catalogue entries (P1 golf core + P2 golf experience).
+func Contribution() catalog.Contribution { return catalog.Merge(p1Contribution(), p2Contribution()) }
+
+func p1Contribution() catalog.Contribution {
 	perms := resource.Permissions(Courses, Caddies, GolfCarts, Lockers)
 	for _, x := range [][]catalog.Permission{
 		p("tee_sheet", "view", "create", "update", "delete", "export", "import", "manage"),

@@ -561,6 +561,9 @@ func (m *Module) Control(ctx context.Context, tx pgx.Tx, property, fid uuid.UUID
 			(SELECT golf_cart_id FROM golf.golf_cart_assignments WHERE flight_id = $1 AND status = 'in_use')`, fid); err != nil {
 			return out, err
 		}
+		if err := m.roundStarted(ctx, tx, property, fid, clock.Now()); err != nil {
+			return out, err
+		}
 		if _, err := m.Events.Publish(ctx, tx, EventFlightTeedOff, "golf.flight", &fid, &property, map[string]any{"flightId": fid, "courseId": course}); err != nil {
 			return out, err
 		}
@@ -598,6 +601,9 @@ func (m *Module) finishFlight(ctx context.Context, tx pgx.Tx, property, fid uuid
 	}
 	if _, err := tx.Exec(ctx, `UPDATE golf.caddy_assignments SET status = 'completed', finished_at = now(),
 		period = tstzrange(lower(period), greatest(lower(period) + interval '1 minute', now()), '[)') WHERE flight_id = $1 AND status IN ('assigned', 'in_play')`, fid); err != nil {
+		return err
+	}
+	if err := m.roundFinishing(ctx, tx, property, fid); err != nil {
 		return err
 	}
 	pol, err := LoadPolicies(ctx, tx, property, clock.Now())
@@ -781,7 +787,7 @@ type CaddyBoardEntry struct {
 
 // CaddyBoard lists caddies for a day in queue order (Caddy Queue).
 func CaddyBoard(ctx context.Context, q dbtx.Querier, property uuid.UUID, day time.Time, loc *time.Location) ([]CaddyBoardEntry, error) {
-	rows, err := q.Query(ctx, `SELECT c.id, c.code, c.name, c.gender, a.status, a.queue_no::float8, a.arrived_at, ca.id, ca.flight_id, ca.status, lower(ca.period),
+	rows, err := q.Query(ctx, `SELECT c.id, c.code, c.name, c.gender, CASE WHEN a.departed_at IS NOT NULL THEN NULL ELSE a.status END, a.queue_no::float8, a.arrived_at, ca.id, ca.flight_id, ca.status, lower(ca.period),
 		(SELECT count(*) FROM golf.caddy_assignments x WHERE x.caddy_id = c.id AND x.play_date = $2::date AND x.status IN ('assigned','in_play','completed'))
 		FROM golf.caddies c
 		LEFT JOIN golf.caddy_attendance a ON a.caddy_id = c.id AND a.work_date = $2::date
@@ -1104,15 +1110,14 @@ func (m *Module) AssignCaddies(ctx context.Context, tx pgx.Tx, property uuid.UUI
 				open = append(open, p)
 			}
 		}
-		board, err := CaddyBoard(ctx, tx, property, fi.day, loc)
+		// free caddies in the rotation order of the Caddy Policies (PRD P2 FR-CDL-04)
+		rotation, err := m.Rotation(ctx, tx, property, fi.day, nil)
 		if err != nil {
 			return nil, err
 		}
 		var avail []CaddyBoardEntry
-		for _, c := range board {
-			if c.Status == "available" {
-				avail = append(avail, c)
-			}
+		for _, c := range rotation {
+			avail = append(avail, CaddyBoardEntry{CaddyID: c.CaddyID, Code: c.Code, Name: c.Name})
 		}
 		// a requested caddy (from the booking) goes first when available
 		if fi.request != nil && pol.Caddy.AllowRequest {
@@ -1156,7 +1161,7 @@ func (m *Module) AssignCaddies(ctx context.Context, tx pgx.Tx, property uuid.UUI
 		}
 		var cstatus string
 		var att *string
-		if err := tx.QueryRow(ctx, `SELECT c.status, a.status FROM golf.caddies c LEFT JOIN golf.caddy_attendance a ON a.caddy_id = c.id AND a.work_date = $3::date
+		if err := tx.QueryRow(ctx, `SELECT c.status, CASE WHEN a.departed_at IS NOT NULL THEN NULL ELSE a.status END FROM golf.caddies c LEFT JOIN golf.caddy_attendance a ON a.caddy_id = c.id AND a.work_date = $3::date
 			WHERE c.id = $1 AND c.property_id = $2`, in.CaddyID, property, fi.day.Format("2006-01-02")).Scan(&cstatus, &att); err != nil {
 			return nil, errs.Validation("caddy_not_found", "caddy not found", errs.Field(field, "not_found", "caddy not found"))
 		}
@@ -1358,9 +1363,9 @@ type ReadinessRequest struct {
 // SetReadiness updates a golf cart's readiness state.
 func (m *Module) SetReadiness(ctx context.Context, tx pgx.Tx, property, cartID uuid.UUID, req ReadinessRequest) (CartBoardEntry, error) {
 	switch req.Readiness {
-	case "ready", "not_ready", "charging", "maintenance", "out_of_service":
+	case "ready", "not_ready", "charging", "maintenance", "out_of_service", "under_inspection":
 	default:
-		return CartBoardEntry{}, errs.Validation("invalid_readiness", "invalid readiness", errs.Field("readiness", "invalid", "ready, not_ready, charging, maintenance or out_of_service"))
+		return CartBoardEntry{}, errs.Validation("invalid_readiness", "invalid readiness", errs.Field("readiness", "invalid", "ready, not_ready, charging, maintenance, out_of_service or under_inspection"))
 	}
 	if (req.Readiness == "maintenance" || req.Readiness == "out_of_service") && strings.TrimSpace(req.Reason) == "" {
 		return CartBoardEntry{}, errs.Validation("reason_required", "a reason is required for Maintenance and Out of Service", errs.Field("reason", "required", "reason"))
@@ -1606,6 +1611,11 @@ func (m *Module) ReturnCart(ctx context.Context, tx pgx.Tx, property, aid uuid.U
 	}
 	if status != "assigned" && status != "in_use" {
 		return CartAssignment{}, errs.Conflict("assignment_closed", "the golf cart is already returned")
+	}
+	if status == "in_use" {
+		if err := m.addCartHours(ctx, tx, property, aid); err != nil {
+			return CartAssignment{}, err
+		}
 	}
 	pol, err := LoadPolicies(ctx, tx, property, clock.Now())
 	if err != nil {

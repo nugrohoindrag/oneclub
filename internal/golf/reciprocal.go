@@ -22,9 +22,6 @@ import (
 	"oneclub/internal/platform/audit"
 	"oneclub/internal/platform/handle"
 	"oneclub/internal/platform/notify"
-	"oneclub/internal/platform/numbering"
-	"oneclub/internal/platform/pdf"
-	"oneclub/internal/platform/storage"
 )
 
 type club struct {
@@ -55,7 +52,7 @@ func (c club) activeOn(d time.Time) bool {
 // Visit is a reciprocal visit (inbound guest or outbound member).
 type Visit struct {
 	ID               uuid.UUID  `json:"id" db:"id"`
-	VisitNo          string     `json:"visitNo" db:"visit_no"`
+	Number           string     `json:"number" db:"number"`
 	Direction        string     `json:"direction" db:"direction" enum:"inbound,outbound"`
 	ClubID           uuid.UUID  `json:"clubId" db:"club_id"`
 	ClubName         string     `json:"clubName" db:"club_name"`
@@ -68,17 +65,17 @@ type Visit struct {
 	LetterID         *uuid.UUID `json:"letterId" db:"letter_id"`
 	Documents        []string   `json:"documents" db:"documents"`
 	VisitDate        time.Time  `json:"visitDate" db:"visit_date"`
-	FlightID         *uuid.UUID `json:"flightId" db:"flight_id"`
+	PlayerID         *uuid.UUID `json:"playerId" db:"booking_player_id" doc:"Booking player of the visit (P1 reciprocal player)"`
 	ChargeAmount     string     `json:"chargeAmount" db:"charge_amount"`
 	Verified         bool       `json:"verified" db:"verified"`
 	SettlementStatus string     `json:"settlementStatus" db:"settlement_status" enum:"not_applicable,open,invoiced,settled"`
 	CreatedAt        time.Time  `json:"createdAt" db:"created_at"`
 }
 
-const visitSelect = `SELECT v.id, v.visit_no, v.direction, v.club_id, c.name AS club_name, c.country, v.customer_id, v.visitor_name, v.home_card_no,
-	v.card_valid_until, v.letter_ref, v.letter_id, v.documents, v.visit_date, v.flight_id,
-	trim_scale(coalesce((SELECT sum(l.total_amount) FROM golf.flight_players p JOIN billing.folio_lines l ON l.folio_id = p.folio_id AND l.status = 'posted'
-	  WHERE p.reciprocal_visit_id = v.id), v.charge_amount))::text AS charge_amount,
+const visitSelect = `SELECT v.id, v.number, v.direction, v.club_id, c.name AS club_name, c.country, v.customer_id, v.visitor_name, v.home_card_no,
+	v.card_valid_until, v.letter_ref, v.letter_id, v.documents, v.visit_date, v.booking_player_id,
+	trim_scale(coalesce((SELECT sum(p.price_total) FROM golf.booking_players p WHERE p.reciprocal_visit_id = v.id AND p.status IN ('booked', 'checked_in')),
+	  v.charge_amount))::text AS charge_amount,
 	v.verified, v.settlement_status, v.created_at FROM golf.reciprocal_visits v JOIN golf.reciprocal_clubs c ON c.id = v.club_id`
 
 func (m *Module) visit(ctx context.Context, q dbtx.Querier, vid uuid.UUID) (Visit, error) {
@@ -175,7 +172,7 @@ func (m *Module) VerifyInbound(ctx context.Context, tx pgx.Tx, property uuid.UUI
 		}
 		cust = &p.ID
 	}
-	no, err := numbering.Next(ctx, tx, property, "RCV", now)
+	no, err := number(ctx, tx, property, "RCV")
 	if err != nil {
 		return Visit{}, err
 	}
@@ -187,10 +184,10 @@ func (m *Module) VerifyInbound(ctx context.Context, tx pgx.Tx, property uuid.UUI
 		in.Documents = []string{}
 	}
 	vid := id.New()
-	if _, err := tx.Exec(ctx, `INSERT INTO golf.reciprocal_visits (id, property_id, visit_no, direction, club_id, customer_id, visitor_name, home_card_no,
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.reciprocal_visits (id, property_id, number, direction, club_id, customer_id, visitor_name, home_card_no,
 		card_valid_until, letter_ref, documents, visit_date, verified, verified_by, settlement_status, created_by)
-		VALUES ($1,$2,$3,'inbound',$4,$5,$6,$7,$8,$9,$10,$11,true,$12,$13,$12)`, vid, property, no, c.ID, cust, in.VisitorName, nzs(in.HomeCardNo), valid,
-		nzs(in.LetterRef), in.Documents, day, actor(ctx), settle); err != nil {
+		VALUES ($1,$2,$3,'inbound',$4,$5,$6,$7,$8,$9,$10,$11,true,$12,$13,$12)`, vid, property, no, c.ID, cust, in.VisitorName, nullStr(in.HomeCardNo), valid,
+		nullStr(in.LetterRef), in.Documents, day, actorPtr(ctx), settle); err != nil {
 		return Visit{}, err
 	}
 	v, err := m.visit(ctx, tx, vid)
@@ -214,7 +211,7 @@ type LetterInput struct {
 // Letter is an introduction letter.
 type Letter struct {
 	ID           uuid.UUID  `json:"id" db:"id"`
-	LetterNo     string     `json:"letterNo" db:"letter_no"`
+	Number       string     `json:"number" db:"number"`
 	ClubID       uuid.UUID  `json:"clubId" db:"club_id"`
 	ClubName     string     `json:"clubName" db:"club_name"`
 	CustomerID   uuid.UUID  `json:"customerId" db:"customer_id"`
@@ -230,7 +227,7 @@ type Letter struct {
 	CreatedAt    time.Time  `json:"createdAt" db:"created_at"`
 }
 
-const letterSelect = `SELECT l.id, l.letter_no, l.club_id, c.name AS club_name, l.customer_id, cu.name AS customer_name, l.play_from, l.play_to, l.players,
+const letterSelect = `SELECT l.id, l.number, l.club_id, c.name AS club_name, l.customer_id, cu.name AS customer_name, l.play_from, l.play_to, l.players,
 	l.notes, l.status, l.approval_request_id, CASE WHEN l.file_id IS NOT NULL THEN '/api/v1/files/' || l.file_id END AS file_url, l.issued_at, l.created_at
 	FROM golf.introduction_letters l JOIN golf.reciprocal_clubs c ON c.id = l.club_id JOIN crm.customers cu ON cu.id = l.customer_id`
 
@@ -267,13 +264,13 @@ func (m *Module) RequestLetter(ctx context.Context, tx pgx.Tx, property uuid.UUI
 	if in.Players <= 0 {
 		in.Players = 1
 	}
-	no, err := numbering.Next(ctx, tx, property, "LTR", localNow(ctx, tx))
+	no, err := number(ctx, tx, property, "LTR")
 	if err != nil {
 		return Letter{}, err
 	}
 	lid := id.New()
-	if _, err := tx.Exec(ctx, `INSERT INTO golf.introduction_letters (id, property_id, letter_no, club_id, customer_id, play_from, play_to, players, notes, created_by)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, lid, property, no, c.ID, in.CustomerID, from, to, in.Players, nzs(in.Notes), actor(ctx)); err != nil {
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.introduction_letters (id, property_id, number, club_id, customer_id, play_from, play_to, players, notes, created_by)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, lid, property, no, c.ID, in.CustomerID, from, to, in.Players, nullStr(in.Notes), actorPtr(ctx)); err != nil {
 		return Letter{}, err
 	}
 	rid, _, err := m.Approvals.Submit(ctx, tx, approval.SubmitRequest{DocumentType: IntroductionLetterType.Code, DocumentID: lid, DocumentRef: no,
@@ -315,11 +312,11 @@ func (m *Module) IssueLetter(ctx context.Context, tx pgx.Tx, property, lid uuid.
 	_ = tx.QueryRow(ctx, `SELECT name FROM platform.properties WHERE id = $1`, property).Scan(&propName)
 	var fileID *uuid.UUID
 	if m.Files != nil && m.Files.Blob != nil {
-		var doc pdf.Doc
-		doc.Title = "Introduction Letter " + l.LetterNo
+		doc := newTextDoc()
+		doc.Title = "Introduction Letter " + l.Number
 		doc.Heading(propName, 16)
 		doc.Blank()
-		doc.Add("No: %s", l.LetterNo)
+		doc.Add("No: %s", l.Number)
 		doc.Add("Date: %s", localNow(ctx, tx).Format("2 January 2006"))
 		doc.Blank()
 		doc.Add("To: The Secretary, %s", l.ClubName)
@@ -335,7 +332,7 @@ func (m *Module) IssueLetter(ctx context.Context, tx pgx.Tx, property, lid uuid.
 		doc.Blank()
 		doc.Add("Membership Office, %s", propName)
 		b := doc.Bytes()
-		f, err := m.Files.Save(ctx, tx, "introduction-letter-"+l.LetterNo+".pdf", "application/pdf", "attachment", false, bytes.NewReader(b), int64(len(b)))
+		f, err := m.Files.Save(ctx, tx, "introduction-letter-"+l.Number+".pdf", "application/pdf", "attachment", false, bytes.NewReader(b), int64(len(b)))
 		if err != nil {
 			return l, err
 		}
@@ -344,13 +341,13 @@ func (m *Module) IssueLetter(ctx context.Context, tx pgx.Tx, property, lid uuid.
 	if _, err := tx.Exec(ctx, `UPDATE golf.introduction_letters SET status = 'issued', issued_at = now(), file_id = $2 WHERE id = $1`, lid, fileID); err != nil {
 		return l, err
 	}
-	no, err := numbering.Next(ctx, tx, property, "RCV", localNow(ctx, tx))
+	no, err := number(ctx, tx, property, "RCV")
 	if err != nil {
 		return l, err
 	}
-	if _, err := tx.Exec(ctx, `INSERT INTO golf.reciprocal_visits (id, property_id, visit_no, direction, club_id, customer_id, visitor_name, letter_ref, letter_id,
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.reciprocal_visits (id, property_id, number, direction, club_id, customer_id, visitor_name, letter_ref, letter_id,
 		visit_date, verified, created_by) VALUES ($1,$2,$3,'outbound',$4,$5,$6,$7,$8,$9,true,$10)`, id.New(), property, no, l.ClubID, l.CustomerID,
-		l.CustomerName, l.LetterNo, lid, l.PlayFrom, actor(ctx)); err != nil {
+		l.CustomerName, l.Number, lid, l.PlayFrom, actorPtr(ctx)); err != nil {
 		return l, err
 	}
 	if m.Notify != nil {
@@ -375,7 +372,7 @@ func (m *Module) IssueLetter(ctx context.Context, tx pgx.Tx, property, lid uuid.
 	if err != nil {
 		return after, err
 	}
-	return after, record(ctx, tx, "golf.introduction_letter", lid, l.LetterNo, "issue", property, l, after, "")
+	return after, record(ctx, tx, "golf.introduction_letter", lid, l.Number, "issue", property, l, after, "")
 }
 
 type SettlementMarkInput struct {
@@ -408,4 +405,37 @@ func (m *Module) Visits(ctx context.Context, q dbtx.Querier, property uuid.UUID,
 		property, direction, clubID, settlement, from.Format("2006-01-02"), to.Format("2006-01-02"), limit))
 }
 
-var _ = storage.URLFor
+// LinkPlayer ties a verified inbound visit to the P1 booking player of the
+// reciprocal guest: the player is marked verified with the partner club.
+func (m *Module) LinkPlayer(ctx context.Context, tx pgx.Tx, property, vid, player uuid.UUID) (Visit, error) {
+	v, err := m.visit(ctx, tx, vid)
+	if err != nil {
+		return v, err
+	}
+	if v.Direction != "inbound" || !v.Verified {
+		return v, errs.Conflict("not_verified", "only verified inbound visits can be linked to a player")
+	}
+	var ptype string
+	if err := tx.QueryRow(ctx, `SELECT player_type FROM golf.booking_players WHERE id = $1 AND property_id = $2 FOR UPDATE`, player, property).Scan(&ptype); err != nil {
+		if dbtx.IsNoRows(err) {
+			return v, errs.NotFound("player")
+		}
+		return v, err
+	}
+	if ptype != "reciprocal" {
+		return v, errs.Conflict("not_reciprocal", "the player is not a reciprocal player")
+	}
+	if _, err := tx.Exec(ctx, `UPDATE golf.booking_players SET reciprocal_visit_id = $2, reciprocal_club = $3, reciprocal_verified = true, updated_by = $4
+		WHERE id = $1`, player, vid, v.ClubName, actorPtr(ctx)); err != nil {
+		return v, err
+	}
+	if _, err := tx.Exec(ctx, `UPDATE golf.reciprocal_visits SET booking_player_id = $2, customer_id = coalesce(customer_id,
+		(SELECT customer_id FROM golf.booking_players WHERE id = $2)) WHERE id = $1`, vid, player); err != nil {
+		return v, err
+	}
+	after, err := m.visit(ctx, tx, vid)
+	if err != nil {
+		return after, err
+	}
+	return after, record(ctx, tx, "golf.reciprocal_visit", vid, v.Number, "link_player", property, v, after, "")
+}

@@ -184,7 +184,7 @@ func (s *Service) performance(w http.ResponseWriter, r *http.Request) {
 	q := map[string]string{"from": r.URL.Query().Get("from"), "to": r.URL.Query().Get("to")}
 	out := PerformanceDashboard{Code: code, Name: def.name, KPIs: []KPI{}, GeneratedAt: time.Now().UTC()}
 	err := s.DB.WithReportTx(ctx, func(tx pgx.Tx) error {
-		from, to, tz := dateRange(ctx, tx, q, 30)
+		from, to, tz := period(ctx, tx, q, 30)
 		out.From, out.To = from, to
 		for _, k := range def.kpis {
 			v, err := kpi(ctx, tx, k, from, to, tz)
