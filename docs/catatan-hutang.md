@@ -3,7 +3,8 @@
 Status per 4 Oktober 2026 sore. Branch `feat/p2-on-p1`, commit terakhir `73d020e`. Semua commit masih lokal dan belum di-push.
 
 - Branch berada tepat di atas `origin/main` (0 commit tertinggal), jadi belum ada conflict.
-- Pekerjaan sedang **di-hold** di tengah hutang #3 (test P2).
+- Pekerjaan sedang **di-hold** di tengah hutang #3 (test P2), atas permintaan.
+- **Rencana:** semua hutang #3–#6 diselesaikan sekaligus, lalu branch di-push dan dibuka PR ke `main`, supaya bisa lanjut ke P3. Menurut Tech Doc §12.3, P3 dimulai setelah P1 dan P2 merge ke `main`. Push dilakukan setelah suite e2e penuh hijau tanpa `ONECLUB_REQUIRE_FULL_COVERAGE=false`.
 
 ## Aturan yang wajib dipatuhi
 
@@ -122,9 +123,13 @@ ONECLUB_REQUIRE_FULL_COVERAGE=false go test -count=1 -run 'TestP2' ./test/e2e/
 
 Test yang masih gagal:
 
-1. **`TestP2VoucherPrepaid`** (`p2_voucher_test.go`):
-   - Tender voucher (`voucher_prepaid`) tidak bisa lewat `POST /billing/payments` P1. Tulis ulang lewat checkout POS (`commercial/orders/{id}:pay` dengan tender voucher) atau `vouchers:redeem`.
-   - `accounting-export` sekarang `POST /billing/accounting-exports` lalu `GET .../{id}/file`.
+1. **`TestP2VoucherPrepaid`** (`p2_voucher_test.go`). Sebagian besar sudah dikerjakan:
+   - panic `folio.folio.status` diperbaiki;
+   - tender voucher kini lewat checkout POS (`orders/{id}:pay` dengan tender `voucher_prepaid`);
+   - sisa saldo voucher dihitung dari total order;
+   - helper `accountingExport` (`POST /billing/accounting-exports {date}`, lalu `GET .../{id}/file`).
+
+   Sisa: test gagal di `p2_voucher_test.go:196`. CSV ekspor akuntansi P1 tidak memuat baris `liability,voucher,voucher_deferred`, `deferred_recognition,...` dan `deferred_breakage,...`. Cek format kolom ekspor P1 (`billing/finance.go`, AccountingExport) dan apakah pergerakan deferred revenue P2 (`billing.deferred_revenue_entries`) memang ikut diekspor. Bila tidak ikut, itu celah FR-BIL-P2-05/06: export harus memuat revenue component baru dan sub-ledger deferred. Masukkan ke kontrak C1–C3 di file P2 `lines.go`, atau ke perubahan P1 minimal yang direview Dian.
 2. **`TestP2MemberStatement`** (`p2_voucher_test.go`) perlu ditulis ulang:
    - Charge golf/futsal/restoran dibuat lewat alur nyata: booking golf P1 atau folio walk-in (lini `golf`), booking court dengan member charge, order POS dengan member charge.
    - Lalu `POST /billing/member-statements:generate` dan cek baris `businessLine` serta saldo akhir sama dengan saldo akun.

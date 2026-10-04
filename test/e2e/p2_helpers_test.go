@@ -186,6 +186,18 @@ func activeMembership(t *testing.T, c *Client, customer, typeID, packageID strin
 	return str(app["membershipId"])
 }
 
+// accountingExport exports today's business day (P1 accounting export)
+// and returns the CSV.
+func accountingExport(t *testing.T, c *Client) string {
+	t.Helper()
+	day := time.Now().In(clubLoc(inst)).Format("2006-01-02")
+	r := c.Do("POST", "/api/v1/billing/accounting-exports", map[string]any{"date": day})
+	if r.Status != 201 && r.Status != 200 {
+		t.Fatalf("accounting export: %s", r)
+	}
+	return string(c.Must(200, "GET", "/api/v1/billing/accounting-exports/"+idOf(r)+"/file", nil).Body)
+}
+
 func intp(n int) *int { return &n }
 
 func newKey() string { return uuid.NewString() }

@@ -24,7 +24,7 @@ func TestP2VoucherPrepaid(t *testing.T) {
 	if len(code) != 17 || str(v["unitValue"]) != "127000" || v["status"] != "active" {
 		t.Fatalf("voucher: %v", v)
 	}
-	if st := sale["folio"].(map[string]any)["folio"].(map[string]any)["status"]; st != "closed" {
+	if st := sale["folio"].(map[string]any)["status"]; st != "closed" {
 		t.Fatalf("paid sale should close the folio, got %v", st)
 	}
 	key := newKey()
@@ -121,14 +121,19 @@ func TestP2VoucherPrepaid(t *testing.T) {
 		"kind": "value", "category": "gift", "unit": "rupiah", "faceValue": "500000", "price": "500000", "validityMonths": 12}))
 	gv := sa.Must(201, "POST", "/api/v1/commercial/vouchers:sell", map[string]any{"voucherTypeId": gift, "guestName": "Buyer",
 		"payment": map[string]any{"methodType": "bank_transfer", "reference": "TRF-77"}}).JSON()["vouchers"].([]any)[0].(map[string]any)
-	folio := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": f.CustomerB, "holderName": "Walk-in"}))
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+"/lines", map[string]any{"chargeType": "other", "description": "Nasi Goreng", "unitPrice": "120000"}, "Idempotency-Key", newKey())
-	pay := sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": folio, "methodType": "voucher_prepaid", "amount": "120000",
-		"tender": map[string]any{"code": gv["code"]}}, "Idempotency-Key", newKey()).JSON()
-	if pay["amount"] != "120000" || pay["tenderRef"].(map[string]any)["remaining"] != "380000" {
-		t.Fatalf("voucher tender: %v", pay)
+	// The value voucher pays a restaurant bill at the POS (tender hook C3).
+	resto := idOf(sa.Must(201, "POST", "/api/v1/commercial/outlets", map[string]any{"code": "VCH-RESTO", "name": "Voucher Restaurant", "outletType": "restaurant"}))
+	nasi := idOf(sa.Must(201, "POST", "/api/v1/commercial/products", map[string]any{"code": "VCH-NASI", "name": "Nasi Goreng", "productType": "food", "price": "120000"}))
+	ord := sa.Must(201, "POST", "/api/v1/commercial/orders", map[string]any{"outletId": resto, "lines": []map[string]any{{"productId": nasi}}}).JSON()
+	paid := sa.Must(200, "POST", "/api/v1/commercial/orders/"+str(ord["id"])+":pay", map[string]any{
+		"tenders": []map[string]any{{"methodType": "voucher_prepaid", "tender": map[string]any{"code": gv["code"]}}}}, "Idempotency-Key", newKey()).JSON()
+	if paid["status"] != "paid" {
+		t.Fatalf("voucher tender: %v", paid)
 	}
-	sa.Must(200, "POST", "/api/v1/billing/folios/"+folio+":close", map[string]any{})
+	giftLeft := dec("500000").Sub(dec(paid["total"])).String()
+	if gb := sa.Must(200, "GET", "/api/v1/commercial/vouchers/"+str(gv["code"])+"/balance", nil).JSON(); str(gb["remaining"]) != giftLeft {
+		t.Fatalf("gift voucher balance %v, want %s", gb["remaining"], giftLeft)
+	}
 
 	balls := idOf(sa.Must(201, "POST", "/api/v1/commercial/voucher-types", map[string]any{"code": "BALL5000", "name": "Paket 5.000 Bola",
 		"kind": "quota", "category": "driving_range_balls", "unit": "ball", "faceValue": "5000", "price": "4600000", "validityMonths": 6, "prepaid": true}))
@@ -171,7 +176,7 @@ func TestP2VoucherPrepaid(t *testing.T) {
 	// Public code check is rate limited and shows no customer data.
 	pub := anon(t, inst)
 	chk := pub.Must(200, "POST", "/api/v1/public/vouchers:check", map[string]any{"code": gv["code"], "propertyId": inst.Main}).JSON()
-	if chk["remaining"] != "380000" || chk["customerName"] != nil {
+	if str(chk["remaining"]) != giftLeft || chk["customerName"] != nil {
 		t.Fatalf("public check: %v", chk)
 	}
 	limited := false
@@ -185,7 +190,7 @@ func TestP2VoucherPrepaid(t *testing.T) {
 		t.Fatal("public voucher check must be rate limited")
 	}
 	// Accounting export: voucher sales are a liability, redemptions and breakage deferred movements.
-	exp := string(sa.Must(200, "GET", "/api/v1/billing/accounting-exports", nil).Body)
+	exp := accountingExport(t, sa)
 	for _, want := range []string{"liability,voucher,voucher_deferred", "deferred_recognition,voucher,sport_entry", "deferred_breakage,voucher,breakage"} {
 		if !contains(exp, want) {
 			t.Fatalf("accounting export lacks %q:\n%s", want, exp)
