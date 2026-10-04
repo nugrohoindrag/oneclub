@@ -7,6 +7,14 @@ import (
 	"time"
 )
 
+// resourceCRUDModules and resourceCRUDSkip let later areas (P3/P4) add their
+// modules to the generic CRUD test, or skip a resource covered by their own
+// tests, from an init() in their own test file.
+var (
+	resourceCRUDModules = map[string]bool{}
+	resourceCRUDSkip    = map[string]string{}
+)
+
 // Every master data resource of P2 can be created, edited and (when unused)
 // deleted through the generic engine — driven by the resource definitions
 // the Back Office renders its screens from (GET /platform/resource-definitions).
@@ -21,6 +29,12 @@ func TestP2ResourceDefinitionsCRUD(t *testing.T) {
 		"platform.employee": "P0", "procurement.supplier": "P0", "billing.payment_method": "P0", "commercial.tax_service": "P0", "golf.course": "P0",
 		"commercial.outlet": "P0", "commercial.product": "P0", "reservation.resource": "P0", "membership.member": "P0",
 		"commercial.pricing_rule": "versioned rules are covered by the pricing tests",
+	}
+	for k, v := range resourceCRUDModules {
+		modules[k] = v
+	}
+	for k, v := range resourceCRUDSkip {
+		skip[k] = v
 	}
 	// Resources of P1 (commit a48e6a3) are covered by the P1 tests.
 	for _, k := range []string{"commercial.day_type", "commercial.rate_plan", "commercial.time_band", "crm.corporate_account", "crm.corporate_nominee",

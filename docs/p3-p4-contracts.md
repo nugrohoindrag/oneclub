@@ -17,7 +17,7 @@ so `propertyId` is also on the event envelope.
 |---|---|
 | business line (golf, sportclub, stay, banquet, cms) → core (membership, reservation, commercial, billing) → customer (crm) → back office (inventory, procurement, accounting) | Direct call of the target module's root package (public API) |
 | reverse direction | Domain event (outbox) or a hook registered by `internal/app` (e.g. `billing.RegisterTender`, `billing.RegisterNightAuditCheck`, `commercial.RegisterComponentAllocator`) |
-| procurement → inventory | Direct call (goods receipt posts stock); inventory never imports procurement (no import cycle) |
+| procurement → inventory | Stock is posted by inventory from `procurement.goods_received` / `procurement.purchase_returned` (receipt / return at PO cost); procurement may read inventory through its root package; inventory never imports procurement (no import cycle) |
 | accounting → procurement / inventory / billing | Read through root packages or `reporting.*` views; accounting is never called by them |
 
 ## P3 events
@@ -129,12 +129,13 @@ Quantities are signed (in > 0, out < 0) in base UOM; cost uses the valuation met
 ### `inventory.consignment_sold`
 `{ supplierId, itemId, quantity, unitCost, totalCost, currency, sourceType, sourceId }`
 
-### `procurement.goods_received`
+### `procurement.goods_received` — consumed by inventory (stock receipt into `warehouseId`) and accounting (GRNI)
 `{ goodsReceiptId, number, purchaseOrderId, poNumber, supplierId, warehouseId, receivedDate, currency, total,
-   lines: [{ itemId, quantity, uomId, unitCost, totalCost, taxCode? }] }`
+   lines: [{ itemId, quantity, uomId, baseQuantity, unitCost, baseUnitCost, totalCost, taxCode?, batchNo?, expiryDate?, serialNos?: [] }] }`
+(`quantity`/`unitCost` in the purchase UOM, `baseQuantity`/`baseUnitCost` in the item's base UOM; inventory posts the base figures)
 
-### `procurement.purchase_returned`
-`{ purchaseReturnId, number, goodsReceiptId, supplierId, currency, total, lines: [{ itemId, quantity, unitCost, totalCost }] }`
+### `procurement.purchase_returned` — consumed by inventory (stock out) and accounting
+`{ purchaseReturnId, number, goodsReceiptId, supplierId, warehouseId, currency, total, lines: [{ itemId, baseQuantity, baseUnitCost, totalCost, batchNo? }] }`
 
 ### `procurement.vendor_invoice_approved` — consumed by accounting (AP)
 `{ vendorInvoiceId, number, supplierInvoiceNo, supplierId, invoiceDate, dueDate, currency, subtotal, taxAmount, total,
