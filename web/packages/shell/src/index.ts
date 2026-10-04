@@ -1,4 +1,5 @@
 export * from './context';
+export * from './areas';
 export * from './theme';
 export * from './components/ui';
 export * from './components/toast';
@@ -13,3 +14,5 @@ export * from './settings/access';
 export * from './settings/instance';
 export * from './settings/services';
 export * from './settings/system';
+export * from './settings/auto';
+export * from './components/qr';

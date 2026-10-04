@@ -782,9 +782,11 @@ type CaddyBoardEntry struct {
 // CaddyBoard lists caddies for a day in queue order (Caddy Queue).
 func CaddyBoard(ctx context.Context, q dbtx.Querier, property uuid.UUID, day time.Time, loc *time.Location) ([]CaddyBoardEntry, error) {
 	rows, err := q.Query(ctx, `SELECT c.id, c.code, c.name, c.gender, a.status, a.queue_no::float8, a.arrived_at, ca.id, ca.flight_id, ca.status, lower(ca.period),
-		(SELECT count(*) FROM golf.caddy_assignments x WHERE x.caddy_id = c.id AND x.play_date = $2::date AND x.status IN ('assigned','in_play','completed'))
+		(SELECT count(*) FROM golf.caddy_assignments x WHERE x.caddy_id = c.id AND x.play_date = $2::date AND x.status IN ('assigned','in_play','completed')),
+		s.clocked_out_at IS NOT NULL
 		FROM golf.caddies c
 		LEFT JOIN golf.caddy_attendance a ON a.caddy_id = c.id AND a.work_date = $2::date
+		LEFT JOIN golf.caddy_shifts s ON s.caddy_id = c.id AND s.work_date = $2::date
 		LEFT JOIN LATERAL (SELECT id, flight_id, status, period FROM golf.caddy_assignments x WHERE x.caddy_id = c.id AND x.play_date = $2::date
 			AND x.status IN ('assigned', 'in_play') ORDER BY lower(x.period) LIMIT 1) ca ON true
 		WHERE c.property_id = $1 AND c.status = 'active' AND c.archived_at IS NULL
@@ -798,7 +800,8 @@ func CaddyBoard(ctx context.Context, q dbtx.Querier, property uuid.UUID, day tim
 		var e CaddyBoardEntry
 		var aStatus *string
 		var start *time.Time
-		if err := rows.Scan(&e.CaddyID, &e.Code, &e.Name, &e.Gender, &e.Attendance, &e.QueueNo, &e.ArrivedAt, &e.Assignment, &e.FlightID, &aStatus, &start, &e.RoundsToday); err != nil {
+		var clockedOut bool
+		if err := rows.Scan(&e.CaddyID, &e.Code, &e.Name, &e.Gender, &e.Attendance, &e.QueueNo, &e.ArrivedAt, &e.Assignment, &e.FlightID, &aStatus, &start, &e.RoundsToday, &clockedOut); err != nil {
 			return nil, err
 		}
 		switch {
@@ -806,6 +809,8 @@ func CaddyBoard(ctx context.Context, q dbtx.Querier, property uuid.UUID, day tim
 			e.Status = "in_play"
 		case aStatus != nil:
 			e.Status = "assigned"
+		case clockedOut: // gone home (P2 clock-out, golf.caddy_shifts)
+			e.Status = "not_available"
 		case e.Attendance != nil && *e.Attendance == "present":
 			e.Status = "available"
 		default:

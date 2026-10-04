@@ -211,6 +211,32 @@ function BookingModal({ id, onClose }: { id: string; onClose: () => void }) {
 
 // ── My flights / caddy / golf cart ──────────────────────────────────────────
 
+/** Rate the caddy after the round (PRD P2 EP-05): 1–5 stars and a comment. */
+function RateCaddy({ assignmentId, caddy }: { assignmentId: string; caddy: string }) {
+  const toast = useToast();
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
+  const [done, setDone] = useState(false);
+  const rate = useSend('POST', `/api/v1/member/golf/caddy-assignments/${assignmentId}:rate`, []);
+  if (done) return <div className="oc-small oc-muted">Thank you for rating {caddy}.</div>;
+  return (
+    <div className="oc-stack" style={{ gap: 4 }}>
+      <div className="oc-row-wrap" role="group" aria-label={`Rate caddy ${caddy}`}>
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button key={n} className="oc-icon-btn" aria-label={`${n} of 5`} aria-pressed={rating === n} onClick={() => setRating(n)}>
+            <Icon name="star" filled={rating >= n} size={22} />
+          </button>
+        ))}
+        <input className="oc-input" style={{ maxWidth: 260 }} placeholder="Comment (optional)" aria-label={`Comment for ${caddy}`} value={comment}
+          onChange={(e) => setComment(e.target.value)} />
+        <button className="oc-btn oc-btn-ink oc-btn-sm" disabled={!rating || rate.isPending}
+          onClick={() => rate.mutate({ rating, comment }, { onSuccess: () => { setDone(true); toast('Rating sent'); } })}>Rate caddy</button>
+      </div>
+      <ErrorAlert error={rate.error} />
+    </div>
+  );
+}
+
 export function MyFlightsPage({ focus }: { focus?: 'caddy' | 'cart' }) {
   const list = useGet<Page<R>>('/api/v1/member/golf/my-flights');
   const title = focus === 'caddy' ? 'My Caddy' : focus === 'cart' ? 'My Golf Cart' : 'My Flights';
@@ -222,7 +248,11 @@ export function MyFlightsPage({ focus }: { focus?: 'caddy' | 'cart' }) {
       {(list.data?.items ?? []).map((f) => (
         <Card key={String(f.bookingId) + String(f.localTime)} title={`${String(f.localTime)} · ${String(f.courseName)}`} icon="golf_course">
           <div className="oc-row-wrap"><StatusPill status={String(f.status).replace(/_/g, '-')} /><span className="oc-muted">{String(f.bookingCode)}</span></div>
-          {focus !== 'cart' && <ul>{((f.players as R[]) ?? []).map((p) => <li key={String(p.id)}>{String(p.name)}{p.caddyName ? ` · caddy ${String(p.caddyCode)} ${String(p.caddyName)}` : focus === 'caddy' ? ' · caddy not assigned yet' : ''}</li>)}</ul>}
+          {focus !== 'cart' && <ul>{((f.players as R[]) ?? []).map((p) => (
+            <li key={String(p.id)}>{String(p.name)}{p.caddyName ? ` · caddy ${String(p.caddyCode)} ${String(p.caddyName)}` : focus === 'caddy' ? ' · caddy not assigned yet' : ''}
+              {focus === 'caddy' && f.status === 'completed' && p.caddyAssignmentId ? <RateCaddy assignmentId={String(p.caddyAssignmentId)} caddy={String(p.caddyName)} /> : null}
+            </li>
+          ))}</ul>}
           {focus !== 'caddy' && <div>Golf carts: {((f.golfCarts as string[]) ?? []).join(', ') || 'not assigned yet'}</div>}
         </Card>
       ))}

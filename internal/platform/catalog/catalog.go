@@ -73,12 +73,12 @@ var Modules = []Module{
 	{Code: "sportclub", Name: "Sport Club", Layer: "Business Line", SortOrder: 20, Default: true},
 	{Code: "membership", Name: "Membership", Layer: "Shared Core", SortOrder: 30, Default: true},
 	{Code: "reservation", Name: "Booking", Layer: "Shared Core", SortOrder: 40, Default: true},
-	{Code: "stay", Name: "Stay & Venue", Layer: "Business Line", SortOrder: 50},
+	{Code: "stay", Name: "Stay & Venue", Layer: "Business Line", SortOrder: 50, Default: true},
 	{Code: "banquet", Name: "Banquet & Event", Layer: "Business Line", SortOrder: 60},
 	{Code: "crm", Name: "CRM", Layer: "Customer", SortOrder: 70, Default: true},
 	{Code: "commercial", Name: "Commercial", Layer: "Shared Core", SortOrder: 80, Default: true},
 	{Code: "billing", Name: "Billing & Payment", Layer: "Shared Core", SortOrder: 85, Default: true},
-	{Code: "inventory", Name: "Inventory", Layer: "Back Office", SortOrder: 90},
+	{Code: "inventory", Name: "Inventory", Layer: "Back Office", SortOrder: 90, Default: true},
 	{Code: "procurement", Name: "Procurement", Layer: "Back Office", SortOrder: 100, Default: true},
 	{Code: "accounting", Name: "Accounting", Layer: "Back Office", SortOrder: 110},
 	{Code: "hris", Name: "HRIS", Layer: "Back Office", SortOrder: 120},
@@ -165,6 +165,7 @@ var PlatformPermissions = flat(
 	P("platform", "backoffice", "access"),
 	P("platform", "ops", "access"),
 	P("platform", "member_portal", "access"),
+	[]Permission{{Code: ShellScreen, Description: "Open the Clubhouse Screen (clubhouse TV); no Back Office access"}},
 	P("audit", "log", "view", "export", "view_sensitive"),
 )
 
@@ -188,7 +189,12 @@ const (
 	ShellOps           = "platform.ops.access"
 	ShellMemberPortal  = "platform.member_portal.access"
 	ShellPlatformAdmin = "platform.platform_admin.access"
-	ManagementView     = "reporting.dashboard.view"
+	ShellCaddy         = "golf.tablet.use"
+	ShellScreen        = "platform.screen.access"
+	// ShellKitchen opens the Kitchen Display. Cashiers only view kitchen
+	// orders, so they never get the area.
+	ShellKitchen   = "commercial.kitchen.update"
+	ManagementView = "reporting.dashboard.view"
 )
 
 func ma(mods ...string) []string {
@@ -237,7 +243,7 @@ var PropertyAdminPermissions = cat(bo, ops, []string{
 	"platform.system_settings.view",
 	"audit.log.view",
 	ManagementView, "reporting.report.view", "reporting.export.create",
-}, ma("golf", "sportclub", "membership", "reservation", "crm", "commercial", "billing", "procurement", "reporting"))
+}, ma("golf", "sportclub", "membership", "reservation", "stay", "crm", "commercial", "billing", "inventory", "procurement", "reporting"))
 
 // RoleTemplates seeds Product Overview §44 plus the System roles.
 var RoleTemplates = []RoleTemplate{
@@ -245,6 +251,8 @@ var RoleTemplates = []RoleTemplate{
 	{Code: "platform_admin", Name: "Platform Admin", Category: "System", Scope: "platform", MFARequired: true, AllPermissions: true, IncludePlatformOnly: true},
 	{Code: "super_admin", Name: "Super Admin", Category: "System", Scope: "instance", MFARequired: true, AllPermissions: true},
 	{Code: "property_admin", Name: "Property Admin", Category: "System", Scope: "property", MFARequired: true, Permissions: PropertyAdminPermissions},
+	// The clubhouse TV: signs in on the dashboard domain and opens only the Clubhouse Screen (Technical Doc §6.1).
+	{Code: "screen", Name: "Screen", Category: "System", Scope: "property", Permissions: []string{ShellScreen}},
 	// Management
 	{Code: "general_manager", Name: "General Manager", Category: "Management", Scope: "property", Permissions: cat(management, []string{"audit.log.view", "platform.approval.view_all"}, ma("golf", "sportclub", "membership", "reservation", "stay", "banquet", "crm", "commercial", "billing", "inventory", "procurement", "accounting", "hris", "reporting"))},
 	{Code: "club_manager", Name: "Club Manager", Category: "Management", Scope: "property", Permissions: cat(management, []string{"audit.log.view"}, ma("golf", "sportclub", "membership", "reservation", "crm", "commercial", "reporting"))},

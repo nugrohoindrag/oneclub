@@ -102,9 +102,7 @@ func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *ht
 		where = append(where, strings.ReplaceAll(cond, "?", "$"+strconv.Itoa(len(args))))
 	}
 	if extraWhere != "" {
-		for _, a := range extraArgs {
-			args = append(args, a)
-		}
+		args = append(args, extraArgs...)
 		where = append(where, extraWhere)
 	}
 	if v := lp.Filters["status"]; v != "" {
@@ -899,7 +897,9 @@ func (m *Module) readinessHTTP(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	m.write(w, r, http.StatusOK, func(ctx context.Context, tx pgx.Tx) (any, error) { return m.SetReadiness(ctx, tx, prop(ctx), cid, req) })
+	m.write(w, r, http.StatusOK, func(ctx context.Context, tx pgx.Tx) (any, error) {
+		return m.manualReadiness(ctx, tx, prop(ctx), cid, req)
+	})
 }
 
 func (m *Module) assignCartHTTP(w http.ResponseWriter, r *http.Request) {

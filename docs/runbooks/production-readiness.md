@@ -8,7 +8,7 @@ must be complete before the cutover (`docs/migration/cutover-runbook.md`).
 Provision with `docs/runbooks/instance-provisioning.md` on the chosen hosting (P0 Open Question #1), instance code `mgcc`:
 
 ```bash
-oneclub instance create -admin-url "postgres://postgres:***@db-host:5432/postgres?sslmode=require"   -code mgcc -name "Modern Golf & Country Club" -property-code MAIN -property-name "Modern Golf & Country Club"   -locale id -currency IDR -timezone Asia/Jakarta -super-admin-email it@moderngolf.id -platform-admin-email platform@oneclub.id   -public-url https://backoffice.moderngolf.id -bundle-dir /srv/oneclub/instances -db-host db
+oneclub instance create -admin-url "postgres://postgres:***@db-host:5432/postgres?sslmode=require"   -code mgcc -name "Modern Golf & Country Club" -property-code MAIN -property-name "Modern Golf & Country Club"   -locale id -currency IDR -timezone Asia/Jakarta -super-admin-email it@moderngolf.id -platform-admin-email platform@oneclub.id   -public-url https://dashboard.moderngolf.id -bundle-dir /srv/oneclub/instances -db-host db
 ```
 
 Then configure (not `seed-demo`, which is disabled in production): course structure and templates, rate card, tax,
@@ -41,7 +41,7 @@ P0 decided not to build a monitoring stack (Technical Doc §11). For Release 1:
 
 | Signal | How | Alert |
 |---|---|---|
-| Uptime of API, Back Office, Member Portal, website | External probe (e.g. UptimeRobot / Better Stack) every 1 min on `/readyz` and the website home | SMS + WhatsApp to on-call |
+| Uptime of API, the four Staff App domains, Member Portal, website | External probe (e.g. UptimeRobot / Better Stack) every 1 min on `/readyz`, `/surface.json` of `dashboard`, `cashier`, `caddy` and `kitchen`, and the website home | SMS + WhatsApp to on-call |
 | API errors, failed jobs, outbox lag, replica lag, backup age, WAL archiving, disk, TLS expiry | `deploy/scripts/healthwatch.sh` every 5 min (cron on the App Host) → `ALERT_WEBHOOK_URL` | Chat channel of the on-call team |
 | Repeatedly failing jobs | Built-in (FR-JOB-05): in-app + e-mail to Platform Admin | — |
 | Logs | JSON on stdout, `docker logs` with rotation; request id on every error page | — |

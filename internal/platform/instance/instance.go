@@ -168,7 +168,7 @@ type FeatureFlagUpdate struct {
 
 type Domain struct {
 	ID                uuid.UUID  `json:"id"`
-	Surface           string     `json:"surface" enum:"web,member,backoffice,ops,platform-admin,api"`
+	Surface           string     `json:"surface" enum:"web,member,dashboard,cashier,caddy,kitchen,api,backoffice,ops,platform-admin" doc:"Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces"`
 	Hostname          string     `json:"hostname"`
 	Status            string     `json:"status" enum:"pending,verified,active,failed"`
 	VerificationName  string     `json:"verificationRecordName" doc:"DNS TXT record name to create"`
@@ -180,7 +180,7 @@ type Domain struct {
 }
 
 type DomainRequest struct {
-	Surface  string `json:"surface" enum:"web,member,backoffice,ops,platform-admin,api"`
+	Surface  string `json:"surface" enum:"web,member,dashboard,cashier,caddy,kitchen,api,backoffice,ops,platform-admin" doc:"Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces"`
 	Hostname string `json:"hostname"`
 }
 
@@ -196,6 +196,14 @@ type Bootstrap struct {
 	EnabledModules []string          `json:"enabledModules"`
 	Flags          map[string]any    `json:"flags"`
 	Labels         map[string]string `json:"moduleLabels"`
+	Properties     []PublicProperty  `json:"properties" doc:"Active properties (website booking, public endpoints)"`
+}
+
+// PublicProperty is a property shown on the public website.
+type PublicProperty struct {
+	ID   uuid.UUID `json:"id"`
+	Code string    `json:"code"`
+	Name string    `json:"name"`
 }
 
 // ── loading ───────────────────────────────────────────────────────────────
@@ -718,7 +726,7 @@ func (s *Service) addDomain(w http.ResponseWriter, r *http.Request) {
 	if !hostRe.MatchString(req.Hostname) {
 		fields = append(fields, errs.Field("hostname", "invalid", "e.g. booking.modernclub.com"))
 	}
-	if !slices.Contains([]string{"web", "member", "backoffice", "ops", "platform-admin", "api"}, req.Surface) {
+	if !slices.Contains(domainSurfaces, req.Surface) {
 		fields = append(fields, errs.Field("surface", "invalid", "unknown application surface"))
 	}
 	if len(fields) > 0 {
@@ -833,16 +841,40 @@ func (s *Service) deleteDomain(w http.ResponseWriter, r *http.Request) {
 	httpx.NoContent(w)
 }
 
-// domainAllowed answers Caddy's on-demand TLS "ask" request.
+// domainSurfaces are the application surfaces a custom domain can serve.
+// The Staff App is one build on four surfaces (Technical Doc §6.1); the
+// surfaces of the former staff apps stay valid for domains registered
+// before (expand-only).
+var domainSurfaces = []string{"web", "member", "dashboard", "cashier", "caddy", "kitchen", "api", "backoffice", "ops", "platform-admin"}
+
+// servedSurface is the surface Caddy serves for a domain's surface.
+func servedSurface(surface string) string {
+	switch surface {
+	case "backoffice", "platform-admin":
+		return "dashboard"
+	case "ops":
+		return "cashier"
+	}
+	return surface
+}
+
+// domainAllowed answers Caddy's on-demand TLS "ask" request. The X-Surface
+// header tells Caddy which application to serve on the custom domain (and
+// the Staff App its surface, through /surface.json).
 func (s *Service) domainAllowed(w http.ResponseWriter, r *http.Request) {
 	host := strings.ToLower(r.URL.Query().Get("domain"))
-	var ok bool
-	_ = s.DB.Primary.QueryRow(r.Context(), `SELECT EXISTS (SELECT 1 FROM platform.domains WHERE hostname = $1 AND status = 'active')`, host).Scan(&ok)
-	if !ok {
-		httpx.WriteError(w, r, errs.NotFound("domain"))
+	var surface string
+	err := s.DB.Primary.QueryRow(r.Context(), `SELECT surface FROM platform.domains WHERE hostname = $1 AND status = 'active'`, host).Scan(&surface)
+	if dbtx.IsNoRows(err) {
+		err = errs.NotFound("domain")
+	}
+	if err != nil {
+		httpx.WriteError(w, r, err)
 		return
 	}
-	httpx.JSON(w, http.StatusOK, map[string]string{"domain": host})
+	surface = servedSurface(surface)
+	w.Header().Set("X-Surface", surface)
+	httpx.JSON(w, http.StatusOK, map[string]string{"domain": host, "surface": surface})
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────
@@ -878,6 +910,25 @@ func (s *Service) bootstrap(w http.ResponseWriter, r *http.Request) {
 		_ = json.Unmarshal(f.Value, &v)
 		b.Flags[f.Key] = v
 	}
+	b.Properties = []PublicProperty{}
+	if err := s.DB.WithReadTx(dbtx.System(ctx), func(tx pgx.Tx) error {
+		rows, err := tx.Query(ctx, `SELECT id, code, name FROM platform.properties WHERE status = 'active' AND archived_at IS NULL ORDER BY name`)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			var p PublicProperty
+			if err := rows.Scan(&p.ID, &p.Code, &p.Name); err != nil {
+				return err
+			}
+			b.Properties = append(b.Properties, p)
+		}
+		return rows.Err()
+	}); err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
 	w.Header().Set("Cache-Control", "no-cache")
 	httpx.JSON(w, http.StatusOK, b)
 }
@@ -888,7 +939,7 @@ func (s *Service) Register(reg *route.Registry) {
 	const ci, br = "Customer Instance", "Branding"
 	add(ci, route.Route{Method: http.MethodGet, Path: "/api/v1/public/bootstrap", Summary: "Instance bootstrap for all shells (public)",
 		Auth: route.AuthPublic, Response: Bootstrap{}, Handler: s.bootstrap})
-	add(ci, route.Route{Method: http.MethodGet, Path: "/api/v1/public/domains/allowed", Summary: "Caddy on-demand TLS check",
+	add(ci, route.Route{Method: http.MethodGet, Path: "/api/v1/public/domains/allowed", Summary: "Caddy on-demand TLS check and the surface served on a custom domain",
 		Auth: route.AuthPublic, Query: []route.Param{{Name: "domain", Required: true}}, Response: map[string]string{}, Handler: s.domainAllowed})
 	add(ci, route.Route{Method: http.MethodGet, Path: "/api/v1/platform/instance", Summary: "Instance configuration",
 		Permission: "platform.instance.view", Response: Instance{}, Handler: s.getInstance})

@@ -64,11 +64,16 @@ jobs:
           diff -u api/openapi/openapi.json "$RUNNER_TEMP/openapi.json" || {
             echo "::error::api/openapi/openapi.json is stale — run 'make openapi' and commit the result"; exit 1; }
 
+      # A response enum gaining a value is a warning: phases add states, every
+      # client is generated from this repository and the UI renders unknown
+      # states. Intentional contract changes are listed, after review, in
+      # .github/oasdiff/err-ignore.txt.
       - name: OpenAPI breaking-change check against the target branch
         if: github.event_name == 'pull_request'
         run: |
           git show "origin/${{ github.base_ref }}:api/openapi/openapi.json" > "$RUNNER_TEMP/base.json" || exit 0
-          go run github.com/oasdiff/oasdiff@latest breaking "$RUNNER_TEMP/base.json" api/openapi/openapi.json --fail-on ERR
+          go run github.com/oasdiff/oasdiff@latest breaking "$RUNNER_TEMP/base.json" api/openapi/openapi.json --fail-on ERR \
+            --severity-levels .github/oasdiff/severity-levels.txt --err-ignore .github/oasdiff/err-ignore.txt
 
   frontend:
     runs-on: ubuntu-latest

@@ -6,7 +6,6 @@ package e2e
 
 import (
 	"bufio"
-	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -255,7 +254,10 @@ func TestP1BookingChanges(t *testing.T) {
 	gm.Must(200, "POST", "/api/v1/golf/caddy-assignments/"+str(ca[0]["id"])+":cancel", map[string]any{"reason": "Booking changed"})
 	carts := gm.Must(200, "GET", "/api/v1/golf/golf-carts?limit=100", nil).Items()
 	gm.Must(200, "POST", "/api/v1/golf/golf-carts/"+str(carts[29]["id"])+":set-readiness", map[string]any{"readiness": "maintenance", "reason": "Flat tyre"})
-	gm.Must(200, "POST", "/api/v1/golf/golf-carts/"+str(carts[29]["id"])+":set-readiness", map[string]any{"readiness": "ready"})
+	// PRD P2 FR-CTL-02: back to Ready only through a passed (release) inspection.
+	gm.Must(409, "POST", "/api/v1/golf/golf-carts/"+str(carts[29]["id"])+":set-readiness", map[string]any{"readiness": "ready"})
+	gm.Must(201, "POST", "/api/v1/golf/golf-cart-inspections", map[string]any{"golfCartId": carts[29]["id"], "kind": "release",
+		"results": []map[string]any{{"item": "Tyres", "pass": true}}})
 	cart := gm.Must(201, "POST", "/api/v1/golf/golf-cart-assignments", map[string]any{"flightId": firstFlight(bk), "golfCartIds": []string{str(carts[28]["id"])}}).Items()
 	gm.Must(200, "POST", "/api/v1/golf/golf-cart-assignments/"+str(cart[0]["id"])+":return", nil)
 
@@ -368,7 +370,7 @@ func TestP1TeeSheetRealtime(t *testing.T) {
 	req.Header.Set("X-Property-Id", inst.Main.String())
 	req.Header.Set("Origin", inst.Origin)
 	client := &http.Client{Jar: gm.http.Jar}
-	resp, err := client.Do(req)
+	resp, err := client.Do(req) //nolint:bodyclose // closed by the deferred Close below; the body is read by the scanner goroutine
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -398,7 +400,7 @@ func TestP1TeeSheetRealtime(t *testing.T) {
 				return
 			}
 		case <-time.After(2 * time.Second):
-			t.Fatal(fmt.Sprintf("no SSE event within 2 s of a hold on %s", day))
+			t.Fatalf("no SSE event within 2 s of a hold on %s", day)
 		}
 	}
 }

@@ -5,6 +5,7 @@ import { useTranslation } from '@oneclub/i18n';
 import { useAuth, useBootstrap, type Shell } from '../context';
 import { Icon, Skeleton } from '../components/ui';
 import { HeaderActions } from './header';
+import { useArea } from '../areas';
 import { ForbiddenPage, MaintenancePage } from '../pages/errors';
 
 export interface NavItem {
@@ -24,8 +25,10 @@ export function useNavigation(shell: Shell) {
   return useGet<{ shell: string; items: NavItem[] }>(me ? `/api/v1/platform/navigation?shell=${shell}&p=${propertyId}` : null);
 }
 
-export function Brand({ to = '/' }: { to?: string }) {
+/** Logo linking to the home of the current area (`/` outside the Staff App). */
+export function Brand() {
   const b = useBootstrap();
+  const to = useArea()?.path ?? '/';
   return (
     <Link to={to} className="oc-brand" aria-label={b.branding.appName}>
       {b.branding.logoUrl ? <img src={b.branding.logoUrl} alt="" /> : <span className="oc-brand-mark">{b.branding.appName.slice(0, 1)}</span>}
@@ -134,13 +137,13 @@ export function SidebarLayout({ shell = 'backoffice' }: { shell?: Shell }) {
 }
 
 /** Top pill navigation (Management Dashboard, Member Portal) — dashboard-ui.webp. */
-export function TopNavLayout({ shell, home = '/', bottomNav, property = true }: { shell: Shell; home?: string; bottomNav?: boolean; property?: boolean }) {
+export function TopNavLayout({ shell, bottomNav, property = true }: { shell: Shell; bottomNav?: boolean; property?: boolean }) {
   const nav = useNavigation(shell);
   const items = nav.data?.items ?? [];
   return (
     <div className="oc-topnav-frame">
       <header className="oc-topbar">
-        <Brand to={home} />
+        <Brand />
         <span className="oc-spacer" />
         <nav className="oc-pill-nav" aria-label="Main" data-mobile-hide={bottomNav}>
           {items.map((it) => (

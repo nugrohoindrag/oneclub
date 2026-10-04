@@ -5,6 +5,7 @@ import { request, useGet, type Page, type Schemas } from '@oneclub/api-client';
 import { formatRelative, useTranslation } from '@oneclub/i18n';
 import { useAuth, useFlag } from '../context';
 import { Icon } from '../components/ui';
+import { areaPath, areasOf, useArea } from '../areas';
 
 function useOutside(ref: React.RefObject<HTMLElement | null>, onOut: () => void, open: boolean) {
   useEffect(() => {
@@ -52,8 +53,10 @@ export function PropertySwitcher() {
 type Notification = Schemas['Notification'];
 
 /** Notification center (FR-NOT-05): badge, list, mark as read. */
-export function NotificationBell({ to = '/notifications' }: { to?: string }) {
+export function NotificationBell() {
   const { t } = useTranslation();
+  const area = useArea();
+  const to = area ? areaPath(area, 'notifications') : '/notifications';
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const nav = useNavigate();
@@ -145,14 +148,21 @@ export function initials(name: string) {
   return name.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]?.toUpperCase()).join('');
 }
 
-export function UserMenu({ profilePath = '/profile', extra }: { profilePath?: string; extra?: React.ReactNode }) {
+/** User menu; in the Staff App also the area switcher for users with several areas. */
+export function UserMenu() {
   const { me, logout } = useAuth();
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const nav = useNavigate();
+  const area = useArea();
   useOutside(ref, () => setOpen(false), open);
   if (!me) return null;
+  const go = (path: string) => {
+    setOpen(false);
+    nav(path);
+  };
+  const areas = area ? areasOf(me) : [];
   return (
     <div className="oc-popover-anchor" ref={ref}>
       <button className="oc-user" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen((o) => !o)}>
@@ -168,10 +178,21 @@ export function UserMenu({ profilePath = '/profile', extra }: { profilePath?: st
             <div className="oc-small oc-muted">{me.roles.map((r) => r.name).filter((v, i, a) => a.indexOf(v) === i).join(', ')}</div>
           </div>
           <div className="oc-menu-sep" />
-          <button className="oc-menu-item" role="menuitem" onClick={() => { setOpen(false); nav(profilePath); }}>
+          <button className="oc-menu-item" role="menuitem" onClick={() => go(area ? areaPath(area, 'profile') : '/profile')}>
             <Icon name="person" size={20} /> {t('shell.profile')}
           </button>
-          {extra}
+          {areas.length > 1 && (
+            <>
+              <div className="oc-menu-sep" />
+              <div className="oc-small oc-muted" style={{ padding: '4px 12px' }}>{t('shell.switchArea')}</div>
+              {areas.map((a) => (
+                <button key={a.code} className="oc-menu-item" role="menuitem" aria-current={a.code === area?.code ? 'page' : undefined} onClick={() => go(a.path)}>
+                  <Icon name={a.icon} size={20} /> {a.label}
+                </button>
+              ))}
+              <div className="oc-menu-sep" />
+            </>
+          )}
           <button className="oc-menu-item" role="menuitem" onClick={() => void logout()}>
             <Icon name="logout" size={20} /> {t('shell.logout')}
           </button>
@@ -182,13 +203,13 @@ export function UserMenu({ profilePath = '/profile', extra }: { profilePath?: st
 }
 
 /** Standard header actions (FR-SH-03). */
-export function HeaderActions({ property = true, notificationsPath }: { property?: boolean; notificationsPath?: string }) {
+export function HeaderActions({ property = true }: { property?: boolean }) {
   return (
     <div className="oc-row" style={{ gap: 8 }}>
       {property && <PropertySwitcher />}
       <LanguageSwitcher />
       <ThemeToggle />
-      <NotificationBell to={notificationsPath} />
+      <NotificationBell />
       <UserMenu />
     </div>
   );

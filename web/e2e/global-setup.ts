@@ -1,5 +1,7 @@
 import { execFileSync } from 'node:child_process';
+import { rmSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { SECRETS_FILE } from './helpers';
 
 /**
  * Prepares browser-test accounts (e2e/setup.sql) in the target instance.
@@ -8,6 +10,7 @@ import { resolve } from 'node:path';
  * SQL on the DB host via deploy/scripts/e2e-setup.sh and sets E2E_SKIP_SETUP.
  */
 export default async function globalSetup() {
+  rmSync(SECRETS_FILE, { force: true }); // MFA is reset: every run enrols again
   if (process.env.E2E_SKIP_SETUP) return;
   const psql = process.env.PSQL ?? 'psql';
   const url = process.env.E2E_DATABASE_URL ?? 'postgresql://postgres:postgres@localhost:5432/oneclub_mgcc';

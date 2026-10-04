@@ -57,15 +57,6 @@ var Entities = []Entity{
 		Optional: []string{"start_tee", "member_no", "contact_phone", "player_names", "paid_amount", "notes"}},
 }
 
-func entityByName(n string) (Entity, bool) {
-	for _, e := range Entities {
-		if e.Name == n {
-			return e, true
-		}
-	}
-	return Entity{}, false
-}
-
 var identRe = regexp.MustCompile(`^[a-z_]+$`)
 
 // Stage loads every <entity>.csv found in dir into staging_rhapsody.<entity>
@@ -76,7 +67,7 @@ func Stage(ctx context.Context, db *dbtx.DB, dir string) (map[string]int, error)
 	err := db.WithTx(ctx, func(tx pgx.Tx) error {
 		for _, e := range Entities {
 			path := filepath.Join(dir, e.Name+".csv")
-			f, err := os.Open(path)
+			f, err := os.Open(filepath.Clean(path))
 			if os.IsNotExist(err) {
 				continue
 			}

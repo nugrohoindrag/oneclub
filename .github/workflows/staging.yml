@@ -114,10 +114,11 @@ jobs:
         working-directory: web
         env:
           E2E_SKIP_SETUP: "1"
-          E2E_BACKOFFICE: ${{ vars.STAGING_BACKOFFICE_URL }}
+          E2E_DASHBOARD: ${{ vars.STAGING_DASHBOARD_URL }}
+          E2E_CASHIER: ${{ vars.STAGING_CASHIER_URL }}
+          E2E_CADDY: ${{ vars.STAGING_CADDY_URL }}
+          E2E_KITCHEN: ${{ vars.STAGING_KITCHEN_URL }}
           E2E_MEMBER: ${{ vars.STAGING_MEMBER_URL }}
-          E2E_OPS: ${{ vars.STAGING_OPS_URL }}
-          E2E_PLATFORM_ADMIN: ${{ vars.STAGING_PLATFORM_ADMIN_URL }}
           E2E_WEB: ${{ vars.STAGING_WEB_URL }}
           E2E_PASSWORD: ${{ secrets.STAGING_DEMO_PASSWORD }}
           DEMO_DEVICE_TOKEN: ${{ secrets.STAGING_DEVICE_TOKEN }}

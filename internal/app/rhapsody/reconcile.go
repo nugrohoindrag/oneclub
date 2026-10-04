@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -64,12 +65,15 @@ func Metrics(ctx context.Context, tx pgx.Tx, property uuid.UUID) (map[string]str
 		}
 		out["active_members:"+code] = fmt.Sprint(n)
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return out, p2Metrics(ctx, tx, property, out)
 }
 
 // ReadTotals reads the Rhapsody control totals (metric,value per line).
 func ReadTotals(path string) (map[string]string, error) {
-	f, err := os.Open(path)
+	f, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return nil, err
 	}
@@ -144,7 +148,7 @@ func (d *Deps) Reconcile(ctx context.Context, property uuid.UUID, totals map[str
 
 // WriteChecks writes the reconciliation for sign-off.
 func WriteChecks(path string, checks []Check) error {
-	f, err := os.Create(path)
+	f, err := os.Create(filepath.Clean(path))
 	if err != nil {
 		return err
 	}
@@ -164,7 +168,7 @@ func WriteChecks(path string, checks []Check) error {
 
 // WriteIssues writes the validation report.
 func WriteIssues(path string, issues []Issue) error {
-	f, err := os.Create(path)
+	f, err := os.Create(filepath.Clean(path))
 	if err != nil {
 		return err
 	}

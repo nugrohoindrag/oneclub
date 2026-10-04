@@ -525,6 +525,11 @@ func IssueCard(ctx context.Context, tx pgx.Tx, property, memberID uuid.UUID, mem
 // Activate turns an approved application into Active memberships with
 // cards, member account and portal access (FR-MEM-06/08/09).
 func (m *Module) Activate(ctx context.Context, tx pgx.Tx, aid uuid.UUID, waivePayment bool, reason string) (Application, error) {
+	// The payment subscriber and a manual activation may run together; the
+	// second one waits here and then sees the completed application.
+	if _, err := tx.Exec(ctx, `SELECT 1 FROM membership.applications WHERE id = $1 FOR UPDATE`, aid); err != nil {
+		return Application{}, err
+	}
 	a, err := GetApplication(ctx, tx, aid)
 	if err != nil {
 		return a, err

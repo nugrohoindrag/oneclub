@@ -26,6 +26,7 @@ import (
 	"oneclub/internal/kernel/ratelimit"
 	"oneclub/internal/kernel/reqctx"
 	"oneclub/internal/kernel/route"
+	"oneclub/internal/membership"
 	"oneclub/internal/platform/approval"
 	"oneclub/internal/platform/audit"
 	"oneclub/internal/platform/integration"
@@ -327,8 +328,7 @@ func (m *Module) maxWindow(ctx context.Context, q dbtx.Querier, property uuid.UU
 			mx = v
 		}
 	}
-	var typeMax *int
-	_ = q.QueryRow(ctx, `SELECT max(booking_window_days) FROM membership.types WHERE property_id = $1 AND status = 'active'`, property).Scan(&typeMax)
+	typeMax, _ := membership.MaxBookingWindowDays(ctx, q, property)
 	if typeMax != nil && *typeMax > mx {
 		mx = *typeMax
 	}
@@ -571,7 +571,7 @@ func (m *Module) availabilityHTTP(w http.ResponseWriter, r *http.Request) {
 			course = &u
 		}
 		players := 0
-		fmt.Sscan(q.Get("players"), &players)
+		_, _ = fmt.Sscan(q.Get("players"), &players)
 		var err error
 		out, err = m.availability(ctx, tx, p, day, course, q.Get("session"), players, segmentsParam(r, "member", "guest_of_member", "non_member"), "back_office")
 		return err
@@ -585,20 +585,21 @@ func (m *Module) availabilityHTTP(w http.ResponseWriter, r *http.Request) {
 
 // SheetPlayer is a player row on the tee sheet.
 type SheetPlayer struct {
-	ID          uuid.UUID  `json:"id"`
-	BookingID   uuid.UUID  `json:"bookingId"`
-	BookingCode string     `json:"bookingCode"`
-	Name        string     `json:"name"`
-	PlayerType  string     `json:"playerType"`
-	Segment     string     `json:"segment"`
-	Status      string     `json:"status" enum:"booked,checked_in,no_show,cancelled,removed"`
-	TBA         bool       `json:"tba"`
-	CheckedInAt *time.Time `json:"checkedInAt"`
-	CaddyID     *uuid.UUID `json:"caddyId"`
-	CaddyCode   *string    `json:"caddyCode"`
-	CaddyName   *string    `json:"caddyName"`
-	BagTag      *string    `json:"bagTag"`
-	Locker      *string    `json:"locker"`
+	ID                uuid.UUID  `json:"id"`
+	BookingID         uuid.UUID  `json:"bookingId"`
+	BookingCode       string     `json:"bookingCode"`
+	Name              string     `json:"name"`
+	PlayerType        string     `json:"playerType"`
+	Segment           string     `json:"segment"`
+	Status            string     `json:"status" enum:"booked,checked_in,no_show,cancelled,removed"`
+	TBA               bool       `json:"tba"`
+	CheckedInAt       *time.Time `json:"checkedInAt"`
+	CaddyID           *uuid.UUID `json:"caddyId"`
+	CaddyCode         *string    `json:"caddyCode"`
+	CaddyName         *string    `json:"caddyName"`
+	CaddyAssignmentID *uuid.UUID `json:"caddyAssignmentId" doc:"Rate the caddy after the round (Member App)"`
+	BagTag            *string    `json:"bagTag"`
+	Locker            *string    `json:"locker"`
 }
 
 // SheetFlight is a flight on the tee sheet.
@@ -724,9 +725,9 @@ func (m *Module) loadFlights(ctx context.Context, q dbtx.Querier, pol Policies, 
 		pos[f.ID] = i
 	}
 	pr, err := q.Query(ctx, `SELECT bp.id, bp.flight_id, bp.booking_id, b.code, bp.name, bp.player_type, bp.segment, bp.status, bp.tba, bp.checked_in_at,
-		ca.caddy_id, c.code, c.name, bd.tag_number, l.code
+		ca.caddy_id, c.code, c.name, ca.id, bd.tag_number, l.code
 		FROM golf.booking_players bp JOIN golf.bookings b ON b.id = bp.booking_id
-		LEFT JOIN LATERAL (SELECT caddy_id FROM golf.caddy_assignments x WHERE x.flight_id = bp.flight_id AND bp.id = ANY(x.player_ids)
+		LEFT JOIN LATERAL (SELECT id, caddy_id FROM golf.caddy_assignments x WHERE x.flight_id = bp.flight_id AND bp.id = ANY(x.player_ids)
 			AND x.status IN ('assigned','in_play','completed') ORDER BY x.assigned_at DESC LIMIT 1) ca ON true
 		LEFT JOIN golf.caddies c ON c.id = ca.caddy_id
 		LEFT JOIN LATERAL (SELECT tag_number FROM golf.bag_drops d WHERE d.booking_player_id = bp.id ORDER BY d.dropped_at DESC LIMIT 1) bd ON true
@@ -740,7 +741,7 @@ func (m *Module) loadFlights(ctx context.Context, q dbtx.Querier, pol Policies, 
 		var sp SheetPlayer
 		var fid uuid.UUID
 		if err := pr.Scan(&sp.ID, &fid, &sp.BookingID, &sp.BookingCode, &sp.Name, &sp.PlayerType, &sp.Segment, &sp.Status, &sp.TBA, &sp.CheckedInAt,
-			&sp.CaddyID, &sp.CaddyCode, &sp.CaddyName, &sp.BagTag, &sp.Locker); err != nil {
+			&sp.CaddyID, &sp.CaddyCode, &sp.CaddyName, &sp.CaddyAssignmentID, &sp.BagTag, &sp.Locker); err != nil {
 			pr.Close()
 			return nil, err
 		}

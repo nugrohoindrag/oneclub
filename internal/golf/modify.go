@@ -115,7 +115,7 @@ func (m *Module) Cancel(ctx context.Context, tx pgx.Tx, property, bid uuid.UUID,
 		}
 		// Within the free window: full refund. Otherwise the late fee —
 		// except for unpaid pending online bookings which simply lapse.
-		if hours < float64(pol.Cancellation.FreeCancelHours) && !(b.Status == "pending" && !paidAny) {
+		if hours < float64(pol.Cancellation.FreeCancelHours) && (b.Status != "pending" || paidAny) {
 			fee = total.Mul(dec(pol.Cancellation.LateCancelFeePercent)).Div(hundred).Round(0)
 		}
 	}
@@ -220,9 +220,9 @@ func (m *Module) WaiverDecision(ctx context.Context, tx pgx.Tx, d approval.Decis
 		return nil
 	}
 	ctx = withProperty(ctx, d.PropertyID)
-	var folio uuid.UUID
-	if err := tx.QueryRow(ctx, `SELECT folio_id FROM billing.folio_lines WHERE id = $1`, d.DocumentID).Scan(&folio); err != nil {
-		return err
+	folio, ferr := billing.FolioOfLine(ctx, tx, d.DocumentID)
+	if ferr != nil {
+		return ferr
 	}
 	if st, err := billing.FolioStatus(ctx, tx, folio); err == nil && st == "closed" {
 		return nil

@@ -2,7 +2,7 @@
   "name": "@oneclub/shell",
   "version": "0.1.0",
   "private": true,
-  "description": "OneClub application shell: providers, layouts, login, header, shared settings pages on top of Morphic.",
+  "description": "OneClub application shell: providers, Staff App areas, layouts, login, header, shared settings pages on top of Morphic.",
   "type": "module",
   "main": "./src/index.ts",
   "exports": {
@@ -21,6 +21,7 @@
     "@oneclub/ui": "workspace:*",
     "@tanstack/react-query": "^5.104.1",
     "motion": "^14.0.0",
+    "qrcode-generator": "1.4.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router": "^8.4.0"

@@ -28,7 +28,9 @@ import (
 
 // PolicyCategories follow Naming Convention §25.
 var PolicyCategories = []string{"Golf Policies", "Sport Club Policies", "Banquet Policies", "Pricing Policies", "Cancellation Policies",
-	"Refund Policies", "Guest Policies", "Member Policies", "Caddy Policies", "Golf Cart Policies", "Weather Policies"}
+	"Refund Policies", "Guest Policies", "Member Policies", "Caddy Policies", "Golf Cart Policies", "Weather Policies",
+	// PRD P2 §7.6 proposed labels (EP-28).
+	"Stay Policies", "Voucher Policies", "POS Policies", "Reciprocal Policies", "Hall of Fame Policies"}
 
 // Rule is one version.
 type Rule struct {
@@ -169,6 +171,8 @@ func (s *Service) create(kind string) http.HandlerFunc {
 		var v any
 		if len(req.Value) == 0 || json.Unmarshal(req.Value, &v) != nil {
 			fields = append(fields, errs.Field("value", "invalid", "value must be valid JSON"))
+		} else if kind == "club_policy" {
+			fields = append(fields, validatePolicy(req.Code, req.Category, req.Value)...)
 		}
 		if len(fields) > 0 {
 			httpx.WriteError(w, r, errs.Validation("invalid_rule", "invalid rule", fields...))
@@ -279,6 +283,7 @@ func (s *Service) setStatus(kind string) http.HandlerFunc {
 
 // Register adds Business Rules and Club Policies routes.
 func (s *Service) Register(reg *route.Registry) {
+	s.registerCatalog(reg)
 	for _, k := range []struct{ kind, path, perm, tag string }{
 		{"business_rule", "/api/v1/platform/business-rules", "platform.business_rule", "Business Rules"},
 		{"club_policy", "/api/v1/platform/club-policies", "platform.club_policy", "Club Policies"},

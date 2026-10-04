@@ -39,6 +39,10 @@ type Menu struct {
 	Items []Item `json:"items"`
 }
 
+func live(module, label, icon, path string) Item {
+	return Item{Key: module, Label: label, Path: path, Icon: icon, Module: module, Permission: catalog.ModuleAccess(module)}
+}
+
 func m(module, label, icon, path, phase string) Item {
 	return Item{Key: module, Label: label, Path: path, Icon: icon, Module: module, Permission: catalog.ModuleAccess(module), ComingSoon: true, Phase: phase}
 }
@@ -53,7 +57,9 @@ func s(key, label, path, perm string, children ...Item) Item {
 	return Item{Key: key, Label: label, Path: path, Permission: perm, Children: children}
 }
 
-// Trees are the static menu definitions per shell.
+// Trees are the static menu definitions per shell. Paths are Staff App paths:
+// Back Office at the root, the other staff shells under their area prefix
+// (management /management, ops /ops, caddy /tablet, platform-admin /platform).
 var Trees = map[string][]Item{
 	"backoffice": {
 		{Key: "dashboard", Label: "Dashboard", Path: "/", Icon: "space_dashboard"},
@@ -69,15 +75,18 @@ var Trees = map[string][]Item{
 			s("check-in", "Check-in", "/golf/check-in", "golf.check_in.perform"),
 			s("starter", "Starter", "/golf/starter", "golf.starter.view"),
 			s("rain-checks", "Rain Checks", "/golf/rain-checks", "golf.rain_check.view"),
+			s("golf-operations", "Round Operations", "/golf/operations", "golf.flight.view"),
+			s("golf-master", "Golf Master Data", "/golf/master", "golf.course.view"),
 			s("golf-settings", "Golf Settings", "/golf/settings", "golf.tee_sheet.view"),
 		),
-		m("sportclub", "Sport Club", "sports_tennis", "/sport-club", "P3"),
+		live("sportclub", "Sport Club", "sports_tennis", "/sport-club"),
 		mod("membership", "Membership", "card_membership", "/membership/members",
 			s("members", "Members", "/membership/members", "membership.member.view"),
 			s("membership-programs", "Membership Programs", "/membership/programs", "membership.program.view"),
 			s("membership-types", "Membership Types", "/membership/types", "membership.program.view"),
 			s("membership-packages", "Membership Packages", "/membership/packages", "membership.program.view"),
 			s("applications", "Applications", "/membership/applications", "membership.application.view"),
+			s("membership-lifecycle", "Lifecycle Requests", "/membership/lifecycle", "membership.membership.view"),
 			s("membership-approvals", "Approvals", "/approvals", ""),
 			s("membership-fees", "Membership Fees", "/billing/folios", "billing.folio.view"),
 			s("membership-cards", "Membership Cards", "/membership/cards", "membership.card.view"),
@@ -87,6 +96,7 @@ var Trees = map[string][]Item{
 		),
 		mod("reservation", "Booking", "event_available", "/booking/all",
 			s("all-bookings", "All Bookings", "/booking/all", "golf.booking.view"),
+			s("all-lines", "All Business Lines", "/booking/all-lines", "reservation.reservation.view"),
 			s("availability", "Availability", "/booking/availability", "golf.tee_sheet.view"),
 			s("booking-golf", "Golf", "/golf/bookings", "golf.booking.view"),
 			s("booking-calendar", "Booking Calendar", "/golf/tee-sheet", "golf.tee_sheet.view"),
@@ -95,12 +105,13 @@ var Trees = map[string][]Item{
 			s("booking-refunds", "Refunds", "/billing/refunds", "billing.refund.view"),
 			s("booking-settings", "Booking Settings", "/golf/settings", "golf.tee_sheet.view"),
 		),
-		m("stay", "Stay & Venue", "hotel", "/stay-venue", "P3"),
+		live("stay", "Stay & Venue", "hotel", "/stay-venue"),
 		m("banquet", "Banquet & Event", "celebration", "/banquet-event", "P3"),
 		mod("crm", "CRM", "groups", "/crm/customers",
 			s("customers", "Customers", "/crm/customers", "crm.customer.view"),
 			s("customer-360", "Customer 360", "/crm/customer-360", "crm.customer_overview.view"),
 			s("corporate-accounts", "Corporate Accounts", "/crm/corporate-accounts", "crm.corporate_account.view"),
+			s("crm-engagement", "Feedback & Campaigns", "/crm/engagement", "crm.feedback.view"),
 		),
 		mod("commercial", "Commercial", "storefront", "/commercial/pricing/rate-plans",
 			s("pricing", "Pricing", "/commercial/pricing/rate-plans", "commercial.pricing.view",
@@ -109,6 +120,8 @@ var Trees = map[string][]Item{
 				s("effective-dates", "Effective Dates", "/commercial/pricing/effective-dates", "commercial.pricing.view"),
 				s("commercial-tax-service", "Tax & Service", "/settings/tax-service", "commercial.tax_service.view"),
 			),
+			s("vouchers", "Voucher & Prepaid", "/commercial/operations", "commercial.voucher.view"),
+			s("commercial-master", "Outlets & Products", "/commercial/master", "commercial.outlet.view"),
 		),
 		mod("billing", "Billing & Payment", "payments", "/billing/folios",
 			s("customer-accounts", "Customer Accounts", "/billing/customer-accounts", "billing.customer_account.view"),
@@ -119,9 +132,9 @@ var Trees = map[string][]Item{
 			s("member-charges", "Member Charges", "/billing/member-charges", "billing.customer_account.view"),
 			s("payment-reconciliation", "Payment Reconciliation", "/billing/reconciliation", "billing.reconciliation.view"),
 		),
-		m("inventory", "Inventory", "inventory_2", "/inventory", "P4"),
+		live("inventory", "Inventory", "inventory_2", "/inventory"),
 		m("procurement", "Procurement", "shopping_cart", "/procurement", "P4"),
-		m("accounting", "Accounting", "account_balance", "/accounting", "P2"),
+		m("accounting", "Accounting", "account_balance", "/accounting", "P4"),
 		m("hris", "HRIS", "badge", "/hris", "P5"),
 		{Key: "reports", Label: "Reports", Path: "/reports", Icon: "monitoring", Module: "reporting", Permission: "reporting.report.view", Children: []Item{
 			s("reports-list", "Reports", "/reports", "reporting.report.view"),
@@ -131,6 +144,7 @@ var Trees = map[string][]Item{
 			s("operational-reports", "Operational Reports", "/reports?module=billing", "reporting.report.view"),
 			s("reports-exports", "Exports", "/reports/exports", "reporting.export.create"),
 			s("management-dashboard", "Management Dashboard", "/management", catalog.ManagementView),
+			s("kpi-dashboards", "KPI Dashboards", "/dashboards/golf-performance", catalog.ManagementView),
 		}},
 		{Key: "settings", Label: "Settings", Path: "/settings", Icon: "settings", Module: "platform", Children: []Item{
 			s("organization", "Organization", "/settings/organization", "platform.organization.view",
@@ -170,9 +184,11 @@ var Trees = map[string][]Item{
 	"management": {
 		{Key: "executive-overview", Label: "Executive Overview", Path: "/management", Icon: "insights", Module: "reporting", Permission: catalog.ManagementView},
 		{Key: "golf-performance", Label: "Golf Performance", Path: "/management/golf", Module: "golf", Permission: catalog.ManagementView},
+		{Key: "sport-club-performance", Label: "Sport Club Performance", Path: "/management/sport-club-performance", Module: "sportclub", Permission: catalog.ManagementView},
 		{Key: "membership-performance", Label: "Membership Performance", Path: "/management/membership", Module: "membership", Permission: catalog.ManagementView},
 		{Key: "booking-performance", Label: "Booking Performance", Path: "/management/booking", Module: "reservation", Permission: catalog.ManagementView},
-		{Key: "financial-performance", Label: "Financial Performance", Path: "/management/financial", Module: "accounting", Permission: catalog.ManagementView, ComingSoon: true, Phase: "P2"},
+		{Key: "commercial-performance", Label: "Commercial Performance", Path: "/management/commercial-performance", Module: "commercial", Permission: catalog.ManagementView},
+		{Key: "financial-performance", Label: "Financial Performance", Path: "/management/financial", Module: "accounting", Permission: catalog.ManagementView, ComingSoon: true, Phase: "P4"},
 	},
 	"member": {
 		{Key: "home", Label: "Home", Path: "/", Icon: "home", Permission: catalog.ShellMemberPortal},
@@ -182,7 +198,10 @@ var Trees = map[string][]Item{
 			s("my-flights", "My Flights", "/golf/my-flights", catalog.ShellMemberPortal),
 			s("my-caddy", "My Caddy", "/golf/my-caddy", catalog.ShellMemberPortal),
 			s("my-golf-cart", "My Golf Cart", "/golf/my-golf-cart", catalog.ShellMemberPortal),
+			s("my-scores", "Scores & Handicap", "/golf/scores", catalog.ShellMemberPortal),
 		}},
+		{Key: "sport-club", Label: "Sport Club", Path: "/sport-club", Icon: "sports_tennis", Module: "sportclub", Permission: catalog.ShellMemberPortal},
+		{Key: "stay-venue", Label: "Stay & Venue", Path: "/stay", Icon: "hotel", Module: "stay", Permission: catalog.ShellMemberPortal},
 		{Key: "bookings", Label: "Bookings", Path: "/bookings", Icon: "event_available", Module: "reservation", Permission: catalog.ShellMemberPortal},
 		{Key: "membership", Label: "Membership", Path: "/membership", Icon: "card_membership", Module: "membership", Permission: catalog.ShellMemberPortal, Children: []Item{
 			s("my-membership", "My Membership", "/membership", catalog.ShellMemberPortal),
@@ -190,65 +209,83 @@ var Trees = map[string][]Item{
 			s("membership-benefits", "Membership Benefits", "/membership/benefits", catalog.ShellMemberPortal),
 			s("family-members", "Family Members", "/membership/family", catalog.ShellMemberPortal),
 			s("membership-statement", "Membership Statement", "/membership/statements", catalog.ShellMemberPortal),
+			s("membership-services", "Fees & Requests", "/membership/services", catalog.ShellMemberPortal),
 		}},
+		{Key: "vouchers", Label: "Voucher & Prepaid", Path: "/vouchers", Icon: "redeem", Module: "commercial", Permission: catalog.ShellMemberPortal},
+		{Key: "order-food", Label: "Order Food", Path: "/order-food", Icon: "restaurant", Module: "commercial", Permission: catalog.ShellMemberPortal},
 		{Key: "transactions", Label: "Transactions", Path: "/transactions", Icon: "receipt_long", Module: "billing", Permission: catalog.ShellMemberPortal, Children: []Item{
 			s("my-transactions", "My Transactions", "/transactions", catalog.ShellMemberPortal),
 			s("member-payments", "Payments", "/transactions/payments", catalog.ShellMemberPortal),
 			s("my-member-charges", "Member Charges", "/transactions/member-charges", catalog.ShellMemberPortal),
 		}},
+		{Key: "preferences", Label: "Preferences", Path: "/preferences", Icon: "tune", Module: "crm", Permission: catalog.ShellMemberPortal},
 		{Key: "profile", Label: "Profile", Path: "/profile", Icon: "person", Permission: catalog.ShellMemberPortal},
 	},
 	"ops": {
-		{Key: "home", Label: "Home", Path: "/", Icon: "home", Permission: catalog.ShellOps},
-		{Key: "starter", Label: "Starter", Path: "/starter", Icon: "flag", Module: "golf", Permission: "golf.starter.view", Children: []Item{
-			s("ops-tee-sheet", "Tee Sheet", "/starter/tee-sheet", "golf.tee_sheet.view"),
-			s("queue", "Queue", "/starter", "golf.starter.view"),
-			s("ready-flights", "Ready Flights", "/starter/ready", "golf.starter.view"),
-			s("dispatch", "Dispatch", "/starter/dispatch", "golf.starter.control"),
-			s("starter-check-in", "Check-in", "/check-in", "golf.check_in.perform"),
-			s("tee-off", "Tee-Off", "/starter/dispatch", "golf.starter.control"),
-			s("round-status", "Round Status", "/starter/rounds", "golf.starter.view"),
+		{Key: "home", Label: "Home", Path: "/ops", Icon: "home", Permission: catalog.ShellOps},
+		{Key: "starter", Label: "Starter", Path: "/ops/starter", Icon: "flag", Module: "golf", Permission: "golf.starter.view", Children: []Item{
+			s("ops-tee-sheet", "Tee Sheet", "/ops/starter/tee-sheet", "golf.tee_sheet.view"),
+			s("queue", "Queue", "/ops/starter", "golf.starter.view"),
+			s("ready-flights", "Ready Flights", "/ops/starter/ready", "golf.starter.view"),
+			s("dispatch", "Dispatch", "/ops/starter/dispatch", "golf.starter.control"),
+			s("starter-check-in", "Check-in", "/ops/check-in", "golf.check_in.perform"),
+			s("tee-off", "Tee-Off", "/ops/starter/dispatch", "golf.starter.control"),
+			s("round-status", "Round Status", "/ops/starter/rounds", "golf.starter.view"),
+			s("pace-of-play", "Pace of Play", "/ops/starter/pace", "golf.pace.view"),
 		}},
-		{Key: "caddy-master", Label: "Caddy Master", Path: "/caddy", Icon: "hiking", Module: "golf", Permission: "golf.caddy_assignment.manage", Children: []Item{
-			s("caddy-queue", "Caddy Queue", "/caddy", "golf.caddy.view"),
-			s("caddy-availability", "Caddy Availability", "/caddy/availability", "golf.caddy.view"),
-			s("caddy-assignment", "Caddy Assignment", "/caddy/assignment", "golf.caddy_assignment.manage"),
-			s("caddy-rotation", "Caddy Rotation", "/caddy/rotation", "golf.caddy_assignment.manage"),
-			s("caddy-attendance", "Caddy Attendance", "/caddy/availability", "golf.caddy_assignment.manage"),
-			s("caddy-history", "Caddy History", "/caddy/history", "golf.caddy.view"),
+		{Key: "caddy-master", Label: "Caddy Master", Path: "/ops/caddy", Icon: "hiking", Module: "golf", Permission: "golf.caddy_assignment.manage", Children: []Item{
+			s("caddy-queue", "Caddy Queue", "/ops/caddy", "golf.caddy.view"),
+			s("caddy-availability", "Caddy Availability", "/ops/caddy/availability", "golf.caddy.view"),
+			s("caddy-assignment", "Caddy Assignment", "/ops/caddy/assignment", "golf.caddy_assignment.manage"),
+			s("caddy-rotation", "Caddy Rotation", "/ops/caddy/rotation", "golf.caddy_assignment.manage"),
+			s("caddy-attendance", "Caddy Attendance", "/ops/caddy/availability", "golf.caddy_assignment.manage"),
+			s("caddy-history", "Caddy History", "/ops/caddy/history", "golf.caddy.view"),
+			s("caddy-incidents", "Incidents & Settlement", "/ops/caddy/incidents", "golf.caddy_incident.create"),
 		}},
-		{Key: "front-desk", Label: "Front Desk", Path: "/front-desk", Icon: "concierge", Module: "golf", Permission: "golf.check_in.perform", Children: []Item{
-			s("reservations", "Reservations", "/front-desk", "golf.booking.view"),
-			s("fd-check-in", "Check-in", "/check-in", "golf.check_in.perform"),
-			s("guest", "Guest", "/front-desk/guest", "crm.guest.view"),
-			s("fd-payments", "Payments", "/front-desk/payments", "billing.payment.create"),
-			s("fd-folios", "Folios", "/front-desk/folios", "billing.folio.view"),
+		{Key: "front-desk", Label: "Front Desk", Path: "/ops/front-desk", Icon: "concierge", Module: "golf", Permission: "golf.check_in.perform", Children: []Item{
+			s("reservations", "Reservations", "/ops/front-desk", "golf.booking.view"),
+			s("fd-check-in", "Check-in", "/ops/check-in", "golf.check_in.perform"),
+			s("guest", "Guest", "/ops/front-desk/guest", "crm.guest.view"),
+			s("fd-payments", "Payments", "/ops/front-desk/payments", "billing.payment.create"),
+			s("fd-folios", "Folios", "/ops/front-desk/folios", "billing.folio.view"),
 		}},
-		{Key: "golf-staff", Label: "Golf Staff", Path: "/golf-staff", Icon: "golf_course", Module: "golf", Permission: "golf.bag.manage", Children: []Item{
-			s("bag-drop", "Bag Drop", "/golf-staff", "golf.bag.manage"),
-			s("bag-storage", "Bag Storage", "/golf-staff/bag-storage", "golf.bag.manage"),
-			s("locker-assignment", "Locker Assignment", "/golf-staff/lockers", "golf.locker_assignment.manage"),
-			s("golf-cart-readiness", "Golf Cart Readiness", "/golf-staff/golf-carts", "golf.golf_cart.update"),
-			s("golf-cart-assignment", "Golf Cart Assignment", "/golf-staff/golf-cart-assignment", "golf.golf_cart_assignment.manage"),
+		{Key: "stay-front-desk", Label: "Stay Front Desk", Path: "/ops/stay-desk", Icon: "hotel", Module: "stay", Permission: "stay.stay.view"},
+		{Key: "golf-staff", Label: "Golf Staff", Path: "/ops/golf-staff", Icon: "golf_course", Module: "golf", Permission: "golf.bag.manage", Children: []Item{
+			s("bag-drop", "Bag Drop", "/ops/golf-staff", "golf.bag.manage"),
+			s("bag-storage", "Bag Storage", "/ops/golf-staff/bag-storage", "golf.bag.manage"),
+			s("locker-assignment", "Locker Assignment", "/ops/golf-staff/lockers", "golf.locker_assignment.manage"),
+			s("golf-cart-readiness", "Golf Cart Readiness", "/ops/golf-staff/golf-carts", "golf.golf_cart.update"),
+			s("golf-cart-assignment", "Golf Cart Assignment", "/ops/golf-staff/golf-cart-assignment", "golf.golf_cart_assignment.manage"),
+			s("golf-cart-inspection", "Golf Cart Inspection", "/ops/golf-staff/inspection", "golf.cart_inspection.create"),
 		}},
-		{Key: "sync", Label: "Sync Queue", Path: "/sync", Icon: "sync", Permission: catalog.ShellOps},
-		{Key: "notifications", Label: "Notifications", Path: "/notifications", Icon: "notifications", Permission: catalog.ShellOps},
+		{Key: "driving-range", Label: "Driving Range", Path: "/ops/driving-range", Icon: "sports_golf", Module: "golf", Permission: "golf.range.operate"},
+		{Key: "sport-reception", Label: "Sport Reception", Path: "/ops/sport-reception", Icon: "sports_tennis", Module: "sportclub", Permission: "sportclub.access.validate"},
+		{Key: "instructor", Label: "Instructor", Path: "/ops/instructor", Icon: "school", Module: "sportclub", Permission: "sportclub.class.attendance"},
+		{Key: "pos", Label: "POS", Path: "/ops/pos", Icon: "point_of_sale", Module: "commercial", Permission: "commercial.order.create"},
+		{Key: "sync", Label: "Sync Queue", Path: "/ops/sync", Icon: "sync", Permission: catalog.ShellOps},
+		{Key: "notifications", Label: "Notifications", Path: "/ops/notifications", Icon: "notifications", Permission: catalog.ShellOps},
+	},
+	"caddy": {
+		{Key: "home", Label: "My Assignments", Path: "/tablet", Icon: "assignment", Permission: catalog.ShellCaddy},
+		{Key: "earnings", Label: "Earnings", Path: "/tablet/earnings", Icon: "payments", Permission: catalog.ShellCaddy},
+		{Key: "sync", Label: "Sync Queue", Path: "/tablet/sync", Icon: "sync", Permission: catalog.ShellCaddy},
+		{Key: "profile", Label: "Profile", Path: "/tablet/profile", Icon: "person", Permission: catalog.ShellCaddy},
 	},
 	"platform-admin": {
-		s("customer-instances", "Customer Instances", "/", catalog.ShellPlatformAdmin),
-		s("instance-configuration", "Instance Configuration", "/instance-configuration", "platform.instance.update"),
-		s("enabled-modules", "Enabled Modules", "/enabled-modules", "platform.module.update"),
-		s("feature-configuration", "Feature Configuration", "/feature-configuration", "platform.feature_flag.update"),
-		s("branding", "Branding", "/branding", "platform.branding.update"),
-		s("custom-domain", "Custom Domain", "/custom-domain", "platform.domain.manage"),
-		s("users", "Users", "/users", "platform.user.view"),
-		s("roles", "Roles", "/roles", "platform.role.view"),
-		s("permissions", "Permissions", "/permissions", "platform.permission.view"),
-		s("integrations", "Integrations", "/integrations", "platform.integration.manage"),
-		s("feature-flags", "Feature Flags", "/feature-flags", "platform.feature_flag.update"),
-		s("locale", "Locale", "/locale", "platform.instance.update"),
-		s("currency", "Currency", "/currency", "platform.instance.update"),
-		s("timezone", "Timezone", "/timezone", "platform.instance.update"),
+		s("customer-instances", "Customer Instances", "/platform", catalog.ShellPlatformAdmin),
+		s("instance-configuration", "Instance Configuration", "/platform/instance-configuration", "platform.instance.update"),
+		s("enabled-modules", "Enabled Modules", "/platform/enabled-modules", "platform.module.update"),
+		s("feature-configuration", "Feature Configuration", "/platform/feature-configuration", "platform.feature_flag.update"),
+		s("branding", "Branding", "/platform/branding", "platform.branding.update"),
+		s("custom-domain", "Custom Domain", "/platform/custom-domain", "platform.domain.manage"),
+		s("users", "Users", "/platform/users", "platform.user.view"),
+		s("roles", "Roles", "/platform/roles", "platform.role.view"),
+		s("permissions", "Permissions", "/platform/permissions", "platform.permission.view"),
+		s("integrations", "Integrations", "/platform/integrations", "platform.integration.manage"),
+		s("feature-flags", "Feature Flags", "/platform/feature-flags", "platform.feature_flag.update"),
+		s("locale", "Locale", "/platform/locale", "platform.instance.update"),
+		s("currency", "Currency", "/platform/currency", "platform.instance.update"),
+		s("timezone", "Timezone", "/platform/timezone", "platform.instance.update"),
 	},
 }
 
@@ -327,5 +364,5 @@ func (sv *Service) handle(w http.ResponseWriter, r *http.Request) {
 func (sv *Service) Register(reg *route.Registry) {
 	reg.Add(route.Route{Method: http.MethodGet, Path: "/api/v1/platform/navigation", Module: "platform", Tag: "Application Shell",
 		Summary: "Menu of a shell filtered by enabled modules and my permissions", Response: Menu{},
-		Query: []route.Param{{Name: "shell", Enum: []string{"backoffice", "management", "member", "ops", "platform-admin"}}}, Handler: sv.handle})
+		Query: []route.Param{{Name: "shell", Enum: []string{"backoffice", "management", "member", "ops", "platform-admin", "caddy"}}}, Handler: sv.handle})
 }

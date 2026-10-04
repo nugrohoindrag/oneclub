@@ -1,10 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation } from 'react-router';
 import { useTranslation } from '@oneclub/i18n';
 import { Icon } from '../components/ui';
+import { useAuth } from '../context';
+import { areasOf, surfaceUrl, useArea, type Area } from '../areas';
 
 /** Standard pages (FR-SH-04): 403, 404, error, maintenance. */
-function StatusPage({ code, icon, title, help, action = true }: { code: string; icon: string; title: string; help: string; action?: boolean }) {
+function StatusPage({ code, icon, title, help, action = true, children }: {
+  code: string; icon: string; title: string; help: string; action?: boolean; children?: React.ReactNode;
+}) {
   const { t } = useTranslation();
   return (
     <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
@@ -13,15 +17,42 @@ function StatusPage({ code, icon, title, help, action = true }: { code: string; 
         <div className="oc-muted oc-num" style={{ fontWeight: 700, letterSpacing: '0.1em' }}>{code}</div>
         <h1 style={{ margin: '4px 0 8px', fontSize: 28 }}>{title}</h1>
         <p className="oc-muted">{help}</p>
-        {action && <Link to="/" className="oc-btn oc-btn-ink">{t('shell.goHome')}</Link>}
+        {children ?? (action && <Link to="/" className="oc-btn oc-btn-ink">{t('shell.goHome')}</Link>)}
       </div>
     </div>
   );
 }
 
-export function ForbiddenPage() {
+/**
+ * 403; in the Staff App it links to the areas the user may open. `elsewhere`
+ * is an area of another domain (Technical Doc §6.1): the page links to that
+ * domain when it is known.
+ */
+export function ForbiddenPage({ elsewhere }: { elsewhere?: Area }) {
   const { t } = useTranslation();
-  return <StatusPage code="403" icon="lock" title={t('shell.forbiddenTitle')} help={t('shell.forbiddenHelp')} />;
+  const { me, logout } = useAuth();
+  const loc = useLocation();
+  const staff = useArea() !== null;
+  const areas = areasOf(me);
+  const there = elsewhere && surfaceUrl(elsewhere.surface, loc.pathname + loc.search);
+  return (
+    <StatusPage code="403" icon="lock" title={t('shell.forbiddenTitle')}
+      help={elsewhere ? t('shell.otherDomainHelp', { area: elsewhere.label }) : t('shell.forbiddenHelp')}>
+      {staff ? (
+        <nav className="oc-stack" aria-label={t('shell.yourAreas')}>
+          {there && (
+            <a href={there} className="oc-btn oc-btn-ink oc-btn-block"><Icon name="open_in_new" size={20} /> {t('shell.openOn', { host: new URL(there).host })}</a>
+          )}
+          {areas.length > 0 && <div className="oc-small oc-muted">{t('shell.yourAreas')}</div>}
+          {areas.map((a) => (
+            <Link key={a.code} to={a.path} className="oc-btn oc-btn-outline oc-btn-block"><Icon name={a.icon} size={20} /> {a.label}</Link>
+          ))}
+          {!me && <Link to="/login" className="oc-btn oc-btn-outline oc-btn-block">{t('auth.login')}</Link>}
+          {me && areas.length === 0 && <button className="oc-btn oc-btn-ink" onClick={() => void logout()}>{t('shell.logout')}</button>}
+        </nav>
+      ) : undefined}
+    </StatusPage>
+  );
 }
 
 export function NotFoundPage() {

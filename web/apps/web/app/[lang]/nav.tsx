@@ -1,6 +1,7 @@
 'use client';
 import { usePathname } from 'next/navigation';
 import type { Lang } from '../lib';
+import { p2Nav } from '../lib-p2';
 
 /** Public navigation (Naming Convention §26) — client component for the active state. */
 export function SiteNav({ lang, labels }: { lang: Lang; labels: Record<string, string> }) {
@@ -9,6 +10,7 @@ export function SiteNav({ lang, labels }: { lang: Lang; labels: Record<string, s
     [`/${lang}`, labels.home],
     [`/${lang}/golf`, labels.golf],
     [`/${lang}/membership`, labels.membership],
+    ...p2Nav(lang),
     [`/${lang}/contact`, labels.contact],
     [`/${lang}/location`, labels.location],
   ];

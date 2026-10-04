@@ -34,13 +34,28 @@ var Resources = &resource.Def{
 
 // Contribution returns catalogue entries.
 func Contribution() catalog.Contribution {
-	return catalog.Contribution{
-		Permissions: resource.Permissions(Resources),
-		RolePermissions: map[string][]string{
-			"property_admin":    resource.AllActions(Resources),
-			"reservation_staff": {"reservation.resource.view"},
-		},
+	perms := resource.Permissions(Resources, ResourceTypes)
+	perms = append(perms, catalog.P("reservation", "reservation", "view", "create", "update", "cancel", "override")...)
+	perms = append(perms, catalog.P("reservation", "block", "manage")...)
+	booking := []string{"reservation.resource.view", "reservation.resource_type.view", "reservation.reservation.view", "reservation.reservation.create",
+		"reservation.reservation.update", "reservation.reservation.cancel"}
+	view := []string{"reservation.resource.view", "reservation.resource_type.view", "reservation.reservation.view"}
+	rp := map[string][]string{
+		"property_admin":          append(append(resource.AllActions(Resources, ResourceTypes), booking...), "reservation.reservation.override", "reservation.block.manage"),
+		"reservation_staff":       append(booking, "reservation.block.manage"),
+		"front_desk":              booking,
+		"sport_club_manager":      append(booking, "reservation.reservation.override", "reservation.block.manage"),
+		"resort_manager":          append(booking, "reservation.reservation.override", "reservation.block.manage"),
+		"golf_manager":            append(booking, "reservation.block.manage"),
+		"sport_club_receptionist": booking,
+		"driving_range_staff":     booking,
+		"general_manager":         view,
+		"club_manager":            view,
+		"golf_admin":              view,
+		"banquet_manager":         view,
+		"instructor_coach":        {"reservation.reservation.view"},
 	}
+	return catalog.Contribution{Permissions: perms, RolePermissions: rp}
 }
 
 // ErrSlotTaken is returned when an allocation overlaps another.
@@ -243,4 +258,23 @@ func Status(ctx context.Context, q dbtx.Querier, allocationID uuid.UUID) (string
 	err := q.QueryRow(ctx, `SELECT CASE WHEN status = 'held' AND expires_at <= now() THEN 'expired' ELSE status END FROM reservation.allocations WHERE id = $1`,
 		allocationID).Scan(&st)
 	return st, err
+}
+
+// HeldAllocations returns the held allocations of a reservation, oldest
+// first (a booking made from a tee hold keeps its seats).
+func HeldAllocations(ctx context.Context, q dbtx.Querier, reservationID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.Query(ctx, `SELECT id FROM reservation.allocations WHERE reservation_id = $1 AND status = 'held' ORDER BY created_at`, reservationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []uuid.UUID
+	for rows.Next() {
+		var a uuid.UUID
+		if err := rows.Scan(&a); err != nil {
+			return nil, err
+		}
+		out = append(out, a)
+	}
+	return out, rows.Err()
 }
