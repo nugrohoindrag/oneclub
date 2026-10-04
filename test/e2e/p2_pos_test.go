@@ -40,7 +40,8 @@ func sseWait(t *testing.T, c *Client, path, prefix string, trigger func()) time.
 			go trigger()
 			continue
 		}
-		if ready && strings.HasPrefix(line, "event: "+prefix) {
+		// P0 realtime names the SSE event after the topic; the type is in the data
+		if ready && strings.HasPrefix(line, "data: ") && strings.Contains(line, `"type":"`+prefix+`"`) {
 			return time.Since(start)
 		}
 	}
@@ -129,6 +130,10 @@ func TestP2POSKitchenBOM(t *testing.T) {
 		{"label": "Rina", "lineIds": []any{lines[3].(map[string]any)["id"]}}}}).JSON()
 	bills := split["bills"].([]any)
 	methods := []map[string]any{{"methodType": "member_account"}, {"methodType": "qris", "reference": "QR-1"}, {"methodType": "cash"}, {"methodType": "card", "reference": "EDC-9"}}
+	balance := func() string {
+		return str(sa.Must(200, "GET", "/api/v1/billing/customer-accounts/"+f.AccountA, nil).JSON()["balance"])
+	}
+	before := balance()
 	var paid map[string]any
 	for i, b := range bills {
 		paid = sa.Must(200, "POST", "/api/v1/commercial/orders/"+did+":pay", map[string]any{"billId": b.(map[string]any)["id"], "shiftId": sid,
@@ -137,16 +142,9 @@ func TestP2POSKitchenBOM(t *testing.T) {
 	if paid["status"] != "paid" {
 		t.Fatalf("dinner paid: %v", paid["status"])
 	}
-	// member charge reached the member account (statement shows pos line)
-	st := sa.Must(200, "GET", "/api/v1/billing/member-accounts/"+f.AccountA+"/statement", nil).JSON()
-	foundPOS := false
-	for _, l := range st["lines"].([]any) {
-		if strings.Contains(str(l.(map[string]any)["description"]), "Signing bill") && l.(map[string]any)["businessLine"] == "pos" {
-			foundPOS = true
-		}
-	}
-	if !foundPOS {
-		t.Fatalf("member charge on statement: %v", st["lines"])
+	// Hendra's signed bill reached the member account ledger
+	if got := dec(balance()).Sub(dec(before)); !got.Equal(dec(l0["totalAmount"])) {
+		t.Fatalf("member charge on the account: %s, want %v", got, l0["totalAmount"])
 	}
 	// Kitchen states; SSE delivers the Ready state in < 2 s.
 	var kitchenTicket string
@@ -286,7 +284,8 @@ func TestP2POSKitchenBOM(t *testing.T) {
 	var sales float64
 	_, _ = fmt.Sscan(str(z["sales"]), &sales)
 	var refunded float64
-	sysQueryRow(t, inst, `SELECT coalesce(sum(amount),0)::float FROM billing.payments WHERE shift_id = $1 AND kind = 'refund'`, []any{mustUUID(sid)}, &refunded)
+	sysQueryRow(t, inst, `SELECT coalesce(sum(r.amount),0)::float FROM billing.refunds r JOIN billing.payments p ON p.id = r.payment_id
+		WHERE p.shift_id = $1 AND r.status = 'completed'`, []any{mustUUID(sid)}, &refunded)
 	if z["kind"] != "z" || payTotal+0.0001 < sales-refunded-1 || payTotal > sales+1 {
 		t.Fatalf("Z report: sales %v payments %v refunded %v", sales, payTotal, refunded)
 	}
