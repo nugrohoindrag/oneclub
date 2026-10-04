@@ -31,7 +31,7 @@ git diff --diff-filter=MD --stat a48e6a3 -- internal/golf internal/billing inter
 |---|---|---|
 | 1 | Query lintas schema | ✅ Selesai (`d72cffa`) |
 | 2 | Dokumen kontrak untuk Dian | ✅ `docs/p2-contract-review.md` (diperbarui setiap ada perubahan kontrak) |
-| 3 | Test | 🔄 P0/P1 hijau, provision hijau, unit hijau. Test P2: 14/20 lolos |
+| 3 | Test | 🔄 P0/P1 hijau, provision hijau, unit hijau. Test P2: 13 lolos, 7 gagal (lihat sisa pekerjaan) |
 | 4 | OpenAPI & frontend | ⏳ Belum dimulai |
 | 5 | Dokumen | ⏳ Belum dimulai |
 
