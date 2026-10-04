@@ -283,26 +283,22 @@ func TestP2SelfServiceCoverage(t *testing.T) {
 		t.Fatalf("my feedback: %v", fb)
 	}
 
-	// Membership: application from the app; a draft application submitted
-	// and force-activated by staff.
+	// Membership: application from the app; a staff application runs P1's
+	// flow (submit → approval → fee → activation).
 	sp := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "ZC-SPORT", "name": "Sport Club (coverage)", "programKind": "sport_club"}))
-	st, _ := membershipType(t, sa, sp, "ZC-SC-IND", "Sport Individual ZC", map[string]any{"annualFee": "2000000"})
-	if a := mc.Must(201, "POST", "/api/v1/member/membership-applications", map[string]any{"typeId": st, "notes": "Apply from the app"}).JSON(); a["applicationNo"] == "" {
+	st, stPkg := membershipType(t, sa, sp, "ZC-SC-IND", "Sport Individual ZC", map[string]any{"annualFee": "2000000"})
+	if a := mc.Must(201, "POST", "/api/v1/member/membership-applications", map[string]any{"typeId": st, "packageId": stPkg, "notes": "Apply from the app"}).JSON(); a["applicationNo"] == "" {
 		t.Fatalf("my application: %v", a)
 	}
 	applicant := customer(t, sa, "ZC-APPLICANT", "Calon ZC", map[string]any{"phone": "+6281299887766"})
-	app := idOf(sa.Must(201, "POST", "/api/v1/membership/applications", map[string]any{"typeId": st, "customerId": applicant}))
-	if a := sa.Must(200, "POST", "/api/v1/membership/applications/"+app+":submit", nil).JSON(); a["status"] == "draft" {
-		t.Fatalf("application submit: %v", a)
-	}
-	if m := sa.Must(200, "POST", "/api/v1/membership/applications/"+app+":activate", map[string]any{"force": true}).JSON(); m["status"] != "active" {
-		t.Fatalf("forced activation: %v", m)
+	if ms := activeMembership(t, sa, applicant, st, stPkg, nil); ms == "" {
+		t.Fatal("staff application activated")
 	}
 
 	// Billing: staff starts an online payment of a folio; POS order sent to the kitchen later.
 	folio := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": me, "holderName": "Walk-in"}))
 	sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+"/lines", map[string]any{"chargeType": "other", "description": "Club rental", "unitPrice": "250000"}, "Idempotency-Key", newKey())
-	if op := sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+":online-payment", map[string]any{"method": "virtual_account"}).JSON(); op["amount"] != "250000" {
+	if op := sa.Must(201, "POST", "/api/v1/billing/folios/"+folio+":online-payment", map[string]any{"method": "virtual_account"}).JSON(); !dec(op["amount"]).Equal(dec("250000")) {
 		t.Fatalf("staff online payment: %v", op)
 	}
 	outlet := idOf(sa.Must(201, "POST", "/api/v1/commercial/outlets", map[string]any{"code": "ZC-RESTO", "name": "Resto ZC", "outletType": "restaurant"}))

@@ -39,7 +39,7 @@ func TestP2Website(t *testing.T) {
 	bk := pub.Must(201, "POST", "/api/v1/public/court-bookings", map[string]any{"propertyId": prop, "guest": guest, "courtId": court,
 		"start": rfc(start), "end": rfc(start.Add(time.Hour)), "payMethod": "qris"}).JSON()
 	co := bk["checkout"].(map[string]any)
-	if co["total"] != "150000" || co["online"].(map[string]any)["status"] != "paid" {
+	if co["total"] != "150000" || co["online"].(map[string]any)["status"] != "completed" {
 		t.Fatalf("court checkout: %v", bk)
 	}
 	if _, err := inst.App.Dispatcher.DispatchPending(t.Context()); err != nil {
@@ -67,7 +67,7 @@ func TestP2Website(t *testing.T) {
 		"payment": map[string]any{"methodType": "cash"}}, "Idempotency-Key", newKey()).JSON()["vouchers"].([]any)[0].(map[string]any)
 	vb := pub.Must(201, "POST", "/api/v1/public/court-bookings", map[string]any{"propertyId": prop, "guest": guest, "courtId": court,
 		"start": rfc(start.Add(2 * time.Hour)), "end": rfc(start.Add(3 * time.Hour)), "voucherCode": gv["code"]}).JSON()
-	if vb["status"] != "confirmed" || vb["checkout"].(map[string]any)["voucherPaid"] != "150000" {
+	if vb["status"] != "confirmed" || !dec(vb["checkout"].(map[string]any)["voucherPaid"]).Equal(dec("150000")) {
 		t.Fatalf("voucher code booking: %v", vb)
 	}
 
