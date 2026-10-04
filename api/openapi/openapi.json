@@ -505,6 +505,63 @@
         ],
         "type": "object"
       },
+      "AccountStatement": {
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/Account"
+          },
+          "aging": {
+            "$ref": "#/components/schemas/Aging"
+          },
+          "billToName": {
+            "type": "string"
+          },
+          "charges": {
+            "type": "string"
+          },
+          "closingBalance": {
+            "type": "string"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/StatementEntry"
+            },
+            "type": "array"
+          },
+          "from": {
+            "type": "string"
+          },
+          "openInvoices": {
+            "items": {
+              "$ref": "#/components/schemas/Invoice"
+            },
+            "type": "array"
+          },
+          "openingBalance": {
+            "type": "string"
+          },
+          "payments": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "account",
+          "billToName",
+          "from",
+          "to",
+          "openingBalance",
+          "charges",
+          "payments",
+          "closingBalance",
+          "entries",
+          "openInvoices",
+          "aging"
+        ],
+        "type": "object"
+      },
       "AccountingExport": {
         "properties": {
           "businessDate": {
@@ -767,6 +824,154 @@
           "startAt",
           "status",
           "players"
+        ],
+        "type": "object"
+      },
+      "Aging": {
+        "properties": {
+          "asOf": {
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/AgingRow"
+            },
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/AgingRow"
+          }
+        },
+        "required": [
+          "asOf",
+          "rows",
+          "totals"
+        ],
+        "type": "object"
+      },
+      "AgingRow": {
+        "properties": {
+          "accountId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "billToName": {
+            "type": "string"
+          },
+          "corporateAccountId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "days0to30": {
+            "type": "string"
+          },
+          "days31to60": {
+            "type": "string"
+          },
+          "days61to90": {
+            "type": "string"
+          },
+          "invoices": {
+            "type": "integer"
+          },
+          "over90": {
+            "type": "string"
+          },
+          "overdue": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "billToName",
+          "invoices",
+          "days0to30",
+          "days31to60",
+          "days61to90",
+          "over90",
+          "total",
+          "overdue"
+        ],
+        "type": "object"
+      },
+      "Allocation": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "invoiceId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "paymentId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "paymentNumber": {
+            "type": "string"
+          },
+          "scheduleLineId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "paymentId",
+          "paymentNumber",
+          "amount",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "AllocationInput": {
+        "properties": {
+          "allocations": {
+            "items": {
+              "properties": {
+                "amount": {
+                  "type": "string"
+                },
+                "invoiceId": {
+                  "format": "uuid",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "invoiceId",
+                "amount"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "paymentId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "paymentId",
+          "allocations"
         ],
         "type": "object"
       },
@@ -1214,6 +1419,40 @@
         ],
         "type": "object"
       },
+      "AuditFinding": {
+        "properties": {
+          "check": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "message": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "blocking",
+              "warning",
+              "info"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "check",
+          "severity",
+          "count",
+          "message"
+        ],
+        "type": "object"
+      },
       "Availability": {
         "properties": {
           "from": {
@@ -1650,6 +1889,26 @@
           "total",
           "paid"
         ],
+        "type": "object"
+      },
+      "BillTo": {
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "npwp": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "BillingReasonRequest": {
@@ -3155,6 +3414,48 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "BusinessDay": {
+        "properties": {
+          "businessDate": {
+            "type": "string"
+          },
+          "closedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "current": {
+            "description": "The open business date new transactions go to",
+            "type": "boolean"
+          },
+          "reopenReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "reopenedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "closed"
+            ],
+            "type": "string"
+          },
+          "summary": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "businessDate",
+          "status",
+          "summary",
+          "current"
+        ],
         "type": "object"
       },
       "Caddy": {
@@ -4724,6 +5025,114 @@
         ],
         "type": "object"
       },
+      "CashierShift": {
+        "properties": {
+          "businessDate": {
+            "type": "string"
+          },
+          "cashIn": {
+            "type": "string"
+          },
+          "cashOut": {
+            "type": "string"
+          },
+          "cashRefunds": {
+            "type": "string"
+          },
+          "cashierId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "cashierName": {
+            "type": "string"
+          },
+          "closeNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "closedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "countedCash": {
+            "nullable": true,
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "expected": {
+            "description": "Opening float + cash payments − cash refunds + cash in − cash out",
+            "type": "string"
+          },
+          "expectedCash": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "openedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "openingFloat": {
+            "type": "string"
+          },
+          "station": {
+            "enum": [
+              "front_desk",
+              "sport_reception",
+              "banquet",
+              "golf",
+              "stay_desk",
+              "other"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "closed"
+            ],
+            "type": "string"
+          },
+          "totals": {
+            "description": "Payments per method (live while open)",
+            "items": {
+              "$ref": "#/components/schemas/MethodTotal"
+            },
+            "type": "array"
+          },
+          "variance": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "station",
+          "cashierId",
+          "cashierName",
+          "businessDate",
+          "currency",
+          "openingFloat",
+          "openedAt",
+          "status",
+          "totals",
+          "cashIn",
+          "cashOut",
+          "cashRefunds",
+          "expected"
+        ],
+        "type": "object"
+      },
       "CatalogEntry": {
         "properties": {
           "category": {
@@ -4856,6 +5265,25 @@
         "required": [
           "folioId"
         ],
+        "type": "object"
+      },
+      "ChargeToAccountInput": {
+        "properties": {
+          "accountId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "amount": {
+            "description": "Default: the folio balance",
+            "type": "string"
+          },
+          "corporateAccountId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "Check": {
@@ -5527,6 +5955,9 @@
       "CloseShiftInput": {
         "properties": {
           "countedCash": {
+            "type": "string"
+          },
+          "note": {
             "type": "string"
           }
         },
@@ -7130,6 +7561,136 @@
         ],
         "type": "object"
       },
+      "CreditNote": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "invoiceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "issued"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "invoiceId",
+          "amount",
+          "currency",
+          "reason",
+          "status",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "CreditNoteInput": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "invoiceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "invoiceId",
+          "amount",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "CreditOverride": {
+        "properties": {
+          "accountId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "approvalRequestId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "approved",
+              "rejected",
+              "cancelled"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "accountId",
+          "amount",
+          "reason",
+          "expiresAt",
+          "status",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "CreditOverrideInput": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "reason"
+        ],
+        "type": "object"
+      },
       "CrmCustomer": {
         "properties": {
           "birthDate": {
@@ -7561,6 +8122,178 @@
           "preferences",
           "highlights"
         ],
+        "type": "object"
+      },
+      "CustomerFolio": {
+        "properties": {
+          "balance": {
+            "type": "string"
+          },
+          "charges": {
+            "type": "string"
+          },
+          "corporateAccountId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "folios": {
+            "description": "Linked folios",
+            "type": "integer"
+          },
+          "holderName": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paid": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "closed"
+            ],
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "holderName",
+          "currency",
+          "status",
+          "version",
+          "folios",
+          "charges",
+          "paid",
+          "balance",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "CustomerFolioDetail": {
+        "properties": {
+          "balance": {
+            "type": "string"
+          },
+          "byLine": {
+            "items": {
+              "$ref": "#/components/schemas/LineCharges"
+            },
+            "type": "array"
+          },
+          "charges": {
+            "type": "string"
+          },
+          "corporateAccountId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "folioList": {
+            "items": {
+              "$ref": "#/components/schemas/Folio"
+            },
+            "type": "array"
+          },
+          "folios": {
+            "description": "Linked folios",
+            "type": "integer"
+          },
+          "holderName": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "invoices": {
+            "items": {
+              "$ref": "#/components/schemas/Invoice"
+            },
+            "type": "array"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paid": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "closed"
+            ],
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "holderName",
+          "currency",
+          "status",
+          "version",
+          "folios",
+          "charges",
+          "paid",
+          "balance",
+          "createdAt",
+          "byLine",
+          "folioList",
+          "invoices"
+        ],
+        "type": "object"
+      },
+      "CustomerFolioInput": {
+        "properties": {
+          "corporateAccountId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "CustomerInput": {
@@ -8199,6 +8932,94 @@
           "rounds",
           "lastRound",
           "favorite"
+        ],
+        "type": "object"
+      },
+      "DailyRevenue": {
+        "properties": {
+          "businessDate": {
+            "type": "string"
+          },
+          "charges": {
+            "type": "string"
+          },
+          "frozen": {
+            "description": "Closed by the night audit; figures no longer change",
+            "type": "boolean"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "invoiceTotal": {
+            "type": "string"
+          },
+          "invoicesIssued": {
+            "type": "integer"
+          },
+          "liabilities": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Voucher, prepaid, annual fee, package, deposits held, loyalty points at the end of the day",
+            "type": "object"
+          },
+          "net": {
+            "type": "string"
+          },
+          "paymentTotal": {
+            "type": "string"
+          },
+          "payments": {
+            "items": {
+              "$ref": "#/components/schemas/PaymentRow"
+            },
+            "type": "array"
+          },
+          "refunds": {
+            "type": "string"
+          },
+          "revenue": {
+            "items": {
+              "$ref": "#/components/schemas/RevenueRow"
+            },
+            "type": "array"
+          },
+          "service": {
+            "type": "string"
+          },
+          "shiftTotal": {
+            "description": "Payments taken in cashier and POS shifts",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "closed"
+            ],
+            "type": "string"
+          },
+          "tax": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "businessDate",
+          "status",
+          "frozen",
+          "revenue",
+          "charges",
+          "net",
+          "service",
+          "tax",
+          "payments",
+          "paymentTotal",
+          "refunds",
+          "shiftTotal",
+          "liabilities",
+          "invoicesIssued",
+          "invoiceTotal",
+          "generatedAt"
         ],
         "type": "object"
       },
@@ -13660,6 +14481,26 @@
         ],
         "type": "object"
       },
+      "InstallmentPlan": {
+        "properties": {
+          "downPaymentPercent": {
+            "type": "string"
+          },
+          "firstDueDate": {
+            "description": "Due date of the down payment (default today)",
+            "type": "string"
+          },
+          "installments": {
+            "description": "Number of installments after the down payment",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "downPaymentPercent",
+          "installments"
+        ],
+        "type": "object"
+      },
       "Instance": {
         "properties": {
           "branding": {
@@ -14436,6 +15277,535 @@
         },
         "type": "object"
       },
+      "Invoice": {
+        "properties": {
+          "accountId": {
+            "description": "AR account (city ledger) the invoice is receivable on",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "billToAddress": {
+            "nullable": true,
+            "type": "string"
+          },
+          "billToEmail": {
+            "nullable": true,
+            "type": "string"
+          },
+          "billToName": {
+            "type": "string"
+          },
+          "billToNpwp": {
+            "nullable": true,
+            "type": "string"
+          },
+          "billToPhone": {
+            "nullable": true,
+            "type": "string"
+          },
+          "corporateAccountId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "creditedAmount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "customerFolioId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "daysOverdue": {
+            "type": "integer"
+          },
+          "dueDate": {
+            "nullable": true,
+            "type": "string"
+          },
+          "folioId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "issueDate": {
+            "nullable": true,
+            "type": "string"
+          },
+          "issuedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "standard",
+              "deposit",
+              "final"
+            ],
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "description": "Assigned at issue (gap-free per property and year)",
+            "nullable": true,
+            "type": "string"
+          },
+          "outstanding": {
+            "type": "string"
+          },
+          "paidAmount": {
+            "type": "string"
+          },
+          "paidAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "scheduleLineId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "sentAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "serviceAmount": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "issued",
+              "partially_paid",
+              "paid",
+              "overdue",
+              "void"
+            ],
+            "type": "string"
+          },
+          "subtotal": {
+            "type": "string"
+          },
+          "taxAmount": {
+            "type": "string"
+          },
+          "termsDays": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "voidReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "voidedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "writtenOffAmount": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "billToName",
+          "termsDays",
+          "currency",
+          "subtotal",
+          "serviceAmount",
+          "taxAmount",
+          "total",
+          "paidAmount",
+          "creditedAmount",
+          "writtenOffAmount",
+          "outstanding",
+          "status",
+          "daysOverdue",
+          "version",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "InvoiceDetail": {
+        "properties": {
+          "accountId": {
+            "description": "AR account (city ledger) the invoice is receivable on",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "allocations": {
+            "items": {
+              "$ref": "#/components/schemas/Allocation"
+            },
+            "type": "array"
+          },
+          "billToAddress": {
+            "nullable": true,
+            "type": "string"
+          },
+          "billToEmail": {
+            "nullable": true,
+            "type": "string"
+          },
+          "billToName": {
+            "type": "string"
+          },
+          "billToNpwp": {
+            "nullable": true,
+            "type": "string"
+          },
+          "billToPhone": {
+            "nullable": true,
+            "type": "string"
+          },
+          "corporateAccountId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "creditNotes": {
+            "items": {
+              "$ref": "#/components/schemas/CreditNote"
+            },
+            "type": "array"
+          },
+          "creditedAmount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "customerFolioId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "daysOverdue": {
+            "type": "integer"
+          },
+          "dueDate": {
+            "nullable": true,
+            "type": "string"
+          },
+          "folioId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "issueDate": {
+            "nullable": true,
+            "type": "string"
+          },
+          "issuedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "standard",
+              "deposit",
+              "final"
+            ],
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLine"
+            },
+            "type": "array"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "description": "Assigned at issue (gap-free per property and year)",
+            "nullable": true,
+            "type": "string"
+          },
+          "outstanding": {
+            "type": "string"
+          },
+          "paidAmount": {
+            "type": "string"
+          },
+          "paidAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "payLink": {
+            "description": "Public payment link (issued invoices)",
+            "nullable": true,
+            "type": "string"
+          },
+          "scheduleLineId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "sentAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "serviceAmount": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "issued",
+              "partially_paid",
+              "paid",
+              "overdue",
+              "void"
+            ],
+            "type": "string"
+          },
+          "subtotal": {
+            "type": "string"
+          },
+          "taxAmount": {
+            "type": "string"
+          },
+          "termsDays": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "voidReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "voidedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "writeOffs": {
+            "items": {
+              "$ref": "#/components/schemas/WriteOff"
+            },
+            "type": "array"
+          },
+          "writtenOffAmount": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "billToName",
+          "termsDays",
+          "currency",
+          "subtotal",
+          "serviceAmount",
+          "taxAmount",
+          "total",
+          "paidAmount",
+          "creditedAmount",
+          "writtenOffAmount",
+          "outstanding",
+          "status",
+          "daysOverdue",
+          "version",
+          "createdAt",
+          "lines",
+          "allocations",
+          "creditNotes",
+          "writeOffs"
+        ],
+        "type": "object"
+      },
+      "InvoiceInput": {
+        "properties": {
+          "accountId": {
+            "description": "Account invoice: uninvoiced charges on the AR account",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "billTo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BillTo"
+              }
+            ],
+            "nullable": true
+          },
+          "corporateAccountId": {
+            "description": "Account invoice of the corporate city ledger, or the payer of a folio invoice",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerFolioId": {
+            "description": "Folio invoice: uninvoiced charges of every folio of the customer folio",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "folioId": {
+            "description": "Folio invoice: uninvoiced charges of one folio",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "from": {
+            "description": "Account invoice period (YYYY-MM-DD)",
+            "type": "string"
+          },
+          "issue": {
+            "description": "Issue immediately",
+            "type": "boolean"
+          },
+          "kind": {
+            "description": "Folio invoices only; final = the closing invoice of an event",
+            "enum": [
+              "standard",
+              "final"
+            ],
+            "type": "string"
+          },
+          "lineIds": {
+            "description": "Folio invoice: only these charge lines",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "scheduleLineId": {
+            "description": "Schedule invoice: one payment schedule line (DP, installment)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "termsDays": {
+            "description": "Default: Credit Policies term for companies, 0 for individuals",
+            "nullable": true,
+            "type": "integer"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "InvoiceLine": {
+        "properties": {
+          "accountEntryId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "businessLine": {
+            "nullable": true,
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "folioLineId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "netAmount": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "revenueComponent": {
+            "nullable": true,
+            "type": "string"
+          },
+          "seq": {
+            "type": "integer"
+          },
+          "serviceAmount": {
+            "type": "string"
+          },
+          "taxAmount": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          },
+          "unitPrice": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "seq",
+          "description",
+          "quantity",
+          "unitPrice",
+          "netAmount",
+          "serviceAmount",
+          "taxAmount",
+          "total"
+        ],
+        "type": "object"
+      },
       "IssueCardRequest": {
         "properties": {
           "cardNumber": {
@@ -14667,7 +16037,9 @@
               "idr",
               "ratio",
               "hours",
-              "balls"
+              "balls",
+              "points",
+              "days"
             ],
             "type": "string"
           },
@@ -15082,6 +16454,21 @@
           "lineId",
           "start",
           "end"
+        ],
+        "type": "object"
+      },
+      "LineCharges": {
+        "properties": {
+          "businessLine": {
+            "type": "string"
+          },
+          "charges": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "businessLine",
+          "charges"
         ],
         "type": "object"
       },
@@ -17555,6 +18942,21 @@
         ],
         "type": "object"
       },
+      "MergeInput": {
+        "properties": {
+          "folioIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "folioIds"
+        ],
+        "type": "object"
+      },
       "MergeRequest": {
         "properties": {
           "reason": {
@@ -17597,6 +18999,27 @@
           "sourceId",
           "targetId",
           "mergedAt"
+        ],
+        "type": "object"
+      },
+      "MethodTotal": {
+        "properties": {
+          "amount": {
+            "description": "Decimal amount as string (never float).",
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "methodType": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "methodType",
+          "count",
+          "amount"
         ],
         "type": "object"
       },
@@ -18705,6 +20128,63 @@
         ],
         "type": "object"
       },
+      "NightAuditRun": {
+        "properties": {
+          "businessDate": {
+            "type": "string"
+          },
+          "checks": {
+            "items": {
+              "$ref": "#/components/schemas/AuditFinding"
+            },
+            "type": "array"
+          },
+          "exceptions": {
+            "type": "integer"
+          },
+          "finishedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "manual",
+              "auto"
+            ],
+            "type": "string"
+          },
+          "startedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "completed",
+              "blocked"
+            ],
+            "type": "string"
+          },
+          "warnings": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "businessDate",
+          "mode",
+          "status",
+          "checks",
+          "exceptions",
+          "warnings",
+          "startedAt"
+        ],
+        "type": "object"
+      },
       "NomineeChangeInput": {
         "properties": {
           "coveredMembershipId": {
@@ -18882,17 +20362,23 @@
       },
       "OpenShiftInput": {
         "properties": {
-          "openingCash": {
+          "openingFloat": {
             "type": "string"
           },
-          "outletId": {
-            "format": "uuid",
+          "station": {
+            "enum": [
+              "front_desk",
+              "sport_reception",
+              "banquet",
+              "golf",
+              "stay_desk",
+              "other"
+            ],
             "type": "string"
           }
         },
         "required": [
-          "outletId",
-          "openingCash"
+          "station"
         ],
         "type": "object"
       },
@@ -19506,7 +20992,19 @@
               "damage_charge",
               "late_checkout_fee",
               "deposit",
-              "other"
+              "other",
+              "banquet_package",
+              "banquet_fnb",
+              "venue_rental",
+              "corkage",
+              "outdoor_venue",
+              "electricity",
+              "event_fee",
+              "tournament_fee",
+              "sponsorship",
+              "package",
+              "promotion_discount",
+              "loyalty_redemption"
             ],
             "nullable": true,
             "type": "string"
@@ -19634,7 +21132,19 @@
               "damage_charge",
               "late_checkout_fee",
               "deposit",
-              "other"
+              "other",
+              "banquet_package",
+              "banquet_fnb",
+              "venue_rental",
+              "corkage",
+              "outdoor_venue",
+              "electricity",
+              "event_fee",
+              "tournament_fee",
+              "sponsorship",
+              "package",
+              "promotion_discount",
+              "loyalty_redemption"
             ],
             "nullable": true,
             "type": "string"
@@ -20540,6 +22050,39 @@
         ],
         "type": "object"
       },
+      "PayInvoiceInput": {
+        "properties": {
+          "amount": {
+            "description": "Default: the outstanding amount",
+            "type": "string"
+          },
+          "methodType": {
+            "enum": [
+              "cash",
+              "bank_transfer",
+              "virtual_account",
+              "qris",
+              "card",
+              "payment_gateway"
+            ],
+            "type": "string"
+          },
+          "online": {
+            "description": "Create a gateway payment (payment link / QRIS) settled by the webhook",
+            "type": "boolean"
+          },
+          "payerName": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "methodType"
+        ],
+        "type": "object"
+      },
       "PayOnlineInput": {
         "properties": {
           "amount": {
@@ -20555,6 +22098,35 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "PayScheduleLineInput": {
+        "properties": {
+          "amount": {
+            "description": "Default: the unpaid amount of the line",
+            "type": "string"
+          },
+          "methodType": {
+            "enum": [
+              "cash",
+              "bank_transfer",
+              "virtual_account",
+              "qris",
+              "card",
+              "payment_gateway"
+            ],
+            "type": "string"
+          },
+          "online": {
+            "type": "boolean"
+          },
+          "reference": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "methodType"
+        ],
         "type": "object"
       },
       "Payment": {
@@ -20621,7 +22193,9 @@
               "card",
               "payment_gateway",
               "member_account",
-              "voucher_prepaid"
+              "voucher_prepaid",
+              "folio_transfer",
+              "loyalty_points"
             ],
             "type": "string"
           },
@@ -20762,7 +22336,8 @@
               "card",
               "payment_gateway",
               "member_account",
-              "voucher_prepaid"
+              "voucher_prepaid",
+              "loyalty_points"
             ],
             "type": "string"
           },
@@ -20824,7 +22399,8 @@
               "card",
               "payment_gateway",
               "member_account",
-              "voucher_prepaid"
+              "voucher_prepaid",
+              "loyalty_points"
             ],
             "type": "string"
           },
@@ -20909,6 +22485,29 @@
           }
         },
         "required": [
+          "amount"
+        ],
+        "type": "object"
+      },
+      "PaymentRow": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          },
+          "methodType": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "methodType",
+          "purpose",
+          "count",
           "amount"
         ],
         "type": "object"
@@ -21469,6 +23068,82 @@
         ],
         "type": "object"
       },
+      "PosCashMovementInput": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "cash_in",
+              "cash_out"
+            ],
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "amount",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "PosCloseShiftInput": {
+        "properties": {
+          "countedCash": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "countedCash"
+        ],
+        "type": "object"
+      },
+      "PosOpenShiftInput": {
+        "properties": {
+          "openingCash": {
+            "type": "string"
+          },
+          "outletId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "outletId",
+          "openingCash"
+        ],
+        "type": "object"
+      },
+      "PosSplitInput": {
+        "properties": {
+          "bills": {
+            "description": "per_item: lines per bill",
+            "items": {
+              "$ref": "#/components/schemas/SplitBill"
+            },
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "per_item",
+              "equal"
+            ],
+            "type": "string"
+          },
+          "persons": {
+            "description": "equal: number of bills",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mode"
+        ],
+        "type": "object"
+      },
       "Position": {
         "properties": {
           "at": {
@@ -21958,7 +23633,19 @@
               "damage_charge",
               "late_checkout_fee",
               "deposit",
-              "other"
+              "other",
+              "banquet_package",
+              "banquet_fnb",
+              "venue_rental",
+              "corkage",
+              "outdoor_venue",
+              "electricity",
+              "event_fee",
+              "tournament_fee",
+              "sponsorship",
+              "package",
+              "promotion_discount",
+              "loyalty_redemption"
             ],
             "nullable": true,
             "type": "string"
@@ -22257,7 +23944,19 @@
               "damage_charge",
               "late_checkout_fee",
               "deposit",
-              "other"
+              "other",
+              "banquet_package",
+              "banquet_fnb",
+              "venue_rental",
+              "corkage",
+              "outdoor_venue",
+              "electricity",
+              "event_fee",
+              "tournament_fee",
+              "sponsorship",
+              "package",
+              "promotion_discount",
+              "loyalty_redemption"
             ],
             "nullable": true,
             "type": "string"
@@ -22564,7 +24263,19 @@
               "damage_charge",
               "late_checkout_fee",
               "deposit",
-              "other"
+              "other",
+              "banquet_package",
+              "banquet_fnb",
+              "venue_rental",
+              "corkage",
+              "outdoor_venue",
+              "electricity",
+              "event_fee",
+              "tournament_fee",
+              "sponsorship",
+              "package",
+              "promotion_discount",
+              "loyalty_redemption"
             ],
             "nullable": true,
             "type": "string"
@@ -22713,7 +24424,19 @@
               "damage_charge",
               "late_checkout_fee",
               "deposit",
-              "other"
+              "other",
+              "banquet_package",
+              "banquet_fnb",
+              "venue_rental",
+              "corkage",
+              "outdoor_venue",
+              "electricity",
+              "event_fee",
+              "tournament_fee",
+              "sponsorship",
+              "package",
+              "promotion_discount",
+              "loyalty_redemption"
             ],
             "nullable": true,
             "type": "string"
@@ -23577,6 +25300,56 @@
         ],
         "type": "object"
       },
+      "PublicInvoice": {
+        "properties": {
+          "billToName": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": "string"
+          },
+          "issueDate": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/InvoiceLine"
+            },
+            "type": "array"
+          },
+          "number": {
+            "type": "string"
+          },
+          "outstanding": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "kind",
+          "billToName",
+          "issueDate",
+          "dueDate",
+          "currency",
+          "total",
+          "outstanding",
+          "status",
+          "lines"
+        ],
+        "type": "object"
+      },
       "PublicPackage": {
         "properties": {
           "currency": {
@@ -23615,6 +25388,19 @@
           "periodFee",
           "currency"
         ],
+        "type": "object"
+      },
+      "PublicPayInput": {
+        "properties": {
+          "method": {
+            "enum": [
+              "qris",
+              "virtual_account",
+              "card"
+            ],
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "PublicPayment": {
@@ -25942,6 +27728,17 @@
         ],
         "type": "object"
       },
+      "ReopenInput": {
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "type": "object"
+      },
       "ReorderRequest": {
         "properties": {
           "caddyIds": {
@@ -27359,6 +29156,41 @@
         },
         "type": "object"
       },
+      "RevenueRow": {
+        "properties": {
+          "businessLine": {
+            "type": "string"
+          },
+          "liability": {
+            "type": "boolean"
+          },
+          "net": {
+            "type": "string"
+          },
+          "revenueComponent": {
+            "type": "string"
+          },
+          "service": {
+            "type": "string"
+          },
+          "tax": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "businessLine",
+          "revenueComponent",
+          "liability",
+          "net",
+          "service",
+          "tax",
+          "total"
+        ],
+        "type": "object"
+      },
       "Role": {
         "properties": {
           "assignedUsers": {
@@ -28230,6 +30062,251 @@
         ],
         "type": "object"
       },
+      "Schedule": {
+        "properties": {
+          "corporateAccountId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "folioId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ScheduleLine"
+            },
+            "type": "array"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paidAmount": {
+            "type": "string"
+          },
+          "sourceId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceRef": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceType": {
+            "enum": [
+              "banquet_event",
+              "package_booking",
+              "membership",
+              "quotation",
+              "tournament",
+              "other"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "completed",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "totalAmount": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "title",
+          "sourceType",
+          "totalAmount",
+          "paidAmount",
+          "currency",
+          "status",
+          "createdAt",
+          "lines"
+        ],
+        "type": "object"
+      },
+      "ScheduleInput": {
+        "properties": {
+          "corporateAccountId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "folioId": {
+            "description": "Folio the payments are taken on (deposits until the event)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "installments": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/InstallmentPlan"
+              }
+            ],
+            "nullable": true
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ScheduleLineInput"
+            },
+            "type": "array"
+          },
+          "sourceId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceRef": {
+            "type": "string"
+          },
+          "sourceType": {
+            "enum": [
+              "banquet_event",
+              "package_booking",
+              "membership",
+              "quotation",
+              "tournament",
+              "other"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "totalAmount": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "totalAmount"
+        ],
+        "type": "object"
+      },
+      "ScheduleLine": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "invoiceId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "down_payment",
+              "installment",
+              "final"
+            ],
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "paidAmount": {
+            "type": "string"
+          },
+          "paidAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "seq": {
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "partially_paid",
+              "paid",
+              "overdue",
+              "cancelled"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "seq",
+          "label",
+          "kind",
+          "dueDate",
+          "amount",
+          "paidAmount",
+          "status"
+        ],
+        "type": "object"
+      },
+      "ScheduleLineInput": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "dueDate": {
+            "description": "YYYY-MM-DD",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "down_payment",
+              "installment",
+              "final"
+            ],
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "percent": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "dueDate"
+        ],
+        "type": "object"
+      },
       "ScoreAudit": {
         "properties": {
           "after": {
@@ -28652,6 +30729,15 @@
         "required": [
           "voucherTypeId"
         ],
+        "type": "object"
+      },
+      "SendInput": {
+        "properties": {
+          "email": {
+            "description": "Override the bill-to e-mail",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "SendReceiptRequest": {
@@ -29706,27 +31792,57 @@
       },
       "SplitInput": {
         "properties": {
-          "bills": {
-            "description": "per_item: lines per bill",
+          "corporateAccountId": {
+            "description": "Payer: the company",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerId": {
+            "description": "Payer: another customer",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "lineIds": {
+            "description": "Charge lines to split (per item / per person); any folio of the customer folio",
             "items": {
-              "$ref": "#/components/schemas/SplitBill"
+              "format": "uuid",
+              "type": "string"
             },
             "type": "array"
           },
-          "mode": {
-            "enum": [
-              "per_item",
-              "equal"
-            ],
+          "percent": {
+            "description": "Share of every chosen line moved to the payer (default 100)",
             "type": "string"
           },
-          "persons": {
-            "description": "equal: number of bills",
-            "type": "integer"
+          "reason": {
+            "type": "string"
           }
         },
         "required": [
-          "mode"
+          "lineIds",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "SplitResult": {
+        "properties": {
+          "moved": {
+            "type": "string"
+          },
+          "targetCustomerFolioId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "targetFolio": {
+            "$ref": "#/components/schemas/FolioDetail"
+          }
+        },
+        "required": [
+          "targetFolio",
+          "targetCustomerFolioId",
+          "moved"
         ],
         "type": "object"
       },
@@ -30229,6 +32345,35 @@
           "lines",
           "hasPdf",
           "createdAt"
+        ],
+        "type": "object"
+      },
+      "StatementEntry": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "entryType": {
+            "type": "string"
+          },
+          "invoiceId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "occurredAt",
+          "entryType",
+          "description",
+          "amount"
         ],
         "type": "object"
       },
@@ -33223,7 +35368,19 @@
               "damage_charge",
               "late_checkout_fee",
               "deposit",
-              "other"
+              "other",
+              "banquet_package",
+              "banquet_fnb",
+              "venue_rental",
+              "corkage",
+              "outdoor_venue",
+              "electricity",
+              "event_fee",
+              "tournament_fee",
+              "sponsorship",
+              "package",
+              "promotion_discount",
+              "loyalty_redemption"
             ],
             "nullable": true,
             "type": "string"
@@ -33418,7 +35575,19 @@
               "damage_charge",
               "late_checkout_fee",
               "deposit",
-              "other"
+              "other",
+              "banquet_package",
+              "banquet_fnb",
+              "venue_rental",
+              "corkage",
+              "outdoor_venue",
+              "electricity",
+              "event_fee",
+              "tournament_fee",
+              "sponsorship",
+              "package",
+              "promotion_discount",
+              "loyalty_redemption"
             ],
             "nullable": true,
             "type": "string"
@@ -33711,6 +35880,70 @@
             "type": "array"
           }
         },
+        "type": "object"
+      },
+      "WriteOff": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "approvalRequestId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "invoiceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "approved",
+              "rejected",
+              "cancelled"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "invoiceId",
+          "amount",
+          "reason",
+          "status",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "WriteOffInput": {
+        "properties": {
+          "amount": {
+            "description": "Default: the outstanding amount",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
         "type": "object"
       }
     },
@@ -34918,6 +37151,1397 @@
         "x-permission": "billing.accounting_export.create"
       }
     },
+    "/api/v1/billing/aging": {
+      "get": {
+        "operationId": "getBillingAging",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "YYYY-MM-DD",
+            "in": "query",
+            "name": "asOf",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "accountId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Aging"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Receivable ageing (0–30, 31–60, 61–90, \u003e 90 days)",
+        "tags": [
+          "Invoices"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.invoice.view"
+      }
+    },
+    "/api/v1/billing/business-days": {
+      "get": {
+        "operationId": "getBillingBusinessDays",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/BusinessDay"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Business days (current open day first)",
+        "tags": [
+          "Night Audit"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.night_audit.view"
+      }
+    },
+    "/api/v1/billing/business-days/{date}:reopen": {
+      "post": {
+        "operationId": "postBillingBusinessDaysByDateReopen",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReopenInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BusinessDay"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Reopen a closed business day (approval)",
+        "tags": [
+          "Night Audit"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.night_audit.reopen"
+      }
+    },
+    "/api/v1/billing/business-days:night-audit": {
+      "post": {
+        "operationId": "postBillingBusinessDaysNightAudit",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NightAuditRun"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Run the Night Audit (close the current business day)",
+        "tags": [
+          "Night Audit"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.night_audit.run"
+      }
+    },
+    "/api/v1/billing/cashier-shifts": {
+      "get": {
+        "operationId": "getBillingCashierShifts",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CashierShift"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cashier shifts (mine; all with permission)",
+        "tags": [
+          "Cashier Shifts"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.cashier_shift.view"
+      },
+      "post": {
+        "operationId": "postBillingCashierShifts",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenShiftInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashierShift"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Open Shift (opening float)",
+        "tags": [
+          "Cashier Shifts"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.cashier_shift.operate"
+      }
+    },
+    "/api/v1/billing/cashier-shifts/current": {
+      "get": {
+        "operationId": "getBillingCashierShiftsCurrent",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashierShift"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My open cashier shift",
+        "tags": [
+          "Cashier Shifts"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.cashier_shift.operate"
+      }
+    },
+    "/api/v1/billing/cashier-shifts/{id}": {
+      "get": {
+        "operationId": "getBillingCashierShiftsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashierShift"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cashier shift with payments per method and expected cash",
+        "tags": [
+          "Cashier Shifts"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.cashier_shift.view"
+      }
+    },
+    "/api/v1/billing/cashier-shifts/{id}/cash-movements": {
+      "post": {
+        "operationId": "postBillingCashierShiftsByIdCashMovements",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CashMovementInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashierShift"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cash in / cash out",
+        "tags": [
+          "Cashier Shifts"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.cashier_shift.operate"
+      }
+    },
+    "/api/v1/billing/cashier-shifts/{id}:close": {
+      "post": {
+        "operationId": "postBillingCashierShiftsByIdClose",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CloseShiftInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CashierShift"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Close Shift (cash count, variance)",
+        "tags": [
+          "Cashier Shifts"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.cashier_shift.operate"
+      }
+    },
+    "/api/v1/billing/corporate-accounts/{id}/statement": {
+      "get": {
+        "operationId": "getBillingCorporateAccountsByIdStatement",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountStatement"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Corporate statement (charges, payments, open invoices, ageing)",
+        "tags": [
+          "Invoices"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.invoice.view"
+      }
+    },
+    "/api/v1/billing/corporate-accounts/{id}/statement:send": {
+      "post": {
+        "operationId": "postBillingCorporateAccountsByIdStatementSend",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountStatement"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Send the corporate statement by e-mail",
+        "tags": [
+          "Invoices"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.invoice.issue"
+      }
+    },
+    "/api/v1/billing/credit-notes": {
+      "get": {
+        "operationId": "getBillingCreditNotes",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[invoiceId]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CreditNote"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Credit notes",
+        "tags": [
+          "Invoices"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.invoice.view"
+      },
+      "post": {
+        "operationId": "postBillingCreditNotes",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreditNoteInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditNote"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Issue a credit note",
+        "tags": [
+          "Invoices"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.invoice.credit"
+      }
+    },
+    "/api/v1/billing/credit-overrides": {
+      "get": {
+        "operationId": "getBillingCreditOverrides",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[accountId]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CreditOverride"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Credit overrides",
+        "tags": [
+          "Customer Folios"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.customer_account.view"
+      }
+    },
     "/api/v1/billing/customer-accounts": {
       "get": {
         "operationId": "getBillingCustomerAccounts",
@@ -35297,6 +38921,98 @@
         "x-permission": "billing.customer_account.adjust"
       }
     },
+    "/api/v1/billing/customer-accounts/{id}:credit-override": {
+      "post": {
+        "operationId": "postBillingCustomerAccountsByIdCreditOverride",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreditOverrideInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreditOverride"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Request a credit override (approval)",
+        "tags": [
+          "Customer Folios"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.credit_override.request"
+      }
+    },
     "/api/v1/billing/customer-accounts:limit-cache": {
       "get": {
         "operationId": "getBillingCustomerAccountsLimitCache",
@@ -35400,6 +39116,476 @@
         "x-permission": "billing.customer_account.charge"
       }
     },
+    "/api/v1/billing/customer-folios": {
+      "get": {
+        "operationId": "getBillingCustomerFolios",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[customerId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[corporateAccountId]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CustomerFolio"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Customer folios (one per customer or company, across lines)",
+        "tags": [
+          "Customer Folios"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.customer_folio.view"
+      },
+      "post": {
+        "operationId": "postBillingCustomerFolios",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerFolioInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerFolioDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Open (or return) the customer folio of a customer or company",
+        "tags": [
+          "Customer Folios"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.customer_folio.manage"
+      }
+    },
+    "/api/v1/billing/customer-folios/{id}": {
+      "get": {
+        "operationId": "getBillingCustomerFoliosById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerFolioDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Customer folio with its folios per business line",
+        "tags": [
+          "Customer Folios"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.customer_folio.view"
+      }
+    },
+    "/api/v1/billing/customer-folios/{id}:merge": {
+      "post": {
+        "operationId": "postBillingCustomerFoliosByIdMerge",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MergeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerFolioDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Merge folios of any line into the customer folio",
+        "tags": [
+          "Customer Folios"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.customer_folio.manage"
+      }
+    },
+    "/api/v1/billing/customer-folios:split": {
+      "post": {
+        "operationId": "postBillingCustomerFoliosSplit",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SplitInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SplitResult"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Split Bill across lines: move charges to another payer",
+        "tags": [
+          "Customer Folios"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.customer_folio.split"
+      }
+    },
     "/api/v1/billing/daily-payment-summary": {
       "get": {
         "operationId": "getBillingDailyPaymentSummary",
@@ -35478,6 +39664,87 @@
         ],
         "x-module": "billing",
         "x-permission": "billing.payment.view"
+      }
+    },
+    "/api/v1/billing/daily-revenue": {
+      "get": {
+        "operationId": "getBillingDailyRevenue",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "YYYY-MM-DD; default the current business day",
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyRevenue"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Daily Revenue Report of a business day (frozen once closed)",
+        "tags": [
+          "Night Audit"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.night_audit.view"
       }
     },
     "/api/v1/billing/deferred-revenue": {
@@ -36254,6 +40521,98 @@
         "x-permission": "billing.folio.void"
       }
     },
+    "/api/v1/billing/folios/{id}:charge-to-account": {
+      "post": {
+        "operationId": "postBillingFoliosByIdChargeToAccount",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChargeToAccountInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Charge the folio balance to a corporate account (city ledger)",
+        "tags": [
+          "Customer Folios"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.customer_account.charge"
+      }
+    },
     "/api/v1/billing/folios/{id}:close": {
       "post": {
         "operationId": "postBillingFoliosByIdClose",
@@ -36518,6 +40877,868 @@
         "x-audited": true,
         "x-module": "billing",
         "x-permission": "billing.folio.reopen"
+      }
+    },
+    "/api/v1/billing/invoices": {
+      "get": {
+        "operationId": "getBillingInvoices",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[kind]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[accountId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[corporateAccountId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[customerId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/Invoice"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Invoices",
+        "tags": [
+          "Invoices"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.invoice.view"
+      },
+      "post": {
+        "operationId": "postBillingInvoices",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvoiceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDetail"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Generate Invoice from a folio, customer folio, account or schedule line",
+        "tags": [
+          "Invoices"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.invoice.create"
+      }
+    },
+    "/api/v1/billing/invoices/{id}": {
+      "get": {
+        "operationId": "getBillingInvoicesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Invoice with lines, allocations, credit notes and write-offs",
+        "tags": [
+          "Invoices"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.invoice.view"
+      }
+    },
+    "/api/v1/billing/invoices/{id}/pdf": {
+      "get": {
+        "operationId": "getBillingInvoicesByIdPdf",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Invoice PDF",
+        "tags": [
+          "Invoices"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.invoice.view"
+      }
+    },
+    "/api/v1/billing/invoices/{id}:issue": {
+      "post": {
+        "operationId": "postBillingInvoicesByIdIssue",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Issue the invoice (number, due date, AR transfer)",
+        "tags": [
+          "Invoices"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.invoice.issue"
+      }
+    },
+    "/api/v1/billing/invoices/{id}:pay": {
+      "post": {
+        "operationId": "postBillingInvoicesByIdPay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayInvoiceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Take a payment for the invoice (venue or payment link)",
+        "tags": [
+          "Invoices"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.payment.create"
+      }
+    },
+    "/api/v1/billing/invoices/{id}:send": {
+      "post": {
+        "operationId": "postBillingInvoicesByIdSend",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Send the invoice with its payment link",
+        "tags": [
+          "Invoices"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.invoice.issue"
+      }
+    },
+    "/api/v1/billing/invoices/{id}:void": {
+      "post": {
+        "operationId": "postBillingInvoicesByIdVoid",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingReasonRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Void an invoice without payments",
+        "tags": [
+          "Invoices"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.invoice.void"
+      }
+    },
+    "/api/v1/billing/invoices/{id}:write-off": {
+      "post": {
+        "operationId": "postBillingInvoicesByIdWriteOff",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WriteOffInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteOff"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Write off (part of) an invoice (approval)",
+        "tags": [
+          "Invoices"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.invoice.write_off"
       }
     },
     "/api/v1/billing/member-charges": {
@@ -36911,6 +42132,338 @@
         "x-audited": true,
         "x-module": "billing",
         "x-permission": "billing.statement.generate"
+      }
+    },
+    "/api/v1/billing/night-audit-runs": {
+      "get": {
+        "operationId": "getBillingNightAuditRuns",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/NightAuditRun"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Night Audit runs with their checks",
+        "tags": [
+          "Night Audit"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.night_audit.view"
+      }
+    },
+    "/api/v1/billing/payment-allocations": {
+      "get": {
+        "operationId": "getBillingPaymentAllocations",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[paymentId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[invoiceId]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/Allocation"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Payment allocations",
+        "tags": [
+          "Invoices"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.invoice.view"
+      },
+      "post": {
+        "operationId": "postBillingPaymentAllocations",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AllocationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/Allocation"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Allocate a payment to invoices",
+        "tags": [
+          "Invoices"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.invoice.allocate"
       }
     },
     "/api/v1/billing/payment-method-settings": {
@@ -37647,6 +43200,598 @@
         ],
         "x-module": "billing",
         "x-permission": "billing.payment_method.export"
+      }
+    },
+    "/api/v1/billing/payment-schedules": {
+      "get": {
+        "operationId": "getBillingPaymentSchedules",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[sourceType]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[customerId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/Schedule"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Payment schedules (DP, installments, final payment)",
+        "tags": [
+          "Payment Schedules"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.payment_schedule.view"
+      },
+      "post": {
+        "operationId": "postBillingPaymentSchedules",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Schedule"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Create a payment schedule or an installment plan",
+        "tags": [
+          "Payment Schedules"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.payment_schedule.manage"
+      }
+    },
+    "/api/v1/billing/payment-schedules/{id}": {
+      "get": {
+        "operationId": "getBillingPaymentSchedulesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Schedule"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Payment schedule with its lines",
+        "tags": [
+          "Payment Schedules"
+        ],
+        "x-module": "billing",
+        "x-permission": "billing.payment_schedule.view"
+      }
+    },
+    "/api/v1/billing/payment-schedules/{id}/lines/{lineId}:invoice": {
+      "post": {
+        "operationId": "postBillingPaymentSchedulesByIdLinesByLineIdInvoice",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "lineId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Issue the invoice of a schedule line (DP invoice with payment link)",
+        "tags": [
+          "Payment Schedules"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.invoice.create"
+      }
+    },
+    "/api/v1/billing/payment-schedules/{id}/lines/{lineId}:pay": {
+      "post": {
+        "operationId": "postBillingPaymentSchedulesByIdLinesByLineIdPay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "lineId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayScheduleLineInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Pay a schedule line (venue or online)",
+        "tags": [
+          "Payment Schedules"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.payment.create"
+      }
+    },
+    "/api/v1/billing/payment-schedules/{id}:cancel": {
+      "post": {
+        "operationId": "postBillingPaymentSchedulesByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingReasonRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Schedule"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel the unpaid lines of a schedule",
+        "tags": [
+          "Payment Schedules"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "billing.payment_schedule.manage"
       }
     },
     "/api/v1/billing/payments": {
@@ -44082,7 +50227,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SplitInput"
+                "$ref": "#/components/schemas/PosSplitInput"
               }
             }
           },
@@ -48775,7 +54920,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CashMovementInput"
+                "$ref": "#/components/schemas/PosCashMovementInput"
               }
             }
           },
@@ -48948,7 +55093,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CloseShiftInput"
+                "$ref": "#/components/schemas/PosCloseShiftInput"
               }
             }
           },
@@ -49032,7 +55177,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OpenShiftInput"
+                "$ref": "#/components/schemas/PosOpenShiftInput"
               }
             }
           },
@@ -89039,6 +95184,252 @@
         "x-permission": "platform.member_portal.access"
       }
     },
+    "/api/v1/member/invoices": {
+      "get": {
+        "operationId": "getMemberInvoices",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/Invoice"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My invoices",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "billing",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/invoices/{id}": {
+      "get": {
+        "operationId": "getMemberInvoicesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvoiceDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My invoice",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "billing",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/invoices/{id}:pay-online": {
+      "post": {
+        "operationId": "postMemberInvoicesByIdPayOnline",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicPayInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Pay my invoice online (QRIS, VA, card)",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
     "/api/v1/member/member-charges": {
       "get": {
         "operationId": "getMemberMemberCharges",
@@ -90152,6 +96543,99 @@
           "Member Portal"
         ],
         "x-module": "commercial",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/payment-schedules": {
+      "get": {
+        "operationId": "getMemberPaymentSchedules",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/Schedule"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My payment schedules (e.g. banquet terms)",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "billing",
         "x-permission": "platform.member_portal.access"
       }
     },
@@ -110494,6 +116978,103 @@
         "x-module": "golf"
       }
     },
+    "/api/v1/public/invoices/{token}": {
+      "get": {
+        "operationId": "getPublicInvoicesByToken",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicInvoice"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Invoice behind a payment link",
+        "tags": [
+          "Public Website"
+        ],
+        "x-module": "billing"
+      }
+    },
+    "/api/v1/public/invoices/{token}:pay": {
+      "post": {
+        "operationId": "postPublicInvoicesByTokenPay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicPayInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Pay an invoice from its payment link (gateway checkout)",
+        "tags": [
+          "Public Website"
+        ],
+        "x-audited": true,
+        "x-module": "billing"
+      }
+    },
     "/api/v1/public/membership-applications": {
       "post": {
         "operationId": "postPublicMembershipApplications",
@@ -124803,6 +131384,9 @@
       "name": "Caddy Tablet"
     },
     {
+      "name": "Cashier Shifts"
+    },
+    {
       "name": "Check-in"
     },
     {
@@ -124819,6 +131403,9 @@
     },
     {
       "name": "Customer Accounts"
+    },
+    {
+      "name": "Customer Folios"
     },
     {
       "name": "Customer Instance"
@@ -124857,6 +131444,9 @@
       "name": "Integrations"
     },
     {
+      "name": "Invoices"
+    },
+    {
       "name": "Lockers"
     },
     {
@@ -124893,6 +131483,9 @@
       "name": "Membership Types"
     },
     {
+      "name": "Night Audit"
+    },
+    {
       "name": "Notifications"
     },
     {
@@ -124914,6 +131507,9 @@
       "name": "Payment Reconciliation"
     },
     {
+      "name": "Payment Schedules"
+    },
+    {
       "name": "Payments"
     },
     {
@@ -124921,6 +131517,9 @@
     },
     {
       "name": "Public"
+    },
+    {
+      "name": "Public Website"
     },
     {
       "name": "Reciprocal Club"

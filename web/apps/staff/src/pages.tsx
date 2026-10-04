@@ -79,6 +79,7 @@ const REPORT_GROUPS: Record<string, { title: string; match: (r: Schemas['ReportI
   booking: { title: 'Booking Reports', match: (r) => r.code === 'golf.bookings' || r.code === 'golf.no_show_cancellation' },
   membership: { title: 'Membership Reports', match: (r) => r.module === 'membership' },
   billing: { title: 'Operational Reports', match: (r) => r.module === 'billing' || r.module === 'platform' },
+  'billing-reports': { title: 'Billing Reports', match: (r) => r.module === 'billing' },
 };
 
 export function ReportsPage() {
