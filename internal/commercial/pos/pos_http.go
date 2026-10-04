@@ -1,4 +1,4 @@
-package commercial
+package pos
 
 import (
 	"context"

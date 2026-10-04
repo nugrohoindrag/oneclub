@@ -1,4 +1,4 @@
-package commercial
+package pos
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"oneclub/internal/commercial/voucher"
 	"oneclub/internal/crm"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/platform/handle"
@@ -13,11 +14,11 @@ import (
 
 // POSActivity is the POS & voucher section of the Customer 360.
 type POSActivity struct {
-	Orders      int          `json:"orders"`
-	Spend       string       `json:"spend"`
-	LastOrder   *time.Time   `json:"lastOrder"`
-	TopProducts []TopProduct `json:"topProducts"`
-	Vouchers    []Voucher    `json:"vouchers" doc:"Active vouchers and prepaid balances"`
+	Orders      int               `json:"orders"`
+	Spend       string            `json:"spend"`
+	LastOrder   *time.Time        `json:"lastOrder"`
+	TopProducts []TopProduct      `json:"topProducts"`
+	Vouchers    []voucher.Voucher `json:"vouchers" doc:"Active vouchers and prepaid balances"`
 }
 
 type TopProduct struct {
@@ -43,8 +44,7 @@ func (m *Module) CustomerSection(ctx context.Context, q dbtx.Querier, property, 
 	if a.TopProducts, err = topProducts(ctx, q, customer, 5); err != nil {
 		return a, err
 	}
-	a.Vouchers, err = handle.List[Voucher](q.Query(ctx, voucherSelect+` WHERE v.customer_id = $1 AND v.status IN ('active', 'partially_redeemed')
-		ORDER BY v.expires_at NULLS LAST`, customer))
+	a.Vouchers, err = voucher.ActiveVouchers(ctx, q, customer)
 	return a, err
 }
 

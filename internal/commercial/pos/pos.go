@@ -1,4 +1,4 @@
-package commercial
+package pos
 
 // POS (PRD P2 EP-20) and F&B Experience (EP-21). An order is priced from the
 // product (member price, variant, modifiers, discount) with tax & service of
@@ -20,6 +20,8 @@ import (
 	"github.com/shopspring/decimal"
 
 	"oneclub/internal/billing"
+	"oneclub/internal/commercial"
+	"oneclub/internal/commercial/voucher"
 	"oneclub/internal/kernel/authz"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
@@ -485,13 +487,13 @@ func (m *Module) priceLine(ctx context.Context, tx pgx.Tx, property uuid.UUID, o
 		return net, svc, tax, total, nil, handle.Invalid("discount", "invalid_discount", "discount exceeds the line amount")
 	}
 	unitAfter := gross.Div(qty)
-	sid, b, err := Pricer{}.ManualSnapshot(ctx, tx, property, "pos", pr.Code, seg, qty, unitAfter, ou.PricingMode, ou.TaxCodes, clock.Now(), override)
+	sid, b, err := commercial.Pricer{}.ManualSnapshot(ctx, tx, property, "pos", pr.Code, seg, qty, unitAfter, ou.PricingMode, ou.TaxCodes, clock.Now(), override)
 	if err != nil {
 		return net, svc, tax, total, nil, err
 	}
 	net, _ = decimal.NewFromString(b.NetAmount)
 	total, _ = decimal.NewFromString(b.Total)
-	return net, sumKind(b.Lines, "service"), sumKind(b.Lines, "tax"), total, &sid, nil
+	return net, commercial.SumKind(b.Lines, "service"), commercial.SumKind(b.Lines, "tax"), total, &sid, nil
 }
 
 func (m *Module) lockOrder(ctx context.Context, tx pgx.Tx, oid uuid.UUID) (Order, error) {
@@ -1007,7 +1009,7 @@ func (m *Module) chargeLines(ctx context.Context, tx pgx.Tx, o Order, folioID uu
 			comp, liability = "voucher_deferred", true
 			total := net.Add(svc).Add(tax)
 			for i := 0; i < int(qty.IntPart()); i++ {
-				if _, err := m.Issue(ctx, tx, IssueRequest{PropertyID: o.PropertyID, TypeID: pr.VoucherTypeID, CustomerID: o.CustomerID, Via: "sale",
+				if _, err := m.Vouchers.Issue(ctx, tx, voucher.IssueRequest{PropertyID: o.PropertyID, TypeID: pr.VoucherTypeID, CustomerID: o.CustomerID, Via: "sale",
 					PricePaid: total.Div(qty), FolioID: &folioID, SourceType: "commercial.order_line", SourceID: &lid}); err != nil {
 					return err
 				}

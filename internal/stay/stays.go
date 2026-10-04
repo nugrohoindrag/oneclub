@@ -13,6 +13,7 @@ import (
 
 	"oneclub/internal/billing"
 	"oneclub/internal/commercial"
+	"oneclub/internal/commercial/pos"
 	"oneclub/internal/crm"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
@@ -430,9 +431,9 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 			qty = fmt.Sprint(max(in.Pax, 1))
 		}
 		fid := f.ID
-		o, err := m.Commercial.CreateOrder(ctx, tx, property, commercial.OrderInput{OutletID: outletID, OrderType: "catering", Source: "meeting_catering",
+		o, err := m.POS.CreateOrder(ctx, tx, property, pos.OrderInput{OutletID: outletID, OrderType: "catering", Source: "meeting_catering",
 			CustomerID: cid, ServingDestination: "meeting_room", DestinationRef: u.Name, ScheduledFor: &serve, ChargeFolioID: &fid,
-			Lines: []commercial.LineInput{{ProductID: pid, Quantity: qty}}, Notes: "Catering " + in.CorporateName})
+			Lines: []pos.LineInput{{ProductID: pid, Quantity: qty}}, Notes: "Catering " + in.CorporateName})
 		if err != nil {
 			return StayResult{}, err
 		}

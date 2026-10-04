@@ -129,10 +129,10 @@ type LinePrice struct {
 // Net / Total / ServiceAmount / TaxAmount expose the breakdown as decimals for charges.
 func (p LinePrice) Net() decimal.Decimal           { return dec(p.Tax.NetAmount) }
 func (p LinePrice) Total() decimal.Decimal         { return dec(p.Tax.Total) }
-func (p LinePrice) ServiceAmount() decimal.Decimal { return sumKind(p.Tax.Lines, "service") }
-func (p LinePrice) TaxAmount() decimal.Decimal     { return sumKind(p.Tax.Lines, "tax") }
+func (p LinePrice) ServiceAmount() decimal.Decimal { return SumKind(p.Tax.Lines, "service") }
+func (p LinePrice) TaxAmount() decimal.Decimal     { return SumKind(p.Tax.Lines, "tax") }
 
-func sumKind(ls []Line, kind string) decimal.Decimal {
+func SumKind(ls []Line, kind string) decimal.Decimal {
 	t := decimal.Zero
 	for _, l := range ls {
 		if l.Kind == kind {
@@ -518,7 +518,7 @@ func (Pricer) ManualSnapshot(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		list_price, gross_amount, net_amount, service_amount, tax_amount, total, currency, pricing_mode, tax_service, override, play_at, created_by)
 		VALUES ($1,$2,$3,$3,$4,$5,'item',$6::numeric,$7::numeric,$8::numeric,$9::numeric,$10::numeric,$11::numeric,$12::numeric,$13,$14,$15,$16,$17,$18)`,
 		sid, property, serviceType, nullStr(itemRef), nullStr(segment), units.String(), unitPrice.String(), gross.String(), b.NetAmount,
-		sumKind(b.Lines, "service").String(), sumKind(b.Lines, "tax").String(), b.Total, cur, mode, taxLines, ov, at, actorPtr(ctx)); err != nil {
+		SumKind(b.Lines, "service").String(), SumKind(b.Lines, "tax").String(), b.Total, cur, mode, taxLines, ov, at, actorPtr(ctx)); err != nil {
 		return uuid.Nil, b, err
 	}
 	return sid, b, nil

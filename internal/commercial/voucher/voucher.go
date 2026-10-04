@@ -1,4 +1,4 @@
-package commercial
+package voucher
 
 // Voucher & Prepaid (PRD P2 EP-19). Vouchers are value (Rp) or quota
 // (entries, sessions, balls) instruments with an append-only ledger.
@@ -23,6 +23,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	"oneclub/internal/billing"
+	"oneclub/internal/commercial"
 	"oneclub/internal/kernel/authz"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
@@ -1102,9 +1103,9 @@ func (m *Module) Sell(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sel
 		price, _ = decimal.NewFromString(*vt.MemberPrice)
 	}
 	var snapshot *uuid.UUID
-	preq := PriceRequest{ServiceType: "voucher_sale", ItemRef: vt.Code, Segment: in.Segment, Start: clock.Now()}
-	if pr, err := (Pricer{}).Resolve(ctx, tx, property, preq); err == nil {
-		if _, err := (Pricer{}).Snapshot(ctx, tx, property, preq, &pr); err != nil {
+	preq := commercial.PriceRequest{ServiceType: "voucher_sale", ItemRef: vt.Code, Segment: in.Segment, Start: clock.Now()}
+	if pr, err := (commercial.Pricer{}).Resolve(ctx, tx, property, preq); err == nil {
+		if _, err := (commercial.Pricer{}).Snapshot(ctx, tx, property, preq, &pr); err != nil {
 			return SaleResult{}, err
 		}
 		price, snapshot = pr.Total(), pr.SnapshotID

@@ -14,6 +14,7 @@ import (
 
 	"oneclub/internal/billing"
 	"oneclub/internal/commercial"
+	"oneclub/internal/commercial/voucher"
 	"oneclub/internal/crm"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
@@ -325,7 +326,7 @@ func (m *Module) CreateEntry(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		if key != "" {
 			vk = "entry-" + key
 		}
-		res, err := m.Commercial.Redeem(ctx, tx, commercial.RedeemRequest{PropertyID: property, Code: in.VoucherCode, Quantity: decimal.NewFromInt(int64(in.Adults + in.Children)),
+		res, err := m.Vouchers.Redeem(ctx, tx, voucher.RedeemRequest{PropertyID: property, Code: in.VoucherCode, Quantity: decimal.NewFromInt(int64(in.Adults + in.Children)),
 			ServiceType: "facility_entry", ItemRef: f.priceItem(), CustomerID: customerID, Terminal: in.Channel, SourceType: "sportclub.entry", IdempotencyKey: vk})
 		if err != nil {
 			return EntryResult{}, err
@@ -473,7 +474,7 @@ func (m *Module) CancelEntry(ctx context.Context, tx pgx.Tx, eid uuid.UUID, reas
 	}
 	if e.VoucherID != nil {
 		qty := decimal.NewFromInt(int64(e.Adults + e.Children))
-		if err := m.Commercial.Restore(ctx, tx, *e.VoucherID, qty, "entry cancelled", "entry-cancel-"+eid.String()); err != nil {
+		if err := m.Vouchers.Restore(ctx, tx, *e.VoucherID, qty, "entry cancelled", "entry-cancel-"+eid.String()); err != nil {
 			return e, err
 		}
 	}
@@ -898,7 +899,7 @@ func (m *Module) BookCourt(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 		if key != "" {
 			vk = "court-" + key
 		}
-		if _, err := m.Commercial.Redeem(ctx, tx, commercial.RedeemRequest{PropertyID: property, Code: in.PackageCode, Quantity: decimal.NewFromInt(1),
+		if _, err := m.Vouchers.Redeem(ctx, tx, voucher.RedeemRequest{PropertyID: property, Code: in.PackageCode, Quantity: decimal.NewFromInt(1),
 			ServiceType: "sport_court", ItemRef: item, CustomerID: cid, SourceType: "reservation.reservation", SourceID: &r.ID, IdempotencyKey: vk}); err != nil {
 			return out, err
 		}

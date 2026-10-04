@@ -15,7 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"oneclub/internal/commercial"
+	"oneclub/internal/commercial/pos"
 	"oneclub/internal/crm"
 	"oneclub/internal/golf"
 	"oneclub/internal/kernel/dbtx"
@@ -332,8 +332,8 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 			return m.Earnings(ctx, tx, prop(ctx), c.ID, from, to)
 		})})
 	add("Caddy Tablet", route.Route{Method: http.MethodPost, Path: "/api/v1/golf/on-course-orders", Summary: "On-course F&B order charged to the booking folio",
-		Permission: "golf.tablet.use", Request: CourseOrderInput{}, Response: commercial.Order{}, Idempotent: true,
-		Handler: handle.Write(db, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, in CourseOrderInput) (commercial.Order, error) {
+		Permission: "golf.tablet.use", Request: CourseOrderInput{}, Response: pos.Order{}, Idempotent: true,
+		Handler: handle.Write(db, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, in CourseOrderInput) (pos.Order, error) {
 			return m.CourseOrder(ctx, tx, in)
 		})})
 	add("Caddy Tablet", route.Route{Method: http.MethodPost, Path: "/api/v1/golf/customers/{id}/preferences", Summary: "Record Customer Preference (caddy)",

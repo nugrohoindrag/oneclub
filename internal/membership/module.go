@@ -31,7 +31,7 @@ var Members = &resource.Def{
 		{Name: "joinedOn", Column: "joined_on", Label: "Member Since", Kind: resource.Date},
 		{Name: "legacyRef", Column: "legacy_ref", Label: "Rhapsody Reference", Kind: resource.String, Max: 60, Search: true},
 		{Name: "userId", Column: "user_id", Label: "Portal User", Kind: resource.UUID, Ref: &resource.Ref{Table: "platform.users", Label: "user"}},
-		resource.Status("pending", "active", "inactive", "suspended", "expired", "paused", "cancelled"), resource.Attributes()},
+		resource.Status("pending", "active", "inactive", "suspended", "expired"), resource.Attributes()},
 }
 
 var Programs = &resource.Def{
@@ -39,7 +39,7 @@ var Programs = &resource.Def{
 	Name: "Membership Program", Plural: "Membership Programs", Tag: "Membership Programs", PropertyScoped: true, Archive: true, CodeField: "code", OrderBy: "name, id",
 	Fields: []resource.Field{codeField("Code"), resource.Name(),
 		{Name: "programKind", Column: "program_kind", Label: "Program", Kind: resource.Enum, Enum: []string{"golf", "sport_club", "corporate", "residence"}, Required: true, Filter: true},
-		{Name: "operational", Column: "operational", Label: "Operational in this phase", Kind: resource.Bool, Default: true},
+		{Name: "operational", Column: "operational", Label: "Operational in this phase", Kind: resource.Bool, Default: false},
 		{Name: "description", Column: "description", Label: "Description", Kind: resource.Text, Max: 2000},
 		resource.Status("active", "inactive")},
 }
@@ -51,8 +51,7 @@ var Types = &resource.Def{
 	Fields: []resource.Field{codeField("Code"), resource.Name(),
 		{Name: "programId", Column: "program_id", Label: "Membership Program", Kind: resource.UUID, Required: true, Filter: true,
 			Ref: &resource.Ref{Table: "membership.programs", SameProperty: true, Label: "membership program"}},
-		{Name: "category", Column: "category", Label: "Category", Kind: resource.Enum, Enum: []string{"individual", "family", "corporate", "couple", "senior",
-			"student", "junior", "residence", "bulk_entrance", "monthly", "other"}, Required: true, Filter: true},
+		{Name: "category", Column: "category", Label: "Category", Kind: resource.Enum, Enum: []string{"individual", "family", "corporate"}, Required: true, Filter: true},
 		{Name: "memberRate", Column: "member_rate", Label: "Plays at Member Rate", Kind: resource.Bool, Default: true},
 		{Name: "golfAccess", Column: "golf_access", Label: "Golf access", Kind: resource.Bool, Default: true},
 		{Name: "maxGuests", Column: "max_guests", Label: "Max guests per booking", Kind: resource.Int, Default: int64(3), Min: resource.Min(0)},
@@ -60,14 +59,6 @@ var Types = &resource.Def{
 		{Name: "maxFamilyMembers", Column: "max_family_members", Label: "Max family members", Kind: resource.Int, Default: int64(0), Min: resource.Min(0)},
 		{Name: "maxNominees", Column: "max_nominees", Label: "Max corporate nominees", Kind: resource.Int, Default: int64(0), Min: resource.Min(0)},
 		{Name: "eligibility", Column: "eligibility", Label: "Eligibility rules", Kind: resource.JSON},
-		// P2 lifecycle (EP-04)
-		{Name: "entitlements", Column: "entitlements", Label: "Entitlements per line (FR-MBL-05)", Kind: resource.JSON, Default: "{}"},
-		{Name: "annualFee", Column: "annual_fee", Label: "Annual Fee", Kind: resource.Decimal, Default: "0", Min: resource.Min(0)},
-		{Name: "graceDays", Column: "grace_days", Label: "Grace Period (days)", Kind: resource.Int, Default: int64(30), Min: resource.Min(0)},
-		{Name: "rank", Column: "rank", Label: "Rank (upgrade order)", Kind: resource.Int, Default: int64(0)},
-		{Name: "cardReplacementFee", Column: "card_replacement_fee", Label: "Card Replacement Fee", Kind: resource.Decimal, Default: "0", Min: resource.Min(0)},
-		{Name: "reactivationFee", Column: "reactivation_fee", Label: "Reactivation Fee", Kind: resource.Decimal, Default: "0", Min: resource.Min(0)},
-		{Name: "nomineeChangeFee", Column: "nominee_change_fee", Label: "Nominee Replacement Fee", Kind: resource.Decimal, Default: "0", Min: resource.Min(0)},
 		{Name: "description", Column: "description", Label: "Description", Kind: resource.Text, Max: 2000},
 		resource.Status("active", "inactive")},
 }
@@ -90,10 +81,8 @@ func init() {
 	Types.Hooks = resource.Hooks{BeforeWrite: typeBeforeWrite}
 }
 
-// Contribution returns catalogue entries (P1 foundation + P2 lifecycle).
-func Contribution() catalog.Contribution { return catalog.Merge(p1Contribution(), p2Contribution()) }
-
-func p1Contribution() catalog.Contribution {
+// Contribution returns catalogue entries.
+func Contribution() catalog.Contribution {
 	perms := resource.Permissions(Members, Programs)
 	perms = append(perms, catalog.P("membership", "application", "view", "create", "submit", "activate", "activate_unpaid")...)
 	perms = append(perms, catalog.P("membership", "membership", "view", "renew")...)

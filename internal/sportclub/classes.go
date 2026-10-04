@@ -13,6 +13,7 @@ import (
 
 	"oneclub/internal/billing"
 	"oneclub/internal/commercial"
+	"oneclub/internal/commercial/voucher"
 	"oneclub/internal/kernel/authz"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
@@ -249,7 +250,7 @@ func (m *Module) Enroll(ctx context.Context, tx pgx.Tx, property uuid.UUID, in E
 	if err != nil {
 		return e, err
 	}
-	q, _ := commercial.Quota(ctx, tx, property, in.CustomerID, "class_package", p.Code)
+	q, _ := voucher.Quota(ctx, tx, property, in.CustomerID, "class_package", p.Code)
 	e.QuotaRemaining = q.String()
 	return e, audit.Record(ctx, tx, audit.Entry{Module: "sportclub", Action: audit.ActionCreate, EntityType: "sportclub.enrollment",
 		EntityID: eid.String(), EntityLabel: p.Name + " · " + e.CustomerName, PropertyID: &property, After: e})
@@ -311,7 +312,7 @@ func (m *Module) BookSession(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	if valid.Before(s.Start) {
 		return SessionBooking{}, errs.Conflict("registration_expired", "the registration expired on "+valid.Format("2006-01-02"))
 	}
-	quota, err := commercial.Quota(ctx, tx, property, in.CustomerID, "class_package", p.Code)
+	quota, err := voucher.Quota(ctx, tx, property, in.CustomerID, "class_package", p.Code)
 	if err != nil {
 		return SessionBooking{}, err
 	}
@@ -393,7 +394,7 @@ func (m *Module) MarkAttendance(ctx context.Context, tx pgx.Tx, property uuid.UU
 	deduct := in.Status == "present" || (in.Status == "absent" && pol.DeductQuotaOnAbsent)
 	voucher := b.VoucherID
 	if deduct && !b.QuotaUsed {
-		v, err := m.Commercial.UseQuota(ctx, tx, property, b.CustomerID, "class_package", p.Code, decimal.NewFromInt(1), "class_session",
+		v, err := m.Vouchers.UseQuota(ctx, tx, property, b.CustomerID, "class_package", p.Code, decimal.NewFromInt(1), "class_session",
 			"sportclub.session_booking", &b.ID, "class-"+b.ID.String())
 		if err != nil {
 			return b, err
@@ -401,7 +402,7 @@ func (m *Module) MarkAttendance(ctx context.Context, tx pgx.Tx, property uuid.UU
 		voucher = v
 	}
 	if !deduct && b.QuotaUsed && b.VoucherID != nil {
-		if err := m.Commercial.Restore(ctx, tx, *b.VoucherID, decimal.NewFromInt(1), "attendance changed to "+in.Status, "class-restore-"+b.ID.String()+"-"+in.Status); err != nil {
+		if err := m.Vouchers.Restore(ctx, tx, *b.VoucherID, decimal.NewFromInt(1), "attendance changed to "+in.Status, "class-restore-"+b.ID.String()+"-"+in.Status); err != nil {
 			return b, err
 		}
 		voucher = nil
@@ -467,7 +468,7 @@ func (m *Module) CancelSession(ctx context.Context, tx pgx.Tx, property, sid uui
 			}
 		}
 		if x.used && x.voucher != nil {
-			if err := m.Commercial.Restore(ctx, tx, *x.voucher, decimal.NewFromInt(1), "class cancelled by the club", "class-cancel-"+x.id.String()); err != nil {
+			if err := m.Vouchers.Restore(ctx, tx, *x.voucher, decimal.NewFromInt(1), "class cancelled by the club", "class-cancel-"+x.id.String()); err != nil {
 				return s, err
 			}
 		}

@@ -12,7 +12,8 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"oneclub/internal/billing"
-	"oneclub/internal/commercial"
+	"oneclub/internal/commercial/pos"
+	"oneclub/internal/commercial/voucher"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/reqctx"
@@ -122,13 +123,14 @@ var ClassSchedules = &resource.Def{
 
 // Module is the Sport Club module.
 type Module struct {
-	DB         *dbtx.DB
-	Res        *reservation.Engine
-	Billing    *billing.Service
-	Commercial *commercial.Module
-	Events     *outbox.Bus
-	Approvals  *approval.Engine
-	Notify     notify.Sender
+	DB        *dbtx.DB
+	Res       *reservation.Engine
+	Billing   *billing.Service
+	POS       *pos.Module     // restaurant orders charged to the stay
+	Vouchers  *voucher.Module // voucher & prepaid redemption
+	Events    *outbox.Bus
+	Approvals *approval.Engine
+	Notify    notify.Sender
 }
 
 func str(v any) string {

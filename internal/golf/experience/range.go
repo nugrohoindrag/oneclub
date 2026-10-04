@@ -17,7 +17,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
-	"oneclub/internal/commercial"
+	"oneclub/internal/commercial/voucher"
 	"oneclub/internal/crm"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
@@ -285,14 +285,14 @@ func (m *Module) IssueBucket(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	}
 	bid := id.New()
 	amount := decimal.Zero
-	var voucher *uuid.UUID
+	var voucherID *uuid.UUID
 	var remaining *string
 	switch in.Source {
 	case "sale":
 		if in.OrderID == nil {
 			return Bucket{}, handle.Invalid("orderId", "required", "the paid POS order is required")
 		}
-		o, err := m.Commercial.Order(ctx, tx, *in.OrderID)
+		o, err := m.POS.Order(ctx, tx, *in.OrderID)
 		if err != nil {
 			return Bucket{}, err
 		}
@@ -308,7 +308,7 @@ func (m *Module) IssueBucket(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		}
 		amount, _ = decimal.NewFromString(o.Total)
 	case "prepaid":
-		res, err := m.Commercial.RedeemBalance(ctx, tx, commercial.RedeemRequest{PropertyID: property, CustomerID: in.CustomerID,
+		res, err := m.Vouchers.RedeemBalance(ctx, tx, voucher.RedeemRequest{PropertyID: property, CustomerID: in.CustomerID,
 			Quantity: decimal.NewFromInt(int64(in.Balls)), ServiceType: "driving_range", SourceType: "golf.range_bucket", SourceID: &bid,
 			IdempotencyKey: key, Reference: "range bucket"}, BallCategory)
 		if err != nil {
@@ -316,7 +316,7 @@ func (m *Module) IssueBucket(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		}
 		for _, r := range res {
 			v := r.Voucher.ID
-			voucher = &v
+			voucherID = &v
 			rec, _ := decimal.NewFromString(r.Recognized)
 			amount = amount.Add(rec)
 			rem := r.Voucher.RemainingQuantity
@@ -345,7 +345,7 @@ func (m *Module) IssueBucket(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	}
 	if _, err := tx.Exec(ctx, `INSERT INTO golf.range_buckets (id, property_id, session_id, customer_id, balls, source, order_id, voucher_id, amount,
 		dispenser_code, dispense_mode, idempotency_key, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::numeric,$10,$11,$12,$13)`, bid, property, in.SessionID,
-		in.CustomerID, in.Balls, in.Source, in.OrderID, voucher, amount.String(), code, mode, nullStr(key), actorPtr(ctx)); err != nil {
+		in.CustomerID, in.Balls, in.Source, in.OrderID, voucherID, amount.String(), code, mode, nullStr(key), actorPtr(ctx)); err != nil {
 		return Bucket{}, err
 	}
 	b, err := handle.Get[Bucket](tx.Query(ctx, bucketSelect+` WHERE id = $1`, bid))

@@ -14,7 +14,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
-	"oneclub/internal/commercial"
+	"oneclub/internal/commercial/pos"
 	"oneclub/internal/crm"
 	"oneclub/internal/golf"
 	"oneclub/internal/kernel/authz"
@@ -377,23 +377,23 @@ func (m *Module) Handover(ctx context.Context, tx pgx.Tx, fid uuid.UUID, in Hand
 // ── on-course order & preference (FR-CTB-07) ──────────────────────────────
 
 type CourseOrderInput struct {
-	ID       *uuid.UUID             `json:"id,omitempty" doc:"Client UUIDv7 (offline)"`
-	FlightID uuid.UUID              `json:"flightId"`
-	PlayerID uuid.UUID              `json:"playerId"`
-	OutletID uuid.UUID              `json:"outletId" doc:"Halfway House / clubhouse outlet"`
-	Lines    []commercial.LineInput `json:"lines"`
-	Deliver  string                 `json:"deliver,omitempty" enum:"hole,halfway_house" doc:"Default: the next hole"`
-	Notes    string                 `json:"notes,omitempty"`
+	ID       *uuid.UUID      `json:"id,omitempty" doc:"Client UUIDv7 (offline)"`
+	FlightID uuid.UUID       `json:"flightId"`
+	PlayerID uuid.UUID       `json:"playerId"`
+	OutletID uuid.UUID       `json:"outletId" doc:"Halfway House / clubhouse outlet"`
+	Lines    []pos.LineInput `json:"lines"`
+	Deliver  string          `json:"deliver,omitempty" enum:"hole,halfway_house" doc:"Default: the next hole"`
+	Notes    string          `json:"notes,omitempty"`
 }
 
 // CourseOrder places an on-course F&B order charged to the player's folio.
-func (m *Module) CourseOrder(ctx context.Context, tx pgx.Tx, in CourseOrderInput) (commercial.Order, error) {
+func (m *Module) CourseOrder(ctx context.Context, tx pgx.Tx, in CourseOrderInput) (pos.Order, error) {
 	f, err := m.GetRound(ctx, tx, in.FlightID)
 	if err != nil {
-		return commercial.Order{}, err
+		return pos.Order{}, err
 	}
 	if err := m.canSeeFlight(ctx, tx, f); err != nil {
-		return commercial.Order{}, err
+		return pos.Order{}, err
 	}
 	var player *RoundPlayer
 	for i := range f.Players {
@@ -402,16 +402,16 @@ func (m *Module) CourseOrder(ctx context.Context, tx pgx.Tx, in CourseOrderInput
 		}
 	}
 	if player == nil {
-		return commercial.Order{}, handle.Invalid("playerId", "not_in_flight", "player is not in this flight")
+		return pos.Order{}, handle.Invalid("playerId", "not_in_flight", "player is not in this flight")
 	}
 	if player.Status != "checked_in" || f.FolioID == nil {
-		return commercial.Order{}, errs.Conflict("no_folio", "the player is not checked in")
+		return pos.Order{}, errs.Conflict("no_folio", "the player is not checked in")
 	}
 	dest, ref := "hole", itoa(min(f.CurrentSeq+1, max(f.Holes, 1)))
 	if in.Deliver == "halfway_house" {
 		dest, ref = "halfway_house", "Halfway House"
 	}
-	return m.Commercial.CreateOrder(ctx, tx, f.PropertyID, commercial.OrderInput{ID: in.ID, OutletID: in.OutletID, OrderType: "on_course", Source: "caddy_tablet",
+	return m.POS.CreateOrder(ctx, tx, f.PropertyID, pos.OrderInput{ID: in.ID, OutletID: in.OutletID, OrderType: "on_course", Source: "caddy_tablet",
 		CustomerID: player.CustomerID, ServingDestination: dest, DestinationRef: ref, ChargeFolioID: f.FolioID, Lines: in.Lines, Send: true, Notes: in.Notes})
 }
 
