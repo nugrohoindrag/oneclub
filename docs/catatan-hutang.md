@@ -2,8 +2,8 @@
 
 Status per 4 Oktober 2026 malam. Branch `feat/p2-on-p1`. Semua commit masih lokal dan belum di-push.
 
-- Branch berada tepat di atas `origin/main` (0 commit tertinggal), jadi belum ada conflict.
-- Hutang #3 (test) selesai; berikutnya hutang #4 (OpenAPI & frontend).
+- Branch berada di atas `origin/main` (0 commit tertinggal). **P1 belum di-merge ke `main`:** P1 ada di `origin/feat/p1-golf-core-mvp` (masih `a48e6a3`) dan `origin/staging`. PR P2 ke `main` ikut membawa commit P1, kecuali PR P1 di-merge lebih dulu. Bila P1 di-merge dengan squash, branch ini perlu di-rebase ke atas `main` baru.
+- Hutang #3 (test) dan #4 (OpenAPI & frontend) selesai; berikutnya hutang #5 (dokumen) dan #6 (penyesuaian P1).
 - **Rencana:** semua hutang #3–#6 diselesaikan sekaligus, lalu branch di-push dan dibuka PR ke `main`, supaya bisa lanjut ke P3. Menurut Tech Doc §12.3, P3 dimulai setelah P1 dan P2 merge ke `main`. Push dilakukan setelah suite e2e penuh hijau tanpa `ONECLUB_REQUIRE_FULL_COVERAGE=false`.
 
 ## Aturan yang wajib dipatuhi
@@ -35,7 +35,7 @@ git diff --diff-filter=MD --stat a48e6a3 -- internal/golf internal/billing inter
 | 1 | Query lintas schema | ✅ Selesai (`d72cffa`) |
 | 2 | Dokumen kontrak untuk Dian | ✅ `docs/p2-contract-review.md` (diperbarui setiap ada perubahan kontrak) |
 | 3 | Test | ✅ Suite e2e penuh hijau dengan coverage wajib; unit, provision, build dan vet hijau |
-| 4 | OpenAPI & frontend | ⏳ Belum dimulai |
+| 4 | OpenAPI & frontend | ✅ Typecheck dan build hijau; spec Playwright belum dijalankan |
 | 5 | Dokumen | ⏳ Belum dimulai |
 | 6 | Penyesuaian P1 (kita kerjakan, direview Dian) | ⏳ Belum dimulai |
 
@@ -112,41 +112,24 @@ Bug yang ditemukan lewat test dan sudah diperbaiki:
 - **FR-HIO-01 (Must):** draft HIO tidak pernah `insured`. Kini diturunkan dari komponen `hio` charge ronde P1 (`billing.LinesOf`).
 - **`my-earnings`:** query attendance invalid (error 500), dan fee caddy pengganti tidak memakai pembagian seperti settlement.
 
+### Hutang #4: OpenAPI & frontend (selesai)
+
+- OpenAPI dan `schema.ts` digenerate ulang; lockfile mengikuti app `caddy` dan QR di shell. `pnpm -r typecheck` dan `pnpm -r build` hijau.
+- Semua path API di frontend cocok dengan OpenAPI (validator di "Catatan teknis"; sisanya hanya prefix invalidasi cache).
+- Halaman P2 ada di file P2 dan dipasang ke router P1 hanya dengan baris tambahan (daftar di `docs/p2-contract-review.md`). Path halaman mengikuti navigasi server.
+  - **Backoffice:** hub `golf/operations`, `golf/master`, `sport-club`, `membership/lifecycle`, `booking/all-lines`, `stay-venue`, `crm/engagement`, `commercial/operations`, `commercial/master`, `inventory`; dashboard KPI `dashboards/*` dan `management/sport-club-performance|commercial-performance`. Master data hanya resource P2 (`ResourceIndex only`).
+  - **Ops:** `starter/pace`, `caddy/incidents` (clock-in/out + insiden), `golf-staff/inspection`, `stay-desk`, `driving-range`, `sport-reception`, `instructor`, `pos`, `kitchen`, `clubhouse-screen`, plus tile Home. Live update lewat stream golf P1 (topik `golf.*`) dan stream KDS; event SSE bernama sesuai topik.
+  - **Member:** `golf/scores`, `golf/scores/:id`, `sport-club`, `stay`, `vouchers`, `membership/services` (fee tahunan, pause, ganti kartu), `order-food`, `preferences`. Tiga item navigasi member ditambahkan.
+  - **Caddy tablet:** `my-assignments`, `rounds/{id}`, `course-maps`, `on-course-orders`, `my-earnings`.
+  - **Website:** helper P2 di `web/app/lib-p2.ts`; menu Sport Club, Stay & Venue, Hall of Fame.
+- Halaman P2 yang dobel dengan P1 dibuang: kartu digital, membership, transaksi dan booking (member); starter tee-off, caddy queue/assignment, golf front desk (ops).
+- Spec Playwright `web/e2e/p2.spec.ts` sudah memakai path baru, **tetapi belum dijalankan** (butuh API + preview yang berjalan; lihat `playwright.config.ts`).
+
+Catatan terbuka dari hutang #4:
+- **Customer 360 lintas lini** (FR-CRM-01) ada di `crm/customers/:id`, tetapi baru terjangkau bila halaman Customer 360 P1 diberi tautan. Masuk keputusan hutang #6.
+- **Rating caddy dari member app:** endpoint `member/golf/caddy-assignments/{id}:rate` ada, tetapi `my-flights` P1 tidak mengembalikan id assignment, sehingga belum ada tombol rating (rating lewat link feedback setelah ronde tetap jalan).
+
 ## Hutang yang tersisa (urut kerja)
-
-### 4. OpenAPI & frontend
-
-- Jalankan `make openapi` untuk generate ulang `api/openapi/openapi.json` dan `web/packages/api-client/src/schema.ts`.
-- Frontend:
-  - gabungkan `main.tsx` backoffice, member dan ops dengan versi P1;
-  - pindahkan halaman P2 ke path API baru (`/member/*`, `golf/hole-in-ones`, `range-sessions`, `customer-accounts`, `line-day-types` untuk day type lini lain, dll.);
-  - tile ops dan aplikasi `caddy`;
-  - member app pakai `/member/*`;
-  - shell settings membaca `resource-definitions` (sudah terpasang lagi).
-- Pemetaan path lama → baru (sama dengan yang dipakai saat memperbaiki test):
-
-| Lama | Baru |
-|---|---|
-| `flights/{id}:check-in` | `POST /golf/check-ins` |
-| `flights/{id}/caddies` | `POST /golf/caddy-assignments` |
-| `flights/{id}/golf-carts` | `POST /golf/golf-cart-assignments` |
-| `flights/{id}:cancel` | `golf/bookings/{id}:cancel` |
-| `GET flights/{id}` | `GET /golf/rounds/{id}` atau `tee-sheet` |
-| `rounds/{id}:tee-off` | `starter-queue/{flightId}:tee-off` |
-| `caddy-assignments/{id}:tip` | `POST /golf/caddy-tips` |
-| `caddy-assignments/{id}:rate` | `POST /golf/caddy-ratings` |
-| `golf-carts/{id}/inspections` | `POST /golf/golf-cart-inspections` |
-| `golf-carts/{id}:status` | `golf-carts/{id}:set-readiness` |
-| `hall-of-fame/{id}:consent` | `POST /golf/hall-of-fame/consents` |
-| `hole-in-ones/{id}:submit` | `hole-in-ones/{id}:verify` |
-| `reciprocal-visits:verify` | `POST /golf/reciprocal-visits` |
-| `scorecards/{id}:submit` | `scorecards/{id}:validate` |
-| `scorecards/{id}:correct` | `POST scorecards/{id}/corrections` |
-| `scorecards/{id}/audit` | `GET scorecards/{id}/corrections` |
-| `holes/{id}/distances` | `GET /golf/course-maps/{holeId}` atau `/member/golf/holes/{id}/distances` |
-| `member/memberships/{id}:pay-fee` | `/member/membership-fees/{id}:pay-online` |
-
-- Jalankan `pnpm -r typecheck` dan `pnpm -r build`.
 
 ### 5. Dokumen dan bersih-bersih
 
@@ -196,6 +179,7 @@ Temuan di kode P1 yang kita kerjakan sendiri dalam PR yang sama. Aturannya:
   - Validasi semua view/migration: terapkan bagian Up semua migration ke DB scratch, lalu jalankan statement file target satu per satu dan laporkan yang error.
   - Validasi kolom SQL di kode: kumpulkan literal SQL lengkap dari file `.go` P2, lalu `PREPARE` ke DB scratch. Postgres memeriksa tabel/kolom tanpa mengeksekusi.
   - Validasi path API di test: `go run ./cmd/oneclub openapi -o <file>`, lalu cocokkan setiap panggilan `"METHOD", "/api/v1/..."` di test dengan path OpenAPI. Test P1 = 0 path basi, jadi metodenya akurat.
+  - Validasi path API di frontend: kumpulkan literal `'/api/v1/...'` dan template string dari `web/apps/**` (ganti `${...}` dengan placeholder, buang `${qs(...)}`), lalu cocokkan dengan path OpenAPI. Typecheck saja tidak cukup karena path berupa string.
   - Daftar permission duplikat: test sementara yang memanggil `app.Contributions()` dan melapor lewat `t.Errorf`. Tanpa `-v`, output `fmt` tidak tampil.
 - **Perbedaan semantik P1 yang sering menjebak:**
   - Respons uang P1 berformat 4 desimal (`"350000.0000"`); bandingkan dengan `eqAmount`/`dec`.
