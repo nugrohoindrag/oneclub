@@ -509,13 +509,13 @@ func (m *Module) recomputeHandicap(ctx context.Context, tx pgx.Tx, property, cus
 		return nil
 	}
 	var last *string
-	_ = tx.QueryRow(ctx, `SELECT trim_scale(handicap_index)::text FROM golf.handicaps WHERE customer_id = $1 AND source = 'whs' ORDER BY effective_at DESC LIMIT 1`,
+	_ = tx.QueryRow(ctx, `SELECT trim_scale(handicap_index)::text FROM golf.handicap_indexes WHERE customer_id = $1 AND kind = 'whs' ORDER BY effective_at DESC LIMIT 1`,
 		customer).Scan(&last)
 	if last != nil && dec(*last).Equal(dec(*index)) {
 		return nil
 	}
-	_, err = tx.Exec(ctx, `INSERT INTO golf.handicaps (id, property_id, customer_id, handicap_index, source, rounds_counted, notes, created_by)
-		VALUES ($1,$2,$3,$4::numeric,'whs',$5,'WHS index from finalized scorecards',$6)`, id.New(), property, customer, *index, len(diffs), actorPtr(ctx))
+	_, err = tx.Exec(ctx, `INSERT INTO golf.handicap_indexes (id, property_id, customer_id, kind, handicap_index, rounds_counted, source, created_by)
+		VALUES ($1,$2,$3,'whs',$4::numeric,$5,'scorecards',$6)`, id.New(), property, customer, *index, len(diffs), actorPtr(ctx))
 	return err
 }
 
@@ -625,8 +625,8 @@ func (m *Module) Stats(ctx context.Context, q dbtx.Querier, customer uuid.UUID, 
 		Scan(&st.AveragePar3, &st.AveragePar4, &st.AveragePar5, &st.BirdiesOrBetter); err != nil {
 		return st, err
 	}
-	_ = q.QueryRow(ctx, `SELECT (SELECT trim_scale(handicap_index)::text FROM golf.handicaps WHERE customer_id = $1 AND source = 'whs' ORDER BY effective_at DESC LIMIT 1),
-		(SELECT trim_scale(handicap_index)::text FROM golf.handicaps WHERE customer_id = $1 AND source = 'federation' ORDER BY effective_at DESC LIMIT 1)`, customer).
+	_ = q.QueryRow(ctx, `SELECT (SELECT trim_scale(handicap_index)::text FROM golf.handicap_indexes WHERE customer_id = $1 AND kind = 'whs' ORDER BY effective_at DESC LIMIT 1),
+		(SELECT trim_scale(handicap_index)::text FROM golf.handicap_indexes WHERE customer_id = $1 AND kind = 'federation' ORDER BY effective_at DESC LIMIT 1)`, customer).
 		Scan(&st.HandicapIndex, &st.OfficialIndex)
 	var err error
 	st.History, err = handle.List[Scorecard](q.Query(ctx, scorecardSelect+` WHERE s.customer_id = $1 ORDER BY s.played_on DESC, s.created_at DESC LIMIT $2`, customer, limit))
@@ -684,8 +684,8 @@ func (m *Module) SetOfficialHandicap(ctx context.Context, tx pgx.Tx, property, c
 	if v.IsNegative() || v.GreaterThan(decimal.NewFromInt(54)) {
 		return handle.Invalid("index", "invalid_index", "handicap index must be between 0 and 54")
 	}
-	if _, err := tx.Exec(ctx, `INSERT INTO golf.handicaps (id, property_id, customer_id, handicap_index, source, notes, created_by)
-		VALUES ($1,$2,$3,$4::numeric,'federation',$5,$6)`, id.New(), property, customer, v.String(), nullStr(in.Source), actorPtr(ctx)); err != nil {
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.handicap_indexes (id, property_id, customer_id, kind, handicap_index, source, created_by)
+		VALUES ($1,$2,$3,'federation',$4::numeric,$5,$6)`, id.New(), property, customer, v.String(), nullStr(in.Source), actorPtr(ctx)); err != nil {
 		return err
 	}
 	return record(ctx, tx, "golf.handicap", customer, "official handicap", audit.ActionUpdate, property, nil, in, "")
@@ -695,6 +695,7 @@ func (m *Module) SetOfficialHandicap(ctx context.Context, tx pgx.Tx, property, c
 // import, WHS or federation).
 func currentHandicap(ctx context.Context, q dbtx.Querier, customer uuid.UUID) *string {
 	var idx *string
-	_ = q.QueryRow(ctx, `SELECT trim_scale(handicap_index)::text FROM golf.handicaps WHERE customer_id = $1 ORDER BY effective_at DESC LIMIT 1`, customer).Scan(&idx)
+	_ = q.QueryRow(ctx, `SELECT trim_scale(handicap_index)::text FROM (SELECT handicap_index, effective_at FROM golf.handicaps WHERE customer_id = $1
+		UNION ALL SELECT handicap_index, effective_at FROM golf.handicap_indexes WHERE customer_id = $1) h ORDER BY effective_at DESC LIMIT 1`, customer).Scan(&idx)
 	return idx
 }

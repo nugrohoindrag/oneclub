@@ -28,6 +28,7 @@ import (
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
+	"oneclub/internal/membership"
 	"oneclub/internal/platform/approval"
 	"oneclub/internal/platform/audit"
 	"oneclub/internal/platform/calendar"
@@ -78,10 +79,31 @@ func (m *Module) Order(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (Orde
 	o.Bills, err = handle.List[Bill](q.Query(ctx, `SELECT b.id, b.bill_no, b.label, b.customer_id, b.share::text, b.folio_id, b.status,
 		trim_scale(CASE WHEN b.share IS NOT NULL THEN round((SELECT coalesce(sum(total_amount),0) FROM commercial.order_lines l WHERE l.order_id = b.order_id AND l.status = 'active') * b.share)
 		  ELSE (SELECT coalesce(sum(total_amount),0) FROM commercial.order_lines l WHERE l.bill_id = b.id AND l.status = 'active') END)::text AS total,
-		trim_scale(coalesce((SELECT sum(CASE WHEN p.kind = 'refund' THEN -p.amount ELSE p.amount END) FROM billing.payments p
-		  WHERE p.folio_id = b.folio_id AND p.status IN ('completed','refunded') AND (b.share IS NULL OR p.tender_ref->>'billId' = b.id::text)), 0))::text AS paid
+		'0' AS paid
 		FROM commercial.order_bills b WHERE b.order_id = $1 ORDER BY b.bill_no`, oid))
-	return o, err
+	if err != nil {
+		return o, err
+	}
+	for i := range o.Bills {
+		paid, err := billPaid(ctx, q, o.Bills[i])
+		if err != nil {
+			return o, err
+		}
+		o.Bills[i].Paid = paid.String()
+	}
+	return o, nil
+}
+
+// billPaid is what was paid on a bill net of refunds: its folio, or for an
+// equal split the folio payments tagged with the bill.
+func billPaid(ctx context.Context, q dbtx.Querier, b Bill) (decimal.Decimal, error) {
+	if b.FolioID == nil {
+		return decimal.Zero, nil
+	}
+	if b.Share != nil {
+		return billing.NetPaid(ctx, q, *b.FolioID, "billId", b.ID.String())
+	}
+	return billing.NetPaid(ctx, q, *b.FolioID, "", "")
 }
 
 // ── order entry ───────────────────────────────────────────────────────────
@@ -132,13 +154,9 @@ func (m *Module) posPolicy(ctx context.Context, q dbtx.Querier, property uuid.UU
 }
 
 // isMember tells whether the customer has an active membership granting
-// Member Rate (read from the membership read side: memberships + types).
+// Member Rate (membership public API).
 func isMember(ctx context.Context, q dbtx.Querier, property, customer uuid.UUID) (bool, error) {
-	var ok bool
-	err := q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM membership.membership_members mm JOIN membership.memberships ms ON ms.id = mm.membership_id
-		JOIN membership.types t ON t.id = ms.type_id WHERE mm.customer_id = $1 AND mm.status = 'active' AND ms.status = 'active' AND ms.property_id = $2
-		AND coalesce((t.entitlements->>'memberRate')::boolean, false))`, customer, property).Scan(&ok)
-	return ok, err
+	return membership.HasMemberRate(ctx, q, property, customer)
 }
 
 // CreateOrder creates (or returns, for a known client id) an order.
@@ -1002,7 +1020,7 @@ func (m *Module) Pay(ctx context.Context, tx pgx.Tx, oid uuid.UUID, in PayInput,
 		}
 		if bill.Share != nil {
 			// keep the bill reference on the payment for equal splits
-			if _, err := tx.Exec(ctx, `UPDATE billing.payments SET tender_ref = tender_ref || jsonb_build_object('billId', $2::text) WHERE id = $1`, p.ID, bill.ID); err != nil {
+			if err := billing.TagPayment(ctx, tx, p.ID, "billId", bill.ID.String()); err != nil {
 				return o, err
 			}
 		}
@@ -1342,27 +1360,19 @@ func (m *Module) ShiftReport(ctx context.Context, q dbtx.Querier, sid uuid.UUID,
 	if err := q.QueryRow(ctx, `SELECT count(DISTINCT id) FROM commercial.orders WHERE shift_id = $1 AND status IN ('paid', 'charged')`, sid).Scan(&r.Orders); err != nil {
 		return r, err
 	}
-	prow, err := q.Query(ctx, `SELECT method_type, count(*), trim_scale(sum(CASE WHEN kind = 'refund' THEN -amount ELSE amount END))::text
-		FROM billing.payments WHERE shift_id = $1 AND status IN ('completed', 'refunded') GROUP BY method_type ORDER BY method_type`, sid)
+	totals, err := billing.ShiftPayments(ctx, q, sid)
 	if err != nil {
 		return r, err
 	}
-	for prow.Next() {
-		var method, amt string
-		var n int
-		if err := prow.Scan(&method, &n, &amt); err != nil {
-			prow.Close()
-			return r, err
+	cashPay = "0"
+	for _, t := range totals {
+		r.Payments = append(r.Payments, map[string]any{"methodType": t.MethodType, "count": t.Count, "amount": t.Amount.String()})
+		if t.MethodType == "cash" {
+			cashPay = t.Amount.String()
 		}
-		r.Payments = append(r.Payments, map[string]any{"methodType": method, "count": n, "amount": amt})
 	}
-	prow.Close()
 	if err := q.QueryRow(ctx, `SELECT trim_scale(coalesce(sum(amount) FILTER (WHERE kind = 'cash_in'), 0))::text,
 		trim_scale(coalesce(sum(amount) FILTER (WHERE kind = 'cash_out'), 0))::text FROM commercial.cash_movements WHERE shift_id = $1`, sid).Scan(&cashIn, &cashOut); err != nil {
-		return r, err
-	}
-	if err := q.QueryRow(ctx, `SELECT trim_scale(coalesce(sum(CASE WHEN kind = 'refund' THEN -amount ELSE amount END), 0))::text FROM billing.payments
-		WHERE shift_id = $1 AND method_type = 'cash' AND status IN ('completed', 'refunded')`, sid).Scan(&cashPay); err != nil {
 		return r, err
 	}
 	open, _ := decimal.NewFromString(s.OpeningCash)
@@ -1461,20 +1471,26 @@ func (m *Module) Receipt(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (st
 	}
 	b.WriteString(strings.Repeat("-", 42) + "\n")
 	line("TOTAL", money(o.Total))
-	rows, err := q.Query(ctx, `SELECT p.method_type, trim_scale(p.amount)::text FROM billing.payments p JOIN commercial.order_bills b ON b.folio_id = p.folio_id
-		WHERE b.order_id = $1 AND p.kind <> 'refund' AND p.status = 'completed' GROUP BY p.id, p.method_type, p.amount ORDER BY p.received_at`, oid)
-	if err != nil {
-		return "", o, err
-	}
-	for rows.Next() {
-		var mt, amt string
-		if err := rows.Scan(&mt, &amt); err != nil {
-			rows.Close()
+	var pays []billing.Payment
+	seen := map[uuid.UUID]bool{}
+	for _, bl := range o.Bills {
+		if bl.FolioID == nil || seen[*bl.FolioID] {
+			continue
+		}
+		seen[*bl.FolioID] = true
+		ps, err := billing.PaymentsOf(ctx, q, *bl.FolioID)
+		if err != nil {
 			return "", o, err
 		}
-		line("  "+strings.ToUpper(strings.ReplaceAll(mt, "_", " ")), money(amt))
+		pays = append(pays, ps...)
 	}
-	rows.Close()
+	slices.SortStableFunc(pays, func(a, b billing.Payment) int { return a.CreatedAt.Compare(b.CreatedAt) })
+	for _, p := range pays {
+		if p.Status != "completed" {
+			continue
+		}
+		line("  "+strings.ToUpper(strings.ReplaceAll(p.MethodType, "_", " ")), money(p.Amount))
+	}
 	b.WriteString("\n" + center("Terima kasih / Thank you") + "\n")
 	return b.String(), o, nil
 }

@@ -334,10 +334,7 @@ func (m *Module) VoucherByCode(ctx context.Context, q dbtx.Querier, property uui
 
 // liabilityOf is the remaining deferred liability of a voucher.
 func (m *Module) liabilityOf(ctx context.Context, q dbtx.Querier, vid uuid.UUID) (decimal.Decimal, error) {
-	var raw string
-	err := q.QueryRow(ctx, `SELECT trim_scale(coalesce(sum(amount), 0))::text FROM billing.deferred_revenue_entries WHERE ref_type = 'commercial.voucher' AND ref_id = $1`, vid).Scan(&raw)
-	d, _ := decimal.NewFromString(raw)
-	return d, err
+	return billing.DeferredBalance(ctx, q, "commercial.voucher", vid)
 }
 
 // Redeem uses a voucher. The row lock makes concurrent use from two

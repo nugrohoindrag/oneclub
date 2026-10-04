@@ -21,6 +21,9 @@ import (
 type POS interface {
 	CreateOrder(ctx context.Context, tx pgx.Tx, property uuid.UUID, in OrderInput) (Order, error)
 	Order(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (Order, error)
+	// DefaultOutlet is the outlet that prepares banquet / catering orders
+	// when none is chosen.
+	DefaultOutlet(ctx context.Context, q dbtx.Querier, property uuid.UUID) (uuid.UUID, error)
 }
 
 // Vouchers redeems vouchers, prepaid balances and quotas (contract C3).

@@ -40,8 +40,9 @@ func (m *Module) CustomerSection(ctx context.Context, q dbtx.Querier, property, 
 	if err := q.QueryRow(ctx, `SELECT count(DISTINCT p.flight_id)::int, max(f.round_finish_at) `+playedRounds, customer).Scan(&a.Rounds, &a.LastRound); err != nil {
 		return a, err
 	}
-	_ = q.QueryRow(ctx, `SELECT (SELECT trim_scale(handicap_index)::text FROM golf.handicaps WHERE customer_id = $1 AND source <> 'federation' ORDER BY effective_at DESC LIMIT 1),
-		(SELECT trim_scale(handicap_index)::text FROM golf.handicaps WHERE customer_id = $1 AND source = 'federation' ORDER BY effective_at DESC LIMIT 1)`, customer).
+	_ = q.QueryRow(ctx, `SELECT (SELECT trim_scale(handicap_index)::text FROM (SELECT handicap_index, effective_at FROM golf.handicap_indexes WHERE customer_id = $1 AND kind = 'whs'
+		  UNION ALL SELECT handicap_index, effective_at FROM golf.handicaps WHERE customer_id = $1) h ORDER BY effective_at DESC LIMIT 1),
+		(SELECT trim_scale(handicap_index)::text FROM golf.handicap_indexes WHERE customer_id = $1 AND kind = 'federation' ORDER BY effective_at DESC LIMIT 1)`, customer).
 		Scan(&a.HandicapIndex, &a.OfficialIndex)
 	var err error
 	if a.UpcomingFlights, err = handle.List[UpcomingFlight](q.Query(ctx, `SELECT DISTINCT f.id, b.code AS booking_code, tt.start_at AS tee_time, c.name AS course_name, f.status

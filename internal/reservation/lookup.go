@@ -95,6 +95,15 @@ func (e *Engine) DeleteSlot(ctx context.Context, tx pgx.Tx, sourceType string, s
 	return err == nil, err
 }
 
+// BusyResources counts how many of the resources hold a held or confirmed
+// exclusive allocation overlapping [from, to) (stay availability).
+func (e *Engine) BusyResources(ctx context.Context, q dbtx.Querier, resourceIDs []uuid.UUID, from, to time.Time) (int, error) {
+	var n int
+	err := q.QueryRow(ctx, `SELECT count(DISTINCT resource_id) FROM reservation.allocations WHERE resource_id = ANY($1)
+		AND status IN ('held', 'confirmed') AND period && tstzrange($2, $3, '[)')`, resourceIDs, from, to).Scan(&n)
+	return n, err
+}
+
 // LineResources are the resources booked by a reservation.
 func (e *Engine) LineResources(ctx context.Context, q dbtx.Querier, rid uuid.UUID) ([]uuid.UUID, error) {
 	rows, err := q.Query(ctx, `SELECT DISTINCT resource_id FROM reservation.reservation_lines WHERE reservation_id = $1`, rid)

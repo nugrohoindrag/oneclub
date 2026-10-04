@@ -101,8 +101,8 @@ func (m *Module) registerPublic(reg *route.Registry) {
 		Summary: "Apply for a membership online (eligibility checked; submitted by the Membership Admin)", Request: PublicApplication{}, Response: PublicApplicationResult{},
 		Handler: crm.PublicWrite(m.DB, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, pid uuid.UUID, c crm.Customer, in PublicApplication) (PublicApplicationResult, error) {
 			if in.BirthDate != "" {
-				if _, err := tx.Exec(ctx, `UPDATE crm.customers SET birth_date = coalesce(birth_date, $2::date) WHERE id = $1`, c.ID, in.BirthDate); err != nil {
-					return PublicApplicationResult{}, handle.Invalid("birthDate", "invalid_date", "birthDate must be YYYY-MM-DD")
+				if err := crm.FillBirthDate(ctx, tx, c.ID, in.BirthDate); err != nil {
+					return PublicApplicationResult{}, err
 				}
 			}
 			pkg := in.PackageID

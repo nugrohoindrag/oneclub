@@ -71,7 +71,7 @@ const staySelect = `SELECT s.id, s.property_id, s.stay_no, s.kind, s.reservation
 	coalesce(b.name, v.name, mr.name, '') AS unit_name, s.unit_type_id, s.unit_assigned, s.start_at, s.end_at, s.actual_end_at, s.adults, s.children,
 	s.pax, s.layout, s.rate_plan, s.package_code, s.special_requests, s.event_schedule, s.catering, s.id_type, s.id_number_masked, s.status,
 	s.checked_in_at, s.checked_out_at, s.folio_id, s.channel, s.created_at
-	FROM stay.stays s JOIN reservation.reservations r ON r.id = s.reservation_id LEFT JOIN reporting.customer_directory c ON c.id = s.customer_id
+	FROM stay.stays s JOIN reporting.reservations r ON r.reservation_id = s.reservation_id LEFT JOIN reporting.customer_directory c ON c.id = s.customer_id
 	LEFT JOIN stay.bungalows b ON b.id = s.unit_id LEFT JOIN stay.vip_suites v ON v.id = s.unit_id LEFT JOIN stay.meeting_rooms mr ON mr.id = s.unit_id`
 
 // Get returns a stay.
@@ -300,8 +300,7 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 				return StayResult{}, err
 			}
 			if end.IsZero() && in.PackageCode != "" {
-				var mins *int
-				if err := tx.QueryRow(ctx, `SELECT duration_minutes FROM commercial.package_rates WHERE property_id = $1 AND code = $2`, property, in.PackageCode).Scan(&mins); err == nil && mins != nil {
+				if mins, err := commercial.PackageRateMinutes(ctx, tx, property, in.PackageCode); err == nil && mins != nil {
 					end = start.Add(time.Duration(*mins) * time.Minute)
 				}
 			}
@@ -415,8 +414,7 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 		var outletID uuid.UUID
 		if o, err := uuid.Parse(str(c["outletId"])); err == nil {
 			outletID = o
-		} else if err := tx.QueryRow(ctx, `SELECT id FROM commercial.outlets WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL
-			ORDER BY (outlet_type = 'banquet') DESC, (outlet_type = 'restaurant') DESC, name LIMIT 1`, property).Scan(&outletID); err != nil {
+		} else if outletID, err = m.POS.DefaultOutlet(ctx, tx, property); err != nil {
 			return StayResult{}, errs.Conflict("no_outlet", "no outlet to prepare the catering")
 		}
 		serve := start
@@ -445,8 +443,7 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 	if err := m.Res.SetDeposit(ctx, tx, res.ID, deposit, &due); err != nil {
 		return StayResult{}, err
 	}
-	refs, _ := json.Marshal([]any{ref})
-	if _, err := tx.Exec(ctx, `UPDATE reservation.reservations SET policy_refs = $2 WHERE id = $1`, res.ID, refs); err != nil {
+	if err := m.Res.SetPolicyRefs(ctx, tx, res.ID, []any{ref}); err != nil {
 		return StayResult{}, err
 	}
 	// stay record
@@ -477,7 +474,7 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 		eq, cat, status, f.ID, in.Channel, actor(ctx)); err != nil {
 		return StayResult{}, err
 	}
-	if _, err := tx.Exec(ctx, `UPDATE reservation.reservations SET source_id = $2 WHERE id = $1`, res.ID, sid); err != nil {
+	if err := m.Res.SetSource(ctx, tx, res.ID, sid); err != nil {
 		return StayResult{}, err
 	}
 	if in.Payment != nil {
@@ -815,12 +812,6 @@ func (m *Module) Extend(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Extend
 	if s.Kind == "meeting_room" {
 		svc = "meeting_room"
 	}
-	// price the extension: full new period minus what was charged
-	var charged string
-	if err := tx.QueryRow(ctx, `SELECT coalesce(sum(total_amount),0)::text FROM billing.folio_lines WHERE folio_id = $1 AND source_id = $2 AND status = 'posted'`,
-		s.FolioID, r.Lines[0].ID).Scan(&charged); err != nil {
-		return StayResult{}, err
-	}
 	var add decimal.Decimal
 	var snap *uuid.UUID
 	var lines any
@@ -829,7 +820,11 @@ func (m *Module) Extend(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Extend
 		if err != nil {
 			return StayResult{}, err
 		}
-		before, _ := decimal.NewFromString(charged)
+		// price the extension: full new period minus what was charged
+		before, err := billing.ChargedFor(ctx, tx, *s.FolioID, r.Lines[0].ID)
+		if err != nil {
+			return StayResult{}, err
+		}
 		add, snap, lines = pr.Total().Sub(before), pr.SnapshotID, pr.Tax.Lines
 	} else {
 		from := s.End
@@ -982,12 +977,20 @@ func (m *Module) BungalowAvailability(ctx context.Context, q dbtx.Querier, prope
 	}
 	rows.Close()
 	for i := range out {
+		rrows, err := q.Query(ctx, `SELECT resource_id FROM stay.bungalows WHERE type_id = $1 AND status = 'active' AND archived_at IS NULL
+			AND resource_id IS NOT NULL`, out[i].TypeID)
+		if err != nil {
+			return nil, err
+		}
+		resources, err := pgx.CollectRows(rrows, pgx.RowTo[uuid.UUID])
+		if err != nil {
+			return nil, err
+		}
 		for d := 0; d < nights; d++ {
 			day := time.Date(from.Year(), from.Month(), from.Day()+d, 0, 0, 0, 0, loc)
 			s, e := clockOn(day, pol.CheckInTime, loc), clockOn(day.AddDate(0, 0, 1), pol.CheckOutTime, loc)
-			var busy int
-			if err := q.QueryRow(ctx, `SELECT count(DISTINCT b.id) FROM stay.bungalows b JOIN reservation.allocations a ON a.resource_id = b.resource_id
-				WHERE b.type_id = $1 AND b.status = 'active' AND a.status IN ('held', 'confirmed') AND a.period && tstzrange($2, $3, '[)')`, out[i].TypeID, s, e).Scan(&busy); err != nil {
+			busy, err := m.Res.BusyResources(ctx, q, resources, s, e)
+			if err != nil {
 				return nil, err
 			}
 			out[i].Nights = append(out[i].Nights, Night{Date: day.Format("2006-01-02"), Available: out[i].Units - busy})
