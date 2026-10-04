@@ -1,5 +1,5 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
-import { STAFF, apiOf, email, login, playDay } from './helpers';
+import { MEMBER, STAFF, apiOf, email, login, playDay } from './helpers';
 
 /**
  * Offline areas of the Staff App (Technical Doc §6.4, PRD FR-SH-05,
@@ -67,7 +67,7 @@ test('POS: a sale without connection is queued and synced as one order', async (
   await context.close();
 });
 
-test('Caddy Tablet: an 18-hole round without signal syncs once', async ({ browser }) => {
+test('Caddy Tablet: an 18-hole round without signal syncs once; the member rates the caddy', async ({ browser }) => {
   // A checked-in flight of course MGC with the e2e caddy (C001, e2e/setup.sql).
   const admin = await (await browser.newContext()).newPage();
   await login(admin, STAFF, SA, '/');
@@ -131,4 +131,13 @@ test('Caddy Tablet: an 18-hole round without signal syncs once', async ({ browse
   expect(round.status).toBe('completed');
   await expect.poll(async () => (await api.get(`/api/v1/golf/rounds/${flightId}/times`)).holes.length, { timeout: 20_000 }).toBe(18);
   await context.close();
+
+  // After the round the member rates the caddy in the Member App (My Caddy).
+  const member = await (await browser.newContext()).newPage();
+  await login(member, MEMBER, 'member@demo.oneclub.id');
+  await member.goto(`${MEMBER}/golf/my-caddy`);
+  const rate = member.locator('.oc-card', { hasText: bk!.code }).getByRole('group', { name: /^Rate caddy/ }).first();
+  await rate.getByRole('button', { name: '5 of 5' }).click();
+  await rate.getByRole('button', { name: 'Rate caddy' }).click();
+  await expect(member.getByText(/Thank you for rating/)).toBeVisible();
 });

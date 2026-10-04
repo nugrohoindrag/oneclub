@@ -22434,6 +22434,11 @@ export interface components {
             bookingCode: string;
             /** Format: uuid */
             bookingId: string;
+            /**
+             * Format: uuid
+             * @description Rate the caddy after the round (Member App)
+             */
+            caddyAssignmentId?: string | null;
             caddyCode?: string | null;
             /** Format: uuid */
             caddyId?: string | null;

@@ -45,6 +45,7 @@ Temuan di kode P1 yang dikerjakan bersama P2. Semua minimal; test P1 tetap hijau
 | 6.5 | `golf/http.go` (handler `set-readiness`) | Memanggil `manualReadiness` (file kontrak `p2_contract.go`) | FR-CTL-02 (Must): Ready manual hanya setelah inspeksi lolos, lewat hook `ReadyGuard` (kontrak C8) yang dipasang P2. Tanpa hook, perilaku P1 tetap. **Test P1 diubah:** `p1_golf_test.go` kini mengharapkan 409 untuk Ready manual dari Maintenance, lalu rilis lewat inspeksi. |
 | 6.6 | `golf/booking.go`, `modify.go`, `portal.go`, `teesheet.go` | Query lintas schema diganti API publik: `reservation.HeldAllocations`, `billing.FolioOfLine`, `membership.MemberNo`, `membership.FindMembers`, `membership.MaxBookingWindowDays` | Tech Doc §4.2 #2. Fungsi baru ada di `reservation/module.go`, `billing/p2_api.go`, `membership/p2_api.go`. |
 | 6.7 | — | Tidak diubah (**diputuskan** 4 Oktober 2026: perilaku P1 dipertahankan) | `POST /billing/customer-accounts` untuk akun yang sudah ada tanpa perubahan mengembalikan 201 tanpa entri audit. Pilihan: 200 untuk no-op, atau catat audit. |
+| 6.8 | `golf/teesheet.go` (+1 field, +1 kolom) | Baris pemain (`SheetPlayer`, dipakai tee sheet dan `member/golf/my-flights`) mendapat `caddyAssignmentId` | Member App menilai caddy setelah ronde (`member/golf/caddy-assignments/{id}:rate`, EP-05). Aditif; test: `TestP2GolfOperationsCoverage`, Playwright. |
 
 ## Penambahan di file frontend P1 (aditif)
 

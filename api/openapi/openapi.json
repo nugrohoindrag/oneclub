@@ -29157,6 +29157,12 @@
             "format": "uuid",
             "type": "string"
           },
+          "caddyAssignmentId": {
+            "description": "Rate the caddy after the round (Member App)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
           "caddyCode": {
             "nullable": true,
             "type": "string"
