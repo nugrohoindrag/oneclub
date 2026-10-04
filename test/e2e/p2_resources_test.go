@@ -103,6 +103,11 @@ func TestP2ResourceDefinitionsCRUD(t *testing.T) {
 					}
 				}
 			}
+			if key == "sportclub.class_schedule" && body["startDate"] != nil && body["endDate"] != nil {
+				// A schedule generates its sessions at once: weekdays outside the
+				// synthesized date range keep it unused, hence deletable.
+				body["weekdays"] = []int{freeWeekday(str(body["startDate"]), str(body["endDate"]))}
+			}
 			if missing {
 				next = append(next, d)
 				last[key] = "a referenced list is empty"
@@ -163,6 +168,27 @@ func TestP2ResourceDefinitionsCRUD(t *testing.T) {
 }
 
 var synthSeq int
+
+// freeWeekday is a weekday (1 = Mon … 7 = Sun) that does not occur between
+// two dates.
+func freeWeekday(from, to string) int {
+	f, _ := time.Parse("2006-01-02", from)
+	t, _ := time.Parse("2006-01-02", to)
+	used := map[int]bool{}
+	for d := f; !d.After(t) && len(used) < 7; d = d.AddDate(0, 0, 1) {
+		wd := int(d.Weekday())
+		if wd == 0 {
+			wd = 7
+		}
+		used[wd] = true
+	}
+	for wd := 1; wd <= 7; wd++ {
+		if !used[wd] {
+			return wd
+		}
+	}
+	return 1
+}
 
 // synth makes a valid value for a field of a resource.
 func synth(t *testing.T, c *Client, key, name, typ string, fm map[string]any) (any, bool) {
