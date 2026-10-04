@@ -753,8 +753,8 @@ type Utilization struct {
 
 func (m *Module) Utilization(ctx context.Context, q dbtx.Querier, property uuid.UUID, from, to time.Time) ([]Utilization, error) {
 	return handle.List[Utilization](q.Query(ctx, `WITH att AS (
-		  SELECT caddy_id, count(*)::int AS days, sum(extract(epoch FROM coalesce(departed_at, least(now(), arrived_at + interval '12 hours')) - arrived_at) / 3600) AS hours
-		  FROM golf.caddy_attendance WHERE property_id = $1 AND status = 'present' AND arrived_at IS NOT NULL AND work_date >= $2::date AND work_date <= $3::date
+		  SELECT caddy_id, count(*)::int AS days, sum(duty_hours) AS hours FROM reporting.golf_caddy_duty
+		  WHERE property_id = $1 AND status = 'present' AND duty_hours IS NOT NULL AND work_date >= $2::date AND work_date <= $3::date
 		  GROUP BY caddy_id),
 		rnd AS (
 		  SELECT caddy_id, count(*)::int AS rounds, sum(extract(epoch FROM coalesce(finished_at, now()) - started_at) / 3600) AS hours

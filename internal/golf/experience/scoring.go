@@ -664,8 +664,9 @@ func (m *Module) RoundTimes(ctx context.Context, q dbtx.Querier, fid uuid.UUID) 
 	}
 	var err error
 	rt.Holes, err = handle.List[HoleTime](q.Query(ctx, `SELECT p.seq, h.number, s.code AS section_code, p.started_at, p.finished_at,
-		trim_scale(round((extract(epoch FROM p.finished_at - p.started_at) / 60)::numeric, 1))::text AS minutes, h.target_minutes
+		trim_scale(round((extract(epoch FROM p.finished_at - p.started_at) / 60)::numeric, 1))::text AS minutes, t.target_minutes
 		FROM golf.hole_progress p JOIN golf.holes h ON h.id = p.hole_id JOIN golf.course_sections s ON s.id = h.section_id
+		LEFT JOIN golf.hole_pace_targets t ON t.hole_id = h.id
 		WHERE p.flight_id = $1 ORDER BY p.seq`, fid))
 	return rt, err
 }

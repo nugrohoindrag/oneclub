@@ -229,8 +229,9 @@ func (m *Module) MyAssignments(ctx context.Context, q dbtx.Querier, property uui
 	today := localDay(clock.Now(), loc)
 	if out.Current == nil && len(out.Next) == 0 {
 		var present bool
-		if err := q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.caddy_attendance WHERE caddy_id = $1 AND work_date = $2::date AND status = 'present'
-			AND departed_at IS NULL)`, c.ID, today.Format("2006-01-02")).Scan(&present); err != nil {
+		if err := q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.caddy_attendance a LEFT JOIN golf.caddy_shifts s ON s.caddy_id = a.caddy_id
+			AND s.work_date = a.work_date WHERE a.caddy_id = $1 AND a.work_date = $2::date AND a.status = 'present' AND s.clocked_out_at IS NULL)`,
+			c.ID, today.Format("2006-01-02")).Scan(&present); err != nil {
 			return out, err
 		}
 		if present {

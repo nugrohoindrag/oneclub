@@ -70,7 +70,7 @@ type P2 struct {
 }
 
 // buildP2 wires the P2 services and routes after P1's.
-func (a *App) buildP2(reg *route.Registry, cfg *config.Config, db *dbtx.DB, files *storage.Files, crmModule *crm.Module, billingHTTP *billing.HTTP) {
+func (a *App) buildP2(reg *route.Registry, cfg *config.Config, db *dbtx.DB, files *storage.Files, billingHTTP *billing.HTTP) {
 	billingHTTP.RegisterP2(reg)
 	(&commercial.Module{DB: db}).RegisterP2(reg, a.Engine)
 	a.Reporting.RegisterP2(reg)
@@ -98,7 +98,7 @@ func (a *App) buildP2(reg *route.Registry, cfg *config.Config, db *dbtx.DB, file
 	a.Stay.Register(reg, a.Engine)
 	a.Inventory = &inventory.Module{DB: db, Products: a.POS}
 	a.Inventory.Register(reg, a.Engine)
-	a.CRM = &crm.Engagement{Module: crmModule, Notify: a.Notification, PublicURL: cfg.PublicBaseURL}
+	a.CRM = &crm.Engagement{Module: &crm.Module{DB: db, Events: a.Bus, Files: files}, Notify: a.Notification, PublicURL: cfg.PublicBaseURL}
 	a.CRM.RegisterP2(reg, a.Engine)
 	a.Experience = &experience.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Billing: a.Billing, Notify: a.Notification, Golf: a.Golf,
 		POS: a.POS, Vouchers: a.Vouchers, Reservations: a.Reservations, CRM: a.CRM, Files: files}

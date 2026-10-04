@@ -75,7 +75,7 @@ type Visit struct {
 
 const visitSelect = `SELECT v.id, v.number, v.direction, v.club_id, c.name AS club_name, c.country, v.customer_id, v.visitor_name, v.home_card_no,
 	v.card_valid_until, v.letter_ref, v.letter_id, v.documents, v.visit_date, v.booking_player_id,
-	trim_scale(coalesce((SELECT sum(p.price_total) FROM golf.booking_players p WHERE p.reciprocal_visit_id = v.id AND p.status IN ('booked', 'checked_in')),
+	trim_scale(coalesce((SELECT p.price_total FROM golf.booking_players p WHERE p.id = v.booking_player_id AND p.status IN ('booked', 'checked_in')),
 	  v.charge_amount))::text AS charge_amount,
 	v.verified, v.settlement_status, v.created_at FROM golf.reciprocal_visits v JOIN golf.reciprocal_clubs c ON c.id = v.club_id`
 

@@ -10,6 +10,7 @@ CREATE TABLE staging_rhapsody.id_map (
   loaded_at    timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (property_id, entity, legacy_id)
 );
+SELECT platform.enable_property_rls('staging_rhapsody.id_map');
 SELECT platform.grant_app('staging_rhapsody');
 
 -- +goose Down

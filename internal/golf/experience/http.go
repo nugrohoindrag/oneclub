@@ -387,7 +387,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 			if err != nil {
 				return httpx.Page[Attendance]{}, err
 			}
-			return handle.Page(handle.List[Attendance](tx.Query(ctx, attendanceSelect+` WHERE a.property_id = $1 AND a.work_date = $2::date ORDER BY a.queue_no NULLS LAST, c.code`,
+			return handle.Page(handle.List[Attendance](tx.Query(ctx, attendanceSelect+` ORDER BY a.queue_no NULLS LAST, c.code`,
 				prop(ctx), d.Format("2006-01-02"))))
 		})})
 	add("Caddies", route.Route{Method: http.MethodGet, Path: "/api/v1/golf/caddy-rotation", Summary: "Caddy rotation & Next Assignment (Caddy Policies order)",

@@ -37,7 +37,8 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.hooks()
 	m.registerMe(reg)
 	m.registerPublic(reg)
-	for _, d := range []*resource.Def{Facilities, Courts, Lockers, Instructors, ClassPrograms, ClassSchedules} {
+	// Facilities is registered by the P0 wiring (internal/app).
+	for _, d := range []*resource.Def{Courts, Lockers, Instructors, ClassPrograms, ClassSchedules} {
 		eng.Register(reg, d)
 	}
 	db := m.DB

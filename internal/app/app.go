@@ -184,7 +184,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 	a.Engine.RegisterImports(reg)
 	(&billing.Module{DB: db}).Register(reg, a.Engine)
 	(&commercial.Module{DB: db}).Register(reg, a.Engine)
-	for _, d := range []*resource.Def{procurement.Suppliers} { // sportclub & reservation register their own (P2)
+	for _, d := range []*resource.Def{sportclub.Facilities, reservation.Resources, procurement.Suppliers} {
 		a.Engine.Register(reg, d)
 	}
 
@@ -194,8 +194,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 		a.Hub.Pool = db.Primary
 	}
 	portalURL := func() string { return cfg.MemberPortalURL }
-	crmModule := &crm.Module{DB: db, Events: a.Bus, Files: files}
-	crmModule.Register(reg, a.Engine)
+	(&crm.Module{DB: db, Events: a.Bus, Files: files}).Register(reg, a.Engine)
 	a.Billing = &billing.Service{DB: db, Events: a.Bus, Gateways: a.Integrations}
 	billingHTTP := &billing.HTTP{Svc: a.Billing, Approvals: a.Approvals, Notify: a.Notification, Files: files, PublicURL: portalURL,
 		Holder: func(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (*uuid.UUID, error) {
@@ -218,7 +217,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 	a.Golf.RegisterSync(a.Sync)
 	a.Approvals.RegisterDocumentType(golf.PriceOverrideType, a.Golf.OverrideDecision)
 	a.Approvals.RegisterDocumentType(golf.CancellationWaiverType, a.Golf.WaiverDecision)
-	a.buildP2(reg, cfg, db, files, crmModule, billingHTTP)
+	a.buildP2(reg, cfg, db, files, billingHTTP)
 
 	// Workers and schedules.
 	a.Dispatcher = &outbox.Dispatcher{DB: db, Bus: a.Bus}
