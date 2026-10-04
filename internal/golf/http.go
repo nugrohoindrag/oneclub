@@ -102,9 +102,7 @@ func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *ht
 		where = append(where, strings.ReplaceAll(cond, "?", "$"+strconv.Itoa(len(args))))
 	}
 	if extraWhere != "" {
-		for _, a := range extraArgs {
-			args = append(args, a)
-		}
+		args = append(args, extraArgs...)
 		where = append(where, extraWhere)
 	}
 	if v := lp.Filters["status"]; v != "" {
