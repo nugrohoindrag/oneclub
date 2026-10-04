@@ -102,12 +102,14 @@ type ExportRequest struct {
 
 // Service is the reporting module.
 type Service struct {
-	DB      *dbtx.DB
-	Jobs    *jobs.Client
-	Files   *storage.Files
-	Notify  notify.Sender
-	Cfg     *config.Config
-	reports []*Report
+	DB     *dbtx.DB
+	Jobs   *jobs.Client
+	Files  *storage.Files
+	Notify notify.Sender
+	Cfg    *config.Config
+	// Location is the instance time zone (the golf day boundary).
+	Location func() *time.Location
+	reports  []*Report
 }
 
 // Add registers a report.
@@ -454,17 +456,41 @@ type Dashboard struct {
 	Widgets     []Widget  `json:"widgets"`
 }
 
-// executiveOverview returns the dashboard frame: platform counts are live;
-// domain KPIs (Naming Convention §23) are placeholders filled in P1.
+// executiveOverview returns platform counts and the live golf KPIs
+// (Naming Convention §23).
 func (s *Service) executiveOverview(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	d := Dashboard{Code: "executive_overview", Name: "Executive Overview", GeneratedAt: time.Now().UTC(), Widgets: []Widget{}}
 	var users, props, venues, pending int64
+	day := time.Now()
+	if s.Location != nil {
+		day = day.In(s.Location())
+	}
+	var golf []Widget
 	err := s.DB.WithReportTx(ctx, func(tx pgx.Tx) error {
-		return tx.QueryRow(ctx, `SELECT (SELECT count(DISTINCT user_id) FROM reporting.user_access WHERE user_status = 'active'),
+		err := tx.QueryRow(ctx, `SELECT (SELECT count(DISTINCT user_id) FROM reporting.user_access WHERE user_status = 'active'),
 			(SELECT count(*) FROM platform.properties WHERE status = 'active' AND archived_at IS NULL),
 			(SELECT count(*) FROM reporting.venue_directory WHERE status = 'active'),
 			(SELECT count(*) FROM reporting.venue_directory WHERE status = 'pending')`).Scan(&users, &props, &venues, &pending)
+		if err != nil {
+			return err
+		}
+		live, err := GolfTodayValues(ctx, tx, nil, day, nil)
+		if err != nil {
+			return err
+		}
+		exec, err := GolfExecutive(ctx, tx, day)
+		if err != nil {
+			return err
+		}
+		for _, wd := range live {
+			switch wd.Key {
+			case "todays_bookings", "todays_players", "players_on_course":
+				golf = append(golf, wd)
+			}
+		}
+		golf = append(golf, exec...)
+		return nil
 	})
 	if err != nil {
 		httpx.WriteError(w, r, err)
@@ -476,9 +502,7 @@ func (s *Service) executiveOverview(w http.ResponseWriter, r *http.Request) {
 		Widget{Key: "active_venues", Label: "Active Venues", Module: "platform", Status: "available", Value: &venues, Phase: "P0"},
 		Widget{Key: "venues_pending_activation", Label: "Venues Pending Activation", Module: "platform", Status: "available", Value: &pending, Phase: "P0"},
 	)
-	for _, k := range []string{"Today's Bookings", "Today's Players", "Players on Course", "Tee Time Utilization", "Golf Revenue", "Member vs Guest"} {
-		d.Widgets = append(d.Widgets, Widget{Key: strings.ToLower(strings.NewReplacer(" ", "_", "'", "").Replace(k)), Label: k, Module: "golf", Status: "coming_soon", Phase: "P1"})
-	}
+	d.Widgets = append(d.Widgets, golf...)
 	httpx.JSON(w, http.StatusOK, d)
 }
 
@@ -496,6 +520,7 @@ func (s *Service) Register(reg *route.Registry) {
 		Permission: "reporting.export.create", Response: Export{}, List: true, Handler: s.listExports})
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/reporting/dashboards/executive-overview", Summary: "Executive Overview",
 		Permission: catalog.ManagementView, Response: Dashboard{}, Handler: s.executiveOverview})
+	s.registerP1(reg)
 }
 
 // Contribution returns catalogue entries.
@@ -508,13 +533,16 @@ func Contribution() catalog.Contribution {
 		{Code: "reporting.venue_directory.view", Description: "Venue Directory Report"},
 	}
 	mgmt := []string{"reporting.venue_directory.view"}
-	return catalog.Contribution{
-		Permissions: perms,
-		RolePermissions: map[string][]string{
-			"property_admin":  {"reporting.user_access.view", "reporting.venue_directory.view"},
-			"general_manager": mgmt, "club_manager": mgmt, "resort_manager": mgmt,
-			"finance_manager": {"reporting.user_access.view", "reporting.venue_directory.view"},
-			"golf_manager":    mgmt,
-		},
+	roles := map[string][]string{
+		"property_admin":  {"reporting.user_access.view", "reporting.venue_directory.view"},
+		"general_manager": mgmt, "club_manager": mgmt, "resort_manager": mgmt,
+		"finance_manager": {"reporting.user_access.view", "reporting.venue_directory.view"},
+		"golf_manager":    mgmt,
 	}
+	p1, p1Roles := P1Permissions()
+	perms = append(perms, p1...)
+	for role, codes := range p1Roles {
+		roles[role] = append(roles[role], codes...)
+	}
+	return catalog.Contribution{Permissions: perms, RolePermissions: roles}
 }

@@ -36,6 +36,10 @@ func (s *Service) Register(reg *route.Registry) {
 		Auth: route.AuthPublic, Request: PasswordResetRequest{}, Response: map[string]string{}, Status: http.StatusAccepted, Handler: s.handlePasswordReset})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/auth/password/reset/confirm", Tag: auth, Summary: "Set a new password with a reset token",
 		Auth: route.AuthPublic, Request: PasswordResetConfirm{}, Handler: s.handlePasswordResetConfirm})
+	add(route.Route{Method: http.MethodPost, Path: "/api/v1/auth/otp/request", Tag: auth, Summary: "Send a one-time login code (Member Portal; e-mail or WhatsApp)",
+		Auth: route.AuthPublic, Request: OTPRequest{}, Response: map[string]string{}, Status: http.StatusAccepted, Handler: s.handleOTPRequest})
+	add(route.Route{Method: http.MethodPost, Path: "/api/v1/auth/otp/verify", Tag: auth, Summary: "Log in with a one-time code",
+		Auth: route.AuthPublic, Request: OTPVerifyRequest{}, Response: LoginResponse{}, Status: http.StatusOK, Handler: s.handleOTPVerify})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/auth/password/change", Tag: auth, Summary: "Change my password",
 		Auth: route.AuthMFAPending, Request: PasswordChangeRequest{}, Handler: s.handlePasswordChange})
 

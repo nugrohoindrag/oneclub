@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, Outlet, RouterProvider } from 'react-router';
+import { createBrowserRouter, Link, Outlet, RouterProvider } from 'react-router';
 import '@oneclub/shell/shell.css';
 import { useGet, type Page, type Schemas } from '@oneclub/api-client';
 import { formatRelative, useTranslation } from '@oneclub/i18n';
@@ -8,6 +8,10 @@ import {
   AppProviders, Card, ComingSoonPage, ErrorBoundary, Icon, LoginPage, NotFoundPage, NotificationsPage, ProfilePage, RequireShell, ResetPasswordPage,
   TopNavLayout, useAuth, useBootstrap, useFlag,
 } from '@oneclub/shell';
+import {
+  BenefitsPage, BookGolfPage, CardPage, FamilyPage, HomeShortcuts, MemberCard, MemberProfilePage, MyBookingsPage, MyChargesPage, MyFlightsPage, MyMembershipPage,
+  MyPaymentsPage, OtpLoginPage, StatementsPage, TransactionsPage,
+} from './golf';
 
 /** Member home: digital card placeholder, latest notifications (dashboard style). */
 function HomePage() {
@@ -19,14 +23,7 @@ function HomePage() {
     <div className="oc-stack">
       <div className="oc-page-head"><div><h1>Halo, {me?.fullName.split(' ')[0]}</h1><p>{boot.branding.appName}</p></div></div>
       <div className="oc-grid-2">
-        <div className="oc-card oc-card-ink" style={{ minHeight: 200, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div className="oc-row"><strong>{boot.branding.appName}</strong><span className="oc-spacer" /><Icon name="contactless" size={24} /></div>
-          <div>
-            <div className="oc-small" style={{ opacity: 0.7 }}>Digital Member Card</div>
-            <div style={{ fontSize: 22, fontWeight: 600 }}>{me?.fullName}</div>
-            <div className="oc-small" style={{ opacity: 0.7 }}>{t('common.comingSoon', { phase: 'P1' })}</div>
-          </div>
-        </div>
+        <HomeCard />
         <Card title="Notifications" icon="notifications">
           {notes.data?.items.length === 0 && <div className="oc-small oc-muted">{t('shell.noNotifications')}</div>}
           <div className="oc-stack">
@@ -36,21 +33,21 @@ function HomePage() {
           </div>
         </Card>
       </div>
-      <div className="oc-grid">
-        {[['golf_course', 'Book Golf'], ['sports_tennis', 'Book Facility'], ['hotel', 'Book Bungalow'], ['receipt_long', 'My Transactions']].map(([icon, label]) => (
-          <div key={label} className="oc-card">
-            <div className="oc-card-head" style={{ marginBottom: 6 }}><span className="oc-icon-circle"><Icon name={icon} size={20} /></span><h3>{label}</h3></div>
-            <span className="oc-nav-soon">P1</span>
-          </div>
-        ))}
-      </div>
+      <HomeShortcuts />
     </div>
   );
 }
 
+function HomeCard() {
+  const { me } = useAuth();
+  const boot = useBootstrap();
+  const m = useGet<{ profile: Record<string, unknown>; card?: Record<string, unknown>; clubName: string }>('/api/v1/member/membership', { retry: false });
+  return <MemberCard name={me?.fullName ?? ''} club={m.data?.clubName ?? boot.branding.appName} card={m.data?.card as never} />;
+}
+
 function MemberLogin() {
   const signup = useFlag('member.self_registration') === true;
-  return <LoginPage shell="member" footer={signup ? <p className="oc-small oc-muted" style={{ margin: 0 }}>Don't have an account? <strong>Create an Account</strong> (P1)</p> : null} />;
+  return <LoginPage shell="member" footer={<p className="oc-small oc-muted" style={{ margin: 0 }}><Link to="/login/code">Log in with a one-time code</Link>{signup ? ' · Activate your account from the invitation e-mail' : ''}</p>} />;
 }
 
 const router = createBrowserRouter([
@@ -58,16 +55,28 @@ const router = createBrowserRouter([
     element: <ErrorBoundary><Outlet /></ErrorBoundary>,
     children: [
       { path: '/login', element: <MemberLogin /> },
+      { path: '/login/code', element: <OtpLoginPage /> },
       { path: '/reset-password', element: <ResetPasswordPage /> },
       {
         path: '/',
         element: <RequireShell shell="member"><TopNavLayout shell="member" bottomNav property={false} /></RequireShell>,
         children: [
           { index: true, element: <HomePage /> },
-          { path: 'golf', element: <ComingSoonPage title="Golf" phase="P1" features={['Book Golf', 'Tee Time', 'My Flights', 'Scorecard', 'Handicap']} /> },
-          { path: 'bookings', element: <ComingSoonPage title="Bookings" phase="P1" /> },
-          { path: 'membership', element: <ComingSoonPage title="Membership" phase="P1" features={['My Membership', 'Digital Member Card', 'Family Members', 'Membership Statement']} /> },
-          { path: 'profile', element: <ProfilePage /> },
+          { path: 'golf', element: <BookGolfPage /> },
+          { path: 'golf/tee-time', element: <BookGolfPage browseOnly /> },
+          { path: 'golf/my-flights', element: <MyFlightsPage /> },
+          { path: 'golf/my-caddy', element: <MyFlightsPage focus="caddy" /> },
+          { path: 'golf/my-golf-cart', element: <MyFlightsPage focus="cart" /> },
+          { path: 'bookings', element: <MyBookingsPage /> },
+          { path: 'membership', element: <MyMembershipPage /> },
+          { path: 'membership/card', element: <CardPage /> },
+          { path: 'membership/benefits', element: <BenefitsPage /> },
+          { path: 'membership/family', element: <FamilyPage /> },
+          { path: 'membership/statements', element: <StatementsPage /> },
+          { path: 'transactions', element: <TransactionsPage /> },
+          { path: 'transactions/payments', element: <MyPaymentsPage /> },
+          { path: 'transactions/member-charges', element: <MyChargesPage /> },
+          { path: 'profile', element: <MemberProfilePage /> },
           { path: 'notifications', element: <NotificationsPage /> },
           { path: '*', element: <NotFoundPage /> },
         ],

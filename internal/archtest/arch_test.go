@@ -3,11 +3,15 @@
 //
 //  1. kernel is the shared kernel: it imports no OneClub module.
 //  2. platform never imports a business module (dependencies point down:
-//     business line → shared core → back office → platform); upward
-//     communication uses domain events.
-//  3. business modules never import each other's code, except through the
-//     public interface of the platform.
-//  4. only the composition root (internal/app) and cmd wire modules together.
+//     business line → shared core → customer → back office → platform);
+//     upward communication uses domain events.
+//  3. a business module may only call another module through its public
+//     interface — the module's root package (api.go) — never its
+//     sub-packages, and only in the downward direction of the layers
+//     (Technical Doc §4.2 rule 1 and 3).
+//  4. reporting (Management & BI) imports no business module: it reads
+//     other domains only through read models in the reporting schema.
+//  5. only the composition root (internal/app) and cmd wire modules together.
 package archtest
 
 import (
@@ -21,8 +25,15 @@ import (
 	"testing"
 )
 
-var business = []string{"golf", "sportclub", "stay", "banquet", "membership", "reservation", "commercial", "billing",
-	"crm", "inventory", "procurement", "accounting", "hris", "reporting", "cms"}
+// layer of every business module (Technical Doc §4.1); a module may depend
+// on modules of the same or a higher number (lower layer) only.
+var layer = map[string]int{
+	"golf": 1, "sportclub": 1, "stay": 1, "banquet": 1, "cms": 1,
+	"membership": 2, "reservation": 2, "commercial": 2, "billing": 2,
+	"crm":       3,
+	"inventory": 4, "procurement": 4, "accounting": 4, "hris": 4,
+	"reporting": 5,
+}
 
 func root(t *testing.T) string {
 	_, file, _, _ := runtime.Caller(0)
@@ -30,12 +41,13 @@ func root(t *testing.T) string {
 }
 
 // moduleOf returns "kernel", "platform", a business module name, "app" or "".
-func moduleOf(importPath string) string {
+func moduleOf(importPath string) (string, bool) {
 	p := strings.TrimPrefix(importPath, "oneclub/internal/")
 	if p == importPath {
-		return ""
+		return "", false
 	}
-	return strings.SplitN(p, "/", 2)[0]
+	parts := strings.SplitN(p, "/", 2)
+	return parts[0], len(parts) == 1
 }
 
 func TestModuleBoundaries(t *testing.T) {
@@ -57,20 +69,26 @@ func TestModuleBoundaries(t *testing.T) {
 		}
 		for _, imp := range f.Imports {
 			ip, _ := strconv.Unquote(imp.Path.Value)
-			to := moduleOf(ip)
+			to, rootPkg := moduleOf(ip)
 			if to == "" || to == from {
 				continue
 			}
+			fromL, fromBusiness := layer[from]
+			toL, toBusiness := layer[to]
 			bad := ""
 			switch {
 			case to == "app":
 				bad = "only cmd may import the composition root"
 			case from == "kernel":
 				bad = "kernel must not import OneClub modules"
-			case from == "platform" && contains(business, to):
+			case from == "platform" && toBusiness:
 				bad = "platform must not depend on business module " + to + " (use domain events)"
-			case contains(business, from) && contains(business, to):
-				bad = "business module " + from + " must not import " + to + " (use its public interface via events or reporting read models)"
+			case from == "reporting" && toBusiness:
+				bad = "reporting reads other domains through reporting read models only"
+			case fromBusiness && toBusiness && !rootPkg:
+				bad = "business module " + from + " may only use the public interface (root package) of " + to
+			case fromBusiness && toBusiness && toL < fromL:
+				bad = "business module " + from + " must not depend upward on " + to + " (use domain events)"
 			}
 			if bad != "" {
 				violations++
@@ -85,13 +103,4 @@ func TestModuleBoundaries(t *testing.T) {
 	if violations == 0 {
 		t.Logf("module boundaries respected")
 	}
-}
-
-func contains(list []string, s string) bool {
-	for _, x := range list {
-		if x == s {
-			return true
-		}
-	}
-	return false
 }

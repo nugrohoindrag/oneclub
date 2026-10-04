@@ -6,6 +6,7 @@ package reservation
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/google/uuid"
@@ -138,4 +139,108 @@ func RegisterJobs(reg *jobs.Registrar, db *dbtx.DB) {
 	river.AddWorker(reg.Workers, &ReleaseHoldsWorker{DB: db})
 	reg.Periodic = append(reg.Periodic, river.NewPeriodicJob(river.PeriodicInterval(time.Minute),
 		func() (river.JobArgs, *river.InsertOpts) { return ReleaseHoldsArgs{}, nil }, nil))
+}
+
+// EnsureResource returns the id of a resource by code, creating it when
+// missing (tee time seats are created by golf on demand).
+func EnsureResource(ctx context.Context, tx pgx.Tx, property uuid.UUID, code, name, resourceType string, venueID *uuid.UUID, attrs map[string]any) (uuid.UUID, error) {
+	var rid uuid.UUID
+	err := tx.QueryRow(ctx, `SELECT id FROM reservation.resources WHERE property_id = $1 AND code = $2`, property, code).Scan(&rid)
+	if err == nil {
+		return rid, nil
+	}
+	if !dbtx.IsNoRows(err) {
+		return uuid.Nil, err
+	}
+	rid = id.New()
+	raw, _ := json.Marshal(attrs)
+	if attrs == nil {
+		raw = []byte("{}")
+	}
+	err = tx.QueryRow(ctx, `INSERT INTO reservation.resources (id, property_id, code, name, resource_type, venue_id, capacity, attributes)
+		VALUES ($1,$2,$3,$4,$5,$6,1,$7) ON CONFLICT (property_id, code) DO UPDATE SET name = EXCLUDED.name RETURNING id`,
+		rid, property, code, name, resourceType, venueID, raw).Scan(&rid)
+	return rid, err
+}
+
+// Busy returns the resources among ids that have a held or confirmed
+// allocation overlapping [start, end).
+func Busy(ctx context.Context, q dbtx.Querier, ids []uuid.UUID, start, end time.Time) (map[uuid.UUID]bool, error) {
+	out := map[uuid.UUID]bool{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	rows, err := q.Query(ctx, `SELECT DISTINCT resource_id FROM reservation.allocations WHERE resource_id = ANY($1) AND status IN ('held', 'confirmed')
+		AND period && tstzrange($2, $3, '[)') AND (status = 'confirmed' OR expires_at > now())`, ids, start, end)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var r uuid.UUID
+		if err := rows.Scan(&r); err != nil {
+			return nil, err
+		}
+		out[r] = true
+	}
+	return out, rows.Err()
+}
+
+// ReleaseExpiredOn releases expired holds on resources so the space can be
+// re-used immediately (the periodic job does the same for everything).
+func ReleaseExpiredOn(ctx context.Context, tx pgx.Tx, ids []uuid.UUID) error {
+	_, err := tx.Exec(ctx, `UPDATE reservation.allocations SET status = 'released' WHERE resource_id = ANY($1) AND status = 'held' AND expires_at <= now()`, ids)
+	return err
+}
+
+// ConfirmReservation confirms every held allocation of a reservation
+// (booking). It fails with hold_expired when a hold has lapsed.
+func ConfirmReservation(ctx context.Context, tx pgx.Tx, reservationID uuid.UUID) (int64, error) {
+	var lapsed int
+	if err := tx.QueryRow(ctx, `SELECT count(*) FROM reservation.allocations WHERE reservation_id = $1 AND status = 'released'
+		AND NOT EXISTS (SELECT 1 FROM reservation.allocations x WHERE x.reservation_id = $1 AND x.status IN ('held','confirmed'))`, reservationID).Scan(&lapsed); err != nil {
+		return 0, err
+	}
+	tag, err := tx.Exec(ctx, `UPDATE reservation.allocations SET status = 'confirmed', expires_at = NULL
+		WHERE reservation_id = $1 AND status = 'held' AND expires_at > now()`, reservationID)
+	if err != nil {
+		return 0, err
+	}
+	if tag.RowsAffected() == 0 && lapsed > 0 {
+		return 0, errs.Conflict("hold_expired", "the hold has expired or was released")
+	}
+	return tag.RowsAffected(), nil
+}
+
+// ExtendHold moves the expiry of held allocations (payment pending).
+func ExtendHold(ctx context.Context, tx pgx.Tx, reservationID uuid.UUID, until time.Time) error {
+	_, err := tx.Exec(ctx, `UPDATE reservation.allocations SET expires_at = $2 WHERE reservation_id = $1 AND status = 'held'`, reservationID, until)
+	return err
+}
+
+// Release cancels every active allocation of a reservation.
+func Release(ctx context.Context, tx pgx.Tx, reservationID uuid.UUID, status string) error {
+	if status == "" {
+		status = "cancelled"
+	}
+	_, err := tx.Exec(ctx, `UPDATE reservation.allocations SET status = $2, expires_at = NULL WHERE reservation_id = $1 AND status IN ('held', 'confirmed')`,
+		reservationID, status)
+	return err
+}
+
+// ReleaseAllocations cancels specific allocations (a removed player).
+func ReleaseAllocations(ctx context.Context, tx pgx.Tx, ids []uuid.UUID) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	_, err := tx.Exec(ctx, `UPDATE reservation.allocations SET status = 'cancelled', expires_at = NULL WHERE id = ANY($1) AND status IN ('held', 'confirmed')`, ids)
+	return err
+}
+
+// Status returns the status of an allocation.
+func Status(ctx context.Context, q dbtx.Querier, allocationID uuid.UUID) (string, error) {
+	var st string
+	err := q.QueryRow(ctx, `SELECT CASE WHEN status = 'held' AND expires_at <= now() THEN 'expired' ELSE status END FROM reservation.allocations WHERE id = $1`,
+		allocationID).Scan(&st)
+	return st, err
 }

@@ -133,7 +133,22 @@ func (m *Module) Defs() []*resource.Def {
 			statusField("active", "inactive"),
 		},
 	}
-	return []*resource.Def{properties, venues, departments, employees}
+	// FR-TEE-02 calendar of public holidays and special dates (PRD §9:
+	// platform, used across modules). property empty = every property.
+	calendar := &resource.Def{
+		Key: "platform.calendar_day", Module: "platform", Perm: "platform.calendar_day", Path: "/api/v1/platform/calendar-days",
+		Table: "platform.calendar_days", Name: "Calendar Day", Plural: "Calendar Days", Tag: "Organization", OrderBy: "day, id",
+		Fields: []resource.Field{
+			{Name: "day", Column: "day", Label: "Date", Kind: resource.Date, Required: true, Filter: true},
+			{Name: "name", Column: "name", Label: "Name", Kind: resource.String, Required: true, Max: 120, Search: true},
+			{Name: "kind", Column: "kind", Label: "Kind", Kind: resource.Enum, Enum: []string{"public_holiday", "special"}, Default: "public_holiday", Filter: true},
+			{Name: "propertyId", Column: "property_id", Label: "Property (empty = all)", Kind: resource.UUID, Filter: true,
+				Ref: &resource.Ref{Table: "platform.properties", Label: "property"}},
+			{Name: "dayTypeCode", Column: "day_type_code", Label: "Day Type (override)", Kind: resource.String, Max: 20, Upper: true},
+			statusField("active", "inactive"),
+		},
+	}
+	return []*resource.Def{properties, venues, departments, employees, calendar}
 }
 
 // departmentNoCycle rejects a parent that is the department itself or one of
@@ -347,4 +362,46 @@ func (m *Module) Register(reg *route.Registry) {
 	for _, d := range m.Defs() {
 		m.Engine.Register(reg, d)
 	}
+}
+
+// CalendarEntry returns the calendar entry of a date for a property (a
+// property-specific entry wins over an instance-wide one): kind is
+// public_holiday or special; dayType is the explicit day type override.
+func CalendarEntry(ctx context.Context, q dbtx.Querier, property uuid.UUID, day time.Time) (kind, dayType, name string, found bool, err error) {
+	var dt *string
+	err = q.QueryRow(ctx, `SELECT kind, day_type_code, name FROM platform.calendar_days
+		WHERE day = $1::date AND status = 'active' AND (property_id IS NULL OR property_id = $2)
+		ORDER BY (property_id IS NOT NULL) DESC LIMIT 1`, day.Format("2006-01-02"), property).Scan(&kind, &dt, &name)
+	if dbtx.IsNoRows(err) {
+		return "", "", "", false, nil
+	}
+	if err != nil {
+		return "", "", "", false, err
+	}
+	if dt != nil {
+		dayType = *dt
+	}
+	return kind, dayType, name, true, nil
+}
+
+// Location returns the timezone of a property (property override, else the
+// instance timezone).
+func Location(ctx context.Context, q dbtx.Querier, property uuid.UUID) (*time.Location, error) {
+	var tz string
+	if err := q.QueryRow(ctx, `SELECT coalesce((SELECT timezone FROM platform.properties WHERE id = $1 AND timezone <> ''), (SELECT timezone FROM platform.instance))`,
+		property).Scan(&tz); err != nil {
+		return nil, err
+	}
+	loc, err := time.LoadLocation(tz)
+	if err != nil {
+		return time.UTC, nil
+	}
+	return loc, nil
+}
+
+// Currency returns the instance currency.
+func Currency(ctx context.Context, q dbtx.Querier) (string, error) {
+	var cur string
+	err := q.QueryRow(ctx, `SELECT currency FROM platform.instance`).Scan(&cur)
+	return cur, err
 }

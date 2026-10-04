@@ -195,6 +195,7 @@ func (e *Engine) list(d *Def) http.HandlerFunc {
 			httpx.WriteError(w, r, err)
 			return
 		}
+		d.afterRead(ctx, rows)
 		page := httpx.Page[map[string]any]{Items: rows}
 		if page.Items == nil {
 			page.Items = []map[string]any{}
@@ -250,7 +251,17 @@ func (e *Engine) get(d *Def) http.HandlerFunc {
 			httpx.WriteError(w, r, err)
 			return
 		}
+		d.afterRead(r.Context(), []map[string]any{row})
 		httpx.JSON(w, http.StatusOK, row)
+	}
+}
+
+func (d *Def) afterRead(ctx context.Context, rows []map[string]any) {
+	if d.Hooks.AfterRead == nil {
+		return
+	}
+	for _, row := range rows {
+		d.Hooks.AfterRead(ctx, row)
 	}
 }
 
@@ -504,6 +515,7 @@ func (e *Engine) create(d *Def) http.HandlerFunc {
 			httpx.WriteError(w, r, err)
 			return
 		}
+		d.afterRead(r.Context(), []map[string]any{row})
 		httpx.JSON(w, http.StatusCreated, row)
 	}
 }
@@ -529,6 +541,7 @@ func (e *Engine) update(d *Def) http.HandlerFunc {
 			httpx.WriteError(w, r, err)
 			return
 		}
+		d.afterRead(r.Context(), []map[string]any{row})
 		httpx.JSON(w, http.StatusOK, row)
 	}
 }
@@ -642,6 +655,7 @@ func (e *Engine) export(d *Def) http.HandlerFunc {
 			if rows, err = d.scanRows(rs); err != nil {
 				return err
 			}
+			d.afterRead(ctx, rows)
 			// The export action itself is audited (FR-AUD-05 spirit for master data).
 			return audit.Record(ctx, tx, audit.Entry{Module: moduleOf(d.Perm), Action: audit.ActionExport, EntityType: d.Key,
 				EntityLabel: d.Plural, Metadata: map[string]any{"format": format, "rows": len(rows), "filters": lp.Filters, "q": lp.Q}})

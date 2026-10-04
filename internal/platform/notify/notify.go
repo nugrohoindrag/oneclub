@@ -24,8 +24,10 @@ type Message struct {
 	Event      string         // e.g. "approval.pending"
 	Category   string         // preference category, e.g. "approval"
 	UserIDs    []uuid.UUID    // recipients
-	Email      string         // direct e-mail recipient without a user (rare)
-	Locale     string         // for Email recipients
+	Email      string         // direct recipient without a user account (guests, non-members)
+	Phone      string         // direct WhatsApp recipient (E.164) without a user account
+	Name       string         // display name of the direct recipient
+	Locale     string         // for direct recipients
 	Data       map[string]any // template variables
 	Link       string         // deep link for in-app notifications
 	Channels   []string       // default: in_app + email

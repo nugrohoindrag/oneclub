@@ -62,10 +62,11 @@ type PaymentAdapter interface {
 
 type OutboundMessage struct {
 	To         string // E.164 phone
-	Template   string
+	Template   string // OneClub event code; adapters map it to the approved BSP template
 	Language   string
 	Parameters []string
-	Text       string
+	Named      map[string]string // template variables by name (notification data)
+	Text       string            // rendered text (session message / sandbox)
 }
 
 type MessageResult struct {

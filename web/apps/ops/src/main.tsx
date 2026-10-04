@@ -9,6 +9,10 @@ import {
   AppProviders, AuthFrame, Brand, Card, DataTable, ErrorAlert, ErrorBoundary, HeaderActions, Icon, LoginPage, NotFoundPage, NotificationsPage,
   PasswordField, ProfilePage, RequireShell, ResetPasswordPage, StatusPill, TextArea, TextField, useAuth, useToast,
 } from '@oneclub/shell';
+import {
+  BagDropPage, BagStoragePage, CaddyAssignmentPage, CaddyQueuePage, CartAssignmentPage, CartReadinessPage, FrontDeskFoliosPage, FrontDeskPage,
+  FrontDeskPaymentsPage, GuestPage, LockersPage, OpsCheckInPage, OpsTeeSheetPage, OpsTiles, StarterQueuePage,
+} from './golf';
 
 const DEVICE_KEY = 'oneclub.deviceToken';
 const OUTLET_KEY = 'oneclub.outlet';
@@ -117,6 +121,7 @@ function OpsLayout() {
       <Outlet />
       <nav className="oc-bottom-nav" aria-label="Main">
         <Link to="/"><Icon name="home" size={26} />Home</Link>
+        <Link to="/check-in"><Icon name="how_to_reg" size={26} />Check-in</Link>
         <Link to="/sync"><Icon name="sync" size={26} />Sync Queue</Link>
         <Link to="/notifications"><Icon name="notifications" size={26} />Notifications</Link>
         <Link to="/profile"><Icon name="person" size={26} />Profile</Link>
@@ -146,11 +151,6 @@ function OutletPicker() {
   );
 }
 
-const TILES: [string, string, string][] = [
-  ['flag', 'Starter', 'P1'], ['groups', 'Caddy Master', 'P1'], ['point_of_sale', 'POS', 'P2'],
-  ['concierge', 'Front Desk', 'P3'], ['sports_tennis', 'Sport Reception', 'P3'], ['inventory_2', 'Warehouse', 'P4'],
-];
-
 function HomePage() {
   const { me, propertyId } = useAuth();
   const toast = useToast();
@@ -174,14 +174,7 @@ function HomePage() {
           <div><button className="oc-btn oc-btn-ink" disabled={!note.trim()}>Save note</button></div>
         </form>
       </Card>
-      <div className="oc-grid">
-        {TILES.map(([icon, label, phase]) => (
-          <div key={label} className="oc-card" style={{ minHeight: 120 }}>
-            <div className="oc-card-head"><span className="oc-icon-circle"><Icon name={icon} size={22} /></span><h3>{label}</h3></div>
-            <span className="oc-nav-soon">{phase}</span>
-          </div>
-        ))}
-      </div>
+      <OpsTiles />
     </div>
   );
 }
@@ -227,6 +220,26 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <HomePage /> },
           { path: 'sync', element: <SyncPage /> },
+          { path: 'starter', element: <StarterQueuePage /> },
+          { path: 'starter/ready', element: <StarterQueuePage view="ready" /> },
+          { path: 'starter/dispatch', element: <StarterQueuePage /> },
+          { path: 'starter/rounds', element: <StarterQueuePage view="rounds" /> },
+          { path: 'starter/tee-sheet', element: <OpsTeeSheetPage /> },
+          { path: 'check-in', element: <OpsCheckInPage /> },
+          { path: 'caddy', element: <CaddyQueuePage /> },
+          { path: 'caddy/availability', element: <CaddyQueuePage /> },
+          { path: 'caddy/rotation', element: <CaddyQueuePage /> },
+          { path: 'caddy/assignment', element: <CaddyAssignmentPage /> },
+          { path: 'caddy/history', element: <CaddyAssignmentPage history /> },
+          { path: 'front-desk', element: <FrontDeskPage /> },
+          { path: 'front-desk/guest', element: <GuestPage /> },
+          { path: 'front-desk/payments', element: <FrontDeskPaymentsPage /> },
+          { path: 'front-desk/folios', element: <FrontDeskFoliosPage /> },
+          { path: 'golf-staff', element: <BagDropPage /> },
+          { path: 'golf-staff/bag-storage', element: <BagStoragePage /> },
+          { path: 'golf-staff/lockers', element: <LockersPage /> },
+          { path: 'golf-staff/golf-carts', element: <CartReadinessPage /> },
+          { path: 'golf-staff/golf-cart-assignment', element: <CartAssignmentPage /> },
           { path: 'notifications', element: <NotificationsPage /> },
           { path: 'profile', element: <ProfilePage showPin /> },
           { path: 'home', element: <Navigate to="/" /> },

@@ -20,6 +20,7 @@ import (
 	"oneclub/internal/kernel/authz"
 	"oneclub/internal/kernel/config"
 	"oneclub/internal/kernel/dbtx"
+	"oneclub/internal/kernel/ratelimit"
 	"oneclub/internal/kernel/route"
 	"oneclub/internal/kernel/secret"
 	"oneclub/internal/membership"
@@ -37,6 +38,7 @@ import (
 	"oneclub/internal/platform/org"
 	"oneclub/internal/platform/outbox"
 	"oneclub/internal/platform/provision"
+	"oneclub/internal/platform/realtime"
 	"oneclub/internal/platform/resource"
 	"oneclub/internal/platform/rules"
 	"oneclub/internal/platform/storage"
@@ -67,10 +69,11 @@ var Flags = []provision.Flag{
 }
 
 // Reports registered in P0.
-var Reports = []*reporting.Report{reporting.UserAccessReport, reporting.VenueDirectoryReport}
+var Reports = append([]*reporting.Report{reporting.UserAccessReport, reporting.VenueDirectoryReport}, reporting.P1Reports...)
 
-// DocumentTypes registered in P0.
-var DocumentTypes = []provision.DocumentType{approval.TestDocumentType, org.VenueActivationType}
+// DocumentTypes registered by the modules (approval engine, FR-APR-09).
+var DocumentTypes = []provision.DocumentType{approval.TestDocumentType, org.VenueActivationType, billing.RefundDocumentType,
+	membership.ApplicationDocumentType, golf.PriceOverrideType, golf.CancellationWaiverType}
 
 // Seeds builds the catalogue synchronised into instance databases.
 func Seeds() (provision.Seeds, error) {
@@ -106,6 +109,11 @@ type App struct {
 	Navigation   *navigation.Service
 	Org          *org.Module
 	Box          *secret.Box
+	Hub          *realtime.Hub
+	Billing      *billing.Service
+	Golf         *golf.Module
+	Membership   *membership.Module
+	Sync         *syncsvc.Service
 }
 
 // Options control process-specific wiring.
@@ -150,7 +158,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 		}
 	}
 	files := &storage.Files{DB: db, Blob: blob}
-	a.Reporting = &reporting.Service{DB: db, Files: files, Notify: a.Notification, Cfg: cfg}
+	a.Reporting = &reporting.Service{DB: db, Files: files, Notify: a.Notification, Cfg: cfg, Location: a.Instance.Location}
 	for _, r := range Reports {
 		a.Reporting.Add(r)
 	}
@@ -166,16 +174,46 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 	(&integration.HTTP{Svc: a.Integrations, Events: a.Bus}).Register(reg)
 	(&rules.Service{DB: db}).Register(reg)
 	files.Register(reg)
-	syncsvc.New(db).Register(reg)
+	a.Sync = syncsvc.New(db)
+	a.Sync.Register(reg)
 	a.Navigation.Register(reg)
 	a.Reporting.Register(reg)
 	a.Engine.RegisterImports(reg)
-	a.Engine.Register(reg, golf.Courses)
 	(&billing.Module{DB: db}).Register(reg, a.Engine)
 	(&commercial.Module{DB: db}).Register(reg, a.Engine)
-	for _, d := range []*resource.Def{crm.Customers, crm.Guests, membership.Members, sportclub.Facilities, reservation.Resources, procurement.Suppliers} {
+	for _, d := range []*resource.Def{sportclub.Facilities, reservation.Resources, procurement.Suppliers} {
 		a.Engine.Register(reg, d)
 	}
+
+	// P1 Golf Core MVP modules (layers: crm → billing/commercial/membership → golf).
+	a.Hub = &realtime.Hub{}
+	if db != nil {
+		a.Hub.Pool = db.Primary
+	}
+	portalURL := func() string { return cfg.MemberPortalURL }
+	(&crm.Module{DB: db, Events: a.Bus, Files: files}).Register(reg, a.Engine)
+	a.Billing = &billing.Service{DB: db, Events: a.Bus, Gateways: a.Integrations}
+	billingHTTP := &billing.HTTP{Svc: a.Billing, Approvals: a.Approvals, Notify: a.Notification, Files: files, PublicURL: portalURL,
+		Holder: func(ctx context.Context, tx pgx.Tx, userID uuid.UUID) (*uuid.UUID, error) {
+			mid, err := membership.MemberByUser(ctx, tx, userID)
+			if err != nil || mid == nil {
+				return nil, err
+			}
+			return membership.AccountHolder(ctx, tx, *mid)
+		}}
+	billingHTTP.Register(reg)
+	billingHTTP.RegisterMember(reg)
+	a.Approvals.RegisterDocumentType(billing.RefundDocumentType, billingHTTP.RefundDecision)
+	a.Membership = &membership.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Billing: a.Billing, Notify: a.Notification, Portal: a.IAM,
+		Residents: a.Integrations, PortalURL: portalURL}
+	a.Membership.Register(reg, a.Engine)
+	a.Approvals.RegisterDocumentType(membership.ApplicationDocumentType, a.Membership.ApplicationDecision)
+	a.Golf = &golf.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Billing: a.Billing, Refunds: billingHTTP, Notify: a.Notification, Hub: a.Hub,
+		Integrations: a.Integrations, Cfg: cfg, Limiter: ratelimit.New()}
+	a.Golf.Register(reg, a.Engine)
+	a.Golf.RegisterSync(a.Sync)
+	a.Approvals.RegisterDocumentType(golf.PriceOverrideType, a.Golf.OverrideDecision)
+	a.Approvals.RegisterDocumentType(golf.CancellationWaiverType, a.Golf.WaiverDecision)
 
 	// Workers and schedules.
 	a.Dispatcher = &outbox.Dispatcher{DB: db, Bus: a.Bus}
@@ -185,6 +223,11 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 	a.Registrar.Periodic = append(a.Registrar.Periodic, outbox.PeriodicDispatch())
 	maintenance.Register(a.Registrar, &maintenance.Deps{DB: db, Notify: a.Notification, Approvals: a.Approvals, Cfg: cfg, Location: a.Instance.Location})
 	reservation.RegisterJobs(a.Registrar, db)
+	billing.RegisterJobs(a.Registrar, a.Billing, files, func() billing.StatementDeps {
+		return billing.StatementDeps{Files: files, Notify: a.Notification, PortalURL: cfg.MemberPortalURL}
+	}, a.Instance.Location)
+	a.Membership.RegisterJobs(a.Registrar, a.Instance.Location)
+	a.Golf.RegisterJobs(a.Registrar, a.Instance.Location)
 
 	a.subscribe()
 
@@ -226,6 +269,18 @@ func (a *App) LoadPrincipal(ctx context.Context, userID uuid.UUID) (*authz.Princ
 
 // subscribe registers in-process outbox subscribers.
 func (a *App) subscribe() {
+	// Payment gateway webhooks settle payments (FR-PAY-03); WhatsApp
+	// delivery statuses update the notification history (FR-INT-P1-02).
+	a.Bus.Subscribe("integration.webhook_received", "billing.settle_payment", a.Billing.OnWebhook)
+	a.Bus.Subscribe("integration.webhook_received", "notification.delivery_status", a.Notification.OnDeliveryStatus)
+	// Paid folios confirm golf bookings and activate / renew memberships.
+	a.Bus.Subscribe(billing.EventPaymentSettled, "golf.confirm_booking", a.Golf.OnPaymentSettled)
+	a.Bus.Subscribe(billing.EventPaymentSettled, "membership.activate", a.Membership.OnPaymentSettled)
+	// CRM identity changes follow into golf records.
+	a.Bus.Subscribe(crm.EventGuestUpgraded, "golf.guest_upgraded", a.Golf.OnGuestUpgraded)
+	a.Bus.Subscribe(crm.EventCustomerMerged, "golf.customer_merged", a.Golf.OnCustomerMerged)
+	a.Bus.Subscribe(crm.EventCustomerErased, "golf.customer_erased", a.Golf.OnCustomerErased)
+
 	// Vertical slice (PRD §8): an activated venue is announced through the
 	// messaging integration (mock adapter in sandbox).
 	a.Bus.Subscribe("platform.venue_activated", "integration.announce_venue", func(ctx context.Context, tx pgx.Tx, e outbox.Event) error {

@@ -5,6 +5,7 @@
 //	oneclub migrate up|status|down   database migrations (+ catalogue sync)
 //	oneclub instance create|drop     provision a dedicated customer instance
 //	oneclub seed-demo                demo data for dev/staging
+//	oneclub import rhapsody <step>   Rhapsody migration: stage|validate|load|reconcile (EP-18)
 //	oneclub openapi [-o file]        write the OpenAPI document
 //	oneclub healthcheck              container health check
 //	oneclub version
@@ -27,6 +28,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"oneclub/internal/app"
+	"oneclub/internal/app/rhapsody"
 	"oneclub/internal/kernel/config"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/obs"
@@ -51,6 +53,8 @@ func main() {
 		err = runInstance(args)
 	case "seed-demo":
 		err = runSeedDemo()
+	case "import":
+		err = runImport(args)
 	case "openapi":
 		err = runOpenAPI(args)
 	case "healthcheck":
@@ -68,7 +72,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, `usage: oneclub <api|worker|migrate|instance|seed-demo|openapi|healthcheck|version> [args]`)
+	fmt.Fprintln(os.Stderr, `usage: oneclub <api|worker|migrate|instance|seed-demo|import|openapi|healthcheck|version> [args]`)
 }
 
 func signalContext() (context.Context, context.CancelFunc) {
@@ -101,6 +105,7 @@ func runAPI() error {
 	}
 	srv := &http.Server{Addr: cfg.HTTPAddr, Handler: a.Server.Handler(), ReadHeaderTimeout: 10 * time.Second,
 		ReadTimeout: 60 * time.Second, WriteTimeout: 120 * time.Second, IdleTimeout: 120 * time.Second}
+	srv.RegisterOnShutdown(a.Hub.Stop) // end SSE streams so in-flight requests drain
 	ctx, stop := signalContext()
 	defer stop()
 	errCh := make(chan error, 1)
@@ -351,4 +356,108 @@ func runHealthcheck() error {
 		return fmt.Errorf("not ready: %s", resp.Status)
 	}
 	return nil
+}
+
+// runImport runs one step of the Rhapsody migration (PRD P1 EP-18; runbook
+// docs/migration/cutover-runbook.md). Every step is repeatable.
+func runImport(args []string) error {
+	if len(args) < 2 || args[0] != "rhapsody" {
+		return errors.New("usage: oneclub import rhapsody <stage|validate|load|reconcile> -property CODE [-dir DIR] [-totals FILE] [-out DIR]")
+	}
+	step := args[1]
+	fs := flag.NewFlagSet("import rhapsody", flag.ExitOnError)
+	prop := fs.String("property", "MAIN", "target property code")
+	dir := fs.String("dir", "rhapsody-export", "directory with the Rhapsody CSV files (stage)")
+	totals := fs.String("totals", "", "Rhapsody control totals CSV metric,value (reconcile; default <dir>/control_totals.csv)")
+	out := fs.String("out", ".", "directory for the issue / reconciliation reports")
+	_ = fs.Parse(args[2:])
+	cfg, db, err := load("import")
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	ctx := context.Background()
+	if step == "stage" {
+		counts, err := rhapsody.Stage(ctx, db, *dir)
+		if err != nil {
+			return err
+		}
+		for _, e := range rhapsody.Entities {
+			if n, ok := counts[e.Name]; ok {
+				fmt.Printf("  %-20s %6d rows staged\n", e.Name, n)
+			} else {
+				fmt.Printf("  %-20s   (no file)\n", e.Name)
+			}
+		}
+		return nil
+	}
+	a, err := app.Build(cfg, db, app.Options{})
+	if err != nil {
+		return err
+	}
+	property, err := rhapsody.PropertyByCode(ctx, db, *prop)
+	if err != nil {
+		return err
+	}
+	d := &rhapsody.Deps{DB: db, Engine: a.Engine, Golf: a.Golf, Billing: a.Billing, Location: a.Instance.Location}
+	switch step {
+	case "validate":
+		issues, err := d.Validate(ctx, property)
+		if err != nil {
+			return err
+		}
+		path := *out + "/rhapsody-issues.csv"
+		if err := rhapsody.WriteIssues(path, issues); err != nil {
+			return err
+		}
+		per := map[string]int{}
+		for _, i := range issues {
+			per[i.Entity]++
+		}
+		for _, e := range rhapsody.Entities {
+			fmt.Printf("  %-20s %6d issues\n", e.Name, per[e.Name])
+		}
+		fmt.Printf("%d issues written to %s (rows with issues are skipped by load)\n", len(issues), path)
+		return nil
+	case "load":
+		reps, err := d.Load(ctx, property)
+		for _, r := range reps {
+			fmt.Printf("  %-20s inserted %5d  updated %5d  skipped %5d  failed %5d\n", r.Entity, r.Inserted, r.Updated, r.Skipped, r.Failed)
+			for _, e := range r.Errors {
+				fmt.Println("      ", e)
+			}
+		}
+		return err
+	case "reconcile":
+		path := *totals
+		if path == "" {
+			path = *dir + "/control_totals.csv"
+		}
+		want, err := rhapsody.ReadTotals(path)
+		if err != nil {
+			return err
+		}
+		checks, err := d.Reconcile(ctx, property, want)
+		if err != nil {
+			return err
+		}
+		report := *out + "/rhapsody-reconciliation.csv"
+		if err := rhapsody.WriteChecks(report, checks); err != nil {
+			return err
+		}
+		bad := 0
+		for _, c := range checks {
+			res := "MATCH"
+			if !c.Match {
+				res, bad = "MISMATCH", bad+1
+			}
+			fmt.Printf("  %-32s rhapsody %-16s oneclub %-16s %s\n", c.Metric, c.Rhapsody, c.OneClub, res)
+		}
+		fmt.Println("report:", report)
+		if bad > 0 {
+			return fmt.Errorf("%d reconciliation mismatches", bad)
+		}
+		return nil
+	}
+	return fmt.Errorf("unknown step %q", step)
 }

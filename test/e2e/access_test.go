@@ -143,7 +143,8 @@ func TestRolePermissionMatrix(t *testing.T) {
 				held[p] = true
 			}
 			for _, rt := range routes {
-				if rt.Permission == "" || rt.Auth != route.AuthRequired {
+				// SSE streams never end; their permission is covered by TestRealtimeTeeSheet.
+				if rt.Permission == "" || rt.Auth != route.AuthRequired || rt.RawContent == "text/event-stream" {
 					continue
 				}
 				path := param.ReplaceAllString(rt.Path, uuid.NewString())

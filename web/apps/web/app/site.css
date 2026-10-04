@@ -21,3 +21,19 @@ body { margin: 0; background: var(--md-sys-color-background); color: var(--md-sy
 .w-card h2 { margin: 0 0 8px; font-size: 20px; }
 .w-foot { padding: 32px 0; color: var(--md-sys-color-on-surface-variant); font-size: 13px; }
 @media (max-width: 640px) { .w-hero { padding: 24px; min-height: 320px; } .w-nav { margin-left: 0; } }
+
+/* P1 golf pages */
+.w-cta { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary) !important; border-radius: var(--radius-pill); padding: 6px 16px; font-weight: 600; }
+.w-sub { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.w-sub a { padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--md-sys-color-outline-variant); text-decoration: none; color: inherit; }
+.w-sub a[aria-current='page'] { background: var(--md-sys-color-on-surface); color: var(--md-sys-color-surface); }
+.w-table { width: 100%; border-collapse: collapse; }
+.w-table th, .w-table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--md-sys-color-outline-variant); }
+.w-form { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.w-form label { display: grid; gap: 4px; font-size: 14px; font-weight: 500; }
+.w-form input, .w-form select { height: 44px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--md-sys-color-outline); font: inherit; background: var(--md-sys-color-surface); color: inherit; }
+.w-slots { display: flex; flex-wrap: wrap; gap: 8px; }
+.w-slot { min-width: 96px; height: 56px; border-radius: 14px; border: 1px solid var(--md-sys-color-outline-variant); background: var(--md-sys-color-surface); font: inherit; cursor: pointer; }
+.w-slot[aria-pressed='true'] { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+.w-error { color: var(--md-sys-color-error); }
+.w-muted { opacity: .7; }

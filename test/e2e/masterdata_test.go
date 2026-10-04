@@ -128,7 +128,7 @@ func TestImportThousandCustomers(t *testing.T) {
 	if prev["insertedRows"].(float64) != 990 || prev["failedRows"].(float64) != 10 {
 		t.Fatalf("preview: %v", prev)
 	}
-	if n := len(pa.Must(200, "GET", "/api/v1/crm/customers?limit=5", nil).Items()); n != 0 {
+	if n := len(pa.Must(200, "GET", "/api/v1/crm/customers?limit=5&q=c1%40example.test", nil).Items()); n != 0 {
 		t.Fatalf("preview must not save rows, found %d", n)
 	}
 	res := pa.Must(201, "POST", "/api/v1/platform/imports", map[string]any{"entity": "crm.customer", "mode": "commit", "csv": csv, "filename": "rhapsody-customers.csv"}).JSON()
@@ -148,7 +148,7 @@ func TestImportThousandCustomers(t *testing.T) {
 		t.Fatalf("re-import must be idempotent: %v", again)
 	}
 	var count int
-	sysQueryRow(t, inst, `SELECT count(*) FROM crm.customers WHERE property_id = $1`, []any{inst.Main}, &count)
+	sysQueryRow(t, inst, `SELECT count(*) FROM crm.customers WHERE property_id = $1 AND code LIKE 'C____'`, []any{inst.Main}, &count)
 	if count != 990 {
 		t.Fatalf("expected 990 customers, got %d", count)
 	}
@@ -188,7 +188,9 @@ func TestExport(t *testing.T) {
 // FR-MD-04 / FR-MD-08 / EP-04 AC: a future-dated Tax & Service change does
 // not affect calculations before its effective date.
 func TestTaxServiceEffectiveDate(t *testing.T) {
-	pa := login(t, inst, "property.admin@demo.oneclub.id", demoPassword)
+	// MDR has no golf rate card (MAIN carries the seeded PPN of the demo).
+	pa := login(t, inst, "property.admin2@demo.oneclub.id", demoPassword)
+	pa.Property = inst.MDR
 	past := time.Now().Add(-24 * time.Hour).UTC().Format(time.RFC3339)
 	future := time.Now().Add(30 * 24 * time.Hour).UTC().Format(time.RFC3339)
 	pa.Must(201, "POST", "/api/v1/commercial/tax-service-rules", map[string]any{"code": "SVC", "name": "Service Charge", "kind": "service",

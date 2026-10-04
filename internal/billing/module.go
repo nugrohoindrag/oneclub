@@ -211,12 +211,32 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 // Contribution returns catalogue entries.
 func Contribution() catalog.Contribution {
 	perms := append(resource.Permissions(PaymentMethods), catalog.P("billing", "payment_method_setting", "manage")...)
+	perms = append(perms, catalog.P("billing", "folio", "view", "create", "add_charge", "void", "close", "reopen")...)
+	perms = append(perms, catalog.P("billing", "payment", "view", "create")...)
+	perms = append(perms, catalog.P("billing", "refund", "view", "create")...)
+	perms = append(perms, catalog.P("billing", "customer_account", "view", "manage", "adjust")...)
+	perms = append(perms, catalog.P("billing", "reconciliation", "view", "manage")...)
+	perms = append(perms, catalog.P("billing", "statement", "generate")...)
+	perms = append(perms, catalog.P("billing", "accounting_export", "create")...)
+	finance := []string{"billing.folio.view", "billing.folio.create", "billing.folio.add_charge", "billing.folio.void", "billing.folio.close",
+		"billing.folio.reopen", "billing.payment.view", "billing.payment.create", "billing.refund.view", "billing.refund.create",
+		"billing.customer_account.view", "billing.customer_account.manage", "billing.customer_account.adjust", "billing.reconciliation.view",
+		"billing.reconciliation.manage", "billing.statement.generate", "billing.accounting_export.create"}
+	desk := []string{"billing.folio.view", "billing.folio.create", "billing.folio.add_charge", "billing.folio.close", "billing.payment.view",
+		"billing.payment.create", "billing.refund.view", "billing.customer_account.view", "billing.payment_method.view"}
 	return catalog.Contribution{
 		Permissions: perms,
 		RolePermissions: map[string][]string{
-			"property_admin":  {"billing.payment_method.view", "billing.payment_method.export", "billing.payment_method_setting.manage"},
-			"finance_manager": {"billing.payment_method.view", "billing.payment_method_setting.manage"},
-			"accountant":      {"billing.payment_method.view"},
+			"property_admin":     append([]string{"billing.payment_method.view", "billing.payment_method.export", "billing.payment_method_setting.manage"}, finance...),
+			"finance_manager":    append([]string{"billing.payment_method.view", "billing.payment_method_setting.manage"}, finance...),
+			"accountant":         {"billing.payment_method.view", "billing.folio.view", "billing.payment.view", "billing.refund.view", "billing.customer_account.view", "billing.reconciliation.view", "billing.reconciliation.manage", "billing.accounting_export.create"},
+			"general_manager":    {"billing.folio.view", "billing.payment.view", "billing.refund.view", "billing.customer_account.view", "billing.reconciliation.view"},
+			"front_desk":         desk,
+			"reservation_staff":  desk,
+			"cashier":            desk,
+			"golf_manager":       {"billing.folio.view", "billing.payment.view", "billing.customer_account.view"},
+			"membership_admin":   {"billing.folio.view", "billing.payment.view", "billing.payment.create", "billing.customer_account.view", "billing.customer_account.manage"},
+			"membership_manager": {"billing.folio.view", "billing.payment.view", "billing.customer_account.view", "billing.customer_account.manage", "billing.statement.generate"},
 		},
 	}
 }

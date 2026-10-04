@@ -136,6 +136,10 @@ func (w *statusWriter) Write(b []byte) (int, error) {
 	return w.ResponseWriter.Write(b)
 }
 
+// Unwrap lets http.ResponseController reach the underlying writer (SSE
+// streams clear the write deadline and flush through it).
+func (w *statusWriter) Unwrap() http.ResponseWriter { return w.ResponseWriter }
+
 func (w *statusWriter) Flush() {
 	if f, ok := w.ResponseWriter.(http.Flusher); ok {
 		f.Flush()
@@ -360,6 +364,10 @@ func (s *Server) authorize(ctx context.Context, r *http.Request, rt *route.Route
 
 	scope := dbtx.Scope{UserID: p.UserID}
 	propHeader := r.Header.Get("X-Property-Id")
+	if propHeader == "" && r.Method == http.MethodGet && rt.RawContent == "text/event-stream" {
+		// EventSource cannot send headers: streams name the property in the query
+		propHeader = r.URL.Query().Get("propertyId")
+	}
 	var active uuid.UUID
 	if propHeader != "" {
 		u, err := uuid.Parse(propHeader)

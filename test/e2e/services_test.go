@@ -616,8 +616,12 @@ func TestAuditLogs(t *testing.T) {
 func TestReporting(t *testing.T) {
 	fin := login(t, inst, "finance@demo.oneclub.id", demoPassword)
 	reports := fin.Must(200, "GET", "/api/v1/reporting/reports", nil).Items()
-	if len(reports) != 2 {
-		t.Fatalf("finance should see 2 reports: %v", reports)
+	codes := map[string]bool{}
+	for _, r := range reports {
+		codes[str(r["code"])] = true
+	}
+	if !codes["platform.user_access"] || !codes["platform.venue_directory"] || !codes["billing.golf_revenue"] || codes["membership.active_members"] {
+		t.Fatalf("finance report set wrong: %v", codes)
 	}
 	ua := fin.Must(200, "GET", "/api/v1/reporting/reports/platform.user_access", nil).JSON()
 	if len(ua["rows"].([]any)) == 0 {
