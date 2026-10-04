@@ -9,6 +9,7 @@ package billing
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -265,6 +266,40 @@ func (s *Service) SetAccountStatus(ctx context.Context, tx pgx.Tx, property, cus
 	return audit.Record(ctx, tx, audit.Entry{Module: "billing", Action: audit.ActionStatusChange, EntityType: "billing.customer_account",
 		EntityID: a.ID.String(), EntityLabel: a.Number, PropertyID: &property, Reason: reason,
 		Before: map[string]any{"status": a.Status}, After: map[string]any{"status": status}})
+}
+
+// lineLabels name the business lines on the Member Statement.
+var lineLabels = map[string]string{LineGolf: "Golf", LineSport: "Sport Club", LineStay: "Stay & Venue", LinePOS: "F&B / POS",
+	LineMembership: "Membership", LineVoucher: "Voucher", LineOther: "Other"}
+
+// LineTotal is the charges of one business line in a statement period.
+type LineTotal struct {
+	BusinessLine string          `json:"businessLine"`
+	Label        string          `json:"label"`
+	Charges      decimal.Decimal `json:"charges"`
+}
+
+// chargesByLine totals the charges of statement lines per business line
+// (FR-BIL-P2-02), in the order of BusinessLines; charges without a line
+// count as other.
+func chargesByLine(lines []stmtLine) []LineTotal {
+	sum := map[string]decimal.Decimal{}
+	for _, l := range lines {
+		if amt := dec(l.Amount); amt.IsPositive() {
+			bl := l.Line
+			if !slices.Contains(BusinessLines, bl) {
+				bl = LineOther
+			}
+			sum[bl] = sum[bl].Add(amt)
+		}
+	}
+	out := []LineTotal{}
+	for _, bl := range BusinessLines {
+		if v, ok := sum[bl]; ok {
+			out = append(out, LineTotal{BusinessLine: bl, Label: lineLabels[bl], Charges: v})
+		}
+	}
+	return out
 }
 
 // tagEntries records the business line and source of the member account

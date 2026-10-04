@@ -2,13 +2,23 @@
 
 Untuk: Dian (pemilik P1). Branch `feat/p2-on-p1`, pembanding P1 commit `a48e6a3`.
 
-Dasar aturan: Tech Doc §4.2, §7.5, §12.3 dan PRD P2 §5.4. Isi file P1 tidak diubah. Semua kebutuhan P2 di module P1 ada di file baru (aditif) dan migration `00003` per module. Mohon direview per bagian di bawah.
+Dasar aturan: Tech Doc §4.2, §7.5, §12.3 dan PRD P2 §5.4. Semua kebutuhan P2 di module P1 ada di file baru (aditif) dan migration `00003` per module, dengan **satu pengecualian**: `billing/finance.go` (lihat bagian berikut). Mohon direview per bagian di bawah.
 
-Cek cepat bahwa file P1 tidak berubah (hasilnya harus kosong):
+Cek cepat file P1 yang berubah (hasilnya harus hanya `internal/billing/finance.go`):
 
 ```bash
 git diff --diff-filter=MD --stat a48e6a3 -- internal/golf internal/billing internal/crm internal/membership internal/commercial/*.go
 ```
+
+## Perubahan di file P1: Member Statement per lini (kontrak C2)
+
+PRD P2 EP-03 menetapkan billing diimplementasikan P1 lewat kontrak C1–C3. **FR-BIL-P2-02 (Must)** mewajibkan Member Statement bulanan menampilkan rincian per lini. Statement P1 (`GenerateStatements`) belum punya rincian ini, dan tidak ada titik ekstensi. Karena itu perubahannya dibuat di `finance.go` seminimal mungkin (+8/−3 baris):
+
+- `stmtLine` mendapat field `Line` (JSON `businessLine`).
+- Query entri membaca `coalesce(e.business_line, f.business_line, '')` lewat `LEFT JOIN billing.folios`. Member charge golf P1 terbaca sebagai `golf`, karena default kolom `folios.business_line`.
+- PDF menambah baris "Charges · <lini>" sebelum "Total charges". Pengelompokan dan labelnya ada di file P2 `lines.go` (`chargesByLine`).
+
+Perilaku P1 lain tidak berubah: saldo, total, notifikasi, dan format baris yang sudah ada.
 
 ## Ringkasan risiko untuk kode P1
 

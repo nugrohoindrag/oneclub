@@ -465,6 +465,7 @@ type stmtLine struct {
 	Type        string `json:"type"`
 	Description string `json:"description"`
 	Amount      string `json:"amount"`
+	Line        string `json:"businessLine,omitempty"` // FR-BIL-P2-02
 }
 
 // StatementDeps are what statement generation needs besides the DB.
@@ -515,8 +516,9 @@ func (s *Service) GenerateStatements(ctx context.Context, tx pgx.Tx, deps Statem
 		if err := tx.QueryRow(ctx, `SELECT coalesce(sum(amount), 0)::text FROM billing.account_entries WHERE account_id = $1 AND occurred_at < $2`, a.id, from).Scan(&opening); err != nil {
 			return n, err
 		}
-		er, err := tx.Query(ctx, `SELECT occurred_at, entry_type, description, amount::text FROM billing.account_entries
-			WHERE account_id = $1 AND occurred_at >= $2 AND occurred_at < $3 ORDER BY occurred_at, id`, a.id, from, to)
+		er, err := tx.Query(ctx, `SELECT e.occurred_at, e.entry_type, e.description, e.amount::text, coalesce(e.business_line, f.business_line, '')
+			FROM billing.account_entries e LEFT JOIN billing.folios f ON f.id = e.folio_id
+			WHERE e.account_id = $1 AND e.occurred_at >= $2 AND e.occurred_at < $3 ORDER BY e.occurred_at, e.id`, a.id, from, to)
 		if err != nil {
 			return n, err
 		}
@@ -525,7 +527,7 @@ func (s *Service) GenerateStatements(ctx context.Context, tx pgx.Tx, deps Statem
 		for er.Next() {
 			var at time.Time
 			var l stmtLine
-			if err := er.Scan(&at, &l.Type, &l.Description, &l.Amount); err != nil {
+			if err := er.Scan(&at, &l.Type, &l.Description, &l.Amount, &l.Line); err != nil {
 				er.Close()
 				return n, err
 			}
@@ -563,6 +565,9 @@ func (s *Service) GenerateStatements(ctx context.Context, tx pgx.Tx, deps Statem
 			d.Columns(9, false, []float64{pdf.Margin, pdf.Margin + 80, -0}, []string{l.Date, l.Description, formatAmount(dec(l.Amount), a.cur)})
 		}
 		d.Rule(d.Y + 10)
+		for _, lt := range chargesByLine(lines) {
+			d.Row(9, false, "Charges · "+lt.Label, formatAmount(lt.Charges, a.cur))
+		}
 		d.Row(10, false, "Total charges", formatAmount(charges, a.cur))
 		d.Row(10, false, "Total payments", formatAmount(payments, a.cur))
 		d.Row(12, true, "Closing balance", formatAmount(closing, a.cur))
