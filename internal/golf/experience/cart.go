@@ -1,13 +1,14 @@
-package golf
+package experience
 
-// Golf Cart Full Lifecycle (PRD P2 EP-07), mapped to the P1 readiness states:
+// Golf Cart Full Lifecycle (PRD P2 EP-07) on P1's readiness states (no new
+// state, PRD P2 §6 #11):
 //
 //	Release/Pre-op Inspection (pass) → Ready → Assignment → In Use → Return
-//	→ Post-Operation Inspection → pass: Not Ready / Charging → (pre-op) Ready
-//	                            → fail: Maintenance → Release Inspection → Ready
+//	(P1: Not Ready / Charging) → Post-Operation Inspection → pass: stays
+//	Not Ready / Charging → (pre-op) Ready; fail: Maintenance → Release → Ready
 //
-// "Under Inspection" is the proposed state between return and post-op
-// inspection. Readiness changes only through this file (contract C8).
+// Readiness changes through P1's SetReadiness (contract C8); service hours,
+// battery and GPS are kept in the P2 cart profile.
 
 import (
 	"context"
@@ -19,7 +20,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
-	"oneclub/internal/kernel/clock"
+	"oneclub/internal/golf"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
@@ -27,8 +28,8 @@ import (
 	"oneclub/internal/platform/handle"
 )
 
-// setReadiness changes the readiness of a golf cart and notifies the
-// readiness board (FR-CTL-07).
+// setReadiness changes the readiness through P1 (golf cart board, events
+// and audit stay P1's) and notifies the P2 readiness screen (FR-CTL-07).
 func (m *Module) setReadiness(ctx context.Context, tx pgx.Tx, property, cart uuid.UUID, readiness, reason string) error {
 	var before string
 	if err := tx.QueryRow(ctx, `SELECT readiness FROM golf.golf_carts WHERE id = $1`, cart).Scan(&before); err != nil {
@@ -37,22 +38,10 @@ func (m *Module) setReadiness(ctx context.Context, tx pgx.Tx, property, cart uui
 	if before == readiness {
 		return nil
 	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.golf_carts SET readiness = $2, readiness_reason = $3, readiness_changed_at = now(), updated_by = $4 WHERE id = $1`,
-		cart, readiness, nullStr(reason), actorPtr(ctx)); err != nil {
+	if _, err := m.Golf.SetReadiness(ctx, tx, property, cart, golf.ReadinessRequest{Readiness: readiness, Reason: reason}); err != nil {
 		return err
 	}
-	if _, err := tx.Exec(ctx, `INSERT INTO golf.golf_cart_events (id, property_id, golf_cart_id, from_state, to_state, reason, actor_id) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
-		id.New(), property, cart, before, readiness, nullStr(reason), actorPtr(ctx)); err != nil {
-		return err
-	}
-	if err := realtimeBoards(ctx, tx, property, localDay(clock.Now(), location(ctx, tx, property))); err != nil {
-		return err
-	}
-	if err := m.live(ctx, tx, "golf.cart", property, "readiness", cart.String(), map[string]any{"from": before, "to": readiness}); err != nil {
-		return err
-	}
-	return m.publish(ctx, tx, "golf.golf_cart_readiness_changed", "golf.golf_cart", cart, property, map[string]any{"golfCartId": cart, "from": before,
-		"to": readiness, "reason": reason})
+	return m.live(ctx, tx, "golf.cart", property, "readiness", cart.String(), map[string]any{"from": before, "to": readiness})
 }
 
 type CheckResult struct {
@@ -101,8 +90,8 @@ func (m *Module) Inspect(ctx context.Context, tx pgx.Tx, property, cart uuid.UUI
 		return Inspection{}, err
 	}
 	allowed := map[string][]string{
-		"pre_op":  {"not_ready", "charging", "under_inspection", "ready"},
-		"post_op": {"under_inspection"},
+		"pre_op":  {"not_ready", "charging", "ready"},
+		"post_op": {"not_ready", "charging"},
 		"release": {"maintenance"},
 	}
 	from, ok := allowed[in.Kind]
@@ -112,7 +101,7 @@ func (m *Module) Inspect(ctx context.Context, tx pgx.Tx, property, cart uuid.UUI
 	if !slices.Contains(from, readiness) {
 		return Inspection{}, errs.Conflict("invalid_readiness", "a "+in.Kind+" inspection is not possible while the cart is "+readiness)
 	}
-	if in.Kind == "pre_op" && readiness == "under_inspection" {
+	if in.Kind == "pre_op" && readiness != "ready" {
 		// A returned cart needs its post-operation inspection first.
 		var returned bool
 		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.golf_cart_assignments a WHERE a.golf_cart_id = $1 AND a.returned_at IS NOT NULL
@@ -169,10 +158,7 @@ func (m *Module) Inspect(ctx context.Context, tx pgx.Tx, property, cart uuid.UUI
 	var maint *uuid.UUID
 	switch {
 	case in.Kind == "post_op" && passed:
-		after = "not_ready"
-		if pol.AfterReturn == "charging" && cartType == "electric" {
-			after = "charging"
-		}
+		after = readiness // stays Not Ready / Charging until the pre-op inspection
 	case passed: // pre_op or release
 		after = "ready"
 	case in.Kind == "release":
@@ -211,7 +197,8 @@ func (m *Module) Inspect(ctx context.Context, tx pgx.Tx, property, cart uuid.UUI
 		return Inspection{}, err
 	}
 	if in.BatteryPercent != nil {
-		if _, err := tx.Exec(ctx, `UPDATE golf.golf_carts SET battery_percent = $2 WHERE id = $1`, cart, *in.BatteryPercent); err != nil {
+		if _, err := tx.Exec(ctx, `INSERT INTO golf.cart_profiles (golf_cart_id, property_id, battery_percent) VALUES ($1,$3,$2)
+			ON CONFLICT (golf_cart_id) DO UPDATE SET battery_percent = EXCLUDED.battery_percent`, cart, *in.BatteryPercent, property); err != nil {
 			return Inspection{}, err
 		}
 	}
@@ -224,7 +211,8 @@ func (m *Module) Inspect(ctx context.Context, tx pgx.Tx, property, cart uuid.UUI
 			return Inspection{}, err
 		}
 		if scheduled {
-			if _, err := tx.Exec(ctx, `UPDATE golf.golf_carts SET hours_since_service = 0, service_alerted_at = NULL WHERE id = $1`, cart); err != nil {
+			if _, err := tx.Exec(ctx, `INSERT INTO golf.cart_profiles (golf_cart_id, property_id, last_service_at) VALUES ($1,$2,now())
+				ON CONFLICT (golf_cart_id) DO UPDATE SET last_service_at = now(), service_alerted_at = NULL`, cart, property); err != nil {
 				return Inspection{}, err
 			}
 		}
@@ -365,12 +353,12 @@ func (m *Module) ReadinessBoard(ctx context.Context, q dbtx.Querier, property uu
 	if err != nil {
 		return Board{}, err
 	}
-	carts, err := handle.List[BoardCart](q.Query(ctx, `SELECT g.id, g.code, g.name, g.readiness, g.battery_percent,
-		trim_scale(g.hours_since_service)::text AS hours_since_service,
-		g.hours_since_service >= coalesce(g.service_threshold_hours, nullif($2, '')::numeric, 'Infinity'::numeric) AS service_due,
+	carts, err := handle.List[BoardCart](q.Query(ctx, `SELECT g.id, g.code, g.name, g.readiness, cp.battery_percent,
+		trim_scale(round(`+cartServiceHours+`::numeric, 2))::text AS hours_since_service,
+		`+cartServiceHours+` >= coalesce(cp.service_threshold_hours, nullif($2, '')::numeric, 'Infinity'::numeric) AS service_due,
 		(SELECT coalesce(b.code, 'Flight ' || f.flight_no) FROM golf.golf_cart_assignments a JOIN golf.flights f ON f.id = a.flight_id
 		  LEFT JOIN golf.bookings b ON b.id = f.booking_id WHERE a.golf_cart_id = g.id AND a.status IN ('assigned', 'in_use') LIMIT 1) AS booking_code,
-		g.last_lat, g.last_lng, g.position_at FROM golf.golf_carts g WHERE g.property_id = $1 AND g.status = 'active' AND g.archived_at IS NULL ORDER BY g.code`,
+		cp.last_lat, cp.last_lng, cp.position_at FROM golf.golf_carts g LEFT JOIN golf.cart_profiles cp ON cp.golf_cart_id = g.id WHERE g.property_id = $1 AND g.status = 'active' AND g.archived_at IS NULL ORDER BY g.code`,
 		property, pol.DefaultServiceHours))
 	b := Board{Counts: map[string]int{}, Carts: carts}
 	for _, c := range carts {
@@ -407,9 +395,9 @@ func (MockGPS) Positions(ctx context.Context, q dbtx.Querier, property uuid.UUID
 		Device   *string        `db:"gps_device_id"`
 		Geometry map[string]any `db:"geometry"`
 	}
-	rows, err := handle.List[row](q.Query(ctx, `SELECT a.golf_cart_id, g.gps_device_id, coalesce(ca.geometry, '{}'::jsonb) AS geometry
-		FROM golf.golf_cart_assignments a JOIN golf.golf_carts g ON g.id = a.golf_cart_id JOIN golf.flights f ON f.id = a.flight_id
-		LEFT JOIN golf.hole_progress p ON p.flight_id = f.id AND p.seq = f.current_seq
+	rows, err := handle.List[row](q.Query(ctx, `SELECT a.golf_cart_id, cp.gps_device_id, coalesce(ca.geometry, '{}'::jsonb) AS geometry
+		FROM golf.golf_cart_assignments a LEFT JOIN golf.cart_profiles cp ON cp.golf_cart_id = a.golf_cart_id JOIN golf.flights f ON f.id = a.flight_id
+		LEFT JOIN golf.round_progress rp ON rp.flight_id = f.id LEFT JOIN golf.hole_progress p ON p.flight_id = f.id AND p.seq = rp.current_seq
 		LEFT JOIN golf.course_assets ca ON ca.hole_id = p.hole_id AND ca.asset_type = 'green_center' AND ca.status = 'active'
 		WHERE a.property_id = $1 AND a.status = 'in_use'`, property))
 	if err != nil {
@@ -458,8 +446,11 @@ func (m *Module) IngestPositions(ctx context.Context, tx pgx.Tx, property uuid.U
 		if at.IsZero() {
 			at = time.Now().UTC()
 		}
-		tag, err := tx.Exec(ctx, `UPDATE golf.golf_carts SET last_lat = $3, last_lng = $4, position_at = $5, battery_percent = coalesce($6, battery_percent)
-			WHERE property_id = $1 AND (id = $2 OR ($7 <> '' AND gps_device_id = $7))`, property, p.GolfCartID, p.Lat, p.Lng, at, p.Battery, p.DeviceID)
+		tag, err := tx.Exec(ctx, `INSERT INTO golf.cart_profiles (golf_cart_id, property_id, last_lat, last_lng, position_at, battery_percent)
+			SELECT g.id, g.property_id, $3, $4, $5, $6 FROM golf.golf_carts g LEFT JOIN golf.cart_profiles cp ON cp.golf_cart_id = g.id
+			WHERE g.property_id = $1 AND (g.id = $2 OR ($7 <> '' AND cp.gps_device_id = $7))
+			ON CONFLICT (golf_cart_id) DO UPDATE SET last_lat = EXCLUDED.last_lat, last_lng = EXCLUDED.last_lng, position_at = EXCLUDED.position_at,
+			battery_percent = coalesce(EXCLUDED.battery_percent, golf.cart_profiles.battery_percent)`, property, p.GolfCartID, p.Lat, p.Lng, at, p.Battery, p.DeviceID)
 		if err != nil {
 			return n, err
 		}
@@ -516,4 +507,55 @@ func haversine(lat1, lng1, lat2, lng2 float64) int {
 	dlat, dlng := (lat2-lat1)*rad, (lng2-lng1)*rad
 	a := math.Sin(dlat/2)*math.Sin(dlat/2) + math.Cos(lat1*rad)*math.Cos(lat2*rad)*math.Sin(dlng/2)*math.Sin(dlng/2)
 	return int(math.Round(2 * r * math.Asin(math.Sqrt(a))))
+}
+
+// CartProfile is the P2 service & GPS profile of a P1 golf cart.
+type CartProfile struct {
+	GolfCartID            uuid.UUID  `json:"golfCartId" db:"golf_cart_id"`
+	ServiceThresholdHours *string    `json:"serviceThresholdHours" db:"service_threshold_hours" doc:"Default: Golf Cart Policies"`
+	HoursSinceService     string     `json:"hoursSinceService" db:"hours_since_service"`
+	LastServiceAt         *time.Time `json:"lastServiceAt" db:"last_service_at"`
+	BatteryPercent        *int       `json:"batteryPercent" db:"battery_percent"`
+	GPSDeviceID           *string    `json:"gpsDeviceId" db:"gps_device_id"`
+}
+
+// CartProfileInput sets the service threshold and the GPS device.
+type CartProfileInput struct {
+	ServiceThresholdHours string `json:"serviceThresholdHours,omitempty"`
+	GPSDeviceID           string `json:"gpsDeviceId,omitempty"`
+}
+
+func (m *Module) CartProfile(ctx context.Context, q dbtx.Querier, property, cart uuid.UUID) (CartProfile, error) {
+	rows, err := q.Query(ctx, `SELECT g.id AS golf_cart_id, trim_scale(cp.service_threshold_hours)::text AS service_threshold_hours,
+		trim_scale(round(`+cartServiceHours+`::numeric, 2))::text AS hours_since_service, cp.last_service_at, cp.battery_percent, cp.gps_device_id
+		FROM golf.golf_carts g LEFT JOIN golf.cart_profiles cp ON cp.golf_cart_id = g.id WHERE g.id = $1 AND g.property_id = $2`, cart, property)
+	return handle.One[CartProfile](rows, err, "golf cart")
+}
+
+func (m *Module) SetCartProfile(ctx context.Context, tx pgx.Tx, property, cart uuid.UUID, in CartProfileInput) (CartProfile, error) {
+	before, err := m.CartProfile(ctx, tx, property, cart)
+	if err != nil {
+		return before, err
+	}
+	var threshold *string
+	if in.ServiceThresholdHours != "" {
+		v, err := handle.Decimal("serviceThresholdHours", in.ServiceThresholdHours, decimal.Zero)
+		if err != nil {
+			return before, err
+		}
+		s := v.String()
+		threshold = &s
+	}
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.cart_profiles (golf_cart_id, property_id, service_threshold_hours, gps_device_id, updated_by)
+		VALUES ($1,$2,$3::numeric,$4,$5) ON CONFLICT (golf_cart_id) DO UPDATE SET
+		service_threshold_hours = coalesce(EXCLUDED.service_threshold_hours, golf.cart_profiles.service_threshold_hours),
+		gps_device_id = coalesce(EXCLUDED.gps_device_id, golf.cart_profiles.gps_device_id), updated_by = EXCLUDED.updated_by`,
+		cart, property, threshold, nullStr(in.GPSDeviceID), actorPtr(ctx)); err != nil {
+		return before, err
+	}
+	after, err := m.CartProfile(ctx, tx, property, cart)
+	if err != nil {
+		return after, err
+	}
+	return after, record(ctx, tx, "golf.cart_profile", cart, "golf cart profile", audit.ActionUpdate, property, before, after, "")
 }

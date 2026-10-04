@@ -2,12 +2,13 @@
 -- caddy lifecycle (EP-05), caddy tablet & round tracking (EP-06, EP-09),
 -- golf cart inspections & maintenance (EP-07), digital scorecard & WHS
 -- handicap (EP-08), Hole-in-One (EP-10), Hall of Fame (EP-11), Driving Range
--- (EP-12) and Reciprocal Club (EP-13). Expand-only: P1 rows keep their
--- meaning; rounds, players and assignments are P1's flights, booking
--- players, caddy and golf cart assignments.
+-- (EP-12) and Reciprocal Club (EP-13). Expand-only and P2-owned: P1 tables
+-- are not altered (Tech Doc §12.3, PRD P2 §5.4.1); P2 data about P1 rows
+-- (caddy profile, golf cart service, round progress, pace targets) lives in
+-- P2 tables keyed by the P1 id.
 
 -- +goose Up
--- ── EP-05 caddy levels, attendance, tablet login ──────────────────────────
+-- ── EP-05 caddy levels, profile, shifts, acceptance ───────────────────────
 CREATE TABLE golf.caddy_levels (
   id            uuid PRIMARY KEY,
   property_id   uuid NOT NULL REFERENCES platform.properties (id),
@@ -29,11 +30,21 @@ CREATE TABLE golf.caddy_levels (
 SELECT platform.enable_property_rls('golf.caddy_levels');
 SELECT platform.add_touch_trigger('golf.caddy_levels');
 
-ALTER TABLE golf.caddies
-  ADD COLUMN level_id   uuid REFERENCES golf.caddy_levels (id),
-  ADD COLUMN user_id    uuid REFERENCES platform.users (id),   -- Caddy Tablet login
-  ADD COLUMN joined_on  date;
-CREATE UNIQUE INDEX caddies_user ON golf.caddies (user_id) WHERE user_id IS NOT NULL;
+-- Caddy profile of P2: level, tablet login, joined date.
+CREATE TABLE golf.caddy_profiles (
+  caddy_id     uuid PRIMARY KEY REFERENCES golf.caddies (id),
+  property_id  uuid NOT NULL REFERENCES platform.properties (id),
+  level_id     uuid REFERENCES golf.caddy_levels (id),
+  user_id      uuid REFERENCES platform.users (id),   -- Caddy Tablet login
+  joined_on    date,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  created_by   uuid,
+  updated_at   timestamptz NOT NULL DEFAULT now(),
+  updated_by   uuid
+);
+CREATE UNIQUE INDEX caddy_profiles_user ON golf.caddy_profiles (user_id) WHERE user_id IS NOT NULL;
+SELECT platform.enable_property_rls('golf.caddy_profiles');
+SELECT platform.add_touch_trigger('golf.caddy_profiles');
 
 CREATE TABLE golf.caddy_level_history (
   id                   uuid PRIMARY KEY,
@@ -51,29 +62,48 @@ CREATE TABLE golf.caddy_level_history (
 );
 SELECT platform.enable_property_rls('golf.caddy_level_history');
 
--- Clock-out and shift on P1's daily attendance (FR-CDL-03).
-ALTER TABLE golf.caddy_attendance
-  ADD COLUMN shift        text NOT NULL DEFAULT 'full_day' CHECK (shift IN ('morning', 'afternoon', 'full_day')),
-  ADD COLUMN departed_at  timestamptz;
+-- Clock-in / clock-out and shift next to P1's daily attendance (FR-CDL-03).
+CREATE TABLE golf.caddy_shifts (
+  caddy_id        uuid NOT NULL REFERENCES golf.caddies (id),
+  work_date       date NOT NULL,
+  property_id     uuid NOT NULL REFERENCES platform.properties (id),
+  shift           text NOT NULL DEFAULT 'full_day' CHECK (shift IN ('morning', 'afternoon', 'full_day')),
+  clocked_in_at   timestamptz NOT NULL,
+  clocked_out_at  timestamptz,
+  created_by      uuid,
+  PRIMARY KEY (caddy_id, work_date)
+);
+SELECT platform.enable_property_rls('golf.caddy_shifts');
 
 -- The caddy accepts the assignment on the tablet (FR-TAB-01).
-ALTER TABLE golf.caddy_assignments
-  ADD COLUMN accepted_at  timestamptz,
-  ADD COLUMN device_id    text;
+CREATE TABLE golf.caddy_assignment_acceptances (
+  assignment_id  uuid PRIMARY KEY REFERENCES golf.caddy_assignments (id),
+  property_id    uuid NOT NULL REFERENCES platform.properties (id),
+  accepted_at    timestamptz NOT NULL DEFAULT now(),
+  device_id      text,
+  accepted_by    uuid
+);
+SELECT platform.enable_property_rls('golf.caddy_assignment_acceptances');
 
--- ── EP-07 golf cart inspections, maintenance, service hours, GPS ─────────
-ALTER TABLE golf.golf_carts DROP CONSTRAINT golf_carts_readiness_check;
-ALTER TABLE golf.golf_carts ADD CONSTRAINT golf_carts_readiness_check
-  CHECK (readiness IN ('ready', 'not_ready', 'in_use', 'charging', 'maintenance', 'out_of_service', 'under_inspection'));
-ALTER TABLE golf.golf_carts
-  ADD COLUMN service_threshold_hours  numeric(10,2),
-  ADD COLUMN hours_since_service      numeric(10,2) NOT NULL DEFAULT 0,
-  ADD COLUMN service_alerted_at       timestamptz,
-  ADD COLUMN battery_percent          int CHECK (battery_percent IS NULL OR battery_percent BETWEEN 0 AND 100),
-  ADD COLUMN last_lat                 double precision,
-  ADD COLUMN last_lng                 double precision,
-  ADD COLUMN position_at              timestamptz,
-  ADD COLUMN gps_device_id            text;
+-- ── EP-07 golf cart service, inspections, maintenance, GPS ───────────────
+-- Service hours, battery and GPS of a P1 golf cart (FR-CTL-04, FR-PLX-05).
+CREATE TABLE golf.cart_profiles (
+  golf_cart_id             uuid PRIMARY KEY REFERENCES golf.golf_carts (id),
+  property_id              uuid NOT NULL REFERENCES platform.properties (id),
+  service_threshold_hours  numeric(10,2),
+  last_service_at          timestamptz,             -- hours since service = P1 usage after this
+  service_alerted_at       timestamptz,
+  battery_percent          int CHECK (battery_percent IS NULL OR battery_percent BETWEEN 0 AND 100),
+  last_lat                 double precision,
+  last_lng                 double precision,
+  position_at              timestamptz,
+  gps_device_id            text,
+  created_at               timestamptz NOT NULL DEFAULT now(),
+  updated_at               timestamptz NOT NULL DEFAULT now(),
+  updated_by               uuid
+);
+SELECT platform.enable_property_rls('golf.cart_profiles');
+SELECT platform.add_touch_trigger('golf.cart_profiles');
 
 CREATE TABLE golf.cart_checklists (
   id               uuid PRIMARY KEY,
@@ -132,15 +162,40 @@ CREATE TABLE golf.cart_maintenance (
 );
 SELECT platform.enable_property_rls('golf.cart_maintenance');
 
--- ── EP-09 pace of play: hole targets and progress ─────────────────────────
-ALTER TABLE golf.holes ADD COLUMN target_minutes int NOT NULL DEFAULT 15 CHECK (target_minutes BETWEEN 5 AND 40);
-ALTER TABLE golf.playing_routes ADD COLUMN tolerance_minutes int NOT NULL DEFAULT 10 CHECK (tolerance_minutes >= 0);
-ALTER TABLE golf.flights
-  ADD COLUMN current_seq     int NOT NULL DEFAULT 0,
-  ADD COLUMN last_hole_at    timestamptz,
-  ADD COLUMN pace_status     text NOT NULL DEFAULT 'on_pace' CHECK (pace_status IN ('on_pace', 'slow', 'fast')),
-  ADD COLUMN behind_minutes  int NOT NULL DEFAULT 0,
-  ADD COLUMN tablet_device   text;
+-- ── EP-09 pace of play: targets, round and hole progress ──────────────────
+-- Pace targets per hole and tolerance per playing route (defaults 15 / 10).
+CREATE TABLE golf.hole_pace_targets (
+  hole_id         uuid PRIMARY KEY REFERENCES golf.holes (id),
+  property_id     uuid NOT NULL REFERENCES platform.properties (id),
+  target_minutes  int NOT NULL CHECK (target_minutes BETWEEN 5 AND 40),
+  updated_at      timestamptz NOT NULL DEFAULT now(),
+  updated_by      uuid
+);
+SELECT platform.enable_property_rls('golf.hole_pace_targets');
+
+CREATE TABLE golf.route_pace_tolerances (
+  playing_route_id   uuid PRIMARY KEY REFERENCES golf.playing_routes (id),
+  property_id        uuid NOT NULL REFERENCES platform.properties (id),
+  tolerance_minutes  int NOT NULL CHECK (tolerance_minutes >= 0),
+  updated_at         timestamptz NOT NULL DEFAULT now(),
+  updated_by         uuid
+);
+SELECT platform.enable_property_rls('golf.route_pace_tolerances');
+
+-- Round progress of a P1 flight (current hole, pace, tablet).
+CREATE TABLE golf.round_progress (
+  flight_id       uuid PRIMARY KEY REFERENCES golf.flights (id),
+  property_id     uuid NOT NULL REFERENCES platform.properties (id),
+  current_seq     int NOT NULL DEFAULT 0,
+  last_hole_at    timestamptz,
+  pace_status     text NOT NULL DEFAULT 'on_pace' CHECK (pace_status IN ('on_pace', 'slow', 'fast')),
+  behind_minutes  int NOT NULL DEFAULT 0,
+  tablet_device   text,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  updated_at      timestamptz NOT NULL DEFAULT now()
+);
+SELECT platform.enable_property_rls('golf.round_progress');
+SELECT platform.add_touch_trigger('golf.round_progress');
 
 CREATE TABLE golf.hole_progress (
   id           uuid PRIMARY KEY,
@@ -209,6 +264,17 @@ CREATE TABLE golf.caddy_favorites (
 );
 SELECT platform.enable_property_rls('golf.caddy_favorites');
 
+-- Caddy fee share of an assignment when a caddy was replaced (Caddy
+-- Policies split; P1 holds the full fee on each assignment).
+CREATE TABLE golf.caddy_fee_shares (
+  assignment_id  uuid PRIMARY KEY REFERENCES golf.caddy_assignments (id),
+  property_id    uuid NOT NULL REFERENCES platform.properties (id),
+  holes          int NOT NULL,
+  share_amount   numeric(19,4) NOT NULL,
+  created_at     timestamptz NOT NULL DEFAULT now()
+);
+SELECT platform.enable_property_rls('golf.caddy_fee_shares');
+
 CREATE TABLE golf.caddy_settlements (
   id                   uuid PRIMARY KEY,
   property_id          uuid NOT NULL REFERENCES platform.properties (id),
@@ -233,9 +299,17 @@ CREATE TABLE golf.caddy_settlements (
 CREATE UNIQUE INDEX caddy_settlements_period ON golf.caddy_settlements (caddy_id, period_start, period_end) WHERE status <> 'rejected';
 SELECT platform.enable_property_rls('golf.caddy_settlements');
 SELECT platform.add_touch_trigger('golf.caddy_settlements');
--- tips and caddy fee lines settled once
-ALTER TABLE golf.caddy_tips ADD COLUMN settlement_id uuid REFERENCES golf.caddy_settlements (id);
-ALTER TABLE golf.caddy_assignments ADD COLUMN settlement_id uuid REFERENCES golf.caddy_settlements (id);
+
+-- Caddy fees (P1 assignments) and non-cash tips (P1 caddy tips) settled once.
+CREATE TABLE golf.caddy_settlement_items (
+  item_type      text NOT NULL CHECK (item_type IN ('caddy_fee', 'caddy_tip')),
+  item_id        uuid NOT NULL,
+  settlement_id  uuid NOT NULL REFERENCES golf.caddy_settlements (id),
+  property_id    uuid NOT NULL REFERENCES platform.properties (id),
+  amount         numeric(19,4) NOT NULL,
+  PRIMARY KEY (item_type, item_id)
+);
+SELECT platform.enable_property_rls('golf.caddy_settlement_items');
 
 -- ── EP-08 digital scorecard & handicap ────────────────────────────────────
 CREATE TABLE golf.scorecards (
@@ -308,11 +382,21 @@ CREATE TABLE golf.score_audit (
 CREATE INDEX score_audit_card ON golf.score_audit (scorecard_id, created_at);
 SELECT platform.enable_property_rls('golf.score_audit');
 
--- P1 handicap history: the WHS index computed from finalised cards and the
--- official (federation) index join manual / imported entries.
-ALTER TABLE golf.handicaps DROP CONSTRAINT handicaps_source_check;
-ALTER TABLE golf.handicaps ADD CONSTRAINT handicaps_source_check CHECK (source IN ('manual', 'import', 'whs', 'federation'));
-ALTER TABLE golf.handicaps ADD COLUMN rounds_counted int;
+-- WHS Handicap Index computed from finalised cards and the official
+-- (federation) index; P1's handicap history (golf.handicaps) is unchanged.
+CREATE TABLE golf.handicap_indexes (
+  id              uuid PRIMARY KEY,
+  property_id     uuid NOT NULL REFERENCES platform.properties (id),
+  customer_id     uuid NOT NULL REFERENCES crm.customers (id),
+  kind            text NOT NULL CHECK (kind IN ('whs', 'federation')),
+  handicap_index  numeric(4,1) NOT NULL CHECK (handicap_index BETWEEN -10 AND 54),
+  rounds_counted  int,
+  source          text,
+  effective_at    timestamptz NOT NULL DEFAULT now(),
+  created_by      uuid
+);
+CREATE INDEX handicap_indexes_customer ON golf.handicap_indexes (customer_id, kind, effective_at DESC);
+SELECT platform.enable_property_rls('golf.handicap_indexes');
 
 -- ── EP-10 Hole-in-One, EP-11 Hall of Fame ─────────────────────────────────
 CREATE TABLE golf.hio_records (
@@ -448,7 +532,7 @@ CREATE TABLE golf.range_buckets (
 CREATE UNIQUE INDEX range_buckets_idem ON golf.range_buckets (property_id, idempotency_key) WHERE idempotency_key IS NOT NULL;
 SELECT platform.enable_property_rls('golf.range_buckets');
 
--- ── EP-13 Reciprocal Club (on P1's reciprocal player fields) ──────────────
+-- ── EP-13 Reciprocal Club (next to P1's reciprocal player fields) ─────────
 CREATE TABLE golf.reciprocal_clubs (
   id               uuid PRIMARY KEY,
   property_id      uuid NOT NULL REFERENCES platform.properties (id),
@@ -481,6 +565,7 @@ CREATE TABLE golf.introduction_letters (
   number               text NOT NULL,
   club_id              uuid NOT NULL REFERENCES golf.reciprocal_clubs (id),
   customer_id          uuid NOT NULL REFERENCES crm.customers (id),
+  customer_name        text NOT NULL,
   play_from            date NOT NULL,
   play_to              date NOT NULL,
   players              int NOT NULL DEFAULT 1,
@@ -519,34 +604,15 @@ CREATE TABLE golf.reciprocal_visits (
   updated_at         timestamptz NOT NULL DEFAULT now(),
   UNIQUE (property_id, number)
 );
+CREATE UNIQUE INDEX reciprocal_visits_player ON golf.reciprocal_visits (booking_player_id) WHERE booking_player_id IS NOT NULL;
 SELECT platform.enable_property_rls('golf.reciprocal_visits');
 SELECT platform.add_touch_trigger('golf.reciprocal_visits');
-ALTER TABLE golf.booking_players ADD COLUMN reciprocal_visit_id uuid REFERENCES golf.reciprocal_visits (id);
 
 SELECT platform.grant_app('golf');
 
 -- +goose Down
-ALTER TABLE golf.booking_players DROP COLUMN reciprocal_visit_id;
 DROP TABLE golf.reciprocal_visits, golf.introduction_letters, golf.reciprocal_clubs, golf.range_buckets, golf.range_sessions, golf.range_bays,
-  golf.hall_of_fame, golf.hio_records, golf.score_audit, golf.scorecard_holes, golf.scorecards;
-ALTER TABLE golf.handicaps DROP COLUMN rounds_counted;
-ALTER TABLE golf.handicaps DROP CONSTRAINT handicaps_source_check;
-ALTER TABLE golf.handicaps ADD CONSTRAINT handicaps_source_check CHECK (source IN ('manual', 'import'));
-ALTER TABLE golf.caddy_assignments DROP COLUMN settlement_id;
-ALTER TABLE golf.caddy_tips DROP COLUMN settlement_id;
-DROP TABLE golf.caddy_settlements, golf.caddy_favorites, golf.caddy_ratings, golf.incidents, golf.hole_progress;
-ALTER TABLE golf.flights DROP COLUMN tablet_device, DROP COLUMN behind_minutes, DROP COLUMN pace_status, DROP COLUMN last_hole_at, DROP COLUMN current_seq;
-ALTER TABLE golf.playing_routes DROP COLUMN tolerance_minutes;
-ALTER TABLE golf.holes DROP COLUMN target_minutes;
-DROP TABLE golf.cart_maintenance, golf.cart_inspections, golf.cart_checklists;
-ALTER TABLE golf.golf_carts DROP COLUMN gps_device_id, DROP COLUMN position_at, DROP COLUMN last_lng, DROP COLUMN last_lat, DROP COLUMN battery_percent,
-  DROP COLUMN service_alerted_at, DROP COLUMN hours_since_service, DROP COLUMN service_threshold_hours;
-ALTER TABLE golf.golf_carts DROP CONSTRAINT golf_carts_readiness_check;
-ALTER TABLE golf.golf_carts ADD CONSTRAINT golf_carts_readiness_check
-  CHECK (readiness IN ('ready', 'not_ready', 'in_use', 'charging', 'maintenance', 'out_of_service'));
-ALTER TABLE golf.caddy_assignments DROP COLUMN device_id, DROP COLUMN accepted_at;
-ALTER TABLE golf.caddy_attendance DROP COLUMN departed_at, DROP COLUMN shift;
-DROP TABLE golf.caddy_level_history;
-DROP INDEX golf.caddies_user;
-ALTER TABLE golf.caddies DROP COLUMN joined_on, DROP COLUMN user_id, DROP COLUMN level_id;
-DROP TABLE golf.caddy_levels;
+  golf.hall_of_fame, golf.hio_records, golf.handicap_indexes, golf.score_audit, golf.scorecard_holes, golf.scorecards, golf.caddy_settlement_items,
+  golf.caddy_settlements, golf.caddy_fee_shares, golf.caddy_favorites, golf.caddy_ratings, golf.incidents, golf.hole_progress, golf.round_progress,
+  golf.route_pace_tolerances, golf.hole_pace_targets, golf.cart_maintenance, golf.cart_inspections, golf.cart_checklists, golf.cart_profiles,
+  golf.caddy_assignment_acceptances, golf.caddy_shifts, golf.caddy_level_history, golf.caddy_profiles, golf.caddy_levels;

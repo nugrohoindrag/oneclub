@@ -1,4 +1,4 @@
-package golf
+package experience
 
 // Reciprocal Club (PRD P2 EP-13): inbound member verification (replacing the
 // P1 free-text input), introduction letters for members visiting partner
@@ -22,6 +22,7 @@ import (
 	"oneclub/internal/platform/audit"
 	"oneclub/internal/platform/handle"
 	"oneclub/internal/platform/notify"
+	"oneclub/internal/platform/org"
 )
 
 type club struct {
@@ -227,9 +228,9 @@ type Letter struct {
 	CreatedAt    time.Time  `json:"createdAt" db:"created_at"`
 }
 
-const letterSelect = `SELECT l.id, l.number, l.club_id, c.name AS club_name, l.customer_id, cu.name AS customer_name, l.play_from, l.play_to, l.players,
+const letterSelect = `SELECT l.id, l.number, l.club_id, c.name AS club_name, l.customer_id, l.customer_name, l.play_from, l.play_to, l.players,
 	l.notes, l.status, l.approval_request_id, CASE WHEN l.file_id IS NOT NULL THEN '/api/v1/files/' || l.file_id END AS file_url, l.issued_at, l.created_at
-	FROM golf.introduction_letters l JOIN golf.reciprocal_clubs c ON c.id = l.club_id JOIN crm.customers cu ON cu.id = l.customer_id`
+	FROM golf.introduction_letters l JOIN golf.reciprocal_clubs c ON c.id = l.club_id`
 
 func (m *Module) letter(ctx context.Context, q dbtx.Querier, lid uuid.UUID) (Letter, error) {
 	rows, err := q.Query(ctx, letterSelect+` WHERE l.id = $1`, lid)
@@ -261,6 +262,10 @@ func (m *Module) RequestLetter(ctx context.Context, tx pgx.Tx, property uuid.UUI
 	if !ok {
 		return Letter{}, errs.Conflict("not_a_member", "introduction letters are for active golf members")
 	}
+	cust, err := crm.GetCustomer(ctx, tx, in.CustomerID)
+	if err != nil {
+		return Letter{}, err
+	}
 	if in.Players <= 0 {
 		in.Players = 1
 	}
@@ -269,8 +274,8 @@ func (m *Module) RequestLetter(ctx context.Context, tx pgx.Tx, property uuid.UUI
 		return Letter{}, err
 	}
 	lid := id.New()
-	if _, err := tx.Exec(ctx, `INSERT INTO golf.introduction_letters (id, property_id, number, club_id, customer_id, play_from, play_to, players, notes, created_by)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, lid, property, no, c.ID, in.CustomerID, from, to, in.Players, nullStr(in.Notes), actorPtr(ctx)); err != nil {
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.introduction_letters (id, property_id, number, club_id, customer_id, customer_name, play_from, play_to, players, notes, created_by)
+		VALUES ($1,$2,$3,$4,$5,$11,$6,$7,$8,$9,$10)`, lid, property, no, c.ID, in.CustomerID, from, to, in.Players, nullStr(in.Notes), actorPtr(ctx), cust.Name); err != nil {
 		return Letter{}, err
 	}
 	rid, _, err := m.Approvals.Submit(ctx, tx, approval.SubmitRequest{DocumentType: IntroductionLetterType.Code, DocumentID: lid, DocumentRef: no,
@@ -309,7 +314,7 @@ func (m *Module) IssueLetter(ctx context.Context, tx pgx.Tx, property, lid uuid.
 		return l, errs.Conflict("not_approved", "only approved letters can be issued")
 	}
 	var propName string
-	_ = tx.QueryRow(ctx, `SELECT name FROM platform.properties WHERE id = $1`, property).Scan(&propName)
+	propName, _ = org.PropertyName(ctx, tx, property)
 	var fileID *uuid.UUID
 	if m.Files != nil && m.Files.Blob != nil {
 		doc := newTextDoc()
@@ -353,14 +358,15 @@ func (m *Module) IssueLetter(ctx context.Context, tx pgx.Tx, property, lid uuid.
 	if m.Notify != nil {
 		msg := notify.Message{Event: "golf.introduction_letter_issued", Category: "membership", PropertyID: &property,
 			Data: map[string]any{"name": l.CustomerName, "club": l.ClubName, "from": l.PlayFrom.Format("2006-01-02"), "to": l.PlayTo.Format("2006-01-02")}}
-		var user *uuid.UUID
-		var email *string
-		_ = tx.QueryRow(ctx, `SELECT user_id, email FROM crm.customers WHERE id = $1`, l.CustomerID).Scan(&user, &email)
+		c, err := crm.GetCustomer(ctx, tx, l.CustomerID)
+		if err != nil {
+			return l, err
+		}
 		switch {
-		case user != nil:
-			msg.UserIDs = []uuid.UUID{*user}
-		case email != nil:
-			msg.Email, msg.Channels = *email, []string{notify.ChannelEmail}
+		case c.UserID != nil:
+			msg.UserIDs = []uuid.UUID{*c.UserID}
+		case c.Email != "":
+			msg.Email, msg.Channels = c.Email, []string{notify.ChannelEmail}
 		}
 		if len(msg.UserIDs) > 0 || msg.Email != "" {
 			if err := m.Notify.Send(ctx, tx, msg); err != nil {

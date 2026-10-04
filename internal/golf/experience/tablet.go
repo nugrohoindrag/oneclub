@@ -1,4 +1,4 @@
-package golf
+package experience
 
 // Pace of Play (PRD P2 FR-PLX-04) and the Caddy Tablet API (EP-06):
 // assignments, round information with customer context, round progress and
@@ -16,6 +16,7 @@ import (
 
 	"oneclub/internal/commercial"
 	"oneclub/internal/crm"
+	"oneclub/internal/golf"
 	"oneclub/internal/kernel/authz"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
@@ -89,9 +90,13 @@ func (m *Module) Pace(ctx context.Context, q dbtx.Querier, property uuid.UUID) (
 		}
 		rows.Close()
 		starts[fid] = st
+		targets, err := holeTargets(ctx, q, holes)
+		if err != nil {
+			return nil, err
+		}
 		target := 0
 		for i := 0; i < r.CurrentSeq && i < len(holes); i++ {
-			target += holes[i].TargetMinutes
+			target += targets[holes[i].HoleID]
 		}
 		elapsed := int(now.Sub(*r.TeeOffAt).Minutes())
 		p := PaceFlight{FlightID: fid, Label: r.Label(), RouteName: r.RouteName, TeeTime: r.TeeTime, TeeOffAt: *r.TeeOffAt, CurrentSeq: r.CurrentSeq,
@@ -180,7 +185,8 @@ type caddyRow struct {
 
 // myCaddy resolves the caddy of the signed-in tablet user.
 func (m *Module) myCaddy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (caddyRow, error) {
-	rows, err := q.Query(ctx, `SELECT id, property_id, code, name FROM golf.caddies WHERE property_id = $1 AND user_id = $2 AND archived_at IS NULL`,
+	rows, err := q.Query(ctx, `SELECT c.id, c.property_id, c.code, c.name FROM golf.caddies c JOIN golf.caddy_profiles p ON p.caddy_id = c.id
+		WHERE c.property_id = $1 AND p.user_id = $2 AND c.archived_at IS NULL`,
 		property, handle.UserID(ctx))
 	return handle.One[caddyRow](rows, err, "caddy profile of this user")
 }
@@ -203,7 +209,7 @@ func (m *Module) MyAssignments(ctx context.Context, q dbtx.Querier, property uui
 	}
 	out := MyAssignments{CaddyID: c.ID, Code: c.Code, Name: c.Name, DutyStatus: "off_duty", Next: []CaddyAssignment{}}
 	loc := location(ctx, q, property)
-	list, err := ListCaddyAssignments(ctx, q, loc, "a.caddy_id = $1 AND a.status IN ('assigned', 'in_play')", c.ID)
+	list, err := golf.ListCaddyAssignments(ctx, q, loc, "a.caddy_id = $1 AND a.status IN ('assigned', 'in_play')", c.ID)
 	if err != nil {
 		return out, err
 	}
@@ -248,7 +254,7 @@ func (m *Module) canSeeFlight(ctx context.Context, q dbtx.Querier, r Round) erro
 		return nil
 	}
 	var ok bool
-	if err := q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.caddy_assignments a JOIN golf.caddies c ON c.id = a.caddy_id
+	if err := q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.caddy_assignments a JOIN golf.caddy_profiles c ON c.caddy_id = a.caddy_id
 		WHERE a.flight_id = $1 AND c.user_id = $2 AND a.status <> 'cancelled')`, r.FlightID, handle.UserID(ctx)).Scan(&ok); err != nil {
 		return err
 	}
@@ -414,7 +420,7 @@ func (m *Module) CourseOrder(ctx context.Context, tx pgx.Tx, in CourseOrderInput
 func (m *Module) RecordPreference(ctx context.Context, tx pgx.Tx, property, customer uuid.UUID, in crm.PreferenceInput) (crm.Preference, error) {
 	if !can(ctx, "crm.preference.manage", property) {
 		var ok bool
-		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.caddy_assignments a JOIN golf.caddies c ON c.id = a.caddy_id
+		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.caddy_assignments a JOIN golf.caddy_profiles c ON c.caddy_id = a.caddy_id
 			JOIN golf.booking_players p ON p.id = ANY(a.player_ids) WHERE c.user_id = $1 AND p.customer_id = $2 AND a.status IN ('assigned', 'in_play', 'completed')
 			AND a.assigned_at > now() - interval '1 day')`, handle.UserID(ctx), customer).Scan(&ok); err != nil {
 			return crm.Preference{}, err
@@ -481,7 +487,7 @@ func (m *Module) Earnings(ctx context.Context, q dbtx.Querier, property, caddy u
 		ORDER BY a.work_date DESC`, caddy, df, dt)); err != nil {
 		return e, err
 	}
-	e.Assignments, err = ListCaddyAssignments(ctx, q, loc, "a.caddy_id = $1 AND a.play_date >= $2::date AND a.play_date < $3::date", caddy, df, dt)
+	e.Assignments, err = golf.ListCaddyAssignments(ctx, q, loc, "a.caddy_id = $1 AND a.play_date >= $2::date AND a.play_date < $3::date", caddy, df, dt)
 	return e, err
 }
 

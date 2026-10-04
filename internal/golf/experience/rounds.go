@@ -1,9 +1,9 @@
-package golf
+package experience
 
 // Round tracking of PRD P2 (EP-06 Caddy Tablet, EP-09 Pace of Play) on P1's
-// flights: the round view, tee-off through the starter, hole progress and
-// pace, round finish (caddy fee split on replacement, golf cart hours and
-// service alert, post-round feedback) and mid-round golf cart replacement.
+// flights. Tee-off and Round Finish stay P1's starter actions; P2 reacts to
+// P1's golf.flight_teed_off / golf.round_finished events (contract C7) and
+// keeps its round data (progress, pace, fee shares) in P2 tables.
 
 import (
 	"context"
@@ -15,12 +15,19 @@ import (
 	"github.com/shopspring/decimal"
 
 	"oneclub/internal/crm"
-	"oneclub/internal/kernel/clock"
+	"oneclub/internal/golf"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
+	"oneclub/internal/kernel/reqctx"
 	"oneclub/internal/platform/handle"
 	"oneclub/internal/platform/notify"
+	"oneclub/internal/platform/outbox"
+)
+
+const (
+	defaultHoleTarget = 15 // minutes per hole without a pace target
+	defaultTolerance  = 10 // minutes behind before a flight is slow
 )
 
 // RoundPlayer is a booking player of the round.
@@ -35,7 +42,7 @@ type RoundPlayer struct {
 }
 
 // Round is a P1 flight seen as a round: players, caddies, golf carts and
-// the hole progress.
+// the P2 hole progress.
 type Round struct {
 	FlightID      uuid.UUID         `json:"flightId" db:"id"`
 	PropertyID    uuid.UUID         `json:"propertyId" db:"property_id"`
@@ -70,12 +77,17 @@ func (r Round) Label() string {
 	return "Flight " + strconv.Itoa(r.FlightNo)
 }
 
+// roundSelect reads the P1 flight with the P2 round progress. The playing
+// route is the booking's, else the tee time's, else the course default.
 const roundSelect = `SELECT f.id, f.property_id, f.flight_no, f.booking_id, b.code AS booking_code, b.folio_id, f.course_id, r.id AS route_id,
-	r.name AS route_name, coalesce(r.tolerance_minutes, 10) AS tolerance_minutes, f.play_date, tt.start_at AS tee_time, f.status, f.current_seq,
-	coalesce(r.hole_count, 0) AS holes, f.tee_off_at, f.round_finish_at, f.pace_status, f.behind_minutes, f.tablet_device
+	r.name AS route_name, coalesce(pt.tolerance_minutes, 10) AS tolerance_minutes, f.play_date, tt.start_at AS tee_time, f.status,
+	coalesce(rp.current_seq, 0) AS current_seq, coalesce(r.hole_count, 0) AS holes, f.tee_off_at, f.round_finish_at,
+	coalesce(rp.pace_status, 'on_pace') AS pace_status, coalesce(rp.behind_minutes, 0) AS behind_minutes, rp.tablet_device
 	FROM golf.flights f JOIN golf.tee_times tt ON tt.id = f.tee_time_id LEFT JOIN golf.bookings b ON b.id = f.booking_id
 	LEFT JOIN golf.playing_routes r ON r.id = coalesce(b.playing_route_id, tt.playing_route_id,
-	  (SELECT d.id FROM golf.playing_routes d WHERE d.course_id = f.course_id AND d.is_default AND d.status = 'active' AND d.archived_at IS NULL LIMIT 1))`
+	  (SELECT d.id FROM golf.playing_routes d WHERE d.course_id = f.course_id AND d.is_default AND d.status = 'active' AND d.archived_at IS NULL LIMIT 1))
+	LEFT JOIN golf.route_pace_tolerances pt ON pt.playing_route_id = r.id
+	LEFT JOIN golf.round_progress rp ON rp.flight_id = f.id`
 
 // GetRound loads the round of a flight.
 func (m *Module) GetRound(ctx context.Context, q dbtx.Querier, fid uuid.UUID) (Round, error) {
@@ -89,11 +101,10 @@ func (m *Module) GetRound(ctx context.Context, q dbtx.Querier, fid uuid.UUID) (R
 		LEFT JOIN golf.scorecards s ON s.booking_player_id = p.id WHERE p.flight_id = $1 AND p.status NOT IN ('cancelled', 'removed') ORDER BY p.seq`, fid)); err != nil {
 		return r, err
 	}
-	loc := location(ctx, q, r.PropertyID)
-	if r.Caddies, err = ListCaddyAssignments(ctx, q, loc, "a.flight_id = $1", fid); err != nil {
+	if r.Caddies, err = golf.ListCaddyAssignments(ctx, q, location(ctx, q, r.PropertyID), "a.flight_id = $1", fid); err != nil {
 		return r, err
 	}
-	r.GolfCarts, err = ListCartAssignments(ctx, q, "a.flight_id = $1", fid)
+	r.GolfCarts, err = golf.ListCartAssignments(ctx, q, "a.flight_id = $1", fid)
 	return r, err
 }
 
@@ -108,15 +119,39 @@ func (m *Module) roundHoles(ctx context.Context, q dbtx.Querier, r Round) ([]Rou
 	if r.RouteID == nil {
 		return []RouteHole{}, nil
 	}
-	rh, err := LoadRouteHoles(ctx, q, *r.RouteID)
+	rh, err := golf.LoadRouteHoles(ctx, q, *r.RouteID)
 	return rh.Holes, err
+}
+
+// holeTargets returns the pace target per hole (P2 hole_pace_targets).
+func holeTargets(ctx context.Context, q dbtx.Querier, holes []RouteHole) (map[uuid.UUID]int, error) {
+	out := map[uuid.UUID]int{}
+	ids := make([]uuid.UUID, 0, len(holes))
+	for _, h := range holes {
+		out[h.HoleID] = defaultHoleTarget
+		ids = append(ids, h.HoleID)
+	}
+	rows, err := q.Query(ctx, `SELECT hole_id, target_minutes FROM golf.hole_pace_targets WHERE hole_id = ANY($1)`, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var h uuid.UUID
+		var t int
+		if err := rows.Scan(&h, &t); err != nil {
+			return nil, err
+		}
+		out[h] = t
+	}
+	return out, rows.Err()
 }
 
 // RoundEvent is a tablet round event (the device time comes with offline sync).
 type RoundEvent struct {
 	At          *time.Time `json:"at,omitempty" doc:"Device time of the event (offline queue); default now"`
 	DeviceID    string     `json:"deviceId,omitempty"`
-	HolesPlayed *int       `json:"holesPlayed,omitempty" doc:"Finish: holes actually played (default the last hole reached)"`
+	HolesPlayed *int       `json:"holesPlayed,omitempty" doc:"Complete: holes actually played (default the last hole reached)"`
 }
 
 // StartRound tees the flight off through P1's starter (FR-PLX-01); replays
@@ -130,23 +165,47 @@ func (m *Module) StartRound(ctx context.Context, tx pgx.Tx, fid uuid.UUID, in Ro
 		if r.Status == "completed" || r.Status == "cancelled" {
 			return r, errs.Conflict("round_closed", "the flight is "+r.Status)
 		}
-		if _, err := m.Control(ctx, tx, r.PropertyID, fid, "tee-off", StarterAction{}); err != nil {
+		if _, err := m.Golf.Control(ctx, tx, r.PropertyID, fid, "tee-off", golf.StarterAction{}); err != nil {
 			return r, err
 		}
 	}
-	if in.DeviceID != "" {
-		if _, err := tx.Exec(ctx, `UPDATE golf.flights SET tablet_device = $2 WHERE id = $1`, fid, in.DeviceID); err != nil {
-			return r, err
-		}
+	if err := m.roundStarted(ctx, tx, r.PropertyID, fid, eventTime(in.At), in.DeviceID); err != nil {
+		return r, err
 	}
 	return m.GetRound(ctx, tx, fid)
 }
 
-// roundStarted runs with P1's tee-off: the first hole starts and every
-// checked-in player gets a digital scorecard.
-func (m *Module) roundStarted(ctx context.Context, tx pgx.Tx, property, fid uuid.UUID, at time.Time) error {
+// OnFlightTeedOff starts the P2 round of a flight teed off by the starter.
+func (m *Module) OnFlightTeedOff(ctx context.Context, tx pgx.Tx, e outbox.Event) error {
+	fid, ok := flightOf(e)
+	if !ok || e.PropertyID == nil {
+		return nil
+	}
+	ctx = reqctx.WithProperty(dbtx.System(ctx), *e.PropertyID)
+	return m.roundStarted(ctx, tx, *e.PropertyID, fid, e.OccurredAt, "")
+}
+
+func flightOf(e outbox.Event) (uuid.UUID, bool) {
+	var p struct {
+		FlightID uuid.UUID `json:"flightId"`
+	}
+	if err := e.Decode(&p); err != nil || p.FlightID == uuid.Nil {
+		return uuid.Nil, false
+	}
+	return p.FlightID, true
+}
+
+// roundStarted opens the first hole and the digital scorecards of the
+// checked-in players. Idempotent (the starter event and the tablet both
+// call it).
+func (m *Module) roundStarted(ctx context.Context, tx pgx.Tx, property, fid uuid.UUID, at time.Time, device string) error {
 	r, err := m.GetRound(ctx, tx, fid)
 	if err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.round_progress (flight_id, property_id, current_seq, last_hole_at, tablet_device) VALUES ($1,$2,1,$3,$4)
+		ON CONFLICT (flight_id) DO UPDATE SET tablet_device = coalesce(EXCLUDED.tablet_device, golf.round_progress.tablet_device)`,
+		fid, property, at, nullStr(device)); err != nil {
 		return err
 	}
 	holes, err := m.roundHoles(ctx, tx, r)
@@ -154,14 +213,11 @@ func (m *Module) roundStarted(ctx context.Context, tx pgx.Tx, property, fid uuid
 		return err
 	}
 	if _, err := tx.Exec(ctx, `INSERT INTO golf.hole_progress (id, property_id, flight_id, seq, hole_id, started_at, device_id, source)
-		VALUES ($1,$2,$3,1,$4,$5,$6,'staff') ON CONFLICT (flight_id, seq) DO NOTHING`, id.New(), property, fid, holes[0].HoleID, at, r.DeviceID); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.flights SET current_seq = greatest(current_seq, 1), last_hole_at = $2 WHERE id = $1`, fid, at); err != nil {
+		VALUES ($1,$2,$3,1,$4,$5,$6,'staff') ON CONFLICT (flight_id, seq) DO NOTHING`, id.New(), property, fid, holes[0].HoleID, at, nullStr(device)); err != nil {
 		return err
 	}
 	for _, p := range r.Players {
-		if p.Status == "checked_in" {
+		if p.Status == "checked_in" && p.ScorecardID == nil {
 			if err := m.openScorecard(ctx, tx, r, p, holes, at); err != nil {
 				return err
 			}
@@ -207,9 +263,13 @@ func (m *Module) RecordHole(ctx context.Context, tx pgx.Tx, fid uuid.UUID, in Ho
 	}
 	behind, pace := 0, "on_pace"
 	if r.TeeOffAt != nil {
+		targets, err := holeTargets(ctx, tx, holes)
+		if err != nil {
+			return r, err
+		}
 		target := 0
 		for i := 0; i < in.Seq-1; i++ {
-			target += holes[i].TargetMinutes
+			target += targets[holes[i].HoleID]
 		}
 		behind = int(at.Sub(*r.TeeOffAt).Minutes()) - target
 		switch {
@@ -219,8 +279,11 @@ func (m *Module) RecordHole(ctx context.Context, tx pgx.Tx, fid uuid.UUID, in Ho
 			pace = "fast"
 		}
 	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.flights SET current_seq = greatest(current_seq, $2), last_hole_at = $3, behind_minutes = $4, pace_status = $5,
-		tablet_device = coalesce($6, tablet_device) WHERE id = $1`, fid, in.Seq, at, behind, pace, nullStr(in.DeviceID)); err != nil {
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.round_progress (flight_id, property_id, current_seq, last_hole_at, behind_minutes, pace_status, tablet_device)
+		VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT (flight_id) DO UPDATE SET current_seq = greatest(golf.round_progress.current_seq, EXCLUDED.current_seq),
+		last_hole_at = EXCLUDED.last_hole_at, behind_minutes = EXCLUDED.behind_minutes, pace_status = EXCLUDED.pace_status,
+		tablet_device = coalesce(EXCLUDED.tablet_device, golf.round_progress.tablet_device)`,
+		fid, r.PropertyID, in.Seq, at, behind, pace, nullStr(in.DeviceID)); err != nil {
 		return r, err
 	}
 	if err := m.live(ctx, tx, "golf.pace", r.PropertyID, "hole", fid.String(), map[string]any{"seq": in.Seq, "paceStatus": pace, "behindMinutes": behind}); err != nil {
@@ -234,8 +297,8 @@ func (m *Module) RecordHole(ctx context.Context, tx pgx.Tx, fid uuid.UUID, in Ho
 		map[string]any{"seq": in.Seq, "at": at}, "")
 }
 
-// FinishRound records Round Finish through P1's starter; replays are
-// idempotent.
+// FinishRound records Round Finish through P1's starter; the P2 part runs
+// on P1's golf.round_finished event. Replays are idempotent.
 func (m *Module) FinishRound(ctx context.Context, tx pgx.Tx, fid uuid.UUID, in RoundEvent) (Round, error) {
 	r, err := m.lockRound(ctx, tx, fid)
 	if err != nil {
@@ -249,33 +312,40 @@ func (m *Module) FinishRound(ctx context.Context, tx pgx.Tx, fid uuid.UUID, in R
 	}
 	played := in.HolesPlayed
 	if played == nil {
-		n := max(r.CurrentSeq, 1)
-		if r.Holes > 0 && r.CurrentSeq == 0 {
+		n := r.CurrentSeq
+		if n == 0 {
 			n = r.Holes
 		}
 		played = &n
 	}
-	if _, err := m.Control(ctx, tx, r.PropertyID, fid, "finish", StarterAction{HolesPlayed: played}); err != nil {
+	if _, err := m.Golf.Control(ctx, tx, r.PropertyID, fid, "finish", golf.StarterAction{HolesPlayed: played}); err != nil {
 		return r, err
 	}
 	return m.GetRound(ctx, tx, fid)
 }
 
-// roundFinishing runs inside P1's finishFlight once the caddy assignments are
-// completed and before the golf carts are returned.
-func (m *Module) roundFinishing(ctx context.Context, tx pgx.Tx, property, fid uuid.UUID) error {
-	if _, err := tx.Exec(ctx, `UPDATE golf.hole_progress SET finished_at = now() WHERE flight_id = $1 AND finished_at IS NULL`, fid); err != nil {
+// OnRoundFinished closes the hole progress, splits the caddy fee of
+// replaced caddies, checks golf cart service hours and sends the post-round
+// survey. Every step is idempotent (at-least-once delivery).
+func (m *Module) OnRoundFinished(ctx context.Context, tx pgx.Tx, e outbox.Event) error {
+	fid, ok := flightOf(e)
+	if !ok || e.PropertyID == nil {
+		return nil
+	}
+	property := *e.PropertyID
+	ctx = reqctx.WithProperty(dbtx.System(ctx), property)
+	if _, err := tx.Exec(ctx, `UPDATE golf.hole_progress SET finished_at = $2 WHERE flight_id = $1 AND finished_at IS NULL`, fid, e.OccurredAt); err != nil {
 		return err
 	}
 	if err := m.splitCaddyFees(ctx, tx, property, fid); err != nil {
 		return err
 	}
-	carts, err := collectIDs(tx.Query(ctx, `SELECT id FROM golf.golf_cart_assignments WHERE flight_id = $1 AND status = 'in_use'`, fid))
+	carts, err := collectIDs(tx.Query(ctx, `SELECT DISTINCT golf_cart_id FROM golf.golf_cart_assignments WHERE flight_id = $1`, fid))
 	if err != nil {
 		return err
 	}
-	for _, a := range carts {
-		if err := m.addCartHours(ctx, tx, property, a); err != nil {
+	for _, c := range carts {
+		if err := m.checkService(ctx, tx, property, c); err != nil {
 			return err
 		}
 	}
@@ -285,22 +355,19 @@ func (m *Module) roundFinishing(ctx context.Context, tx pgx.Tx, property, fid uu
 	return m.live(ctx, tx, "golf.pace", property, "finished", fid.String(), nil)
 }
 
-// splitCaddyFees shares the caddy fee of replaced caddies by the Caddy
-// Policies (FR-CDL-05): by holes served, all to the first or the last caddy.
-// P1 holds the full fee on each assignment of a replacement chain.
+// splitCaddyFees shares the caddy fee of a replacement chain by the Caddy
+// Policies (FR-CDL-05): by holes served, all to the first or the last
+// caddy. P1 holds the full fee on each assignment; the shares are P2's.
 func (m *Module) splitCaddyFees(ctx context.Context, tx pgx.Tx, property, fid uuid.UUID) error {
 	type asg struct {
 		ID         uuid.UUID  `db:"id"`
 		Fee        string     `db:"fee_amount"`
-		From       time.Time  `db:"from_at"`
-		To         time.Time  `db:"to_at"`
 		ReplacedBy *uuid.UUID `db:"replaced_by_id"`
 		Holes      int        `db:"holes"`
 	}
-	list, err := handle.List[asg](tx.Query(ctx, `SELECT a.id, a.fee_amount::text AS fee_amount, coalesce(a.started_at, a.assigned_at) AS from_at,
-		coalesce(a.finished_at, now()) AS to_at, a.replaced_by_id,
+	list, err := handle.List[asg](tx.Query(ctx, `SELECT a.id, a.fee_amount::text AS fee_amount, a.replaced_by_id,
 		(SELECT count(*) FROM golf.hole_progress h WHERE h.flight_id = a.flight_id AND h.started_at >= coalesce(a.started_at, a.assigned_at)
-		  AND h.started_at < coalesce(a.finished_at, now()))::int AS holes
+		  AND h.started_at < coalesce(a.finished_at, 'infinity'))::int AS holes
 		FROM golf.caddy_assignments a WHERE a.flight_id = $1 AND a.status IN ('completed', 'replaced') ORDER BY a.assigned_at`, fid))
 	if err != nil {
 		return err
@@ -333,7 +400,7 @@ func (m *Module) splitCaddyFees(ctx context.Context, tx pgx.Tx, property, fid uu
 		if len(chain) < 2 {
 			continue
 		}
-		base, _ := decimal.NewFromString(head.Fee)
+		base := dec(head.Fee)
 		shares := make([]decimal.Decimal, len(chain))
 		total := 0
 		for _, a := range chain {
@@ -355,7 +422,9 @@ func (m *Module) splitCaddyFees(ctx context.Context, tx pgx.Tx, property, fid uu
 			}
 		}
 		for i, a := range chain {
-			if _, err := tx.Exec(ctx, `UPDATE golf.caddy_assignments SET fee_amount = $2::numeric WHERE id = $1`, a.ID, shares[i].String()); err != nil {
+			if _, err := tx.Exec(ctx, `INSERT INTO golf.caddy_fee_shares (assignment_id, property_id, holes, share_amount) VALUES ($1,$2,$3,$4::numeric)
+				ON CONFLICT (assignment_id) DO UPDATE SET holes = EXCLUDED.holes, share_amount = EXCLUDED.share_amount`,
+				a.ID, property, a.Holes, shares[i].String()); err != nil {
 				return err
 			}
 		}
@@ -363,41 +432,36 @@ func (m *Module) splitCaddyFees(ctx context.Context, tx pgx.Tx, property, fid uu
 	return nil
 }
 
-// addCartHours adds the usage of a golf cart assignment to the hours since
-// service; past the threshold the Golf Manager is alerted once (FR-CTL-04).
-func (m *Module) addCartHours(ctx context.Context, tx pgx.Tx, property, aid uuid.UUID) error {
-	var cart uuid.UUID
-	var out *time.Time
-	if err := tx.QueryRow(ctx, `SELECT golf_cart_id, out_at FROM golf.golf_cart_assignments WHERE id = $1`, aid).Scan(&cart, &out); err != nil {
-		return err
-	}
-	if out == nil {
-		return nil
-	}
-	hours := decimal.NewFromFloat(clock.Now().Sub(*out).Hours()).Round(2)
-	if !hours.IsPositive() {
-		return nil
-	}
+// cartServiceHours is the usage of a golf cart since its last service: the
+// out → return time of P1's golf cart assignments.
+const cartServiceHours = `coalesce((SELECT sum(extract(epoch FROM coalesce(a.returned_at, now()) - a.out_at)) / 3600 FROM golf.golf_cart_assignments a
+	WHERE a.golf_cart_id = g.id AND a.out_at IS NOT NULL AND a.out_at > coalesce(cp.last_service_at, '-infinity')), 0)`
+
+// checkService alerts the Golf Manager once when a golf cart passes its
+// service threshold (FR-CTL-04).
+func (m *Module) checkService(ctx context.Context, tx pgx.Tx, property, cart uuid.UUID) error {
 	pol, err := m.cartPolicy(ctx, tx, property)
 	if err != nil {
 		return err
 	}
-	var code, sinceS string
-	var thrS *string
+	var code string
+	var hours float64
+	var threshold *string
 	var alerted *time.Time
-	if err := tx.QueryRow(ctx, `UPDATE golf.golf_carts SET hours_since_service = hours_since_service + $2::numeric WHERE id = $1
-		RETURNING code, hours_since_service::text, service_threshold_hours::text, service_alerted_at`, cart, hours.String()).Scan(&code, &sinceS, &thrS, &alerted); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT g.code, `+cartServiceHours+`::float8, cp.service_threshold_hours::text, cp.service_alerted_at
+		FROM golf.golf_carts g LEFT JOIN golf.cart_profiles cp ON cp.golf_cart_id = g.id WHERE g.id = $1`, cart).Scan(&code, &hours, &threshold, &alerted); err != nil {
 		return err
 	}
-	since, _ := decimal.NewFromString(sinceS)
-	threshold, _ := decimal.NewFromString(pol.DefaultServiceHours)
-	if thrS != nil {
-		threshold, _ = decimal.NewFromString(*thrS)
+	limit := dec(pol.DefaultServiceHours)
+	if threshold != nil {
+		limit = dec(*threshold)
 	}
-	if alerted != nil || !threshold.IsPositive() || since.LessThan(threshold) {
+	since := decimal.NewFromFloat(hours).Round(2)
+	if alerted != nil || !limit.IsPositive() || since.LessThan(limit) {
 		return nil
 	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.golf_carts SET service_alerted_at = now() WHERE id = $1`, cart); err != nil {
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.cart_profiles (golf_cart_id, property_id, service_alerted_at) VALUES ($1,$2,now())
+		ON CONFLICT (golf_cart_id) DO UPDATE SET service_alerted_at = now()`, cart, property); err != nil {
 		return err
 	}
 	if m.Notify != nil {
@@ -407,7 +471,7 @@ func (m *Module) addCartHours(ctx context.Context, tx pgx.Tx, property, aid uuid
 		}
 		if len(users) > 0 {
 			if err := m.Notify.Send(ctx, tx, notify.Message{Event: "golf.cart_service_due", Category: "golf", UserIDs: users, PropertyID: &property,
-				Link: "/golf/golf-carts/" + cart.String(), Data: map[string]any{"cart": code, "hours": since.String(), "threshold": threshold.String()}}); err != nil {
+				Link: "/golf/golf-carts/" + cart.String(), Data: map[string]any{"cart": code, "hours": since.String(), "threshold": limit.String()}}); err != nil {
 				return err
 			}
 		}
@@ -416,7 +480,7 @@ func (m *Module) addCartHours(ctx context.Context, tx pgx.Tx, property, aid uuid
 }
 
 // requestRoundFeedback sends the post-round survey; the caddy of the player
-// is rated in the same survey (FR-CRM-P2 feedback, FR-CDL-06).
+// is rated in the same survey (FR-CDL-06). CRM dedupes per player.
 func (m *Module) requestRoundFeedback(ctx context.Context, tx pgx.Tx, property, fid uuid.UUID) error {
 	if m.CRM == nil {
 		return nil
@@ -455,34 +519,23 @@ type CartReplaceInput struct {
 	Reason     string     `json:"reason"`
 }
 
-// ReplaceCart swaps the golf cart mid-round (FR-CTL-05); the replaced cart
-// goes to inspection.
+// ReplaceCart swaps the golf cart mid-round (FR-CTL-05) through P1's
+// return and assign; the replacement goes out at once when the flight is in
+// play (contract golf.StartCartAssignment).
 func (m *Module) ReplaceCart(ctx context.Context, tx pgx.Tx, property, aid uuid.UUID, in CartReplaceInput) (Round, error) {
 	if err := handle.Required("reason", in.Reason); err != nil {
 		return Round{}, err
 	}
 	var flight, cart uuid.UUID
 	var status string
-	if err := tx.QueryRow(ctx, `SELECT flight_id, golf_cart_id, status FROM golf.golf_cart_assignments WHERE id = $1 AND property_id = $2 FOR UPDATE`, aid, property).
+	if err := tx.QueryRow(ctx, `SELECT flight_id, golf_cart_id, status FROM golf.golf_cart_assignments WHERE id = $1 AND property_id = $2`, aid, property).
 		Scan(&flight, &cart, &status); err != nil {
 		if dbtx.IsNoRows(err) {
 			return Round{}, errs.NotFound("golf cart assignment")
 		}
 		return Round{}, err
 	}
-	if status != "assigned" && status != "in_use" {
-		return Round{}, errs.Conflict("not_current", "only the current golf cart can be replaced")
-	}
-	if status == "in_use" {
-		if err := m.addCartHours(ctx, tx, property, aid); err != nil {
-			return Round{}, err
-		}
-	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.golf_cart_assignments SET status = 'returned', returned_at = now(),
-		period = tstzrange(lower(period), greatest(lower(period) + interval '1 minute', now()), '[)') WHERE id = $1`, aid); err != nil {
-		return Round{}, err
-	}
-	if err := m.setReadiness(ctx, tx, property, cart, "under_inspection", "replaced: "+in.Reason); err != nil {
+	if _, err := m.Golf.ReturnCart(ctx, tx, property, aid); err != nil {
 		return Round{}, err
 	}
 	next := in.GolfCartID
@@ -497,15 +550,12 @@ func (m *Module) ReplaceCart(ctx context.Context, tx pgx.Tx, property, aid uuid.
 		}
 		next = &c
 	}
-	out, err := m.AssignCarts(ctx, tx, property, CartAssignRequest{FlightID: flight, CartIDs: []uuid.UUID{*next}})
+	out, err := m.Golf.AssignCarts(ctx, tx, property, golf.CartAssignRequest{FlightID: flight, CartIDs: []uuid.UUID{*next}})
 	if err != nil {
 		return Round{}, err
 	}
 	if status == "in_use" {
-		if _, err := tx.Exec(ctx, `UPDATE golf.golf_cart_assignments SET status = 'in_use', out_at = now() WHERE id = $1`, out[0].ID); err != nil {
-			return Round{}, err
-		}
-		if _, err := tx.Exec(ctx, `UPDATE golf.golf_carts SET readiness = 'in_use', readiness_changed_at = now() WHERE id = $1`, *next); err != nil {
+		if err := m.Golf.StartCartAssignment(ctx, tx, property, out[0].ID); err != nil {
 			return Round{}, err
 		}
 	}

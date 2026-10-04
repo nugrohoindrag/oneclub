@@ -1,4 +1,4 @@
-package golf
+package experience
 
 // Driving Range (PRD P2 EP-12): bays (bookable through the Reservation
 // Engine), walk-in queue and bay assignment, buckets sold at the "Driving
@@ -18,6 +18,8 @@ import (
 	"github.com/shopspring/decimal"
 
 	"oneclub/internal/commercial"
+	"oneclub/internal/crm"
+	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
@@ -76,11 +78,11 @@ type RangeSession struct {
 	Balls        int        `json:"balls" db:"balls"`
 }
 
-const sessionSelect = `SELECT s.id, s.number, s.bay_id, b.code AS bay_code, s.area, s.customer_id, c.name AS customer_name, s.guest_name, s.status,
+const sessionSelect = `SELECT s.id, s.number, s.bay_id, b.code AS bay_code, s.area, s.customer_id, s.guest_name AS customer_name, s.guest_name, s.status,
 	CASE WHEN s.status = 'waiting' THEN (SELECT count(*) FROM golf.range_sessions w WHERE w.property_id = s.property_id AND w.status = 'waiting'
 	  AND w.area = s.area AND w.queued_at <= s.queued_at)::int END AS queue_pos,
 	s.queued_at, s.started_at, s.ended_at, coalesce((SELECT sum(balls) FROM golf.range_buckets k WHERE k.session_id = s.id), 0)::int AS balls
-	FROM golf.range_sessions s LEFT JOIN golf.range_bays b ON b.id = s.bay_id LEFT JOIN crm.customers c ON c.id = s.customer_id`
+	FROM golf.range_sessions s LEFT JOIN golf.range_bays b ON b.id = s.bay_id`
 
 func (m *Module) rangeSession(ctx context.Context, q dbtx.Querier, sid uuid.UUID) (RangeSession, error) {
 	rows, err := q.Query(ctx, sessionSelect+` WHERE s.id = $1`, sid)
@@ -106,6 +108,13 @@ func (m *Module) StartSession(ctx context.Context, tx pgx.Tx, property uuid.UUID
 	no, err := number(ctx, tx, property, "RNG")
 	if err != nil {
 		return RangeSession{}, err
+	}
+	if in.CustomerID != nil && in.GuestName == "" {
+		c, err := crm.GetCustomer(ctx, tx, *in.CustomerID)
+		if err != nil {
+			return RangeSession{}, err
+		}
+		in.GuestName = c.Name // name snapshot for the queue screen
 	}
 	sid := id.New()
 	if _, err := tx.Exec(ctx, `INSERT INTO golf.range_sessions (id, property_id, number, area, customer_id, guest_name, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
@@ -136,11 +145,8 @@ func (m *Module) tryAssignBay(ctx context.Context, tx pgx.Tx, property, sid uuid
 		}
 	} else {
 		// A bay booked through the Reservation Engine right now is not free.
-		err = tx.QueryRow(ctx, `SELECT b.id, b.readiness FROM golf.range_bays b WHERE b.property_id = $1 AND b.area = $2 AND b.status = 'active'
-			AND b.archived_at IS NULL AND b.readiness = 'available'
-			AND NOT EXISTS (SELECT 1 FROM reservation.allocations a WHERE a.resource_id = b.resource_id AND a.status IN ('held', 'confirmed') AND a.period @> now())
-			ORDER BY b.tier, b.code LIMIT 1 FOR UPDATE SKIP LOCKED`, property, area).Scan(&bid, &readiness)
-		if dbtx.IsNoRows(err) {
+		bid, readiness, err = m.freeBay(ctx, tx, property, area)
+		if err == nil && bid == uuid.Nil {
 			return nil // stays in the queue
 		}
 	}
@@ -393,8 +399,13 @@ func (m *Module) RangeUsage(ctx context.Context, q dbtx.Querier, property uuid.U
 	}
 	// Opening hours of the driving_range_bay resource type.
 	var openH float64
-	if err := q.QueryRow(ctx, `SELECT extract(epoch FROM close_time - open_time) / 3600 FROM reservation.resource_types WHERE code = 'driving_range_bay'`).Scan(&openH); err != nil {
-		openH = 16
+	openH = 16
+	if rt, err := m.Reservations.Type(ctx, q, "driving_range_bay"); err == nil {
+		o, err1 := time.Parse("15:04", rt.OpenTime[:min(5, len(rt.OpenTime))])
+		c, err2 := time.Parse("15:04", rt.CloseTime[:min(5, len(rt.CloseTime))])
+		if err1 == nil && err2 == nil && c.After(o) {
+			openH = c.Sub(o).Hours()
+		}
 	}
 	days := to.Sub(from).Hours() / 24
 	avail := openH * days * float64(bays)
@@ -406,4 +417,35 @@ func (m *Module) RangeUsage(ctx context.Context, q dbtx.Querier, property uuid.U
 		u.BayUtilization = "0"
 	}
 	return u, rows.Err()
+}
+
+// freeBay picks the first available bay of an area that is not booked
+// through the Reservation Engine right now (reservation.Busy).
+func (m *Module) freeBay(ctx context.Context, tx pgx.Tx, property uuid.UUID, area string) (uuid.UUID, string, error) {
+	type bay struct {
+		ID         uuid.UUID  `db:"id"`
+		ResourceID *uuid.UUID `db:"resource_id"`
+	}
+	bays, err := handle.List[bay](tx.Query(ctx, `SELECT id, resource_id FROM golf.range_bays WHERE property_id = $1 AND area = $2 AND status = 'active'
+		AND archived_at IS NULL AND readiness = 'available' ORDER BY tier, code FOR UPDATE SKIP LOCKED`, property, area))
+	if err != nil {
+		return uuid.Nil, "", err
+	}
+	var res []uuid.UUID
+	for _, b := range bays {
+		if b.ResourceID != nil {
+			res = append(res, *b.ResourceID)
+		}
+	}
+	now := clock.Now()
+	busy, err := reservation.Busy(ctx, tx, res, now, now.Add(time.Minute))
+	if err != nil {
+		return uuid.Nil, "", err
+	}
+	for _, b := range bays {
+		if b.ResourceID == nil || !busy[*b.ResourceID] {
+			return b.ID, "available", nil
+		}
+	}
+	return uuid.Nil, "", nil
 }

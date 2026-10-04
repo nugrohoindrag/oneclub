@@ -1,4 +1,4 @@
-package golf
+package experience
 
 // Advanced Caddy Lifecycle (PRD P2 EP-05) on P1's caddy core: clock-in /
 // clock-out on the daily attendance, rotation, accept on the tablet, level
@@ -15,6 +15,7 @@ import (
 
 	"oneclub/internal/billing"
 	"oneclub/internal/crm"
+	"oneclub/internal/golf"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
@@ -32,79 +33,75 @@ type ClockInput struct {
 	At      *time.Time `json:"at,omitempty"`
 }
 
-// Attendance is a caddy's attendance day (P1 Caddy Attendance with the P2
-// shift and clock-out).
+// Attendance is a caddy's day: P1 attendance with the P2 shift and clock
+// times.
 type Attendance struct {
-	ID         uuid.UUID  `json:"id" db:"id"`
-	CaddyID    uuid.UUID  `json:"caddyId" db:"caddy_id"`
-	CaddyCode  string     `json:"caddyCode" db:"caddy_code"`
-	CaddyName  string     `json:"caddyName" db:"caddy_name"`
-	WorkDate   time.Time  `json:"workDate" db:"work_date"`
-	Status     string     `json:"status" db:"status" enum:"present,absent,leave"`
-	Shift      string     `json:"shift" db:"shift" enum:"morning,afternoon,full_day"`
-	ArrivedAt  *time.Time `json:"arrivedAt" db:"arrived_at"`
-	DepartedAt *time.Time `json:"departedAt" db:"departed_at"`
-	QueueNo    *float64   `json:"queueNo" db:"queue_no"`
-	Rounds     int        `json:"roundsToday" db:"rounds"`
+	CaddyID      uuid.UUID  `json:"caddyId" db:"caddy_id"`
+	CaddyCode    string     `json:"caddyCode" db:"caddy_code"`
+	CaddyName    string     `json:"caddyName" db:"caddy_name"`
+	WorkDate     time.Time  `json:"workDate" db:"work_date"`
+	Status       *string    `json:"status" db:"status" enum:"present,absent,leave"`
+	QueueNo      *float64   `json:"queueNo" db:"queue_no"`
+	Shift        *string    `json:"shift" db:"shift" enum:"morning,afternoon,full_day"`
+	ClockedInAt  *time.Time `json:"clockedInAt" db:"clocked_in_at"`
+	ClockedOutAt *time.Time `json:"clockedOutAt" db:"clocked_out_at"`
+	Rounds       int        `json:"roundsToday" db:"rounds"`
 }
 
-const attendanceSelect = `SELECT a.id, a.caddy_id, c.code AS caddy_code, c.name AS caddy_name, a.work_date, a.status, a.shift, a.arrived_at, a.departed_at,
-	a.queue_no::float8 AS queue_no, (SELECT count(*) FROM golf.caddy_assignments x WHERE x.caddy_id = a.caddy_id AND x.play_date = a.work_date
-	  AND x.status IN ('assigned', 'in_play', 'completed'))::int AS rounds
-	FROM golf.caddy_attendance a JOIN golf.caddies c ON c.id = a.caddy_id`
+// attendanceSelect: $1 = property, $2 = work date; caddies present in P1 or
+// clocked in through P2.
+const attendanceSelect = `SELECT c.id AS caddy_id, c.code AS caddy_code, c.name AS caddy_name, $2::date AS work_date, a.status, a.queue_no::float8 AS queue_no,
+	s.shift, s.clocked_in_at, s.clocked_out_at,
+	(SELECT count(*) FROM golf.caddy_assignments x WHERE x.caddy_id = c.id AND x.play_date = $2::date AND x.status IN ('assigned', 'in_play', 'completed'))::int AS rounds
+	FROM golf.caddies c LEFT JOIN golf.caddy_attendance a ON a.caddy_id = c.id AND a.work_date = $2::date
+	LEFT JOIN golf.caddy_shifts s ON s.caddy_id = c.id AND s.work_date = $2::date
+	WHERE c.property_id = $1 AND (a.caddy_id IS NOT NULL OR s.caddy_id IS NOT NULL)`
 
-// ClockIn records arrival as Present; the arrival order is the queue number
-// of the rotation (P1 Caddy Queue).
+func (m *Module) attendance(ctx context.Context, q dbtx.Querier, property, caddy uuid.UUID, day time.Time) (Attendance, error) {
+	rows, err := q.Query(ctx, attendanceSelect+` AND c.id = $3`, property, day.Format("2006-01-02"), caddy)
+	return handle.One[Attendance](rows, err, "attendance")
+}
+
+// ClockIn records arrival: P1 attendance Present (queue in arrival order,
+// through P1's RecordAttendance) and the P2 clock-in with the shift.
 func (m *Module) ClockIn(ctx context.Context, tx pgx.Tx, property uuid.UUID, in ClockInput) (Attendance, error) {
-	var status string
-	if err := tx.QueryRow(ctx, `SELECT status FROM golf.caddies WHERE id = $1 AND property_id = $2 FOR UPDATE`, in.CaddyID, property).Scan(&status); err != nil {
-		if dbtx.IsNoRows(err) {
-			return Attendance{}, errs.NotFound("caddy")
-		}
-		return Attendance{}, err
-	}
-	if status != "active" {
-		return Attendance{}, errs.Conflict("caddy_inactive", "caddy is "+status)
-	}
 	at := eventTime(in.At)
-	local := at.In(location(ctx, tx, property))
-	day := local.Format("2006-01-02")
+	loc := location(ctx, tx, property)
+	local := at.In(loc)
+	day := localDay(at, loc)
 	if in.Shift == "" {
 		in.Shift = "morning"
 		if local.Hour() >= 12 {
 			in.Shift = "afternoon"
 		}
 	}
-	var cur string
-	var departed *time.Time
-	err := tx.QueryRow(ctx, `SELECT status, departed_at FROM golf.caddy_attendance WHERE caddy_id = $1 AND work_date = $2::date`, in.CaddyID, day).Scan(&cur, &departed)
+	var out *time.Time
+	err := tx.QueryRow(ctx, `SELECT clocked_out_at FROM golf.caddy_shifts WHERE caddy_id = $1 AND work_date = $2::date`, in.CaddyID, day.Format("2006-01-02")).Scan(&out)
 	switch {
-	case err == nil && cur == "present" && departed == nil:
+	case err == nil && out == nil:
 		return Attendance{}, errs.Conflict("already_clocked_in", "caddy has already clocked in today")
-	case err == nil && departed != nil:
+	case err == nil:
 		return Attendance{}, errs.Conflict("already_clocked_out", "caddy has already clocked out today")
-	case err != nil && !dbtx.IsNoRows(err):
+	case !dbtx.IsNoRows(err):
 		return Attendance{}, err
 	}
-	var aid uuid.UUID
-	if err := tx.QueryRow(ctx, `INSERT INTO golf.caddy_attendance (id, property_id, caddy_id, work_date, status, shift, arrived_at, queue_no, created_by, updated_by)
-		VALUES ($1,$2,$3,$4::date,'present',$5,$6,(SELECT coalesce(max(queue_no), 0) + 1 FROM golf.caddy_attendance WHERE property_id = $2 AND work_date = $4::date),$7,$7)
-		ON CONFLICT (caddy_id, work_date) DO UPDATE SET status = 'present', shift = EXCLUDED.shift, arrived_at = EXCLUDED.arrived_at,
-		  queue_no = coalesce(golf.caddy_attendance.queue_no, EXCLUDED.queue_no), updated_by = EXCLUDED.updated_by
-		RETURNING id`, id.New(), property, in.CaddyID, day, in.Shift, at, actorPtr(ctx)).Scan(&aid); err != nil {
+	if _, err := m.Golf.RecordAttendance(ctx, tx, property, golf.AttendanceRequest{Date: day.Format("2006-01-02"),
+		Entries: []golf.AttendanceEntry{{CaddyID: in.CaddyID, Status: "present"}}}); err != nil {
 		return Attendance{}, err
 	}
-	a, err := handle.Get[Attendance](tx.Query(ctx, attendanceSelect+` WHERE a.id = $1`, aid))
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.caddy_shifts (caddy_id, work_date, property_id, shift, clocked_in_at, created_by) VALUES ($1,$2::date,$3,$4,$5,$6)`,
+		in.CaddyID, day.Format("2006-01-02"), property, in.Shift, at, actorPtr(ctx)); err != nil {
+		return Attendance{}, err
+	}
+	a, err := m.attendance(ctx, tx, property, in.CaddyID, day)
 	if err != nil {
 		return a, err
 	}
-	if err := realtimeBoards(ctx, tx, property, a.WorkDate); err != nil {
-		return a, err
-	}
-	return a, record(ctx, tx, "golf.caddy_attendance", aid, a.CaddyName+" "+day, "clock_in", property, nil, a, "")
+	return a, record(ctx, tx, "golf.caddy_shift", in.CaddyID, a.CaddyName+" "+day.Format("2006-01-02"), "clock_in", property, nil, a, "")
 }
 
 // ClockOut ends the day; a caddy with an open assignment cannot clock out.
+// The caddy leaves the P2 rotation (P1 attendance stays Present).
 func (m *Module) ClockOut(ctx context.Context, tx pgx.Tx, property uuid.UUID, in ClockInput) (Attendance, error) {
 	var busy bool
 	if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.caddy_assignments WHERE caddy_id = $1 AND property_id = $2 AND status IN ('assigned', 'in_play'))`,
@@ -114,23 +111,23 @@ func (m *Module) ClockOut(ctx context.Context, tx pgx.Tx, property uuid.UUID, in
 	if busy {
 		return Attendance{}, errs.Conflict("caddy_on_duty", "caddy still has an assignment")
 	}
-	var aid uuid.UUID
-	if err := tx.QueryRow(ctx, `UPDATE golf.caddy_attendance SET departed_at = $3, updated_by = $4 WHERE id = (SELECT id FROM golf.caddy_attendance
-		WHERE caddy_id = $1 AND property_id = $2 AND status = 'present' AND departed_at IS NULL ORDER BY work_date DESC LIMIT 1) RETURNING id`,
-		in.CaddyID, property, eventTime(in.At), actorPtr(ctx)).Scan(&aid); err != nil {
+	var day time.Time
+	if err := tx.QueryRow(ctx, `UPDATE golf.caddy_shifts SET clocked_out_at = $3 WHERE (caddy_id, work_date) = (SELECT caddy_id, work_date FROM golf.caddy_shifts
+		WHERE caddy_id = $1 AND property_id = $2 AND clocked_out_at IS NULL ORDER BY work_date DESC LIMIT 1) RETURNING work_date`,
+		in.CaddyID, property, eventTime(in.At)).Scan(&day); err != nil {
 		if dbtx.IsNoRows(err) {
 			return Attendance{}, errs.Conflict("not_clocked_in", "caddy has not clocked in")
 		}
 		return Attendance{}, err
 	}
-	a, err := handle.Get[Attendance](tx.Query(ctx, attendanceSelect+` WHERE a.id = $1`, aid))
+	a, err := m.attendance(ctx, tx, property, in.CaddyID, day)
 	if err != nil {
 		return a, err
 	}
-	if err := realtimeBoards(ctx, tx, property, a.WorkDate); err != nil {
+	if err := realtimeBoards(ctx, tx, property, day); err != nil {
 		return a, err
 	}
-	return a, record(ctx, tx, "golf.caddy_attendance", aid, a.CaddyName, "clock_out", property, nil, a, "")
+	return a, record(ctx, tx, "golf.caddy_shift", in.CaddyID, a.CaddyName, "clock_out", property, nil, a, "")
 }
 
 // RotationEntry is one available caddy in the rotation (Caddy Master board).
@@ -146,10 +143,11 @@ type RotationEntry struct {
 	LastAssignedAt *time.Time `json:"lastAssignedAt" db:"last_assigned_at"`
 }
 
-// Rotation returns the present, free caddies of a day in rotation order
-// (Caddy Policies): arrival (fewest rounds today, then queue number),
-// round_robin (longest since the last assignment) or level (the requested
-// level first, then arrival). Caddies at the daily round limit are left out.
+// Rotation returns the present, free caddies of a day (P1 attendance and
+// queue) in the order of the Caddy Policies: arrival (fewest rounds today,
+// then queue number), round_robin (longest since the last assignment) or
+// level (the requested level first). Clocked-out caddies and caddies at the
+// daily round limit are left out. Staff assign the caddy through P1.
 func (m *Module) Rotation(ctx context.Context, q dbtx.Querier, property uuid.UUID, day time.Time, level *uuid.UUID) ([]RotationEntry, error) {
 	pol, err := m.caddyPolicy(ctx, q, property)
 	if err != nil {
@@ -167,11 +165,13 @@ func (m *Module) Rotation(ctx context.Context, q dbtx.Querier, property uuid.UUI
 		limit = 99
 	}
 	list, err := handle.List[RotationEntry](q.Query(ctx, `SELECT caddy_id, code, name, level, level_rank, queue_no, rounds, last_assigned_at FROM (
-		SELECT a.caddy_id, c.code, c.name, c.level_id, l.name AS level, l.rank AS level_rank, coalesce(a.queue_no, 0)::float8 AS queue_no,
+		SELECT a.caddy_id, c.code, c.name, p.level_id, l.name AS level, l.rank AS level_rank, coalesce(a.queue_no, 0)::float8 AS queue_no,
 		  (SELECT count(*) FROM golf.caddy_assignments x WHERE x.caddy_id = c.id AND x.play_date = $2::date AND x.status IN ('assigned', 'in_play', 'completed'))::int AS rounds,
 		  (SELECT max(x.assigned_at) FROM golf.caddy_assignments x WHERE x.caddy_id = c.id AND x.play_date = $2::date) AS last_assigned_at
-		FROM golf.caddy_attendance a JOIN golf.caddies c ON c.id = a.caddy_id LEFT JOIN golf.caddy_levels l ON l.id = c.level_id
-		WHERE a.property_id = $1 AND a.work_date = $2::date AND a.status = 'present' AND a.departed_at IS NULL AND c.status = 'active' AND c.archived_at IS NULL
+		FROM golf.caddy_attendance a JOIN golf.caddies c ON c.id = a.caddy_id
+		LEFT JOIN golf.caddy_profiles p ON p.caddy_id = c.id LEFT JOIN golf.caddy_levels l ON l.id = p.level_id
+		LEFT JOIN golf.caddy_shifts s ON s.caddy_id = c.id AND s.work_date = a.work_date
+		WHERE a.property_id = $1 AND a.work_date = $2::date AND a.status = 'present' AND s.clocked_out_at IS NULL AND c.status = 'active' AND c.archived_at IS NULL
 		  AND NOT EXISTS (SELECT 1 FROM golf.caddy_assignments x WHERE x.caddy_id = c.id AND x.status IN ('assigned', 'in_play'))) r
 		WHERE rounds < $3 AND ($4::uuid IS NULL OR true) ORDER BY `+order, property, day.Format("2006-01-02"), limit, level))
 	for i := range list {
@@ -189,7 +189,7 @@ func (m *Module) caddyAssignment(ctx context.Context, q dbtx.Querier, aid uuid.U
 		}
 		return CaddyAssignment{}, property, err
 	}
-	list, err := ListCaddyAssignments(ctx, q, location(ctx, q, property), "a.id = $1", aid)
+	list, err := golf.ListCaddyAssignments(ctx, q, location(ctx, q, property), "a.id = $1", aid)
 	if err != nil {
 		return CaddyAssignment{}, property, err
 	}
@@ -211,7 +211,8 @@ func (m *Module) AcceptAssignment(ctx context.Context, tx pgx.Tx, aid uuid.UUID)
 	if a.Status != "assigned" && a.Status != "in_play" {
 		return a, errs.Conflict("invalid_status", "assignment is "+a.Status)
 	}
-	tag, err := tx.Exec(ctx, `UPDATE golf.caddy_assignments SET accepted_at = now() WHERE id = $1 AND accepted_at IS NULL`, aid)
+	tag, err := tx.Exec(ctx, `INSERT INTO golf.caddy_assignment_acceptances (assignment_id, property_id, accepted_by) VALUES ($1,$2,$3)
+		ON CONFLICT (assignment_id) DO NOTHING`, aid, property, actorPtr(ctx))
 	if err != nil || tag.RowsAffected() == 0 {
 		return a, err
 	}
@@ -222,7 +223,7 @@ func (m *Module) AcceptAssignment(ctx context.Context, tx pgx.Tx, aid uuid.UUID)
 // staff with golf.caddy_assignment.manage may act on any.
 func (m *Module) ownAssignment(ctx context.Context, q dbtx.Querier, a CaddyAssignment, property uuid.UUID) error {
 	var owner *uuid.UUID
-	if err := q.QueryRow(ctx, `SELECT user_id FROM golf.caddies WHERE id = $1`, a.CaddyID).Scan(&owner); err != nil {
+	if err := q.QueryRow(ctx, `SELECT user_id FROM golf.caddy_profiles WHERE caddy_id = $1`, a.CaddyID).Scan(&owner); err != nil && !dbtx.IsNoRows(err) {
 		return err
 	}
 	if owner != nil && *owner == handle.UserID(ctx) {
@@ -232,6 +233,62 @@ func (m *Module) ownAssignment(ctx context.Context, q dbtx.Querier, a CaddyAssig
 		return nil
 	}
 	return errs.Forbidden("this is not your assignment")
+}
+
+// CaddyProfile is the P2 profile of a P1 caddy.
+type CaddyProfile struct {
+	CaddyID  uuid.UUID  `json:"caddyId" db:"caddy_id"`
+	LevelID  *uuid.UUID `json:"levelId" db:"level_id"`
+	Level    *string    `json:"level" db:"level"`
+	UserID   *uuid.UUID `json:"userId" db:"user_id" doc:"Caddy Tablet login"`
+	JoinedOn *time.Time `json:"joinedOn" db:"joined_on"`
+}
+
+// CaddyProfileInput sets the tablet login and joined date (the level
+// changes only through promotion approval).
+type CaddyProfileInput struct {
+	UserID   *uuid.UUID `json:"userId,omitempty"`
+	JoinedOn string     `json:"joinedOn,omitempty" doc:"YYYY-MM-DD"`
+	LevelID  *uuid.UUID `json:"levelId,omitempty" doc:"Initial level only; later changes go through promotion"`
+}
+
+const profileSelect = `SELECT c.id AS caddy_id, p.level_id, l.name AS level, p.user_id, p.joined_on FROM golf.caddies c
+	LEFT JOIN golf.caddy_profiles p ON p.caddy_id = c.id LEFT JOIN golf.caddy_levels l ON l.id = p.level_id`
+
+func (m *Module) CaddyProfile(ctx context.Context, q dbtx.Querier, property, caddy uuid.UUID) (CaddyProfile, error) {
+	rows, err := q.Query(ctx, profileSelect+` WHERE c.id = $1 AND c.property_id = $2`, caddy, property)
+	return handle.One[CaddyProfile](rows, err, "caddy")
+}
+
+func (m *Module) SetCaddyProfile(ctx context.Context, tx pgx.Tx, property, caddy uuid.UUID, in CaddyProfileInput) (CaddyProfile, error) {
+	before, err := m.CaddyProfile(ctx, tx, property, caddy)
+	if err != nil {
+		return before, err
+	}
+	var joined *string
+	if in.JoinedOn != "" {
+		if _, err := time.Parse("2006-01-02", in.JoinedOn); err != nil {
+			return before, handle.Invalid("joinedOn", "invalid_date", "joinedOn must be YYYY-MM-DD")
+		}
+		joined = &in.JoinedOn
+	}
+	if in.LevelID != nil && before.LevelID != nil && *before.LevelID != *in.LevelID {
+		return before, errs.Conflict("level_change_needs_promotion", "the level changes through a promotion request")
+	}
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.caddy_profiles (caddy_id, property_id, level_id, user_id, joined_on, created_by, updated_by)
+		VALUES ($1,$2,$3,$4,$5::date,$6,$6) ON CONFLICT (caddy_id) DO UPDATE SET level_id = coalesce(golf.caddy_profiles.level_id, EXCLUDED.level_id),
+		user_id = coalesce(EXCLUDED.user_id, golf.caddy_profiles.user_id), joined_on = coalesce(EXCLUDED.joined_on, golf.caddy_profiles.joined_on),
+		updated_by = EXCLUDED.updated_by`, caddy, property, in.LevelID, in.UserID, joined, actorPtr(ctx)); err != nil {
+		if ok, _ := dbtx.IsUniqueViolation(err); ok {
+			return before, handle.Invalid("userId", "user_taken", "this user is already the tablet login of another caddy")
+		}
+		return before, err
+	}
+	after, err := m.CaddyProfile(ctx, tx, property, caddy)
+	if err != nil {
+		return after, err
+	}
+	return after, record(ctx, tx, "golf.caddy_profile", caddy, "caddy profile", audit.ActionUpdate, property, before, after, "")
 }
 
 // ── promotion (FR-CDL-01/02) ──────────────────────────────────────────────
@@ -255,7 +312,7 @@ func (m *Module) indicators(ctx context.Context, q dbtx.Querier, caddy uuid.UUID
 		(SELECT trim_scale(round(avg(rating), 2))::text FROM golf.caddy_ratings WHERE caddy_id = $1),
 		(SELECT count(*) FROM golf.caddy_ratings WHERE caddy_id = $1)::int,
 		(SELECT count(*) FROM golf.incidents WHERE caddy_id = $1 AND subject_type = 'caddy' AND occurred_at > now() - interval '12 months')::int,
-		(SELECT coalesce(joined_on, created_at::date) FROM golf.caddies WHERE id = $1)`, caddy).Scan(&ind.Rounds, &ind.AverageRating, &ind.Ratings, &ind.Incidents12m, &joined); err != nil {
+		(SELECT coalesce(p.joined_on, c.created_at::date) FROM golf.caddies c LEFT JOIN golf.caddy_profiles p ON p.caddy_id = c.id WHERE c.id = $1)`, caddy).Scan(&ind.Rounds, &ind.AverageRating, &ind.Ratings, &ind.Incidents12m, &joined); err != nil {
 		return ind, err
 	}
 	if joined != nil {
@@ -326,7 +383,7 @@ func (m *Module) RequestPromotion(ctx context.Context, tx pgx.Tx, property, cadd
 	}
 	var name string
 	var from *uuid.UUID
-	if err := tx.QueryRow(ctx, `SELECT name, level_id FROM golf.caddies WHERE id = $1 AND property_id = $2 FOR UPDATE`, caddy, property).Scan(&name, &from); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT c.name, p.level_id FROM golf.caddies c LEFT JOIN golf.caddy_profiles p ON p.caddy_id = c.id WHERE c.id = $1 AND c.property_id = $2`, caddy, property).Scan(&name, &from); err != nil {
 		if dbtx.IsNoRows(err) {
 			return LevelChange{}, errs.NotFound("caddy")
 		}
@@ -377,7 +434,8 @@ func (m *Module) promotionDecision(ctx context.Context, tx pgx.Tx, d approval.De
 	if err != nil {
 		return err
 	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.caddies SET level_id = $2 WHERE id = $1`, caddy, to); err != nil {
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.caddy_profiles (caddy_id, property_id, level_id) VALUES ($1,$3,$2)
+		ON CONFLICT (caddy_id) DO UPDATE SET level_id = EXCLUDED.level_id`, caddy, to, d.PropertyID); err != nil {
 		return err
 	}
 	return m.publish(ctx, tx, "golf.caddy_promoted", "golf.caddy", caddy, d.PropertyID, map[string]any{"caddyId": caddy, "levelId": to})
@@ -535,7 +593,7 @@ func (m *Module) chargeDamage(ctx context.Context, tx pgx.Tx, iid uuid.UUID) err
 		return err
 	}
 	amt, _ := decimal.NewFromString(amount)
-	lid, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: *folio, BusinessLine: billing.LineGolf, ChargeType: "other", RevenueComponent: "damage_charge",
+	lid, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: *folio, ChargeType: "other",
 		ReferenceType: "golf.incident", ReferenceID: &iid, Description: "Golf cart damage · " + no, Quantity: decimal.NewFromInt(1), UnitPrice: amt, Net: amt, Total: amt})
 	if err != nil {
 		return err
@@ -605,9 +663,16 @@ func (m *Module) Favorite(ctx context.Context, tx pgx.Tx, property, caddy, custo
 		if _, err := tx.Exec(ctx, `DELETE FROM golf.caddy_favorites WHERE caddy_id = $1 AND customer_id = $2`, caddy, customer); err != nil {
 			return err
 		}
-		if _, err := tx.Exec(ctx, `UPDATE crm.customer_preferences SET status = 'inactive' WHERE customer_id = $1 AND category = 'favorite_caddy' AND ref_id = $2
-			AND status = 'active'`, customer, caddy); err != nil {
+		prefs, err := crm.ListPreferences(ctx, tx, customer, false)
+		if err != nil {
 			return err
+		}
+		for _, p := range prefs {
+			if p.Category == "favorite_caddy" && p.RefID != nil && *p.RefID == caddy {
+				if err := crm.RemovePreference(ctx, tx, property, p.ID); err != nil {
+					return err
+				}
+			}
 		}
 		return record(ctx, tx, "golf.caddy_favorite", caddy, name, audit.ActionDelete, property, map[string]any{"customerId": customer}, nil, "")
 	}
@@ -652,17 +717,16 @@ func (m *Module) CaddyHistory(ctx context.Context, q dbtx.Querier, property, cad
 		return h, err
 	}
 	var err error
-	if h.Assignments, err = ListCaddyAssignments(ctx, q, location(ctx, q, property), "a.caddy_id = $1", caddy); err != nil {
+	if h.Assignments, err = golf.ListCaddyAssignments(ctx, q, location(ctx, q, property), "a.caddy_id = $1", caddy); err != nil {
 		return h, err
 	}
 	if limit > 0 && len(h.Assignments) > limit {
 		h.Assignments = h.Assignments[:limit]
 	}
-	if h.Customers, err = handle.List[CustomerServed](q.Query(ctx, `SELECT bp.customer_id, c.name, count(DISTINCT a.flight_id)::int AS rounds,
+	if h.Customers, err = handle.List[CustomerServed](q.Query(ctx, `SELECT bp.customer_id, max(bp.name) AS name, count(DISTINCT a.flight_id)::int AS rounds,
 		max(lower(a.period)) AS last_round, EXISTS (SELECT 1 FROM golf.caddy_favorites fv WHERE fv.caddy_id = $1 AND fv.customer_id = bp.customer_id) AS favorite
 		FROM golf.caddy_assignments a JOIN golf.booking_players bp ON bp.id = ANY(a.player_ids) AND bp.customer_id IS NOT NULL
-		JOIN crm.customers c ON c.id = bp.customer_id
-		WHERE a.caddy_id = $1 AND a.status IN ('completed', 'replaced') GROUP BY bp.customer_id, c.name ORDER BY rounds DESC, c.name`, caddy)); err != nil {
+		WHERE a.caddy_id = $1 AND a.status IN ('completed', 'replaced') GROUP BY bp.customer_id ORDER BY rounds DESC, name`, caddy)); err != nil {
 		return h, err
 	}
 	for _, c := range h.Customers {
@@ -772,14 +836,17 @@ func (m *Module) CreateSettlement(ctx context.Context, tx pgx.Tx, property uuid.
 		}
 		return Settlement{}, err
 	}
-	lines, err := handle.List[SettlementLine](tx.Query(ctx, `SELECT 'caddy_fee' AS kind, a.id AS source_id, trim_scale(a.fee_amount)::text AS amount, a.play_date AS day,
+	lines, err := handle.List[SettlementLine](tx.Query(ctx, `SELECT 'caddy_fee' AS kind, a.id AS source_id, trim_scale(coalesce(fs.share_amount, a.fee_amount))::text AS amount, a.play_date AS day,
 		  coalesce(b.code, 'Flight') || ' · ' || a.status AS description
 		FROM golf.caddy_assignments a JOIN golf.flights f ON f.id = a.flight_id LEFT JOIN golf.bookings b ON b.id = f.booking_id
-		WHERE a.property_id = $1 AND a.caddy_id = $2 AND a.status IN ('completed', 'replaced') AND a.settlement_id IS NULL AND a.fee_amount > 0
+		LEFT JOIN golf.caddy_fee_shares fs ON fs.assignment_id = a.id
+		WHERE a.property_id = $1 AND a.caddy_id = $2 AND a.status IN ('completed', 'replaced') AND coalesce(fs.share_amount, a.fee_amount) > 0
+		  AND NOT EXISTS (SELECT 1 FROM golf.caddy_settlement_items i WHERE i.item_type = 'caddy_fee' AND i.item_id = a.id)
 		  AND a.play_date >= $3::date AND a.play_date <= $4::date
 		UNION ALL
 		SELECT 'caddy_tip', t.id, trim_scale(t.amount)::text, t.tip_date, 'Non-cash tip'
-		FROM golf.caddy_tips t WHERE t.property_id = $1 AND t.caddy_id = $2 AND t.method = 'non_cash' AND t.settlement_id IS NULL
+		FROM golf.caddy_tips t WHERE t.property_id = $1 AND t.caddy_id = $2 AND t.method = 'non_cash'
+		  AND NOT EXISTS (SELECT 1 FROM golf.caddy_settlement_items i WHERE i.item_type = 'caddy_tip' AND i.item_id = t.id)
 		  AND t.tip_date >= $3::date AND t.tip_date <= $4::date
 		ORDER BY day, kind`, property, in.CaddyID, in.PeriodStart, in.PeriodEnd))
 	if err != nil {
@@ -790,16 +857,13 @@ func (m *Module) CreateSettlement(ctx context.Context, tx pgx.Tx, property uuid.
 	}
 	var fee, tips decimal.Decimal
 	var rounds int
-	var fees, tipIDs []uuid.UUID
 	for _, l := range lines {
 		a, _ := decimal.NewFromString(l.Amount)
 		if l.Kind == "caddy_tip" {
 			tips = tips.Add(a)
-			tipIDs = append(tipIDs, l.SourceID)
 		} else {
 			fee = fee.Add(a)
 			rounds++
-			fees = append(fees, l.SourceID)
 		}
 	}
 	pol, err := m.caddyPolicy(ctx, tx, property)
@@ -823,11 +887,11 @@ func (m *Module) CreateSettlement(ctx context.Context, tx pgx.Tx, property uuid.
 		}
 		return Settlement{}, err
 	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.caddy_assignments SET settlement_id = $2 WHERE id = ANY($1)`, fees, sid); err != nil {
-		return Settlement{}, err
-	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.caddy_tips SET settlement_id = $2 WHERE id = ANY($1)`, tipIDs, sid); err != nil {
-		return Settlement{}, err
+	for _, l := range lines {
+		if _, err := tx.Exec(ctx, `INSERT INTO golf.caddy_settlement_items (item_type, item_id, settlement_id, property_id, amount) VALUES ($1,$2,$3,$4,$5::numeric)`,
+			l.Kind, l.SourceID, sid, property, l.Amount); err != nil {
+			return Settlement{}, err
+		}
 	}
 	rid, _, err := m.Approvals.Submit(ctx, tx, approval.SubmitRequest{DocumentType: SettlementType.Code, DocumentID: sid, DocumentRef: no,
 		Title: "Caddy fee settlement · " + name, PropertyID: property, Attributes: map[string]any{"amount": total.InexactFloat64()}})
@@ -852,10 +916,7 @@ func (m *Module) settlementDecision(ctx context.Context, tx pgx.Tx, d approval.D
 	if err != nil || tag.RowsAffected() == 0 || st != "rejected" {
 		return err
 	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.caddy_assignments SET settlement_id = NULL WHERE settlement_id = $1`, d.DocumentID); err != nil {
-		return err
-	}
-	_, err = tx.Exec(ctx, `UPDATE golf.caddy_tips SET settlement_id = NULL WHERE settlement_id = $1`, d.DocumentID)
+	_, err = tx.Exec(ctx, `DELETE FROM golf.caddy_settlement_items WHERE settlement_id = $1`, d.DocumentID)
 	return err
 }
 
@@ -907,8 +968,9 @@ func (m *Module) Liabilities(ctx context.Context, q dbtx.Querier, property uuid.
 		trim_scale(coalesce(s.ded, 0))::text AS deducted,
 		trim_scale(coalesce(f.amt, 0) + coalesce(t.amt, 0) - coalesce(s.paid, 0) - coalesce(s.ded, 0))::text AS liability
 		FROM golf.caddies c
-		LEFT JOIN (SELECT caddy_id, sum(fee_amount) AS amt FROM golf.caddy_assignments WHERE property_id = $1 AND status IN ('completed', 'replaced')
-		  GROUP BY caddy_id) f ON f.caddy_id = c.id
+		LEFT JOIN (SELECT a.caddy_id, sum(coalesce(fs.share_amount, a.fee_amount)) AS amt FROM golf.caddy_assignments a
+		  LEFT JOIN golf.caddy_fee_shares fs ON fs.assignment_id = a.id WHERE a.property_id = $1 AND a.status IN ('completed', 'replaced')
+		  GROUP BY a.caddy_id) f ON f.caddy_id = c.id
 		LEFT JOIN (SELECT caddy_id, sum(amount) AS amt FROM golf.caddy_tips WHERE property_id = $1 AND method = 'non_cash' GROUP BY caddy_id) t ON t.caddy_id = c.id
 		LEFT JOIN (SELECT caddy_id, sum(total) AS paid, sum(deductions) AS ded FROM golf.caddy_settlements WHERE property_id = $1 AND status = 'paid'
 		  GROUP BY caddy_id) s ON s.caddy_id = c.id

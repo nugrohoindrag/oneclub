@@ -1,16 +1,31 @@
-package golf
+package experience
 
-// PRD P2 Complete Golf Experience on P1's Golf Core: master data, policies,
-// approval document types and the catalogue of EP-05 … EP-13.
+// Package experience is PRD P2 Complete Golf Experience (EP-05 … EP-13) on
+// P1's Golf Core: a P2-owned sub-package of the golf module (PRD P2
+// §5.4.1). It uses P1 only through the golf package's public API and P1
+// domain events (contract C7/C8) and keeps its data in P2 tables; P1 code
+// and tables are not changed.
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/shopspring/decimal"
+
+	"oneclub/internal/billing"
+	"oneclub/internal/commercial"
+	"oneclub/internal/crm"
+	"oneclub/internal/golf"
+	"oneclub/internal/platform/notify"
+	"oneclub/internal/platform/org"
+	"oneclub/internal/platform/storage"
+	"oneclub/internal/reservation"
 
 	"oneclub/internal/kernel/authz"
 	"oneclub/internal/kernel/clock"
@@ -26,6 +41,8 @@ import (
 	"oneclub/internal/platform/resource"
 	"oneclub/internal/platform/rules"
 )
+
+var numRe = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._/-]{0,19}$`)
 
 func p2code(label string) resource.Field {
 	return resource.Field{Name: "code", Column: "code", Label: label, Kind: resource.String, Required: true, Max: 20, Pattern: numRe,
@@ -115,8 +132,8 @@ var HallOfFame = &resource.Def{
 		resource.Status("active", "inactive")},
 }
 
-// P2Defs are the P2 golf master data resources.
-var P2Defs = []*resource.Def{CaddyLevels, CartChecklists, RangeBays, ReciprocalClubs, HallOfFame}
+// Defs are the P2 golf master data resources.
+var Defs = []*resource.Def{CaddyLevels, CartChecklists, RangeBays, ReciprocalClubs, HallOfFame}
 
 // ── policies (FR-POL-P2-04/05/07) ─────────────────────────────────────────
 
@@ -139,26 +156,57 @@ type HallOfFamePolicy struct {
 
 var defaultHOFPolicy = HallOfFamePolicy{AutoPublish: false, KioskRotateSecs: 12, CourseRecordMinHoles: 18}
 
+// CaddyLifecyclePolicy is the P2 part of "Caddy Policies" (code
+// golf.caddy_lifecycle, FR-POL-P2-04): rotation, fee split on replacement,
+// settlement and deductions. P1's golf.caddy policy is unchanged.
+type CaddyLifecyclePolicy struct {
+	Rotation          string `json:"rotation" doc:"arrival | round_robin | level"`
+	ReplacementSplit  string `json:"replacementSplit" doc:"by_holes | first_caddy | last_caddy"`
+	SettlementDays    int    `json:"settlementDays"`
+	DeductionPercent  string `json:"deductionPercent" doc:"Club deduction from the caddy fee (e.g. 5)"`
+	DeductionPerRound string `json:"deductionPerRound" doc:"Fixed deduction per round (uniform, insurance)"`
+	MaxRoundsPerDay   int    `json:"maxRoundsPerDay"`
+}
+
+var defaultCaddyLifecycle = CaddyLifecyclePolicy{Rotation: "arrival", ReplacementSplit: "by_holes", SettlementDays: 14, DeductionPercent: "0",
+	DeductionPerRound: "0", MaxRoundsPerDay: 2}
+
+// CartLifecyclePolicy is the P2 part of "Golf Cart Policies" (code
+// golf.cart_lifecycle, FR-POL-P2-05): service hours, damage charge, release
+// inspection and battery. P1's golf.golf_cart policy is unchanged.
+type CartLifecyclePolicy struct {
+	DefaultServiceHours  string `json:"defaultServiceHours"`
+	DamageChargeApproval bool   `json:"damageChargeApproval"`
+	RequireRelease       bool   `json:"requireRelease" doc:"Maintenance ends only with a passed release inspection"`
+	MinBatteryForReady   int    `json:"minBatteryForReady"`
+}
+
+var defaultCartLifecycle = CartLifecyclePolicy{DefaultServiceHours: "250", DamageChargeApproval: true, RequireRelease: true, MinBatteryForReady: 60}
+
 func init() {
-	// Every golf policy appears in the Club Policies catalogue (P1 policies
-	// with their P2 extensions, plus the P2 ones).
-	for code, def := range map[string]any{PolicyGolf: DefaultGolf, PolicyGuest: DefaultGuest, PolicyCancellation: DefaultCancellation,
-		PolicyWeather: DefaultWeather, PolicyCaddy: DefaultCaddy, PolicyCart: DefaultCart, PolicyPayment: DefaultPayment, PolicyEligibility: DefaultEligibility} {
-		rules.RegisterPolicy(rules.PolicyDef{Code: code, Category: PolicyCategory[code], Name: PolicyCategory[code], Default: def})
-	}
+	rules.RegisterPolicy(rules.PolicyDef{Code: "golf.caddy_lifecycle", Category: "Caddy Policies", Name: "Caddy rotation & settlement",
+		Description: "Rotation, fee split on replacement, settlement period and deductions", Default: defaultCaddyLifecycle})
+	rules.RegisterPolicy(rules.PolicyDef{Code: "golf.cart_lifecycle", Category: "Golf Cart Policies", Name: "Golf cart inspection & service",
+		Description: "Service hours, damage charge approval, release inspection and minimum battery", Default: defaultCartLifecycle})
 	rules.RegisterPolicy(rules.PolicyDef{Code: "golf.reciprocal", Category: "Reciprocal Policies", Name: "Reciprocal verification",
 		Description: "Introduction letter and home club card requirements, letter validity, visit quota", Default: defaultReciprocalPolicy})
 	rules.RegisterPolicy(rules.PolicyDef{Code: "golf.hall_of_fame", Category: "Hall of Fame Policies", Name: "Hall of Fame curation",
 		Description: "Auto-publish of automatic entries, kiosk rotation, course record minimum holes", Default: defaultHOFPolicy})
 }
 
-func (m *Module) caddyPolicy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (CaddyPolicy, error) {
-	p, err := LoadPolicies(ctx, q, property, clock.Now())
-	return p.Caddy, err
+func (m *Module) caddyPolicy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (CaddyLifecyclePolicy, error) {
+	p, _, err := rules.PolicyAt(ctx, q, "golf.caddy_lifecycle", property, defaultCaddyLifecycle)
+	return p, err
 }
 
-func (m *Module) cartPolicy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (CartPolicy, error) {
-	p, err := LoadPolicies(ctx, q, property, clock.Now())
+func (m *Module) cartPolicy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (CartLifecyclePolicy, error) {
+	p, _, err := rules.PolicyAt(ctx, q, "golf.cart_lifecycle", property, defaultCartLifecycle)
+	return p, err
+}
+
+// p1CartPolicy is P1's Golf Cart Policies (what happens to a returned cart).
+func (m *Module) p1CartPolicy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (golf.CartPolicy, error) {
+	p, err := golf.LoadPolicies(ctx, q, property, clock.Now())
 	return p.Cart, err
 }
 
@@ -182,13 +230,13 @@ var (
 	IntroductionLetterType = provision.DocumentType{Code: "golf_introduction_letter", Module: "golf", Name: "Introduction Letter"}
 )
 
-// P2DocumentTypes lists the P2 golf approval document types.
-func P2DocumentTypes() []provision.DocumentType {
+// DocumentTypes lists the P2 golf approval document types.
+func DocumentTypes() []provision.DocumentType {
 	return []provision.DocumentType{PromotionType, SettlementType, HIOType, DamageChargeType, IntroductionLetterType}
 }
 
-// P2Decision routes approval decisions of the P2 golf documents.
-func (m *Module) P2Decision(ctx context.Context, tx pgx.Tx, d approval.Decision) error {
+// Decision routes approval decisions of the P2 golf documents.
+func (m *Module) Decision(ctx context.Context, tx pgx.Tx, d approval.Decision) error {
 	switch d.DocumentType {
 	case PromotionType.Code:
 		return m.promotionDecision(ctx, tx, d)
@@ -204,7 +252,62 @@ func (m *Module) P2Decision(ctx context.Context, tx pgx.Tx, d approval.Decision)
 	return nil
 }
 
-// ── helpers of the P2 golf code ───────────────────────────────────────────
+// ── module ────────────────────────────────────────────────────────────────
+
+// Module is the P2 golf experience. Golf is P1's golf module (public API).
+type Module struct {
+	DB           *dbtx.DB
+	Events       golf.Publisher
+	Approvals    *approval.Engine
+	Billing      *billing.Service
+	Notify       notify.Sender
+	Golf         *golf.Module
+	Commercial   *commercial.Module  // on-course F&B orders from the Caddy Tablet
+	Reservations *reservation.Engine // driving range bays as bookable resources
+	CRM          *crm.Module         // post-round feedback, caddy-recorded preferences
+	Files        *storage.Files      // HIO claim package, introduction letters
+	GPS          GPSAdapter          // golf cart positions (vendor adapter)
+}
+
+// P1 golf types used by the P2 views.
+type (
+	CaddyAssignment = golf.CaddyAssignment
+	CartAssignment  = golf.CartAssignment
+	RouteHole       = golf.RouteHole
+	AssetInfo       = golf.AssetInfo
+)
+
+// ── helpers ───────────────────────────────────────────────────────────────
+
+func nullStr(s string) *string {
+	if strings.TrimSpace(s) == "" {
+		return nil
+	}
+	return &s
+}
+
+func dec(s string) decimal.Decimal {
+	d, _ := decimal.NewFromString(s)
+	return d
+}
+
+// location is the property time zone (the golf day boundary of P1).
+func location(ctx context.Context, q dbtx.Querier, property uuid.UUID) *time.Location {
+	if loc, err := org.Location(ctx, q, property); err == nil {
+		return loc
+	}
+	return calendar.Location(ctx, q)
+}
+
+func localDay(t time.Time, loc *time.Location) time.Time {
+	l := t.In(loc)
+	return time.Date(l.Year(), l.Month(), l.Day(), 0, 0, 0, 0, time.UTC)
+}
+
+// realtimeBoards refreshes P1's caddy & golf cart boards (same topic).
+func realtimeBoards(ctx context.Context, tx pgx.Tx, property uuid.UUID, day time.Time) error {
+	return realtime.Publish(ctx, tx, "golf.boards", "changed", &property, map[string]any{"date": day.Format("2006-01-02")})
+}
 
 func actorPtr(ctx context.Context) *uuid.UUID {
 	if p := authz.From(ctx); p != nil && p.UserID != uuid.Nil {
@@ -279,8 +382,9 @@ func can(ctx context.Context, perm string, property uuid.UUID) bool {
 	return p != nil && p.Can(perm, &property)
 }
 
-// p2Contribution is the P2 part of the golf catalogue.
-func p2Contribution() catalog.Contribution {
+// Contribution is the P2 part of the golf catalogue (merged with P1's in
+// internal/app).
+func Contribution() catalog.Contribution {
 	perms := resource.Permissions(CaddyLevels, RangeBays, ReciprocalClubs, HallOfFame)
 	add := func(obj string, actions ...string) { perms = append(perms, catalog.P("golf", obj, actions...)...) }
 	add("caddy_assignment", "accept")

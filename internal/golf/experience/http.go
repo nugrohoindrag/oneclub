@@ -1,4 +1,4 @@
-package golf
+package experience
 
 // Routes of PRD P2 Complete Golf Experience (§11 API): caddy lifecycle,
 // Caddy Tablet and rounds, golf cart inspections & maintenance, scoring &
@@ -17,6 +17,7 @@ import (
 
 	"oneclub/internal/commercial"
 	"oneclub/internal/crm"
+	"oneclub/internal/golf"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/httpx"
@@ -24,6 +25,7 @@ import (
 	"oneclub/internal/platform/audit"
 	"oneclub/internal/platform/handle"
 	"oneclub/internal/platform/resource"
+	syncsvc "oneclub/internal/platform/sync"
 )
 
 type ReasonInput struct {
@@ -132,11 +134,26 @@ func queryPosition(r *http.Request) (float64, float64, bool) {
 	return lat, lng, err1 == nil && err2 == nil
 }
 
-// registerP2 adds the P2 golf routes.
-func (m *Module) registerP2(reg *route.Registry, eng *resource.Engine) {
+// RegisterSync registers the offline round queue of the Caddy Tablet.
+func (m *Module) RegisterSync(s *syncsvc.Service) {
+	s.Handle("golf.round", m.SyncHandler)
+}
+
+// PaceTargetInput sets the pace target of a hole.
+type PaceTargetInput struct {
+	TargetMinutes int `json:"targetMinutes" doc:"5–40 minutes"`
+}
+
+// PaceToleranceInput sets the slow-play tolerance of a playing route.
+type PaceToleranceInput struct {
+	ToleranceMinutes int `json:"toleranceMinutes"`
+}
+
+// Register adds the P2 golf routes (wired by internal/app next to P1's).
+func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.rangeHooks()
 	m.registerMe(reg)
-	for _, d := range P2Defs {
+	for _, d := range Defs {
 		eng.Register(reg, d)
 	}
 	if m.GPS == nil {
@@ -149,6 +166,88 @@ func (m *Module) registerP2(reg *route.Registry, eng *resource.Engine) {
 	}
 	id := func(r *http.Request) (uuid.UUID, error) { return handle.ID(r) }
 	prop := handle.Property
+
+	// ── P2 profiles of P1 master data ──
+	add("Caddies", route.Route{Method: http.MethodGet, Path: "/api/v1/golf/caddies/{id}/profile", Summary: "Caddy profile: level, tablet login, joined date",
+		Permission: "golf.caddy.view", Response: CaddyProfile{},
+		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (CaddyProfile, error) {
+			cid, err := id(r)
+			if err != nil {
+				return CaddyProfile{}, err
+			}
+			return m.CaddyProfile(ctx, tx, prop(ctx), cid)
+		})})
+	add("Caddies", route.Route{Method: http.MethodPut, Path: "/api/v1/golf/caddies/{id}/profile", Summary: "Set the tablet login, joined date and initial level",
+		Permission: "golf.caddy.update", Request: CaddyProfileInput{}, Response: CaddyProfile{},
+		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in CaddyProfileInput) (CaddyProfile, error) {
+			cid, err := id(r)
+			if err != nil {
+				return CaddyProfile{}, err
+			}
+			return m.SetCaddyProfile(ctx, tx, prop(ctx), cid, in)
+		})})
+	add("Golf Carts", route.Route{Method: http.MethodGet, Path: "/api/v1/golf/golf-carts/{id}/profile", Summary: "Golf cart service hours, battery and GPS device",
+		Permission: "golf.golf_cart.view", Response: CartProfile{},
+		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (CartProfile, error) {
+			cid, err := id(r)
+			if err != nil {
+				return CartProfile{}, err
+			}
+			return m.CartProfile(ctx, tx, prop(ctx), cid)
+		})})
+	add("Golf Carts", route.Route{Method: http.MethodPut, Path: "/api/v1/golf/golf-carts/{id}/profile", Summary: "Set the service threshold and GPS device",
+		Permission: "golf.golf_cart.update", Request: CartProfileInput{}, Response: CartProfile{},
+		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in CartProfileInput) (CartProfile, error) {
+			cid, err := id(r)
+			if err != nil {
+				return CartProfile{}, err
+			}
+			return m.SetCartProfile(ctx, tx, prop(ctx), cid, in)
+		})})
+	add("Pace of Play", route.Route{Method: http.MethodPut, Path: "/api/v1/golf/holes/{id}/pace-target", Summary: "Pace target of a hole (minutes)",
+		Permission: "golf.course.update", Request: PaceTargetInput{},
+		Handler: handle.Write(db, http.StatusNoContent, func(ctx context.Context, tx pgx.Tx, r *http.Request, in PaceTargetInput) (handle.Empty, error) {
+			hid, err := id(r)
+			if err != nil {
+				return handle.Empty{}, err
+			}
+			if in.TargetMinutes < 5 || in.TargetMinutes > 40 {
+				return handle.Empty{}, handle.Invalid("targetMinutes", "invalid", "5–40 minutes")
+			}
+			tag, err := tx.Exec(ctx, `INSERT INTO golf.hole_pace_targets (hole_id, property_id, target_minutes, updated_by)
+				SELECT id, property_id, $3, $4 FROM golf.holes WHERE id = $1 AND property_id = $2
+				ON CONFLICT (hole_id) DO UPDATE SET target_minutes = EXCLUDED.target_minutes, updated_at = now(), updated_by = EXCLUDED.updated_by`,
+				hid, prop(ctx), in.TargetMinutes, actorPtr(ctx))
+			if err != nil {
+				return handle.Empty{}, err
+			}
+			if tag.RowsAffected() == 0 {
+				return handle.Empty{}, errs.NotFound("hole")
+			}
+			return handle.Empty{}, record(ctx, tx, "golf.hole_pace_target", hid, "pace target", audit.ActionUpdate, prop(ctx), nil, in, "")
+		})})
+	add("Pace of Play", route.Route{Method: http.MethodPut, Path: "/api/v1/golf/playing-routes/{id}/pace-tolerance", Summary: "Slow-play tolerance of a playing route (minutes)",
+		Permission: "golf.course.update", Request: PaceToleranceInput{},
+		Handler: handle.Write(db, http.StatusNoContent, func(ctx context.Context, tx pgx.Tx, r *http.Request, in PaceToleranceInput) (handle.Empty, error) {
+			rid, err := id(r)
+			if err != nil {
+				return handle.Empty{}, err
+			}
+			if in.ToleranceMinutes < 0 {
+				return handle.Empty{}, handle.Invalid("toleranceMinutes", "invalid", "0 or more minutes")
+			}
+			tag, err := tx.Exec(ctx, `INSERT INTO golf.route_pace_tolerances (playing_route_id, property_id, tolerance_minutes, updated_by)
+				SELECT id, property_id, $3, $4 FROM golf.playing_routes WHERE id = $1 AND property_id = $2
+				ON CONFLICT (playing_route_id) DO UPDATE SET tolerance_minutes = EXCLUDED.tolerance_minutes, updated_at = now(), updated_by = EXCLUDED.updated_by`,
+				rid, prop(ctx), in.ToleranceMinutes, actorPtr(ctx))
+			if err != nil {
+				return handle.Empty{}, err
+			}
+			if tag.RowsAffected() == 0 {
+				return handle.Empty{}, errs.NotFound("playing route")
+			}
+			return handle.Empty{}, record(ctx, tx, "golf.route_pace_tolerance", rid, "pace tolerance", audit.ActionUpdate, prop(ctx), nil, in, "")
+		})})
 
 	// ── Caddy Tablet & rounds (EP-06, EP-09) ──
 	add("Caddy Tablet", route.Route{Method: http.MethodGet, Path: "/api/v1/golf/my-assignments", Summary: "My Assignments (current and next) of the signed-in caddy",
@@ -484,7 +583,7 @@ func (m *Module) registerP2(reg *route.Registry, eng *resource.Engine) {
 				return CartHistory{}, err
 			}
 			var h CartHistory
-			if h.Assignments, err = ListCartAssignments(ctx, tx, "a.golf_cart_id = $1", cid); err != nil {
+			if h.Assignments, err = golf.ListCartAssignments(ctx, tx, "a.golf_cart_id = $1", cid); err != nil {
 				return h, err
 			}
 			if h.Inspections, err = handle.List[Inspection](tx.Query(ctx, inspectionSelect+` WHERE golf_cart_id = $1 ORDER BY inspected_at DESC LIMIT 200`, cid)); err != nil {

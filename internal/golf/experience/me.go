@@ -1,4 +1,4 @@
-package golf
+package experience
 
 // Member Portal golf of PRD P2 (EP-25 FR-APP-P2-02/08) next to P1's
 // /api/v1/member/golf routes: my scorecards (own score entry), round

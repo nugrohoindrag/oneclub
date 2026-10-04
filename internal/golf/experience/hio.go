@@ -1,4 +1,4 @@
-package golf
+package experience
 
 // Hole-in-One (PRD P2 EP-10) and Hall of Fame (EP-11).
 
@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
+	"oneclub/internal/crm"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
@@ -120,12 +121,11 @@ func (m *Module) CreateHIO(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 	}
 	name := in.PlayerName
 	if in.CustomerID != nil {
-		if err := tx.QueryRow(ctx, `SELECT name FROM crm.customers WHERE id = $1`, *in.CustomerID).Scan(&name); err != nil {
-			if dbtx.IsNoRows(err) {
-				return HIO{}, errs.NotFound("customer")
-			}
+		c, err := crm.GetCustomer(ctx, tx, *in.CustomerID)
+		if err != nil {
 			return HIO{}, err
 		}
+		name = c.Name
 	}
 	if err := handle.Required("playerName", name); err != nil {
 		return HIO{}, err

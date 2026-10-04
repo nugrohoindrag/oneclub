@@ -90,30 +90,19 @@ type WeatherPolicy struct {
 	ValidityDays int           `json:"validityDays"`
 }
 
-// CaddyPolicy (FR-POL-06; PRD P2 FR-POL-P2-04 rotation, fee split on
-// replacement and settlement).
+// CaddyPolicy (FR-POL-06).
 type CaddyPolicy struct {
-	PlayersPerCaddy   int    `json:"playersPerCaddy"`
-	Mandatory         bool   `json:"mandatory"`
-	AllowRequest      bool   `json:"allowRequest"`
-	Rotation          string `json:"rotation" doc:"arrival | round_robin | level"`
-	ReplacementSplit  string `json:"replacementSplit" doc:"by_holes | first_caddy | last_caddy"`
-	SettlementDays    int    `json:"settlementDays"`
-	DeductionPercent  string `json:"deductionPercent" doc:"Club deduction from the caddy fee (e.g. 5)"`
-	DeductionPerRound string `json:"deductionPerRound" doc:"Fixed deduction per round (uniform, insurance)"`
-	MaxRoundsPerDay   int    `json:"maxRoundsPerDay"`
+	PlayersPerCaddy int  `json:"playersPerCaddy"`
+	Mandatory       bool `json:"mandatory"`
+	AllowRequest    bool `json:"allowRequest"`
 }
 
-// CartPolicy (FR-POL-07; PRD P2 FR-POL-P2-05 inspection, service & damage).
+// CartPolicy (FR-POL-07).
 type CartPolicy struct {
-	PlayersPerCart       int    `json:"playersPerCart"`
-	Mandatory            bool   `json:"mandatory"`
-	SingleRiderAllowed   bool   `json:"singleRiderAllowed"`
-	AfterReturn          string `json:"afterReturn"` // not_ready | charging (after a passed post-op inspection)
-	DefaultServiceHours  string `json:"defaultServiceHours"`
-	DamageChargeApproval bool   `json:"damageChargeApproval"`
-	RequireRelease       bool   `json:"requireRelease" doc:"Maintenance ends only with a passed release inspection"`
-	MinBatteryForReady   int    `json:"minBatteryForReady"`
+	PlayersPerCart     int    `json:"playersPerCart"`
+	Mandatory          bool   `json:"mandatory"`
+	SingleRiderAllowed bool   `json:"singleRiderAllowed"`
+	AfterReturn        string `json:"afterReturn"` // not_ready | charging
 }
 
 // PaymentRule decides the Payment Policy of a booking (FR-PAY-02).
@@ -158,10 +147,8 @@ var (
 		WaiverRequiresApproval: true}
 	DefaultWeather = WeatherPolicy{Rules: []WeatherRule{{MaxHolesPlayed: 0, CreditPercent: "100"}, {MaxHolesPlayed: 9, CreditPercent: "50"},
 		{MaxHolesPlayed: 36, CreditPercent: "0"}}, ValidityDays: 90}
-	DefaultCaddy = CaddyPolicy{PlayersPerCaddy: 1, Mandatory: true, AllowRequest: true, Rotation: "arrival", ReplacementSplit: "by_holes",
-		SettlementDays: 14, DeductionPercent: "0", DeductionPerRound: "0", MaxRoundsPerDay: 2}
-	DefaultCart = CartPolicy{PlayersPerCart: 2, Mandatory: true, SingleRiderAllowed: true, AfterReturn: "charging", DefaultServiceHours: "250",
-		DamageChargeApproval: true, RequireRelease: true, MinBatteryForReady: 60}
+	DefaultCaddy   = CaddyPolicy{PlayersPerCaddy: 1, Mandatory: true, AllowRequest: true}
+	DefaultCart    = CartPolicy{PlayersPerCart: 2, Mandatory: true, SingleRiderAllowed: true, AfterReturn: "charging"}
 	DefaultPayment = PaymentPolicy{Default: "pay_at_venue", PayBeforeCheckIn: true, Rules: []PaymentRule{
 		{Channel: "website", Mode: "prepaid", DueMinutes: 15},
 		{Channel: "member_app", Mode: "member_charge"},

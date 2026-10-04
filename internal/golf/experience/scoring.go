@@ -1,4 +1,4 @@
-package golf
+package experience
 
 // Digital Scorecard, Playing History & Handicap (PRD P2 EP-08).
 
@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
+	"oneclub/internal/crm"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
@@ -86,9 +87,15 @@ func (m *Module) openScorecard(ctx context.Context, tx pgx.Tx, r Round, p RoundP
 		return nil
 	}
 	var tee *uuid.UUID
-	if err := tx.QueryRow(ctx, `SELECT t.id FROM golf.tee_sets t LEFT JOIN crm.customers c ON c.id = $2
+	var gender *string
+	if p.CustomerID != nil {
+		if c, err := crm.GetCustomer(ctx, tx, *p.CustomerID); err == nil && c.Gender != "" {
+			gender = &c.Gender
+		}
+	}
+	if err := tx.QueryRow(ctx, `SELECT t.id FROM golf.tee_sets t
 		WHERE t.course_id = $1 AND t.status = 'active' AND t.archived_at IS NULL
-		ORDER BY (t.gender IS NOT DISTINCT FROM c.gender) DESC, (t.gender = 'any') DESC, t.sequence, t.code LIMIT 1`, r.CourseID, p.CustomerID).Scan(&tee); err != nil && !dbtx.IsNoRows(err) {
+		ORDER BY (t.gender IS NOT DISTINCT FROM $2) DESC, (t.gender = 'any') DESC, t.sequence, t.code LIMIT 1`, r.CourseID, gender).Scan(&tee); err != nil && !dbtx.IsNoRows(err) {
 		return err
 	}
 	par := 0
