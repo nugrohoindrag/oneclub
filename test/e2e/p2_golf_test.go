@@ -523,10 +523,9 @@ func TestP2GolfReciprocal(t *testing.T) {
 		t.Fatalf("letters are for golf members: %s", r)
 	}
 	prog := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "GOLF-RC", "name": "Golf (reciprocal test)", "programKind": "golf"}))
-	typ := idOf(sa.Must(201, "POST", "/api/v1/membership/types", map[string]any{"code": "GOLF-RC-IND", "name": "Golf Individual", "programId": prog,
-		"entitlements": map[string]any{"memberRate": true}}))
+	typ, typPkg := membershipType(t, sa, prog, "GOLF-RC-IND", "Golf Individual", map[string]any{"entitlements": map[string]any{"memberRate": true}})
 	mem := customer(t, sa, "RC-MEMBER", "Budi Member", map[string]any{"email": "budi@rc.test"})
-	sa.Must(201, "POST", "/api/v1/membership/memberships", map[string]any{"typeId": typ, "customerId": mem})
+	activeMembership(t, sa, mem, typ, typPkg, nil)
 	l := sa.Must(201, "POST", "/api/v1/golf/introduction-letters", map[string]any{"clubId": club, "customerId": mem, "playFrom": today,
 		"playTo": time.Now().AddDate(0, 0, 3).Format("2006-01-02"), "players": 2}).JSON()
 	if l["status"] != "issued" || l["fileUrl"] == nil {

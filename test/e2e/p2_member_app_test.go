@@ -23,9 +23,9 @@ func TestP2MemberApp(t *testing.T) {
 	cust := customer(t, sa, "APP-MEMBER", "Andi Aplikasi", map[string]any{"email": "andi@app.test", "userId": userID(t, "member")})
 	sa.Must(201, "POST", "/api/v1/billing/customer-accounts", map[string]any{"customerId": cust, "accountType": "member", "creditLimit": "10000000"})
 	prog := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "GOLF-APP", "name": "Golf (app test)", "programKind": "golf"}))
-	typ := idOf(sa.Must(201, "POST", "/api/v1/membership/types", map[string]any{"code": "GOLF-APP-IND", "name": "Golf Individual", "programId": prog,
-		"annualFee": "1200000", "entitlements": map[string]any{"memberRate": true, "memberCharge": true}}))
-	ms := sa.Must(201, "POST", "/api/v1/membership/memberships", map[string]any{"typeId": typ, "customerId": cust, "startDate": dateAgo(0, 8, 0)}).JSON()
+	typ, typPkg := membershipType(t, sa, prog, "GOLF-APP-IND", "Golf Individual", map[string]any{"annualFee": "1200000", "entitlements": map[string]any{"memberRate": true, "memberCharge": true}})
+	msID := activeMembership(t, sa, cust, typ, typPkg, nil)
+	sysExec(t, inst, `UPDATE membership.memberships SET starts_on = $2 WHERE id = $1`, mustUUID(msID), dateAgo(0, 8, 0))
 
 	prof := mc.Must(200, "GET", "/api/v1/member/profile", nil).JSON()
 	if prof["profile"].(map[string]any)["id"] != cust {
@@ -41,16 +41,16 @@ func TestP2MemberApp(t *testing.T) {
 		t.Fatalf("digital member card: %v", card)
 	}
 	mine := mc.Must(200, "GET", "/api/v1/member/memberships", nil).Items()
-	if len(mine) != 1 || mine[0]["id"] != ms["id"] {
+	if len(mine) != 1 || mine[0]["id"] != msID {
 		t.Fatalf("my memberships: %v", mine)
 	}
 	// Another member's membership is not reachable.
 	other := customer(t, sa, "APP-OTHER", "Orang Lain", nil)
-	oms := sa.Must(201, "POST", "/api/v1/membership/memberships", map[string]any{"typeId": typ, "customerId": other}).JSON()
-	if r := mc.Do("POST", "/api/v1/member/memberships/"+str(oms["id"])+":renew", nil); r.Status != 404 {
+	omsID := activeMembership(t, sa, other, typ, typPkg, nil)
+	if r := mc.Do("POST", "/api/v1/member/memberships/"+omsID+":renew", nil); r.Status != 404 {
 		t.Fatalf("other member's membership: %s", r)
 	}
-	if r := mc.Do("POST", "/api/v1/member/memberships/"+str(ms["id"])+":pause", map[string]any{"from": time.Now().Format("2006-01-02"),
+	if r := mc.Do("POST", "/api/v1/member/memberships/"+msID+":pause", map[string]any{"from": time.Now().Format("2006-01-02"),
 		"until": time.Now().AddDate(0, 2, 0).Format("2006-01-02"), "reason": "Overseas assignment"}); r.Status != 202 {
 		t.Fatalf("pause request: %s", r)
 	}

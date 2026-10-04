@@ -85,11 +85,14 @@ type lc struct {
 	EndsOn, NextFeeDue, PausedUntil  *time.Time
 }
 
-func loadLC(ctx context.Context, tx pgx.Tx, mid uuid.UUID) (lc, error) {
+// loadLC loads and locks a principal membership for a lifecycle change.
+func loadLC(ctx context.Context, tx pgx.Tx, mid uuid.UUID) (lc, error) { return queryLC(ctx, tx, mid, " FOR UPDATE OF ms") }
+
+func queryLC(ctx context.Context, q dbtx.Querier, mid uuid.UUID, lock string) (lc, error) {
 	var l lc
-	err := tx.QueryRow(ctx, `SELECT ms.id, ms.property_id, ms.member_id, ms.type_id, mb.customer_id, mb.code, mb.name, ms.role, ms.status,
+	err := q.QueryRow(ctx, `SELECT ms.id, ms.property_id, ms.member_id, ms.type_id, mb.customer_id, mb.code, mb.name, ms.role, ms.status,
 		ms.starts_on, ms.ends_on, ms.next_fee_due, ms.paused_until
-		FROM membership.memberships ms JOIN membership.members mb ON mb.id = ms.member_id WHERE ms.id = $1 FOR UPDATE OF ms`, mid).
+		FROM membership.memberships ms JOIN membership.members mb ON mb.id = ms.member_id WHERE ms.id = $1`+lock, mid).
 		Scan(&l.ID, &l.PropertyID, &l.MemberID, &l.TypeID, &l.CustomerID, &l.MemberNo, &l.MemberName, &l.Role, &l.Status, &l.StartsOn, &l.EndsOn,
 			&l.NextFeeDue, &l.PausedUntil)
 	if dbtx.IsNoRows(err) {
@@ -114,6 +117,35 @@ func GetMembership(ctx context.Context, q dbtx.Querier, mid uuid.UUID) (Membersh
 		return Membership{}, errs.NotFound("membership")
 	}
 	return list[0], nil
+}
+
+// MembershipDetail is P1's membership with its P2 lifecycle state
+// (status paused / suspended / cancelled, annual fee due date, pause,
+// suspension and cancellation).
+type MembershipDetail struct {
+	Membership
+	TypeCode         string     `json:"typeCode"`
+	NextFeeDue       *string    `json:"nextFeeDue"`
+	PausedFrom       *string    `json:"pausedFrom"`
+	PausedUntil      *string    `json:"pausedUntil"`
+	SuspensionKind   *string    `json:"suspensionKind" enum:"arrears,discipline"`
+	SuspensionReason *string    `json:"suspensionReason"`
+	SuspendedAt      *time.Time `json:"suspendedAt"`
+	CancelledAt      *time.Time `json:"cancelledAt"`
+	CancelReason     *string    `json:"cancelReason"`
+}
+
+// GetMembershipDetail returns a membership with its lifecycle state.
+func GetMembershipDetail(ctx context.Context, q dbtx.Querier, mid uuid.UUID) (MembershipDetail, error) {
+	ms, err := GetMembership(ctx, q, mid)
+	if err != nil {
+		return MembershipDetail{}, err
+	}
+	d := MembershipDetail{Membership: ms}
+	err = q.QueryRow(ctx, `SELECT t.code, ms.next_fee_due::text, ms.paused_from::text, ms.paused_until::text, ms.suspension_kind, ms.suspension_reason,
+		ms.suspended_at, ms.cancelled_at, ms.cancel_reason FROM membership.memberships ms JOIN membership.types t ON t.id = ms.type_id WHERE ms.id = $1`, mid).
+		Scan(&d.TypeCode, &d.NextFeeDue, &d.PausedFrom, &d.PausedUntil, &d.SuspensionKind, &d.SuspensionReason, &d.SuspendedAt, &d.CancelledAt, &d.CancelReason)
+	return d, err
 }
 
 // transition changes the status of the principal and its family / nominee
@@ -717,7 +749,7 @@ type ChangePreview struct {
 // PreviewChange computes the prorated difference:
 // (new annual fee − current annual fee) × remaining days ÷ period days.
 func (m *Module) PreviewChange(ctx context.Context, tx pgx.Tx, mid, toType uuid.UUID) (ChangePreview, error) {
-	l, err := loadLC(ctx, tx, mid)
+	l, err := queryLC(ctx, tx, mid, "") // read-only preview
 	if err != nil {
 		return ChangePreview{}, err
 	}

@@ -53,12 +53,12 @@ func (m *Module) registerLifecycle(reg *route.Registry) {
 		reg.Add(rt)
 	}
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/membership/memberships/{id}", Summary: "Membership detail", Permission: "membership.membership.view",
-		Response: Membership{}, Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (Membership, error) {
+		Response: MembershipDetail{}, Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (MembershipDetail, error) {
 			mid, err := handle.ID(r)
 			if err != nil {
-				return Membership{}, err
+				return MembershipDetail{}, err
 			}
-			return GetMembership(ctx, tx, mid)
+			return GetMembershipDetail(ctx, tx, mid)
 		})})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/membership/memberships/{id}:pause", Summary: "Pause a membership (approval; validity extended)",
 		Permission: "membership.membership.pause", Request: PauseInput{}, Response: LifecycleRequest{}, Status: http.StatusAccepted,

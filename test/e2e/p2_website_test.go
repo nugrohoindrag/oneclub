@@ -100,7 +100,7 @@ func TestP2Website(t *testing.T) {
 
 	// Membership page & application; contact form; honeypot.
 	sp := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "WEB-SPORT", "name": "Sport Club (web)", "programKind": "sport_club"}))
-	typ := idOf(sa.Must(201, "POST", "/api/v1/membership/types", map[string]any{"code": "WEB-SC-IND", "name": "Sport Individual", "programId": sp, "annualFee": "3000000"}))
+	typ, _ := membershipType(t, sa, sp, "WEB-SC-IND", "Sport Individual", map[string]any{"annualFee": "3000000"})
 	if ts := pub.Must(200, "GET", "/api/v1/public/membership-types?propertyId="+prop+"&programKind=sport_club", nil).Items(); len(ts) == 0 {
 		t.Fatal("membership types")
 	}

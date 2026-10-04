@@ -50,10 +50,9 @@ func TestP2SportClubEntryAccess(t *testing.T) {
 
 	// Member with Sport Club membership; Guest of Member requires the member present.
 	prog := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "SPORT-SC", "name": "Sport Club", "programKind": "sport_club"}))
-	ind := idOf(sa.Must(201, "POST", "/api/v1/membership/types", map[string]any{"code": "SC-IND", "name": "Individual", "programId": prog,
-		"entitlements": map[string]any{"memberRate": true, "freeEntry": true, "memberCharge": true}}))
+	ind, indPkg := membershipType(t, sa, prog, "SC-IND", "Individual", map[string]any{"entitlements": map[string]any{"memberRate": true, "freeEntry": true, "memberCharge": true}})
 	member := customer(t, sa, "SC-MEMBER", "Sari Member", map[string]any{"birthDate": dateAgo(35, 0, 0)})
-	sa.Must(201, "POST", "/api/v1/membership/memberships", map[string]any{"typeId": ind, "customerId": member})
+	activeMembership(t, sa, member, ind, indPkg, nil)
 	card := sa.Must(200, "GET", "/api/v1/membership/cards?filter[customerId]="+member, nil).Items()[0]
 	guest := map[string]any{"facilityId": pool, "entryType": "guest_of_member", "hostCustomerId": member, "guest": map[string]any{"name": "Teman Sari"}}
 	if r := sa.Do("POST", "/api/v1/sportclub/entries", guest); r.Status != 409 {
@@ -194,11 +193,10 @@ func TestP2Classes(t *testing.T) {
 	f := setupP2(t)
 	sa := f.SA
 	prog := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "SPORT-CL", "name": "Sport Club (classes)", "programKind": "sport_club"}))
-	ind := idOf(sa.Must(201, "POST", "/api/v1/membership/types", map[string]any{"code": "SC-CL", "name": "Individual", "programId": prog,
-		"entitlements": map[string]any{"memberRate": true}}))
+	ind, indPkg := membershipType(t, sa, prog, "SC-CL", "Individual", map[string]any{"entitlements": map[string]any{"memberRate": true}})
 	member := customer(t, sa, "CL-MEMBER", "Member Swimmer", nil)
 	guest := customer(t, sa, "CL-GUEST", "Guest Swimmer", nil)
-	sa.Must(201, "POST", "/api/v1/membership/memberships", map[string]any{"typeId": ind, "customerId": member})
+	activeMembership(t, sa, member, ind, indPkg, nil)
 	pool := idOf(sa.Must(201, "POST", "/api/v1/sportclub/facilities", map[string]any{"code": "POOL-TRAIN", "name": "Training Pool", "facilityType": "swimming_pool", "usageMode": "class"}))
 	var instUser string
 	sysQueryRow(t, inst, `SELECT id::text FROM platform.users WHERE email = 'role.instructor_coach@matrix.test'`, nil, &instUser)

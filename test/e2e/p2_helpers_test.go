@@ -133,6 +133,59 @@ func resourceOf(t *testing.T, c *Client, code, typ string, capacity *int, attrs 
 	return idOf(c.Must(201, "POST", "/api/v1/reservation/resources", b))
 }
 
+// membershipType creates a membership type with a one-year package: P1 keeps
+// the joining and period fee on the package; P2 adds the annual fee,
+// entitlements and lifecycle fees on the type.
+func membershipType(t *testing.T, c *Client, program, code, name string, fields map[string]any) (typeID, packageID string) {
+	t.Helper()
+	body := map[string]any{"code": code, "name": name, "programId": program, "category": "individual"}
+	joining := "0"
+	for k, v := range fields {
+		if k == "joiningFee" {
+			joining = str(v)
+			continue
+		}
+		body[k] = v
+	}
+	typeID = idOf(c.Must(201, "POST", "/api/v1/membership/types", body))
+	packageID = idOf(c.Must(201, "POST", "/api/v1/membership/packages", map[string]any{"typeId": typeID, "code": code + "-1Y",
+		"name": name + " 1 year", "periodUnit": "year", "joiningFee": joining}))
+	return typeID, packageID
+}
+
+// activeMembership runs P1's application flow — application, submit,
+// approval by the membership manager, fee payment, activation — and returns
+// the membership id.
+func activeMembership(t *testing.T, c *Client, customer, typeID, packageID string, dependents []map[string]any) string {
+	t.Helper()
+	body := map[string]any{"customerId": customer, "typeId": typeID, "packageId": packageID}
+	if dependents != nil {
+		body["dependents"] = dependents
+	}
+	aid := idOf(c.Must(201, "POST", "/api/v1/membership/applications", body))
+	app := c.Must(200, "POST", "/api/v1/membership/applications/"+aid+":submit", nil).JSON()
+	if app["status"] == "pending" && app["approvalRequestId"] != nil {
+		mgr := login(t, inst, "membership@demo.oneclub.id", demoPassword)
+		mgr.Must(200, "POST", "/api/v1/platform/approvals/"+str(app["approvalRequestId"])+":approve", map[string]any{})
+		app = c.Must(200, "GET", "/api/v1/membership/applications/"+aid, nil).JSON()
+	}
+	if fid := app["feeFolioId"]; fid != nil {
+		bal := c.Must(200, "GET", "/api/v1/billing/folios/"+str(fid), nil).JSON()["summary"].(map[string]any)["balance"]
+		if dec(bal).IsPositive() {
+			c.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": fid, "methodType": "cash", "amount": str(bal)})
+			// P1 activates the application once its fee folio is paid (billing.payment_settled)
+			if _, err := inst.App.Dispatcher.DispatchPending(t.Context()); err != nil {
+				t.Fatal(err)
+			}
+			app = c.Must(200, "GET", "/api/v1/membership/applications/"+aid, nil).JSON()
+		}
+	}
+	if app["status"] != "completed" {
+		app = c.Must(200, "POST", "/api/v1/membership/applications/"+aid+":activate", map[string]any{}).JSON()
+	}
+	return str(app["membershipId"])
+}
+
 func intp(n int) *int { return &n }
 
 func newKey() string { return uuid.NewString() }

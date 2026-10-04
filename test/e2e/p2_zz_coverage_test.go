@@ -177,9 +177,8 @@ func TestP2GolfOperationsCoverage(t *testing.T) {
 	club := idOf(sa.Must(201, "POST", "/api/v1/golf/reciprocal-clubs", map[string]any{"code": "ZC-CLUB", "name": "Coverage Golf Club", "country": "Malaysia",
 		"agreementFrom": "2025-01-01", "agreementTo": "2030-12-31"}))
 	prog := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "GOLF-ZC", "name": "Golf (coverage)", "programKind": "golf"}))
-	typ := idOf(sa.Must(201, "POST", "/api/v1/membership/types", map[string]any{"code": "GOLF-ZC-IND", "name": "Golf Individual ZC", "programId": prog,
-		"annualFee": "1500000", "entitlements": map[string]any{"memberRate": true}}))
-	ms := idOf(sa.Must(201, "POST", "/api/v1/membership/memberships", map[string]any{"typeId": typ, "customerId": me}))
+	typ, typPkg := membershipType(t, sa, prog, "GOLF-ZC-IND", "Golf Individual ZC", map[string]any{"annualFee": "1500000", "entitlements": map[string]any{"memberRate": true}})
+	ms := activeMembership(t, sa, me, typ, typPkg, nil)
 	today := now.Format("2006-01-02")
 	l := mc.Must(201, "POST", "/api/v1/member/golf/introduction-letters", map[string]any{"clubId": club, "playFrom": today, "playTo": now.AddDate(0, 0, 2).Format("2006-01-02")}).JSON()
 	if l["status"] != "issued" {
@@ -280,7 +279,7 @@ func TestP2SelfServiceCoverage(t *testing.T) {
 	// Membership: application from the app; a draft application submitted
 	// and force-activated by staff.
 	sp := idOf(sa.Must(201, "POST", "/api/v1/membership/programs", map[string]any{"code": "ZC-SPORT", "name": "Sport Club (coverage)", "programKind": "sport_club"}))
-	st := idOf(sa.Must(201, "POST", "/api/v1/membership/types", map[string]any{"code": "ZC-SC-IND", "name": "Sport Individual ZC", "programId": sp, "annualFee": "2000000"}))
+	st, _ := membershipType(t, sa, sp, "ZC-SC-IND", "Sport Individual ZC", map[string]any{"annualFee": "2000000"})
 	if a := mc.Must(201, "POST", "/api/v1/member/membership-applications", map[string]any{"typeId": st, "notes": "Apply from the app"}).JSON(); a["applicationNo"] == "" {
 		t.Fatalf("my application: %v", a)
 	}
