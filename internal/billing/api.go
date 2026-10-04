@@ -210,12 +210,27 @@ func CheckCredit(ctx context.Context, q dbtx.Querier, property uuid.UUID, a Acco
 	if err != nil {
 		return err
 	}
-	if !pol.AllowMemberCharge {
+	limit := dec(pol.MemberChargeLimit)
+	if a.AccountType == "corporate" {
+		// PRD P3 FR-BIL-P3-05: the Credit Policies default applies to
+		// corporate accounts (city ledger), not the member charge switch.
+		cp, _, err := LoadCreditPolicy(ctx, q, property)
+		if err != nil {
+			return err
+		}
+		limit = dec(cp.DefaultCorporateLimit)
+	} else if !pol.AllowMemberCharge {
 		return errs.Conflict("member_charge_disabled", "member charge is not allowed by the Member Policy")
 	}
-	limit := dec(pol.MemberChargeLimit)
 	if a.CreditLimit != nil {
 		limit = dec(*a.CreditLimit)
+	}
+	if !limit.IsZero() {
+		extra, err := creditHeadroom(ctx, q, a.ID, clock.Now()) // approved credit overrides (P3)
+		if err != nil {
+			return err
+		}
+		limit = limit.Add(extra)
 	}
 	if !limit.IsZero() && dec(a.Balance).Add(amount).GreaterThan(limit) {
 		return errs.Conflict("credit_limit_exceeded", fmt.Sprintf("member charge limit exceeded (balance %s + %s > limit %s)", dec(a.Balance).String(), amount.String(), limit.String()))
@@ -417,7 +432,7 @@ type Payment struct {
 	FolioNumber     *string    `json:"folioNumber"`
 	AccountID       *uuid.UUID `json:"accountId"`
 	PaymentMethodID *uuid.UUID `json:"paymentMethodId"`
-	MethodType      string     `json:"methodType" enum:"cash,bank_transfer,virtual_account,qris,card,payment_gateway,member_account,voucher_prepaid"`
+	MethodType      string     `json:"methodType" enum:"cash,bank_transfer,virtual_account,qris,card,payment_gateway,member_account,voucher_prepaid,folio_transfer,loyalty_points"`
 	Channel         string     `json:"channel" enum:"online,venue,member_account"`
 	Purpose         string     `json:"purpose" enum:"settlement,deposit,account_settlement"`
 	Amount          string     `json:"amount"`

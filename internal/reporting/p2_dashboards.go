@@ -23,7 +23,7 @@ type KPI struct {
 	Key        string      `json:"key"`
 	Label      string      `json:"label"`
 	Value      string      `json:"value" doc:"Decimal as text (counts, money, ratios 0–1)"`
-	Unit       string      `json:"unit" enum:"count,idr,ratio,hours,balls"`
+	Unit       string      `json:"unit" enum:"count,idr,ratio,hours,balls,points,days"`
 	Definition string      `json:"definition,omitempty"`
 	Breakdown  []Breakdown `json:"breakdown,omitempty"`
 }

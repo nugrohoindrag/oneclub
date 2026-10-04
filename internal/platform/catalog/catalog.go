@@ -74,16 +74,16 @@ var Modules = []Module{
 	{Code: "membership", Name: "Membership", Layer: "Shared Core", SortOrder: 30, Default: true},
 	{Code: "reservation", Name: "Booking", Layer: "Shared Core", SortOrder: 40, Default: true},
 	{Code: "stay", Name: "Stay & Venue", Layer: "Business Line", SortOrder: 50, Default: true},
-	{Code: "banquet", Name: "Banquet & Event", Layer: "Business Line", SortOrder: 60},
+	{Code: "banquet", Name: "Banquet & Event", Layer: "Business Line", SortOrder: 60, Default: true},
 	{Code: "crm", Name: "CRM", Layer: "Customer", SortOrder: 70, Default: true},
 	{Code: "commercial", Name: "Commercial", Layer: "Shared Core", SortOrder: 80, Default: true},
 	{Code: "billing", Name: "Billing & Payment", Layer: "Shared Core", SortOrder: 85, Default: true},
 	{Code: "inventory", Name: "Inventory", Layer: "Back Office", SortOrder: 90, Default: true},
 	{Code: "procurement", Name: "Procurement", Layer: "Back Office", SortOrder: 100, Default: true},
-	{Code: "accounting", Name: "Accounting", Layer: "Back Office", SortOrder: 110},
+	{Code: "accounting", Name: "Accounting", Layer: "Back Office", SortOrder: 110, Default: true},
 	{Code: "hris", Name: "HRIS", Layer: "Back Office", SortOrder: 120},
 	{Code: "reporting", Name: "Reports", Layer: "Foundation", SortOrder: 130, Default: true},
-	{Code: "cms", Name: "Landing Page / CMS", Layer: "Public Channel", SortOrder: 140},
+	{Code: "cms", Name: "CMS", Layer: "Public Channel", SortOrder: 140, Default: true},
 }
 
 // ModuleByCode returns a module definition.

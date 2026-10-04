@@ -57,7 +57,7 @@ func Contributions() []catalog.Contribution {
 	return append([]catalog.Contribution{
 		reporting.Contribution(), golf.Contribution(), billing.Contribution(), commercial.Contribution(),
 		crm.Contribution(), membership.Contribution(), sportclub.Contribution(), reservation.Contribution(), procurement.Contribution(),
-	}, p2Contributions()...)
+	}, append(p2Contributions(), p3Contributions()...)...)
 }
 
 // Flags are the default feature flags (FR-INS-05).
@@ -68,14 +68,18 @@ var Flags = []provision.Flag{
 	{Key: "member.self_registration", Description: "Member Portal shows Create an Account (P1)", Type: "boolean", Default: false, ClientVisible: true},
 }
 
-// Reports registered in P0, P1 and P2.
-var Reports = append(append([]*reporting.Report{reporting.UserAccessReport, reporting.VenueDirectoryReport}, reporting.P1Reports...), reporting.P2Reports...)
+// Reports registered in P0, P1, P2, P3 and P4.
+var Reports = append(append(append(append([]*reporting.Report{reporting.UserAccessReport, reporting.VenueDirectoryReport}, reporting.P1Reports...),
+	reporting.P2Reports...), reporting.P3Reports()...), reporting.P4Reports()...)
 
 // DocumentTypes registered by the modules (approval engine, FR-APR-09).
 var DocumentTypes = []provision.DocumentType{approval.TestDocumentType, org.VenueActivationType, billing.RefundDocumentType,
 	membership.ApplicationDocumentType, golf.PriceOverrideType, golf.CancellationWaiverType}
 
-func init() { DocumentTypes = append(DocumentTypes, p2DocumentTypes...) }
+func init() {
+	DocumentTypes = append(DocumentTypes, p2DocumentTypes...)
+	DocumentTypes = append(DocumentTypes, p3DocumentTypes()...) // PRD P3
+}
 
 // Seeds builds the catalogue synchronised into instance databases.
 func Seeds() (provision.Seeds, error) {
@@ -87,7 +91,7 @@ func Seeds() (provision.Seeds, error) {
 	for _, r := range Reports {
 		rs.Add(r)
 	}
-	return provision.Seeds{Catalog: cat, DocumentTypes: DocumentTypes, Reports: rs.Seeds(), Templates: append(notification.DefaultTemplates(), p2Templates()...), Flags: Flags}, nil
+	return provision.Seeds{Catalog: cat, DocumentTypes: DocumentTypes, Reports: rs.Seeds(), Templates: append(append(notification.DefaultTemplates(), p2Templates()...), p3Templates()...), Flags: Flags}, nil
 }
 
 // App holds the wired application.
@@ -117,6 +121,8 @@ type App struct {
 	Membership   *membership.Module
 	Sync         *syncsvc.Service
 	P2
+	P3
+	P4
 }
 
 // Options control process-specific wiring.
@@ -218,6 +224,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 	a.Approvals.RegisterDocumentType(golf.PriceOverrideType, a.Golf.OverrideDecision)
 	a.Approvals.RegisterDocumentType(golf.CancellationWaiverType, a.Golf.WaiverDecision)
 	a.buildP2(reg, cfg, db, files, billingHTTP)
+	a.buildP3(reg, cfg, db, files, billingHTTP)
 
 	// Workers and schedules.
 	a.Dispatcher = &outbox.Dispatcher{DB: db, Bus: a.Bus}
@@ -235,6 +242,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 
 	a.subscribe()
 	a.subscribeP2()
+	a.subscribeP3()
 
 	if db != nil {
 		jc, err := jobs.New(db.Primary, a.Registrar, jobs.Options{Process: o.Worker, Concurrency: o.Concurrency, TestOnly: o.TestOnly,

@@ -178,7 +178,7 @@ func (s *Service) TakeTender(ctx context.Context, tx pgx.Tx, in TenderPaymentInp
 		if in.Offline {
 			in.SkipCreditCheck, review = true, true // FR-POS-11
 		}
-	case "voucher_prepaid", "folio_transfer":
+	case "voucher_prepaid", "folio_transfer", "loyalty_points":
 		if in.FolioID == nil {
 			return Payment{}, errs.Validation("folio_required", "a folio is required for this payment method")
 		}

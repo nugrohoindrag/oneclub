@@ -35,10 +35,13 @@ const (
 	LineMembership = "membership"
 	LineVoucher    = "voucher"
 	LineOther      = "other"
+	// PRD P3 business lines.
+	LineBanquet = "banquet" // banquet, MICE, wedding & events
+	LinePackage = "package" // cross-line packages before revenue allocation
 )
 
 // BusinessLines lists the valid business lines.
-var BusinessLines = []string{LineGolf, LineSport, LineStay, LinePOS, LineMembership, LineVoucher, LineOther}
+var BusinessLines = []string{LineGolf, LineSport, LineStay, LinePOS, LineMembership, LineVoucher, LineBanquet, LinePackage, LineOther}
 
 // RevenueComponents of the accounting export (FR-BIL-P2-05) on top of P1's
 // charge types.
@@ -51,6 +54,9 @@ var RevenueComponents = []string{
 	"membership_fee", "membership_annual_fee", "card_replacement_fee", "reactivation_fee", "nominee_fee",
 	"caddy_fee_settlement", "instructor_fee",
 	"cancellation_fee", "damage_charge", "late_checkout_fee", "deposit", "other",
+	// PRD P3: banquet & events, tournaments, packages, promotions, loyalty
+	"banquet_package", "banquet_fnb", "venue_rental", "corkage", "outdoor_venue", "electricity", "event_fee",
+	"tournament_fee", "sponsorship", "package", "promotion_discount", "loyalty_redemption",
 }
 
 func componentOf(line string) string {
@@ -109,12 +115,12 @@ func (s *Service) applyTender(ctx context.Context, tx pgx.Tx, property, folioID 
 		return decimal.Zero, nil, err
 	}
 	switch in.MethodType {
-	case "voucher_prepaid":
+	case "voucher_prepaid", "loyalty_points": // loyalty points: PRD P3 FR-LOY-05
 		tenderMu.RLock()
-		h, ok := tenders["voucher_prepaid"]
+		h, ok := tenders[in.MethodType]
 		tenderMu.RUnlock()
 		if !ok {
-			return decimal.Zero, nil, errs.Unavailable("voucher tender is not available")
+			return decimal.Zero, nil, errs.Unavailable(strings.ReplaceAll(in.MethodType, "_", " ") + " tender is not available")
 		}
 		key := in.IdempotencyKey
 		if key == "" {
@@ -248,7 +254,7 @@ func (s *Service) SetAccountStatus(ctx context.Context, tx pgx.Tx, property, cus
 
 // lineLabels name the business lines on the Member Statement.
 var lineLabels = map[string]string{LineGolf: "Golf", LineSport: "Sport Club", LineStay: "Stay & Venue", LinePOS: "F&B / POS",
-	LineMembership: "Membership", LineVoucher: "Voucher", LineOther: "Other"}
+	LineMembership: "Membership", LineVoucher: "Voucher", LineBanquet: "Banquet & Event", LinePackage: "Package", LineOther: "Other"}
 
 // LineTotal is the charges of one business line in a statement period.
 type LineTotal struct {

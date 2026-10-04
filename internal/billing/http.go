@@ -42,6 +42,8 @@ type HTTP struct {
 	Files     *storage.Files
 	PublicURL func() string // Member Portal base URL for links
 	Holder    HolderResolver
+	// WebsiteURL is the public website base URL (invoice payment links, P3).
+	WebsiteURL func() string
 }
 
 // SubmitRefund implements Approver with the approval engine.

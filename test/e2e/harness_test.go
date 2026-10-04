@@ -101,10 +101,18 @@ func checkAudit() int {
 	for k := range inst2.App.Server.ExercisedMutations() {
 		exercised[k] = true
 	}
+	// ONECLUB_COVERAGE_MODULES=banquet,crm limits the check to the routes of
+	// those modules (an area running its own tests with -run).
+	only := map[string]bool{}
+	for _, m := range strings.Split(os.Getenv("ONECLUB_COVERAGE_MODULES"), ",") {
+		if m = strings.TrimSpace(m); m != "" {
+			only[m] = true
+		}
+	}
 	var missing []string
 	total := 0
 	for _, rt := range inst.App.Registry.Routes() {
-		if !rt.Mutating() {
+		if !rt.Mutating() || (len(only) > 0 && !only[rt.Module]) {
 			continue
 		}
 		total++

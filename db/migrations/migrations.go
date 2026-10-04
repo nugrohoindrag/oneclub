@@ -24,6 +24,9 @@ var Order = []string{
 	"golf",
 	"sportclub",
 	"stay",
+	"banquet",
 	"procurement",
+	"accounting",
+	"cms",
 	"reporting",
 }
