@@ -21,80 +21,75 @@ func memberCustomer(t *testing.T, sa *Client) string {
 }
 
 // Golf operations not covered by the round / pace / reciprocal scenarios:
-// flight cancel, cart status & maintenance & replacement, GPS, attendance,
-// incidents, favourites & ratings (staff and member), tablet F&B order,
-// official handicap, manual Hole-in-One, Hall of Fame curation, range bay
-// assignment & cancel with a bridge-dispensed bucket, letter re-issue, and
-// the member's own scorecard.
+// cart readiness & maintenance & replacement, GPS, attendance, incidents,
+// favourites & ratings (staff and member), tablet F&B order, official
+// handicap, manual Hole-in-One, Hall of Fame curation, range bay assignment
+// & cancel with a bridge-dispensed bucket, letter re-issue, and the
+// member's own scorecard.
 func TestP2GolfOperationsCoverage(t *testing.T) {
 	f := setupP2(t)
 	sa := f.SA
 	mc := roleUser(t, inst, "member")
 	me := memberCustomer(t, sa)
 	g := setupGolfCourse(t, sa, "ZC")
-	rule(t, sa, map[string]any{"code": "GF-ZC-A", "name": "Green Fee 9 holes (coverage)", "serviceType": "golf", "itemRef": "ZC-A", "unit": "pax",
-		"price": "500000", "revenueComponent": "green_fee"})
 	now := time.Now()
-
-	// Flight cancel.
-	fc := sa.Must(201, "POST", "/api/v1/golf/flights", map[string]any{"routeId": g.RouteA, "teeTime": rfc(now.Add(5 * time.Hour)),
-		"players": []map[string]any{{"name": "Cancel Me", "playerType": "visitor"}}}).JSON()
-	if c := sa.Must(200, "POST", "/api/v1/golf/flights/"+str(fc["id"])+":cancel", map[string]any{"reason": "Rain"}).JSON(); c["status"] != "cancelled" {
-		t.Fatalf("flight cancel: %v", c)
-	}
+	day := clubDay(inst, 30, isWeekday)
+	playDay, _ := time.ParseInLocation("2006-01-02", day, clubLoc(inst))
 
 	// Caddies: attendance clock-in / clock-out, incident open / close.
 	lvl := idOf(sa.Must(201, "POST", "/api/v1/golf/caddy-levels", map[string]any{"code": "ZC-L", "name": "Coverage", "rank": 9, "feeAmount": "100000"}))
-	c1 := idOf(sa.Must(201, "POST", "/api/v1/golf/caddies", map[string]any{"code": "ZC01", "name": "Caddy Zeta", "levelId": lvl}))
-	c2 := idOf(sa.Must(201, "POST", "/api/v1/golf/caddies", map[string]any{"code": "ZC02", "name": "Caddy Omega", "levelId": lvl}))
-	sa.Must(201, "POST", "/api/v1/golf/caddy-attendance:clock-in", map[string]any{"caddyId": c1})
+	c1 := idOf(sa.Must(201, "POST", "/api/v1/golf/caddies", map[string]any{"code": "ZC01", "name": "Caddy Zeta"}))
+	c2 := idOf(sa.Must(201, "POST", "/api/v1/golf/caddies", map[string]any{"code": "ZC02", "name": "Caddy Omega"}))
+	c3 := idOf(sa.Must(201, "POST", "/api/v1/golf/caddies", map[string]any{"code": "ZC03", "name": "Caddy Sigma"}))
+	sa.Must(200, "PUT", "/api/v1/golf/caddies/"+c1+"/profile", map[string]any{"levelId": lvl})
 	sa.Must(201, "POST", "/api/v1/golf/caddy-attendance:clock-in", map[string]any{"caddyId": c2})
-	if a := sa.Must(200, "POST", "/api/v1/golf/caddy-attendance:clock-out", map[string]any{"caddyId": c2}).JSON(); a["clockOut"] == nil && a["clockOutAt"] == nil {
+	if a := sa.Must(200, "POST", "/api/v1/golf/caddy-attendance:clock-out", map[string]any{"caddyId": c2}).JSON(); a["clockedOutAt"] == nil {
 		t.Fatalf("clock-out: %v", a)
 	}
-	inc := sa.Must(201, "POST", "/api/v1/golf/caddy-incidents", map[string]any{"caddyId": c2, "category": "late", "severity": "low",
+	inc := sa.Must(201, "POST", "/api/v1/golf/caddy-incidents", map[string]any{"subjectType": "caddy", "caddyId": c2, "category": "late", "severity": "low",
 		"description": "Arrived 20 minutes late"}).JSON()
 	if cl := sa.Must(200, "POST", "/api/v1/golf/caddy-incidents/"+str(inc["id"])+":close", map[string]any{"reason": "Verbal warning"}).JSON(); cl["status"] != "closed" {
 		t.Fatalf("incident close: %v", cl)
 	}
 
-	// Golf carts: status, maintenance open / update, GPS fix.
-	k1 := idOf(sa.Must(201, "POST", "/api/v1/golf/golf-carts", map[string]any{"code": "ZC-B1", "name": "Buggy ZC1"}))
-	k2 := idOf(sa.Must(201, "POST", "/api/v1/golf/golf-carts", map[string]any{"code": "ZC-B2", "name": "Buggy ZC2"}))
-	k3 := idOf(sa.Must(201, "POST", "/api/v1/golf/golf-carts", map[string]any{"code": "ZC-B3", "name": "Buggy ZC3"}))
-	sa.Must(204, "POST", "/api/v1/golf/golf-carts/"+k3+":status", map[string]any{"readiness": "out_of_service", "reason": "Waiting for parts"})
-	mt := sa.Must(201, "POST", "/api/v1/golf/golf-cart-maintenance", map[string]any{"cartId": k3, "category": "battery", "description": "Battery replacement"}).JSON()
-	if u := sa.Must(200, "PATCH", "/api/v1/golf/golf-cart-maintenance/"+str(mt["id"]), map[string]any{"cost": "4500000", "notes": "New lithium pack"}).JSON(); u["cost"] != "4500000" {
+	// Golf carts: readiness (P1), maintenance open / update, GPS fix.
+	k1 := idOf(sa.Must(201, "POST", "/api/v1/golf/golf-carts", map[string]any{"code": "ZCB1", "name": "Buggy ZC1"}))
+	k2 := idOf(sa.Must(201, "POST", "/api/v1/golf/golf-carts", map[string]any{"code": "ZCB2", "name": "Buggy ZC2"}))
+	k3 := idOf(sa.Must(201, "POST", "/api/v1/golf/golf-carts", map[string]any{"code": "ZCB3", "name": "Buggy ZC3"}))
+	sa.Must(200, "POST", "/api/v1/golf/golf-carts/"+k3+":set-readiness", map[string]any{"readiness": "out_of_service", "reason": "Waiting for parts"})
+	mt := sa.Must(201, "POST", "/api/v1/golf/golf-cart-maintenance", map[string]any{"golfCartId": k3, "category": "battery", "description": "Battery replacement"}).JSON()
+	if u := sa.Must(200, "PATCH", "/api/v1/golf/golf-cart-maintenance/"+str(mt["id"]), map[string]any{"cost": "4500000", "notes": "New lithium pack"}).JSON(); dec(u["cost"]).String() != "4500000" {
 		t.Fatalf("maintenance update: %v", u)
 	}
 	// Both carts passed their inspection (the inspection flow is covered by TestP2GolfRound).
 	sysExec(t, inst, `UPDATE golf.golf_carts SET readiness = 'ready' WHERE id = ANY($1)`, []uuid.UUID{mustUUID(k1), mustUUID(k2)})
-	if r := sa.Must(200, "POST", "/api/v1/golf/golf-cart-positions", []map[string]any{{"cartId": k1, "lat": -6.2, "lng": 106.6, "batteryPercent": 88, "at": rfc(now)}}).JSON(); r["updated"].(float64) != 1 {
+	if r := sa.Must(200, "POST", "/api/v1/golf/golf-cart-positions", []map[string]any{{"golfCartId": k1, "lat": -6.2, "lng": 106.6, "batteryPercent": 88, "at": rfc(now)}}).JSON(); r["updated"].(float64) != 1 {
 		t.Fatalf("gps ingest: %v", r)
 	}
 
-	// Round with the member and a guest.
-	fl := sa.Must(201, "POST", "/api/v1/golf/flights", map[string]any{"routeId": g.RouteA, "teeSetId": g.TeeSet, "teeTime": rfc(now.Add(-3 * time.Hour)),
-		"players": []map[string]any{{"customerId": me, "playerType": "member"}, {"customerId": f.CustomerB, "playerType": "guest_of_member"}}},
-		"Idempotency-Key", newKey()).JSON()
-	fid := str(fl["id"])
-	sa.Must(200, "POST", "/api/v1/golf/flights/"+fid+":check-in", map[string]any{})
-	ca := sa.Must(201, "POST", "/api/v1/golf/flights/"+fid+"/caddies", map[string]any{"caddyId": c1}).JSON()
-	cart := sa.Must(201, "POST", "/api/v1/golf/flights/"+fid+"/golf-carts", map[string]any{"cartId": k1}).JSON()
-	sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":tee-off", map[string]any{"at": rfc(now.Add(-170 * time.Minute))})
-	if r := sa.Must(200, "POST", "/api/v1/golf/golf-cart-assignments/"+str(cart["id"])+":replace", map[string]any{"newId": k2, "reason": "Flat tyre"}).JSON(); r["id"] != fid {
+	// Round (P1 booking) with the member and a guest.
+	bk, fid := golfBooking(t, sa, day, teeTimes(t, sa, g.Course, day)[0]["id"], []map[string]any{
+		{"playerType": "non_member", "customerId": me, "name": "Zaki Coverage"}, {"playerType": "non_member", "customerId": f.CustomerB, "name": "Rina Tamu"}})
+	players := bk["players"].([]any)
+	myPlayer, guest := str(players[0].(map[string]any)["id"]), str(players[1].(map[string]any)["id"])
+	sa.Must(201, "POST", "/api/v1/golf/caddy-attendance:clock-in", map[string]any{"caddyId": c1, "at": rfc(at(playDay, 5, 30))})
+	sa.Must(201, "POST", "/api/v1/golf/caddy-attendance:clock-in", map[string]any{"caddyId": c3, "at": rfc(at(playDay, 5, 35))})
+	ca := sa.Must(201, "POST", "/api/v1/golf/caddy-assignments", map[string]any{"flightId": fid, "assignments": []map[string]any{
+		{"caddyId": c1, "playerIds": []string{myPlayer}}, {"caddyId": c3, "playerIds": []string{guest}}}}).Items()
+	cart := sa.Must(201, "POST", "/api/v1/golf/golf-cart-assignments", map[string]any{"flightId": fid, "golfCartIds": []string{k1}}).Items()[0]
+	checkIn(t, sa, day, bk)
+	sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":start", map[string]any{"at": rfc(now.Add(-170 * time.Minute))})
+	if r := sa.Must(200, "POST", "/api/v1/golf/golf-cart-assignments/"+str(cart["id"])+":replace", map[string]any{"golfCartId": k2, "reason": "Flat tyre"}).JSON(); r["flightId"] != fid {
 		t.Fatalf("cart replacement: %v", r)
 	}
-	fd := sa.Must(200, "GET", "/api/v1/golf/flights/"+fid, nil).JSON()
-	var myPlayer, myCard string
-	for _, p := range fd["players"].([]any) {
-		pm := p.(map[string]any)
-		if pm["customerId"] == me {
-			myPlayer, myCard = str(pm["id"]), str(pm["scorecardId"])
+	var myCard string
+	for _, p := range sa.Must(200, "GET", "/api/v1/golf/rounds/"+fid, nil).JSON()["round"].(map[string]any)["players"].([]any) {
+		if pm := p.(map[string]any); pm["id"] == myPlayer {
+			myCard = str(pm["scorecardId"])
 		}
 	}
 	if myCard == "" {
-		t.Fatalf("member scorecard: %v", fd["players"])
+		t.Fatal("member scorecard")
 	}
 	// On-course F&B from the tablet, charged to the member's round folio.
 	outlet := idOf(sa.Must(201, "POST", "/api/v1/commercial/outlets", map[string]any{"code": "ZC-HALF", "name": "Halfway ZC", "outletType": "halfway_house"}))
@@ -105,19 +100,20 @@ func TestP2GolfOperationsCoverage(t *testing.T) {
 	}
 	// The member keeps their own score in the app and submits the card.
 	var entries []map[string]any
-	for s := 1; s <= 9; s++ {
+	for s := 1; s <= 18; s++ {
 		entries = append(entries, map[string]any{"seq": s, "strokes": 5, "putts": 2})
 	}
-	if sc := mc.Must(200, "POST", "/api/v1/member/golf/scorecards/"+myCard+"/scores", map[string]any{"entries": entries}).JSON(); sc["gross"].(float64) != 45 {
+	if sc := mc.Must(200, "POST", "/api/v1/member/golf/scorecards/"+myCard+"/scores", map[string]any{"entries": entries}).JSON(); sc["gross"].(float64) != 90 {
 		t.Fatalf("my scores: %v", sc)
 	}
-	sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":complete", map[string]any{"at": rfc(now.Add(-60 * time.Minute))})
+	sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+":complete", map[string]any{})
+	dispatch(t)
 	if sc := mc.Must(200, "POST", "/api/v1/member/golf/scorecards/"+myCard+":submit", map[string]any{"attestedBy": "Rina Tamu"}).JSON(); sc["status"] != "submitted" {
 		t.Fatalf("my card submitted: %v", sc)
 	}
 	// Ratings and favourites (member app and staff on behalf of the guest).
-	mc.Must(204, "POST", "/api/v1/member/golf/caddy-assignments/"+str(ca["id"])+":rate", map[string]any{"rating": 5, "comment": "Great reads"})
-	sa.Must(204, "POST", "/api/v1/golf/caddy-assignments/"+str(ca["id"])+":rate", map[string]any{"rating": 4, "customerId": f.CustomerB})
+	mc.Must(204, "POST", "/api/v1/member/golf/caddy-assignments/"+str(ca[0]["id"])+":rate", map[string]any{"rating": 5, "comment": "Great reads"})
+	sa.Must(204, "POST", "/api/v1/golf/caddy-ratings", map[string]any{"assignmentId": ca[1]["id"], "rating": 4, "customerId": f.CustomerB})
 	mc.Must(204, "POST", "/api/v1/member/golf/caddies/"+c1+":favorite", map[string]any{"favorite": true})
 	sa.Must(204, "POST", "/api/v1/golf/caddies/"+c1+":favorite", map[string]any{"customerId": f.CustomerB, "favorite": true})
 	sa.Must(204, "POST", "/api/v1/golf/players/"+me+"/official-handicap", map[string]any{"index": "14.2", "source": "PGI"})
@@ -193,10 +189,21 @@ func TestP2GolfOperationsCoverage(t *testing.T) {
 	pa := platformAdmin(t, inst)
 	mp := integrationID(t, inst, "mock-payment")
 	pa.Must(200, "PATCH", "/api/v1/platform/integrations/"+mp, map[string]any{"enabled": true, "settings": map[string]any{"autoPay": false}})
-	if r := mc.Must(200, "POST", "/api/v1/member/memberships/"+ms+":renew", nil).JSON(); r["status"] != "active" {
+	if r := mc.Must(201, "POST", "/api/v1/member/memberships/"+ms+":renew", nil).JSON(); r["renewalId"] == nil {
 		t.Fatalf("renew: %v", r)
 	}
-	if co := mc.Must(201, "POST", "/api/v1/member/memberships/"+ms+":pay-fee", map[string]any{"method": "qris"}).JSON(); co["status"] != "pending" {
+	// The next annual fee falls due today: the daily job schedules and charges it.
+	sysExec(t, inst, `UPDATE membership.memberships SET next_fee_due = current_date WHERE id = $1`, mustUUID(ms))
+	if _, err := inst.App.Membership.RunDaily(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	var fee string
+	for _, x := range mc.Must(200, "GET", "/api/v1/member/membership-fees", nil).Items() {
+		if x["status"] == "due" {
+			fee = str(x["id"])
+		}
+	}
+	if co := mc.Must(201, "POST", "/api/v1/member/membership-fees/"+fee+":pay-online", map[string]any{"method": "qris"}).JSON(); co["status"] != "pending" {
 		t.Fatalf("pay fee online: %v", co)
 	}
 	if c := mc.Must(201, "POST", "/api/v1/member/card:replace", map[string]any{"reason": "Lost wallet"}).JSON(); c["status"] != "active" {
