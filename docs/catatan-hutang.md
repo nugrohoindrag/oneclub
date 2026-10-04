@@ -1,9 +1,9 @@
 # Catatan Hutang — Integrasi P2 di atas P1
 
-Status per 4 Oktober 2026 sore. Branch `feat/p2-on-p1`, commit terakhir `73d020e`. Semua commit masih lokal dan belum di-push.
+Status per 4 Oktober 2026 malam. Branch `feat/p2-on-p1`. Semua commit masih lokal dan belum di-push.
 
 - Branch berada tepat di atas `origin/main` (0 commit tertinggal), jadi belum ada conflict.
-- Pekerjaan sedang **di-hold** di tengah hutang #3 (test P2), atas permintaan.
+- Hutang #3 (test) selesai; berikutnya hutang #4 (OpenAPI & frontend).
 - **Rencana:** semua hutang #3–#6 diselesaikan sekaligus, lalu branch di-push dan dibuka PR ke `main`, supaya bisa lanjut ke P3. Menurut Tech Doc §12.3, P3 dimulai setelah P1 dan P2 merge ke `main`. Push dilakukan setelah suite e2e penuh hijau tanpa `ONECLUB_REQUIRE_FULL_COVERAGE=false`.
 
 ## Aturan yang wajib dipatuhi
@@ -14,7 +14,7 @@ Sumber aturan: Tech Doc §4.2, §7.5, §12.3 dan PRD P2 §5.4. Cek dokumen ini d
   - sub-package P2;
   - file kontrak aditif `p2_*.go` / `pricing_p2.go` / `lines.go` / `sales_api.go`, yang wajib direview Dian.
 - **Pengecualian:** perubahan di file P1 hanya untuk dua hal, dikerjakan minimal dan dicatat di `docs/p2-contract-review.md`:
-  - requirement PRD yang hanya bisa dipenuhi di file P1. Saat ini: `billing/finance.go` untuk FR-BIL-P2-02, statement per lini;
+  - requirement PRD yang hanya bisa dipenuhi di file P1. Saat ini: `billing/finance.go` untuk FR-BIL-P2-02 (statement per lini) dan FR-INT-P2-03 (accounting export);
   - penyesuaian P1 di hutang #6.
 - **Utamakan tabel/file milik P2** bila itu memberi solusi lengkap. Contoh: `commercial.line_day_types`, bukan memperluas `day_types` P1.
 - **Tidak ada query ke schema modul lain.** Gunakan API publik package root, read model `reporting.*`, atau domain event. Pengecualian: `internal/app/rhapsody` (composition root), mengikuti preseden P1.
@@ -34,7 +34,7 @@ git diff --diff-filter=MD --stat a48e6a3 -- internal/golf internal/billing inter
 |---|---|---|
 | 1 | Query lintas schema | ✅ Selesai (`d72cffa`) |
 | 2 | Dokumen kontrak untuk Dian | ✅ `docs/p2-contract-review.md` (diperbarui setiap ada perubahan kontrak) |
-| 3 | Test | 🔄 P0/P1 hijau, provision hijau, unit hijau. Test P2: 13 lolos, 7 gagal (lihat sisa pekerjaan) |
+| 3 | Test | ✅ Suite e2e penuh hijau dengan coverage wajib; unit, provision, build dan vet hijau |
 | 4 | OpenAPI & frontend | ⏳ Belum dimulai |
 | 5 | Dokumen | ⏳ Belum dimulai |
 | 6 | Penyesuaian P1 (kita kerjakan, direview Dian) | ⏳ Belum dimulai |
@@ -94,61 +94,36 @@ Tidak satu pun tercatat di catatan lama, dan sebagian besar akan rusak di produc
 
 **Statement per lini (FR-BIL-P2-02, Must):** perubahan minimal di `billing/finance.go` (+8/−3 baris), wajib direview Dian.
 
-### Hutang #3 (sebagian)
+### Hutang #3: test (selesai)
 
-- `test/e2e/p2_migration_test.go` ditulis ulang ke `rhapsody.Stage/Validate/Load/Reconcile` + `P2Deps`. Sudah lolos.
-- Helper test baru di `p2_helpers_test.go`:
-  - `membershipType` (tipe + package P1);
-  - `activeMembership` (alur aplikasi P1: submit → approval manajer → bayar → aktivasi otomatis);
-  - `pastDate`;
-  - `price()` kini memanggil `pricing:resolve-line`.
-- `setupGolfCourse` memakai skema P1: section, hole dengan nomor 1–18 per course, course asset GeoJSON, `PUT pace-target`/`pace-tolerance`, route `sectionCodes`.
-- `customer()` mengisi `crm.customers.user_id` lewat SQL; tautan portal P1 diisi saat aktivasi.
-- Test P2 yang sudah lolos (13):
-  - PricingRateCards, ReservationEngine, RhapsodyImport, MembershipLifecycle, MemberApp, StayAndVenue;
-  - CRM, ClubPolicies, ReportsAndDashboards, SportClubEntryAccess, Classes;
-  - Website dan coverage (GolfOperationsCoverage, SelfServiceCoverage).
-  - Run penuh terakhir berhenti karena panic di `TestP2VoucherPrepaid`. Website dan coverage terakhir terverifikasi lolos di run sebelumnya; ulangi run penuh setelah VoucherPrepaid diperbaiki.
+Suite e2e penuh hijau **dengan** coverage wajib (`go test ./test/e2e/`, tanpa `ONECLUB_REQUIRE_FULL_COVERAGE=false`). `go build`, `go vet`, `go test ./internal/...` dan provision juga hijau. Ke-21 test P2 lolos.
+
+Cara test P2 kini memakai alur P1:
+- **Golf:** course buatan test + tee sheet template P1 (`setupGolfCourse`), booking → bayar → caddy/cart P1 → check-in (`date` hari main) → tee-off lewat starter P1 (tablet `tee_off`, atau `rounds/{id}:start`) → `DispatchPending`. Setiap test golf memakai hari main sendiri (`clubDay` 18/22/26/30) agar antrean caddy tidak bentrok dengan test P1.
+- **Waktu ronde:** pembagian fee caddy dan pace dihitung dari timestamp, jadi test memundurkan `tee_off_at`/`started_at`/`out_at` lewat SQL (helper `backdate`), seperti time-travel di test voucher.
+- **Billing:** member statement dari charge nyata (folio walk-in golf, booking court, order POS); format uang P1 4 desimal dibandingkan dengan `dec`.
+- **Resource CRUD:** hanya resource milik P2; resource P1 (`a48e6a3`) diuji test P1.
+- **Bridge agent coverage** dijalankan di properti kedua (MDR), karena `TestBridgeAgent` P0 mengharuskan tepat satu agent di MAIN.
+- Helper baru: `golfBooking`, `checkIn`, `dispatch`, `backdate`, `asMaps`, `activeApplication` (aplikasi dengan corporate account).
+
+Bug yang ditemukan lewat test dan sudah diperbaiki:
+- **Accounting export (FR-INT-P2-03, Must):** baris P2 diposting tanpa `components`, sehingga F&B (revenue) tergabung dengan penjualan voucher (liability) di satu baris `liability,other`. `AddLineCharge` kini mengisi komponen. Pergerakan deferred, payout caddy/instruktur dan shift POS ditambahkan lewat `appendLineExport` (`lines.go`) dengan satu baris di `finance.go` (dicatat di dokumen review).
+- **FR-SCR-10 (Must):** scorecard guest P1 tidak punya customer. Kini profil customer dicari/dibuat dari kontak guest (`crm.FindOrCreate`).
+- **FR-HIO-01 (Must):** draft HIO tidak pernah `insured`. Kini diturunkan dari komponen `hio` charge ronde P1 (`billing.LinesOf`).
+- **`my-earnings`:** query attendance invalid (error 500), dan fee caddy pengganti tidak memakai pembagian seperti settlement.
 
 ## Hutang yang tersisa (urut kerja)
 
-### 3. Test (lanjutan)
+### 4. OpenAPI & frontend
 
-Jalankan test P2:
-
-```bash
-ONECLUB_TEST_ADMIN_URL="postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable" \
-ONECLUB_REQUIRE_FULL_COVERAGE=false go test -count=1 -run 'TestP2' ./test/e2e/
-```
-
-Test yang masih gagal:
-
-1. **`TestP2VoucherPrepaid`** (`p2_voucher_test.go`). Sebagian besar sudah dikerjakan:
-   - panic `folio.folio.status` diperbaiki;
-   - tender voucher kini lewat checkout POS (`orders/{id}:pay` dengan tender `voucher_prepaid`);
-   - sisa saldo voucher dihitung dari total order;
-   - helper `accountingExport` (`POST /billing/accounting-exports {date}`, lalu `GET .../{id}/file`).
-
-   Sisa: test gagal di `p2_voucher_test.go:196`. CSV ekspor akuntansi P1 tidak memuat baris `liability,voucher,voucher_deferred`, `deferred_recognition,...` dan `deferred_breakage,...`. Cek format kolom ekspor P1 (`billing/finance.go`, AccountingExport) dan apakah pergerakan deferred revenue P2 (`billing.deferred_revenue_entries`) memang ikut diekspor. Bila tidak ikut, itu celah FR-BIL-P2-05/06: export harus memuat revenue component baru dan sub-ledger deferred. Masukkan ke kontrak C1–C3 di file P2 `lines.go`, atau ke perubahan P1 minimal yang direview Dian.
-2. **`TestP2MemberStatement`** (`p2_voucher_test.go`) perlu ditulis ulang:
-   - Charge golf/futsal/restoran dibuat lewat alur nyata: booking golf P1 atau folio walk-in (lini `golf`), booking court dengan member charge, order POS dengan member charge.
-   - Lalu `POST /billing/member-statements:generate` dan cek baris `businessLine` serta saldo akhir sama dengan saldo akun.
-   - Batas kredit diperbarui dengan `POST /billing/customer-accounts` ulang (tidak ada PATCH).
-   - Pembayaran akun memakai `POST /billing/payments` dengan `accountId`.
-   - Refund memakai `POST /billing/refunds`; void baris memakai `POST /billing/folios/{id}/lines/{lineId}:void`.
-3. **`TestP2POSKitchenBOM`** (`p2_pos_test.go:141`): `member-accounts/{id}/statement` diganti `GET /billing/customer-accounts/{id}` (ledger) atau member statement.
-4. **`TestP2ResourceDefinitionsCRUD`**:
-   - Generator nilai otomatis gagal di 5 resource P1: customer relationship ke diri sendiri, `par` hole ≥ 3, `sectionCodes`, `intervalMinutes` ≥ 4, delete class schedule yang sudah dipakai.
-   - Opsi: batasi ke resource milik P2 (resource P1 sudah diuji test P1), atau beri override nilai per resource.
-5. **`TestP2GolfRound`, `TestP2GolfPaceAndRange`, `TestP2GolfReciprocal`**, plus bagian golf di `p2_zz_coverage_test.go`. Alur golf harus lewat P1:
-   - `POST /golf/bookings`, lalu `POST /golf/check-ins`;
-   - caddy lewat `POST /golf/caddy-assignments`, cart lewat `POST /golf/golf-cart-assignments`;
-   - `starter-queue/{flightId}:tee-off`, lalu `DispatchPending` (event `golf.flight_teed_off` membuat ronde dan scorecard);
-   - `rounds/{id}:hole-progress` → `rounds/{id}:complete`.
-   - Pakai helper P1 di `p1_helpers_test.go` (`teeTimes`, `slotsOf`, `payFolio`, `firstFlight`, `presentCaddies`).
-   - "route A+B scorecard template: []" (`p2_golf_test.go:77`): cek respons `GET /golf/playing-routes/{id}/holes` dengan skema hole P1.
-   - `reciprocal-clubs` tidak lagi punya field `rateItem`.
-6. **Path API lama yang masih tersisa: 25.** Daftar lengkap bisa dibuat dengan validator di bagian "Catatan teknis". Pemetaan utamanya:
+- Jalankan `make openapi` untuk generate ulang `api/openapi/openapi.json` dan `web/packages/api-client/src/schema.ts`.
+- Frontend:
+  - gabungkan `main.tsx` backoffice, member dan ops dengan versi P1;
+  - pindahkan halaman P2 ke path API baru (`/member/*`, `golf/hole-in-ones`, `range-sessions`, `customer-accounts`, `line-day-types` untuk day type lini lain, dll.);
+  - tile ops dan aplikasi `caddy`;
+  - member app pakai `/member/*`;
+  - shell settings membaca `resource-definitions` (sudah terpasang lagi).
+- Pemetaan path lama → baru (sama dengan yang dipakai saat memperbaiki test):
 
 | Lama | Baru |
 |---|---|
@@ -171,20 +146,6 @@ Test yang masih gagal:
 | `holes/{id}/distances` | `GET /golf/course-maps/{holeId}` atau `/member/golf/holes/{id}/distances` |
 | `member/memberships/{id}:pay-fee` | `/member/membership-fees/{id}:pay-online` |
 
-7. **Pemeriksaan akhir:**
-   - Gabungkan harness test yang disentuh P1 dan P2 (`access_test`, `harness_test`, `services_test`, `p2_zz_coverage`).
-   - Jalankan suite penuh **tanpa** `ONECLUB_REQUIRE_FULL_COVERAGE=false`, karena harness mewajibkan setiap route mutasi teruji dan teraudit.
-   - Jalankan `go build ./... && go vet ./...`, `go test ./internal/...`, dan `go test ./internal/platform/provision/`.
-
-### 4. OpenAPI & frontend
-
-- Jalankan `make openapi` untuk generate ulang `api/openapi/openapi.json` dan `web/packages/api-client/src/schema.ts`.
-- Frontend:
-  - gabungkan `main.tsx` backoffice, member dan ops dengan versi P1;
-  - pindahkan halaman P2 ke path API baru (`/member/*`, `golf/hole-in-ones`, `range-sessions`, `customer-accounts`, `line-day-types` untuk day type lini lain, dll.);
-  - tile ops dan aplikasi `caddy`;
-  - member app pakai `/member/*`;
-  - shell settings membaca `resource-definitions` (sudah terpasang lagi).
 - Jalankan `pnpm -r typecheck` dan `pnpm -r build`.
 
 ### 5. Dokumen dan bersih-bersih
