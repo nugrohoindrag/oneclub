@@ -766,6 +766,9 @@ func (m *Module) CreateQuotation(ctx context.Context, tx pgx.Tx, property uuid.U
 	if len(in.Lines) == 0 {
 		return QuotationDetail{}, handle.Invalid("lines", "required", "at least one line")
 	}
+	if err := checkFreeItems(ctx, property, in.Lines, nil); err != nil {
+		return QuotationDetail{}, err
+	}
 	hdr, err := headerOf(in, pol, today)
 	if err != nil {
 		return QuotationDetail{}, err
@@ -921,6 +924,33 @@ func saveLines(ctx context.Context, tx pgx.Tx, property, qid uuid.UUID, c quoteC
 
 // storedLines turns stored lines back into inputs (keeping their price
 // source, pricing mode and tax codes).
+// freeItemKeys identifies the free-text items (item type other) of lines.
+func freeItemKeys(ls []QuotationLineInput) map[string]bool {
+	out := map[string]bool{}
+	for _, l := range ls {
+		if l.ItemType == "other" {
+			out[strings.TrimSpace(l.Description)+"|"+dec(l.UnitPrice).String()+"|"+dec(l.Quantity).String()] = true
+		}
+	}
+	return out
+}
+
+// checkFreeItems requires crm.quotation.free_item to add or change a
+// free-text item; items from packages, menus, rates, products and services
+// do not need it (FR-QUO-01).
+func checkFreeItems(ctx context.Context, property uuid.UUID, lines, stored []QuotationLineInput) error {
+	if can(ctx, "crm.quotation.free_item", property) {
+		return nil
+	}
+	old := freeItemKeys(stored)
+	for k := range freeItemKeys(lines) {
+		if !old[k] {
+			return errs.Forbidden("free-text items (item type other) need crm.quotation.free_item")
+		}
+	}
+	return nil
+}
+
 func storedLines(ls []QuotationLine) []QuotationLineInput {
 	out := make([]QuotationLineInput, 0, len(ls))
 	for _, l := range ls {
@@ -1060,6 +1090,9 @@ func (m *Module) UpdateQuotation(ctx context.Context, tx pgx.Tx, property, qid u
 	if in.Lines != nil {
 		if len(in.Lines) == 0 {
 			return QuotationDetail{}, handle.Invalid("lines", "required", "at least one line")
+		}
+		if err := checkFreeItems(ctx, property, in.Lines, lines); err != nil {
+			return QuotationDetail{}, err
 		}
 		lines = in.Lines
 	}

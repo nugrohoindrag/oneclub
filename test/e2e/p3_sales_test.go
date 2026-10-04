@@ -570,7 +570,7 @@ func TestP3SalesConversions(t *testing.T) {
 	}
 	// Won with a quotation accepted directly for the customer (linked to the opportunity).
 	dq := sx.Must(201, "POST", "/api/v1/crm/quotations", map[string]any{"customerId": cust, "title": "Direct deal " + sfx, "line": "other",
-		"lines": []map[string]any{{"itemType": "other", "description": "Direct", "quantity": "1", "unitPrice": "1500000"}}}, "Idempotency-Key", newKey()).JSON()
+		"lines": []map[string]any{{"itemType": "service", "description": "Direct", "quantity": "1", "unitPrice": "1500000"}}}, "Idempotency-Key", newKey()).JSON()
 	sx.Must(200, "POST", "/api/v1/crm/quotations/"+str(dq["id"])+":accept", map[string]any{"note": "Verbal"})
 	won := sx.Must(200, "POST", "/api/v1/crm/opportunities/"+str(o["id"])+":win", map[string]any{"quotationId": dq["id"], "note": "Signed"}).JSON()
 	if won["status"] != "won" || str(won["wonQuotationId"]) != str(dq["id"]) || !bilDec(won["expectedValue"]).Equal(decimal.NewFromInt(1_500_000)) {
@@ -584,7 +584,13 @@ func TestP3SalesConversions(t *testing.T) {
 		"expectedValue": "1000000"}).JSON()
 
 	// Rejection on the public link (reason required) and by staff.
-	line := []map[string]any{{"itemType": "other", "description": "Private event", "quantity": "1", "unitPrice": "5000000"}}
+	// Free-text items need crm.quotation.free_item (FR-QUO-01).
+	free := []map[string]any{{"itemType": "other", "description": "Fireworks show", "quantity": "1", "unitPrice": "5000000"}}
+	sx.Must(403, "POST", "/api/v1/crm/quotations", map[string]any{"customerId": cust, "title": "Free " + sfx, "lines": free}, "Idempotency-Key", newKey())
+	fq := sa.Must(201, "POST", "/api/v1/crm/quotations", map[string]any{"customerId": cust, "title": "Free " + sfx, "lines": free,
+		"ownerUserId": sxID}, "Idempotency-Key", newKey()).JSON()
+	sx.Must(200, "PUT", "/api/v1/crm/quotations/"+str(fq["id"]), map[string]any{"title": "Free item kept " + sfx, "lines": free})
+	line := []map[string]any{{"itemType": "service", "description": "Private event", "quantity": "1", "unitPrice": "5000000"}}
 	r1 := sx.Must(201, "POST", "/api/v1/crm/quotations", map[string]any{"opportunityId": o["id"], "lines": line}, "Idempotency-Key", newKey()).JSON()
 	r1 = sx.Must(200, "POST", "/api/v1/crm/quotations/"+str(r1["id"])+":send", map[string]any{}).JSON()
 	pub := anon(t, inst)
@@ -704,7 +710,7 @@ func TestP3SalesJobs(t *testing.T) {
 
 	// Expiry: a sent quotation past its validity.
 	cust := idOf(sa.Must(201, "POST", "/api/v1/crm/customers", map[string]any{"code": "SLJ" + sfx, "name": "Expiring " + sfx, "email": "exp" + sfx + "@q.test"}))
-	q := sx.Must(201, "POST", "/api/v1/crm/quotations", map[string]any{"customerId": cust, "title": "Expiring " + sfx, "lines": []map[string]any{{"itemType": "other",
+	q := sx.Must(201, "POST", "/api/v1/crm/quotations", map[string]any{"customerId": cust, "title": "Expiring " + sfx, "lines": []map[string]any{{"itemType": "service",
 		"description": "Room", "quantity": "1", "unitPrice": "1000000"}}}, "Idempotency-Key", newKey()).JSON()
 	q = sx.Must(200, "POST", "/api/v1/crm/quotations/"+str(q["id"])+":send", map[string]any{}).JSON()
 	sysExec(t, inst, `UPDATE crm.sales_quotations SET valid_until = current_date - 1 WHERE id = $1`, q["id"])
