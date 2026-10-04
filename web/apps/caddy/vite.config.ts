@@ -27,7 +27,7 @@ export default defineConfig({
         runtimeCaching: [
           {
             urlPattern: ({ url }) =>
-              ['/api/v1/public/bootstrap', '/api/v1/auth/me', '/api/v1/platform/navigation', '/api/v1/golf/tablet', '/api/v1/golf/rounds'].some((p) => url.pathname.startsWith(p)),
+              ['/api/v1/public/bootstrap', '/api/v1/auth/me', '/api/v1/platform/navigation', '/api/v1/golf/my-assignments', '/api/v1/golf/my-earnings', '/api/v1/golf/rounds', '/api/v1/golf/course-maps'].some((p) => url.pathname.startsWith(p)),
             handler: 'NetworkFirst',
             options: { cacheName: 'caddy-api', networkTimeoutSeconds: 3, expiration: { maxAgeSeconds: 12 * 3600 } },
           },
