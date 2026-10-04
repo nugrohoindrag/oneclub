@@ -86,7 +86,9 @@ type lc struct {
 }
 
 // loadLC loads and locks a principal membership for a lifecycle change.
-func loadLC(ctx context.Context, tx pgx.Tx, mid uuid.UUID) (lc, error) { return queryLC(ctx, tx, mid, " FOR UPDATE OF ms") }
+func loadLC(ctx context.Context, tx pgx.Tx, mid uuid.UUID) (lc, error) {
+	return queryLC(ctx, tx, mid, " FOR UPDATE OF ms")
+}
 
 func queryLC(ctx context.Context, q dbtx.Querier, mid uuid.UUID, lock string) (lc, error) {
 	var l lc

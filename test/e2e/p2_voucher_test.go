@@ -6,6 +6,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 // EP-19 acceptance: voucher 5x entry weekday Rp635,000 recognises 127,000 per
@@ -204,68 +206,109 @@ func TestP2VoucherPrepaid(t *testing.T) {
 
 // EP-03 acceptance: golf, futsal and restaurant charges signed to the member
 // account appear on one Member Statement whose closing balance equals the
-// Member Account balance.
+// Member Account balance (FR-BIL-P2-02). Every charge comes from its real
+// flow: a golf walk-in folio, a court booking and a POS order.
 func TestP2MemberStatement(t *testing.T) {
 	f := setupP2(t)
 	sa := f.SA
-	before := sa.Must(200, "GET", "/api/v1/billing/member-accounts/"+f.AccountA, nil).JSON()
-	for _, c := range []struct{ line, comp, desc, amt string }{
-		{"golf", "green_fee", "Green fee 18 holes", "640000"}, {"sportclub", "court", "Futsal court", "245000"}, {"pos", "fnb", "The Spike Bar dinner", "380000"},
-	} {
-		fo := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": f.CustomerA, "holderName": "Walk-in"}))
-		sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/lines", map[string]any{"chargeType": "other", "description": c.desc, "unitPrice": c.amt})
-		sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": fo, "methodType": "member_account", "amount": c.amt})
-		sa.Must(200, "POST", "/api/v1/billing/folios/"+fo+":close", map[string]any{})
+	cust := idOf(sa.Must(201, "POST", "/api/v1/crm/customers", map[string]any{"code": "P2-STMT", "name": "Surya Statement", "email": "surya@p2.test"}))
+	acct := idOf(sa.Must(201, "POST", "/api/v1/billing/customer-accounts", map[string]any{"customerId": cust, "accountType": "member", "creditLimit": "50000000"}))
+	charged := map[string]decimal.Decimal{}
+	memberCharge := func(line, folio string) {
+		p := sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": folio, "methodType": "member_account"}, "Idempotency-Key", newKey()).JSON()
+		charged[line] = charged[line].Add(dec(p["amount"]))
 	}
-	st := sa.Must(200, "GET", "/api/v1/billing/member-accounts/"+f.AccountA+"/statement", nil).JSON()
-	lines := map[string]string{}
-	for _, s := range st["sections"].([]any) {
-		sm := s.(map[string]any)
-		lines[str(sm["businessLine"])] = str(sm["charges"])
+
+	// Golf: a walk-in folio at the golf front desk.
+	golf := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": cust, "holderName": "Surya Statement"}))
+	sa.Must(201, "POST", "/api/v1/billing/folios/"+golf+"/lines", map[string]any{"chargeType": "other", "description": "Range balls & rental set", "unitPrice": "640000"})
+	memberCharge("golf", golf)
+	sa.Must(200, "POST", "/api/v1/billing/folios/"+golf+":close", nil)
+
+	// Futsal: a court booking whose folio is signed to the member account.
+	rule(t, sa, map[string]any{"code": "STMT-FUTSAL", "name": "Statement futsal Mon–Thu 16–21", "serviceType": "sport_court", "itemRef": "STMT-FUTSAL",
+		"lineDayTypeId": f.MonThu, "timeBandId": f.Evening, "unit": "slot", "unitMinutes": 60, "price": "245000", "pricingMode": "nett",
+		"taxCodes": []string{"P2VAT"}, "revenueComponent": "court"})
+	court := resourceOf(t, sa, "STMT-COURT", "sport_court", nil, map[string]any{"priceItem": "STMT-FUTSAL"})
+	cd := nextWeekday(f.Loc, time.Tuesday, 2)
+	res := sa.Must(201, "POST", "/api/v1/reservation/reservations", map[string]any{"lines": []map[string]any{{"resourceId": court,
+		"start": rfc(at(cd, 17, 0)), "end": rfc(at(cd, 18, 0))}}, "customerId": cust, "charge": true, "segment": "walk_in", "confirm": true},
+		"Idempotency-Key", newKey()).JSON()
+	if res["folioId"] == nil {
+		t.Fatalf("court booking has no folio: %v", res)
 	}
-	if lines["golf"] != "640000" || lines["sportclub"] != "245000" || lines["pos"] == "" {
-		t.Fatalf("statement sections: %v", st["sections"])
+	memberCharge("sportclub", str(res["folioId"]))
+
+	// Restaurant: a POS order paid by member charge.
+	resto := idOf(sa.Must(201, "POST", "/api/v1/commercial/outlets", map[string]any{"code": "STMT-RESTO", "name": "Statement Restaurant", "outletType": "restaurant"}))
+	steak := idOf(sa.Must(201, "POST", "/api/v1/commercial/products", map[string]any{"code": "STMT-STEAK", "name": "Sirloin Steak", "productType": "food", "price": "380000"}))
+	ord := sa.Must(201, "POST", "/api/v1/commercial/orders", map[string]any{"outletId": resto, "customerId": cust, "lines": []map[string]any{{"productId": steak}}}).JSON()
+	paid := sa.Must(200, "POST", "/api/v1/commercial/orders/"+str(ord["id"])+":pay", map[string]any{"tenders": []map[string]any{{"methodType": "member_account"}}},
+		"Idempotency-Key", newKey()).JSON()
+	if paid["status"] != "paid" {
+		t.Fatalf("POS member charge: %v", paid)
 	}
-	if st["closingBalance"] != st["accountBalance"] {
-		t.Fatalf("closing %v != account %v (before %v)", st["closingBalance"], st["accountBalance"], before["balance"])
-	}
-	// credit limit enforced online; payment against the account reduces it
-	sa.Must(200, "PATCH", "/api/v1/billing/member-accounts/"+f.AccountA, map[string]any{"creditLimit": st["accountBalance"]})
-	fo := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": f.CustomerA, "holderName": "Walk-in"}))
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/lines", map[string]any{"chargeType": "other", "description": "Coffee", "unitPrice": "35000"})
-	if r := sa.Do("POST", "/api/v1/billing/payments", map[string]any{"folioId": fo, "methodType": "member_account", "amount": "35000"}); r.Status != 409 {
+	charged["pos"] = dec(paid["total"])
+
+	// Credit limit is enforced online; a payment against the account frees it.
+	bal := sa.Must(200, "GET", "/api/v1/billing/customer-accounts/"+acct, nil).JSON()["balance"]
+	sa.Must(201, "POST", "/api/v1/billing/customer-accounts", map[string]any{"customerId": cust, "accountType": "member", "creditLimit": str(bal)})
+	cafe := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"customerId": cust, "holderName": "Surya Statement"}))
+	sa.Must(201, "POST", "/api/v1/billing/folios/"+cafe+"/lines", map[string]any{"chargeType": "other", "description": "Coffee", "unitPrice": "35000"})
+	if r := sa.Do("POST", "/api/v1/billing/payments", map[string]any{"folioId": cafe, "methodType": "member_account"}); r.Status != 409 {
 		t.Fatalf("credit limit: %s", r)
 	}
-	sa.Must(200, "POST", "/api/v1/billing/member-accounts/"+f.AccountA+"/entries", map[string]any{"entryType": "payment", "amount": "500000", "description": "Bank transfer"})
-	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": fo, "methodType": "member_account", "amount": "35000"})
-	sa.Must(200, "PATCH", "/api/v1/billing/member-accounts/"+f.AccountA, map[string]any{"creditLimit": "50000000"})
-	// refund, void, reopen, reconciliation, export
-	p := sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": fo, "methodType": "cash", "amount": "10000"}).JSON()
-	sa.Must(200, "POST", "/api/v1/billing/payments/"+str(p["id"])+":refund", map[string]any{"reason": "overpaid"})
-	det := sa.Must(200, "GET", "/api/v1/billing/folios/"+fo, nil).JSON()
-	lineID := str(det["lines"].([]any)[0].(map[string]any)["id"])
-	sa.Must(201, "POST", "/api/v1/billing/folios/"+fo+"/lines", map[string]any{"chargeType": "other", "description": "Wrong", "unitPrice": "1000"})
-	det = sa.Must(200, "GET", "/api/v1/billing/folios/"+fo, nil).JSON()
-	for _, l := range det["lines"].([]any) {
-		lm := l.(map[string]any)
-		if lm["description"] == "Wrong" {
-			sa.Must(204, "POST", "/api/v1/billing/folio-lines/"+str(lm["id"])+":void", map[string]any{"reason": "keyed in error"})
+	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"accountId": acct, "methodType": "bank_transfer", "amount": "500000", "reference": "TRF-STMT"},
+		"Idempotency-Key", newKey())
+	memberCharge("golf", cafe)
+	sa.Must(201, "POST", "/api/v1/billing/customer-accounts", map[string]any{"customerId": cust, "accountType": "member", "creditLimit": "50000000"})
+
+	// A wrong line is voided; an overpayment is refunded; the folio closes and reopens.
+	extra := sa.Must(201, "POST", "/api/v1/billing/folios/"+cafe+"/lines", map[string]any{"chargeType": "other", "description": "Wrong", "unitPrice": "1000"}).JSON()
+	for _, l := range extra["lines"].([]any) {
+		if lm := l.(map[string]any); lm["description"] == "Wrong" {
+			sa.Must(200, "POST", "/api/v1/billing/folios/"+cafe+"/lines/"+str(lm["id"])+":void", map[string]any{"reason": "keyed in error"})
 		}
 	}
-	_ = lineID
-	sa.Must(200, "POST", "/api/v1/billing/folios/"+fo+":close", map[string]any{})
-	sa.Must(200, "POST", "/api/v1/billing/folios/"+fo+":reopen", map[string]any{"reason": "late tip"})
-	if n := len(sa.Must(200, "GET", "/api/v1/billing/daily-payment-summary", nil).Items()); n == 0 {
-		t.Fatal("payment summary")
+	sa.Must(201, "POST", "/api/v1/billing/folios/"+cafe+"/lines", map[string]any{"chargeType": "other", "description": "Tip", "unitPrice": "10000"})
+	cash := sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": cafe, "methodType": "cash", "amount": "20000"}, "Idempotency-Key", newKey()).JSON()
+	if rf := sa.Must(201, "POST", "/api/v1/billing/refunds", map[string]any{"paymentId": cash["id"], "amount": "10000", "reason": "overpaid"}).JSON(); rf["status"] != "completed" {
+		t.Fatalf("refund: %v", rf)
 	}
-	exp := sa.Must(200, "GET", "/api/v1/billing/accounting-exports", nil)
-	if !contains(string(exp.Body), "revenue,golf,green_fee") || !contains(string(exp.Body), "payment,back_office,member_account") {
-		t.Fatalf("export: %s", exp.Body)
+	sa.Must(200, "POST", "/api/v1/billing/folios/"+cafe+":close", nil)
+	sa.Must(200, "POST", "/api/v1/billing/folios/"+cafe+":reopen", map[string]any{"reason": "late tip"})
+
+	// The monthly statement: one section per business line, closing = account balance.
+	period := time.Now().In(clubLoc(inst)).Format("2006-01")
+	sa.Must(200, "POST", "/api/v1/billing/member-statements:generate", map[string]any{"period": period})
+	sts := sa.Must(200, "GET", "/api/v1/billing/member-statements?filter[accountId]="+acct, nil).Items()
+	if len(sts) != 1 {
+		t.Fatalf("statements: %v", sts)
 	}
-	if n := len(sa.Must(200, "GET", "/api/v1/billing/folios?filter[customerId]="+f.CustomerA, nil).Items()); n < 3 {
+	byLine := map[string]decimal.Decimal{}
+	for _, l := range sts[0]["lines"].([]any) {
+		lm := l.(map[string]any)
+		if a := dec(lm["amount"]); a.IsPositive() {
+			byLine[str(lm["businessLine"])] = byLine[str(lm["businessLine"])].Add(a)
+		}
+	}
+	for _, line := range []string{"golf", "sportclub", "pos"} {
+		if !byLine[line].Equal(charged[line]) {
+			t.Fatalf("statement %s charges %s, want %s (lines %v)", line, byLine[line], charged[line], sts[0]["lines"])
+		}
+	}
+	acc := sa.Must(200, "GET", "/api/v1/billing/customer-accounts/"+acct, nil).JSON()
+	if !dec(sts[0]["closingBalance"]).Equal(dec(acc["balance"])) {
+		t.Fatalf("closing %v != account %v", sts[0]["closingBalance"], acc["balance"])
+	}
+
+	if !contains(accountingExport(t, sa), "member_charge,member_account,") {
+		t.Fatal("accounting export lacks member charges")
+	}
+	if n := len(sa.Must(200, "GET", "/api/v1/billing/folios?filter[customerId]="+cust, nil).Items()); n < 3 {
 		t.Fatalf("folios %d", n)
 	}
-	if n := len(sa.Must(200, "GET", "/api/v1/billing/customer-accounts?q=Hendra", nil).Items()); n != 1 {
+	if n := len(sa.Must(200, "GET", "/api/v1/billing/customer-accounts?q=Surya", nil).Items()); n != 1 {
 		t.Fatalf("accounts %d", n)
 	}
 	if n := len(sa.Must(200, "GET", "/api/v1/billing/customer-accounts:limit-cache", nil).Items()); n < 1 {
