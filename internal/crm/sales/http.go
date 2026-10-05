@@ -513,7 +513,7 @@ func (m *Module) registerQuotations(reg *route.Registry) {
 				if err != nil {
 					return err
 				}
-				b, err = QuotationPDF(r.Context(), tx, d)
+				b, err = m.QuotationPDF(r.Context(), tx, d)
 				return err
 			})
 			if err != nil {

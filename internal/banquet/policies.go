@@ -39,9 +39,10 @@ type BookingPolicy struct {
 	PackageCancellation     string `json:"packageCancellation" enum:"cancel,tentative" doc:"Event of a cancelled package: cancelled with it, or back to Tentative until its option date (FR-PKG-08)"`
 }
 
-// DefaultBooking is the code default (PRD P3 §16 #11).
+// DefaultBooking is the code default (PRD P3 §16 #11): DP 30% at
+// confirmation, second term 40% at H-60, the balance at H-7.
 var DefaultBooking = BookingPolicy{TentativeHoldDays: 7, WaitlistEnabled: true, MinDownPaymentPercent: "30", DownPaymentDueDays: 7,
-	SecondTermPercent: "0", SecondTermDaysBefore: 60, FinalPaymentDaysBefore: 7, GuaranteedPaxDaysBefore: 7, MaxPaxDecreasePercent: "10",
+	SecondTermPercent: "40", SecondTermDaysBefore: 60, FinalPaymentDaysBefore: 7, GuaranteedPaxDaysBefore: 7, MaxPaxDecreasePercent: "10",
 	DefiniteRequiresDeposit: true, DefaultStartTime: "10:00", RequirementLeadDays: 1, PackageCancellation: "cancel"}
 
 // CancellationTier forfeits a share of a basis when the event is cancelled

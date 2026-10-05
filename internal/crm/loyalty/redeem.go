@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -364,15 +365,16 @@ func (m *Module) RedeemReward(ctx context.Context, tx pgx.Tx, property, aid uuid
 	}
 	var w struct {
 		Code, Name, Type, Status string
+		VoucherType              *string
 		Cost                     int64
 		Stock                    *int
 		MinTier                  *uuid.UUID
 		From, To                 *time.Time
 		Archived                 *time.Time
 	}
-	err = tx.QueryRow(ctx, `SELECT code, name, reward_type, status, points_cost, stock, min_tier_id, valid_from, valid_to, archived_at
+	err = tx.QueryRow(ctx, `SELECT code, name, reward_type, status, points_cost, stock, min_tier_id, valid_from, valid_to, archived_at, voucher_type_ref
 		FROM crm.loyalty_rewards WHERE id = $1 AND property_id = $2 FOR UPDATE`, in.RewardID, property).
-		Scan(&w.Code, &w.Name, &w.Type, &w.Status, &w.Cost, &w.Stock, &w.MinTier, &w.From, &w.To, &w.Archived)
+		Scan(&w.Code, &w.Name, &w.Type, &w.Status, &w.Cost, &w.Stock, &w.MinTier, &w.From, &w.To, &w.Archived, &w.VoucherType)
 	if dbtx.IsNoRows(err) {
 		return RewardRedemption{}, errs.NotFound("reward")
 	}
@@ -429,6 +431,21 @@ func (m *Module) RedeemReward(ctx context.Context, tx pgx.Tx, property, aid uuid
 		fulfilment_code, channel, ledger_id, note, created_by, updated_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$12)`,
 		rid, property, num, a.ID, in.RewardID, in.Quantity, points, code, channel, e.ID, nullStr(in.Note), actor(ctx)); err != nil {
 		return RewardRedemption{}, err
+	}
+	// A voucher reward with a Commercial voucher type is a real voucher of
+	// the customer, handed over at once (FR-LOY-05).
+	if w.Type == "voucher" && w.VoucherType != nil && strings.TrimSpace(*w.VoucherType) != "" && m.IssueVoucher != nil {
+		codes, err := m.IssueVoucher(ctx, tx, RewardVoucher{PropertyID: property, TypeCode: *w.VoucherType, CustomerID: a.CustomerID,
+			Quantity: in.Quantity, RedemptionID: rid, Number: num, RewardName: w.Name})
+		if err != nil {
+			return RewardRedemption{}, err
+		}
+		c := strings.Join(codes, ", ")
+		code = &c
+		if _, err := tx.Exec(ctx, `UPDATE crm.loyalty_reward_redemptions SET fulfilment_code = $2, status = 'completed', completed_at = now(),
+			completed_by = $3 WHERE id = $1`, rid, c, actor(ctx)); err != nil {
+			return RewardRedemption{}, err
+		}
 	}
 	out, err := GetRedemption(ctx, tx, rid)
 	if err != nil {

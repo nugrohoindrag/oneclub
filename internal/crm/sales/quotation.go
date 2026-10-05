@@ -32,7 +32,7 @@ import (
 )
 
 // ItemTypes of a quotation line (crm.quotation_accepted lines.itemType).
-var ItemTypes = []string{"banquet_package", "venue", "product", "service", "package", "other"}
+var ItemTypes = []string{"banquet_package", "banquet_menu", "venue", "product", "service", "package", "other"}
 
 // ── pricing hook ──────────────────────────────────────────────────────────
 
@@ -48,6 +48,11 @@ type PriceInput struct {
 	Currency    string
 	PricingMode string   // nett | plus_plus
 	TaxCodes    []string // tax & service rule codes (manual prices)
+	// Promotions on catalogue prices (FR-PRM-06): the Sales Policies allow
+	// them; the customer and line decide the eligible promotions.
+	Promotions bool
+	CustomerID *uuid.UUID
+	Line       string // quotation business line
 }
 
 // PricedLine is a priced quotation line.
@@ -61,6 +66,12 @@ type PricedLine struct {
 	Tax         decimal.Decimal
 	Total       decimal.Decimal // incl. tax & service
 	Snapshot    map[string]any  // rule, version, tax lines (kept on the line)
+	// Quantity is the charged quantity when the catalogue imposes one (the
+	// minimum pax of a banquet package, 1 for a fixed-price package).
+	Quantity *decimal.Decimal
+	// PromoDiscount is the automatic promotion discount of the line
+	// (FR-PRM-06); the applied promotions are in Snapshot["promotions"].
+	PromoDiscount decimal.Decimal
 }
 
 // Pricer resolves list prices (pricing rules, product prices) and tax &
@@ -89,7 +100,7 @@ func (m *Module) price(ctx context.Context, q dbtx.Querier, property uuid.UUID, 
 
 // QuotationLineInput is one line of a quotation.
 type QuotationLineInput struct {
-	ItemType        string `json:"itemType" enum:"banquet_package,venue,product,service,package,other"`
+	ItemType        string `json:"itemType" enum:"banquet_package,banquet_menu,venue,product,service,package,other"`
 	ItemRef         string `json:"itemRef,omitempty" doc:"Banquet package code, venue / product id, package code …"`
 	ServiceType     string `json:"serviceType,omitempty" doc:"Commercial service type to price from the pricing rules (e.g. meeting_package)"`
 	Description     string `json:"description"`
@@ -98,9 +109,11 @@ type QuotationLineInput struct {
 	Discount        string `json:"discount,omitempty" doc:"Line discount amount"`
 	DiscountPercent string `json:"discountPercent,omitempty" doc:"Line discount percent (instead of an amount)"`
 
-	src   string   // kept price source when lines are re-priced
-	mode  string   // kept pricing mode
-	codes []string // kept tax codes
+	src    string          // kept price source when lines are re-priced
+	mode   string          // kept pricing mode
+	codes  []string        // kept tax codes
+	promo  decimal.Decimal // kept promotion discount
+	promos any             // kept applied promotions
 }
 
 // PaymentTermInput is one payment term (DP, installment, final payment).
@@ -157,20 +170,20 @@ type QuotationInput struct {
 type QuotationLine struct {
 	ID            uuid.UUID       `json:"id" db:"id"`
 	LineNo        int             `json:"lineNo" db:"line_no"`
-	ItemType      string          `json:"itemType" db:"item_type" enum:"banquet_package,venue,product,service,package,other"`
+	ItemType      string          `json:"itemType" db:"item_type" enum:"banquet_package,banquet_menu,venue,product,service,package,other"`
 	ItemRef       *string         `json:"itemRef" db:"item_ref"`
 	ServiceType   *string         `json:"serviceType" db:"service_type"`
 	Description   string          `json:"description" db:"description"`
 	Quantity      string          `json:"quantity" db:"quantity"`
 	UnitPrice     string          `json:"unitPrice" db:"unit_price"`
 	Discount      string          `json:"discount" db:"discount" doc:"Line discount + share of the quotation discount"`
-	LineDiscount  string          `json:"lineDiscount" db:"line_discount"`
+	LineDiscount  string          `json:"lineDiscount" db:"line_discount" doc:"Line discount incl. automatic promotions (pricing.promotionDiscount)"`
 	Total         string          `json:"total" db:"total" doc:"Quantity × unit price − discount"`
 	NetAmount     string          `json:"netAmount" db:"net_amount"`
 	ServiceAmount string          `json:"serviceAmount" db:"service_amount"`
 	TaxAmount     string          `json:"taxAmount" db:"tax_amount"`
 	GrossTotal    string          `json:"grossTotal" db:"gross_total" doc:"Incl. tax & service"`
-	PriceSource   string          `json:"priceSource" db:"price_source" enum:"manual,pricing_rule,product"`
+	PriceSource   string          `json:"priceSource" db:"price_source" enum:"manual,pricing_rule,product,package,banquet_package,banquet_menu"`
 	Pricing       json.RawMessage `json:"pricing" db:"pricing"`
 }
 
@@ -365,7 +378,8 @@ func lockQuotation(ctx context.Context, tx pgx.Tx, property, qid uuid.UUID) (Quo
 
 type calcLine struct {
 	in                                       QuotationLineInput
-	qty, unit, lineDisc, share, total        decimal.Decimal
+	qty, unit, lineDisc, share, total, promo decimal.Decimal
+	promos                                   any
 	net, svc, tax, gross                     decimal.Decimal
 	source, mode                             string
 	codes                                    []string
@@ -376,7 +390,7 @@ type calcLine struct {
 type quoteCalc struct {
 	lines                                    []calcLine
 	subtotal, discount, net, svc, tax, total decimal.Decimal
-	discountPct, headerDiscount              decimal.Decimal
+	discountPct, headerDiscount, promo       decimal.Decimal
 	headerPct                                *decimal.Decimal
 	terms                                    []PaymentTerm
 }
@@ -391,6 +405,9 @@ type quoteHeader struct {
 	terms          []PaymentTermInput
 	termDefaults   []PaymentTermRule
 	base           time.Time // due date base (today, or the acceptance date)
+	customer       *uuid.UUID
+	line           string
+	promotions     bool // automatic promotions on catalogue prices
 }
 
 // calculate prices the lines, allocates the total discount pro rata and
@@ -429,14 +446,24 @@ func (m *Module) calculate(ctx context.Context, q dbtx.Querier, property uuid.UU
 			l.unit = u
 			if in.src != "" {
 				l.source = in.src
+				l.promo, l.promos = in.promo, in.promos
 			}
 		} else {
 			p, err := m.price(ctx, q, property, PriceInput{ItemType: l.itemType, ItemRef: l.itemRef, ServiceType: l.serviceType, Quantity: qty,
-				At: h.at, Currency: h.currency, PricingMode: h.mode, TaxCodes: h.codes})
+				At: h.at, Currency: h.currency, PricingMode: h.mode, TaxCodes: h.codes, Promotions: h.promotions, CustomerID: h.customer, Line: h.line})
 			if err != nil {
 				return c, err
 			}
 			l.unit, l.source, l.snapshot = p.UnitPrice, p.Source, p.Snapshot
+			if p.Quantity != nil && p.Quantity.IsPositive() {
+				qty, l.qty = *p.Quantity, *p.Quantity
+			}
+			if p.PromoDiscount.IsPositive() {
+				l.promo = round(p.PromoDiscount, h.currency)
+				if l.snapshot != nil {
+					l.promos = l.snapshot["promotions"]
+				}
+			}
 			if p.PricingMode != "" {
 				l.mode = p.PricingMode
 			}
@@ -445,6 +472,9 @@ func (m *Module) calculate(ctx context.Context, q dbtx.Querier, property uuid.UU
 			}
 		}
 		gross := l.unit.Mul(qty)
+		if l.promo.GreaterThan(gross) {
+			l.promo = gross
+		}
 		switch {
 		case strings.TrimSpace(in.DiscountPercent) != "":
 			p, err := handle.Decimal(f+".discountPercent", in.DiscountPercent, decimal.Zero)
@@ -459,11 +489,11 @@ func (m *Module) calculate(ctx context.Context, q dbtx.Querier, property uuid.UU
 			}
 			l.lineDisc = d
 		}
-		if l.lineDisc.IsNegative() || l.lineDisc.GreaterThan(gross) {
-			return c, handle.Invalid(f+".discount", "invalid", "between 0 and the line amount")
+		if l.lineDisc.IsNegative() || l.lineDisc.Add(l.promo).GreaterThan(gross) {
+			return c, handle.Invalid(f+".discount", "invalid", "between 0 and the line amount after promotions")
 		}
 		c.subtotal = c.subtotal.Add(gross)
-		afterLine = afterLine.Add(gross.Sub(l.lineDisc))
+		afterLine = afterLine.Add(gross.Sub(l.lineDisc).Sub(l.promo))
 		c.lines = append(c.lines, l)
 	}
 	// discount on the total
@@ -489,7 +519,7 @@ func (m *Module) calculate(ctx context.Context, q dbtx.Querier, property uuid.UU
 	left := c.headerDiscount
 	for i := range c.lines {
 		l := &c.lines[i]
-		base := l.unit.Mul(l.qty).Sub(l.lineDisc)
+		base := l.unit.Mul(l.qty).Sub(l.lineDisc).Sub(l.promo)
 		if i == len(c.lines)-1 {
 			l.share = left
 		} else if afterLine.IsPositive() {
@@ -501,7 +531,7 @@ func (m *Module) calculate(ctx context.Context, q dbtx.Querier, property uuid.UU
 		left = left.Sub(l.share)
 		unit := l.unit
 		p, err := m.price(ctx, q, property, PriceInput{ItemType: l.itemType, ItemRef: l.itemRef, ServiceType: l.serviceType, Quantity: l.qty,
-			UnitPrice: &unit, Discount: l.lineDisc.Add(l.share), At: h.at, Currency: h.currency, PricingMode: l.mode, TaxCodes: l.codes})
+			UnitPrice: &unit, Discount: l.lineDisc.Add(l.promo).Add(l.share), At: h.at, Currency: h.currency, PricingMode: l.mode, TaxCodes: l.codes})
 		if err != nil {
 			return c, err
 		}
@@ -514,11 +544,20 @@ func (m *Module) calculate(ctx context.Context, q dbtx.Querier, property uuid.UU
 			l.snapshot = map[string]any{}
 		}
 		l.snapshot["pricingMode"], l.snapshot["taxCodes"] = l.mode, l.codes
-		c.discount = c.discount.Add(l.lineDisc).Add(l.share)
+		if l.promo.IsPositive() {
+			l.snapshot["promotionDiscount"], l.snapshot["promotions"] = l.promo.String(), l.promos
+		} else {
+			delete(l.snapshot, "promotionDiscount")
+			delete(l.snapshot, "promotions")
+		}
+		c.discount = c.discount.Add(l.lineDisc).Add(l.share).Add(l.promo)
+		c.promo = c.promo.Add(l.promo)
 		c.net, c.svc, c.tax, c.total = c.net.Add(l.net), c.svc.Add(l.svc), c.tax.Add(l.tax), c.total.Add(l.gross)
 	}
+	// the discount needing approval is the sales discount: automatic
+	// promotions are approved with the promotion (FR-PRM-10)
 	if c.subtotal.IsPositive() {
-		c.discountPct = c.discount.Mul(hundred).Div(c.subtotal).Round(4)
+		c.discountPct = c.discount.Sub(c.promo).Mul(hundred).Div(c.subtotal).Round(4)
 	}
 	terms, err := buildTerms(h.terms, h.termDefaults, c.total, h.currency, h.base, h.eventDate)
 	if err != nil {
@@ -813,6 +852,15 @@ func (m *Module) CreateQuotation(ctx context.Context, tx pgx.Tx, property uuid.U
 		return QuotationDetail{}, err
 	}
 	terms := pol.QuotationTerms
+	if BanquetLine(hdr.line) && m.BanquetTerms != nil {
+		bt, err := m.BanquetTerms(ctx, tx, property)
+		if err != nil {
+			return QuotationDetail{}, err
+		}
+		if bt != "" {
+			terms = bt
+		}
+	}
 	if in.Terms != nil {
 		terms = *in.Terms
 	}
@@ -900,6 +948,7 @@ func headerOf(in QuotationInput, pol SalesPolicy, today time.Time) (headerSpec, 
 		h.headerPct = *in.DiscountPercent
 	}
 	h.terms, h.termDefaults, h.base = in.PaymentTerms, pol.DefaultPaymentTerms, today
+	h.customer, h.quoteHeader.line, h.promotions = in.CustomerID, h.line, pol.QuotationPromotions
 	return h, nil
 }
 
@@ -914,7 +963,7 @@ func saveLines(ctx context.Context, tx pgx.Tx, property, qid uuid.UUID, c quoteC
 			description, quantity, unit_price, discount, header_discount_share, total, net_amount, service_amount, tax_amount, gross_total, price_source, pricing)
 			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::numeric,$10::numeric,$11::numeric,$12::numeric,$13::numeric,$14::numeric,$15::numeric,$16::numeric,
 			$17::numeric,$18,$19)`, id.New(), property, qid, i+1, l.itemType, nullStr(l.itemRef), nullStr(l.serviceType), l.describe, l.qty.String(),
-			l.unit.String(), l.lineDisc.String(), l.share.String(), l.total.String(), l.net.String(), l.svc.String(), l.tax.String(), l.gross.String(),
+			l.unit.String(), l.lineDisc.Add(l.promo).String(), l.share.String(), l.total.String(), l.net.String(), l.svc.String(), l.tax.String(), l.gross.String(),
 			l.source, snap); err != nil {
 			return err
 		}
@@ -962,14 +1011,21 @@ func storedLines(ls []QuotationLine) []QuotationLineInput {
 		in := QuotationLineInput{ItemType: l.ItemType, ItemRef: deref(l.ItemRef), ServiceType: deref(l.ServiceType), Description: l.Description,
 			Quantity: l.Quantity, UnitPrice: l.UnitPrice, Discount: l.LineDiscount, src: l.PriceSource}
 		var snap struct {
-			PricingMode string   `json:"pricingMode"`
-			TaxCodes    []string `json:"taxCodes"`
+			PricingMode       string   `json:"pricingMode"`
+			TaxCodes          []string `json:"taxCodes"`
+			PromotionDiscount string   `json:"promotionDiscount"`
+			Promotions        any      `json:"promotions"`
 		}
 		if json.Unmarshal(l.Pricing, &snap) == nil && snap.PricingMode != "" {
 			in.mode, in.codes = snap.PricingMode, snap.TaxCodes
 			if in.codes == nil {
 				in.codes = []string{}
 			}
+		}
+		if p := dec(snap.PromotionDiscount); p.IsPositive() {
+			// the stored line discount includes the promotion
+			in.promo, in.promos = p, snap.Promotions
+			in.Discount = dec(l.LineDiscount).Sub(p).String()
 		}
 		out = append(out, in)
 	}

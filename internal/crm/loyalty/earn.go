@@ -63,6 +63,7 @@ type earnRule struct {
 	Activity         *string    `db:"activity"`
 	Points           int64      `db:"points"`
 	Priority         int        `db:"priority"`
+	SegmentID        *uuid.UUID `db:"customer_segment_id"`
 }
 
 func (r earnRule) matches(l earnLine) (int, bool) {
@@ -96,8 +97,8 @@ func (r earnRule) matches(l earnLine) (int, bool) {
 
 func activeRules(ctx context.Context, q dbtx.Querier, property uuid.UUID, ruleType string, day time.Time) ([]earnRule, error) {
 	rows, err := q.Query(ctx, `SELECT id, code, business_line, revenue_component, outlet_id, product_id, trim_scale(amount_per_point)::text AS amount_per_point,
-		trim_scale(multiplier)::text AS multiplier, activity, points, priority FROM crm.loyalty_earning_rules
-		WHERE property_id = $1 AND rule_type = $2 AND status = 'active' AND archived_at IS NULL
+		trim_scale(multiplier)::text AS multiplier, activity, points, priority, customer_segment_id FROM crm.loyalty_earning_rules
+		WHERE property_id = $1 AND rule_type = $2 AND status = 'active' AND archived_at IS NULL AND (rule_type = 'spend' OR customer_segment_id IS NULL)
 		AND (valid_from IS NULL OR valid_from <= $3::date) AND (valid_to IS NULL OR valid_to >= $3::date) ORDER BY priority, code`, property, ruleType, day)
 	if err != nil {
 		return nil, err
@@ -115,7 +116,7 @@ type EarnResult struct {
 // EarnFromPayment computes and posts the points of one settled payment:
 // eligible net spend of the folio (business line / component / outlet /
 // product rules) × the payment's share of the folio, ÷ amount per point,
-// × rule and tier multipliers. Idempotent per payment.
+// × rule, CRM segment and tier multipliers. Idempotent per payment.
 func (m *Module) EarnFromPayment(ctx context.Context, tx pgx.Tx, p SettledPayment) (EarnResult, error) {
 	var res EarnResult
 	if p.FolioID == nil || (p.Purpose != "" && p.Purpose != "settlement") {
@@ -188,6 +189,32 @@ func (m *Module) EarnFromPayment(ctx context.Context, tx pgx.Tx, p SettledPaymen
 	if err != nil {
 		return res, err
 	}
+	// spend rules with a CRM segment are segment multipliers (FR-LOY-02):
+	// the highest one matching the line applies on top of the line's rule
+	// for the customers in the segment
+	segs := map[uuid.UUID]bool{}
+	var base, segRules []earnRule
+	for _, r := range rules {
+		if r.SegmentID != nil {
+			segRules = append(segRules, r)
+		} else {
+			base = append(base, r)
+		}
+	}
+	if len(segRules) > 0 {
+		srows, err := tx.Query(ctx, `SELECT segment_id FROM crm.segment_members WHERE customer_id = $1`, *customer)
+		if err != nil {
+			return res, err
+		}
+		ids, err := pgx.CollectRows(srows, pgx.RowTo[uuid.UUID])
+		if err != nil {
+			return res, err
+		}
+		for _, s := range ids {
+			segs[s] = true
+		}
+	}
+	rules = base
 	per := pol.perPoint()
 	raw := decimal.Zero
 	for _, l := range lines {
@@ -212,6 +239,20 @@ func (m *Module) EarnFromPayment(ctx context.Context, tx pgx.Tx, p SettledPaymen
 			continue
 		}
 		if !rate.IsPositive() || !mult.IsPositive() {
+			continue
+		}
+		var segMult *decimal.Decimal
+		for _, r := range segRules {
+			if _, ok := r.matches(l); ok && segs[*r.SegmentID] {
+				if x := dec(r.Multiplier); segMult == nil || x.GreaterThan(*segMult) {
+					segMult = &x
+				}
+			}
+		}
+		if segMult != nil {
+			mult = mult.Mul(*segMult)
+		}
+		if !mult.IsPositive() {
 			continue
 		}
 		res.Eligible = res.Eligible.Add(net)

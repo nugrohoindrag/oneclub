@@ -53,6 +53,8 @@ var EarningRules = &resource.Def{
 		{Name: "productId", Column: "product_id", Label: "Product", Kind: resource.UUID},
 		{Name: "amountPerPoint", Column: "amount_per_point", Label: "Net Spend per Point (default: Loyalty Policies)", Kind: resource.Decimal, Min: resource.Min(0.0001)},
 		{Name: "multiplier", Column: "multiplier", Label: "Multiplier (0 = no points)", Kind: resource.Decimal, Default: "1", Min: resource.Min(0)},
+		{Name: "customerSegmentId", Column: "customer_segment_id", Label: "CRM Segment (spend rule: multiplier for its members, on top of the line's rule)",
+			Kind: resource.UUID, Ref: &resource.Ref{Table: "crm.segments", SameProperty: true, Label: "segment"}},
 		{Name: "activity", Column: "activity", Label: "Activity", Kind: resource.Enum, Enum: Activities},
 		{Name: "points", Column: "points", Label: "Activity Points", Kind: resource.Int, Default: int64(0), Min: resource.Min(0)},
 		{Name: "validFrom", Column: "valid_from", Label: "Valid From", Kind: resource.Date},

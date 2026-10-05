@@ -85,6 +85,13 @@ type Module struct {
 	// OTPKey peppers the hashes of quotation acceptance codes (the instance
 	// application secret).
 	OTPKey []byte
+	// Logo returns the branding logo (JPEG / PNG) printed on quotation PDFs
+	// (FR-QUO-08); nil = the club name only.
+	Logo func(ctx context.Context, q dbtx.Querier) []byte
+	// BanquetTerms returns the terms & conditions of the Banquet Policies,
+	// the default terms of wedding / banquet / MICE / event quotations
+	// (FR-QUO-08); internal/app wires it (crm cannot import banquet).
+	BanquetTerms func(ctx context.Context, q dbtx.Querier, property uuid.UUID) (string, error)
 }
 
 // Document types of the approval engine.
@@ -129,6 +136,7 @@ type SalesPolicy struct {
 	TaxCodes              []string          `json:"taxCodes" doc:"Tax & service rule codes applied to manually priced lines (empty: prices are final)"`
 	DefaultPaymentTerms   []PaymentTermRule `json:"defaultPaymentTerms"`
 	QuotationTerms        string            `json:"quotationTerms" doc:"Terms & conditions printed on quotations"`
+	QuotationPromotions   bool              `json:"quotationPromotions" doc:"Active promotions (channel back office) apply automatically to quotation lines priced from the catalogue; manual prices never get promotions"`
 	CommissionRates       map[string]string `json:"commissionRates" doc:"Default commission % per business line (no commission scheme)"`
 	CommissionBasis       string            `json:"commissionBasis" doc:"net (before tax & service) | total"`
 	ClawbackDays          int               `json:"clawbackDays" doc:"Refunds within N days after the deal was paid claw the commission back"`
@@ -144,6 +152,18 @@ type SalesPolicy struct {
 
 func intp(n int) *int { return &n }
 
+// DefaultRoleDiscountLimits are the discount limits per role of PRD P3 §16
+// #5: staff (sales, cashier) 5%, supervisors / admins 10%, outlet and sales
+// managers 20%; above 20% (or complimentary) the General Manager approves,
+// so the General Manager's own quotations need no approval. Roles not
+// listed keep the general limit (MaxDiscountPercent).
+func DefaultRoleDiscountLimits() map[string]string {
+	return map[string]string{"sales_executive": "5", "banquet_sales": "5", "cashier": "5", "pos_staff": "5", "marketing_staff": "5",
+		"crm_admin": "10", "membership_admin": "10", "golf_admin": "10",
+		"banquet_manager": "20", "event_manager": "20", "outlet_manager": "20", "membership_manager": "20", "golf_manager": "20",
+		"sport_club_manager": "20", "club_manager": "20", "resort_manager": "20", "general_manager": "100"}
+}
+
 // NewDefaultPolicy returns the Sales Policies defaults (PRD P3 §16 #3, #4,
 // #5 and the EP-03 AC). A fresh value is built on every call: decoding a
 // configured policy into shared maps or slices would change the defaults
@@ -152,11 +172,12 @@ func NewDefaultPolicy() SalesPolicy {
 	return SalesPolicy{
 		AssignmentMode: "round_robin", FixedAssignees: map[string]string{}, FirstResponseMinutes: 60, LineResponseMinutes: map[string]int{},
 		SLAReminderMinutes: 15, BusinessHoursStart: "08:00", BusinessHoursEnd: "20:00", AfterHoursDueTime: "09:00",
-		QuotationValidityDays: 14, OptionDays: 7, MaxDiscountPercent: "10", RoleDiscountLimits: map[string]string{}, PricingMode: "plus_plus",
+		QuotationValidityDays: 14, OptionDays: 7, MaxDiscountPercent: "10", RoleDiscountLimits: DefaultRoleDiscountLimits(), PricingMode: "plus_plus",
 		TaxCodes: []string{},
 		DefaultPaymentTerms: []PaymentTermRule{{Label: "Down Payment 30%", Percent: "30", DueDays: intp(7)},
 			{Label: "Final Payment", Percent: "70", DaysBeforeEvent: intp(7)}},
-		QuotationTerms: "Prices are valid until the validity date. The down payment confirms the booking; the balance is due before the event.",
+		QuotationTerms:      "Prices are valid until the validity date. The down payment confirms the booking; the balance is due before the event.",
+		QuotationPromotions: true,
 		CommissionRates: map[string]string{"wedding": "1", "banquet": "1", "mice": "1", "event": "1", "membership": "3", "golf": "2",
 			"tournament": "2", "stay": "1", "package": "1", "other": "1"},
 		CommissionBasis: "net", ClawbackDays: 90, LeadRetentionDays: 730,

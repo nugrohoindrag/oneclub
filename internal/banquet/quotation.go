@@ -153,7 +153,7 @@ func componentOfItem(t string) string {
 		return "banquet_package"
 	case "venue":
 		return "venue_rental"
-	case "product":
+	case "product", "banquet_menu":
 		return "banquet_fnb"
 	case "service":
 		return "event_fee"

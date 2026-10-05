@@ -73,7 +73,8 @@ func p3EngagementTemplates() []provision.Template {
 
 // buildP3Engagement wires routes, hooks, approval decisions and jobs.
 func (a *App) buildP3Engagement(reg *route.Registry, cfg *config.Config, db *dbtx.DB, _ *storage.Files) {
-	lm := &loyalty.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Notify: a.Notification, PayFolio: a.payFolioWithPoints}
+	lm := &loyalty.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Notify: a.Notification, PayFolio: a.payFolioWithPoints,
+		IssueVoucher: a.rewardVouchers}
 	ts := &topspender.Service{DB: db}
 	svc := &engagement.Service{DB: db, Events: a.Bus, Approvals: a.Approvals, Notify: a.Notification, CRM: a.CRM, Loyalty: lm, TopSpender: ts,
 		WebsiteURL: func() string { return cfg.WebsiteURL }, PortalURL: func() string { return cfg.MemberPortalURL }}

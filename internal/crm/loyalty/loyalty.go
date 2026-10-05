@@ -61,6 +61,21 @@ type Module struct {
 	// PayFolio takes a loyalty_points tender payment on a folio through
 	// billing (wired by internal/app; billing calls back Redeem).
 	PayFolio func(ctx context.Context, tx pgx.Tx, in FolioPayment) (LoyaltyFolioPayment, error)
+	// IssueVoucher issues the Commercial vouchers of a voucher reward
+	// (FR-LOY-05; wired by internal/app, crm cannot import commercial) and
+	// returns their codes; idempotent per redemption.
+	IssueVoucher func(ctx context.Context, tx pgx.Tx, in RewardVoucher) ([]string, error)
+}
+
+// RewardVoucher asks Commercial for the vouchers of a reward redemption.
+type RewardVoucher struct {
+	PropertyID   uuid.UUID
+	TypeCode     string
+	CustomerID   uuid.UUID
+	Quantity     int
+	RedemptionID uuid.UUID
+	Number       string
+	RewardName   string
 }
 
 // FolioPayment is a points payment on a folio (front desk, Member App).

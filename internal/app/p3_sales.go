@@ -8,13 +8,17 @@ package app
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
+	"oneclub/internal/banquet"
 	"oneclub/internal/billing"
 	"oneclub/internal/commercial"
 	"oneclub/internal/crm"
@@ -30,6 +34,7 @@ import (
 	"oneclub/internal/platform/integration"
 	"oneclub/internal/platform/outbox"
 	"oneclub/internal/platform/provision"
+	"oneclub/internal/platform/rules"
 	"oneclub/internal/platform/storage"
 )
 
@@ -67,7 +72,7 @@ func p3SalesTemplates() []provision.Template { return sales.Templates() }
 func (a *App) buildP3Sales(reg *route.Registry, cfg *config.Config, db *dbtx.DB, files *storage.Files) {
 	m := &sales.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Notify: a.Notification, Price: quotePrice,
 		WebsiteURL: func() string { return cfg.WebsiteURL }, StaffURL: func() string { return cfg.PublicBaseURL },
-		Integrations: a.Integrations, OTPKey: []byte(cfg.AppSecret)}
+		Integrations: a.Integrations, OTPKey: []byte(cfg.AppSecret), Logo: brandingLogo(files), BanquetTerms: banquetQuotationTerms}
 	m.Register(reg, a.Engine)
 	a.Approvals.RegisterDocumentType(sales.DiscountDocumentType, m.DiscountDecision)
 	a.Approvals.RegisterDocumentType(sales.StatementDocumentType, m.StatementDecision)
@@ -101,6 +106,7 @@ func (a *App) subscribeP3Sales() {
 	a.Bus.Subscribe(sales.BanquetEventCancelled, "crm.sales_banquet_event_cancelled", m.OnBanquetEvent)
 	a.Bus.Subscribe(sales.EventQuotationAccepted, "membership.quotation_application", a.Membership.OnQuotationAccepted)
 	a.Bus.Subscribe(sales.EventQuotationAccepted, "billing.quotation_schedule", a.quotationSchedule)
+	a.subscribeP3Money()
 }
 
 // acceptedQuotation is the part of crm.quotation_accepted the payment
@@ -205,15 +211,20 @@ func demoP3Sales(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 	return err
 }
 
-// quotePrice prices a quotation line: a manual price, the Commercial pricing
-// rule of the line's service type or the product price; tax & service from
-// the rules in force on the service date.
+// quotePrice prices a quotation line (FR-QUO-01): a manual price, the
+// Commercial pricing rule of the line's service type, the product price,
+// the published Commercial package or the banquet package / menu per pax;
+// catalogue prices get the active promotions of the back office channel
+// when the Sales Policies allow it (FR-PRM-06), stored in the line snapshot
+// (FR-PRM-07); tax & service from the rules in force on the service date.
 func quotePrice(ctx context.Context, q dbtx.Querier, property uuid.UUID, in sales.PriceInput) (sales.PricedLine, error) {
 	out := sales.PricedLine{Source: "manual", PricingMode: in.PricingMode, TaxCodes: in.TaxCodes, Snapshot: map[string]any{}}
 	at := in.At
 	if at.IsZero() {
 		at = time.Now()
 	}
+	qty := in.Quantity
+	promo := commercial.PromoLine{Key: "1", ServiceType: in.ServiceType, ItemRef: in.ItemRef}
 	var unit decimal.Decimal
 	switch {
 	case in.UnitPrice != nil:
@@ -233,18 +244,52 @@ func quotePrice(ctx context.Context, q dbtx.Querier, property uuid.UUID, in sale
 		out.Snapshot = map[string]any{"ruleCode": lp.RuleCode, "ruleVersion": lp.RuleVersion, "serviceType": in.ServiceType}
 	case in.ItemType == "product" && in.ItemRef != "":
 		var price string
-		if err := q.QueryRow(ctx, `SELECT price::text FROM commercial.products WHERE property_id = $1 AND (id::text = $2 OR code = $2) LIMIT 1`,
-			property, in.ItemRef).Scan(&price); err != nil {
+		var pid uuid.UUID
+		var category *string
+		if err := q.QueryRow(ctx, `SELECT id, price::text, category FROM commercial.products WHERE property_id = $1 AND (id::text = $2 OR code = $2) LIMIT 1`,
+			property, in.ItemRef).Scan(&pid, &price, &category); err != nil {
 			return out, handle.Invalid("lines.itemRef", "not_found", "product not found")
 		}
 		unit, _ = decimal.NewFromString(price)
 		out.Source = "product"
 		out.Snapshot = map[string]any{"product": in.ItemRef}
+		promo.ProductID = &pid
+		if category != nil {
+			promo.Category = *category
+		}
+	case in.ItemType == "package" && in.ItemRef != "":
+		var err error
+		if unit, qty, err = quotePackage(ctx, q, property, in.ItemRef, qty, &out); err != nil {
+			return out, err
+		}
+		promo.ServiceType, promo.ItemRef = "package", strings.ToUpper(strings.TrimSpace(in.ItemRef))
+	case (in.ItemType == "banquet_package" || in.ItemType == "banquet_menu") && in.ItemRef != "":
+		var err error
+		if unit, qty, err = quoteBanquet(ctx, q, property, in.ItemType, in.ItemRef, qty, &out); err != nil {
+			return out, err
+		}
 	default:
-		return out, handle.Invalid("lines.unitPrice", "required", "enter the unit price or a service type to price from")
+		return out, handle.Invalid("lines.unitPrice", "required",
+			"enter the unit price, a service type or a catalogue item (package, banquet package / menu, product) to price from")
 	}
 	out.UnitPrice = unit
-	base := unit.Mul(in.Quantity).Sub(in.Discount)
+	if !qty.Equal(in.Quantity) {
+		out.Quantity = &qty
+	}
+	// promotions on catalogue prices (never on manual / negotiated prices)
+	if in.UnitPrice == nil && in.Promotions && unit.IsPositive() && qty.IsPositive() {
+		promo.Quantity, promo.UnitPrice = qty, unit
+		res, err := commercial.EvaluatePromotions(ctx, q, commercial.PromoContext{Property: property, At: at, Channel: "back_office",
+			BusinessLine: quotePromoLine(in), CustomerID: in.CustomerID, Currency: in.Currency, Lines: []commercial.PromoLine{promo}})
+		if err != nil {
+			return out, err
+		}
+		if d := res.TotalDiscount(); d.IsPositive() {
+			out.PromoDiscount = d
+			out.Snapshot["promotions"] = res.AppliedTo("1")
+		}
+	}
+	base := unit.Mul(qty).Sub(in.Discount).Sub(out.PromoDiscount)
 	rules, err := commercial.RulesAt(ctx, q, property, at)
 	if err != nil {
 		return out, err
@@ -266,4 +311,252 @@ func quotePrice(ctx context.Context, q dbtx.Querier, property uuid.UUID, in sale
 	out.Service, out.Tax = commercial.SumKind(b.Lines, "service"), commercial.SumKind(b.Lines, "tax")
 	out.Snapshot["taxLines"] = b.Lines
 	return out, nil
+}
+
+// quotePackage prices a published Commercial package sold through the
+// quotation channel (FR-QUO-01 / EP-11): per pax with the minimum pax, a
+// fixed price for the party, or per night (× the package nights).
+func quotePackage(ctx context.Context, q dbtx.Querier, property uuid.UUID, ref string, qty decimal.Decimal,
+	out *sales.PricedLine) (decimal.Decimal, decimal.Decimal, error) {
+	var pid uuid.UUID
+	if err := q.QueryRow(ctx, `SELECT id FROM commercial.packages WHERE property_id = $1 AND (id::text = $2 OR code = upper($2)) AND archived_at IS NULL`,
+		property, strings.TrimSpace(ref)).Scan(&pid); err != nil {
+		if dbtx.IsNoRows(err) {
+			return qty, qty, handle.Invalid("lines.itemRef", "not_found", "package not found")
+		}
+		return qty, qty, err
+	}
+	spec, err := commercial.PublishedSpec(ctx, q, pid)
+	if err != nil {
+		return qty, qty, err
+	}
+	if spec.Status != "active" {
+		return qty, qty, handle.Invalid("lines.itemRef", "inactive", "the package is not active")
+	}
+	if len(spec.Channels) > 0 && !slices.Contains(spec.Channels, "quotation") {
+		return qty, qty, handle.Invalid("lines.itemRef", "channel", "the package is not sold through quotations")
+	}
+	price, _ := decimal.NewFromString(spec.Price)
+	nights := decimal.NewFromInt(int64(max(spec.Nights, 1)))
+	minPax := decimal.NewFromInt(int64(max(spec.MinPax, 1)))
+	unit := price
+	switch spec.PricingMode {
+	case "per_pax":
+		qty = decimal.Max(qty, minPax)
+	case "per_night":
+		unit, qty = price.Mul(nights), decimal.NewFromInt(1)
+	case "per_pax_per_night":
+		unit, qty = price.Mul(nights), decimal.Max(qty, minPax)
+	default: // fixed: one package for the party
+		qty = decimal.NewFromInt(1)
+	}
+	out.Source, out.PricingMode, out.TaxCodes = "package", spec.TaxMode, append([]string{}, spec.TaxCodes...)
+	out.Snapshot = map[string]any{"package": spec.Code, "packageVersion": spec.Version, "packagePricing": spec.PricingMode, "minPax": spec.MinPax}
+	return unit, qty, nil
+}
+
+// quoteBanquet prices a banquet package (per pax with the minimum pax, per
+// pax per day, or a fixed price with the pax it includes plus additional
+// pax) or a banquet menu per pax, as Banquet prices the event (EP-13).
+func quoteBanquet(ctx context.Context, q dbtx.Querier, property uuid.UUID, itemType, ref string, qty decimal.Decimal,
+	out *sales.PricedLine) (decimal.Decimal, decimal.Decimal, error) {
+	ref = strings.TrimSpace(ref)
+	if itemType == "banquet_menu" {
+		var code, price, mode string
+		var codes []string
+		err := q.QueryRow(ctx, `SELECT code, price_per_pax::text, pricing_mode, tax_codes FROM banquet.menus WHERE property_id = $1
+			AND (id::text = $2 OR upper(code) = upper($2)) AND status = 'active' AND archived_at IS NULL`, property, ref).Scan(&code, &price, &mode, &codes)
+		if dbtx.IsNoRows(err) {
+			return qty, qty, handle.Invalid("lines.itemRef", "not_found", "banquet menu not found")
+		}
+		if err != nil {
+			return qty, qty, err
+		}
+		unit, _ := decimal.NewFromString(price)
+		out.Source, out.PricingMode, out.TaxCodes = "banquet_menu", mode, codes
+		out.Snapshot = map[string]any{"menu": code}
+		return unit, qty, nil
+	}
+	var code, method, price, mode, extra string
+	var codes []string
+	var minPax, includedPax int
+	err := q.QueryRow(ctx, `SELECT code, pricing_method, price::text, pricing_mode, tax_codes, min_pax, included_pax, extra_pax_price::text
+		FROM banquet.packages WHERE property_id = $1 AND (id::text = $2 OR upper(code) = upper($2)) AND status = 'active' AND archived_at IS NULL`,
+		property, ref).Scan(&code, &method, &price, &mode, &codes, &minPax, &includedPax, &extra)
+	if dbtx.IsNoRows(err) {
+		return qty, qty, handle.Invalid("lines.itemRef", "not_found", "banquet package not found")
+	}
+	if err != nil {
+		return qty, qty, err
+	}
+	unit, _ := decimal.NewFromString(price)
+	switch method {
+	case "fixed":
+		if includedPax > 0 {
+			// quantity = pax: the package covers the included pax, the rest is
+			// charged at the additional pax price
+			if more := qty.Sub(decimal.NewFromInt(int64(includedPax))); more.IsPositive() {
+				x, _ := decimal.NewFromString(extra)
+				unit = unit.Add(more.Mul(x))
+			}
+			qty = decimal.NewFromInt(1)
+		}
+	case "per_pax":
+		qty = decimal.Max(qty, decimal.NewFromInt(int64(minPax)))
+	}
+	out.Source, out.PricingMode, out.TaxCodes = "banquet_package", mode, codes
+	out.Snapshot = map[string]any{"banquetPackage": code, "pricingMethod": method, "minPax": minPax, "includedPax": includedPax}
+	return unit, qty, nil
+}
+
+// quotePromoLine is the business line of a quotation line for the
+// promotion scope.
+func quotePromoLine(in sales.PriceInput) string {
+	switch in.ServiceType {
+	case "golf", "driving_range":
+		return billing.LineGolf
+	case "sport_court", "facility_entry", "class_session", "class_registration", "class_package", "locker":
+		return billing.LineSport
+	case "bungalow", "vip_suite", "meeting_room", "meeting_package", "equipment":
+		return billing.LineStay
+	case "membership":
+		return billing.LineMembership
+	}
+	switch in.ItemType {
+	case "package":
+		return billing.LinePackage
+	case "banquet_package", "banquet_menu":
+		return billing.LineBanquet
+	}
+	switch in.Line {
+	case "wedding", "banquet", "mice", "event":
+		return billing.LineBanquet
+	case "golf", "tournament":
+		return billing.LineGolf
+	case "stay":
+		return billing.LineStay
+	case "membership":
+		return billing.LineMembership
+	case "package":
+		return billing.LinePackage
+	}
+	return billing.LineOther
+}
+
+// brandingLogo reads the logo of the quotation letterhead (FR-QUO-08): the
+// organization logo, else the instance branding logo when it is an
+// uploaded file; nil when there is none or it cannot be read.
+func brandingLogo(files *storage.Files) func(ctx context.Context, q dbtx.Querier) []byte {
+	return func(ctx context.Context, q dbtx.Querier) []byte {
+		if files == nil {
+			return nil
+		}
+		var fid *uuid.UUID
+		var url *string
+		_ = q.QueryRow(ctx, `SELECT (SELECT logo_file_id FROM platform.organization LIMIT 1), (SELECT branding->>'logoUrl' FROM platform.instance)`).
+			Scan(&fid, &url)
+		if fid == nil && url != nil && strings.HasPrefix(*url, "/api/v1/files/") {
+			if u, err := uuid.Parse(strings.TrimPrefix(*url, "/api/v1/files/")); err == nil {
+				fid = &u
+			}
+		}
+		if fid == nil {
+			return nil
+		}
+		rc, _, err := files.Open(ctx, *fid)
+		if err != nil {
+			return nil
+		}
+		defer rc.Close()
+		b, err := io.ReadAll(io.LimitReader(rc, 4<<20))
+		if err != nil {
+			return nil
+		}
+		return b
+	}
+}
+
+// banquetQuotationTerms writes the terms & conditions of wedding, banquet,
+// MICE and event quotations from the Banquet Policies in force (FR-QUO-08,
+// PRD P3 §16 #11): down payment and payment terms, final pax cut-off,
+// cancellation tiers, corkage, outside food and electricity.
+func banquetQuotationTerms(ctx context.Context, q dbtx.Querier, property uuid.UUID) (string, error) {
+	bk, _, err := rules.PolicyAt(ctx, q, banquet.PolicyBooking, property, banquet.DefaultBooking)
+	if err != nil {
+		return "", err
+	}
+	cn, _, err := rules.PolicyAt(ctx, q, banquet.PolicyCancellation, property, banquet.CancellationPolicy{
+		Tiers: append([]banquet.BanquetCancellationTier{}, banquet.DefaultCancellation.Tiers...)})
+	if err != nil {
+		return "", err
+	}
+	ch, _, err := rules.PolicyAt(ctx, q, banquet.PolicyCharges, property, banquet.DefaultCharges)
+	if err != nil {
+		return "", err
+	}
+	var en, id []string
+	pay := fmt.Sprintf("1. A down payment of %s%% confirms the booking; the date is held as Definite once the down payment is received.", bk.MinDownPaymentPercent)
+	bayar := fmt.Sprintf("1. Uang muka %s%% mengonfirmasi pemesanan; tanggal menjadi Definite setelah uang muka diterima.", bk.MinDownPaymentPercent)
+	if p, _ := decimal.NewFromString(bk.SecondTermPercent); p.IsPositive() && bk.SecondTermDaysBefore > 0 {
+		pay += fmt.Sprintf(" A second payment of %s%% is due %d days before the event.", bk.SecondTermPercent, bk.SecondTermDaysBefore)
+		bayar += fmt.Sprintf(" Termin kedua %s%% jatuh tempo H-%d.", bk.SecondTermPercent, bk.SecondTermDaysBefore)
+	}
+	pay += fmt.Sprintf(" The balance is due %d days before the event.", bk.FinalPaymentDaysBefore)
+	bayar += fmt.Sprintf(" Pelunasan paling lambat H-%d.", bk.FinalPaymentDaysBefore)
+	en = append(en, pay, fmt.Sprintf("2. The final number of guests is confirmed %d days before the event and may drop by at most %s%% of the guaranteed pax.",
+		bk.GuaranteedPaxDaysBefore, bk.MaxPaxDecreasePercent))
+	id = append(id, bayar, fmt.Sprintf("2. Jumlah tamu final dikonfirmasi H-%d dan boleh turun maksimal %s%% dari jumlah garansi.",
+		bk.GuaranteedPaxDaysBefore, bk.MaxPaxDecreasePercent))
+	tiers := append([]banquet.BanquetCancellationTier{}, cn.Tiers...)
+	slices.SortFunc(tiers, func(a, b banquet.BanquetCancellationTier) int { return b.MinDaysBefore - a.MinDaysBefore })
+	var ce, ci []string
+	for _, t := range tiers {
+		basis, dasar := "of the down payment", "dari uang muka"
+		switch t.Basis {
+		case "paid":
+			basis, dasar = "of all payments", "dari seluruh pembayaran"
+		case "contract":
+			basis, dasar = "of the contract value", "dari nilai kontrak"
+		}
+		ce = append(ce, fmt.Sprintf("%d days or more before the event: %s%% %s is forfeited", t.MinDaysBefore, t.ForfeitPercent, basis))
+		ci = append(ci, fmt.Sprintf(">= H-%d: %s%% %s hangus", t.MinDaysBefore, t.ForfeitPercent, dasar))
+	}
+	if len(ce) > 0 {
+		en = append(en, "3. Cancellation: "+strings.Join(ce, "; ")+".")
+		id = append(id, "3. Pembatalan: "+strings.Join(ci, "; ")+".")
+	}
+	extra := fmt.Sprintf("4. Corkage %s per bottle of wine / liquor.", fmtAmount(ch.CorkageFeePerBottle))
+	tambahan := fmt.Sprintf("4. Corkage %s per botol wine / liquor.", fmtAmount(ch.CorkageFeePerBottle))
+	if ch.OutsideFoodPartnerOnly {
+		extra += " Outside food only from partner vendors."
+		tambahan += " Makanan luar hanya dari vendor rekanan."
+	}
+	if ch.ElectricityIncludedWatt > 0 {
+		extra += fmt.Sprintf(" Electricity up to %d W per ballroom is included; more is charged at the rate card.", ch.ElectricityIncludedWatt)
+		tambahan += fmt.Sprintf(" Listrik termasuk %d W per ballroom; tambahan sesuai rate card.", ch.ElectricityIncludedWatt)
+	}
+	en, id = append(en, extra), append(id, tambahan)
+	return strings.Join(en, "\n") + "\n\n" + strings.Join(id, "\n"), nil
+}
+
+// fmtAmount formats an amount with thousands separators (Rp 150.000).
+func fmtAmount(s string) string {
+	d, err := decimal.NewFromString(s)
+	if err != nil {
+		return s
+	}
+	raw := d.Round(0).String()
+	neg := strings.HasPrefix(raw, "-")
+	raw = strings.TrimPrefix(raw, "-")
+	var b strings.Builder
+	for i, c := range raw {
+		if i > 0 && (len(raw)-i)%3 == 0 {
+			b.WriteByte('.')
+		}
+		b.WriteRune(c)
+	}
+	if neg {
+		return "Rp -" + b.String()
+	}
+	return "Rp " + b.String()
 }

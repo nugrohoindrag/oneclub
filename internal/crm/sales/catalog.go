@@ -13,7 +13,6 @@ import (
 	"github.com/google/uuid"
 
 	"oneclub/internal/kernel/dbtx"
-	"oneclub/internal/kernel/pdf"
 	"oneclub/internal/platform/catalog"
 	"oneclub/internal/platform/provision"
 )
@@ -120,60 +119,6 @@ func Templates() []provision.Template {
 		}
 	}
 	return out
-}
-
-// QuotationPDF renders a quotation (ID/EN labels).
-func QuotationPDF(ctx context.Context, q dbtx.Querier, d QuotationDetail) ([]byte, error) {
-	var club string
-	_ = q.QueryRow(ctx, `SELECT coalesce(branding->>'appName', name) FROM platform.instance`).Scan(&club)
-	doc := pdf.New()
-	doc.Row(18, true, club)
-	doc.Row(12, false, "Quotation / Penawaran")
-	doc.Space(8)
-	doc.Rule(doc.Y + 10)
-	doc.Row(10, false, "Quotation No.", d.Number+" v"+itoa(d.Version))
-	doc.Row(10, false, "Title / Judul", d.Title)
-	if d.CorporateName != nil {
-		doc.Row(10, false, "Company / Perusahaan", *d.CorporateName)
-	}
-	if d.CustomerName != nil {
-		doc.Row(10, false, "Customer / Pelanggan", *d.CustomerName)
-	}
-	if d.EventDate != nil {
-		doc.Row(10, false, "Event Date / Tanggal Acara", *d.EventDate)
-	}
-	if d.Pax != nil {
-		doc.Row(10, false, "Pax", itoa(*d.Pax))
-	}
-	doc.Row(10, false, "Valid Until / Berlaku s.d.", d.ValidUntil)
-	doc.Space(6)
-	doc.Rule(doc.Y + 10)
-	for _, l := range d.Lines {
-		doc.Row(9, false, l.Description+" × "+l.Quantity, d.Currency+" "+formatAmount(dec(l.Total), d.Currency))
-	}
-	doc.Space(6)
-	doc.Rule(doc.Y + 10)
-	doc.Row(10, false, "Subtotal", formatAmount(dec(d.Subtotal), d.Currency))
-	if dec(d.Discount).IsPositive() {
-		doc.Row(10, false, "Discount / Diskon", "−"+formatAmount(dec(d.Discount), d.Currency))
-	}
-	doc.Row(10, false, "Service", formatAmount(dec(d.ServiceAmount), d.Currency))
-	doc.Row(10, false, "Tax / Pajak", formatAmount(dec(d.TaxAmount), d.Currency))
-	doc.Row(14, true, "Total", d.Currency+" "+formatAmount(dec(d.Total), d.Currency))
-	if len(d.PaymentTerms) > 0 {
-		doc.Space(6)
-		doc.Row(11, true, "Payment Terms / Termin Pembayaran")
-		for _, t := range d.PaymentTerms {
-			doc.Row(9, false, t.Label+" · "+t.DueDate, d.Currency+" "+formatAmount(dec(t.Amount), d.Currency))
-		}
-	}
-	eMeteraiPDF(doc, d)
-	if d.Terms != nil && *d.Terms != "" {
-		doc.Space(6)
-		doc.Row(11, true, "Terms & Conditions / Syarat & Ketentuan")
-		doc.Row(8, false, *d.Terms)
-	}
-	return doc.Bytes(), nil
 }
 
 // ExportRow is one line of the accounting export.
