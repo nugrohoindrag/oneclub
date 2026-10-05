@@ -11,6 +11,7 @@ export default async function Tournaments({ params }: { params: Promise<{ lang: 
     <div>
       <h1>{id ? 'Turnamen' : 'Tournaments'}</h1>
       <p>{id ? 'Daftar dan bayar biaya turnamen secara online. Leaderboard tampil langsung selama turnamen.' : 'Register and pay the tournament fee online. The leaderboard is live during play.'}</p>
+      <p><a href={`/${lang}/tournaments/series`}>{id ? 'Order of Merit (klasemen seri) →' : 'Order of Merit (series standings) →'}</a></p>
       {items.length === 0 && <p className="w-muted">{id ? 'Belum ada turnamen terjadwal.' : 'No tournaments scheduled.'}</p>}
       <div className="w-grid">
         {items.map((t) => {
