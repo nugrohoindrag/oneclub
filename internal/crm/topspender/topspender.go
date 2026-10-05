@@ -165,7 +165,7 @@ func (s *Service) Rank(ctx context.Context, q dbtx.Querier, property uuid.UUID, 
 		  trim_scale(coalesce(stay, 0))::text AS stay, trim_scale(coalesce(banquet, 0))::text AS banquet, trim_scale(coalesce(other, 0))::text AS other,
 		  days::int AS visits
 		FROM ranked WHERE spend > 0 AND ($9 = '' OR ($9 = 'member' AND member) OR ($9 = 'non_member' AND NOT member) OR ($9 = 'corporate' AND corporate))
-		ORDER BY spend DESC, name, customer_id LIMIT $10`,
+		ORDER BY ranked.spend DESC, ranked.name, ranked.customer_id LIMIT $10`,
 		property, f.From.Format("2006-01-02"), f.To.Format("2006-01-02"), tz, f.BusinessLine, outlet, excl, seg, f.MemberType, f.Limit)
 	if err != nil {
 		return nil, err
