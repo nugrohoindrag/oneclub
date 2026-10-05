@@ -54,6 +54,7 @@ func (a *App) buildP3Tournament(reg *route.Registry, cfg *config.Config, db *dbt
 	if a.CRM != nil && a.CRM.Sections != nil {
 		a.CRM.Sections["tournament"] = m.CustomerSection
 	}
+	a.corporateSection("tournament", m.CorporateSection) // FR-C360-04
 	a.Tournament.Module = m
 	a.convertsQuotations("golf", "tournament")
 }

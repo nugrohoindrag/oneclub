@@ -943,6 +943,12 @@ func TestP3TournamentCorporate(t *testing.T) {
 		sysQueryRow(t, inst, `SELECT coalesce(event_number, '') FROM golf.tournaments WHERE id = $1`, []any{mustUUID(str(tour["id"]))}, &num)
 		return num == "EVT-"+sfx
 	})
+	// Corporate 360 (FR-C360-04): the company's tournament with its players.
+	c360 := sa.Must(200, "GET", "/api/v1/crm/corporate-accounts/"+corp+"/360", nil).JSON()
+	sec, _ := c360["sections"].(map[string]any)["tournament"].(map[string]any)
+	if hosted := asMaps(sec["hosted"]); len(hosted) != 1 || hosted[0]["id"] != tour["id"] || hosted[0]["quotationNumber"] != q["number"] {
+		t.Fatalf("Corporate 360 tournament section: %v", c360["sections"])
+	}
 }
 
 // FR-MIG-P3-03: tournament history and results import (preview, commit,

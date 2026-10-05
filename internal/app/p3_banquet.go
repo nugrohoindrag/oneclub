@@ -18,6 +18,7 @@ import (
 	"oneclub/internal/banquet"
 	"oneclub/internal/billing"
 	"oneclub/internal/commercial/voucher"
+	"oneclub/internal/crm"
 	"oneclub/internal/kernel/config"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/id"
@@ -55,6 +56,24 @@ func (a *App) buildP3Banquet(reg *route.Registry, cfg *config.Config, db *dbtx.D
 	a.Sync.Handle("banquet.event_check_in", m.SyncCheckIn)
 	a.Banquet.Module = m
 	a.convertsQuotations("banquet", banquet.QuotationLines...)
+	// Customer 360 and Corporate 360 Banquet / Event sections (FR-C360-01/04).
+	if a.CRM != nil && a.CRM.Sections != nil {
+		a.CRM.Sections["banquet"] = m.CustomerSection
+	}
+	a.corporateSection("banquet", m.CorporateSection)
+}
+
+// corporateSection adds a Corporate 360 section of a business line
+// (FR-C360-04); engagement is built before the business lines.
+func (a *App) corporateSection(key string, f crm.SectionFunc) {
+	svc := a.Engage.Service
+	if svc == nil {
+		return
+	}
+	if svc.CorporateSections == nil {
+		svc.CorporateSections = map[string]crm.SectionFunc{}
+	}
+	svc.CorporateSections[key] = f
 }
 
 // banquetVouchers issues the F&B vouchers of a package inclusion (FR-BQT-06).
