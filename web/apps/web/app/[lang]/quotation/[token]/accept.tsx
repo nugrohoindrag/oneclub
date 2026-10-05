@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import type { Lang } from '../../../lib';
+import { PaySchedule } from '../../payment/[token]/pay';
 
 interface Line { description: string; quantity: string; unitPrice: string; discount: string; total: string }
 interface Term { label: string; percent?: string; amount: string; dueDate?: string }
@@ -71,6 +72,13 @@ export function AcceptQuotation({ lang, token }: { lang: Lang; token: string }) 
       )}
       {q.terms && <details><summary>{id ? 'Syarat & ketentuan' : 'Terms & conditions'}</summary><p style={{ whiteSpace: 'pre-wrap' }}>{q.terms}</p></details>}
       {q.status === 'accepted' && <p>{id ? 'Terima kasih' : 'Thank you'}, {q.acceptedByName}. {id ? 'Tim kami akan menghubungi Anda untuk langkah berikutnya.' : 'Our team will contact you for the next steps.'}</p>}
+      {q.status === 'accepted' && Number(q.total) > 0 && (
+        <section style={{ marginTop: 16 }}>
+          {/* FR-WEB-P3-05: pay the down payment right away through the payment gateway */}
+          <h3>{id ? 'Bayar uang muka' : 'Pay down payment'}</h3>
+          <PaySchedule lang={lang} quotationToken={token} />
+        </section>
+      )}
       {q.status === 'sent' && !rejecting && (
         <div className="w-form" style={{ marginTop: 16 }}>
           <label>{id ? 'Nama lengkap' : 'Full name'}<input value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" /></label>
