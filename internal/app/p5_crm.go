@@ -52,11 +52,11 @@ func p5CRMContributions() []catalog.Contribution {
 			roles[role] = append(roles[role], ps...)
 		}
 	}
-	return []catalog.Contribution{{Permissions: perms, RolePermissions: roles}, reporting.P5CRMContribution()}
+	return append([]catalog.Contribution{{Permissions: perms, RolePermissions: roles}, reporting.P5CRMContribution()}, p5TiersContributions()...)
 }
 
 func p5CRMDocumentTypes() []provision.DocumentType {
-	return []provision.DocumentType{journey.ActivationDocumentType}
+	return append([]provision.DocumentType{journey.ActivationDocumentType}, p5TiersDocumentTypes()...)
 }
 
 func p5CRMTemplates() []provision.Template {
@@ -90,6 +90,7 @@ func (a *App) buildP5CRM(reg *route.Registry, cfg *config.Config, db *dbtx.DB, f
 	a.CRM.Sections["analytics"] = analytics.Section
 	// Tier benefit "booking window + days" honoured by golf booking (FR-LOY-P5-02).
 	golf.SetTierBookingWindow(loyalty.BookingWindowBonus, loyalty.MaxBookingWindowBonus)
+	a.buildP5Tiers(reg) // tier classes & classification, POS tier discount (p5_tiers.go)
 }
 
 // journeyVouchers issues the Commercial vouchers of a journey voucher step
@@ -196,5 +197,8 @@ func demoP5CRM(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 		FROM crm.journeys j JOIN LATERAL (SELECT id FROM crm.customers WHERE property_id = $1 AND status = 'active' AND erased_at IS NULL
 		  ORDER BY created_at, id LIMIT 3) c ON true
 		WHERE j.property_id = $1 AND j.code = 'JRN-WINBACK' ON CONFLICT (journey_id, customer_id, occurrence) DO NOTHING`, property)
-	return err
+	if err != nil {
+		return err
+	}
+	return demoP5Tiers(ctx, tx, property) // tier badges, demo members per tier (p5_tiers.go)
 }

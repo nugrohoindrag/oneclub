@@ -81,6 +81,7 @@ func TestP3EngagementLoyalty(t *testing.T) {
 	cust := customer(t, sa, "LOY"+sfx, "Loyal Lukas "+sfx, map[string]any{"email": "lukas" + sfx + "@loy.test", "phone": "+62811" + sfx})
 
 	// Tiers and an earning rule for walk-in charges (line other) at 1 point per Rp10.000.
+	p5tIsolateTiers(t) // P5: the tier ladder is validated against the active tiers (p5_tiers_test.go)
 	base := idOf(sa.Must(201, "POST", "/api/v1/crm/loyalty/tiers", map[string]any{"code": "LB" + sfx, "name": "Base " + sfx, "rank": 800, "multiplier": "1"}))
 	gold := idOf(sa.Must(201, "POST", "/api/v1/crm/loyalty/tiers", map[string]any{"code": "LG" + sfx, "name": "Gold " + sfx, "rank": 900,
 		"minPoints": 400, "multiplier": "1.5", "benefits": "Points × 1.5"}))

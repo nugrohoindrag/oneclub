@@ -48,6 +48,8 @@ type promoOrder struct {
 	PromoCodes      []string   `db:"promo_codes"`
 	Exclusions      []string   `db:"promotion_exclusions"`
 	Status          string     `db:"status"`
+	TierPercent     *string    `db:"tier_discount_percent"` // PRD P5 tier F&B discount
+	TierLabel       *string    `db:"tier_discount_label"`
 }
 
 // promoLine is an order line as the promotion engine prices it.
@@ -63,6 +65,7 @@ type promoLine struct {
 	DiscountReason    *string    `db:"discount_reason"`
 	PromotionDiscount string     `db:"promotion_discount"`
 	ChargedFolioID    *uuid.UUID `db:"charged_folio_id"`
+	TierDiscount      string     `db:"tier_discount"`
 }
 
 // promotionContext is the evaluation context of an order (also used for the
@@ -103,14 +106,14 @@ func promotionContext(o promoOrder, ou outlet, lines []promoLine) commercial.Pro
 
 func loadPromoOrder(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (promoOrder, []promoLine, error) {
 	rows, err := q.Query(ctx, `SELECT id, property_id, order_no, outlet_id, customer_id, source, member_pricing, offline, client_created_at, promo_codes,
-		promotion_exclusions, status FROM commercial.orders WHERE id = $1`, oid)
+		promotion_exclusions, status, tier_discount_percent::text AS tier_discount_percent, tier_discount_label FROM commercial.orders WHERE id = $1`, oid)
 	o, err := handle.One[promoOrder](rows, err, "order")
 	if err != nil {
 		return o, nil, err
 	}
 	lines, err := handle.List[promoLine](q.Query(ctx, `SELECT l.id, l.product_id, p.code, p.category, p.product_type, l.quantity::text AS quantity,
 		l.unit_price::text AS unit_price, l.discount_amount::text AS discount_amount, l.discount_reason, l.promotion_discount::text AS promotion_discount,
-		l.charged_folio_id FROM commercial.order_lines l JOIN commercial.products p ON p.id = l.product_id
+		l.charged_folio_id, l.tier_discount::text AS tier_discount FROM commercial.order_lines l JOIN commercial.products p ON p.id = l.product_id
 		WHERE l.order_id = $1 AND l.status = 'active' AND l.charged_folio_id IS NULL ORDER BY l.line_no`, oid))
 	return o, lines, err
 }
@@ -131,10 +134,19 @@ func (m *Module) applyPromotions(ctx context.Context, tx pgx.Tx, oid uuid.UUID) 
 	if err != nil {
 		return res, err
 	}
+	tier, err := loadOrderTier(ctx, tx, o) // PRD P5 tier F&B discount after the promotions
+	if err != nil {
+		return res, err
+	}
 	for _, l := range lines {
 		d := res.DiscountOf(l.ID.String())
 		before, _ := decimal.NewFromString(l.PromotionDiscount)
-		if !d.IsPositive() && !before.IsPositive() {
+		tierBefore, _ := decimal.NewFromString(l.TierDiscount)
+		qty0, _ := decimal.NewFromString(l.Quantity)
+		unit0, _ := decimal.NewFromString(l.UnitPrice)
+		manual0, _ := decimal.NewFromString(l.Discount)
+		td := tier.discount(l.ProductType, unit0.Mul(qty0).Sub(manual0), d)
+		if !d.IsPositive() && !before.IsPositive() && !td.IsPositive() && !tierBefore.IsPositive() {
 			continue
 		}
 		applied := res.AppliedTo(l.ID.String())
@@ -145,7 +157,7 @@ func (m *Module) applyPromotions(ctx context.Context, tx pgx.Tx, oid uuid.UUID) 
 		qty, _ := decimal.NewFromString(l.Quantity)
 		unit, _ := decimal.NewFromString(l.UnitPrice)
 		manual, _ := decimal.NewFromString(l.Discount)
-		net, svc, tax, total, snap, err := m.pricePromotionLine(ctx, tx, o, ou, pr, unit, qty, manual, d, applied, l.DiscountReason)
+		net, svc, tax, total, snap, err := m.pricePromotionLine(ctx, tx, o, ou, pr, unit, qty, manual, d, td, tier, applied, l.DiscountReason)
 		if err != nil {
 			return res, err
 		}
@@ -155,8 +167,8 @@ func (m *Module) applyPromotions(ctx context.Context, tx pgx.Tx, oid uuid.UUID) 
 		}
 		raw, _ := json.Marshal(nonNilApplied(applied))
 		if _, err := tx.Exec(ctx, `UPDATE commercial.order_lines SET promotion_discount = $2::numeric, promotions = $3, promotion_id = $4, net_amount = $5::numeric,
-			service_amount = $6::numeric, tax_amount = $7::numeric, total_amount = $8::numeric, pricing_snapshot_id = $9 WHERE id = $1`,
-			l.ID, d.String(), raw, first, net.String(), svc.String(), tax.String(), total.String(), snap); err != nil {
+			service_amount = $6::numeric, tax_amount = $7::numeric, total_amount = $8::numeric, pricing_snapshot_id = $9, tier_discount = $10::numeric
+			WHERE id = $1`, l.ID, d.String(), raw, first, net.String(), svc.String(), tax.String(), total.String(), snap, td.String()); err != nil {
 			return res, err
 		}
 	}
@@ -178,9 +190,9 @@ func nonNilApplied(a []commercial.AppliedPromotion) []commercial.AppliedPromotio
 
 // pricePromotionLine prices a line after its manual discount and promotion
 // discount, the snapshot recording the promotions (FR-PRM-07).
-func (m *Module) pricePromotionLine(ctx context.Context, tx pgx.Tx, o promoOrder, ou outlet, pr product, unit, qty, manual, promo decimal.Decimal,
-	applied []commercial.AppliedPromotion, reason *string) (net, svc, tax, total decimal.Decimal, snap *uuid.UUID, err error) {
-	gross := unit.Mul(qty).Sub(manual).Sub(promo)
+func (m *Module) pricePromotionLine(ctx context.Context, tx pgx.Tx, o promoOrder, ou outlet, pr product, unit, qty, manual, promo, tierDisc decimal.Decimal,
+	tier *orderTier, applied []commercial.AppliedPromotion, reason *string) (net, svc, tax, total decimal.Decimal, snap *uuid.UUID, err error) {
+	gross := unit.Mul(qty).Sub(manual).Sub(promo).Sub(tierDisc)
 	if gross.IsNegative() {
 		gross = decimal.Zero
 	}
@@ -194,6 +206,12 @@ func (m *Module) pricePromotionLine(ctx context.Context, tx pgx.Tx, o promoOrder
 		if reason != nil {
 			override["reason"] = *reason
 		}
+	}
+	if tierDisc.IsPositive() && tier != nil { // PRD P5: the tier discount line in the snapshot
+		if override == nil {
+			override = map[string]any{}
+		}
+		override["tierDiscount"], override["tierDiscountLabel"], override["tierDiscountPercent"] = tierDisc.String(), tier.label, tier.pct.String()
 	}
 	sid, b, err := commercial.Pricer{}.LineSnapshot(ctx, tx, o.PropertyID, commercial.LineSnapshotInput{ServiceType: "pos", ItemRef: pr.Code, Segment: seg,
 		Units: qty, UnitPrice: gross.Div(qty), ListPrice: unit, Mode: ou.PricingMode, TaxCodes: ou.TaxCodes, At: clock.Now(), Override: override,

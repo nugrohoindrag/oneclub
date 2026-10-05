@@ -332,12 +332,16 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 			if err != nil {
 				return a, err
 			}
+			if err := noOverrideInForce(ctx, tx, a.ID); err != nil { // P5: revoke the classification override first
+				return a, err
+			}
 			if (in.TierID == nil) != (locked.TierID == nil) || (in.TierID != nil && *in.TierID != *locked.TierID) {
 				if err := m.changeTier(ctx, tx, &locked, in.TierID, "manual: "+in.Reason, nil, nil); err != nil {
 					return a, err
 				}
 			}
-			if _, err := tx.Exec(ctx, `UPDATE crm.loyalty_accounts SET tier_locked = $2, updated_by = $3 WHERE id = $1`, a.ID, in.Lock, actor(ctx)); err != nil {
+			if _, err := tx.Exec(ctx, `UPDATE crm.loyalty_accounts SET tier_locked = $2, tier_source = CASE WHEN $2 THEN 'manual' ELSE tier_source END,
+				updated_by = $3 WHERE id = $1`, a.ID, in.Lock, actor(ctx)); err != nil {
 				return a, err
 			}
 			after, err := GetAccount(ctx, tx, a.ID)

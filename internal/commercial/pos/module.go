@@ -78,7 +78,8 @@ func insertBeforeStatus(fields, extra []resource.Field) []resource.Field {
 func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.registerMe(reg)
 	m.registerPOS(reg, eng)
-	m.registerPromotions(reg) // PRD P3 FR-OPS-P3-03
+	m.registerPromotions(reg)   // PRD P3 FR-OPS-P3-03
+	m.registerTierDiscount(reg) // PRD P5 tier F&B discount (offline benefit cache)
 }
 
 // ProductVariants, ModifierGroups, Modifiers and Menus (FR-POS-02).

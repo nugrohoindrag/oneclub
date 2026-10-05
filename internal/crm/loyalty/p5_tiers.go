@@ -11,6 +11,7 @@ package loyalty
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"slices"
 	"time"
@@ -108,21 +109,68 @@ func (p TierProgramPolicy) AnnualDue(day time.Time) bool {
 
 // ── engine (pure) ─────────────────────────────────────────────────────────
 
-// TierThreshold is a tier as the engine sees it.
+// TierThreshold is a tier as the engine sees it: the thresholds in force
+// (the effective version; see p5_tier_master.go) and the evaluation
+// settings of the tier.
 type TierThreshold struct {
 	ID        uuid.UUID
 	Rank      int
 	MinPoints int64
 	MinSpend  decimal.Decimal
+	// QualifyMode "any": the spend OR the points threshold is enough;
+	// "all" (default): every threshold above zero must be met.
+	QualifyMode string
+	// MembershipTypes: the customer must hold an active membership of one
+	// of these types (empty: any customer).
+	MembershipTypes []string
+	PeriodMonths    int  // qualifying window; 0 = the programme window
+	GraceMonths     *int // grace before leaving this tier; nil = the programme grace
+	NoDowngrade     bool // members of this tier are never downgraded automatically
 }
+
+// TierBasis is what an account brings to a tier: points and spend of the
+// tier's window and the membership types held.
+type TierBasis struct {
+	Points          int64
+	Spend           decimal.Decimal
+	MembershipTypes []string
+}
+
+// Qualifies reports whether the basis meets the tier.
+func (t TierThreshold) Qualifies(b TierBasis) bool {
+	if len(t.MembershipTypes) > 0 && !slices.ContainsFunc(b.MembershipTypes, func(x string) bool { return slices.Contains(t.MembershipTypes, x) }) {
+		return false
+	}
+	pts := b.Points >= t.MinPoints
+	spend := b.Spend.GreaterThanOrEqual(t.MinSpend)
+	if t.QualifyMode == QualifyAny {
+		if t.MinPoints <= 0 && !t.MinSpend.IsPositive() {
+			return true
+		}
+		return (t.MinPoints > 0 && pts) || (t.MinSpend.IsPositive() && spend)
+	}
+	return pts && spend
+}
+
+// Qualify modes of a tier.
+const (
+	QualifyAll = "all"
+	QualifyAny = "any"
+)
 
 // QualifyTier returns the highest-ranked tier whose thresholds the points
 // and spend of the window meet (nil when none).
 func QualifyTier(tiers []TierThreshold, points int64, spend decimal.Decimal) *TierThreshold {
+	return QualifyTierBy(tiers, func(TierThreshold) TierBasis { return TierBasis{Points: points, Spend: spend} })
+}
+
+// QualifyTierBy returns the highest-ranked tier the basis of each tier
+// (its own window) meets (nil when none).
+func QualifyTierBy(tiers []TierThreshold, basis func(TierThreshold) TierBasis) *TierThreshold {
 	var best *TierThreshold
 	for i := range tiers {
 		t := tiers[i]
-		if points >= t.MinPoints && spend.GreaterThanOrEqual(t.MinSpend) && (best == nil || t.Rank > best.Rank) {
+		if (best == nil || t.Rank > best.Rank) && t.Qualifies(basis(t)) {
 			best = &tiers[i]
 		}
 	}
@@ -193,6 +241,8 @@ type LoyaltyTierEvaluationRun struct {
 	InGrace       int       `json:"inGrace" db:"in_grace"`
 	PolicyVersion int       `json:"policyVersion" db:"policy_version"`
 	CreatedAt     time.Time `json:"createdAt" db:"created_at"`
+	// Tier threshold versions put in force by this run.
+	AppliedVersions []AppliedTierVersion `json:"appliedVersions" db:"applied_versions"`
 }
 
 // LoyaltyTierEvaluationLine is the result for one account.
@@ -222,11 +272,14 @@ type LoyaltyTierEvaluationDetail struct {
 type LoyaltyTierEvaluationInput struct {
 	Kind       string      `json:"kind" enum:"annual,periodic,grace_review" doc:"annual: full evaluation with grace; periodic: upgrades and ended grace; grace_review: ended grace only"`
 	AccountIDs []uuid.UUID `json:"accountIds,omitempty" doc:"Evaluate only these accounts (default: every active account)"`
+	// Re-evaluate now (tier master): put the pending threshold versions in
+	// force first (a full annual / periodic run always does).
+	ApplyPendingVersions bool `json:"applyPendingVersions,omitempty" doc:"Put the pending tier thresholds in force before evaluating"`
 }
 
 const evalRunSelect = `SELECT id, number, kind, to_char(evaluated_on, 'YYYY-MM-DD') AS evaluated_on, to_char(window_from, 'YYYY-MM-DD') AS window_from,
-	to_char(window_to, 'YYYY-MM-DD') AS window_to, accounts, upgraded, downgraded, retained, grace_started, in_grace, policy_version, created_at
-	FROM crm.loyalty_tier_evaluations`
+	to_char(window_to, 'YYYY-MM-DD') AS window_to, accounts, upgraded, downgraded, retained, grace_started, in_grace, policy_version, created_at,
+	applied_versions FROM crm.loyalty_tier_evaluations`
 
 // TierEvaluation loads a run with its lines.
 func TierEvaluation(ctx context.Context, q dbtx.Querier, property, rid uuid.UUID) (LoyaltyTierEvaluationDetail, error) {
@@ -244,9 +297,16 @@ func TierEvaluation(ctx context.Context, q dbtx.Querier, property, rid uuid.UUID
 	return LoyaltyTierEvaluationDetail{LoyaltyTierEvaluationRun: run, Lines: lines}, err
 }
 
-func tierThresholds(ctx context.Context, q dbtx.Querier, property uuid.UUID) (map[uuid.UUID]TierThreshold, []TierThreshold, error) {
-	rows, err := q.Query(ctx, `SELECT id, rank, min_points, min_spend::text FROM crm.loyalty_tiers WHERE property_id = $1 AND status = 'active'
-		AND archived_at IS NULL`, property)
+// tierThresholds loads the active tiers of a property with the thresholds
+// in force (pending = the thresholds waiting for the next evaluation, for
+// the preview of "re-evaluate now").
+func tierThresholds(ctx context.Context, q dbtx.Querier, property uuid.UUID, pending bool) (map[uuid.UUID]TierThreshold, []TierThreshold, error) {
+	cols := `eff_min_points, eff_min_spend::text, eff_qualify_mode, eff_membership_type_ids, eff_period_months`
+	if pending {
+		cols = `min_points, min_spend::text, qualify_mode, membership_type_ids, period_months`
+	}
+	rows, err := q.Query(ctx, `SELECT id, rank, `+cols+`, grace_months, downgrade_allowed FROM crm.loyalty_tiers WHERE property_id = $1
+		AND status = 'active' AND archived_at IS NULL`, property)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -256,10 +316,15 @@ func tierThresholds(ctx context.Context, q dbtx.Querier, property uuid.UUID) (ma
 	for rows.Next() {
 		var t TierThreshold
 		var spend string
-		if err := rows.Scan(&t.ID, &t.Rank, &t.MinPoints, &spend); err != nil {
+		var period *int
+		var down bool
+		if err := rows.Scan(&t.ID, &t.Rank, &t.MinPoints, &spend, &t.QualifyMode, &t.MembershipTypes, &period, &t.GraceMonths, &down); err != nil {
 			return nil, nil, err
 		}
-		t.MinSpend = dec(spend)
+		t.MinSpend, t.NoDowngrade = dec(spend), !down
+		if period != nil {
+			t.PeriodMonths = *period
+		}
 		byID[t.ID] = t
 		list = append(list, t)
 	}
@@ -278,6 +343,63 @@ func tierBasis(ctx context.Context, q dbtx.Querier, property, account uuid.UUID,
 	return pts, dec(spend), err
 }
 
+// customerMembershipTypes are the membership types a customer holds
+// actively (membership read model).
+func customerMembershipTypes(ctx context.Context, q dbtx.Querier, customer uuid.UUID) ([]string, error) {
+	rows, err := q.Query(ctx, `SELECT DISTINCT type_id::text FROM reporting.membership_lifecycle WHERE customer_id = $1 AND status = 'active'`, customer)
+	if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, pgx.RowTo[string])
+}
+
+// accountQualification evaluates the tiers for one account: the basis of
+// every tier window (cached per window length) and the qualified tier.
+// The returned basis is the one of the programme window.
+func accountQualification(ctx context.Context, q dbtx.Querier, property, account, customer uuid.UUID, tiers []TierThreshold, defaultMonths int,
+	today time.Time) (*TierThreshold, TierBasis, error) {
+	var types []string
+	if slices.ContainsFunc(tiers, func(t TierThreshold) bool { return len(t.MembershipTypes) > 0 }) {
+		var err error
+		if types, err = customerMembershipTypes(ctx, q, customer); err != nil {
+			return nil, TierBasis{}, err
+		}
+	}
+	if defaultMonths <= 0 {
+		defaultMonths = 12
+	}
+	cache := map[int]TierBasis{}
+	get := func(months int) (TierBasis, error) {
+		if months <= 0 {
+			months = defaultMonths
+		}
+		if b, ok := cache[months]; ok {
+			return b, nil
+		}
+		pts, spend, err := tierBasis(ctx, q, property, account, today.AddDate(0, -months, 0), today)
+		b := TierBasis{Points: pts, Spend: spend, MembershipTypes: types}
+		cache[months] = b
+		return b, err
+	}
+	base, err := get(defaultMonths)
+	if err != nil {
+		return nil, base, err
+	}
+	for _, t := range tiers {
+		if _, err := get(t.PeriodMonths); err != nil {
+			return nil, base, err
+		}
+	}
+	qual := QualifyTierBy(tiers, func(t TierThreshold) TierBasis {
+		m := t.PeriodMonths
+		if m <= 0 {
+			m = defaultMonths
+		}
+		return cache[m]
+	})
+	return qual, base, nil
+}
+
 // TierProgramOn reports whether the P5 tier programme runs the tier
 // evaluations of a property.
 func TierProgramOn(ctx context.Context, q dbtx.Querier, property uuid.UUID) (bool, error) {
@@ -285,67 +407,61 @@ func TierProgramOn(ctx context.Context, q dbtx.Querier, property uuid.UUID) (boo
 	return p.Enabled, err
 }
 
-// RunTierEvaluation evaluates the active accounts of a property (or the
-// given ones) and records the run with one line per account. Upgrades and
-// downgrades go through changeTier (history, crm.tier_changed, member
-// notification); every line publishes crm.tier_evaluated.
-func (m *Module) RunTierEvaluation(ctx context.Context, tx pgx.Tx, property uuid.UUID, in LoyaltyTierEvaluationInput) (LoyaltyTierEvaluationRun, error) {
-	if !slices.Contains([]string{EvalAnnual, EvalPeriodic, EvalGraceReview}, in.Kind) {
-		return LoyaltyTierEvaluationRun{}, handle.Invalid("kind", "invalid_kind", "kind must be annual, periodic or grace_review")
-	}
+// tierPlanItem is the decision for one account (preview or run).
+type tierPlanItem struct {
+	Account LoyaltyAccount
+	Basis   TierBasis
+	Qual    *TierThreshold
+	D       TierDecision
+}
+
+// planTierEvaluation decides the tier of the active accounts of a property
+// (or the given ones) without writing anything; lock locks the accounts
+// for the run, pending uses the thresholds waiting for the next evaluation.
+func (m *Module) planTierEvaluation(ctx context.Context, tx pgx.Tx, property uuid.UUID, kind string, accountIDs []uuid.UUID, lock, pending bool) (
+	[]tierPlanItem, TierProgramPolicy, rules.PolicyRef, error) {
 	pol, ref, err := LoadTierProgram(ctx, tx, property)
 	if err != nil {
-		return LoyaltyTierEvaluationRun{}, err
+		return nil, pol, ref, err
 	}
 	today := localToday(ctx, tx, property)
-	from := today.AddDate(0, -pol.PeriodMonths, 0)
-	byID, tiers, err := tierThresholds(ctx, tx, property)
+	byID, tiers, err := tierThresholds(ctx, tx, property, pending)
 	if err != nil {
-		return LoyaltyTierEvaluationRun{}, err
+		return nil, pol, ref, err
 	}
 	sql := `SELECT id FROM crm.loyalty_accounts WHERE property_id = $1 AND status = 'active' AND (cardinality($2::uuid[]) = 0 OR id = ANY($2::uuid[]))`
-	if in.Kind == EvalGraceReview {
+	if kind == EvalGraceReview {
 		sql += ` AND grace_until IS NOT NULL AND grace_until <= $3::date`
 	} else {
 		sql += ` AND $3::date IS NOT NULL`
 	}
-	ids := in.AccountIDs
+	ids := accountIDs
 	if ids == nil {
 		ids = []uuid.UUID{}
 	}
 	rows, err := tx.Query(ctx, sql+` ORDER BY id`, property, ids, today)
 	if err != nil {
-		return LoyaltyTierEvaluationRun{}, err
+		return nil, pol, ref, err
 	}
 	accounts, err := pgx.CollectRows(rows, pgx.RowTo[uuid.UUID])
 	if err != nil {
-		return LoyaltyTierEvaluationRun{}, err
+		return nil, pol, ref, err
 	}
-	if len(in.AccountIDs) > 0 && len(accounts) == 0 && in.Kind != EvalGraceReview {
-		return LoyaltyTierEvaluationRun{}, handle.Invalid("accountIds", "not_found", "no active loyalty account of this property")
-	}
-	num, err := numbering.Next(ctx, tx, property, "TEV", today)
-	if err != nil {
-		return LoyaltyTierEvaluationRun{}, err
-	}
-	rid := id.New()
-	if _, err := tx.Exec(ctx, `INSERT INTO crm.loyalty_tier_evaluations (id, property_id, number, kind, evaluated_on, window_from, window_to, policy_version,
-		created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`, rid, property, num, in.Kind, today, from, today, ref.Version, actor(ctx)); err != nil {
-		return LoyaltyTierEvaluationRun{}, err
-	}
-	counts := map[string]int{}
+	out := make([]tierPlanItem, 0, len(accounts))
 	for _, aid := range accounts {
-		a, err := lockAccount(ctx, tx, aid)
+		var a LoyaltyAccount
+		if lock {
+			a, err = lockAccount(ctx, tx, aid)
+		} else {
+			rows, qerr := tx.Query(ctx, accountSelect+` WHERE a.id = $1`, aid)
+			a, err = handle.One[LoyaltyAccount](rows, qerr, "loyalty account")
+		}
 		if err != nil {
-			return LoyaltyTierEvaluationRun{}, err
+			return nil, pol, ref, err
 		}
 		var grace *time.Time
 		if err := tx.QueryRow(ctx, `SELECT grace_until FROM crm.loyalty_accounts WHERE id = $1`, aid).Scan(&grace); err != nil {
-			return LoyaltyTierEvaluationRun{}, err
-		}
-		pts, spend, err := tierBasis(ctx, tx, property, aid, from, today)
-		if err != nil {
-			return LoyaltyTierEvaluationRun{}, err
+			return nil, pol, ref, err
 		}
 		var cur *TierThreshold
 		if a.TierID != nil {
@@ -355,25 +471,92 @@ func (m *Module) RunTierEvaluation(ctx context.Context, tx pgx.Tx, property uuid
 				cur = &TierThreshold{ID: *a.TierID, Rank: *a.TierRank} // inactive / archived tier keeps its rank
 			}
 		}
-		qual := QualifyTier(tiers, pts, spend)
-		d := DecideTier(in.Kind, cur, qual, grace, a.TierLocked, today, pol.GraceMonths)
+		qual, basis, err := accountQualification(ctx, tx, property, aid, a.CustomerID, tiers, pol.PeriodMonths, today)
+		if err != nil {
+			return nil, pol, ref, err
+		}
+		decideQual, graceMonths := qual, pol.GraceMonths
+		if cur != nil {
+			if cur.GraceMonths != nil {
+				graceMonths = *cur.GraceMonths
+			}
+			if cur.NoDowngrade && (qual == nil || qual.Rank < cur.Rank) {
+				decideQual = cur // "downgrade allowed" off: the member keeps the tier
+			}
+		}
+		d := DecideTier(kind, cur, decideQual, grace, a.TierLocked, today, graceMonths)
+		out = append(out, tierPlanItem{Account: a, Basis: basis, Qual: qual, D: d})
+	}
+	return out, pol, ref, nil
+}
+
+// RunTierEvaluation evaluates the active accounts of a property (or the
+// given ones) and records the run with one line per account. Upgrades and
+// downgrades go through changeTier (history, crm.tier_changed, member
+// notification); every line publishes crm.tier_evaluated. A full annual or
+// periodic run (or applyPendingVersions) first puts the pending threshold
+// versions in force.
+func (m *Module) RunTierEvaluation(ctx context.Context, tx pgx.Tx, property uuid.UUID, in LoyaltyTierEvaluationInput) (LoyaltyTierEvaluationRun, error) {
+	if !slices.Contains([]string{EvalAnnual, EvalPeriodic, EvalGraceReview}, in.Kind) {
+		return LoyaltyTierEvaluationRun{}, handle.Invalid("kind", "invalid_kind", "kind must be annual, periodic or grace_review")
+	}
+	today := localToday(ctx, tx, property)
+	rid := id.New()
+	applied := []AppliedTierVersion{}
+	if in.ApplyPendingVersions || (in.Kind != EvalGraceReview && len(in.AccountIDs) == 0) {
+		var err error
+		if applied, err = applyPendingVersions(ctx, tx, property, today); err != nil {
+			return LoyaltyTierEvaluationRun{}, err
+		}
+	}
+	plan, pol, ref, err := m.planTierEvaluation(ctx, tx, property, in.Kind, in.AccountIDs, true, false)
+	if err != nil {
+		return LoyaltyTierEvaluationRun{}, err
+	}
+	if len(in.AccountIDs) > 0 && len(plan) == 0 && in.Kind != EvalGraceReview {
+		return LoyaltyTierEvaluationRun{}, handle.Invalid("accountIds", "not_found", "no active loyalty account of this property")
+	}
+	from := today.AddDate(0, -pol.PeriodMonths, 0)
+	num, err := numbering.Next(ctx, tx, property, "TEV", today)
+	if err != nil {
+		return LoyaltyTierEvaluationRun{}, err
+	}
+	rawApplied, _ := json.Marshal(applied)
+	if _, err := tx.Exec(ctx, `INSERT INTO crm.loyalty_tier_evaluations (id, property_id, number, kind, evaluated_on, window_from, window_to, policy_version,
+		created_by, applied_versions) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, rid, property, num, in.Kind, today, from, today, ref.Version, actor(ctx),
+		rawApplied); err != nil {
+		return LoyaltyTierEvaluationRun{}, err
+	}
+	if len(applied) > 0 {
+		vids := make([]uuid.UUID, 0, len(applied))
+		for _, v := range applied {
+			vids = append(vids, v.VersionID)
+		}
+		if _, err := tx.Exec(ctx, `UPDATE crm.loyalty_tier_versions SET evaluation_id = $2 WHERE id = ANY($1)`, vids, rid); err != nil {
+			return LoyaltyTierEvaluationRun{}, err
+		}
+	}
+	counts := map[string]int{}
+	for _, it := range plan {
+		a, d, pts, spend := it.Account, it.D, it.Basis.Points, it.Basis.Spend
+		fromTier := it.Account.TierID
 		if err := m.applyTierDecision(ctx, tx, &a, d, in.Kind, pts, spend, pol); err != nil {
 			return LoyaltyTierEvaluationRun{}, err
 		}
 		counts[d.Outcome]++
 		var qid *uuid.UUID
-		if qual != nil {
-			qid = &qual.ID
+		if it.Qual != nil {
+			qid = &it.Qual.ID
 		}
 		if _, err := tx.Exec(ctx, `INSERT INTO crm.loyalty_tier_evaluation_lines (id, property_id, evaluation_id, account_id, from_tier_id, qualified_tier_id,
-			to_tier_id, outcome, spend_basis, points_basis, grace_until) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::numeric,$10,$11)`, id.New(), property, rid, aid,
-			a.TierID, qid, d.To, d.Outcome, spend.String(), pts, d.GraceUntil); err != nil {
+			to_tier_id, outcome, spend_basis, points_basis, grace_until) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::numeric,$10,$11)`, id.New(), property, rid, a.ID,
+			fromTier, qid, d.To, d.Outcome, spend.String(), pts, d.GraceUntil); err != nil {
 			return LoyaltyTierEvaluationRun{}, err
 		}
 		if m.Events != nil {
 			pid := property
 			if _, err := m.Events.Publish(ctx, tx, EventTierEvaluated, "crm.loyalty_account", &a.ID, &pid, map[string]any{"evaluationId": rid,
-				"evaluationNumber": num, "kind": in.Kind, "accountId": a.ID, "customerId": a.CustomerID, "fromTierId": a.TierID, "qualifiedTierId": qid,
+				"evaluationNumber": num, "kind": in.Kind, "accountId": a.ID, "customerId": a.CustomerID, "fromTierId": fromTier, "qualifiedTierId": qid,
 				"toTierId": d.To, "outcome": d.Outcome, "spendBasis": spend.String(), "pointsBasis": pts, "graceUntil": dateStr(d.GraceUntil),
 				"windowFrom": from.Format("2006-01-02"), "windowTo": today.Format("2006-01-02")}); err != nil {
 				return LoyaltyTierEvaluationRun{}, err
@@ -382,7 +565,7 @@ func (m *Module) RunTierEvaluation(ctx context.Context, tx pgx.Tx, property uuid
 	}
 	retained := counts[OutcomeRetained] + counts[OutcomeLocked]
 	if _, err := tx.Exec(ctx, `UPDATE crm.loyalty_tier_evaluations SET accounts = $2, upgraded = $3, downgraded = $4, retained = $5, grace_started = $6,
-		in_grace = $7 WHERE id = $1`, rid, len(accounts), counts[OutcomeUpgraded], counts[OutcomeDowngraded], retained, counts[OutcomeGraceStarted],
+		in_grace = $7 WHERE id = $1`, rid, len(plan), counts[OutcomeUpgraded], counts[OutcomeDowngraded], retained, counts[OutcomeGraceStarted],
 		counts[OutcomeInGrace]); err != nil {
 		return LoyaltyTierEvaluationRun{}, err
 	}
@@ -413,7 +596,7 @@ func (m *Module) applyTierDecision(ctx context.Context, tx pgx.Tx, a *LoyaltyAcc
 			WHERE id = $1`, a.ID, localToday(ctx, tx, a.PropertyID))
 		return err
 	case OutcomeGraceStarted:
-		if _, err := tx.Exec(ctx, `UPDATE crm.loyalty_accounts SET grace_until = $2, tier_evaluated_at = now() WHERE id = $1`, a.ID, d.GraceUntil); err != nil {
+		if _, err := tx.Exec(ctx, `UPDATE crm.loyalty_accounts SET grace_until = $2, tier_source = 'auto', tier_evaluated_at = now() WHERE id = $1`, a.ID, d.GraceUntil); err != nil {
 			return err
 		}
 		if pol.NotifyGrace && a.TierName != nil {
@@ -422,7 +605,10 @@ func (m *Module) applyTierDecision(ctx context.Context, tx pgx.Tx, a *LoyaltyAcc
 		}
 		return nil
 	case OutcomeRetained:
-		_, err := tx.Exec(ctx, `UPDATE crm.loyalty_accounts SET grace_until = NULL, grace_tier_id = NULL, tier_evaluated_at = now() WHERE id = $1`, a.ID)
+		_, err := tx.Exec(ctx, `UPDATE crm.loyalty_accounts SET grace_until = NULL, grace_tier_id = NULL, tier_source = 'auto', tier_evaluated_at = now() WHERE id = $1`, a.ID)
+		return err
+	case OutcomeInGrace:
+		_, err := tx.Exec(ctx, `UPDATE crm.loyalty_accounts SET tier_source = 'auto', tier_evaluated_at = now() WHERE id = $1`, a.ID)
 		return err
 	}
 	_, err := tx.Exec(ctx, `UPDATE crm.loyalty_accounts SET tier_evaluated_at = now() WHERE id = $1`, a.ID)
@@ -478,22 +664,33 @@ type LoyaltyTierBenefits struct {
 	EventAccess        bool       `json:"eventAccess" doc:"Invitation to VIP events"`
 	PriorityService    bool       `json:"priorityService"`
 	GraceUntil         *string    `json:"graceUntil" doc:"The tier is kept until this date (grace period)"`
+	// Tier class badge and classification source (tier master, P5).
+	TierRank      *int    `json:"tierRank"`
+	TierColor     *string `json:"tierColor" doc:"Badge colour #RRGGBB"`
+	TierIcon      *string `json:"tierIcon" doc:"Badge icon (Material Symbols name)"`
+	TierSource    string  `json:"tierSource" enum:"auto,manual" doc:"auto: tier evaluation; manual: Set Tier or a classification override"`
+	OverrideUntil *string `json:"overrideUntil" doc:"End of the manual classification override in force (null: none or open-ended)"`
+	Overridden    bool    `json:"overridden" doc:"A manual classification override is in force"`
 }
 
 // BenefitsOf returns the tier benefits of a customer (none without an
 // active account or tier).
 func BenefitsOf(ctx context.Context, q dbtx.Querier, customer uuid.UUID) (LoyaltyTierBenefits, error) {
-	out := LoyaltyTierBenefits{CustomerID: customer, PointsMultiplier: "1", FnbDiscountPercent: "0"}
+	out := LoyaltyTierBenefits{CustomerID: customer, PointsMultiplier: "1", FnbDiscountPercent: "0", TierSource: "auto"}
 	var aid uuid.UUID
 	var tier *uuid.UUID
 	var code, name *string
 	var mult, disc *string
 	var window *int
 	var event, prio *bool
-	var grace *time.Time
+	var grace, until *time.Time
+	var override *uuid.UUID
 	err := q.QueryRow(ctx, `SELECT a.id, a.tier_id, t.code, t.name, trim_scale(t.multiplier)::text, t.booking_window_days, trim_scale(t.fnb_discount_percent)::text,
-		t.event_access, t.priority_service, a.grace_until FROM crm.loyalty_accounts a LEFT JOIN crm.loyalty_tiers t ON t.id = a.tier_id
-		WHERE a.customer_id = $1 AND a.status = 'active'`, customer).Scan(&aid, &tier, &code, &name, &mult, &window, &disc, &event, &prio, &grace)
+		t.event_access, t.priority_service, a.grace_until, t.rank, t.color, t.icon, a.tier_source, a.tier_override_id, o.valid_until
+		FROM crm.loyalty_accounts a LEFT JOIN crm.loyalty_tiers t ON t.id = a.tier_id
+		LEFT JOIN crm.loyalty_tier_overrides o ON o.id = a.tier_override_id AND o.status = 'active'
+		WHERE a.customer_id = $1 AND a.status = 'active'`, customer).Scan(&aid, &tier, &code, &name, &mult, &window, &disc, &event, &prio, &grace,
+		&out.TierRank, &out.TierColor, &out.TierIcon, &out.TierSource, &override, &until)
 	if dbtx.IsNoRows(err) {
 		return out, nil
 	}
@@ -501,6 +698,7 @@ func BenefitsOf(ctx context.Context, q dbtx.Querier, customer uuid.UUID) (Loyalt
 		return out, err
 	}
 	out.Enrolled, out.AccountID, out.TierID, out.TierCode, out.TierName, out.GraceUntil = true, &aid, tier, code, name, dateStr(grace)
+	out.Overridden, out.OverrideUntil = override != nil, dateStr(until)
 	if tier == nil {
 		return out, nil
 	}

@@ -61,14 +61,16 @@ const orderSelect = `SELECT o.id, o.property_id, o.order_no, o.outlet_id, ou.nam
 	o.guest_count, o.customer_id, c.name AS customer_name, o.member_pricing, o.serving_destination, o.destination_ref, o.scheduled_for, o.status,
 	o.service_status, o.charge_folio_id, o.offline, o.needs_review, o.notes, o.void_reason, o.created_at,
 	o.promo_codes, o.promotion_exclusions, trim_scale(o.client_total)::text AS client_total, o.promotion_mismatch,
-	trim_scale(coalesce((SELECT sum(total_amount) FROM commercial.order_lines l WHERE l.order_id = o.id AND l.status = 'active'), 0))::text AS total
+	trim_scale(coalesce((SELECT sum(total_amount) FROM commercial.order_lines l WHERE l.order_id = o.id AND l.status = 'active'), 0))::text AS total,
+	o.tier_code, o.tier_name, trim_scale(o.tier_discount_percent)::text AS tier_discount_percent, o.tier_discount_label,
+	trim_scale(coalesce((SELECT sum(tier_discount) FROM commercial.order_lines l WHERE l.order_id = o.id AND l.status = 'active'), 0))::text AS tier_discount
 	FROM commercial.orders o JOIN commercial.outlets ou ON ou.id = o.outlet_id LEFT JOIN reporting.customer_directory c ON c.id = o.customer_id`
 
 const orderLineSelect = `SELECT id, line_no, product_id, variant_id, name, trim_scale(quantity)::text AS quantity, trim_scale(unit_price)::text AS unit_price,
 	modifiers, trim_scale(discount_amount)::text AS discount_amount, discount_reason, trim_scale(net_amount)::text AS net_amount,
 	trim_scale(service_amount)::text AS service_amount, trim_scale(tax_amount)::text AS tax_amount, trim_scale(total_amount)::text AS total_amount,
-	kitchen_station, bill_id, seat, notes, status, sent_at, charged_folio_id, trim_scale(promotion_discount)::text AS promotion_discount, promotions
-	FROM commercial.order_lines`
+	kitchen_station, bill_id, seat, notes, status, sent_at, charged_folio_id, trim_scale(promotion_discount)::text AS promotion_discount, promotions,
+	trim_scale(tier_discount)::text AS tier_discount FROM commercial.order_lines`
 
 // Order returns an order with lines and bills.
 func (m *Module) Order(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (Order, error) {
@@ -230,6 +232,9 @@ func (m *Module) CreateOrder(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		return Order{}, err
 	}
 	if err := setOrderPromo(ctx, tx, oid, in); err != nil { // PRD P3 promo codes, offline client total
+		return Order{}, err
+	}
+	if err := snapshotTier(ctx, tx, oid, property, in.CustomerID); err != nil { // PRD P5 tier F&B discount
 		return Order{}, err
 	}
 	if err := m.addLines(ctx, tx, property, oid, ou, memberPricing, in.Lines); err != nil {
@@ -1614,6 +1619,9 @@ func (m *Module) Receipt(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (st
 		if l.DiscountAmount != "0" {
 			line("    discount", "-"+money(l.DiscountAmount))
 		}
+	}
+	if o.TierDiscountLabel != nil && o.TierDiscount != "0" { // PRD P5: tier discount line (included above)
+		line(trunc(*o.TierDiscountLabel, 30), "-"+money(o.TierDiscount))
 	}
 	b.WriteString(strings.Repeat("-", 42) + "\n")
 	line("TOTAL", money(o.Total))

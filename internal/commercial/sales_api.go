@@ -62,6 +62,8 @@ type OrderLine struct {
 	// PRD P3 (additive): promotions applied to the line (FR-PRM-06).
 	PromotionDiscount string             `json:"promotionDiscount" db:"promotion_discount"`
 	Promotions        []AppliedPromotion `json:"promotions" db:"promotions"`
+	// PRD P5 (additive): loyalty tier F&B discount of the line (member tier class).
+	TierDiscount string `json:"tierDiscount" db:"tier_discount"`
 }
 
 // Bill is a (split) bill of an order.
@@ -113,6 +115,13 @@ type Order struct {
 	ClientTotal         *string      `json:"clientTotal" db:"client_total"`
 	PromotionMismatch   bool         `json:"promotionMismatch" db:"promotion_mismatch"`
 	Promotions          []Redemption `json:"promotions" db:"-"`
+	// PRD P5 (additive): the loyalty tier of the customer when the order was
+	// opened and its F&B discount, shown as a separate discount line.
+	TierCode            *string `json:"tierCode" db:"tier_code"`
+	TierName            *string `json:"tierName" db:"tier_name"`
+	TierDiscountPercent *string `json:"tierDiscountPercent" db:"tier_discount_percent"`
+	TierDiscountLabel   *string `json:"tierDiscountLabel" db:"tier_discount_label" doc:"e.g. Gold member 5%"`
+	TierDiscount        string  `json:"tierDiscount" db:"tier_discount" doc:"Tier discount of the active lines"`
 }
 
 // LineInput is an item ordered.

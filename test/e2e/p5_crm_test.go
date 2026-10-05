@@ -31,6 +31,7 @@ func p5cSfx() string { return fmt.Sprint(time.Now().UnixNano() % 1e7) }
 // tier of the shared instance (PRD P5 §16 #14) and archives it at the end.
 func p5cTiers(t *testing.T, sa *Client, sfx string) (silver, gold, plat string) {
 	t.Helper()
+	p5tIsolateTiers(t) // the tier ladder is validated against the active tiers (p5_tiers_test.go)
 	mk := func(code, name string, rank int, spend, mult, disc string, window int, event bool) string {
 		return idOf(sa.Must(201, "POST", "/api/v1/crm/loyalty/tiers", map[string]any{"code": code + sfx, "name": name + " " + sfx, "rank": rank,
 			"minSpend": spend, "multiplier": mult, "fnbDiscountPercent": disc, "bookingWindowDays": window, "eventAccess": event, "priorityService": event}))

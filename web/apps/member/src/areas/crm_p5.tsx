@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Link, useParams } from 'react-router';
 import { useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatNumber } from '@oneclub/i18n';
-import { Card, DataTable, Empty, ErrorAlert, PageHeader, Skeleton, StatusPill } from '@oneclub/shell';
+import { Card, DataTable, Empty, ErrorAlert, Icon, PageHeader, Skeleton, StatusPill } from '@oneclub/shell';
 
 // Member App — PRD P5 advanced loyalty (tier progress, benefits, eligible and issued rewards; EP-18 / EP-26) and personal offers from the
 // journeys (EP-19, §7.4). Registered in src/p3.tsx.
@@ -24,6 +24,18 @@ function LoyaltyNav() {
       <Link className="oc-chip" to="/loyalty/offers">Personal Offers</Link>
       <Link className="oc-chip" to="/loyalty/history">Points History</Link>
     </div>
+  );
+}
+
+/** Tier class badge (PRD P5 member tier class): icon in the tier colour and the name. */
+export function TierBadge({ b }: { b: Row }) {
+  if (!b.tierName) return null;
+  const color = String(b.tierColor ?? '#6B7280');
+  return (
+    <span className="oc-chip" role="img" aria-label={`Tier ${String(b.tierName)}`}
+      style={{ borderColor: color, borderLeftWidth: 4, display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 16 }}>
+      <span style={{ color, display: 'inline-flex' }}><Icon name={String(b.tierIcon ?? 'workspace_premium')} size={20} /></span>{String(b.tierName)}
+    </span>
   );
 }
 
@@ -52,6 +64,8 @@ export function TierProgressPage() {
       <LoyaltyNav />
       {p.isLoading ? <Skeleton /> : !x?.enrolled ? <Empty title="Join Loyalty first" help="Open My Points to join the loyalty programme." icon="loyalty" /> : <>
         <Card title={`Your tier: ${String(b.tierName ?? '—')}`} icon="workspace_premium" ink>
+          <p><TierBadge b={b} /></p>
+          {b.overridden ? <p className="oc-small" role="status">Tier given by the club{b.overrideUntil ? ` until ${formatDate(String(b.overrideUntil))}` : ''}.</p> : null}
           {x.currentTierStatus === 'grace' && <p className="oc-alert oc-alert-warning" role="status">
             Your spend is below the threshold of {String(b.tierName)}. You keep it until {formatDate(String(x.graceUntil))}.</p>}
           <Benefits b={b} />

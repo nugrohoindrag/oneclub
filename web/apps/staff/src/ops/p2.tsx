@@ -6,6 +6,7 @@ import { Link } from 'react-router';
 import { useLive } from '../live';
 import { OUTLET_KEY, read } from '../offline';
 import { PosPromotionPanel, usePosPromotions } from '../p3/commercial';
+import { PosTierLine, posTierDiscount, usePosTierDiscount, useCustomerTiers } from '../p5/tiers';
 import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
@@ -316,11 +317,13 @@ export function StayDeskPage() {
 function PosCustomerPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const [q, setQ] = useState('');
   const list = useGet<Page<Row>>(q.trim().length >= 2 ? `/api/v1/crm/customers${qs({ q, limit: 20, 'filter[status]': 'active' })}` : null);
+  const tiers = useCustomerTiers((list.data?.items ?? []).map((c) => String(c.id))); // PRD P5 tier class in the picker
   return (
     <>
       <div style={{ width: 220 }}><TextField label="Find customer" value={q} onChange={setQ} placeholder="Name, phone or code" /></div>
       <div style={{ width: 240 }}><SelectField label="Customer" value={value} onChange={onChange} placeholder="Walk-in guest"
-        options={(list.data?.items ?? []).map((c) => ({ value: String(c.id), label: `${String(c.name)} (${String(c.code)})` }))} /></div>
+        options={(list.data?.items ?? []).map((c) => ({ value: String(c.id), label: `${String(c.name)} (${String(c.code)})${tiers.get(String(c.id))?.tierName
+          ? ` · ${String(tiers.get(String(c.id))?.tierName)}` : ''}` }))} /></div>
     </>
   );
 }
@@ -354,8 +357,12 @@ export function POSPage() {
   // PRD P3 FR-OPS-P3-03: promotions of the cart (online and offline); the customer unlocks personal codes
   const promo = usePosPromotions(outlet, items.filter((p) => (cart[p.productId] ?? 0) > 0)
     .map((p) => ({ productId: p.productId, quantity: cart[p.productId], unitPrice: Number(p.price) })), customer);
+  // PRD P5: tier F&B discount of the member (cached with the member for offline sales)
+  const tierDisc = usePosTierDiscount(customer);
+  const tierAmount = posTierDiscount(tierDisc, items.filter((p) => (cart[p.productId] ?? 0) > 0)
+    .map((p) => ({ productType: String(p.productType), amount: Number(p.price) * (cart[p.productId] ?? 0) })), promo.discount);
   if (!outlet) return <Empty title="Choose an outlet on the Home screen first" icon="storefront" />;
-  const due = Math.max(total - promo.discount, 0);
+  const due = Math.max(total - promo.discount - tierAmount, 0);
   const pointValue = Number(acct?.redemptionValue ?? 0);
   const maxPoints = acct && pointValue > 0 ? Math.min(Number(acct.balance ?? 0), Math.floor(due / pointValue)) : 0;
   const usePoints = method === 'loyalty_points';
@@ -365,7 +372,7 @@ export function POSPage() {
   const checkout = async () => {
     const id = uuidv7();
     const order = { id, outletId: outlet, shiftId: shift?.id, tableNo: table, send: true, offline: !navigator.onLine, customerId: customer || undefined,
-      lines: lines(), ...promo.orderFields(total) };
+      lines: lines(), ...promo.orderFields(total - tierAmount) };
     await enqueue('commercial.pos_order', { order, payment: { shiftId: shift?.id, tenders: [{ methodType: method }] } }, propertyId);
     reset();
     toast(navigator.onLine ? 'Order sent' : 'Offline: order queued and will sync automatically');
@@ -416,6 +423,7 @@ export function POSPage() {
         <div className="oc-row-wrap" aria-label="Customer">
           <PosCustomerPicker value={customer} onChange={(v) => { setCustomer(v); setPoints(''); if (method === 'loyalty_points') setMethod('cash'); }} />
           {acct && <span className="oc-chip" style={{ alignSelf: 'flex-end' }}>{formatNumber(Number(acct.balance))} points · {money(acct.balanceValue)}</span>}
+          {tierDisc && <span className="oc-chip" style={{ alignSelf: 'flex-end' }}>{tierDisc.label}</span>}
           {customer && !acctQ.isLoading && !acct && can('crm.loyalty_account.view') && <span className="oc-small oc-muted" style={{ alignSelf: 'flex-end' }}>Not a loyalty member</span>}
         </div>
         <div className="oc-row-wrap">
@@ -436,6 +444,7 @@ export function POSPage() {
         </div>
         {usePoints && !online && <div className="oc-small oc-muted" role="status">Redeem Points needs a connection; choose another payment while offline.</div>}
         <PosPromotionPanel promo={promo} />
+        <PosTierLine t={tierDisc} amount={tierAmount} />
       </Card>
     </div>
   );

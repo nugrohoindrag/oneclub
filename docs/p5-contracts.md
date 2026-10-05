@@ -332,3 +332,23 @@ hash, consent files and GPS positions) — to be called by `hris.harden_report_r
 **Import (EP-28 FR-MIG-P5-02).** `oneclub import hris -property MAIN --leave-balances F` or
 `POST /api/v1/hris/leave-balances:import` (columns `employeeNo, leaveType, year, entitled, carriedOver, carryOverExpiresOn, used, note`; upsert per
 employee / type / year, dry run).
+
+### Member tier classes & classification (EP-18, product owner request) — additive
+- `crm.tier_changed` payload gains `"source": "auto | manual"` and `"overrideId": "uuid|null"` (manual classification override);
+  the other keys are unchanged. `crm.tier_evaluated` is unchanged; the run (`GET /crm/loyalty/tier-evaluations/{id}`) lists the
+  threshold versions it put in force (`appliedVersions`).
+- Tier thresholds are versioned (`crm.loyalty_tier_versions`): the evaluation engine reads the thresholds in force
+  (`crm.loyalty_tiers.eff_*`); a change through the tier master stays pending until the next full annual / periodic run or
+  `POST /crm/loyalty/tier-evaluations` with `applyPendingVersions` ("re-evaluate now", preview `GET /crm/loyalty/tier-evaluations:preview`).
+  Direct SQL writes (seeds, imports) are in force at once (trigger `crm.loyalty_tier_thresholds`).
+- Approval document type `loyalty_tier_override` (attributes `tierRank`, `rankChange`, `tierCode`); no workflow ⇒ applied at once.
+  Permission `crm.loyalty.tier_override`.
+- Hook `pos.SetTierBenefit(fn)` (wired by `internal/app/p5_tiers.go` with `loyalty.BenefitsOf`): the POS stores the tier of the
+  order's customer when the order is opened (`commercial.orders.tier_*`) and gives the F&B lines a separate tier discount
+  (`order_lines.tier_discount`, `Order.tierDiscount`, label "Gold member 5%") after the promotions — Pricing Policies
+  `pos.tier_discount` (F&B product types, stacking with promotions within the Promotion Policies ceiling, label).
+  `GET /commercial/pos/tier-discount?customerId=` is the benefit the POS caches with the member for offline sales.
+- Read models (reporting/00023): `crm_member_tiers` (memberships + tier class of the member), `crm_tier_members`,
+  `crm_tier_movements` (evaluation runs and manual overrides), `crm_membership_types`; `crm_tier_benefits` gains `tier_color`,
+  `tier_icon`, `tier_source`. Reports `crm.members_by_tier` (Members by Tier Report) and `crm.tier_movement` (Tier Movement Report)
+  in `internal/reporting/p5_tiers.go` (`P5TierReports`, `P5TierContribution`).

@@ -8,6 +8,7 @@ import {
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
+import { CustomerTierBadge, CustomerTierCard, TierClassesPanel, TierOverridesPanel } from './tiers';
 
 // PRD P5 — advanced segmentation, loyalty, journeys and CRM analytics (EP-17–20). Back Office routes, ops tiles and ops routes of the area
 // (registered in p3/index.tsx and ops/p3.tsx). Naming Convention §7.6: CRM → Journeys, VIP Customers, Loyalty (Tiers, Rewards, Eligibility),
@@ -371,13 +372,14 @@ export function LoyaltyTiersPage() {
   const [kind, setKind] = useState('annual');
   const [open, setOpen] = useState<string | null>(null);
   const [cust, setCust] = useState('');
-  const benefits = useGet<R>(cust ? `/api/v1/crm/loyalty/tier-benefits?customerId=${cust}` : null);
   return (
     <div className="oc-stack">
       <PageHeader title="Loyalty Tiers" help="Silver, Gold (≥ Rp25 jt / 12 months), Platinum (≥ Rp75 jt): points multiplier, booking window + days, F&B discount and VIP events. Annual evaluation with a 3-month grace before a downgrade — Settings → Club Policies → Loyalty Policies." />
-      <Tabs tabs={[{ value: 'tiers', label: 'Tiers & Benefits' }, { value: 'evaluations', label: 'Tier Evaluations' }, { value: 'lookup', label: 'Benefit Lookup' }]}
+      <Tabs tabs={[{ value: 'tiers', label: 'Tiers & Benefits' }, { value: 'overrides', label: 'Manual Classification' }, { value: 'evaluations', label: 'Tier Evaluations' },
+        { value: 'lookup', label: 'Benefit Lookup' }]}
         value={tab} onChange={(v) => setParams({ tab: v })} />
-      {tab === 'tiers' && <AutoResourcePage resourceKey="crm.loyalty_tier" />}
+      {tab === 'tiers' && <TierClassesPanel />}
+      {tab === 'overrides' && <TierOverridesPanel />}
       {tab === 'evaluations' && <>
         {can('crm.loyalty_tier.update') && <Card title="Run Evaluation" icon="play_circle">
           <SelectField label="Kind" value={kind} onChange={setKind} options={opts(['annual', 'periodic', 'grace_review'], { annual: 'Annual (with grace)', periodic: 'Periodic (upgrades, ended grace)', grace_review: 'Grace review' })} />
@@ -390,12 +392,10 @@ export function LoyaltyTiersPage() {
             { key: 'downgraded', header: 'Downgraded', align: 'right' }, { key: 'retained', header: 'Retained', align: 'right' }]} />
         {open && <EvaluationDrawer id={open} onClose={() => setOpen(null)} />}
       </>}
-      {tab === 'lookup' && <Card title="Tier Benefits of a Customer" icon="workspace_premium">
-        <div className="oc-form"><CustomerPicker value={cust} onChange={setCust} /></div>
-        {benefits.data && <KV items={[['Tier', String(benefits.data.tierName ?? 'No tier')], ['Points multiplier', `× ${String(benefits.data.pointsMultiplier)}`],
-          ['Booking window', `+${String(benefits.data.bookingWindowDays)} days`], ['F&B discount', `${String(benefits.data.fnbDiscountPercent)}%`],
-          ['VIP events', benefits.data.eventAccess ? 'Yes' : 'No'], ['Priority service', benefits.data.priorityService ? 'Yes' : 'No'], ['Grace until', day(benefits.data.graceUntil)]]} />}
-      </Card>}
+      {tab === 'lookup' && <>
+        <Card title="Tier Benefits of a Customer" icon="workspace_premium"><div className="oc-form"><CustomerPicker value={cust} onChange={setCust} /></div></Card>
+        {cust && <CustomerTierCard customerId={cust} />}
+      </>}
     </div>
   );
 }
@@ -788,7 +788,8 @@ export function VIPLookupPage() {
   return (
     <div className="oc-stack">
       <PageHeader title="VIP Lookup" help="Check a guest at check-in or the POS: VIP level, benefits and handling." />
-      <Card title="Guest" icon="person_search"><div className="oc-form"><CustomerPicker value={cust} onChange={setCust} label="Guest" /></div></Card>
+      <Card title="Guest" icon="person_search"><div className="oc-form"><CustomerPicker value={cust} onChange={setCust} label="Guest" /></div>
+        {cust && <div className="oc-row-wrap" style={{ marginTop: 8 }}><CustomerTierBadge customerId={cust} /></div>}</Card>
       {cust && !x && <Skeleton />}
       {x && (x.vip ? (
         <Card title={`${String(x.level).toUpperCase()} guest`} icon="workspace_premium" ink>

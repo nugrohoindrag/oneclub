@@ -10,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -467,18 +468,9 @@ func (m *Module) OnRoundFinished(ctx context.Context, tx pgx.Tx, e outbox.Event)
 
 // ── tiers (FR-LOY-07) ─────────────────────────────────────────────────────
 
-type tierRow struct {
-	ID         uuid.UUID `db:"id"`
-	Code       string    `db:"code"`
-	Name       string    `db:"name"`
-	Rank       int       `db:"rank"`
-	MinPoints  int64     `db:"min_points"`
-	MinSpend   string    `db:"min_spend"`
-	Multiplier string    `db:"multiplier"`
-}
-
-// evaluateTier moves an account to the highest tier whose thresholds are met
-// by the points earned and the eligible spend of the evaluation window.
+// evaluateTier moves an account to the highest tier whose thresholds in
+// force (effective version, qualify mode, membership types, window of the
+// tier) are met by the points earned and the eligible spend.
 func (m *Module) evaluateTier(ctx context.Context, tx pgx.Tx, a *LoyaltyAccount, pol Policy, downgrade bool, reason string) (bool, error) {
 	if a.TierLocked {
 		return false, nil
@@ -487,31 +479,13 @@ func (m *Module) evaluateTier(ctx context.Context, tx pgx.Tx, a *LoyaltyAccount,
 	if months <= 0 {
 		months = 12
 	}
-	since := time.Now().AddDate(0, -months, 0)
-	var pts int64
-	var spendRaw string
-	if err := tx.QueryRow(ctx, `SELECT coalesce(sum(points) FILTER (WHERE kind = 'earned' OR (kind = 'reversed' AND points < 0)), 0),
-		coalesce(sum(amount) FILTER (WHERE kind = 'earned'), 0)::text FROM crm.loyalty_ledger WHERE account_id = $1 AND occurred_at >= $2`,
-		a.ID, since).Scan(&pts, &spendRaw); err != nil {
-		return false, err
-	}
-	rows, err := tx.Query(ctx, `SELECT id, code, name, rank, min_points, min_spend::text, multiplier::text FROM crm.loyalty_tiers
-		WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL ORDER BY rank DESC, code`, a.PropertyID)
-	if err != nil {
-		return false, err
-	}
-	tiers, err := pgx.CollectRows(rows, pgx.RowToStructByNameLax[tierRow])
+	_, tiers, err := tierThresholds(ctx, tx, a.PropertyID, false)
 	if err != nil || len(tiers) == 0 {
 		return false, err
 	}
-	spend := dec(spendRaw)
-	var target *tierRow
-	for i := range tiers {
-		t := tiers[i]
-		if pts >= t.MinPoints && spend.GreaterThanOrEqual(dec(t.MinSpend)) {
-			target = &tiers[i]
-			break
-		}
+	target, basis, err := accountQualification(ctx, tx, a.PropertyID, a.ID, a.CustomerID, tiers, months, localToday(ctx, tx, a.PropertyID))
+	if err != nil {
+		return false, err
 	}
 	if target == nil || (a.TierID != nil && *a.TierID == target.ID) {
 		return false, nil
@@ -519,12 +493,30 @@ func (m *Module) evaluateTier(ctx context.Context, tx pgx.Tx, a *LoyaltyAccount,
 	if a.TierRank != nil && target.Rank < *a.TierRank && !downgrade {
 		return false, nil
 	}
+	pts, spend := basis.Points, basis.Spend
 	return true, m.changeTier(ctx, tx, a, &target.ID, reason, &pts, &spend)
 }
 
+// changeTier moves an account to a tier (history, crm.tier_changed, member
+// notification); a reason starting with "manual" is a manual classification.
 func (m *Module) changeTier(ctx context.Context, tx pgx.Tx, a *LoyaltyAccount, to *uuid.UUID, reason string, pts *int64, spend *decimal.Decimal) error {
+	src := TierSourceAuto
+	if strings.HasPrefix(reason, "manual") {
+		src = TierSourceManual
+	}
+	return m.changeTierFrom(ctx, tx, a, to, reason, pts, spend, src, nil)
+}
+
+// Tier sources of an account.
+const (
+	TierSourceAuto   = "auto"
+	TierSourceManual = "manual"
+)
+
+func (m *Module) changeTierFrom(ctx context.Context, tx pgx.Tx, a *LoyaltyAccount, to *uuid.UUID, reason string, pts *int64, spend *decimal.Decimal,
+	src string, override *uuid.UUID) error {
 	from := a.TierID
-	if _, err := tx.Exec(ctx, `UPDATE crm.loyalty_accounts SET tier_id = $2, tier_evaluated_at = now() WHERE id = $1`, a.ID, to); err != nil {
+	if _, err := tx.Exec(ctx, `UPDATE crm.loyalty_accounts SET tier_id = $2, tier_source = $3, tier_evaluated_at = now() WHERE id = $1`, a.ID, to, src); err != nil {
 		return err
 	}
 	var spendStr *string
@@ -533,7 +525,8 @@ func (m *Module) changeTier(ctx context.Context, tx pgx.Tx, a *LoyaltyAccount, t
 		spendStr = &s
 	}
 	if _, err := tx.Exec(ctx, `INSERT INTO crm.loyalty_tier_history (id, property_id, account_id, from_tier_id, to_tier_id, reason, points_basis,
-		spend_basis, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::numeric,$9)`, id.New(), a.PropertyID, a.ID, from, to, reason, pts, spendStr, actor(ctx)); err != nil {
+		spend_basis, created_by, source, override_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8::numeric,$9,$10,$11)`, id.New(), a.PropertyID, a.ID, from, to, reason,
+		pts, spendStr, actor(ctx), src, override); err != nil {
 		return err
 	}
 	var toName string
@@ -543,7 +536,7 @@ func (m *Module) changeTier(ctx context.Context, tx pgx.Tx, a *LoyaltyAccount, t
 	pid := a.PropertyID
 	if m.Events != nil {
 		if _, err := m.Events.Publish(ctx, tx, EventTierChanged, "crm.loyalty_account", &a.ID, &pid, map[string]any{"accountId": a.ID,
-			"customerId": a.CustomerID, "fromTierId": from, "toTierId": to, "tier": toName, "reason": reason}); err != nil {
+			"customerId": a.CustomerID, "fromTierId": from, "toTierId": to, "tier": toName, "reason": reason, "source": src, "overrideId": override}); err != nil {
 			return err
 		}
 	}
