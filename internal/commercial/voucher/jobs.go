@@ -112,6 +112,10 @@ func Templates() []provision.Template {
 			"en": {"Your voucher expires in {{.days}} days", "Hello {{.name}},\n\nYour {{.typeName}} voucher {{.code}} has {{.remaining}} {{.unit}} left and expires on {{.expiresAt}}."},
 			"id": {"Voucher Anda berakhir dalam {{.days}} hari", "Halo {{.name}},\n\nVoucher {{.typeName}} {{.code}} masih tersisa {{.remaining}} {{.unit}} dan berlaku sampai {{.expiresAt}}."},
 		},
+		NotifyVoucherIssued: {
+			"en": {"A voucher for you: {{.typeName}}", "Hello {{.name}},\n\n{{.reason}}: voucher {{.code}} ({{.typeName}}){{if .expiresAt}}, valid until {{.expiresAt}}{{end}}."},
+			"id": {"Voucher untuk Anda: {{.typeName}}", "Halo {{.name}},\n\n{{.reason}}: voucher {{.code}} ({{.typeName}}){{if .expiresAt}}, berlaku sampai {{.expiresAt}}{{end}}."},
+		},
 		"commercial.order_ready": {
 			"en": {"Your order {{.orderNo}} is ready", "Hello {{.name}},\n\nYour order {{.orderNo}} is ready{{if .destination}} for {{.destination}}{{end}}."},
 			"id": {"Pesanan {{.orderNo}} siap", "Halo {{.name}},\n\nPesanan {{.orderNo}} sudah siap{{if .destination}} untuk {{.destination}}{{end}}."},

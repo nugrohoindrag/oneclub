@@ -159,9 +159,9 @@ type PromotionPolicy struct {
 	OfflineCacheHours  int    `json:"offlineCacheHours" doc:"Validity of the POS offline promotion cache"`
 }
 
-// DefaultPromotionPolicy follows PRD P3 §16 #8: no stacking by default, the
-// best price for the customer among promotions of the same priority.
-var DefaultPromotionPolicy = PromotionPolicy{RequireApproval: true, Selection: "priority", MaxStackedPercent: "100", OfflineTolerance: "0",
+// DefaultPromotionPolicy follows PRD P3 §16 #8: no stacking by default and
+// the best price for the customer (best_price selection).
+var DefaultPromotionPolicy = PromotionPolicy{RequireApproval: true, Selection: "best_price", MaxStackedPercent: "100", OfflineTolerance: "0",
 	CodeCheckPerMinute: 10, OfflineCacheHours: 24}
 
 // PeakPeriod is a peak season (dates inclusive).
