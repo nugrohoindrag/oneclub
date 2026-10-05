@@ -230,3 +230,71 @@ func TestP3FixFulfilmentBanquetPackageCancel(t *testing.T) {
 		t.Fatalf("tentative event has an option date: %v", ev)
 	}
 }
+
+// PRD P3 FR-BQT-14: the sales pipeline follows the event converted from an
+// accepted quotation — the confirmation is recorded on the opportunity
+// once, the cancellation closes the opportunity as Lost (cancelled).
+func TestP3FixFulfilmentCRMBanquetSync(t *testing.T) {
+	sa := superAdmin(t, inst)
+	bs := roleUser(t, inst, "banquet_sales")
+	bsID := slsUserID(t, "role.banquet_sales@matrix.test")
+	sfx := fmt.Sprint(time.Now().UnixNano() % 1e6)
+	cust := idOf(sa.Must(201, "POST", "/api/v1/crm/customers", map[string]any{"code": "PFS" + sfx, "name": "Sari & Bima " + sfx,
+		"email": "sari" + sfx + "@quote.test"}))
+	hall := bqVenue(t, sa, map[string]any{"code": "PS" + sfx, "name": "Sync Hall " + sfx, "venueType": "ballroom", "maxCapacity": 300})
+	loc := clubLoc(inst)
+	today := time.Now().In(loc)
+	day := today.AddDate(0, 5, 0)
+	opp := idOf(bs.Must(201, "POST", "/api/v1/crm/opportunities", map[string]any{"title": "Wedding Sari & Bima " + sfx, "line": "wedding",
+		"customerId": cust, "ownerUserId": bsID}))
+	q := bs.Must(201, "POST", "/api/v1/crm/quotations", map[string]any{"customerId": cust, "opportunityId": opp, "title": "Wedding Sari & Bima " + sfx,
+		"line": "wedding", "eventType": "wedding", "eventDate": day.Format("2006-01-02"), "pax": 150, "venueResourceId": hall["resourceId"],
+		"optionDate": today.AddDate(0, 0, 5).Format("2006-01-02"), "ownerUserId": bsID, "pricingMode": "nett",
+		"paymentTerms": []map[string]any{{"label": "DP 30%", "percent": "30", "dueDays": 3}, {"label": "Final Payment", "percent": "70", "dueDays": 30}},
+		"lines": []map[string]any{{"itemType": "banquet_package", "description": "Wedding package 150 pax", "quantity": "1", "unitPrice": "45000000"}}},
+		"Idempotency-Key", newKey()).JSON()
+	bs.Must(200, "POST", "/api/v1/crm/quotations/"+str(q["id"])+":send", map[string]any{})
+	bs.Must(200, "POST", "/api/v1/crm/quotations/"+str(q["id"])+":accept", map[string]any{"acceptedByName": "Sari"})
+	var eid string
+	bqDispatch(t, "event converted from the quotation", func() bool {
+		var conv bool
+		eid, _ = bqQuotationEvent(t, q["number"])
+		if eid == "" {
+			return false
+		}
+		sysQueryRow(t, inst, `SELECT converted_at IS NOT NULL FROM banquet.events WHERE id = $1`, []any{mustUUID(eid)}, &conv)
+		return conv
+	})
+	dr := bs.Must(200, "POST", "/api/v1/banquet/events/"+eid+":make-definite", map[string]any{"override": true, "reason": "Family of a member"}).JSON()
+	if dr["approvalStatus"] == "pending" {
+		gm := roleUser(t, inst, "general_manager")
+		gm.Must(200, "POST", "/api/v1/platform/approvals/"+str(dr["approvalRequestId"])+":approve", map[string]any{"reason": "OK"})
+	}
+	confirmed := func() int {
+		var n int
+		sysQueryRow(t, inst, `SELECT count(*) FROM crm.sales_activities WHERE opportunity_id = $1 AND external_ref = $2`,
+			[]any{mustUUID(opp), "banquet.event_confirmed:" + eid}, &n)
+		return n
+	}
+	bqDispatch(t, "confirmation recorded on the opportunity", func() bool { return confirmed() == 1 })
+	pfOutbox(t, "banquet.event_confirmed", "eventId", eid, func(tx pgx.Tx, payload []byte) error {
+		return inst.App.Sales.Module.OnBanquetEvent(dbtx.System(t.Context()), tx, outboxEvent("banquet.event_confirmed", payload, inst.Main))
+	})
+	if n := confirmed(); n != 1 {
+		t.Fatalf("confirmation recorded once: %d", n)
+	}
+	if o := bs.Must(200, "GET", "/api/v1/crm/opportunities/"+opp, nil).JSON(); o["status"] == "lost" {
+		t.Fatalf("opportunity of a confirmed event: %v", o["status"])
+	}
+	sa.Must(200, "POST", "/api/v1/banquet/events/"+eid+":cancel", map[string]any{"reason": "Wedding called off"})
+	bqDispatch(t, "opportunity lost with the event", func() bool {
+		o := bs.Must(200, "GET", "/api/v1/crm/opportunities/"+opp, nil).JSON()
+		return o["status"] == "lost" && o["lostReason"] == "cancelled"
+	})
+	var cancelled int
+	sysQueryRow(t, inst, `SELECT count(*) FROM crm.sales_activities WHERE opportunity_id = $1 AND external_ref = $2`,
+		[]any{mustUUID(opp), "banquet.event_cancelled:" + eid}, &cancelled)
+	if cancelled != 1 {
+		t.Fatalf("cancellation recorded on the opportunity: %d", cancelled)
+	}
+}

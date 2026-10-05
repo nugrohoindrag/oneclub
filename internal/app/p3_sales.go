@@ -93,6 +93,9 @@ func (a *App) subscribeP3Sales() {
 	a.Bus.Subscribe(sales.BillingInvoiceVoided, "crm.sales_commission_invoice_voided", m.OnInvoiceVoided)
 	a.Bus.Subscribe(sales.WebhookReceived, "crm.sales_whatsapp_lead", m.OnWebhook)
 	a.Bus.Subscribe(sales.MembershipActivated, "crm.sales_membership_deal", m.OnMembershipActivated)
+	// The pipeline follows the banquet event status (FR-BQT-14).
+	a.Bus.Subscribe(sales.BanquetEventConfirmed, "crm.sales_banquet_event_confirmed", m.OnBanquetEvent)
+	a.Bus.Subscribe(sales.BanquetEventCancelled, "crm.sales_banquet_event_cancelled", m.OnBanquetEvent)
 	a.Bus.Subscribe(sales.EventQuotationAccepted, "membership.quotation_application", a.Membership.OnQuotationAccepted)
 	a.Bus.Subscribe(sales.EventQuotationAccepted, "billing.quotation_schedule", a.quotationSchedule)
 }
