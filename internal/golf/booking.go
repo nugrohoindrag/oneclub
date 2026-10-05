@@ -480,6 +480,7 @@ func (m *Module) PlaceHold(ctx context.Context, tx pgx.Tx, property uuid.UUID, r
 	if err != nil {
 		return Hold{}, err
 	}
+	pol = withTierWindow(pol, tierBonus(ctx, tx, tierCustomer(ctx))) // PRD P5 tier benefit
 	if req.Channel == "" {
 		req.Channel = "back_office"
 	}
@@ -614,8 +615,9 @@ func (m *Module) resolvePlayers(ctx context.Context, tx pgx.Tx, property uuid.UU
 			if !staff && st.Privileges.BookingWindowDays > 0 {
 				now := clock.Now()
 				days := int(day.Sub(time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)).Hours() / 24)
-				if days > st.Privileges.BookingWindowDays {
-					return nil, errs.Conflict("outside_booking_window", fmt.Sprintf("members of this type book up to %d days ahead", st.Privileges.BookingWindowDays))
+				window := st.Privileges.BookingWindowDays + tierBonus(ctx, tx, st.CustomerID) // PRD P5 tier benefit
+				if days > window {
+					return nil, errs.Conflict("outside_booking_window", fmt.Sprintf("members of this type book up to %d days ahead", window))
 				}
 			}
 			rp.memberID, rp.customerID, rp.membership, rp.name = mid, st.CustomerID, st.MembershipID, st.Name
@@ -867,6 +869,7 @@ func (m *Module) CreateBooking(ctx context.Context, tx pgx.Tx, property uuid.UUI
 	if err != nil {
 		return Booking{}, err
 	}
+	pol = withTierWindow(pol, requestTierBonus(ctx, tx, req)) // PRD P5 tier benefit
 	loc := location(ctx, tx, property)
 	if req.Channel == "" {
 		req.Channel = "back_office"
