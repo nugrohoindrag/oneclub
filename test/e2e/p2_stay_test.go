@@ -90,6 +90,14 @@ func TestP2StayAndVenue(t *testing.T) {
 	if dec(bal).LessThan(dec("275000")) {
 		t.Fatalf("dinner on the stay folio: balance %s", bal)
 	}
+	// Stay Policies roomChargePosting "nightly" (default, PO decision 4c): no
+	// night is posted yet (the night audit did not run); the check-out today
+	// posts last night (850.000) and frees tonight (early departure).
+	if sd := sa.Must(200, "GET", "/api/v1/stay/stays/"+sid, nil).JSON(); sd["stay"].(map[string]any)["roomPosting"] != "nightly" ||
+		!dec(sd["total"]).Equal(dec("1975000")) || !dec(sf["charges"]).Equal(dec("275000")) {
+		t.Fatalf("nightly stay before check-out: posting %v, total %v, charges %v", sd["stay"].(map[string]any)["roomPosting"], sd["total"], sf["charges"])
+	}
+	bal = dec(bal).Add(dec("850000")).String()
 	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": str(stay["folioId"]), "methodType": "card", "amount": bal, "reference": "EDC"})
 	co := sa.Must(200, "POST", "/api/v1/stay/stays/"+sid+":check-out", map[string]any{"at": rfc(time.Now())}).JSON()
 	if co["stay"].(map[string]any)["status"] != "checked_out" || co["folio"].(map[string]any)["status"] != "closed" {

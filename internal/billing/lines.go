@@ -459,6 +459,11 @@ type CheckoutRequest struct {
 	Amount      decimal.Decimal // e.g. the deposit; zero = the balance
 	Description string
 	PayerName   string
+	// Unposted is the part of the booking priced but posted to the folio
+	// later (a bungalow room charged per night by the night audit, Stay
+	// Policies roomChargePosting "nightly"). It is payable in advance: the
+	// payment is then a deposit, held until the charges are posted.
+	Unposted decimal.Decimal
 }
 
 // Checkout redeems an optional voucher code and opens the online payment
@@ -469,10 +474,22 @@ func (s *Service) Checkout(ctx context.Context, tx pgx.Tx, r CheckoutRequest) (C
 	if err != nil {
 		return out, err
 	}
-	out.Total = sum.Charges
-	if due := dec(sum.Balance); r.VoucherCode != "" && due.IsPositive() {
+	unposted := decimal.Max(r.Unposted, decimal.Zero)
+	purpose := "settlement"
+	if unposted.IsPositive() {
+		purpose = "deposit"
+	}
+	// due: the balance plus what is not posted yet, less the held deposits
+	dueOf := func(sum Summary) decimal.Decimal {
+		if !unposted.IsPositive() {
+			return dec(sum.Balance)
+		}
+		return dec(sum.Balance).Add(unposted).Sub(dec(sum.HeldDeposits))
+	}
+	out.Total = dec(sum.Charges).Add(unposted).StringFixed(places(sum.Currency))
+	if due := dueOf(sum); r.VoucherCode != "" && due.IsPositive() {
 		p, err := s.TakeTender(ctx, tx, TenderPaymentInput{PaymentInput: PaymentInput{FolioID: &r.FolioID, MethodType: "voucher_prepaid", Amount: due,
-			Description: r.Description}, Tender: map[string]any{"code": r.VoucherCode}})
+			Purpose: purpose, Description: r.Description}, Tender: map[string]any{"code": r.VoucherCode}})
 		if err != nil {
 			return out, err
 		}
@@ -481,14 +498,14 @@ func (s *Service) Checkout(ctx context.Context, tx pgx.Tx, r CheckoutRequest) (C
 	if sum, err = FolioSummary(ctx, tx, r.FolioID); err != nil {
 		return out, err
 	}
-	due := dec(sum.Balance)
+	due := dueOf(sum)
 	if r.Method != "" && due.IsPositive() {
 		amt := r.Amount
 		if amt.IsZero() || amt.GreaterThan(due) {
 			amt = due
 		}
 		p, err := s.TakePayment(ctx, tx, PaymentInput{FolioID: &r.FolioID, MethodType: r.Method, Channel: "online", Amount: amt,
-			Description: r.Description, PayerName: r.PayerName})
+			Purpose: purpose, Description: r.Description, PayerName: r.PayerName})
 		if err != nil {
 			return out, err
 		}
@@ -498,5 +515,8 @@ func (s *Service) Checkout(ctx context.Context, tx pgx.Tx, r CheckoutRequest) (C
 		}
 	}
 	out.AmountDue = sum.Balance
+	if unposted.IsPositive() {
+		out.AmountDue = decimal.Max(dueOf(sum), decimal.Zero).StringFixed(places(sum.Currency))
+	}
 	return out, nil
 }

@@ -390,7 +390,8 @@ func TestP3FixFulfilmentNightAudit(t *testing.T) {
 	na := &c
 	loc := clubLoc(inst)
 
-	pcPolicy(t, na, "Stay Policies", "stay.policy", map[string]any{"roomChargePosting": "nightly", "autoNoShow": true})
+	// Stay Policies of the new property are the defaults: roomChargePosting
+	// "nightly" (PO decision 4c) and autoNoShow.
 	ro := idOf(na.Must(201, "POST", "/api/v1/commercial/rate-plans", map[string]any{"code": "NARO", "name": "Room Only", "serviceType": "bungalow",
 		"minNights": 1}))
 	rule(t, na, map[string]any{"code": "NAV-RO", "name": "Villa Room Only", "serviceType": "bungalow", "itemRef": "NAV", "ratePlanId": ro,
@@ -481,5 +482,20 @@ func TestP3FixFulfilmentNightAudit(t *testing.T) {
 	sysQueryRow(t, inst, `SELECT string_agg(source, ',' ORDER BY night) FROM stay.night_postings WHERE stay_id = $1`, []any{mustUUID(sid)}, &sources)
 	if sources != "night_audit,check_out" {
 		t.Fatalf("night postings: %s", sources)
+	}
+
+	// The "at_booking" option stays available: the whole stay is posted at booking.
+	pcPolicy(t, na, "Stay Policies", "stay.policy", map[string]any{"roomChargePosting": "at_booking"})
+	ab := na.Must(201, "POST", "/api/v1/stay/stays", map[string]any{"kind": "bungalow", "bungalowTypeId": bt, "arrivalDate": plus(5),
+		"departureDate": plus(7), "ratePlan": "NARO", "guest": guest("At Booking", "+62829")}).JSON()
+	if ab["stay"].(map[string]any)["roomPosting"] != "at_booking" || !dec(ab["total"]).Equal(decimal.NewFromInt(1_800_000)) ||
+		!dec(ab["folio"].(map[string]any)["charges"]).Equal(decimal.NewFromInt(1_800_000)) {
+		t.Fatalf("at_booking stay: posting %v total %v charges %v", ab["stay"].(map[string]any)["roomPosting"], ab["total"],
+			ab["folio"].(map[string]any)["charges"])
+	}
+	var abNights int
+	sysQueryRow(t, inst, `SELECT count(*) FROM stay.night_postings WHERE stay_id = $1`, []any{mustUUID(str(ab["stay"].(map[string]any)["id"]))}, &abNights)
+	if abNights != 0 {
+		t.Fatalf("no night posting for an at_booking stay: %d", abNights)
 	}
 }

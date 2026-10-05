@@ -205,7 +205,7 @@ type Policy struct {
 }
 
 var defaultPolicy = Policy{CheckInTime: "14:00", CheckOutTime: "12:00", DepositPercent: "50", LateCheckoutFeePerHour: "100000",
-	LateCheckoutGraceMinutes: 30, RequireReadyUnit: true, RoomChargePosting: "at_booking", AutoNoShow: true}
+	LateCheckoutGraceMinutes: 30, RequireReadyUnit: true, RoomChargePosting: "nightly", AutoNoShow: true}
 
 func (m *Module) policy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (Policy, rules.PolicyRef, error) {
 	return rules.PolicyAt(ctx, q, "stay.policy", property, defaultPolicy)

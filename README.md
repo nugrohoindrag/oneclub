@@ -102,6 +102,13 @@ synchronises the permission catalogue (new permissions and role templates such a
   (Super Admin or a user with `accounting.posting_rule.create`). It is idempotent — it only adds the default posting
   rules that are missing, such as `DEF-INV-OPENING` (opening stock to opening balance equity), `DEF-COMMISSION`
   (sales commission) and the asset disposal rules (`DEF-ASSET-DISP-*`); existing and edited rules are left alone.
+- Bungalow room charge is **nightly by default** (Stay Policies `roomChargePosting = "nightly"`): the night audit
+  posts each in-house night and the check-out posts the nights left; a website / app booking pays its deposit online as a
+  held deposit. Instances without a saved Stay Policies version (demo, trial and new instances — neither provisioning
+  nor the demo seed saves one) switch automatically; no migration is needed. Stays booked before the deploy keep the
+  posting they were booked with (`stay.stays.room_posting`). An instance that saved Stay Policies with
+  `roomChargePosting = "at_booking"` keeps it — change it in *Settings → Club Policies → Stay Policies* if the club
+  wants nightly posting; `at_booking` remains a supported option.
 
 ## Trial dataset
 
