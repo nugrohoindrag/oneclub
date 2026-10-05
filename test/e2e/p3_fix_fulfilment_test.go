@@ -221,7 +221,9 @@ func TestP3FixFulfilmentBanquetPackageCancel(t *testing.T) {
 		t.Fatalf("nothing forfeited on the event (the package policy applies): %v", ev["cancellationFee"])
 	}
 	pcPolicy(t, sa, "Banquet Policies", "banquet.booking", map[string]any{"packageCancellation": "tentative"})
-	t.Cleanup(func() { pcPolicy(t, sa, "Banquet Policies", "banquet.booking", map[string]any{"packageCancellation": "cancel"}) })
+	t.Cleanup(func() {
+		pcPolicy(t, sa, "Banquet Policies", "banquet.booking", map[string]any{"packageCancellation": "cancel"})
+	})
 	bid2, eid2 := book()
 	cancel(bid2)
 	pcDispatch(t, "event back to tentative", func() bool {
@@ -252,7 +254,7 @@ func TestP3FixFulfilmentCRMBanquetSync(t *testing.T) {
 		"line": "wedding", "eventType": "wedding", "eventDate": day.Format("2006-01-02"), "pax": 150, "venueResourceId": hall["resourceId"],
 		"optionDate": today.AddDate(0, 0, 5).Format("2006-01-02"), "ownerUserId": bsID, "pricingMode": "nett",
 		"paymentTerms": []map[string]any{{"label": "DP 30%", "percent": "30", "dueDays": 3}, {"label": "Final Payment", "percent": "70", "dueDays": 30}},
-		"lines": []map[string]any{{"itemType": "banquet_package", "description": "Wedding package 150 pax", "quantity": "1", "unitPrice": "45000000"}}},
+		"lines":        []map[string]any{{"itemType": "banquet_package", "description": "Wedding package 150 pax", "quantity": "1", "unitPrice": "45000000"}}},
 		"Idempotency-Key", newKey()).JSON()
 	bs.Must(200, "POST", "/api/v1/crm/quotations/"+str(q["id"])+":send", map[string]any{})
 	bs.Must(200, "POST", "/api/v1/crm/quotations/"+str(q["id"])+":accept", map[string]any{"acceptedByName": "Sari"})
@@ -403,7 +405,9 @@ func TestP3FixFulfilmentNightAudit(t *testing.T) {
 	day := str(days[0]["businessDate"])
 	d0, _ := time.ParseInLocation("2006-01-02", day, loc)
 	plus := func(n int) string { return d0.AddDate(0, 0, n).Format("2006-01-02") }
-	guest := func(name, phone string) map[string]any { return map[string]any{"name": name + " " + sfx, "phone": phone + sfx} }
+	guest := func(name, phone string) map[string]any {
+		return map[string]any{"name": name + " " + sfx, "phone": phone + sfx}
+	}
 
 	in := na.Must(201, "POST", "/api/v1/stay/stays", map[string]any{"kind": "bungalow", "bungalowTypeId": bt, "arrivalDate": day,
 		"departureDate": plus(2), "ratePlan": "NARO", "guest": guest("In House", "+62827")}).JSON()

@@ -9399,6 +9399,17 @@
             "nullable": true,
             "type": "string"
           },
+          "packageBookingId": {
+            "description": "Commercial package booking this tee time fulfils (PRD P3 FR-PKG-04)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "packageComponentId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
           "payment": {
             "allOf": [
               {
@@ -27752,6 +27763,104 @@
             "type": "integer"
           }
         },
+        "type": "object"
+      },
+      "EventGolfBlock": {
+        "properties": {
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "eventId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "playingRouteId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "releasedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "requestedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "start": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "description": "Pending until the event is Definite; requested = tee times blocked by golf",
+            "enum": [
+              "pending",
+              "requested",
+              "released"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "eventId",
+          "courseId",
+          "courseName",
+          "start",
+          "end",
+          "status"
+        ],
+        "type": "object"
+      },
+      "EventGolfBlockInput": {
+        "properties": {
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "end": {
+            "description": "Default: the event end",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "playingRouteId": {
+            "description": "Only this playing route (default: the whole course)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "start": {
+            "description": "Default: the event start",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "courseId"
+        ],
         "type": "object"
       },
       "EventGuestInput": {
@@ -66678,6 +66787,12 @@
             "nullable": true,
             "type": "string"
           },
+          "packageBookingId": {
+            "description": "Commercial package booking this stay fulfils (PRD P3 FR-PKG-04)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
           "packageCode": {
             "nullable": true,
             "type": "string"
@@ -66699,6 +66814,15 @@
           },
           "reservationId": {
             "format": "uuid",
+            "type": "string"
+          },
+          "roomPosting": {
+            "description": "How the room is charged: at booking, per night by the night audit, or in the package",
+            "enum": [
+              "at_booking",
+              "nightly",
+              "package"
+            ],
             "type": "string"
           },
           "specialRequests": {
@@ -66757,7 +66881,8 @@
           "catering",
           "status",
           "channel",
-          "createdAt"
+          "createdAt",
+          "roomPosting"
         ],
         "type": "object"
       },
@@ -95660,6 +95785,98 @@
         "x-permission": "banquet.billing.manage"
       }
     },
+    "/api/v1/banquet/event-golf-blocks/{id}:release": {
+      "post": {
+        "operationId": "postBanquetEventGolfBlocksByIdRelease",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BanquetReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventGolfBlock"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Release a golf block of an event",
+        "tags": [
+          "Banquet \u0026 Event"
+        ],
+        "x-audited": true,
+        "x-module": "banquet",
+        "x-permission": "banquet.event.hold"
+      }
+    },
     "/api/v1/banquet/event-meetings/{id}:record": {
       "post": {
         "operationId": "postBanquetEventMeetingsByIdRecord",
@@ -97435,6 +97652,207 @@
         "x-audited": true,
         "x-module": "banquet",
         "x-permission": "banquet.checklist.update"
+      }
+    },
+    "/api/v1/banquet/events/{id}/golf-blocks": {
+      "get": {
+        "operationId": "getBanquetEventsByIdGolfBlocks",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/EventGolfBlock"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Golf course blocks of the event (FR-EVT-03)",
+        "tags": [
+          "Banquet \u0026 Event"
+        ],
+        "x-module": "banquet",
+        "x-permission": "banquet.event.view"
+      },
+      "post": {
+        "operationId": "postBanquetEventsByIdGolfBlocks",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventGolfBlockInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventGolfBlock"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Block the golf course for the event (tee times closed once the event is Definite)",
+        "tags": [
+          "Banquet \u0026 Event"
+        ],
+        "x-audited": true,
+        "x-module": "banquet",
+        "x-permission": "banquet.event.hold"
       }
     },
     "/api/v1/banquet/events/{id}/incidents": {

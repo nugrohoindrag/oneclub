@@ -2237,6 +2237,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/banquet/event-golf-blocks/{id}:release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Release a golf block of an event */
+        post: operations["postBanquetEventGolfBlocksByIdRelease"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/banquet/event-meetings/{id}:record": {
         parameters: {
             query?: never;
@@ -2441,6 +2458,24 @@ export interface paths {
         put?: never;
         /** Add the tasks of a checklist template */
         post: operations["postBanquetEventsByIdChecklistApplyTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/golf-blocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Golf course blocks of the event (FR-EVT-03) */
+        get: operations["getBanquetEventsByIdGolfBlocks"];
+        put?: never;
+        /** Block the golf course for the event (tee times closed once the event is Definite) */
+        post: operations["postBanquetEventsByIdGolfBlocks"];
         delete?: never;
         options?: never;
         head?: never;
@@ -28157,6 +28192,13 @@ export interface components {
             /** Format: date-time */
             noShowAt?: string | null;
             notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Commercial package booking this tee time fulfils (PRD P3 FR-PKG-04)
+             */
+            packageBookingId?: string | null;
+            /** Format: uuid */
+            packageComponentId?: string | null;
             payment?: components["schemas"]["Payment"] | null;
             /** Format: date-time */
             paymentDueAt?: string | null;
@@ -34737,6 +34779,51 @@ export interface components {
             payment?: components["schemas"]["EventPaymentInput"] | null;
             /** @description Invoice terms (default Credit Policies for companies) */
             termsDays?: number | null;
+        };
+        EventGolfBlock: {
+            /** Format: uuid */
+            courseId: string;
+            courseName: string;
+            /** Format: date-time */
+            end: string;
+            /** Format: uuid */
+            eventId: string;
+            /** Format: uuid */
+            id: string;
+            notes?: string | null;
+            /** Format: uuid */
+            playingRouteId?: string | null;
+            /** Format: date-time */
+            releasedAt?: string | null;
+            /** Format: date-time */
+            requestedAt?: string | null;
+            /** Format: date-time */
+            start: string;
+            /**
+             * @description Pending until the event is Definite; requested = tee times blocked by golf
+             * @enum {string}
+             */
+            status: "pending" | "requested" | "released";
+        };
+        EventGolfBlockInput: {
+            /** Format: uuid */
+            courseId: string;
+            /**
+             * Format: date-time
+             * @description Default: the event end
+             */
+            end?: string | null;
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Only this playing route (default: the whole course)
+             */
+            playingRouteId?: string | null;
+            /**
+             * Format: date-time
+             * @description Default: the event start
+             */
+            start?: string | null;
         };
         EventGuestInput: {
             email?: string;
@@ -48015,6 +48102,11 @@ export interface components {
             /** @enum {string} */
             kind: "bungalow" | "vip_suite" | "meeting_room";
             layout?: string | null;
+            /**
+             * Format: uuid
+             * @description Commercial package booking this stay fulfils (PRD P3 FR-PKG-04)
+             */
+            packageBookingId?: string | null;
             packageCode?: string | null;
             pax?: number | null;
             /** Format: uuid */
@@ -48023,6 +48115,11 @@ export interface components {
             reservationCode: string;
             /** Format: uuid */
             reservationId: string;
+            /**
+             * @description How the room is charged: at booking, per night by the night audit, or in the package
+             * @enum {string}
+             */
+            roomPosting: "at_booking" | "nightly" | "package";
             specialRequests?: string | null;
             /** Format: date-time */
             start: string;
@@ -61723,6 +61820,62 @@ export interface operations {
             };
         };
     };
+    postBanquetEventGolfBlocksByIdRelease: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetReasonInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventGolfBlock"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postBanquetEventMeetingsByIdRecord: {
         parameters: {
             query?: never;
@@ -62717,6 +62870,122 @@ export interface operations {
                         items: components["schemas"]["EventChecklistItem"][];
                         nextCursor?: string;
                     };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetEventsByIdGolfBlocks: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EventGolfBlock"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdGolfBlocks: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventGolfBlockInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventGolfBlock"];
                 };
             };
             /** @description Not authenticated */
