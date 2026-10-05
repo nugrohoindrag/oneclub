@@ -143,11 +143,8 @@ func (m *Module) publicInquiry(w http.ResponseWriter, r *http.Request) {
 			if err := m.appendInbound(ctx, tx, in.PropertyID, *lid, "note", "website", "Website inquiry", in.Message, "", now); err != nil {
 				return err
 			}
-			if in.Consent {
-				if _, err := tx.Exec(ctx, `UPDATE crm.sales_leads SET marketing_consent = true, consent_at = coalesce(consent_at, now()),
-					consent_source = coalesce(consent_source, 'website') WHERE id = $1`, *lid); err != nil {
-					return err
-				}
+			if err := consentLead(ctx, tx, *lid, in.Consent); err != nil {
+				return err
 			}
 			l, err := GetLead(ctx, tx, *lid)
 			out = InquiryResult{Status: "received", Reference: l.Number}
@@ -410,11 +407,12 @@ func (m *Module) whatsAppProperty(ctx context.Context, tx pgx.Tx, integration st
 
 // contactTopics maps the topics of the P2 contact form to business lines.
 var contactTopics = map[string]string{"wedding": "wedding", "banquet": "banquet", "meeting": "mice", "mice": "mice", "event": "event",
-	"tournament": "tournament", "membership": "membership", "golf": "golf", "bungalow": "stay", "stay": "stay", "package": "package"}
+	"tournament": "tournament", "membership": "membership", "golf": "golf", "bungalow": "stay", "stay": "stay", "package": "package",
+	"corporate golf": "golf", "corporate_golf": "golf"}
 
 // ContactHook makes a website contact message about a sales topic a lead
 // (registered with crm.SetSalesContactHook by internal/app).
-func (m *Module) ContactHook(ctx context.Context, tx pgx.Tx, property uuid.UUID, customer crm.Customer, guest crm.PublicGuest, topic, message string) error {
+func (m *Module) ContactHook(ctx context.Context, tx pgx.Tx, property uuid.UUID, customer crm.Customer, guest crm.PublicGuest, topic, message string, consent bool) error {
 	line, ok := contactTopics[strings.ToLower(strings.TrimSpace(topic))]
 	if !ok {
 		return nil
@@ -423,14 +421,28 @@ func (m *Module) ContactHook(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	if lid, err := openLeadByContact(ctx, tx, property, guest.Phone, guest.Email); err != nil {
 		return err
 	} else if lid != nil {
-		return m.appendInbound(ctx, tx, property, *lid, "note", "website", "Website contact · "+topic, message, "", now)
+		if err := m.appendInbound(ctx, tx, property, *lid, "note", "website", "Website contact · "+topic, message, "", now); err != nil {
+			return err
+		}
+		return consentLead(ctx, tx, *lid, consent)
 	}
 	cid := customer.ID
 	spec := leadSpec{LeadInput: LeadInput{Name: guest.Name, Phone: guest.Phone, Email: guest.Email, Source: "website_form", Channel: "contact form",
-		Line: line, Message: message, CustomerID: &cid}, consentSource: "website", activityType: "note", activitySource: "website"}
+		Line: line, Message: message, CustomerID: &cid, MarketingConsent: consent}, consentSource: "website", activityType: "note", activitySource: "website"}
 	if err := spec.validate(); err != nil {
 		return nil //nolint:nilerr // the contact itself is accepted; an incomplete contact does not become a lead
 	}
 	_, err := m.createLead(ctx, tx, property, spec)
+	return err
+}
+
+// consentLead records the marketing consent ticked on a website form on an
+// open lead (an unticked box never revokes an earlier consent).
+func consentLead(ctx context.Context, tx pgx.Tx, lid uuid.UUID, consent bool) error {
+	if !consent {
+		return nil
+	}
+	_, err := tx.Exec(ctx, `UPDATE crm.sales_leads SET marketing_consent = true, consent_at = coalesce(consent_at, now()),
+		consent_source = coalesce(consent_source, 'website') WHERE id = $1`, lid)
 	return err
 }

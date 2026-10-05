@@ -12,7 +12,7 @@ import (
 )
 
 // SalesContactHook handles a contact message (in the contact transaction).
-type SalesContactHook func(ctx context.Context, tx pgx.Tx, property uuid.UUID, customer Customer, guest PublicGuest, topic, message string) error
+type SalesContactHook func(ctx context.Context, tx pgx.Tx, property uuid.UUID, customer Customer, guest PublicGuest, topic, message string, consent bool) error
 
 var salesContactHook SalesContactHook
 

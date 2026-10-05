@@ -117,8 +117,10 @@ func PublicRoute(reg *route.Registry, module string, rt route.Route) {
 type ContactInput struct {
 	PropertyID uuid.UUID   `json:"propertyId"`
 	Guest      PublicGuest `json:"guest"`
-	Topic      string      `json:"topic" doc:"e.g. membership, bungalow, meeting, other"`
+	Topic      string      `json:"topic" doc:"e.g. membership, bungalow, meeting, tournament, corporate golf, other"`
 	Message    string      `json:"message"`
+	// PRD P3 FR-WEB-P3-02 / FR-LEAD-09 (additive): explicit marketing opt-in.
+	Consent bool `json:"consent,omitempty" doc:"Marketing consent (UU PDP): ticked by the visitor, never pre-checked"`
 }
 
 func (c ContactInput) Property() uuid.UUID  { return c.PropertyID }
@@ -143,8 +145,14 @@ func (m *Engagement) registerPublic(reg *route.Registry) {
 				Body: in.Message}, "manual", "website.contact", nil); err != nil {
 				return ContactResult{}, err
 			}
+			if in.Consent { // an unticked box never revokes an earlier consent
+				yes := true
+				if _, err := SetConsent(ctx, tx, pid, c.ID, nil, &yes); err != nil {
+					return ContactResult{}, err
+				}
+			}
 			if salesContactHook != nil {
-				if err := salesContactHook(ctx, tx, pid, c, in.Guest, topic, in.Message); err != nil {
+				if err := salesContactHook(ctx, tx, pid, c, in.Guest, topic, in.Message, in.Consent); err != nil {
 					return ContactResult{}, err
 				}
 			}

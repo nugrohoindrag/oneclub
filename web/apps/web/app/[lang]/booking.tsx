@@ -27,7 +27,7 @@ async function post(path: string, body: unknown): Promise<Result> {
 }
 
 export function BookingForm({
-  title, path, propertyId, fields, build, pay = true, voucher = false, submitLabel = 'Book', done,
+  title, path, propertyId, fields, build, pay = true, voucher = false, submitLabel = 'Book', done, consent,
 }: {
   title: string;
   path: string;
@@ -39,11 +39,14 @@ export function BookingForm({
   voucher?: boolean;
   submitLabel?: string;
   done?: (r: Result) => ReactNode;
+  /** Marketing consent checkbox label (UU PDP, PRD P3 FR-WEB-P3-02): unticked by default, sent as `consent`. */
+  consent?: string;
 }) {
   const [v, setV] = useState<Record<string, string>>(() => Object.fromEntries(fields.map((f) => [f.name, f.initial ?? ''])));
   const [guest, setGuest] = useState({ name: '', phone: '', email: '', website: '' });
   const [method, setMethod] = useState('qris');
   const [code, setCode] = useState('');
+  const [optIn, setOptIn] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<Result | null>(null);
@@ -55,6 +58,7 @@ export function BookingForm({
       const body: Record<string, unknown> = { propertyId, guest, ...build(v) };
       if (pay) body.payMethod = method;
       if (voucher && code) body.voucherCode = code;
+      if (consent) body.consent = optIn;
       setResult(await post(path, body));
     } catch (err) {
       setError((err as Error).message);
@@ -99,6 +103,12 @@ export function BookingForm({
         <label aria-hidden="true" style={{ position: 'absolute', left: -9999 }}>Website<input tabIndex={-1} autoComplete="off" value={guest.website}
           onChange={(e) => setGuest({ ...guest, website: e.target.value })} /></label>
       </fieldset>
+      {consent && (
+        <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+          <input type="checkbox" name="consent" checked={optIn} onChange={(e) => setOptIn(e.target.checked)} style={{ width: 'auto', marginTop: 4 }} />
+          <span>{consent}</span>
+        </label>
+      )}
       {voucher && <label>Voucher code<input value={code} onChange={(e) => setCode(e.target.value)} /></label>}
       {pay && (
         <label>Payment
@@ -201,11 +211,20 @@ export function MembershipApply({ propertyId, types }: { propertyId: string; typ
   );
 }
 
-export function ContactForm({ propertyId }: { propertyId: string }) {
+/** Marketing consent label of the website forms (explicit opt-in, UU PDP). */
+export function consentLabel(lang?: string) {
+  return lang === 'id'
+    ? 'Kirimi saya berita dan penawaran melalui e-mail (opsional). Anda dapat berhenti berlangganan kapan saja.'
+    : 'Send me news and offers by e-mail (optional). You can unsubscribe at any time.';
+}
+
+const CONTACT_TOPICS = ['general', 'membership', 'golf', 'corporate golf', 'tournament', 'sport club', 'bungalow', 'meeting'];
+
+export function ContactForm({ propertyId, lang }: { propertyId: string; lang?: string }) {
   return (
-    <BookingForm title="Send us a message" path="/api/v1/public/contact" propertyId={propertyId} pay={false} submitLabel="Send"
+    <BookingForm title="Send us a message" path="/api/v1/public/contact" propertyId={propertyId} pay={false} submitLabel="Send" consent={consentLabel(lang)}
       fields={[
-        { name: 'topic', label: 'Topic', type: 'select', initial: 'general', options: ['general', 'membership', 'golf', 'sport club', 'bungalow', 'meeting'].map((x) => ({ value: x, label: x })) },
+        { name: 'topic', label: 'Topic', type: 'select', initial: 'general', options: CONTACT_TOPICS.map((x) => ({ value: x, label: x })) },
         { name: 'message', label: 'Message', type: 'textarea', required: true },
       ]}
       build={(v) => ({ topic: v.topic, message: v.message })} done={() => <p>Thank you — we will get back to you soon.</p>} />

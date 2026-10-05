@@ -40,6 +40,7 @@ export default async function LangLayout({ children, params }: { children: React
           <main>{children}</main>
           <footer className="w-foot">
             © {new Date().getFullYear()} {b.branding.appName} · {t.footer}
+            {' · '}<a href={`/${lang}/complaint`}>{lang === 'id' ? 'Sampaikan keluhan' : 'Make a complaint'}</a>
           </footer>
         </div>
       </body>

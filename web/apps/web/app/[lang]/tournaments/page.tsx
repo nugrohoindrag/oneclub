@@ -1,11 +1,12 @@
-import { rp } from '../../lib-p2';
+import { getProperty, rp } from '../../lib-p2';
+import { BanquetInquiry } from '../events/forms';
 import { dates, getTournaments, label } from './lib';
 
 /** Tournaments open to the public: schedule, fee, places left (PRD P3 FR-WEB-P3-03). */
 export default async function Tournaments({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   const id = lang === 'id';
-  const { items } = await getTournaments();
+  const [{ items }, p] = await Promise.all([getTournaments(), getProperty()]);
   return (
     <div>
       <h1>{id ? 'Turnamen' : 'Tournaments'}</h1>
@@ -28,6 +29,13 @@ export default async function Tournaments({ params }: { params: Promise<{ lang: 
           );
         })}
       </div>
+      {p && (
+        <section style={{ marginTop: 32 }}>
+          <h2>{id ? 'Golf korporat & turnamen Anda sendiri' : 'Corporate golf & your own tournament'}</h2>
+          <p>{id ? 'Kami siapkan lapangan, start sheet, leaderboard dan jamuan — minta penawaran.' : 'We prepare the course, start sheet, leaderboard and dinner — request a quotation.'}</p>
+          <BanquetInquiry propertyId={p.id} lang={lang} initial="corporate_golf" />
+        </section>
+      )}
     </div>
   );
 }

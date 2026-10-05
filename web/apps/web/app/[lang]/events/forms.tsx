@@ -1,5 +1,5 @@
 'use client';
-import { BookingForm } from '../booking';
+import { BookingForm, consentLabel } from '../booking';
 
 /*
  * Book Event (PRD P3 FR-WEB-P3-03): registration for an open event with the
@@ -26,19 +26,33 @@ export function EventRegistration({ propertyId, eventId, lang, paid }: { propert
   );
 }
 
-export function BanquetInquiry({ propertyId, lang }: { propertyId: string; lang: string }) {
+const INQUIRY_LINES: Record<string, { line: string; eventType?: string }> = {
+  wedding: { line: 'wedding', eventType: 'wedding' }, banquet: { line: 'banquet' }, mice: { line: 'mice', eventType: 'meeting' }, event: { line: 'event' },
+  corporate_golf: { line: 'golf', eventType: 'tournament' }, tournament: { line: 'tournament', eventType: 'tournament' }, membership: { line: 'membership' },
+};
+
+/**
+ * Inquiry form (FR-WEB-P3-02): wedding, banquet, MICE, corporate golf,
+ * tournament and membership become a CRM lead; marketing consent is an
+ * explicit, unticked opt-in (FR-LEAD-09).
+ */
+export function BanquetInquiry({ propertyId, lang, initial = 'wedding' }: { propertyId: string; lang: string; initial?: string }) {
   const id = lang === 'id';
   return (
     <BookingForm title={id ? 'Minta penawaran' : 'Request a quotation'} path="/api/v1/public/inquiries" propertyId={propertyId} pay={false}
-      submitLabel={id ? 'Kirim' : 'Send'}
+      submitLabel={id ? 'Kirim' : 'Send'} consent={consentLabel(lang)}
       fields={[
-        { name: 'line', label: id ? 'Jenis acara' : 'Event', type: 'select', initial: 'wedding', options: [{ value: 'wedding', label: 'Wedding' },
-          { value: 'banquet', label: 'Banquet' }, { value: 'mice', label: 'Meeting & MICE' }, { value: 'event', label: id ? 'Acara lain' : 'Other event' }] },
+        { name: 'line', label: id ? 'Jenis acara' : 'Event', type: 'select', initial, options: [{ value: 'wedding', label: 'Wedding' },
+          { value: 'banquet', label: 'Banquet' }, { value: 'mice', label: 'Meeting & MICE' }, { value: 'corporate_golf', label: id ? 'Golf korporat' : 'Corporate golf' },
+          { value: 'tournament', label: id ? 'Turnamen golf' : 'Golf tournament' }, { value: 'membership', label: id ? 'Keanggotaan' : 'Membership' },
+          { value: 'event', label: id ? 'Acara lain' : 'Other event' }] },
+        { name: 'companyName', label: id ? 'Perusahaan (opsional)' : 'Company (optional)' },
         { name: 'eventDate', label: id ? 'Tanggal acara' : 'Event date', type: 'date' },
         { name: 'pax', label: 'Pax', type: 'number' },
         { name: 'message', label: id ? 'Pesan' : 'Message', type: 'textarea', required: true },
       ]}
-      build={(v) => ({ line: v.line, eventDate: v.eventDate || undefined, pax: v.pax ? Number(v.pax) : undefined, message: v.message, channel: 'website_wedding_banquet' })}
+      build={(v) => ({ ...INQUIRY_LINES[v.line], companyName: v.companyName || undefined, eventDate: v.eventDate || undefined, pax: v.pax ? Number(v.pax) : undefined,
+        message: v.message, channel: `website_${v.line}` })}
       done={() => <p>{id ? 'Terima kasih — tim sales kami akan menghubungi Anda.' : 'Thank you — our sales team will contact you.'}</p>} />
   );
 }

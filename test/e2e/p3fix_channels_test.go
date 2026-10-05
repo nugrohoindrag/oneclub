@@ -168,3 +168,61 @@ func TestP3FixChannelsPOSPoints(t *testing.T) {
 		t.Fatalf("queued sale redeems 100 points once: %v", h)
 	}
 }
+
+// FR-WEB-P3-02 / FR-LEAD-09: the website inquiry and contact forms send the
+// visitor's explicit marketing consent (unticked by default) and offer
+// corporate golf and tournament; the consent is stored on the lead and, for
+// the contact form, on the customer; no consent ⇒ none recorded.
+func TestP3FixChannelsWebsiteConsent(t *testing.T) {
+	sa := superAdmin(t, inst)
+	pub := anon(t, inst)
+	sfx := fmt.Sprint(time.Now().UnixNano() % 1e7)
+	guest := func(who string) map[string]any {
+		return map[string]any{"name": "Web " + who + " " + sfx, "email": who + sfx + "@consent.test"}
+	}
+	lead := func(who string) map[string]any {
+		t.Helper()
+		items := sa.Must(200, "GET", "/api/v1/crm/leads?q="+who+sfx, nil).Items()
+		if len(items) != 1 {
+			t.Fatalf("lead of %s: %v", who, items)
+		}
+		return items[0]
+	}
+	// inquiry form: corporate golf with company, consent ticked
+	pub.Must(202, "POST", "/api/v1/public/inquiries", map[string]any{"propertyId": inst.Main, "guest": guest("corpgolf"), "line": "golf",
+		"eventType": "tournament", "companyName": "PT Golf Day " + sfx, "pax": 60, "message": "Corporate golf day for our clients",
+		"consent": true, "channel": "website_corporate_golf"})
+	if l := lead("corpgolf"); l["line"] != "golf" || l["marketingConsent"] != true || l["companyName"] != "PT Golf Day "+sfx {
+		t.Fatalf("corporate golf inquiry: %v", l)
+	}
+	// tournament inquiry without consent (the box stays unticked)
+	pub.Must(202, "POST", "/api/v1/public/inquiries", map[string]any{"propertyId": inst.Main, "guest": guest("trnq"), "line": "tournament",
+		"message": "Charity tournament for 100 players", "consent": false, "channel": "website_tournament"})
+	if l := lead("trnq"); l["line"] != "tournament" || l["marketingConsent"] != false {
+		t.Fatalf("tournament inquiry: %v", l)
+	}
+	// contact form: consent goes to the customer and the lead
+	pub.Must(202, "POST", "/api/v1/public/contact", map[string]any{"propertyId": inst.Main, "guest": guest("contactyes"), "topic": "corporate golf",
+		"message": "Golf outing for 40 staff", "consent": true})
+	pub.Must(202, "POST", "/api/v1/public/contact", map[string]any{"propertyId": inst.Main, "guest": guest("contactno"), "topic": "tournament",
+		"message": "Do you host club tournaments?"})
+	if l := lead("contactyes"); l["line"] != "golf" || l["marketingConsent"] != true {
+		t.Fatalf("contact lead with consent: %v", l)
+	}
+	if l := lead("contactno"); l["line"] != "tournament" || l["marketingConsent"] != false {
+		t.Fatalf("contact lead without consent: %v", l)
+	}
+	var yes, no bool
+	sysQueryRow(t, inst, `SELECT marketing_opt_in FROM crm.customers WHERE email = $1`, []any{"contactyes" + sfx + "@consent.test"}, &yes)
+	sysQueryRow(t, inst, `SELECT marketing_opt_in FROM crm.customers WHERE email = $1`, []any{"contactno" + sfx + "@consent.test"}, &no)
+	if !yes || no {
+		t.Fatalf("customer marketing consent from the contact form: with %v, without %v", yes, no)
+	}
+	// a later message with the box unticked never revokes it
+	pub.Must(202, "POST", "/api/v1/public/contact", map[string]any{"propertyId": inst.Main, "guest": guest("contactyes"), "topic": "general",
+		"message": "Thanks!"})
+	sysQueryRow(t, inst, `SELECT marketing_opt_in FROM crm.customers WHERE email = $1`, []any{"contactyes" + sfx + "@consent.test"}, &yes)
+	if !yes {
+		t.Fatal("an unticked box revoked the consent")
+	}
+}

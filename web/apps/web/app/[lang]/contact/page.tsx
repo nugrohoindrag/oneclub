@@ -14,7 +14,7 @@ export default async function Contact({ params }: { params: Promise<{ lang: stri
         <p>{t.contactText}</p>
         <p><strong>{b.branding.appName}</strong></p>
       </div>
-      {p && <ContactForm propertyId={p.id} />}
+      {p && <ContactForm propertyId={p.id} lang={lang} />}
     </div>
   );
 }
