@@ -162,7 +162,7 @@ type VIPFlag struct {
 func Flag(ctx context.Context, q dbtx.Querier, property, customer uuid.UUID) (VIPFlag, error) {
 	out := VIPFlag{CustomerID: customer}
 	err := q.QueryRow(ctx, `SELECT level, source, benefits, handling_note FROM crm.vip_customers WHERE customer_id = $1 AND property_id = $2 AND status = 'active'
-		AND (valid_until IS NULL OR valid_until >= current_date)`, customer, property).Scan(&out.Level, &out.Source, &out.Benefits, &out.HandlingNote)
+		AND (valid_until IS NULL OR valid_until >= $3::date)`, customer, property, localToday(ctx, q, property)).Scan(&out.Level, &out.Source, &out.Benefits, &out.HandlingNote)
 	if err != nil && !dbtx.IsNoRows(err) {
 		return out, err
 	}

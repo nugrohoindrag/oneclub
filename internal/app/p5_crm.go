@@ -10,6 +10,9 @@ package app
 
 import (
 	"context"
+	"oneclub/internal/kernel/clock"
+	"oneclub/internal/platform/calendar"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -182,9 +185,10 @@ func demoP5CRM(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 		SELECT gen_random_uuid(), $1, j.id, m.customer_id, 'ms:' || m.membership_id || ':' || to_char(m.ends_on, 'YYYY-MM-DD'), 'offer_h60',
 		now() + interval '1 hour', m.ends_on, jsonb_build_object('membershipId', m.membership_id, 'detail', m.type_name, 'source', 'demo')
 		FROM crm.journeys j JOIN LATERAL (SELECT DISTINCT ON (customer_id) customer_id, membership_id, ends_on, type_name FROM reporting.membership_lifecycle
-		  WHERE property_id = $1 AND role = 'principal' AND status = 'active' AND customer_id IS NOT NULL AND ends_on BETWEEN current_date AND current_date + 60
+		  WHERE property_id = $1 AND role = 'principal' AND status = 'active' AND customer_id IS NOT NULL AND ends_on BETWEEN $2::date AND $2::date + 60
 		  ORDER BY customer_id, ends_on LIMIT 3) m ON true
-		WHERE j.property_id = $1 AND j.code = 'JRN-RENEWAL' ON CONFLICT (journey_id, customer_id, occurrence) DO NOTHING`, property); err != nil {
+		WHERE j.property_id = $1 AND j.code = 'JRN-RENEWAL' ON CONFLICT (journey_id, customer_id, occurrence) DO NOTHING`, property,
+		clock.Now().In(calendar.Location(ctx, tx)).Format(time.DateOnly)); err != nil {
 		return err
 	}
 	_, err := tx.Exec(ctx, `INSERT INTO crm.journey_enrollments (id, property_id, journey_id, customer_id, occurrence, current_key, next_run_at, context)

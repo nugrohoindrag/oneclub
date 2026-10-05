@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
+	"oneclub/internal/kernel/clock"
 	"strings"
 	"time"
 
@@ -297,7 +298,8 @@ func (s *Service) condition(ctx context.Context, tx pgx.Tx, e enrollment, st Jou
 			}
 		}
 		err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM reporting.membership_lifecycle WHERE customer_id = $1 AND ($2::uuid IS NULL OR membership_id = $2)
-			AND status = 'active' AND ends_on > coalesce($3::date, current_date))`, e.CustomerID, ms, anchor).Scan(&ok)
+			AND status = 'active' AND ends_on > coalesce($3::date, $4::date))`, e.CustomerID, ms, anchor,
+			localDay(clock.Now(), location(ctx, tx, e.PropertyID))).Scan(&ok)
 		return ok, err
 	case "in_segment":
 		sid, _ := uuid.Parse(strp(st.ConditionValue))

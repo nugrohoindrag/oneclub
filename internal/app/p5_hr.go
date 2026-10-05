@@ -11,6 +11,8 @@ package app
 
 import (
 	"context"
+	"oneclub/internal/kernel/clock"
+	"oneclub/internal/platform/calendar"
 	"time"
 
 	"github.com/google/uuid"
@@ -209,9 +211,10 @@ func demoP5HR(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 	_, err := tx.Exec(ctx, `INSERT INTO hris.certifications (id, property_id, certification_type_id, holder_kind, partner_id, holder_name, certificate_no,
 		issuer, issued_on, expires_on)
 		SELECT gen_random_uuid(), c.property_id, $2, 'caddy', c.id, c.name, 'CDY-' || c.code, 'Modern Golf Caddy Academy',
-		  CASE WHEN c.code = 'C020' THEN current_date - 700 ELSE current_date - 200 END,
-		  CASE WHEN c.code = 'C020' THEN current_date + 29 ELSE current_date + 530 END
+		  CASE WHEN c.code = 'C020' THEN $3::date - 700 ELSE $3::date - 200 END,
+		  CASE WHEN c.code = 'C020' THEN $3::date + 29 ELSE $3::date + 530 END
 		FROM golf.caddies c WHERE c.property_id = $1 AND c.archived_at IS NULL
-		  AND NOT EXISTS (SELECT 1 FROM hris.certifications x WHERE x.partner_id = c.id AND x.certification_type_id = $2)`, property, certType)
+		  AND NOT EXISTS (SELECT 1 FROM hris.certifications x WHERE x.partner_id = c.id AND x.certification_type_id = $2)`, property, certType,
+		clock.Now().In(calendar.Location(ctx, tx)).Format(time.DateOnly))
 	return err
 }
