@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"reflect"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -44,6 +45,22 @@ func RegisterPolicy(d PolicyDef) {
 	defsMu.Lock()
 	defer defsMu.Unlock()
 	defs[d.Code] = d
+}
+
+// Categories lists the club-policy categories: the Naming Convention labels
+// of PolicyCategories followed by the categories of registered policies.
+func Categories() []string {
+	out := append([]string{}, PolicyCategories...)
+	defsMu.RLock()
+	defer defsMu.RUnlock()
+	var extra []string
+	for _, d := range defs {
+		if d.Category != "" && !slices.Contains(out, d.Category) && !slices.Contains(extra, d.Category) {
+			extra = append(extra, d.Category)
+		}
+	}
+	sort.Strings(extra)
+	return append(out, extra...)
 }
 
 // PolicyDefs lists the catalogue sorted by category and code.
