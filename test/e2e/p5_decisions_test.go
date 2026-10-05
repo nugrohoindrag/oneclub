@@ -127,3 +127,114 @@ func TestP5DecisionDiscountLimits(t *testing.T) {
 		t.Fatalf("7%% within the new 10%% limit: %v", q["approvalStatus"])
 	}
 }
+
+// Decision 4d: a Property Admin edits the amount thresholds of the approval
+// workflow of a document type (here the purchase order) in Settings →
+// Approval Workflows: create, validate, edit the threshold, reorder and
+// deactivate the steps (audited); a purchase order below / above the
+// threshold routes accordingly. Workflows for all properties need an
+// instance-wide administrator.
+func TestP5DecisionApprovalThresholds(t *testing.T) {
+	sa := superAdmin(t, inst)
+	pa := login(t, inst, "property.admin@demo.oneclub.id", demoPassword) // MAIN only
+	k := newInvKit(t, sa)
+	wh := k.warehouse(t, sa, "AT", nil)
+	item := k.item(t, sa, "ATI", k.pcs, nil)
+	sup := prcSupplier(t, sa, "ATS"+k.sfx, nil)
+	pmRole, finRole, gmRole := roleID(t, sa, "procurement_manager"), roleID(t, sa, "finance_manager"), roleID(t, sa, "general_manager")
+	step := func(no int, name, role string, above any) map[string]any {
+		conds := []map[string]any{}
+		if above != nil {
+			conds = append(conds, map[string]any{"attribute": "amount", "operator": "gt", "value": above})
+		}
+		return map[string]any{"stepNo": no, "name": name, "approverType": "role", "approverRoleId": role, "conditions": conds, "slaHours": 24}
+	}
+
+	// the instance-wide demo workflow needs an instance-wide administrator
+	demo := sa.Must(200, "GET", "/api/v1/platform/approval-workflows?filter[documentType]=purchase_order", nil).Items()
+	for _, w := range demo {
+		if w["propertyId"] == nil {
+			if r := pa.Do("PATCH", "/api/v1/platform/approval-workflows/"+str(w["id"]), map[string]any{"priority": 50}); r.Status != 403 {
+				t.Fatalf("property admin edits a workflow of all properties: %s", r)
+			}
+		}
+	}
+	pa.Must(403, "POST", "/api/v1/platform/approval-workflows", map[string]any{"documentType": "purchase_order", "name": "All properties " + k.sfx,
+		"steps": []map[string]any{step(1, "Procurement Manager", pmRole, nil)}})
+	pa.Must(403, "POST", "/api/v1/platform/approval-workflows", map[string]any{"documentType": "purchase_order", "name": "Other property " + k.sfx,
+		"propertyId": inst.MDR, "steps": []map[string]any{step(1, "Procurement Manager", pmRole, nil)}})
+
+	// validation of the thresholds
+	for _, bad := range []any{-5, "five million", ""} {
+		r := pa.Must(422, "POST", "/api/v1/platform/approval-workflows", map[string]any{"documentType": "purchase_order", "name": "Bad " + k.sfx,
+			"propertyId": inst.Main, "steps": []map[string]any{step(1, "Finance", finRole, bad)}}).JSON()
+		if e := r["errors"].([]any)[0].(map[string]any); e["field"] != "steps[0].conditions[0].value" {
+			t.Fatalf("threshold %v: %v", bad, r)
+		}
+	}
+	pa.Must(422, "POST", "/api/v1/platform/approval-workflows", map[string]any{"documentType": "purchase_order", "name": "Bad " + k.sfx,
+		"propertyId": inst.Main, "priority": -1, "steps": []map[string]any{step(1, "Finance", finRole, 1)}})
+
+	// the Property Admin creates the matrix of the property: Finance above Rp7 jt, GM above Rp25 jt
+	wf := pa.Must(201, "POST", "/api/v1/platform/approval-workflows", map[string]any{"documentType": "purchase_order", "name": "PO matrix MAIN " + k.sfx,
+		"propertyId": inst.Main, "priority": 1, "steps": []map[string]any{step(1, "Procurement Manager", pmRole, nil),
+			step(2, "Finance Manager", finRole, 7000000), step(3, "General Manager", gmRole, 25000000)}}).JSON()
+	wid := str(wf["id"])
+	t.Cleanup(func() {
+		sa.Do("PATCH", "/api/v1/platform/approval-workflows/"+wid, map[string]any{"status": "inactive"})
+	})
+
+	// a purchase order of Rp6.66 jt (6 jt + PPN 11%)
+	route := func() []string {
+		t.Helper()
+		po := sa.Must(201, "POST", "/api/v1/procurement/purchase-orders", map[string]any{"supplierId": sup, "warehouseId": wh, "submit": true,
+			"lines": []map[string]any{{"itemId": item, "quantity": "6", "unitPrice": "1000000"}}}, "Idempotency-Key", newKey()).JSON()
+		prcStatus(t, po, "pending_approval")
+		ar := sa.Must(200, "GET", "/api/v1/platform/approvals/"+str(po["approvalRequestId"]), nil).JSON()
+		var out []string
+		for _, s := range ar["steps"].([]any) {
+			m := s.(map[string]any)
+			out = append(out, str(m["name"])+":"+str(m["status"]))
+		}
+		return out
+	}
+	want := func(got []string, w ...string) {
+		t.Helper()
+		if len(got) != len(w) {
+			t.Fatalf("routing %v, want %v", got, w)
+		}
+		for i := range w {
+			if got[i] != w[i] {
+				t.Fatalf("routing %v, want %v", got, w)
+			}
+		}
+	}
+	want(route(), "Procurement Manager:pending", "Finance Manager:skipped", "General Manager:skipped")
+
+	// the threshold is lowered to Rp5 jt: the same amount now goes to Finance
+	pa.Must(200, "PATCH", "/api/v1/platform/approval-workflows/"+wid, map[string]any{"steps": []map[string]any{step(1, "Procurement Manager", pmRole, nil),
+		step(2, "Finance Manager", finRole, 5000000), step(3, "General Manager", gmRole, 25000000)}})
+	want(route(), "Procurement Manager:pending", "Finance Manager:waiting", "General Manager:skipped")
+
+	// reordered: Finance first
+	got := pa.Must(200, "PATCH", "/api/v1/platform/approval-workflows/"+wid, map[string]any{"steps": []map[string]any{
+		step(1, "Finance Manager", finRole, 5000000), step(2, "Procurement Manager", pmRole, nil), step(3, "General Manager", gmRole, 25000000)}}).JSON()
+	if s := got["steps"].([]any); s[0].(map[string]any)["name"] != "Finance Manager" || s[1].(map[string]any)["name"] != "Procurement Manager" {
+		t.Fatalf("reordered steps: %v", s)
+	}
+	want(route(), "Finance Manager:pending", "Procurement Manager:waiting", "General Manager:skipped")
+
+	// deactivated: the workflow for all properties applies again
+	pa.Must(200, "PATCH", "/api/v1/platform/approval-workflows/"+wid, map[string]any{"status": "inactive"})
+	for _, s := range route() {
+		if s == "Finance Manager:pending" || s == "Procurement Manager:waiting" {
+			t.Fatalf("deactivated workflow still routes: %s", s)
+		}
+	}
+	var audited int
+	sysQueryRow(t, inst, `SELECT count(*) FROM audit.audit_log WHERE entity_type = 'platform.approval_workflow' AND entity_id = $1 AND property_id = $2`,
+		[]any{wid, inst.Main}, &audited)
+	if audited != 4 {
+		t.Fatalf("create, two edits and the deactivation are audited: %d", audited)
+	}
+}

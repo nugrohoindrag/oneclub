@@ -1,8 +1,11 @@
 package approval
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -176,8 +179,10 @@ func (h *HTTP) validateSteps(docType string, steps []WorkflowStep) error {
 		return errs.Validation("invalid_document_type", "unknown document type", errs.Field("documentType", "invalid", "unknown document type"))
 	}
 	attrs := map[string]bool{"propertyId": true}
+	types := map[string]string{"propertyId": "uuid"}
 	for _, a := range dt.Attributes {
 		attrs[a.Key] = true
+		types[a.Key] = a.Type
 	}
 	var fields []errs.FieldError
 	if len(steps) == 0 {
@@ -215,11 +220,57 @@ func (h *HTTP) validateSteps(docType string, steps []WorkflowStep) error {
 			}
 			if !operators[c.Operator] {
 				fields = append(fields, errs.Field(cp+".operator", "invalid", "eq, neq, gt, gte, lt, lte or in"))
+				continue
 			}
+			fields = append(fields, validateConditionValue(cp+".value", types[c.Attribute], c)...)
 		}
 	}
 	if len(fields) > 0 {
 		return errs.Validation("invalid_workflow", "invalid approval workflow", fields...)
+	}
+	return nil
+}
+
+// validateConditionValue checks the value of a condition (PO decision 4d:
+// amount thresholds are edited by admins): a list for "in", a number of 0
+// or more for a number attribute (e.g. amount > 5000000), a value otherwise.
+func validateConditionValue(field, attrType string, c Condition) []errs.FieldError {
+	if c.Operator == "in" {
+		if list, ok := c.Value.([]any); !ok || len(list) == 0 {
+			return []errs.FieldError{errs.Field(field, "invalid", "a list of values")}
+		}
+		return nil
+	}
+	if c.Value == nil || fmt.Sprint(c.Value) == "" {
+		return []errs.FieldError{errs.Field(field, "required", "enter a value")}
+	}
+	numeric := attrType == "number" || c.Operator == "gt" || c.Operator == "gte" || c.Operator == "lt" || c.Operator == "lte"
+	if !numeric {
+		return nil
+	}
+	f, ok := toFloat(c.Value)
+	switch {
+	case !ok:
+		return []errs.FieldError{errs.Field(field, "invalid", "a number, e.g. 5000000")}
+	case attrType == "number" && f < 0:
+		return []errs.FieldError{errs.Field(field, "out_of_range", "0 or more")}
+	}
+	return nil
+}
+
+// canManage: an instance-wide workflow (all properties) needs the manage
+// permission on an instance-wide role (Super Admin); a workflow of one
+// property needs it at that property (Property Admin).
+func canManage(ctx context.Context, property *uuid.UUID) error {
+	p := authz.From(ctx)
+	all, ids := p.PropertiesFor("platform.approval_workflow.manage")
+	switch {
+	case all:
+		return nil
+	case property == nil:
+		return errs.Forbidden("workflows for all properties need an instance-wide administrator; choose your property")
+	case !slices.Contains(ids, *property):
+		return errs.Forbidden("missing permission platform.approval_workflow.manage at this property")
 	}
 	return nil
 }
@@ -323,6 +374,10 @@ func (h *HTTP) createWorkflow(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
+	if err := validateHeader(req.Priority, req.Status); err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
 	prio := 100
 	if req.Priority != nil {
 		prio = *req.Priority
@@ -332,6 +387,10 @@ func (h *HTTP) createWorkflow(w http.ResponseWriter, r *http.Request) {
 		status = *req.Status
 	}
 	ctx := r.Context()
+	if err := canManage(ctx, req.PropertyID); err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
 	var out Workflow
 	err := h.E.DB.WithTx(ctx, func(tx pgx.Tx) error {
 		wid := id.New()
@@ -360,6 +419,21 @@ func (h *HTTP) createWorkflow(w http.ResponseWriter, r *http.Request) {
 	httpx.JSON(w, http.StatusCreated, out)
 }
 
+// validateHeader checks the priority and status of a workflow.
+func validateHeader(priority *int, status *string) error {
+	var fields []errs.FieldError
+	if priority != nil && *priority < 0 {
+		fields = append(fields, errs.Field("priority", "invalid", "0 or more"))
+	}
+	if status != nil && *status != "active" && *status != "inactive" {
+		fields = append(fields, errs.Field("status", "invalid", "active or inactive"))
+	}
+	if len(fields) > 0 {
+		return errs.Validation("invalid_workflow", "invalid approval workflow", fields...)
+	}
+	return nil
+}
+
 func (h *HTTP) updateWorkflow(w http.ResponseWriter, r *http.Request) {
 	wid, err := httpx.PathUUID(r, "id")
 	if err != nil {
@@ -371,8 +445,12 @@ func (h *HTTP) updateWorkflow(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	if req.Status != nil && *req.Status != "active" && *req.Status != "inactive" {
-		httpx.WriteError(w, r, errs.Validation("invalid_status", "invalid status", errs.Field("status", "invalid", "active or inactive")))
+	if req.Name != nil && strings.TrimSpace(*req.Name) == "" {
+		httpx.WriteError(w, r, errs.Validation("invalid_workflow", "name is required", errs.Field("name", "required", "name is required")))
+		return
+	}
+	if err := validateHeader(req.Priority, req.Status); err != nil {
+		httpx.WriteError(w, r, err)
 		return
 	}
 	ctx := r.Context()
@@ -381,6 +459,14 @@ func (h *HTTP) updateWorkflow(w http.ResponseWriter, r *http.Request) {
 		before, err := h.loadWorkflow(r, tx, wid)
 		if err != nil {
 			return err
+		}
+		if err := canManage(ctx, before.PropertyID); err != nil {
+			return err
+		}
+		if req.PropertyID != nil {
+			if err := canManage(ctx, req.PropertyID); err != nil {
+				return err
+			}
 		}
 		if req.Steps != nil {
 			if err := h.validateSteps(before.DocumentType, *req.Steps); err != nil {
@@ -399,7 +485,7 @@ func (h *HTTP) updateWorkflow(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 		return audit.Record(ctx, tx, audit.Entry{Module: "platform", Action: audit.ActionUpdate, EntityType: "platform.approval_workflow",
-			EntityID: wid.String(), EntityLabel: out.Name, Before: before, After: out})
+			EntityID: wid.String(), EntityLabel: out.Name, PropertyID: out.PropertyID, Before: before, After: out})
 	})
 	if err != nil {
 		httpx.WriteError(w, r, err)

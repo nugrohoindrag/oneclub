@@ -243,7 +243,7 @@ var PropertyAdminPermissions = cat(bo, ops, []string{
 	"platform.device.view", "platform.device.manage",
 	"platform.import.view", "platform.import.create",
 	"platform.notification_template.view", "platform.notification_delivery.view",
-	"platform.approval_workflow.view", "platform.approval.view_all", "platform.approval.request_test",
+	"platform.approval_workflow.view", "platform.approval_workflow.manage", "platform.approval.view_all", "platform.approval.request_test",
 	"platform.integration.view", "platform.integration_log.view",
 	"platform.bridge_agent.view", "platform.bridge_agent.manage",
 	"platform.job.view", "platform.business_rule.view", "platform.club_policy.view",
