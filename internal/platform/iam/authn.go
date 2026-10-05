@@ -114,7 +114,7 @@ func (s *Service) loadAssignments(ctx context.Context, userID uuid.UUID) ([]auth
 		FROM platform.role_assignments ra
 		JOIN platform.roles r ON r.id = ra.role_id AND r.status = 'active'
 		LEFT JOIN platform.role_permissions rp ON rp.role_id = r.id
-		WHERE ra.user_id = $1
+		WHERE ra.user_id = $1 AND (ra.valid_until IS NULL OR ra.valid_until > now())
 		GROUP BY r.id, r.code, r.name, r.mfa_required, ra.property_id`, userID)
 	if err != nil {
 		return nil, false, err

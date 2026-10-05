@@ -74,12 +74,14 @@ type Assignment struct {
 	PropertyID   *uuid.UUID `json:"propertyId"`
 	PropertyName *string    `json:"propertyName"`
 	CreatedAt    time.Time  `json:"createdAt"`
+	ValidUntil   *time.Time `json:"validUntil,omitempty" doc:"Expiry of a time-bound assignment (Auditor); no access after it"`
 }
 
 type CreateAssignmentRequest struct {
 	UserID     uuid.UUID  `json:"userId"`
 	RoleID     uuid.UUID  `json:"roleId"`
 	PropertyID *uuid.UUID `json:"propertyId"`
+	ValidUntil *time.Time `json:"validUntil,omitempty" doc:"Expiry of the assignment (required for the Auditor role, PRD P4 §16 #18)"`
 }
 
 const roleSelect = `
@@ -397,9 +399,21 @@ func (s *Service) assign(ctx context.Context, tx pgx.Tx, userID uuid.UUID, userN
 			}
 		}
 	}
+	if err := checkValidUntil(code, name, a.ValidUntil); err != nil {
+		return uuid.Nil, err
+	}
+	// an expired time-bound assignment is renewed for the new period
+	if rid, renewed, err := renewExpired(ctx, tx, userID, a); err != nil || renewed {
+		if err != nil {
+			return uuid.Nil, err
+		}
+		return rid, audit.Record(ctx, tx, audit.Entry{Module: "platform", Action: audit.ActionRoleAssigned, Category: audit.CategorySecurity,
+			EntityType: "platform.role_assignment", EntityID: rid.String(), EntityLabel: userName + " → " + name, PropertyID: a.PropertyID,
+			After: map[string]any{"userId": userID, "roleId": a.RoleID, "roleCode": code, "propertyId": a.PropertyID, "validUntil": a.ValidUntil, "renewed": true}})
+	}
 	aid := id.New()
-	if _, err := tx.Exec(ctx, `INSERT INTO platform.role_assignments (id, user_id, role_id, property_id, created_by) VALUES ($1, $2, $3, $4, $5)`,
-		aid, userID, a.RoleID, a.PropertyID, id.Ptr(p.UserID)); err != nil {
+	if _, err := tx.Exec(ctx, `INSERT INTO platform.role_assignments (id, user_id, role_id, property_id, created_by, valid_until) VALUES ($1, $2, $3, $4, $5, $6)`,
+		aid, userID, a.RoleID, a.PropertyID, id.Ptr(p.UserID), a.ValidUntil); err != nil {
 		if ok, _ := dbtx.IsUniqueViolation(err); ok {
 			return uuid.Nil, errs.Conflict("assignment_exists", "the user already has this role at this property")
 		}
@@ -410,11 +424,11 @@ func (s *Service) assign(ctx context.Context, tx pgx.Tx, userID uuid.UUID, userN
 	}
 	return aid, audit.Record(ctx, tx, audit.Entry{Module: "platform", Action: audit.ActionRoleAssigned, Category: audit.CategorySecurity,
 		EntityType: "platform.role_assignment", EntityID: aid.String(), EntityLabel: userName + " → " + name, PropertyID: a.PropertyID,
-		After: map[string]any{"userId": userID, "roleId": a.RoleID, "roleCode": code, "propertyId": a.PropertyID}})
+		After: map[string]any{"userId": userID, "roleId": a.RoleID, "roleCode": code, "propertyId": a.PropertyID, "validUntil": a.ValidUntil}})
 }
 
 const assignmentSelect = `
-	SELECT ra.id, ra.user_id, u.full_name, r.id, r.code, r.name, ra.property_id, p.name, ra.created_at
+	SELECT ra.id, ra.user_id, u.full_name, r.id, r.code, r.name, ra.property_id, p.name, ra.created_at, ra.valid_until
 	FROM platform.role_assignments ra
 	JOIN platform.users u ON u.id = ra.user_id
 	JOIN platform.roles r ON r.id = ra.role_id
@@ -422,7 +436,7 @@ const assignmentSelect = `
 
 func scanAssignment(row pgx.Row) (Assignment, error) {
 	var a Assignment
-	err := row.Scan(&a.ID, &a.UserID, &a.UserName, &a.RoleID, &a.RoleCode, &a.RoleName, &a.PropertyID, &a.PropertyName, &a.CreatedAt)
+	err := row.Scan(&a.ID, &a.UserID, &a.UserName, &a.RoleID, &a.RoleCode, &a.RoleName, &a.PropertyID, &a.PropertyName, &a.CreatedAt, &a.ValidUntil)
 	return a, err
 }
 
@@ -486,7 +500,7 @@ func (s *Service) createAssignment(w http.ResponseWriter, r *http.Request) {
 			}
 			return err
 		}
-		aid, err := s.assign(ctx, tx, req.UserID, name, AssignmentRequest{RoleID: req.RoleID, PropertyID: req.PropertyID})
+		aid, err := s.assign(ctx, tx, req.UserID, name, AssignmentRequest{RoleID: req.RoleID, PropertyID: req.PropertyID, ValidUntil: req.ValidUntil})
 		if err != nil {
 			return err
 		}

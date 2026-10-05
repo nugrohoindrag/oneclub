@@ -49,6 +49,10 @@ type RoleTemplate struct {
 	// IncludePlatformOnly is set).
 	AllPermissions      bool
 	IncludePlatformOnly bool
+	// ReadOnlyModules grants every view / export permission of these
+	// modules, including those contributed by the modules themselves
+	// (Auditor, PRD P4 §16 #18).
+	ReadOnlyModules []string
 }
 
 // Contribution is what a module adds to the catalogue.
@@ -299,6 +303,12 @@ var RoleTemplates = []RoleTemplate{
 	{Code: "procurement_manager", Name: "Procurement Manager", Category: "Procurement", Scope: "property", Permissions: cat(bo, ma("procurement", "reporting"), []string{"reporting.report.view"})},
 	{Code: "approver", Name: "Approver", Category: "Procurement", Scope: "property", Permissions: cat(bo)},
 	// Finance (Finance Manager is seeded under Management)
+	// External auditor (PRD P4 FR-ACC-09, §16 #18): read-only Accounting &
+	// Reports, assigned for the audit period only (validUntil required) and
+	// every read logged in the audit log.
+	{Code: AuditorRole, Name: "Auditor", Category: "Finance", Scope: "property", MFARequired: true,
+		Permissions:     cat(bo, ma("accounting", "reporting"), []string{"reporting.report.view", "reporting.export.create", "audit.log.view"}),
+		ReadOnlyModules: []string{"accounting"}},
 	{Code: "accountant", Name: "Accountant", Category: "Finance", Scope: "property", MFARequired: true, Permissions: cat(bo, ma("accounting", "billing", "reporting"), []string{"reporting.report.view", "audit.log.view"})},
 	// HR
 	{Code: "hr_admin", Name: "HR Admin", Category: "HR", Scope: "property", Permissions: cat(bo, ma("hris"), []string{"platform.employee.view", "platform.department.view"})},
@@ -349,6 +359,12 @@ func Build(contribs ...Contribution) (*Catalog, error) {
 
 	for _, rt := range RoleTemplates {
 		rt.Permissions = cat(rt.Permissions, extra[rt.Code])
+		for _, p := range c.Permissions {
+			m, _, a := p.Parts()
+			if (a == "view" || a == "export") && !p.PlatformOnly && slices.Contains(rt.ReadOnlyModules, m) {
+				rt.Permissions = cat(rt.Permissions, []string{p.Code})
+			}
+		}
 		if rt.AllPermissions {
 			rt.Permissions = nil
 			for _, p := range c.Permissions {

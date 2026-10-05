@@ -50,7 +50,7 @@ var reportRoles = map[string][]string{
 	"golf":        {"property_admin", "general_manager", "club_manager", "golf_manager", "golf_admin"},
 	"inventory":   {"property_admin", "general_manager", "inventory_manager", "finance_manager", "accountant", "outlet_manager"},
 	"procurement": {"property_admin", "general_manager", "procurement_manager", "procurement_staff", "finance_manager"},
-	"accounting":  {"property_admin", "general_manager", "finance_manager", "accountant"},
+	"accounting":  {"property_admin", "general_manager", "finance_manager", "accountant", "auditor"},
 	"cms":         {"property_admin", "marketing_staff"},
 }
 
