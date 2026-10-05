@@ -112,7 +112,7 @@ Release 3 adds these public and member endpoints to the scope (FR-REL-P3-04):
 
 | Area | Endpoints | Focus |
 |---|---|---|
-| Public quotation link | `GET /api/v1/public/quotations/{token}`, `POST …/{token}:accept`, `POST …/{token}:reject` | token entropy and expiry, revised / expired versions not acceptable, accept once, IP & time recorded, rate limit (OTP and e-Meterai deferred, §16 #18) |
+| Public quotation link | `GET /api/v1/public/quotations/{token}`, `POST …/{token}:request-otp`, `POST …/{token}:accept`, `POST …/{token}:reject` | token entropy and expiry, revised / expired versions not acceptable, accept once, IP & time recorded, rate limit; one-time code (§16 #18): cooldown, attempt lock, expiry, only a hash stored, code redacted from integration call logs (still in the notification delivery until the scrubbing decision); e-Meterai above Rp5 jt |
 | Public forms | `POST /api/v1/public/inquiries`, `/public/contact`, `/public/complaints`, `GET/POST /public/feedback/{token}`, `GET/POST /public/unsubscribe/{token}`, `GET /public/campaign-links/{token}` | CAPTCHA / rate limit, no enumeration of customers, consent recorded, masked contact data, open-redirect check of tracked links |
 | Promotions & packages | `POST /api/v1/public/promo-codes:check`, `GET /public/promotions`, `GET /public/packages`, `POST /public/package-bookings` | code-check rate limit (Promotion Policies), personal codes not usable by others, hold expiry |
 | Events & tournaments | `POST /api/v1/public/events/{id}/registrations`, `GET /public/event-tickets/{code}`, `POST /public/tournaments/{id}/registrations`, `GET/POST /public/tournament-registrations/{token}…` | capacity / field under concurrency, ticket and withdrawal tokens, leaderboard shows consented names only |

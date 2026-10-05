@@ -38,6 +38,21 @@ Opening balance CSV: `account,debit,credit,partner_type,partner,document_no,docu
 (`account` = OneClub code or the Excel Finance code of the mapping; AR / AP open items carry the partner and the
 document). Excel TB CSV: `account,debit,credit` or `account,balance` (closing balances of the month).
 
+## Existing environments: default posting rules after an upgrade
+
+Instances whose book was opened before this release (Staging, demo and trial instances) do not have the posting
+rules added since. After deploying the release, run once per instance:
+
+```
+POST /api/v1/accounting/posting-rules:generate-defaults      (permission accounting.posting_rule.create)
+```
+
+or Staff App → Accounting → Posting Rules → *Generate default rules*. The call is idempotent: it inserts only the
+default rules whose code is missing — e.g. `DEF-INV-OPENING` (opening stock → opening balance equity instead of
+the P&L), `DEF-COMMISSION` (sales commission accrual), `DEF-ASSET-DISP-*` (asset disposal) — and never changes an
+existing or edited rule; the response reports how many were created. Then check the Posting Exceptions tab:
+events that went to suspense for lack of these rules can be re-posted (*Repost*).
+
 ## Timeline (go-live on day **D** = 1st of month M)
 
 | When | Step | Evidence |
