@@ -53,6 +53,9 @@ type RoleTemplate struct {
 	// modules, including those contributed by the modules themselves
 	// (Auditor, PRD P4 §16 #18).
 	ReadOnlyModules []string
+	// Includes grants every permission of these role templates, including
+	// those contributed by the modules (a manager role over a staff role).
+	Includes []string
 }
 
 // Contribution is what a module adds to the catalogue.
@@ -295,6 +298,10 @@ var RoleTemplates = []RoleTemplate{
 	{Code: "sales_executive", Name: "Sales Executive", Category: "Sales & CRM", Scope: "property", Permissions: cat(bo, ma("crm", "banquet"))},
 	{Code: "crm_admin", Name: "CRM Admin", Category: "Sales & CRM", Scope: "property", Permissions: cat(bo, ma("crm"))},
 	{Code: "marketing_staff", Name: "Marketing Staff", Category: "Sales & CRM", Scope: "property", Permissions: cat(bo, ma("crm", "cms"))},
+	// PRD P4 §16 #15: the Marketing Manager approves the website
+	// publication (CMS approval workflow) on top of the Marketing Staff work.
+	{Code: "marketing_manager", Name: "Marketing Manager", Category: "Sales & CRM", Scope: "property", Includes: []string{"marketing_staff"},
+		Permissions: cat(bo, ma("crm", "cms", "commercial", "reporting"), []string{"reporting.report.view", "reporting.export.create", "platform.approval.view_all"})},
 	// Warehouse
 	{Code: "warehouse_staff", Name: "Warehouse Staff", Category: "Warehouse", Scope: "property", Permissions: cat(ops, ma("inventory"))},
 	{Code: "inventory_manager", Name: "Inventory Manager", Category: "Warehouse", Scope: "property", Permissions: cat(bo, ma("inventory", "procurement", "reporting"), []string{"reporting.report.view"})},
@@ -360,8 +367,15 @@ func Build(contribs ...Contribution) (*Catalog, error) {
 	}
 	sort.Slice(c.Permissions, func(i, j int) bool { return c.Permissions[i].Code < c.Permissions[j].Code })
 
+	base := map[string][]string{}
 	for _, rt := range RoleTemplates {
-		rt.Permissions = cat(rt.Permissions, extra[rt.Code])
+		base[rt.Code] = cat(rt.Permissions, extra[rt.Code])
+	}
+	for _, rt := range RoleTemplates {
+		rt.Permissions = base[rt.Code]
+		for _, inc := range rt.Includes {
+			rt.Permissions = cat(rt.Permissions, base[inc])
+		}
 		for _, p := range c.Permissions {
 			m, _, a := p.Parts()
 			if (a == "view" || a == "export") && !p.PlatformOnly && slices.Contains(rt.ReadOnlyModules, m) {

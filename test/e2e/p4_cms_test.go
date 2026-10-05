@@ -52,7 +52,7 @@ func cmsUpload(t *testing.T, c *Client, name string, w, h int, fields map[string
 	return c.Must(201, "POST", "/api/v1/cms/media", body, "Content-Type", ctype).JSON()
 }
 
-// cmsApprove submits content for review and approves it as the General
+// cmsApprove submits content for review and approves it as the Marketing
 // Manager (demo workflow "Website Content Publication" of MAIN).
 func cmsApprove(t *testing.T, mk, gm *Client, base, cid string) map[string]any {
 	t.Helper()
@@ -145,7 +145,7 @@ func TestP4CMSPageWorkflow(t *testing.T) {
 	sa := superAdmin(t, inst)
 	pa := platformAdmin(t, inst)
 	mk := roleUser(t, inst, "marketing_staff")
-	gm := roleUser(t, inst, "general_manager")
+	gm := roleUser(t, inst, "marketing_manager") // website publication approver (PRD P4 §16 #15)
 	pub := anon(t, inst)
 	sfx := fmt.Sprint(time.Now().UnixNano() % 1e7)
 	q := "?propertyId=" + inst.Main.String()
@@ -443,7 +443,7 @@ func TestP4CMSPageWorkflow(t *testing.T) {
 func TestP4CMSNewsGalleryBanners(t *testing.T) {
 	sa := superAdmin(t, inst)
 	mk := roleUser(t, inst, "marketing_staff")
-	gm := roleUser(t, inst, "general_manager")
+	gm := roleUser(t, inst, "marketing_manager") // website publication approver (PRD P4 §16 #15)
 	pub := anon(t, inst)
 	sfx := fmt.Sprint(time.Now().UnixNano() % 1e7)
 	q := "?propertyId=" + inst.Main.String()
@@ -884,7 +884,7 @@ func TestP4CMSIntegrations(t *testing.T) {
 // scheduled take-down, restore, rollback, unpublish / publish and archive.
 func TestP4CMSContentLifecycle(t *testing.T) {
 	mk := roleUser(t, inst, "marketing_staff")
-	gm := roleUser(t, inst, "general_manager")
+	gm := roleUser(t, inst, "marketing_manager") // website publication approver (PRD P4 §16 #15)
 	sfx := fmt.Sprint(time.Now().UnixNano() % 1e7)
 	img := str(cmsUpload(t, mk, "life.png", 120, 80, nil)["id"])
 	for _, k := range []struct {

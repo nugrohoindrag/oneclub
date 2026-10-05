@@ -4,8 +4,7 @@ package cms
 // navigation in Bahasa Indonesia and English): published pages with data
 // blocks, header and footer menus, a home banner, news, contact information,
 // course guide texts and the Website Content Publication approval workflow
-// (Marketing Staff submit, the General Manager approves — PRD P4 open
-// question #15 names a Marketing Manager, a role not among the templates).
+// (Marketing Staff submit, the Marketing Manager approves — PRD P4 §16 #15).
 
 import (
 	"context"
@@ -307,7 +306,7 @@ func SeedDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 	if _, err := tx.Exec(ctx, `INSERT INTO cms.site_state (property_id, revision, changed_at) VALUES ($1, 1, now()) ON CONFLICT (property_id) DO NOTHING`, property); err != nil {
 		return err
 	}
-	// approval workflow: Website Content Publication approved by the General Manager at this property
+	// approval workflow: Website Content Publication approved by the Marketing Manager at this property
 	var wf bool
 	if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM platform.approval_workflows WHERE document_type = $1)`, ContentDocumentType.Code).Scan(&wf); err != nil {
 		return err
@@ -319,7 +318,7 @@ func SeedDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 			return err
 		}
 		if _, err := tx.Exec(ctx, `INSERT INTO platform.approval_workflow_steps (id, workflow_id, step_no, name, approver_type, approver_role_id, conditions, sla_hours)
-			SELECT $1, $2, 1, 'Marketing approval (General Manager)', 'role', r.id, '[]'::jsonb, 24 FROM platform.roles r WHERE r.code = 'general_manager'`,
+			SELECT $1, $2, 1, 'Marketing Manager approval', 'role', r.id, '[]'::jsonb, 24 FROM platform.roles r WHERE r.code = 'marketing_manager'`,
 			id.New(), wid); err != nil {
 			return err
 		}
