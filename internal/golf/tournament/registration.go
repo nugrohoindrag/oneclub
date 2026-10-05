@@ -431,11 +431,19 @@ func (m *Module) register(ctx context.Context, tx pgx.Tx, property, tid uuid.UUI
 			return TournamentRegistrationDetail{}, handle.Invalid("sponsorId", "not_found", "sponsor of this tournament")
 		}
 	}
+	// PRD P5 FR-TRN-P5-06 (p5_registration.go): registration category and its quota
+	category, categoryFull, err := registrationCategory(ctx, tx, tid, playerType, p.sponsorID)
+	if err != nil {
+		return TournamentRegistrationDetail{}, err
+	}
 	// field size / waitlist under the tournament lock (no overbooking)
 	status := "registered"
 	var position *int
-	if t.Registered >= t.FieldSize {
+	if t.Registered >= t.FieldSize || categoryFull {
 		if !t.WaitlistEnabled {
+			if categoryFull {
+				return TournamentRegistrationDetail{}, errs.Conflict("category_full", "the "+categoryLabel(category)+" places of "+t.Name+" are full")
+			}
 			return TournamentRegistrationDetail{}, errs.Conflict("field_full", t.Name+" is full")
 		}
 		if pol.WaitlistMax > 0 && t.Waitlisted >= pol.WaitlistMax {
@@ -469,6 +477,9 @@ func (m *Module) register(ctx context.Context, tx pgx.Tx, property, tid uuid.UUI
 		if ok, _ := dbtx.IsUniqueViolation(err); ok {
 			return TournamentRegistrationDetail{}, errs.Conflict("already_registered", c.Name+" is already registered for this tournament")
 		}
+		return TournamentRegistrationDetail{}, err
+	}
+	if _, err := tx.Exec(ctx, `UPDATE golf.tournament_registrations SET category = $2 WHERE id = $1`, rid, category); err != nil {
 		return TournamentRegistrationDetail{}, err
 	}
 	reg, err := getRegistration(ctx, tx, rid)
@@ -540,6 +551,10 @@ func (m *Module) charge(ctx context.Context, tx pgx.Tx, property uuid.UUID, t To
 		return err
 	}
 	list := applicableFees(fees, reg.PackageID, reg.PlayerType)
+	// PRD P5 FR-TRN-P5-06 (p5_registration.go): category fees and early-bird amounts
+	if list, err = advancedFees(ctx, tx, *reg, list); err != nil {
+		return err
+	}
 	total := decimal.Zero
 	for _, f := range list {
 		total = total.Add(dec(f.Amount))
@@ -1036,7 +1051,7 @@ func (m *Module) promoteWaitlist(ctx context.Context, tx pgx.Tx, property, tid u
 		}
 		var rid uuid.UUID
 		err = tx.QueryRow(ctx, `SELECT id FROM golf.tournament_registrations WHERE tournament_id = $1 AND status = 'waitlisted'
-			ORDER BY waitlist_position, registered_at LIMIT 1 FOR UPDATE`, tid).Scan(&rid)
+			AND NOT golf.tournament_category_full(id) ORDER BY waitlist_position, registered_at LIMIT 1 FOR UPDATE`, tid).Scan(&rid)
 		if dbtx.IsNoRows(err) {
 			return out, nil
 		}
