@@ -4126,6 +4126,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/billing/invoices:import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import the open corporate invoices of the legacy system (Excel / CSV; preview or commit) with the AR reconciliation */
+        post: operations["postBillingInvoicesImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/billing/member-charges": {
         parameters: {
             query?: never;
@@ -32309,6 +32326,53 @@ export interface components {
             status: string;
             title?: string | null;
         };
+        CorporateARCompanyTotal: {
+            code: string;
+            invoices: number;
+            name: string;
+            outstanding: string;
+        };
+        CorporateARImportError: {
+            code: string;
+            field?: string;
+            message: string;
+            /** @description 1-based line (header = 1) */
+            row: number;
+        };
+        CorporateARImportInput: {
+            /** @description CSV text with a header row: legacyNumber (required), corporateCode or customerCode, issueDate, dueDate (YYYY-MM-DD or DD/MM/YYYY), outstanding (required), originalTotal, description */
+            csv?: string;
+            /** @description Control total of the open corporate AR in the legacy system, signed off by the club */
+            expectedTotal?: string;
+            /**
+             * @description preview validates and reconciles without saving
+             * @enum {string}
+             */
+            mode: "preview" | "commit";
+            /** @description Base64 of the Excel workbook (first sheet, same columns); instead of csv */
+            xlsx?: string;
+        };
+        CorporateARImportResult: {
+            companies: components["schemas"]["CorporateARCompanyTotal"][];
+            /** @description Control total (else file total) − migrated open AR */
+            difference: string;
+            errors: components["schemas"]["CorporateARImportError"][];
+            /** @description Rows already imported (same legacy number and amount) */
+            existing: number;
+            expectedTotal?: string | null;
+            failed: number;
+            /** @description Outstanding of the valid rows of the file */
+            fileTotal: string;
+            /** @description New invoices (preview: would be created) */
+            imported: number;
+            /** @description Open balance of all migrated invoices (RH-…) in OneClub after this run */
+            migratedOpen: string;
+            /** @enum {string} */
+            mode: "preview" | "commit";
+            /** @description Every row valid, the file matches the control total and the migrated AR matches the file */
+            reconciled: boolean;
+            totalRows: number;
+        };
         CorporateAccount: {
             /** @description Address */
             address?: string | null;
@@ -34036,6 +34100,11 @@ export interface components {
             code: string;
             /** Format: date-time */
             createdAt: string;
+            /**
+             * Format: uuid
+             * @description CRM Segment (spend rule: multiplier for its members, on top of the line's rule)
+             */
+            customerSegmentId?: string | null;
             /** Format: uuid */
             id: string;
             /** @description Multiplier (0 = no points) */
@@ -34104,6 +34173,11 @@ export interface components {
             businessLine?: "golf" | "sportclub" | "stay" | "pos" | "membership" | "voucher" | "banquet" | "package" | "other" | null;
             /** @description Code */
             code?: string;
+            /**
+             * Format: uuid
+             * @description CRM Segment (spend rule: multiplier for its members, on top of the line's rule)
+             */
+            customerSegmentId?: string | null;
             /** @description Multiplier (0 = no points) */
             multiplier?: string | null;
             /** @description Name */
@@ -45103,12 +45177,13 @@ export interface components {
             id: string;
             itemRef?: string | null;
             /** @enum {string} */
-            itemType: "banquet_package" | "venue" | "product" | "service" | "package" | "other";
+            itemType: "banquet_package" | "banquet_menu" | "venue" | "product" | "service" | "package" | "other";
+            /** @description Line discount incl. automatic promotions (pricing.promotionDiscount) */
             lineDiscount: string;
             lineNo: number;
             netAmount: string;
             /** @enum {string} */
-            priceSource: "manual" | "pricing_rule" | "product";
+            priceSource: "manual" | "pricing_rule" | "product" | "package" | "banquet_package" | "banquet_menu";
             pricing: Record<string, never>;
             quantity: string;
             serviceAmount: string;
@@ -45127,7 +45202,7 @@ export interface components {
             /** @description Banquet package code, venue / product id, package code … */
             itemRef?: string;
             /** @enum {string} */
-            itemType: "banquet_package" | "venue" | "product" | "service" | "package" | "other";
+            itemType: "banquet_package" | "banquet_menu" | "venue" | "product" | "service" | "package" | "other";
             quantity: string;
             /** @description Commercial service type to price from the pricing rules (e.g. meeting_package) */
             serviceType?: string;
@@ -70051,6 +70126,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["WriteOff"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingInvoicesImport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CorporateARImportInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorporateARImportResult"];
                 };
             };
             /** @description Not authenticated */
