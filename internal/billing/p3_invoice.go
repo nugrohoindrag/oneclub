@@ -1245,17 +1245,24 @@ type Aging struct {
 }
 
 // AgingAsOf computes the ageing as of a date (settlements after the date
-// are ignored).
+// are ignored). The date is the property's calendar date: a settlement
+// counts when it happened before the next local midnight ($4), not before
+// midnight UTC (the session timezone), which is 07:00 at the club (WIB).
 func AgingAsOf(ctx context.Context, q dbtx.Querier, property uuid.UUID, asOf time.Time, account *uuid.UUID) (Aging, error) {
 	day := asOf.Format("2006-01-02")
+	loc, err := org.Location(ctx, q, property)
+	if err != nil {
+		return Aging{}, err
+	}
+	end := time.Date(asOf.Year(), asOf.Month(), asOf.Day()+1, 0, 0, 0, 0, loc)
 	rows, err := handle.List[AgingRow](q.Query(ctx, `WITH open AS (
 		SELECT i.account_id, i.corporate_account_id, i.customer_id, i.bill_to_name, i.issue_date, i.due_date,
-		  i.total - coalesce((SELECT sum(a.amount) FROM billing.payment_allocations a WHERE a.invoice_id = i.id AND a.created_at < ($2::date + 1)), 0)
-		    - coalesce((SELECT sum(c.amount) FROM billing.credit_notes c WHERE c.invoice_id = i.id AND c.created_at < ($2::date + 1)), 0)
-		    - coalesce((SELECT sum(w.amount) FROM billing.write_offs w WHERE w.invoice_id = i.id AND w.status = 'approved' AND w.decided_at < ($2::date + 1)), 0)
+		  i.total - coalesce((SELECT sum(a.amount) FROM billing.payment_allocations a WHERE a.invoice_id = i.id AND a.created_at < $4::timestamptz), 0)
+		    - coalesce((SELECT sum(c.amount) FROM billing.credit_notes c WHERE c.invoice_id = i.id AND c.created_at < $4::timestamptz), 0)
+		    - coalesce((SELECT sum(w.amount) FROM billing.write_offs w WHERE w.invoice_id = i.id AND w.status = 'approved' AND w.decided_at < $4::timestamptz), 0)
 		    AS open_amount
 		FROM billing.invoices i WHERE i.property_id = $1 AND i.issue_date <= $2::date
-		  AND (i.status NOT IN ('draft', 'void') OR (i.status = 'void' AND i.voided_at >= ($2::date + 1)))
+		  AND (i.status NOT IN ('draft', 'void') OR (i.status = 'void' AND i.voided_at >= $4::timestamptz))
 		  AND ($3::uuid IS NULL OR i.account_id = $3))
 		SELECT account_id, corporate_account_id, customer_id, min(bill_to_name) AS bill_to_name, count(*)::int AS invoices,
 		  trim_scale(coalesce(sum(open_amount) FILTER (WHERE $2::date - issue_date <= 30), 0))::text AS d0_30,
@@ -1264,7 +1271,7 @@ func AgingAsOf(ctx context.Context, q dbtx.Querier, property uuid.UUID, asOf tim
 		  trim_scale(coalesce(sum(open_amount) FILTER (WHERE $2::date - issue_date > 90), 0))::text AS d90,
 		  trim_scale(sum(open_amount))::text AS total,
 		  trim_scale(coalesce(sum(open_amount) FILTER (WHERE due_date < $2::date), 0))::text AS overdue
-		FROM open WHERE open_amount > 0 GROUP BY account_id, corporate_account_id, customer_id ORDER BY min(bill_to_name)`, property, day, account))
+		FROM open WHERE open_amount > 0 GROUP BY account_id, corporate_account_id, customer_id ORDER BY min(bill_to_name)`, property, day, account, end))
 	if err != nil {
 		return Aging{}, err
 	}

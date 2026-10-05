@@ -379,14 +379,17 @@ func subledgerLines(ctx context.Context, q dbtx.Querier, property uuid.UUID, cfg
 
 // arOpenAsOf lists the billing invoices with their open amount at a date
 // ($1 property, $2 date): the same figures as the operational ageing of
-// billing (PRD P4 FR-AR-04).
+// billing (PRD P4 FR-AR-04). Settlements count up to the end of the date at
+// the property (k.end_at, the next local midnight), not midnight UTC.
 const arOpenAsOf = `SELECT i.id, i.number, i.account_id, i.corporate_account_id, i.customer_id, i.bill_to_name, i.issue_date, i.due_date,
-	i.total - coalesce((SELECT sum(a.amount) FROM reporting.acc_allocations a WHERE a.invoice_id = i.id AND a.created_at < ($2::date + 1)), 0)
-	  - coalesce((SELECT sum(c.amount) FROM reporting.acc_credit_notes c WHERE c.invoice_id = i.id AND c.created_at < ($2::date + 1)), 0)
-	  - coalesce((SELECT sum(w.amount) FROM reporting.acc_write_offs w WHERE w.invoice_id = i.id AND w.status = 'approved' AND w.decided_at < ($2::date + 1)), 0)
+	i.total - coalesce((SELECT sum(a.amount) FROM reporting.acc_allocations a WHERE a.invoice_id = i.id AND a.created_at < k.end_at), 0)
+	  - coalesce((SELECT sum(c.amount) FROM reporting.acc_credit_notes c WHERE c.invoice_id = i.id AND c.created_at < k.end_at), 0)
+	  - coalesce((SELECT sum(w.amount) FROM reporting.acc_write_offs w WHERE w.invoice_id = i.id AND w.status = 'approved' AND w.decided_at < k.end_at), 0)
 	  AS open_amount
-	FROM reporting.acc_invoices i WHERE i.property_id = $1 AND i.issue_date <= $2::date
-	  AND (i.status NOT IN ('draft', 'void') OR (i.status = 'void' AND i.voided_at >= ($2::date + 1)))`
+	FROM reporting.acc_invoices i CROSS JOIN (SELECT ($2::date + 1)::timestamp AT TIME ZONE coalesce(
+	  (SELECT nullif(timezone, '') FROM platform.properties WHERE id = $1), (SELECT timezone FROM platform.instance)) AS end_at) k
+	WHERE i.property_id = $1 AND i.issue_date <= $2::date
+	  AND (i.status NOT IN ('draft', 'void') OR (i.status = 'void' AND i.voided_at >= k.end_at))`
 
 // caddySubledger is the caddy fee held for caddies at the end of a date:
 // caddy fee and tip components charged minus the settlements paid.

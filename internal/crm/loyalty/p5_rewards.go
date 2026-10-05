@@ -169,10 +169,10 @@ func ruleCheck(ctx context.Context, q dbtx.Querier, a LoyaltyAccount, r rewardRu
 		c.Spend = dec(spend)
 	}
 	if r.Max != nil {
-		from := limitStart(r.LimitPeriod, today)
+		from := localStart(ctx, q, a.PropertyID, limitStart(r.LimitPeriod, today))
 		if err := q.QueryRow(ctx, `SELECT coalesce((SELECT sum(quantity) FROM crm.loyalty_reward_redemptions WHERE account_id = $1 AND reward_id = $2
-			AND status <> 'cancelled' AND created_at >= $3::date), 0)::int + coalesce((SELECT sum(quantity) FROM crm.loyalty_reward_issues
-			WHERE customer_id = $4 AND reward_id = $2 AND status <> 'cancelled' AND created_at >= $3::date), 0)::int`, a.ID, reward, from,
+			AND status <> 'cancelled' AND created_at >= $3), 0)::int + coalesce((SELECT sum(quantity) FROM crm.loyalty_reward_issues
+			WHERE customer_id = $4 AND reward_id = $2 AND status <> 'cancelled' AND created_at >= $3), 0)::int`, a.ID, reward, from,
 			a.CustomerID).Scan(&c.Used); err != nil {
 			return c, err
 		}
@@ -334,22 +334,24 @@ func Budget(ctx context.Context, q dbtx.Querier, property uuid.UUID, period stri
 	pct := dec(pol.BudgetPercent)
 	var revenue, rewardCost, redeemedCost string
 	var points int64
+	// The month of the property's calendar: from local midnight to local midnight.
+	start, end := localStart(ctx, q, property, from), localStart(ctx, q, property, to.AddDate(0, 0, 1))
 	if err := q.QueryRow(ctx, `SELECT coalesce(sum(net_amount), 0)::text FROM reporting.eng_folio_lines WHERE property_id = $1 AND NOT liability
 		AND business_line = ANY($2::text[]) AND business_date BETWEEN $3::date AND $4::date`, property, lines, from, to).Scan(&revenue); err != nil {
 		return LoyaltyBudget{}, err
 	}
 	if err := q.QueryRow(ctx, `SELECT coalesce(sum(points) FILTER (WHERE kind = 'earned' OR (kind = 'reversed' AND reverses_id IN
 		  (SELECT id FROM crm.loyalty_ledger x WHERE x.kind = 'earned')) OR (kind = 'adjusted' AND points > 0 AND source_type <> 'crm.customer_merge')), 0)
-		FROM crm.loyalty_ledger WHERE property_id = $1 AND occurred_at >= $2::date AND occurred_at < $3::date + 1`, property, from, to).Scan(&points); err != nil {
+		FROM crm.loyalty_ledger WHERE property_id = $1 AND occurred_at >= $2 AND occurred_at < $3`, property, start, end).Scan(&points); err != nil {
 		return LoyaltyBudget{}, err
 	}
 	if err := q.QueryRow(ctx, `SELECT coalesce(sum(total_cost), 0)::text FROM crm.loyalty_reward_issues WHERE property_id = $1 AND status <> 'cancelled'
-		AND created_at >= $2::date AND created_at < $3::date + 1`, property, from, to).Scan(&rewardCost); err != nil {
+		AND created_at >= $2 AND created_at < $3`, property, start, end).Scan(&rewardCost); err != nil {
 		return LoyaltyBudget{}, err
 	}
 	if err := q.QueryRow(ctx, `SELECT coalesce(sum(r.quantity * w.unit_cost), 0)::text FROM crm.loyalty_reward_redemptions r JOIN crm.loyalty_rewards w
-		ON w.id = r.reward_id WHERE r.property_id = $1 AND r.status <> 'cancelled' AND r.created_at >= $2::date AND r.created_at < $3::date + 1`,
-		property, from, to).Scan(&redeemedCost); err != nil {
+		ON w.id = r.reward_id WHERE r.property_id = $1 AND r.status <> 'cancelled' AND r.created_at >= $2 AND r.created_at < $3`,
+		property, start, end).Scan(&redeemedCost); err != nil {
 		return LoyaltyBudget{}, err
 	}
 	value := lp.Value()

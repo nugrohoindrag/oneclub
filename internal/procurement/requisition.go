@@ -131,7 +131,9 @@ type ProcurementReasonInput struct {
 const requisitionSelect = `SELECT r.id, r.number, r.source, r.status, r.title, r.department_id, r.outlet_id, r.warehouse_id, r.cost_center, r.budget_code,
 	r.category, to_char(r.needed_by, 'YYYY-MM-DD') AS needed_by, r.currency, trim_scale(r.estimated_total)::text AS estimated_total, r.notes, r.source_ref,
 	r.event_id, r.beo_id, r.beo_version, to_char(r.event_date, 'YYYY-MM-DD') AS event_date, r.attention, r.requested_by, r.submitted_at,
-	r.approval_request_id, r.approved_at, r.rejected_reason, r.cancelled_reason, greatest(0, current_date - r.created_at::date) AS age_days,
+	r.approval_request_id, r.approved_at, r.rejected_reason, r.cancelled_reason, greatest(0, billing.local_date(r.property_id)
+	  - (r.created_at AT TIME ZONE coalesce((SELECT nullif(p.timezone, '') FROM platform.properties p WHERE p.id = r.property_id),
+	    (SELECT timezone FROM platform.instance)))::date) AS age_days,
 	r.version, r.created_at, r.updated_at FROM procurement.purchase_requisitions r`
 
 const requisitionLineSelect = `SELECT l.id, l.requisition_id, l.line_no, l.item_id, i.code AS item_code, l.description, trim_scale(l.quantity)::text AS quantity,

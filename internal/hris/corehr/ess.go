@@ -354,7 +354,8 @@ func (m *Module) essTrainingHTTP(ctx context.Context, tx pgx.Tx, r *http.Request
 		  AND (last.completed + make_interval(months => tp.refresher_months))::date < $2::date THEN 'due' ELSE 'compliant' END AS status
 		FROM hris.employees e JOIN hris.positions p ON p.id = e.position_id
 		JOIN hris.training_programs tp ON tp.property_id = e.property_id AND p.code = ANY (tp.required_positions) AND tp.archived_at IS NULL AND tp.status = 'active'
-		LEFT JOIN LATERAL (SELECT max(s.ends_at)::date AS completed FROM hris.training_participants pa JOIN hris.training_sessions s ON s.id = pa.session_id
+		LEFT JOIN LATERAL (SELECT (max(s.ends_at) AT TIME ZONE coalesce((SELECT nullif(x.timezone, '') FROM platform.properties x WHERE x.id = e.property_id),
+		  (SELECT timezone FROM platform.instance)))::date AS completed FROM hris.training_participants pa JOIN hris.training_sessions s ON s.id = pa.session_id
 		  WHERE pa.employee_id = e.id AND s.program_id = tp.id AND s.status = 'completed' AND pa.attendance = 'attended'
 		  AND coalesce(pa.result, 'passed') = 'passed') last ON true
 		WHERE e.id = $1 ORDER BY tp.name`, e.ID, day))

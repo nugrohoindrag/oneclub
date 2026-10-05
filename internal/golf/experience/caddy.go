@@ -16,7 +16,6 @@ import (
 	"oneclub/internal/billing"
 	"oneclub/internal/crm"
 	"oneclub/internal/golf"
-	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
@@ -312,11 +311,13 @@ func (m *Module) indicators(ctx context.Context, q dbtx.Querier, caddy uuid.UUID
 		(SELECT trim_scale(round(avg(rating), 2))::text FROM golf.caddy_ratings WHERE caddy_id = $1),
 		(SELECT count(*) FROM golf.caddy_ratings WHERE caddy_id = $1)::int,
 		(SELECT count(*) FROM golf.incidents WHERE caddy_id = $1 AND subject_type = 'caddy' AND occurred_at > now() - interval '12 months')::int,
-		(SELECT coalesce(p.joined_on, c.created_at::date) FROM golf.caddies c LEFT JOIN golf.caddy_profiles p ON p.caddy_id = c.id WHERE c.id = $1)`, caddy).Scan(&ind.Rounds, &ind.AverageRating, &ind.Ratings, &ind.Incidents12m, &joined); err != nil {
+		(SELECT coalesce(p.joined_on, (c.created_at AT TIME ZONE coalesce((SELECT nullif(x.timezone, '') FROM platform.properties x WHERE x.id = c.property_id),
+		  (SELECT timezone FROM platform.instance)))::date) FROM golf.caddies c LEFT JOIN golf.caddy_profiles p ON p.caddy_id = c.id WHERE c.id = $1)`,
+		caddy).Scan(&ind.Rounds, &ind.AverageRating, &ind.Ratings, &ind.Incidents12m, &joined); err != nil {
 		return ind, err
 	}
 	if joined != nil {
-		n := clock.Now()
+		n := localNow(ctx, q) // the club's month, as joined_on
 		ind.MonthsActive = (n.Year()-joined.Year())*12 + int(n.Month()-joined.Month())
 	}
 	ind.Reasons = []string{}

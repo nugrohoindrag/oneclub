@@ -110,7 +110,8 @@ func checklist(ctx context.Context, q dbtx.Querier, property uuid.UUID, p Financ
 	}
 	var exceptions int
 	if err := q.QueryRow(ctx, `SELECT count(*)::int FROM accounting.posting_exceptions e LEFT JOIN accounting.processed_events pe ON pe.event_id = e.event_id
-		WHERE e.property_id = $1 AND e.status = 'open' AND coalesce(pe.occurred_at, e.created_at) < ($2::date + 1)`, property, end).Scan(&exceptions); err != nil {
+		WHERE e.property_id = $1 AND e.status = 'open' AND coalesce(pe.occurred_at, e.created_at) < $2`,
+		property, localStart(ctx, q, property, end.AddDate(0, 0, 1))).Scan(&exceptions); err != nil {
 		return nil, err
 	}
 	var unmatched int

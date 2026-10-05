@@ -21,6 +21,7 @@ import (
 	"oneclub/internal/kernel/httpx"
 	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/audit"
+	"oneclub/internal/platform/calendar"
 )
 
 // P4HTTP exposes the P4 integration endpoints.
@@ -95,22 +96,27 @@ func (h *P4HTTP) settlement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	q := r.URL.Query()
-	today := clock.Now().UTC().Truncate(24 * time.Hour)
+	// Dates are the club's calendar dates (instance timezone): the period
+	// runs from local midnight to local midnight and defaults to the club's
+	// yesterday (the UTC date is a day behind from 17:00 to 24:00 UTC).
+	loc := calendar.Location(r.Context(), h.Svc.DB.Primary)
+	now := clock.Now().In(loc)
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
 	from, to := today.AddDate(0, 0, -1), today.AddDate(0, 0, -1)
 	if s := q.Get("from"); s != "" {
-		if from, err = time.Parse("2006-01-02", s); err != nil {
+		if from, err = time.ParseInLocation("2006-01-02", s, loc); err != nil {
 			httpx.WriteError(w, r, errs.Validation("invalid_date", "invalid date", errs.Field("from", "invalid_date", "YYYY-MM-DD")))
 			return
 		}
 		to = from
 	}
 	if s := q.Get("to"); s != "" {
-		if to, err = time.Parse("2006-01-02", s); err != nil {
+		if to, err = time.ParseInLocation("2006-01-02", s, loc); err != nil {
 			httpx.WriteError(w, r, errs.Validation("invalid_date", "invalid date", errs.Field("to", "invalid_date", "YYYY-MM-DD")))
 			return
 		}
 	}
-	if to.Before(from) || to.Sub(from) > 31*24*time.Hour {
+	if to.Before(from) || from.AddDate(0, 0, 31).Before(to) {
 		httpx.WriteError(w, r, errs.Validation("invalid_period", "invalid period", errs.Field("to", "invalid", "to on or after from, at most 31 days")))
 		return
 	}

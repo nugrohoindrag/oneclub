@@ -468,6 +468,10 @@ type payoutRow struct {
 	Deductions      *string   `db:"settlement_deductions"`
 }
 
+// sweepPayouts posts the partner payouts paid up to upTo. The SQL bound
+// `paid_at < upTo + 2` (midnight UTC two days later) is a deliberate coarse
+// window that contains the whole local day upTo in any timezone; the exact
+// club-day cut-off is the localDate check below (bd.After(upTo)).
 func (m *Module) sweepPayouts(ctx context.Context, tx pgx.Tx, property uuid.UUID, h sweepHeader, cut, upTo time.Time) (*AccountingJournal, []Missing, error) {
 	rows, err := handle.List[payoutRow](tx.Query(ctx, `SELECT o.id, o.number, o.payout_type, o.beneficiary_type, o.beneficiary_id, o.beneficiary_name,
 		o.amount::text AS amount, o.method_type, o.paid_at, o.settlement_deductions::text AS settlement_deductions FROM reporting.acc_payouts o
@@ -529,7 +533,9 @@ type allocationRow struct {
 }
 
 // sweepAllocations posts the payments allocated to posted invoices: the
-// invoiced receivable is settled from the city ledger (FR-AR-03).
+// invoiced receivable is settled from the city ledger (FR-AR-03). As for the
+// payouts, `created_at < upTo + 2` is a deliberate coarse window over the
+// local day upTo; the exact club-day cut-off is the localDate check below.
 func (m *Module) sweepAllocations(ctx context.Context, tx pgx.Tx, property uuid.UUID, f sweepFilter, h sweepHeader, upTo time.Time) (*AccountingJournal, []Missing, error) {
 	var inv any
 	if f.InvoiceID != nil {

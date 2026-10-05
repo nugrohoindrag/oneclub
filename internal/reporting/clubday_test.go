@@ -67,8 +67,9 @@ func TestReportsDefaultToClubDate(t *testing.T) {
 }
 
 // A timestamp's day is its day at the club: ts::date is its UTC date, the
-// previous day from 00:00 to 07:00 WIB.
-var utcDate = regexp.MustCompile(`\b[a-z_]+_at\)?::date|current_date`)
+// previous day from 00:00 to 07:00 WIB, and ts < ($2::date + 1) cuts at
+// midnight UTC (07:00 WIB) instead of the club's midnight (as-of reports).
+var utcDate = regexp.MustCompile(`\b[a-z_]+_at\)?::date|current_date|\b[a-z_]+_at\)?\s*(<|<=|>|>=)\s*\(?\$\d+::date([^:\w]|$)`)
 
 func TestReportsDateTimestampsAtTheClub(t *testing.T) {
 	pinEveningUTC(t)

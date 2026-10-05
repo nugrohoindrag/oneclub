@@ -24,6 +24,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
+	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
 )
 
@@ -288,15 +289,19 @@ func (x *xendit) SettlementDetails(ctx context.Context, from, to time.Time) ([]G
 }
 
 // SettlementDetails of the sandbox gateway: three deterministic payments
-// (QRIS, BCA virtual account, card) per day, settled up to yesterday.
+// (QRIS, BCA virtual account, card) per day, settled up to yesterday. The
+// days are calendar days in the location of from (the club's, as the
+// settlement endpoint passes local midnights), today included.
 func (m *mockPayment) SettlementDetails(ctx context.Context, from, to time.Time) ([]GatewaySettlementDetail, error) {
 	var out []GatewaySettlementDetail
 	err := timed(m.env, ctx, "settlement_details", map[string]any{"from": from, "to": to}, func() (any, int, error) {
 		if to.Sub(from) > 92*24*time.Hour {
 			return nil, 400, fmt.Errorf("period longer than 92 days")
 		}
-		today := time.Now().UTC().Truncate(24 * time.Hour)
-		for d := from.UTC().Truncate(24 * time.Hour); d.Before(to); d = d.Add(24 * time.Hour) {
+		loc := from.Location()
+		now := clock.Now().In(loc)
+		today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+		for d := time.Date(from.Year(), from.Month(), from.Day(), 0, 0, 0, 0, loc); d.Before(to); d = d.AddDate(0, 0, 1) {
 			h := fnv.New32a()
 			_, _ = h.Write([]byte(d.Format("20060102")))
 			k := int64(h.Sum32() % 40)

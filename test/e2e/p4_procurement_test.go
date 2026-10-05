@@ -803,6 +803,15 @@ func TestP4ProcurementRequisitions(t *testing.T) {
 	sa.Must(422, "POST", "/api/v1/procurement/requisitions/"+str(dr["id"])+":cancel", map[string]any{})
 	dr = sa.Must(200, "POST", "/api/v1/procurement/requisitions/"+str(dr["id"])+":cancel", map[string]any{"reason": "Duplicate"}).JSON()
 	prcStatus(t, dr, "cancelled")
+	// Age in club days: created at 23:30 yesterday at the club, it is one
+	// day old — also from 00:00 to 07:00 WIB (17:00–24:00 UTC), when both
+	// instants fall on the same UTC date.
+	n := time.Now().In(clubLoc(inst))
+	lateYesterday := time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, n.Location()).Add(-30 * time.Minute)
+	sysExec(t, inst, `UPDATE procurement.purchase_requisitions SET created_at = $2 WHERE id = $1`, mustUUID(str(dr["id"])), lateYesterday)
+	if g := sa.Must(200, "GET", "/api/v1/procurement/requisitions/"+str(dr["id"]), nil).JSON(); g["ageDays"] != float64(1) {
+		t.Fatalf("requisition created at 23:30 yesterday (club time) is 1 day old: %v", g["ageDays"])
+	}
 
 	// FR-PR-05: a second requisition of salt, consolidated with the first
 	// into one RFQ line; the RFQ is cancelled, then both are ordered on one

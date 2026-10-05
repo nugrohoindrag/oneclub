@@ -23,6 +23,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	"oneclub/internal/kernel/authz"
+	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
@@ -151,7 +152,7 @@ func localToday(ctx context.Context, q dbtx.Querier, property uuid.UUID) time.Ti
 	if err != nil || loc == nil {
 		loc = time.UTC
 	}
-	return dateOnly(time.Now().In(loc))
+	return dateOnly(clock.Now().In(loc))
 }
 
 // localDate converts an instant to the property's calendar date.

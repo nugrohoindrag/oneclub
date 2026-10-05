@@ -174,6 +174,31 @@ func TestP1GolfDayOperation(t *testing.T) {
 		t.Fatalf("rain check credits should be 50%% of 640k and 995k: %v", rc)
 	}
 	gm.Must(409, "POST", sq+fa+":finish", map[string]any{"holesPlayed": 9})
+	// Rain Check Report on the club's calendar (also from 17:00 to 24:00
+	// UTC, when the UTC date is a day behind): issued today at the club, and
+	// expired once its expiry date is the club's yesterday.
+	rcRow := func() map[string]any {
+		today := clubToday(inst)
+		rep := superAdmin(t, inst).Must(200, "GET", "/api/v1/reporting/reports/golf.rain_checks?params[from]="+today+"&params[to]="+today, nil).JSON()
+		for _, r := range rep["rows"].([]any) {
+			if m := r.(map[string]any); m["number"] == rc[0]["number"] {
+				return m
+			}
+		}
+		t.Fatalf("rain check %v not issued on the club's today %s: %v", rc[0]["number"], today, rep["rows"])
+		return nil
+	}
+	if r := rcRow(); r["issuedOn"] != clubToday(inst) || r["status"] != "issued" {
+		t.Fatalf("rain check of today: %v", r)
+	}
+	rcID := mustUUID(str(rc[0]["id"]))
+	var expiresOn time.Time
+	sysQueryRow(t, inst, `SELECT expires_on FROM golf.rain_checks WHERE id = $1`, []any{rcID}, &expiresOn)
+	sysExec(t, inst, `UPDATE golf.rain_checks SET expires_on = $2::date WHERE id = $1`, rcID, clubDateAgo(inst, 0, 0, 1))
+	if r := rcRow(); r["status"] != "expired" {
+		t.Fatalf("a rain check that expired yesterday at the club reads as expired: %v", r)
+	}
+	sysExec(t, inst, `UPDATE golf.rain_checks SET expires_on = $2 WHERE id = $1`, rcID, expiresOn)
 	rcb := gm.Must(201, "POST", "/api/v1/golf/rain-checks:batch", map[string]any{"flights": []map[string]any{{"flightId": fb, "holesPlayed": 18}}}).Items()
 	for _, x := range rcb {
 		eqAmount(t, "no credit after a full round", x["creditAmount"], 0)

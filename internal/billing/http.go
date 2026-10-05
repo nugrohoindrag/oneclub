@@ -250,7 +250,7 @@ func (h *HTTP) listFolios(w http.ResponseWriter, r *http.Request) {
 		add("f.customer_id::text = ?", v)
 	}
 	if v := r.URL.Query().Get("date"); v != "" {
-		add("f.created_at::date = ?::date", v)
+		add(clubDay("f.created_at"), v)
 	}
 	if lp.Q != "" {
 		add("(f.number ILIKE ? OR f.holder_name ILIKE ? OR f.source_ref ILIKE ?)", "%"+lp.Q+"%")
@@ -618,7 +618,7 @@ func (h *HTTP) listPayments(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if v := r.URL.Query().Get("date"); v != "" {
-		add("coalesce(p.paid_at, p.created_at)::date = ?::date", v)
+		add(clubDay("coalesce(p.paid_at, p.created_at)"), v)
 	}
 	if lp.Q != "" {
 		add("(p.number ILIKE ? OR f.number ILIKE ? OR p.reference ILIKE ?)", "%"+lp.Q+"%")
@@ -1294,6 +1294,16 @@ func (h *HTTP) postEntry(w http.ResponseWriter, r *http.Request) {
 	httpx.JSON(w, http.StatusCreated, out)
 }
 
+// propertyTZ is the timezone of the property $1 (else the instance's).
+const propertyTZ = `coalesce((SELECT nullif(timezone, '') FROM platform.properties WHERE id = $1), (SELECT timezone FROM platform.instance))`
+
+// clubDay is the condition that the instant col falls on the date ? at the
+// property $1: from local midnight to local midnight, not the UTC date
+// (col::date in the UTC session), which starts at 07:00 at the club (WIB).
+func clubDay(col string) string {
+	return col + ` >= (?::date::timestamp AT TIME ZONE ` + propertyTZ + `) AND ` + col + ` < ((?::date + 1)::timestamp AT TIME ZONE ` + propertyTZ + `)`
+}
+
 func (h *HTTP) listMemberCharges(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	lp := httpx.ParseList(r)
@@ -1305,7 +1315,7 @@ func (h *HTTP) listMemberCharges(w http.ResponseWriter, r *http.Request) {
 	}
 	if v := r.URL.Query().Get("date"); v != "" {
 		args = append(args, v)
-		where += fmt.Sprintf(" AND e.occurred_at::date = $%d::date", len(args))
+		where += " AND " + strings.ReplaceAll(clubDay("e.occurred_at"), "?", "$"+strconv.Itoa(len(args)))
 	}
 	var out []AccountEntry
 	err := h.Svc.DB.WithReadTx(ctx, func(tx pgx.Tx) error {

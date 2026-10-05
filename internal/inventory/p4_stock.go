@@ -29,6 +29,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
+	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
@@ -297,11 +298,11 @@ func dateOnly(t time.Time) time.Time {
 
 // today returns the business date in the instance timezone.
 func today(ctx context.Context, q dbtx.Querier) time.Time {
-	return dateOnly(time.Now().In(calendar.Location(ctx, q)))
+	return dateOnly(clock.Now().In(calendar.Location(ctx, q)))
 }
 
 func localNow(ctx context.Context, q dbtx.Querier) time.Time {
-	return time.Now().In(calendar.Location(ctx, q))
+	return clock.Now().In(calendar.Location(ctx, q))
 }
 
 // PeriodStatusFunc returns the accounting period status of a date (K10:

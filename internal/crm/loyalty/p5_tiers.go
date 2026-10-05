@@ -267,13 +267,14 @@ func tierThresholds(ctx context.Context, q dbtx.Querier, property uuid.UUID) (ma
 }
 
 // tierBasis is the qualifying points and eligible spend of an account in
-// the window [from, to].
-func tierBasis(ctx context.Context, q dbtx.Querier, account uuid.UUID, from, to time.Time) (int64, decimal.Decimal, error) {
+// the window [from, to] of the property's calendar dates.
+func tierBasis(ctx context.Context, q dbtx.Querier, property, account uuid.UUID, from, to time.Time) (int64, decimal.Decimal, error) {
 	var pts int64
 	var spend string
 	err := q.QueryRow(ctx, `SELECT coalesce(sum(points) FILTER (WHERE kind = 'earned' OR (kind = 'reversed' AND points < 0)), 0),
 		coalesce(sum(amount) FILTER (WHERE kind = 'earned'), 0)::text FROM crm.loyalty_ledger WHERE account_id = $1
-		AND occurred_at >= $2::date AND occurred_at < $3::date + 1`, account, from, to).Scan(&pts, &spend)
+		AND occurred_at >= $2 AND occurred_at < $3`, account, localStart(ctx, q, property, from),
+		localStart(ctx, q, property, to.AddDate(0, 0, 1))).Scan(&pts, &spend)
 	return pts, dec(spend), err
 }
 
@@ -342,7 +343,7 @@ func (m *Module) RunTierEvaluation(ctx context.Context, tx pgx.Tx, property uuid
 		if err := tx.QueryRow(ctx, `SELECT grace_until FROM crm.loyalty_accounts WHERE id = $1`, aid).Scan(&grace); err != nil {
 			return LoyaltyTierEvaluationRun{}, err
 		}
-		pts, spend, err := tierBasis(ctx, tx, aid, from, today)
+		pts, spend, err := tierBasis(ctx, tx, property, aid, from, today)
 		if err != nil {
 			return LoyaltyTierEvaluationRun{}, err
 		}

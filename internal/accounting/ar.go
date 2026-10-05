@@ -413,9 +413,12 @@ func (m *Module) sweepAR(ctx context.Context, tx pgx.Tx, property uuid.UUID, upT
 		}
 		merge(o)
 	}
-	cns, err := ids(`SELECT c.id FROM reporting.acc_credit_notes c WHERE c.property_id = $1 AND c.created_at >= $2 AND c.created_at < $3::date + 1
+	// Credit notes and write-offs are instants: dated by the property's
+	// calendar from the start of the cut-over day to the end of upTo.
+	from, end := localStart(ctx, tx, property, cut), localStart(ctx, tx, property, dateOnly(upTo).AddDate(0, 0, 1))
+	cns, err := ids(`SELECT c.id FROM reporting.acc_credit_notes c WHERE c.property_id = $1 AND c.created_at >= $2 AND c.created_at < $3
 		AND NOT EXISTS (SELECT 1 FROM accounting.posted_sources s WHERE s.source_type = 'billing.credit_note' AND s.source_id = c.id) LIMIT 2000`,
-		property, cut, dateOnly(upTo))
+		property, from, end)
 	if err != nil {
 		return out, err
 	}
@@ -427,8 +430,8 @@ func (m *Module) sweepAR(ctx context.Context, tx pgx.Tx, property uuid.UUID, upT
 		merge(o)
 	}
 	wos, err := ids(`SELECT w.id FROM reporting.acc_write_offs w WHERE w.property_id = $1 AND w.status = 'approved' AND w.decided_at >= $2
-		AND w.decided_at < $3::date + 1 AND NOT EXISTS (SELECT 1 FROM accounting.posted_sources s WHERE s.source_type = 'billing.write_off' AND s.source_id = w.id)
-		LIMIT 2000`, property, cut, dateOnly(upTo))
+		AND w.decided_at < $3 AND NOT EXISTS (SELECT 1 FROM accounting.posted_sources s WHERE s.source_type = 'billing.write_off' AND s.source_id = w.id)
+		LIMIT 2000`, property, from, end)
 	if err != nil {
 		return out, err
 	}

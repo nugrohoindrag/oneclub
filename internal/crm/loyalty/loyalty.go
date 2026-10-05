@@ -194,6 +194,21 @@ func localToday(ctx context.Context, q dbtx.Querier, property uuid.UUID) time.Ti
 	return time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, time.UTC)
 }
 
+// localStart is the instant the property's calendar date day begins (local
+// midnight): timestamps are compared with it, not with day::date (midnight
+// UTC in the database session, 07:00 at the club in WIB). The zero time
+// stays the zero time (no lower bound).
+func localStart(ctx context.Context, q dbtx.Querier, property uuid.UUID, day time.Time) time.Time {
+	if day.IsZero() {
+		return day
+	}
+	loc, err := org.Location(ctx, q, property)
+	if err != nil || loc == nil {
+		loc = time.UTC
+	}
+	return time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, loc)
+}
+
 func randomCode(prefix string, n int) string {
 	b := make([]byte, n)
 	_, _ = rand.Read(b)

@@ -811,6 +811,13 @@ func TestP4CMSIntegrations(t *testing.T) {
 		}
 	}
 	pa.Must(422, "GET", "/api/v1/platform/integrations/"+mock+"/settlement?from=2026-01-10&to=2026-01-01", nil)
+	// Without a period: the club's yesterday (the UTC yesterday is a day
+	// earlier from 17:00 to 24:00 UTC), already settled by the gateway.
+	yday := clubDateAgo(inst, 0, 0, 1)
+	def := pa.Must(200, "GET", "/api/v1/platform/integrations/"+mock+"/settlement", nil).JSON()
+	if def["from"] != yday || def["to"] != yday || def["total"].(map[string]any)["settled"].(float64) != 3 {
+		t.Fatalf("default settlement period is the club's yesterday %s, settled: %v", yday, def)
+	}
 
 	// E-mail sender domain (SPF / DKIM / DMARC) — DNS answered by a stub.
 	old := integration.LookupTXT

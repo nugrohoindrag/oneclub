@@ -1073,7 +1073,8 @@ func (m *Module) publicNews(ctx context.Context, tx pgx.Tx, s *site, r *http.Req
 	rows, err := handle.List[publishedRow](tx.Query(ctx, publishedSelect+` LEFT JOIN cms.categories cat ON cat.id = c.category_id
 		WHERE c.property_id = $1 AND c.kind = 'article' AND `+visible+` AND ($2 = '' OR cat.code = upper($2)) AND ($3 = '' OR $3 = ANY(c.tags))
 		AND (NOT $4 OR c.featured)
-		ORDER BY coalesce(c.display_date, c.first_published_at::date) DESC, c.first_published_at DESC, c.id LIMIT $5 OFFSET $6`,
+		ORDER BY coalesce(c.display_date, (c.first_published_at AT TIME ZONE coalesce((SELECT nullif(x.timezone, '') FROM platform.properties x
+		  WHERE x.id = c.property_id), (SELECT timezone FROM platform.instance)))::date) DESC, c.first_published_at DESC, c.id LIMIT $5 OFFSET $6`,
 		s.pid, q.Get("category"), strings.ToLower(q.Get("tag")), featured, limit+1, offset))
 	if err != nil {
 		return nil, err

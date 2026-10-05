@@ -24,9 +24,9 @@ var billingP3Reports = []*Report{
 		`WITH open AS (
 		  SELECT i.account_id, i.corporate_account_id, i.customer_id, i.bill_to_name, i.issue_date, i.due_date,
 		    i.total - coalesce((SELECT sum(m.amount) FROM reporting.billing_invoice_movements m WHERE m.invoice_id = i.invoice_id
-		      AND m.occurred_at < ($2::date + 1)), 0) AS open_amount
+		      AND m.occurred_at < (($2::date + 1)::timestamp AT TIME ZONE $3)), 0) AS open_amount
 		  FROM reporting.billing_invoices i WHERE i.issue_date <= $2::date AND $1::text <> '' AND $3::text <> ''
-		    AND (i.status NOT IN ('draft', 'void') OR (i.status = 'void' AND i.voided_at >= ($2::date + 1))))
+		    AND (i.status NOT IN ('draft', 'void') OR (i.status = 'void' AND i.voided_at >= (($2::date + 1)::timestamp AT TIME ZONE $3))))
 		SELECT min(bill_to_name) AS "billTo", count(*)::int AS "invoices",
 		  trim_scale(coalesce(sum(open_amount) FILTER (WHERE $2::date - issue_date <= 30), 0))::text AS "d0to30",
 		  trim_scale(coalesce(sum(open_amount) FILTER (WHERE $2::date - issue_date BETWEEN 31 AND 60), 0))::text AS "d31to60",

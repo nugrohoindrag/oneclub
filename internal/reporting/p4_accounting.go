@@ -68,11 +68,11 @@ var accountingReports = []*Report{
 		cols("billTo|Bill To", "invoice|Invoice", "issueDate|Issue Date|datetime", "dueDate|Due Date|datetime", "d0_30|0–30|number", "d31_60|31–60|number",
 			"d61_90|61–90|number", "d90|> 90|number", "total|Open|number"), nil, 0,
 		`WITH open AS (SELECT i.bill_to_name, i.number, i.issue_date, i.due_date,
-		  i.total - coalesce((SELECT sum(a.amount) FROM reporting.acc_allocations a WHERE a.invoice_id = i.id AND a.created_at < ($2::date + 1)), 0)
-		  - coalesce((SELECT sum(c.amount) FROM reporting.acc_credit_notes c WHERE c.invoice_id = i.id AND c.created_at < ($2::date + 1)), 0)
-		  - coalesce((SELECT sum(w.amount) FROM reporting.acc_write_offs w WHERE w.invoice_id = i.id AND w.status = 'approved' AND w.decided_at < ($2::date + 1)), 0)
+		  i.total - coalesce((SELECT sum(a.amount) FROM reporting.acc_allocations a WHERE a.invoice_id = i.id AND a.created_at < (($2::date + 1)::timestamp AT TIME ZONE $3)), 0)
+		  - coalesce((SELECT sum(c.amount) FROM reporting.acc_credit_notes c WHERE c.invoice_id = i.id AND c.created_at < (($2::date + 1)::timestamp AT TIME ZONE $3)), 0)
+		  - coalesce((SELECT sum(w.amount) FROM reporting.acc_write_offs w WHERE w.invoice_id = i.id AND w.status = 'approved' AND w.decided_at < (($2::date + 1)::timestamp AT TIME ZONE $3)), 0)
 		  AS open_amount FROM reporting.acc_invoices i WHERE i.issue_date <= $2::date
-		  AND (i.status NOT IN ('draft', 'void') OR (i.status = 'void' AND i.voided_at >= ($2::date + 1))))
+		  AND (i.status NOT IN ('draft', 'void') OR (i.status = 'void' AND i.voided_at >= (($2::date + 1)::timestamp AT TIME ZONE $3))))
 		SELECT bill_to_name AS "billTo", number AS "invoice", issue_date AS "issueDate", due_date AS "dueDate",
 		trim_scale(CASE WHEN $2::date - issue_date <= 30 THEN open_amount ELSE 0 END)::text AS "d0_30",
 		trim_scale(CASE WHEN $2::date - issue_date BETWEEN 31 AND 60 THEN open_amount ELSE 0 END)::text AS "d31_60",

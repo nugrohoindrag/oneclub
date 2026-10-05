@@ -264,7 +264,7 @@ func (m *Module) myProgress(ctx context.Context, q dbtx.Querier, c crm.Customer)
 	if !b.Enrolled || b.AccountID == nil {
 		return out, nil
 	}
-	pts, spend, err := tierBasis(ctx, q, *b.AccountID, from, today)
+	pts, spend, err := tierBasis(ctx, q, c.PropertyID, *b.AccountID, from, today)
 	if err != nil {
 		return out, err
 	}

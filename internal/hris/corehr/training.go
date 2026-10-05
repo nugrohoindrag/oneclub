@@ -383,7 +383,8 @@ func (m *Module) matrixHTTP(ctx context.Context, tx pgx.Tx, r *http.Request) ([]
 		JOIN hris.training_programs tp ON tp.property_id = e.property_id AND p.code = ANY (tp.required_positions) AND tp.archived_at IS NULL
 		  AND tp.status = 'active'
 		LEFT JOIN hris.org_units ou ON ou.id = e.org_unit_id
-		LEFT JOIN LATERAL (SELECT max(s.ends_at)::date AS completed FROM hris.training_participants pa
+		LEFT JOIN LATERAL (SELECT (max(s.ends_at) AT TIME ZONE coalesce((SELECT nullif(x.timezone, '') FROM platform.properties x WHERE x.id = e.property_id),
+		  (SELECT timezone FROM platform.instance)))::date AS completed FROM hris.training_participants pa
 		  JOIN hris.training_sessions s ON s.id = pa.session_id
 		  WHERE pa.employee_id = e.id AND s.program_id = tp.id AND s.status = 'completed' AND pa.attendance = 'attended'
 		    AND coalesce(pa.result, 'passed') = 'passed') last ON true
