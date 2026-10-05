@@ -277,15 +277,38 @@ receipt) and publishes `inventory.revaluation_posted`
 ### `procurement.purchase_returned` — consumed by inventory (stock out) and accounting
 `{ purchaseReturnId, number, goodsReceiptId, supplierId, warehouseId, currency, total, lines: [{ itemId, baseQuantity, baseUnitCost, totalCost, batchNo? }] }`
 
+Procurement publishes it (one event per goods receipt) when an invoice is approved and the invoiced base cost
+(`invoice unit price × accepted ÷ base quantity` of the receipt line) differs from the receipt's `baseUnitCost`; additive
+fields `currency` and per line `receivedBaseUnitCost`.
+
 ### `procurement.vendor_invoice_approved` — consumed by accounting (AP)
 `{ vendorInvoiceId, number, supplierInvoiceNo, supplierId, invoiceDate, dueDate, currency, subtotal, taxAmount, total,
    withholding: "0", taxInvoiceNo?, goodsReceiptIds: [], lines: [{ itemId?, description, quantity, unitPrice, total, accountHint: inventory|expense|asset }] }`
 
 ### `procurement.debit_note_issued`
 `{ debitNoteId, number, supplierId, vendorInvoiceId?, amount, currency, reason }`
+Additive (procurement): `subtotal`, `taxAmount`, `purchaseReturnId?`, `purchaseOrderId?`. A purchase return issues a debit note
+(`vendorInvoiceId` set when the returned goods are already on an approved invoice, else applied to the next approved invoice of the
+order: `vendor_invoice_approved.debitNoteIds`).
 
 ### `accounting.vendor_payment_made` — consumed by procurement (vendor invoice paid status)
 `{ paymentId, number, supplierId, paidDate, currency, allocations: [{ vendorInvoiceId, amount }] }`
+Procurement applies each allocation once per (paymentId, vendorInvoiceId): Partially Paid / Paid (paid ≥ total − withholding − debit notes).
+
+### Procurement notes (P4 EP-10–15)
+- `procurement.vendor_invoice_approved` additive fields: `withholdingType`, `purchaseOrderIds`, `debitNoteIds`, `debitNoteTotal`,
+  `matchType` (three_way | two_way), `approvalKind` (approval | override), per line `taxAmount`; `lines[].total` is net of PPN.
+- `procurement.goods_received`: `purchaseOrderId` / `poNumber` are null for a receipt without PO (FR-GR-03, after approval).
+- Also published (informational): `procurement.requisition_approved` `{ requisitionId, number, source, currency, estimatedTotal, warehouseId?, eventId? }`,
+  `procurement.po_approved` `{ purchaseOrderId, number, version, supplierId, orderType, warehouseId?, expectedDate?, currency, total }`,
+  `procurement.vendor_invoice_matched` `{ vendorInvoiceId, number, supplierId, matchType, total, currency }`.
+- Consumed: `inventory.reorder_needed` — `suggestedQuantity` is already net of inventory's on-order and is requested as is (reorder
+  requests join the open draft reorder requisition of the warehouse; `source: requisition` creates a store-requisition PR with
+  `sourceRef = requisitionNumber`); a repeated request (warehouse × item × business day / store requisition) is ignored.
+  `banquet.beo_issued` / `beo_revised` (K1) — one banquet PR per BEO; a revision replaces the open lines; quantities already ordered
+  are kept, the ordered PR is flagged (`attention`) and the additional quantity goes to a new PR; older versions are ignored.
+- Period guard (K10): `procurement.Module.SetPeriodGuard(accounting.PeriodStatus)` refuses goods receipts, purchase returns, vendor
+  invoices and debit notes dated in a Closed period (nil = every period open).
 
 ### `accounting.period_closed` (K10), `accounting.period_reopened`
 `{ periodId, year, month, status: soft_closed|closed|open, closedAt }`
