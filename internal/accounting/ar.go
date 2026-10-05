@@ -492,7 +492,7 @@ func ListReceivables(ctx context.Context, q dbtx.Querier, property uuid.UUID) ([
 		  coalesce(min(a.name), min(i.bill_to_name), '—') AS bill_to_name, trim_scale(coalesce(sum(i.invoiced), 0))::text AS invoiced,
 		  trim_scale(sum(i.paid))::text AS paid, trim_scale(sum(i.credited))::text AS credited, trim_scale(sum(i.balance))::text AS balance,
 		  count(*) FILTER (WHERE i.balance > 0)::int AS open_invoices,
-		  trim_scale(coalesce(sum(i.balance) FILTER (WHERE i.balance > 0 AND i.due_date < current_date), 0))::text AS overdue,
+		  trim_scale(coalesce(sum(i.balance) FILTER (WHERE i.balance > 0 AND i.due_date < billing.local_date($1)), 0))::text AS overdue,
 		  trim_scale(min(a.credit_limit))::text AS credit_limit, trim_scale(min(a.balance))::text AS account_balance
 		FROM inv i LEFT JOIN reporting.acc_ar_accounts a ON a.id = i.account_id GROUP BY i.account_id HAVING sum(i.balance) <> 0 OR sum(i.invoiced) <> 0
 		ORDER BY 4 LIMIT 2000`, property))

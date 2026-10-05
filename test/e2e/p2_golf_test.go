@@ -608,6 +608,9 @@ func TestP2GolfReciprocal(t *testing.T) {
 	if out := sa.Must(200, "GET", "/api/v1/golf/reciprocal-visits?filter[direction]=outbound", nil).Items(); len(out) != 1 {
 		t.Fatalf("outbound visit: %v", out)
 	}
+	// An agreement that ended yesterday at the club is no longer published.
+	sa.Must(201, "POST", "/api/v1/golf/reciprocal-clubs", map[string]any{"code": "ENDED", "name": "Ended Golf Club", "country": "Thailand",
+		"agreementFrom": "2025-01-01", "agreementTo": clubDateAgo(inst, 0, 0, 1)})
 	if cl := anon(t, inst).Must(200, "GET", "/api/v1/public/reciprocal-clubs?propertyId="+inst.Main.String(), nil).Items(); len(cl) != 1 || cl[0]["country"] != "Singapore" {
 		t.Fatalf("public reciprocal clubs: %v", cl)
 	}

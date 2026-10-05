@@ -399,7 +399,7 @@ type Membership struct {
 }
 
 const membershipCols = `ms.id, ms.member_id, mb.code, mb.name, ms.type_id, t.name, ms.package_id, ms.principal_id, ms.role, ms.relationship, ms.corporate_account_id,
-	ms.starts_on, ms.ends_on, ms.status, (ms.ends_on - current_date),
+	ms.starts_on, ms.ends_on, ms.status, (ms.ends_on - billing.local_date(ms.property_id)),
 	EXISTS (SELECT 1 FROM membership.renewals rn WHERE rn.membership_id = ms.id AND rn.status = 'pending')
 	FROM membership.memberships ms JOIN membership.members mb ON mb.id = ms.member_id JOIN membership.types t ON t.id = ms.type_id`
 
@@ -454,7 +454,7 @@ func (m *Module) listMembershipsHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		args = append(args, n)
-		where = append(where, "ms.status = 'active' AND ms.role = 'principal' AND ms.ends_on <= current_date + $"+strconv.Itoa(len(args))+"::int")
+		where = append(where, "ms.status = 'active' AND ms.role = 'principal' AND ms.ends_on <= billing.local_date(ms.property_id) + $"+strconv.Itoa(len(args))+"::int")
 	}
 	if lp.Q != "" {
 		args = append(args, "%"+lp.Q+"%")

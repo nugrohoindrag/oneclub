@@ -172,7 +172,7 @@ func (s *Service) CorporateView(ctx context.Context, q dbtx.Querier, property, c
 	if out.Account, err = handle.One[Corporate360Account](rows, err, "corporate account"); err != nil {
 		return out, err
 	}
-	since := time.Now().AddDate(0, 0, -90).Format("2006-01-02")
+	since := localToday(ctx, q, property).AddDate(0, 0, -90).Format("2006-01-02")
 	if out.Nominees, err = handle.List[Corporate360Nominee](q.Query(ctx, `SELECT n.customer_id, c.code, c.name, n.title, n.status,
 		(SELECT count(*) FROM reporting.golf_rounds g WHERE g.customer_id = n.customer_id AND g.play_date >= $2::date)::int AS rounds90
 		FROM crm.corporate_nominees n JOIN crm.customers c ON c.id = n.customer_id WHERE n.corporate_account_id = $1 ORDER BY n.status, c.name`, cid, since)); err != nil {
@@ -186,8 +186,8 @@ func (s *Service) CorporateView(ctx context.Context, q dbtx.Querier, property, c
 	}
 	rows, err = q.Query(ctx, `SELECT count(*) FILTER (WHERE status IN ('issued', 'partially_paid', 'overdue'))::int AS open_invoices,
 		trim_scale(coalesce(sum(outstanding) FILTER (WHERE status IN ('issued', 'partially_paid', 'overdue')), 0))::text AS outstanding,
-		trim_scale(coalesce(sum(outstanding) FILTER (WHERE status IN ('issued', 'partially_paid', 'overdue') AND due_date < current_date), 0))::text AS overdue,
-		trim_scale(coalesce(sum(total) FILTER (WHERE status <> 'void' AND issue_date >= current_date - 365), 0))::text AS invoiced12m
+		trim_scale(coalesce(sum(outstanding) FILTER (WHERE status IN ('issued', 'partially_paid', 'overdue') AND due_date < billing.local_date($1)), 0))::text AS overdue,
+		trim_scale(coalesce(sum(total) FILTER (WHERE status <> 'void' AND issue_date >= billing.local_date($1) - 365), 0))::text AS invoiced12m
 		FROM reporting.eng_invoices WHERE property_id = $1 AND corporate_account_id = $2`, property, cid)
 	if out.Billing, err = handle.One[CorporateBilling](rows, err, "billing"); err != nil {
 		return out, err

@@ -348,6 +348,12 @@ func TestP4ProcurementProcureToPay(t *testing.T) {
 	if v := sa.Must(200, "GET", "/api/v1/procurement/vendor-invoices/"+str(vi["id"]), nil).JSON(); v["status"] != "partially_paid" {
 		t.Fatalf("partially paid: %v", v)
 	}
+	// Due yesterday at the club: one day overdue, also before 07:00 WIB while
+	// the UTC date is still yesterday.
+	sysExec(t, inst, `UPDATE procurement.vendor_invoices SET due_date = $2 WHERE id = $1`, mustUUID(str(vi["id"])), clubDateAgo(inst, 0, 0, 1))
+	if v := sa.Must(200, "GET", "/api/v1/procurement/vendor-invoices/"+str(vi["id"]), nil).JSON(); v["daysOverdue"] != float64(1) {
+		t.Fatalf("days overdue of an invoice due yesterday: %v", v["daysOverdue"])
+	}
 	pay("100000", p1) // the same payment again changes nothing
 	pay("177500", uuid.New())
 	v := sa.Must(200, "GET", "/api/v1/procurement/vendor-invoices/"+str(vi["id"]), nil).JSON()

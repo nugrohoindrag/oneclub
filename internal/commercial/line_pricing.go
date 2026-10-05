@@ -596,8 +596,8 @@ func PublicRates(ctx context.Context, q dbtx.Querier, property uuid.UUID, types 
 		LEFT JOIN commercial.time_bands tb ON tb.id = r.time_band_id
 		LEFT JOIN commercial.rate_plans rp ON rp.id = r.rate_plan_id
 		LEFT JOIN commercial.package_rates pk ON pk.id = r.package_rate_id
-		WHERE r.property_id = $1 AND r.service_type = ANY($2) AND r.status = 'active' AND r.effective_from <= current_date
-		AND (r.effective_to IS NULL OR r.effective_to >= current_date) AND coalesce(r.channel, 'website') = 'website'
+		WHERE r.property_id = $1 AND r.service_type = ANY($2) AND r.status = 'active' AND r.effective_from <= billing.local_date($1)
+		AND (r.effective_to IS NULL OR r.effective_to >= billing.local_date($1)) AND coalesce(r.channel, 'website') = 'website'
 		AND coalesce(r.segment, '') NOT IN ('member', 'corporate')
 		ORDER BY r.code, r.version DESC`, property, types))
 	for i := range out {

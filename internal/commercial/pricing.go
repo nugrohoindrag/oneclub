@@ -25,6 +25,7 @@ import (
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
 	"oneclub/internal/kernel/reqctx"
+	"oneclub/internal/platform/calendar"
 	"oneclub/internal/platform/org"
 	"oneclub/internal/platform/resource"
 )
@@ -216,7 +217,7 @@ func ParseComponents(raw any) ([]Component, error) {
 // (FR-PRC-04).
 func ruleBeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before map[string]any) error {
 	pid, _ := reqctx.Property(ctx)
-	today := clock.Now().Format("2006-01-02")
+	today := clock.Now().In(calendar.Location(ctx, tx)).Format("2006-01-02") // the club's date, not UTC
 	if comps, ok := v["components"]; ok {
 		if _, err := ParseComponents(comps); err != nil {
 			return err

@@ -223,7 +223,7 @@ func (m *Module) registerLifecycle(reg *route.Registry) {
 				days = n
 			}
 			return handle.Page(handle.List[Fee](tx.Query(ctx, feeSelect+` WHERE f.property_id = $1 AND ($2 = '' OR f.status = $2)
-				AND ($3 = '' OR f.membership_id::text = $3) AND ($4 < 0 OR f.due_date <= current_date + $4) ORDER BY f.due_date LIMIT $5`,
+				AND ($3 = '' OR f.membership_id::text = $3) AND ($4 < 0 OR f.due_date <= billing.local_date($1) + $4) ORDER BY f.due_date LIMIT $5`,
 				handle.Property(ctx), lp.Filters["status"], lp.Filters["membershipId"], days, lp.Limit)))
 		})})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/membership/annual-fees/{id}:waive", Summary: "Waive a membership fee (reason)", Tag: "Membership Fees",

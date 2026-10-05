@@ -14,6 +14,7 @@ import (
 
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/errs"
+	"oneclub/internal/kernel/reqctx"
 	"oneclub/internal/platform/catalog"
 	"oneclub/internal/platform/resource"
 )
@@ -234,9 +235,11 @@ func holeBeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before ma
 // templateBeforeWrite keeps templates consistent; an effective template is
 // changed by adding a new template with a later effective date
 // (FR-TEE-11), never by editing it.
-func templateBeforeWrite(_ context.Context, _ pgx.Tx, v map[string]any, before map[string]any) error {
-	today := clock.Now().Format("2006-01-02")
+func templateBeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before map[string]any) error {
 	if before != nil {
+		// the club's date, not the UTC date (still yesterday before 07:00 WIB)
+		pid, _ := reqctx.Property(ctx)
+		today := localDay(clock.Now(), location(ctx, tx, pid)).Format("2006-01-02")
 		if eff, _ := before["effectiveFrom"].(string); eff != "" && eff <= today {
 			for k := range v {
 				if k != "status" && k != "effectiveTo" && k != "name" {

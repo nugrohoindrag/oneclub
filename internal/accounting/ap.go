@@ -96,7 +96,7 @@ const apSelect = `SELECT i.id, i.supplier_id, i.supplier_name, i.item_type, i.so
 	to_char(i.invoice_date, 'YYYY-MM-DD') AS invoice_date, to_char(i.due_date, 'YYYY-MM-DD') AS due_date, i.currency, trim_scale(i.subtotal)::text AS subtotal,
 	trim_scale(i.tax_amount)::text AS tax_amount, trim_scale(i.withholding)::text AS withholding, trim_scale(i.amount)::text AS amount,
 	trim_scale(i.paid_amount)::text AS paid_amount, trim_scale(i.amount - i.paid_amount)::text AS outstanding, i.status, i.tax_invoice_no, i.related_item_id,
-	i.journal_id, i.description, greatest(0, current_date - i.due_date)::int AS days_overdue FROM accounting.ap_items i`
+	i.journal_id, i.description, greatest(0, billing.local_date(i.property_id) - i.due_date)::int AS days_overdue FROM accounting.ap_items i`
 
 // ListAPItems lists the payables of a property.
 func ListAPItems(ctx context.Context, q dbtx.Querier, property uuid.UUID, supplier *uuid.UUID, status, dueBy string, limit int) ([]APItem, error) {

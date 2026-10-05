@@ -293,7 +293,7 @@ func seedGolfDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 	}
 	member := id.New()
 	if err := tx.QueryRow(ctx, `INSERT INTO membership.members (id, property_id, code, name, email, phone, membership_type, user_id, status, customer_id, joined_on)
-		VALUES ($1,$2,$3,'Hendra Member','member@demo.oneclub.id','+628111000001','IND',$4,'active',$5,current_date - 30)
+		VALUES ($1,$2,$3,'Hendra Member','member@demo.oneclub.id','+628111000001','IND',$4,'active',$5,billing.local_date($2) - 30)
 		ON CONFLICT (property_id, code) DO UPDATE SET name = EXCLUDED.name RETURNING id`, member, property, DemoMemberCode, userID, cust).Scan(&member); err != nil {
 		return err
 	}
@@ -304,11 +304,11 @@ func seedGolfDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 	if !hasMembership {
 		ms := id.New()
 		if _, err := tx.Exec(ctx, `INSERT INTO membership.memberships (id, property_id, member_id, type_id, package_id, role, starts_on, ends_on, status, activated_at)
-			VALUES ($1,$2,$3,$4,$5,'principal',current_date - 30,current_date + 335,'active',now())`, ms, property, member, types["IND"], packages["IND-1Y"]); err != nil {
+			VALUES ($1,$2,$3,$4,$5,'principal',billing.local_date($2) - 30,billing.local_date($2) + 335,'active',now())`, ms, property, member, types["IND"], packages["IND-1Y"]); err != nil {
 			return err
 		}
 		if _, err := tx.Exec(ctx, `INSERT INTO membership.cards (id, property_id, member_id, membership_id, card_number, card_type, qr_token, valid_until)
-			VALUES ($1,$2,$3,$4,$5,'digital',$6,current_date + 335)`, id.New(), property, member, ms, DemoMemberCode+"-01", "mc_"+secret.RandomToken(24)); err != nil {
+			VALUES ($1,$2,$3,$4,$5,'digital',$6,billing.local_date($2) + 335)`, id.New(), property, member, ms, DemoMemberCode+"-01", "mc_"+secret.RandomToken(24)); err != nil {
 			return err
 		}
 		if _, err := tx.Exec(ctx, `INSERT INTO membership.history (id, property_id, member_id, membership_id, event, to_status, details)

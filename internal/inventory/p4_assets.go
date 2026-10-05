@@ -140,7 +140,7 @@ func (s *Stock) disposeNow(ctx context.Context, tx pgx.Tx, property, aid uuid.UU
 	var reason *string
 	err := tx.QueryRow(ctx, `UPDATE inventory.assets a SET status = 'disposed', rental_status = 'available' FROM inventory.asset_categories c
 		WHERE a.id = $1 AND c.id = a.category_id AND a.status <> 'disposed'
-		RETURNING a.code, a.name, c.asset_class, c.name, coalesce(a.disposed_on, current_date), a.acquisition_cost::text, a.accumulated_depreciation::text,
+		RETURNING a.code, a.name, c.asset_class, c.name, coalesce(a.disposed_on, billing.local_date(a.property_id)), a.acquisition_cost::text, a.accumulated_depreciation::text,
 		a.book_value::text, a.disposal_proceeds::text, a.disposal_reason, coalesce(c.asset_account, ''), coalesce(c.accumulated_account, '')`, aid).
 		Scan(&code, &name, &class, &category, &on, &cost, &acc, &book, &proceeds, &reason, &assetAcct, &accAcct)
 	if dbtx.IsNoRows(err) {

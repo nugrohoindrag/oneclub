@@ -24,6 +24,7 @@ import (
 	"oneclub/internal/kernel/reqctx"
 	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/audit"
+	"oneclub/internal/platform/calendar"
 	"oneclub/internal/platform/resource"
 )
 
@@ -74,7 +75,7 @@ func init() {
 	p1Plan := RatePlans.Hooks.BeforeWrite
 	RatePlans.Hooks.BeforeWrite = func(ctx context.Context, tx pgx.Tx, v map[string]any, before map[string]any) error {
 		if before == nil && str(v["effectiveFrom"]) == "" {
-			v["effectiveFrom"] = clock.Now().Format("2006-01-02")
+			v["effectiveFrom"] = clock.Now().In(calendar.Location(ctx, tx)).Format("2006-01-02")
 		}
 		if p1Plan != nil {
 			return p1Plan(ctx, tx, v, before)
@@ -197,7 +198,7 @@ func lineRuleVersion(ctx context.Context, tx pgx.Tx, v map[string]any, before ma
 			return err
 		}
 	}
-	today := clock.Now().Format("2006-01-02")
+	today := clock.Now().In(calendar.Location(ctx, tx)).Format("2006-01-02") // the club's date, not UTC
 	if before != nil {
 		if str(before["effectiveFrom"]) <= today {
 			for k := range v {

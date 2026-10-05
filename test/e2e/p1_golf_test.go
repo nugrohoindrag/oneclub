@@ -269,7 +269,9 @@ func TestP1BookingChanges(t *testing.T) {
 	bd := gm.Must(201, "POST", "/api/v1/golf/bag-drops", map[string]any{"bookingPlayerId": pids[0], "tagNumber": "TAG-" + day[8:], "bagCount": 1}).JSON()
 	gm.Must(200, "POST", "/api/v1/golf/bag-drops/"+str(bd["id"])+":collect", nil)
 	bs := gm.Must(201, "POST", "/api/v1/golf/bag-storage", map[string]any{"customerId": demoMemberCustomer(t, inst), "rackNumber": "R-07", "fee": "250000"}).JSON()
-	gm.Must(200, "POST", "/api/v1/golf/bag-storage/"+str(bs["id"])+":end", nil)
+	if end := gm.Must(200, "POST", "/api/v1/golf/bag-storage/"+str(bs["id"])+":end", nil).JSON(); end["endsOn"] != clubToday(inst) || end["startsOn"] != clubToday(inst) {
+		t.Fatalf("bag storage starts and ends on the club's today %s: %v", clubToday(inst), end)
+	}
 
 	// A multi-flight booking is rescheduled per flight; a single-flight one
 	// moves as a whole. Cancelling inside the free window has no fee.

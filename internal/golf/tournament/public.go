@@ -144,7 +144,7 @@ func (m *Module) publicView(ctx context.Context, q dbtx.Querier, property uuid.U
 func (m *Module) PublicList(ctx context.Context, q dbtx.Querier, property uuid.UUID, members bool, status string) ([]PublicTournament, error) {
 	list, err := handle.List[Tournament](q.Query(ctx, tournamentSelect+` WHERE t.property_id = $1 AND t.source = 'oneclub' AND t.status <> 'draft'
 		AND ($2 OR t.public) AND ($3 = '' OR t.status = ANY(string_to_array($3, ',')))
-		AND (t.status NOT IN ('completed', 'cancelled') OR t.end_date >= current_date - 400)
+		AND (t.status NOT IN ('completed', 'cancelled') OR t.end_date >= billing.local_date($1) - 400)
 		ORDER BY CASE WHEN t.status IN ('open', 'closed', 'in_progress') THEN 0 ELSE 1 END, t.start_date, t.code LIMIT 100`, property, members, status))
 	if err != nil {
 		return nil, err

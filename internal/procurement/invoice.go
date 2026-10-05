@@ -160,7 +160,7 @@ const invoiceSelect = `SELECT v.id, v.number, v.supplier_id, s.name AS supplier_
 	trim_scale(CASE WHEN v.status IN ('draft', 'cancelled') THEN 0 ELSE greatest(v.total - v.withholding_amount - v.debit_note_total - v.paid_amount, 0) END)::text
 	  AS outstanding,
 	v.status, v.match_type, v.matched_at, v.match_summary, v.hold_reason, v.held_at, v.override_reason, v.approval_request_id, v.approval_kind,
-	v.approved_at, v.paid_at, CASE WHEN v.status IN ('approved', 'partially_paid') AND v.due_date < current_date THEN current_date - v.due_date ELSE 0 END
+	v.approved_at, v.paid_at, CASE WHEN v.status IN ('approved', 'partially_paid') AND v.due_date < billing.local_date(v.property_id) THEN billing.local_date(v.property_id) - v.due_date ELSE 0 END
 	  AS days_overdue, v.notes, v.cancelled_reason,
 	coalesce((SELECT array_agg(DISTINCT pl.purchase_order_id) FROM procurement.vendor_invoice_lines l
 	  JOIN procurement.purchase_order_lines pl ON pl.id = l.purchase_order_line_id WHERE l.vendor_invoice_id = v.id), '{}') AS purchase_order_ids,
@@ -1184,7 +1184,7 @@ func (m *Module) registerInvoices(reg *route.Registry) {
 			lp := httpx.ParseList(r)
 			return handle.Page(handle.List[VendorInvoice](tx.Query(ctx, invoiceSelect+` WHERE v.property_id = $1
 				AND ($2 = '' OR v.status = ANY(string_to_array($2, ','))) AND ($3 = '' OR v.supplier_id::text = $3)
-				AND (NOT $4 OR (v.status IN ('approved', 'partially_paid') AND v.due_date < current_date))
+				AND (NOT $4 OR (v.status IN ('approved', 'partially_paid') AND v.due_date < billing.local_date($1)))
 				AND ($5 = '' OR v.invoice_date >= $5::date) AND ($6 = '' OR v.invoice_date <= $6::date)
 				AND ($7 = '' OR v.number ILIKE '%' || $7 || '%' OR v.supplier_invoice_no ILIKE '%' || $7 || '%' OR s.name ILIKE '%' || $7 || '%')
 				ORDER BY v.created_at DESC LIMIT $8`, handle.Property(ctx), lp.Filters["status"], lp.Filters["supplierId"], r.URL.Query().Get("overdue") == "true",

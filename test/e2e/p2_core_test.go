@@ -136,6 +136,17 @@ func TestP2PricingRateCards(t *testing.T) {
 	if len(rates) < 4 {
 		t.Fatalf("public rates: %v", rates)
 	}
+	// A rate effective from the club's today is published today (also
+	// before 07:00 WIB, while the UTC date is still yesterday).
+	rule(t, sa, map[string]any{"code": "SQUASH-PUB", "name": "Squash (from today)", "serviceType": "sport_court", "itemRef": "SQUASH-PUB",
+		"unit": "slot", "unitMinutes": 60, "price": "90000", "effectiveFrom": clubToday(inst)})
+	published := false
+	for _, r := range anon(t, inst).Must(200, "GET", "/api/v1/public/rates/sportclub?propertyId="+inst.Main.String(), nil).Items() {
+		published = published || r["name"] == "Squash (from today)"
+	}
+	if !published {
+		t.Fatalf("a rate effective from the club's today %s must be published", clubToday(inst))
+	}
 }
 
 // EP-01 acceptance: capacity mode enforced in the database; multi-line

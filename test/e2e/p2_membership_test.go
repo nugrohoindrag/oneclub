@@ -212,4 +212,17 @@ func TestP2MembershipLifecycle(t *testing.T) {
 	if n := len(sa.Must(200, "GET", "/api/v1/membership/applications?filter[status]=completed", nil).Items()); n < 3 {
 		t.Fatalf("applications %d", n)
 	}
+
+	// A membership that ended yesterday at the club has expired, also before
+	// 07:00 WIB while the UTC date is still yesterday.
+	ended := customer(t, sa, "MB-ENDED", "Eko Ended", map[string]any{"birthDate": dateAgo(50, 0, 0)})
+	eid := activeMembership(t, sa, ended, golfInd, golfIndPkg, nil)
+	sysExec(t, inst, `UPDATE membership.memberships SET starts_on = $2, ends_on = $3 WHERE id = $1`, mustUUID(eid), clubDateAgo(inst, 1, 0, 1), clubDateAgo(inst, 0, 0, 1))
+	if ms := sa.Must(200, "GET", "/api/v1/membership/memberships/"+eid, nil).JSON(); ms["daysToExpiry"] != float64(-1) {
+		t.Fatalf("days to expiry of a membership ended yesterday: %v", ms["daysToExpiry"])
+	}
+	sec := sa.Must(200, "GET", "/api/v1/crm/customers/"+ended+"/360", nil).JSON()["sections"].(map[string]any)["membership"].([]any)
+	if len(sec) != 1 || sec[0].(map[string]any)["status"] != "expired" {
+		t.Fatalf("a membership that ended yesterday reads as expired: %v", sec)
+	}
 }

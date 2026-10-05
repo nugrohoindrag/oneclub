@@ -2063,7 +2063,7 @@ func (m *Module) StoreBag(ctx context.Context, tx pgx.Tx, property uuid.UUID, re
 
 // EndBagStorage ends a storage.
 func (m *Module) EndBagStorage(ctx context.Context, tx pgx.Tx, property, sid uuid.UUID) (BagStorage, error) {
-	tag, err := tx.Exec(ctx, `UPDATE golf.bag_storage SET status = 'ended', ends_on = coalesce(ends_on, current_date), updated_by = $3 WHERE id = $1 AND property_id = $2 AND status = 'active'`,
+	tag, err := tx.Exec(ctx, `UPDATE golf.bag_storage SET status = 'ended', ends_on = coalesce(ends_on, billing.local_date($2)), updated_by = $3 WHERE id = $1 AND property_id = $2 AND status = 'active'`,
 		sid, property, id.Ptr(actor(ctx)))
 	if err != nil {
 		return BagStorage{}, err

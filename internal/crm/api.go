@@ -294,7 +294,7 @@ func FamilyOf(ctx context.Context, q dbtx.Querier, customerID uuid.UUID) ([]Rela
 func IsNominee(ctx context.Context, q dbtx.Querier, corporateID, customerID uuid.UUID) (bool, error) {
 	var ok bool
 	err := q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM crm.corporate_nominees WHERE corporate_account_id = $1 AND customer_id = $2
-		AND status = 'active' AND (ends_on IS NULL OR ends_on >= current_date))`, corporateID, customerID).Scan(&ok)
+		AND status = 'active' AND (ends_on IS NULL OR ends_on >= billing.local_date(property_id)))`, corporateID, customerID).Scan(&ok)
 	return ok, err
 }
 

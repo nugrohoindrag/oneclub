@@ -841,7 +841,7 @@ type RainCheck struct {
 }
 
 const rainCheckCols = `r.id, r.number, r.booking_id, b.code, r.booking_player_id, bp.name, r.customer_id, r.holes_played, r.holes_total, r.credit_percent::text,
-	r.credit_amount::text, r.currency, r.expires_on, CASE WHEN r.status = 'issued' AND r.expires_on < current_date THEN 'expired' ELSE r.status END,
+	r.credit_amount::text, r.currency, r.expires_on, CASE WHEN r.status = 'issued' AND r.expires_on < billing.local_date(r.property_id) THEN 'expired' ELSE r.status END,
 	r.redeemed_booking_id, r.redeemed_at, r.created_at
 	FROM golf.rain_checks r JOIN golf.bookings b ON b.id = r.booking_id JOIN golf.booking_players bp ON bp.id = r.booking_player_id`
 

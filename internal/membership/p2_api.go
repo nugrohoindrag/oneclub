@@ -64,7 +64,7 @@ func programKind(k string) string {
 func Memberships(ctx context.Context, q dbtx.Querier, property, customerID uuid.UUID) ([]Active, error) {
 	list, err := handle.List[Active](q.Query(ctx, `SELECT ms.id AS membership_id, mb.code AS member_no, p.code AS program_code, p.name AS program_name,
 		p.program_kind, t.code AS type_code, t.name AS type_name, ms.role,
-		CASE WHEN ms.status = 'active' AND ms.ends_on < current_date THEN 'expired' ELSE ms.status END AS status,
+		CASE WHEN ms.status = 'active' AND ms.ends_on < billing.local_date(ms.property_id) THEN 'expired' ELSE ms.status END AS status,
 		ms.starts_on, ms.ends_on, t.entitlements, t.member_rate, t.golf_access, t.booking_window_days
 		FROM membership.memberships ms JOIN membership.members mb ON mb.id = ms.member_id
 		JOIN membership.types t ON t.id = ms.type_id JOIN membership.programs p ON p.id = t.program_id
