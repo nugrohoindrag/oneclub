@@ -557,6 +557,7 @@ func (h *HTTP) RegisterP3(reg *route.Registry) {
 	h.registerP3Member(reg)
 	h.registerP3Public(reg)
 	h.registerP3ScheduleLinks(reg)
+	h.registerARImport(reg)
 }
 
 func hasPerm(ctx context.Context, perm string) bool {
@@ -736,7 +737,7 @@ var publicLimiter = &handle.Limiter{N: 30, Period: time.Minute}
 func P3Contribution() catalog.Contribution {
 	perms := catalog.P("billing", "customer_folio", "view", "manage", "split")
 	perms = append(perms, catalog.P("billing", "payment_schedule", "view", "manage")...)
-	perms = append(perms, catalog.P("billing", "invoice", "view", "create", "issue", "void", "credit", "write_off", "allocate")...)
+	perms = append(perms, catalog.P("billing", "invoice", "view", "create", "issue", "void", "credit", "write_off", "allocate", "import")...)
 	perms = append(perms, catalog.P("billing", "credit_override", "request")...)
 	perms = append(perms, catalog.P("billing", "cashier_shift", "view", "operate", "view_all")...)
 	perms = append(perms, catalog.P("billing", "night_audit", "view", "run", "reopen")...)

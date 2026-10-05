@@ -42,9 +42,11 @@ type Publisher interface {
 	Publish(ctx context.Context, tx pgx.Tx, eventType, aggregateType string, aggregateID, propertyID *uuid.UUID, payload any) (uuid.UUID, error)
 }
 
-// Payments is the integration surface billing needs (integration.Service).
+// Payments is the integration surface billing needs (integration.Service):
+// the payment gateway is resolved per payment method and property (P4
+// integration layer, FR-INT-P3-04).
 type Payments interface {
-	PaymentWithCode(ctx context.Context) (integration.PaymentAdapter, string, error)
+	PaymentFor(ctx context.Context, method string, property uuid.UUID) (integration.PaymentAdapter, string, error)
 	ByCode(ctx context.Context, code string) (any, error)
 }
 
@@ -607,16 +609,16 @@ func (s *Service) TakePayment(ctx context.Context, tx pgx.Tx, in PaymentInput) (
 		if s.Gateways == nil {
 			return Payment{}, errs.Unavailable("payment gateway not configured")
 		}
-		gw, code, err := s.Gateways.PaymentWithCode(ctx)
+		method := in.MethodType
+		if method == "payment_gateway" {
+			method = ""
+		}
+		gw, code, err := s.Gateways.PaymentFor(ctx, method, property)
 		if errors.Is(err, integration.ErrNotConfigured) {
 			return Payment{}, errs.Unavailable("online payment is not available: no payment gateway integration is enabled")
 		}
 		if err != nil {
 			return Payment{}, err
-		}
-		method := in.MethodType
-		if method == "payment_gateway" {
-			method = ""
 		}
 		res, err := gw.CreatePayment(ctx, integration.PaymentRequest{Reference: num, Amount: in.Amount.String(), Currency: cur, Method: method,
 			Description: in.Description, CustomerRef: holder})

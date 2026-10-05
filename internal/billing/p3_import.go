@@ -50,19 +50,20 @@ func (s *Service) ImportOpenInvoice(ctx context.Context, tx pgx.Tx, property uui
 	}
 	var acct Account
 	var billTo string
+	var billEmail *string
 	switch {
 	case in.CorporateAccountID != nil:
 		if acct, err = s.EnsureCorporateAccount(ctx, tx, property, *in.CorporateAccountID); err != nil {
 			return Invoice{}, false, err
 		}
-		if err := tx.QueryRow(ctx, `SELECT name FROM crm.corporate_accounts WHERE id = $1`, *in.CorporateAccountID).Scan(&billTo); err != nil {
+		if err := tx.QueryRow(ctx, `SELECT name, email FROM crm.corporate_accounts WHERE id = $1`, *in.CorporateAccountID).Scan(&billTo, &billEmail); err != nil {
 			return Invoice{}, false, err
 		}
 	case in.CustomerID != nil:
 		if acct, err = s.EnsureAccount(ctx, tx, property, *in.CustomerID, "customer", nil); err != nil {
 			return Invoice{}, false, err
 		}
-		if err := tx.QueryRow(ctx, `SELECT name FROM crm.customers WHERE id = $1`, *in.CustomerID).Scan(&billTo); err != nil {
+		if err := tx.QueryRow(ctx, `SELECT name, email FROM crm.customers WHERE id = $1`, *in.CustomerID).Scan(&billTo, &billEmail); err != nil {
 			return Invoice{}, false, err
 		}
 	default:
@@ -95,10 +96,10 @@ func (s *Service) ImportOpenInvoice(ctx context.Context, tx pgx.Tx, property uui
 		note += "; original total " + in.OriginalTotal.String()
 	}
 	if _, err := tx.Exec(ctx, `INSERT INTO billing.invoices (id, property_id, number, kind, customer_id, corporate_account_id, account_id, bill_to_name,
-		issue_date, due_date, terms_days, currency, subtotal, total, status, public_token, notes, issued_at, created_by, updated_by)
-		VALUES ($1,$2,$3,'standard',$4,$5,$6,$7,$8,$9,$10,$11,$12::numeric,$12::numeric,$13,$14,$15,now(),$16,$16)`,
+		issue_date, due_date, terms_days, currency, subtotal, total, status, public_token, notes, issued_at, created_by, updated_by, bill_to_email)
+		VALUES ($1,$2,$3,'standard',$4,$5,$6,$7,$8,$9,$10,$11,$12::numeric,$12::numeric,$13,$14,$15,now(),$16,$16,$17)`,
 		iid, property, number, acct.CustomerID, in.CorporateAccountID, acct.ID, billTo, issue, due, int(due.Sub(issue).Hours()/24), cur, amt.String(),
-		status, newToken(), note, id.Ptr(actor(ctx))); err != nil {
+		status, newToken(), note, id.Ptr(actor(ctx)), billEmail); err != nil {
 		return Invoice{}, false, err
 	}
 	if _, err := tx.Exec(ctx, `INSERT INTO billing.invoice_lines (id, property_id, invoice_id, seq, account_entry_id, description, quantity, unit_price, net_amount, total)
