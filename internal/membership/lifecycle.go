@@ -535,7 +535,14 @@ func (m *Module) Activate(ctx context.Context, tx pgx.Tx, aid uuid.UUID, waivePa
 		return a, err
 	}
 	if a.Status == "completed" {
-		return a, nil
+		// Already activated (e.g. by the payment subscriber a moment
+		// earlier): the repeated request is recorded, nothing changes.
+		var prop *uuid.UUID
+		if p := propOf(ctx); p != uuid.Nil {
+			prop = &p
+		}
+		return a, audit.Record(ctx, tx, audit.Entry{Module: "membership", Action: "activate_repeat", EntityType: "membership.application",
+			EntityID: aid.String(), EntityLabel: a.Number, PropertyID: prop})
 	}
 	if a.Status != "approved" {
 		return a, errs.Conflict("application_not_approved", "only approved applications can be activated")
