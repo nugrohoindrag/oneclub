@@ -560,6 +560,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounting/general-ledger/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Source documents of the general ledger lines of an account (same filters as the General Ledger, FR-FIN-04) */
+        get: operations["getAccountingGeneralLedgerDocuments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/invoice-efaktur": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** e-Faktur number and status of the billing invoices of the property (Invoices screen, PRD P4 §7.1) */
+        get: operations["getAccountingInvoiceEfaktur"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/accounting/journals": {
         parameters: {
             query?: never;
@@ -586,6 +620,23 @@ export interface paths {
         };
         /** Journal with its lines and source documents (drill-down, FR-ACC-05) */
         get: operations["getAccountingJournalsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/journals/{id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Source documents of a journal with their numbers (drill-down, FR-FIN-04) */
+        get: operations["getAccountingJournalsByIdDocuments"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1241,6 +1292,23 @@ export interface paths {
         get: operations["getAccountingReconciliation"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/reconciliations:excel-trial-balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Compare the trial balance with the Excel Finance trial balance of the parallel-run month (FR-TRS-03) */
+        post: operations["postAccountingReconciliationsExcelTrialBalance"];
         delete?: never;
         options?: never;
         head?: never;
@@ -17441,6 +17509,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/invoice-efaktur": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** e-Faktur of my invoices (Member App → Invoices, PRD P4 §7.3) */
+        get: operations["getMemberInvoiceEfaktur"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/invoices": {
         parameters: {
             query?: never;
@@ -25673,6 +25758,15 @@ export interface components {
             sourceId?: string | null;
             sourceType?: string | null;
         };
+        AccountingLedgerLineDocuments: {
+            documents: components["schemas"]["AccountingSourceDocument"][];
+            /** Format: uuid */
+            journalId: string;
+            /** Format: uuid */
+            lineId: string;
+            /** @description Further source documents of the journal not listed */
+            moreDocuments: number;
+        };
         AccountingPostingException: {
             amount: string;
             attempts: number;
@@ -25999,6 +26093,20 @@ export interface components {
         };
         AccountingSignOffInput: {
             note: string;
+        };
+        AccountingSourceDocument: {
+            /** Format: uuid */
+            documentId?: string | null;
+            /** @enum {string} */
+            documentType: "folio" | "invoice" | "credit_note" | "write_off" | "payment" | "refund" | "deposit" | "payout" | "cashier_shift" | "purchase_order" | "goods_receipt" | "purchase_return" | "vendor_invoice" | "stock_movement" | "journal" | "manual_journal" | "recurring_journal" | "bank_transaction" | "cash_transaction" | "vendor_bill" | "vendor_payment" | "payment_run" | "opening_balance" | "other";
+            number?: string | null;
+            /** Format: uuid */
+            relatedId?: string | null;
+            relatedNumber?: string | null;
+            /** @description A related document (e.g. the PO of a goods receipt, the invoice of a credit note) */
+            relatedType?: string | null;
+            sourceId: string;
+            sourceType: string;
         };
         AccountingTaxCode: {
             /**
@@ -26509,12 +26617,22 @@ export interface components {
             /** Format: uuid */
             userId: string;
             userName: string;
+            /**
+             * Format: date-time
+             * @description Expiry of a time-bound assignment (Auditor); no access after it
+             */
+            validUntil?: string | null;
         };
         AssignmentRequest: {
             /** Format: uuid */
             propertyId?: string | null;
             /** Format: uuid */
             roleId: string;
+            /**
+             * Format: date-time
+             * @description Expiry of the assignment (required for the Auditor role, PRD P4 §16 #18)
+             */
+            validUntil?: string | null;
         };
         Attendance: {
             caddyCode: string;
@@ -32917,6 +33035,11 @@ export interface components {
             roleId: string;
             /** Format: uuid */
             userId: string;
+            /**
+             * Format: date-time
+             * @description Expiry of the assignment (required for the Auditor role, PRD P4 §16 #18)
+             */
+            validUntil?: string | null;
         };
         CreateFlightRequest: {
             /** Format: uuid */
@@ -35293,6 +35416,49 @@ export interface components {
             /** Format: uuid */
             vendorId: string;
         };
+        ExcelTrialBalanceComparison: {
+            consolidated: boolean;
+            differences: number;
+            from: string;
+            /** @description Every account agrees and no Excel item is unmapped */
+            matched: boolean;
+            rows: components["schemas"]["ExcelTrialBalanceRow"][];
+            to: string;
+            /** @description Σ |difference| */
+            totalDifference: string;
+            unmapped: components["schemas"]["ExcelTrialBalanceUnmapped"][];
+        };
+        ExcelTrialBalanceInput: {
+            /** @description CSV with a header: account,debit,credit (or account,balance); account = Excel Finance item (Account Mappings) or OneClub account code */
+            content: string;
+            /** @description Default: first day of the month of to */
+            from?: string;
+            /**
+             * Format: uuid
+             * @description Empty: consolidated over the properties in scope
+             */
+            propertyId?: string | null;
+            to: string;
+        };
+        ExcelTrialBalanceRow: {
+            /** Format: uuid */
+            accountId?: string | null;
+            code: string;
+            /** @description OneClub − Excel */
+            difference: string;
+            /** @description Excel Finance closing balance (debit − credit) */
+            excel: string;
+            excelItems: string[];
+            matched: boolean;
+            name: string;
+            /** @description OneClub closing balance (debit − credit) */
+            oneClub: string;
+        };
+        ExcelTrialBalanceUnmapped: {
+            account: string;
+            balance: string;
+            row: number;
+        };
         ExceptionResolveInput: {
             reason?: string;
         };
@@ -35353,7 +35519,7 @@ export interface components {
             error?: string | null;
             fileUrl?: string | null;
             /** @enum {string} */
-            format: "csv" | "xlsx";
+            format: "csv" | "xlsx" | "pdf";
             /** Format: uuid */
             id: string;
             reportCode: string;
@@ -38157,6 +38323,20 @@ export interface components {
             voidedAt?: string | null;
             writeOffs: components["schemas"]["WriteOff"][];
             writtenOffAmount: string;
+        };
+        InvoiceEFakturStatus: {
+            /** @description Nomor seri faktur pajak (after upload to Coretax) */
+            fakturNumber?: string | null;
+            /** Format: uuid */
+            invoiceId: string;
+            invoiceNumber?: string | null;
+            /** @enum {string} */
+            status: "draft" | "exported" | "uploaded" | "cancelled";
+            /** Format: uuid */
+            taxInvoiceId: string;
+            taxPeriod: string;
+            /** Format: date-time */
+            uploadedAt?: string | null;
         };
         InvoiceInput: {
             /**
@@ -46122,7 +46302,7 @@ export interface components {
         };
         ReportingExportRequest: {
             /** @enum {string} */
-            format: "csv" | "xlsx";
+            format: "csv" | "xlsx" | "pdf";
             params?: {
                 [key: string]: string;
             };
@@ -51858,6 +52038,11 @@ export interface components {
             /** Format: uuid */
             roleId: string;
             roleName: string;
+            /**
+             * Format: date-time
+             * @description Expiry of a time-bound assignment (Auditor); no access after it
+             */
+            validUntil?: string | null;
         };
         UserSummary: {
             email: string;
@@ -55325,6 +55510,127 @@ export interface operations {
             };
         };
     };
+    getAccountingGeneralLedgerDocuments: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                accountId: string;
+                from?: string;
+                to?: string;
+                propertyId?: string;
+                businessLine?: string;
+                costCenter?: string;
+                departmentId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AccountingLedgerLineDocuments"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getAccountingInvoiceEfaktur: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[invoiceId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InvoiceEFakturStatus"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getAccountingJournals: {
         parameters: {
             query?: {
@@ -55411,6 +55717,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AccountingJournal"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getAccountingJournalsByIdDocuments: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AccountingSourceDocument"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -57896,6 +58262,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ControlReconciliation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postAccountingReconciliationsExcelTrialBalance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExcelTrialBalanceInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExcelTrialBalanceComparison"];
                 };
             };
             /** @description Not authenticated */
@@ -130399,6 +130816,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TournamentStartSheet"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberInvoiceEfaktur: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InvoiceEFakturStatus"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */

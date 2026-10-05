@@ -2262,6 +2262,35 @@
         ],
         "type": "object"
       },
+      "AccountingLedgerLineDocuments": {
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/AccountingSourceDocument"
+            },
+            "type": "array"
+          },
+          "journalId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lineId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "moreDocuments": {
+            "description": "Further source documents of the journal not listed",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lineId",
+          "journalId",
+          "documents",
+          "moreDocuments"
+        ],
+        "type": "object"
+      },
       "AccountingPostingException": {
         "properties": {
           "amount": {
@@ -3014,6 +3043,74 @@
         },
         "required": [
           "note"
+        ],
+        "type": "object"
+      },
+      "AccountingSourceDocument": {
+        "properties": {
+          "documentId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "documentType": {
+            "enum": [
+              "folio",
+              "invoice",
+              "credit_note",
+              "write_off",
+              "payment",
+              "refund",
+              "deposit",
+              "payout",
+              "cashier_shift",
+              "purchase_order",
+              "goods_receipt",
+              "purchase_return",
+              "vendor_invoice",
+              "stock_movement",
+              "journal",
+              "manual_journal",
+              "recurring_journal",
+              "bank_transaction",
+              "cash_transaction",
+              "vendor_bill",
+              "vendor_payment",
+              "payment_run",
+              "opening_balance",
+              "other"
+            ],
+            "type": "string"
+          },
+          "number": {
+            "nullable": true,
+            "type": "string"
+          },
+          "relatedId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "relatedNumber": {
+            "nullable": true,
+            "type": "string"
+          },
+          "relatedType": {
+            "description": "A related document (e.g. the PO of a goods receipt, the invoice of a credit note)",
+            "nullable": true,
+            "type": "string"
+          },
+          "sourceId": {
+            "type": "string"
+          },
+          "sourceType": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceType",
+          "sourceId",
+          "documentType"
         ],
         "type": "object"
       },
@@ -4637,6 +4734,12 @@
           },
           "userName": {
             "type": "string"
+          },
+          "validUntil": {
+            "description": "Expiry of a time-bound assignment (Auditor); no access after it",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
           }
         },
         "required": [
@@ -4659,6 +4762,12 @@
           },
           "roleId": {
             "format": "uuid",
+            "type": "string"
+          },
+          "validUntil": {
+            "description": "Expiry of the assignment (required for the Auditor role, PRD P4 §16 #18)",
+            "format": "date-time",
+            "nullable": true,
             "type": "string"
           }
         },
@@ -22341,6 +22450,12 @@
           "userId": {
             "format": "uuid",
             "type": "string"
+          },
+          "validUntil": {
+            "description": "Expiry of the assignment (required for the Auditor role, PRD P4 §16 #18)",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
           }
         },
         "required": [
@@ -29138,6 +29253,144 @@
         ],
         "type": "object"
       },
+      "ExcelTrialBalanceComparison": {
+        "properties": {
+          "consolidated": {
+            "type": "boolean"
+          },
+          "differences": {
+            "type": "integer"
+          },
+          "from": {
+            "type": "string"
+          },
+          "matched": {
+            "description": "Every account agrees and no Excel item is unmapped",
+            "type": "boolean"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ExcelTrialBalanceRow"
+            },
+            "type": "array"
+          },
+          "to": {
+            "type": "string"
+          },
+          "totalDifference": {
+            "description": "Σ |difference|",
+            "type": "string"
+          },
+          "unmapped": {
+            "items": {
+              "$ref": "#/components/schemas/ExcelTrialBalanceUnmapped"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "consolidated",
+          "rows",
+          "unmapped",
+          "differences",
+          "totalDifference",
+          "matched"
+        ],
+        "type": "object"
+      },
+      "ExcelTrialBalanceInput": {
+        "properties": {
+          "content": {
+            "description": "CSV with a header: account,debit,credit (or account,balance); account = Excel Finance item (Account Mappings) or OneClub account code",
+            "type": "string"
+          },
+          "from": {
+            "description": "Default: first day of the month of to",
+            "type": "string"
+          },
+          "propertyId": {
+            "description": "Empty: consolidated over the properties in scope",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "to",
+          "content"
+        ],
+        "type": "object"
+      },
+      "ExcelTrialBalanceRow": {
+        "properties": {
+          "accountId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "difference": {
+            "description": "OneClub − Excel",
+            "type": "string"
+          },
+          "excel": {
+            "description": "Excel Finance closing balance (debit − credit)",
+            "type": "string"
+          },
+          "excelItems": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "matched": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "oneClub": {
+            "description": "OneClub closing balance (debit − credit)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "excelItems",
+          "excel",
+          "oneClub",
+          "difference",
+          "matched"
+        ],
+        "type": "object"
+      },
+      "ExcelTrialBalanceUnmapped": {
+        "properties": {
+          "account": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "string"
+          },
+          "row": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "row",
+          "account",
+          "balance"
+        ],
+        "type": "object"
+      },
       "ExceptionResolveInput": {
         "properties": {
           "reason": {
@@ -29324,7 +29577,8 @@
           "format": {
             "enum": [
               "csv",
-              "xlsx"
+              "xlsx",
+              "pdf"
             ],
             "type": "string"
           },
@@ -36607,6 +36861,51 @@
           "allocations",
           "creditNotes",
           "writeOffs"
+        ],
+        "type": "object"
+      },
+      "InvoiceEFakturStatus": {
+        "properties": {
+          "fakturNumber": {
+            "description": "Nomor seri faktur pajak (after upload to Coretax)",
+            "nullable": true,
+            "type": "string"
+          },
+          "invoiceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "invoiceNumber": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "exported",
+              "uploaded",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "taxInvoiceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "taxPeriod": {
+            "type": "string"
+          },
+          "uploadedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "invoiceId",
+          "taxInvoiceId",
+          "status",
+          "taxPeriod"
         ],
         "type": "object"
       },
@@ -60713,7 +61012,8 @@
           "format": {
             "enum": [
               "csv",
-              "xlsx"
+              "xlsx",
+              "pdf"
             ],
             "type": "string"
           },
@@ -77534,6 +77834,12 @@
           },
           "roleName": {
             "type": "string"
+          },
+          "validUntil": {
+            "description": "Expiry of a time-bound assignment (Auditor); no access after it",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
           }
         },
         "required": [
@@ -84911,6 +85217,259 @@
         "x-permission": "accounting.ledger.view"
       }
     },
+    "/api/v1/accounting/general-ledger/documents": {
+      "get": {
+        "operationId": "getAccountingGeneralLedgerDocuments",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "accountId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "propertyId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "businessLine",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "costCenter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "departmentId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/AccountingLedgerLineDocuments"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Source documents of the general ledger lines of an account (same filters as the General Ledger, FR-FIN-04)",
+        "tags": [
+          "General Ledger"
+        ],
+        "x-module": "accounting",
+        "x-permission": "accounting.ledger.view"
+      }
+    },
+    "/api/v1/accounting/invoice-efaktur": {
+      "get": {
+        "operationId": "getAccountingInvoiceEfaktur",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[invoiceId]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/InvoiceEFakturStatus"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "e-Faktur number and status of the billing invoices of the property (Invoices screen, PRD P4 §7.1)",
+        "tags": [
+          "Revenue \u0026 Tax"
+        ],
+        "x-module": "accounting",
+        "x-permission": "billing.invoice.view"
+      }
+    },
     "/api/v1/accounting/journals": {
       "get": {
         "operationId": "getAccountingJournals",
@@ -85137,6 +85696,117 @@
           }
         ],
         "summary": "Journal with its lines and source documents (drill-down, FR-ACC-05)",
+        "tags": [
+          "General Ledger"
+        ],
+        "x-module": "accounting",
+        "x-permission": "accounting.journal.view"
+      }
+    },
+    "/api/v1/accounting/journals/{id}/documents": {
+      "get": {
+        "operationId": "getAccountingJournalsByIdDocuments",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/AccountingSourceDocument"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Source documents of a journal with their numbers (drill-down, FR-FIN-04)",
         "tags": [
           "General Ledger"
         ],
@@ -89273,6 +89943,78 @@
         "tags": [
           "Posting"
         ],
+        "x-module": "accounting",
+        "x-permission": "accounting.ledger.view"
+      }
+    },
+    "/api/v1/accounting/reconciliations:excel-trial-balance": {
+      "post": {
+        "operationId": "postAccountingReconciliationsExcelTrialBalance",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExcelTrialBalanceInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExcelTrialBalanceComparison"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Compare the trial balance with the Excel Finance trial balance of the parallel-run month (FR-TRS-03)",
+        "tags": [
+          "Closing"
+        ],
+        "x-audited": true,
         "x-module": "accounting",
         "x-permission": "accounting.ledger.view"
       }
@@ -214844,6 +215586,99 @@
         "x-permission": "platform.member_portal.access"
       }
     },
+    "/api/v1/member/invoice-efaktur": {
+      "get": {
+        "operationId": "getMemberInvoiceEfaktur",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/InvoiceEFakturStatus"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "e-Faktur of my invoices (Member App → Invoices, PRD P4 §7.3)",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "accounting",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
     "/api/v1/member/invoices": {
       "get": {
         "operationId": "getMemberInvoices",
@@ -265217,6 +266052,9 @@
     },
     {
       "name": "Classes"
+    },
+    {
+      "name": "Closing"
     },
     {
       "name": "Club Policies"
