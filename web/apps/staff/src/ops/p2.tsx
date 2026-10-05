@@ -312,9 +312,24 @@ export function StayDeskPage() {
 
 // ── POS (EP-20) — orders work offline through the sync queue ──────────────
 
+/** POS customer: search CRM customers (member price, personal promo codes, Redeem Points). */
+function PosCustomerPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [q, setQ] = useState('');
+  const list = useGet<Page<Row>>(q.trim().length >= 2 ? `/api/v1/crm/customers${qs({ q, limit: 20, 'filter[status]': 'active' })}` : null);
+  return (
+    <>
+      <div style={{ width: 220 }}><TextField label="Find customer" value={q} onChange={setQ} placeholder="Name, phone or code" /></div>
+      <div style={{ width: 240 }}><SelectField label="Customer" value={value} onChange={onChange} placeholder="Walk-in guest"
+        options={(list.data?.items ?? []).map((c) => ({ value: String(c.id), label: `${String(c.name)} (${String(c.code)})` }))} /></div>
+    </>
+  );
+}
+
+const POS_METHODS = ['cash', 'qris', 'card', 'member_account'];
+
 export function POSPage() {
   const toast = useToast();
-  const { propertyId } = useAuth();
+  const { propertyId, can } = useAuth();
   const outlet = read(OUTLET_KEY);
   const menu = useGet<Page<Schemas['MenuItem']>>(outlet ? `/api/v1/commercial/outlets/${outlet}/menu` : null);
   const shifts = useGet<Page<Row>>(`/api/v1/commercial/shifts${qs({ 'filter[status]': 'open', 'filter[outletId]': outlet })}`);
@@ -322,26 +337,61 @@ export function POSPage() {
   const [cart, setCart] = useState<Record<string, number>>({});
   const [table, setTable] = useState('');
   const [method, setMethod] = useState('cash');
+  const [customer, setCustomer] = useState('');
+  const [points, setPoints] = useState('');
+  const [rest, setRest] = useState('cash');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+  const online = typeof navigator === 'undefined' || navigator.onLine;
+  // PRD P3 FR-LOY-05 / FR-OPS-P3-03: points of the customer as a tender
+  const acctQ = useGet<Page<Row>>(customer && can('crm.loyalty_account.view') ? `/api/v1/crm/loyalty/accounts${qs({ 'filter[customerId]': customer })}` : null);
+  const acct = acctQ.data?.items.find((a) => a.status === 'active');
   const shift = shifts.data?.items.find((s) => s.outletId === outlet);
   const items = menu.data?.items ?? [];
   const total = items.reduce((s, p) => s + Number(p.price) * (cart[p.productId] ?? 0), 0);
-  // PRD P3 FR-OPS-P3-03: promotions of the cart (online and offline)
+  // PRD P3 FR-OPS-P3-03: promotions of the cart (online and offline); the customer unlocks personal codes
   const promo = usePosPromotions(outlet, items.filter((p) => (cart[p.productId] ?? 0) > 0)
-    .map((p) => ({ productId: p.productId, quantity: cart[p.productId], unitPrice: Number(p.price) })));
+    .map((p) => ({ productId: p.productId, quantity: cart[p.productId], unitPrice: Number(p.price) })), customer);
   if (!outlet) return <Empty title="Choose an outlet on the Home screen first" icon="storefront" />;
+  const due = Math.max(total - promo.discount, 0);
+  const pointValue = Number(acct?.redemptionValue ?? 0);
+  const maxPoints = acct && pointValue > 0 ? Math.min(Number(acct.balance ?? 0), Math.floor(due / pointValue)) : 0;
+  const usePoints = method === 'loyalty_points';
+  const methods = [...POS_METHODS, ...(acct && online ? ['loyalty_points'] : [])];
+  const reset = () => { setCart({}); setTable(''); setPoints(''); setMethod('cash'); };
+  const lines = () => Object.entries(cart).filter(([, n]) => n > 0).map(([productId, n]) => ({ productId, quantity: String(n) }));
   const checkout = async () => {
     const id = uuidv7();
-    const order = { id, outletId: outlet, shiftId: shift?.id, tableNo: table, send: true, offline: !navigator.onLine,
-      lines: Object.entries(cart).filter(([, n]) => n > 0).map(([productId, n]) => ({ productId, quantity: String(n) })), ...promo.orderFields(total) };
+    const order = { id, outletId: outlet, shiftId: shift?.id, tableNo: table, send: true, offline: !navigator.onLine, customerId: customer || undefined,
+      lines: lines(), ...promo.orderFields(total) };
     await enqueue('commercial.pos_order', { order, payment: { shiftId: shift?.id, tenders: [{ methodType: method }] } }, propertyId);
-    setCart({});
-    setTable('');
+    reset();
     toast(navigator.onLine ? 'Order sent' : 'Offline: order queued and will sync automatically');
+  };
+  // Redeem Points needs the live balance: the sale goes online at once (never queued).
+  const checkoutWithPoints = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const fields = promo.orderFields(total);
+      const order = await request<Row>('POST', '/api/v1/commercial/orders', { outletId: outlet, shiftId: shift?.id, tableNo: table || undefined, send: true,
+        customerId: customer, lines: lines(), promoCodes: fields.promoCodes, promotionExclusions: fields.promotionExclusions }, idem());
+      const n = Math.min(Number(points || maxPoints), maxPoints);
+      await request<Row>('POST', `/api/v1/commercial/orders/${String(order.id)}:pay`, { shiftId: shift?.id, tenders: [
+        { methodType: 'loyalty_points', tender: { points: n } }, { methodType: rest }] }, idem());
+      reset();
+      toast(`Paid ${formatNumber(n)} points and ${rest.replace('_', ' ')}`);
+      void acctQ.refetch();
+    } catch (e) {
+      setError(e);
+    } finally {
+      setBusy(false);
+    }
   };
   return (
     <div className="oc-stack">
       <Head title="POS" help={shift ? `Shift ${String(shift.shiftNo)} open` : 'Open a shift to start selling'} />
-      <ErrorAlert error={openShift.error} />
+      <ErrorAlert error={openShift.error ?? error} />
       {!shift && (
         <button className="oc-btn oc-btn-ink" onClick={() => {
           const cash = window.prompt('Opening cash', '500000');
@@ -357,15 +407,28 @@ export function POSPage() {
         ))}
       </div>
       <Card title="Current order" icon="receipt">
+        <div className="oc-row-wrap" aria-label="Customer">
+          <PosCustomerPicker value={customer} onChange={(v) => { setCustomer(v); setPoints(''); if (method === 'loyalty_points') setMethod('cash'); }} />
+          {acct && <span className="oc-chip" style={{ alignSelf: 'flex-end' }}>{formatNumber(Number(acct.balance))} points · {money(acct.balanceValue)}</span>}
+          {customer && !acctQ.isLoading && !acct && can('crm.loyalty_account.view') && <span className="oc-small oc-muted" style={{ alignSelf: 'flex-end' }}>Not a loyalty member</span>}
+        </div>
         <div className="oc-row-wrap">
           <div style={{ width: 140 }}><TextField label="Table" value={table} onChange={setTable} /></div>
           <div style={{ width: 200 }}><SelectField label="Payment" value={method} onChange={setMethod}
-            options={['cash', 'qris', 'card', 'member_account'].map((m) => ({ value: m, label: m.replace('_', ' ') }))} /></div>
-          <div className="oc-metric" style={{ alignSelf: 'flex-end' }}>{money(Math.max(total - promo.discount, 0))}</div>
+            options={methods.map((m) => ({ value: m, label: m === 'loyalty_points' ? 'Redeem Points' : m.replace('_', ' ') }))} /></div>
+          {usePoints && <>
+            <div style={{ width: 160 }}><TextField label="Points" type="number" inputMode="numeric" min={1} max={maxPoints} value={points} onChange={setPoints}
+              placeholder={String(maxPoints)} help={`= ${money(Math.min(Number(points || maxPoints), maxPoints) * pointValue)}`} /></div>
+            <div style={{ width: 180 }}><SelectField label="Rest paid by" value={rest} onChange={setRest}
+              options={POS_METHODS.map((m) => ({ value: m, label: m.replace('_', ' ') }))} /></div>
+          </>}
+          <div className="oc-metric" style={{ alignSelf: 'flex-end' }}>{money(due)}</div>
           <span className="oc-spacer" />
           <button className="oc-btn oc-btn-neutral" style={{ alignSelf: 'flex-end' }} onClick={() => setCart({})}>Clear</button>
-          <button className="oc-btn oc-btn-ink" style={{ alignSelf: 'flex-end' }} disabled={total === 0 || !shift} onClick={() => void checkout()}>Pay & send</button>
+          <button className="oc-btn oc-btn-ink" style={{ alignSelf: 'flex-end' }} disabled={total === 0 || !shift || busy || (usePoints && (maxPoints <= 0 || !online))}
+            onClick={() => void (usePoints ? checkoutWithPoints() : checkout())}>Pay & send</button>
         </div>
+        {usePoints && !online && <div className="oc-small oc-muted" role="status">Redeem Points needs a connection; choose another payment while offline.</div>}
         <PosPromotionPanel promo={promo} />
       </Card>
     </div>

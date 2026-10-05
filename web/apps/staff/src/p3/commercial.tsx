@@ -641,7 +641,8 @@ export function evaluateOffline(cache: PromotionCache, outletId: string, lines: 
 }
 
 /** The promotions of a POS cart: server evaluation online, the shift cache offline. */
-export function usePosPromotions(outletId: string | null, lines: PosLine[]): PosPromotionState {
+/** Promotions of the POS cart; `customerId` (POS customer picker) unlocks personal codes and member promotions. */
+export function usePosPromotions(outletId: string | null, lines: PosLine[], customerId?: string): PosPromotionState {
   const [codes, setCodes] = useState<string[]>([]);
   const [exclusions, setExclusions] = useState<string[]>([]);
   const [online, setOnline] = useState(typeof navigator === 'undefined' ? true : navigator.onLine);
@@ -656,11 +657,11 @@ export function usePosPromotions(outletId: string | null, lines: PosLine[]): Pos
     window.addEventListener('offline', off);
     return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
   }, []);
-  const key = JSON.stringify([lines, codes, exclusions]);
+  const key = JSON.stringify([lines, codes, exclusions, customerId ?? '']);
   useEffect(() => {
     if (!online || !outletId || lines.length === 0) { setServer(null); return; }
     let live = true;
-    request<R>('POST', '/api/v1/commercial/promotions:evaluate', { channel: 'pos', businessLine: 'pos', outletId, promoCodes: codes, exclude: exclusions,
+    request<R>('POST', '/api/v1/commercial/promotions:evaluate', { channel: 'pos', businessLine: 'pos', outletId, customerId: customerId || undefined, promoCodes: codes, exclude: exclusions,
       lines: lines.map((l, i) => ({ key: String(i), productId: l.productId, quantity: String(l.quantity), unitPrice: String(l.unitPrice) })) })
       .then((r) => { if (live) setServer({ discount: Number(r.discount), rejected: ((r.rejected as R[]) ?? []).map((x) => `${String(x.code)}: ${String(x.reason)}`),
         applied: ((r.applied as R[]) ?? []).map((a) => ({ promotionId: String(a.promotionId), code: String(a.code), name: String(a.name), discount: Number(a.discount),
