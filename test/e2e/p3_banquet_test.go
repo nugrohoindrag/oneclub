@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
+	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/platform/integration"
 	"oneclub/internal/platform/outbox"
@@ -661,7 +662,7 @@ func TestP3BanquetCancellation(t *testing.T) {
 	}
 	// DP 30% paid, then cancelled 100 days ahead: 50% of the DP forfeited.
 	bl := bs.Must(201, "POST", "/api/v1/banquet/events/"+eid+"/payment-schedule", map[string]any{"lines": []map[string]any{
-		{"label": "DP 30%", "kind": "down_payment", "percent": "30", "dueDate": time.Now().Format("2006-01-02")},
+		{"label": "DP 30%", "kind": "down_payment", "percent": "30", "dueDate": clubToday(inst)},
 		{"label": "Final", "kind": "final", "dueDate": day.AddDate(0, 0, -7).Format("2006-01-02")}}}).JSON()
 	dpl := bl["schedule"].(map[string]any)["lines"].([]any)[0].(map[string]any)
 	bqEq(t, "DP", dpl["amount"], "2304225")
@@ -856,8 +857,11 @@ func TestP3BanquetRegistration(t *testing.T) {
 		}
 		return str(e["id"])
 	}
-	now := time.Now().Truncate(time.Minute)
-	gala := mk("Charity Gala "+sfx, now.Add(2*time.Hour), 3, "100000")
+	// The server's clock: the gala's club day is read from the same instant
+	// the API compares against.
+	now := clock.Now().Truncate(time.Minute)
+	galaStart := now.Add(2 * time.Hour)
+	gala := mk("Charity Gala "+sfx, galaStart, 3, "100000")
 	talk := mk("Golf Talk "+sfx, now.Add(72*time.Hour), 1, "0")
 
 	// Website: Events page and Book Event with online payment.
@@ -933,7 +937,10 @@ func TestP3BanquetRegistration(t *testing.T) {
 	wd := sa.Must(200, "POST", "/api/v1/banquet/participants/"+str(imp["items"].([]any)[0].(map[string]any)["id"])+":withdraw", map[string]any{"reason": "Duplicate"}).JSON()
 
 	// Event day: Today's Events, QR check-in, repeat scan, check-in from the list.
-	if today := staff.Must(200, "GET", "/api/v1/banquet/today", nil).Items(); !strings.Contains(fmt.Sprint(today), gala) {
+	// The gala starts in 2 hours, which is the next club day from 22:00 WIB
+	// (15:00 UTC): Today's Events is opened on the gala's club day.
+	galaDay := galaStart.In(clubLoc(inst)).Format("2006-01-02")
+	if today := staff.Must(200, "GET", "/api/v1/banquet/today?date="+galaDay, nil).Items(); !strings.Contains(fmt.Sprint(today), gala) {
 		t.Fatalf("today's events: %v", today)
 	}
 	ci := staff.Must(200, "POST", "/api/v1/banquet/events/"+gala+":check-in", map[string]any{"code": strings.ToLower(str(tk["ticketCode"]))}).JSON()

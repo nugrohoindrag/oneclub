@@ -350,7 +350,7 @@ func (m *Module) sweepRevenue(ctx context.Context, tx pgx.Tx, property uuid.UUID
 			(SELECT count(*) FROM accounting.posted_sources s WHERE s.source_type = 'billing.deposit_application' AND s.source_id = d.id)::int AS parts
 			FROM reporting.acc_deposits d WHERE d.property_id = $1 AND d.applied_amount > 0 AND ($2::uuid IS NULL OR d.folio_id = $2)
 			AND d.applied_amount <> coalesce((SELECT sum(s.amount) FROM accounting.posted_sources s WHERE s.source_type = 'billing.deposit_application'
-			  AND s.source_id = d.id), 0) AND d.created_at >= $3::date`, property, folio, cut))
+			  AND s.source_id = d.id), 0) AND d.created_at >= $3::timestamptz`, property, folio, localStart(ctx, tx, property, cut)))
 		if err != nil {
 			return nil, nil, err
 		}
@@ -431,10 +431,10 @@ func (m *Module) sweepDeferred(ctx context.Context, tx pgx.Tx, property uuid.UUI
 	}
 	rows, err := handle.List[deferredRow](tx.Query(ctx, `SELECT e.id, e.liability_type, e.ref_type, e.ref_id, e.entry_type, e.amount::text AS amount,
 		e.revenue_component, e.description, e.occurred_at, e.via_tender FROM reporting.acc_deferred_entries e WHERE e.property_id = $1
-		AND e.occurred_at >= $2::date AND (e.occurred_at AT TIME ZONE coalesce((SELECT timezone FROM platform.properties WHERE id = $1 AND timezone <> ''),
+		AND e.occurred_at >= $2::timestamptz AND (e.occurred_at AT TIME ZONE coalesce((SELECT timezone FROM platform.properties WHERE id = $1 AND timezone <> ''),
 		  (SELECT timezone FROM platform.instance)))::date <= $3::date AND ($4::uuid IS NULL OR e.ref_id = $4) AND ($5 = '' OR e.liability_type = $5)
 		AND NOT EXISTS (SELECT 1 FROM accounting.posted_sources s WHERE s.source_type = 'billing.deferred_entry' AND s.source_id = e.id)
-		ORDER BY e.occurred_at LIMIT 20000`, property, cut, upTo, voucher, f.Liability))
+		ORDER BY e.occurred_at LIMIT 20000`, property, localStart(ctx, tx, property, cut), upTo, voucher, f.Liability))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -471,8 +471,9 @@ type payoutRow struct {
 func (m *Module) sweepPayouts(ctx context.Context, tx pgx.Tx, property uuid.UUID, h sweepHeader, cut, upTo time.Time) (*AccountingJournal, []Missing, error) {
 	rows, err := handle.List[payoutRow](tx.Query(ctx, `SELECT o.id, o.number, o.payout_type, o.beneficiary_type, o.beneficiary_id, o.beneficiary_name,
 		o.amount::text AS amount, o.method_type, o.paid_at, o.settlement_deductions::text AS settlement_deductions FROM reporting.acc_payouts o
-		WHERE o.property_id = $1 AND o.paid_at >= $2::date AND o.paid_at < $3::date + 2
-		AND NOT EXISTS (SELECT 1 FROM accounting.posted_sources s WHERE s.source_type = 'billing.payout' AND s.source_id = o.id) LIMIT 5000`, property, cut, upTo))
+		WHERE o.property_id = $1 AND o.paid_at >= $2::timestamptz AND o.paid_at < $3::date + 2
+		AND NOT EXISTS (SELECT 1 FROM accounting.posted_sources s WHERE s.source_type = 'billing.payout' AND s.source_id = o.id) LIMIT 5000`,
+		property, localStart(ctx, tx, property, cut), upTo))
 	if err != nil {
 		return nil, nil, err
 	}

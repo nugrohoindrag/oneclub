@@ -163,6 +163,17 @@ func localDate(ctx context.Context, q dbtx.Querier, property uuid.UUID, at time.
 	return dateOnly(at.In(loc))
 }
 
+// localStart is the instant the local date day begins at the property: a
+// timestamp column is compared with it, not with day::date (which is
+// midnight in the session timezone, UTC).
+func localStart(ctx context.Context, q dbtx.Querier, property uuid.UUID, day time.Time) time.Time {
+	loc, err := org.Location(ctx, q, property)
+	if err != nil || loc == nil {
+		loc = time.UTC
+	}
+	return time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, loc)
+}
+
 func currency(ctx context.Context, q dbtx.Querier) string {
 	cur, err := org.Currency(ctx, q)
 	if err != nil || cur == "" {

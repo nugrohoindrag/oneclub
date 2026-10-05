@@ -53,8 +53,8 @@ func TestP2MemberApp(t *testing.T) {
 	if r := mc.Do("POST", "/api/v1/member/memberships/"+omsID+":renew", nil); r.Status != 404 {
 		t.Fatalf("other member's membership: %s", r)
 	}
-	if r := mc.Do("POST", "/api/v1/member/memberships/"+msID+":pause", map[string]any{"from": time.Now().Format("2006-01-02"),
-		"until": time.Now().AddDate(0, 2, 0).Format("2006-01-02"), "reason": "Overseas assignment"}); r.Status != 202 {
+	if r := mc.Do("POST", "/api/v1/member/memberships/"+msID+":pause", map[string]any{"from": clubToday(inst),
+		"until": clubDateAgo(inst, 0, -2, 0), "reason": "Overseas assignment"}); r.Status != 202 {
 		t.Fatalf("pause request: %s", r)
 	}
 

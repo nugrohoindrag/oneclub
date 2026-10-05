@@ -381,7 +381,7 @@ func TestP2GolfRound(t *testing.T) {
 	if k := pub.Must(200, "GET", "/api/v1/public/hall-of-fame/kiosk?propertyId="+inst.Main.String(), nil).JSON(); len(k["entries"].([]any)) != 1 {
 		t.Fatalf("kiosk after opt-in: %v", k)
 	}
-	claim := sa.Must(200, "POST", "/api/v1/golf/hole-in-ones/"+hid+":claim", map[string]any{"submittedOn": time.Now().Format("2006-01-02"), "providerRef": "INS-77"}).JSON()
+	claim := sa.Must(200, "POST", "/api/v1/golf/hole-in-ones/"+hid+":claim", map[string]any{"submittedOn": clubToday(inst), "providerRef": "INS-77"}).JSON()
 	if claim["status"] != "claimed" || len(claim["claimDocuments"].([]any)) != 1 {
 		t.Fatalf("claim: %v", claim)
 	}

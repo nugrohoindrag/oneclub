@@ -58,7 +58,7 @@ func rfc(t time.Time) string { return t.Format(time.RFC3339) }
 
 func past() string { return time.Now().Add(-72 * time.Hour).Format(time.RFC3339) }
 
-func pastDate() string { return time.Now().AddDate(0, 0, -3).Format("2006-01-02") }
+func pastDate() string { return clubDateAgo(inst, 0, 0, 3) }
 
 // setupP2 creates tax rules, day types, time bands and two customers.
 func setupP2(t *testing.T) *p2Fixtures {

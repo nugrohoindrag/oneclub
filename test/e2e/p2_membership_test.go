@@ -25,7 +25,7 @@ func customer(t *testing.T, c *Client, code, name string, extra map[string]any) 
 }
 
 func dateAgo(years, months, days int) string {
-	return time.Now().AddDate(-years, -months, -days).Format("2006-01-02")
+	return clubDateAgo(inst, years, months, days)
 }
 
 // EP-04 acceptance: family eligibility, multi-program membership, pause
@@ -95,8 +95,8 @@ func TestP2MembershipLifecycle(t *testing.T) {
 	cards := []map[string]any{card}
 	// AC: pause 3 months extends validity 3 months and disables Member Rate.
 	endBefore, _ := time.Parse("2006-01-02", str(sa.Must(200, "GET", "/api/v1/membership/memberships/"+gid, nil).JSON()["endsOn"])[:10])
-	from := time.Now().Format("2006-01-02")
-	until := time.Now().AddDate(0, 3, 0).Format("2006-01-02")
+	from := clubToday(inst)
+	until := clubDateAgo(inst, 0, -3, 0)
 	pr := sa.Must(202, "POST", "/api/v1/membership/memberships/"+gid+":pause", map[string]any{"from": from, "until": until, "reason": "overseas assignment"}).JSON()
 	if pr["status"] != "applied" && pr["status"] != "approved" {
 		t.Fatalf("pause request: %v", pr)

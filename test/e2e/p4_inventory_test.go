@@ -152,7 +152,7 @@ func invOnHand(t *testing.T, c *Client, wh, item string) decimal.Decimal {
 	return total
 }
 
-func invToday() string { return time.Now().In(clubLoc(inst)).Format("2006-01-02") }
+func invToday() string { return clubToday(inst) }
 
 // ── EP-01 item master & setup, EP-27 configuration ───────────────────────
 
