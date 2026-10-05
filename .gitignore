@@ -26,6 +26,3 @@ web/playwright-report/
 web/packages/ui/dist-showcase/
 web/apps/web/next-env.d.ts
 
-# product documents (PRD, Technical Doc, roadmap) — kept locally, not pushed
-/docs/product/
-*PRD*.md

@@ -12,8 +12,8 @@ Foundation, P1 Golf Core MVP (Release 1), P2 Club Operations (Release 2), P3 Com
 | Deployment | `deploy/` | Docker, Docker Compose (no Kubernetes), Caddy, pgBackRest |
 | CI/CD | `.github/workflows/` | lint, arch-lint, unit, integration, OpenAPI drift/breaking check, build, scan, deploy |
 
-Product documents (PRD, Technical Documentation, Naming Convention, roadmap) live in `docs/product/` locally and are
-not committed. The original Morphic design system source is kept in `design-system/` (restored as `web/packages/ui`).
+Product documents (Product Overview, PRD P3/P4, Technical Documentation, Naming Convention, roadmap) are in
+[`docs/product/`](docs/product/README.md). The original Morphic design system source is kept in `design-system/` (restored as `web/packages/ui`).
 Requirement → code → test mapping: [P0](docs/p0-traceability.md), [P1](docs/p1-traceability.md),
 [P2](docs/p2-traceability.md), [P3](docs/p3-traceability.md), [P4](docs/p4-traceability.md). Rhapsody migration:
 [`docs/migration/`](docs/migration/); go-live: [`docs/runbooks/production-readiness.md`](docs/runbooks/production-readiness.md).
