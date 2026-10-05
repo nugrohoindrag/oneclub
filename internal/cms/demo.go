@@ -248,13 +248,29 @@ func SeedDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 		}
 		return it
 	}
-	header := []CmsMenuItem{nav("home", "home", "Beranda", "Home"), nav("golf", "golf", "Golf", "Golf"), nav("sport_club", "sport_club", "Sport Club", "Sport Club"),
-		nav("bungalow", "bungalow", "Bungalow", "Bungalow"), nav("vip_suite", "vip_suite", "VIP Suite", "VIP Suite"),
-		nav("meeting_mice", "meeting_mice", "Meeting & MICE", "Meeting & MICE"), nav("wedding_banquet", "wedding_banquet", "Pernikahan & Banquet", "Wedding & Banquet"),
-		nav("events", "events", "Acara", "Events"), nav("membership", "membership", "Keanggotaan", "Membership"), nav("packages", "packages", "Paket", "Packages"),
-		nav("promotions", "promotions", "Promosi", "Promotions"), nav("hall_of_fame", "hall_of_fame", "Hall of Fame", "Hall of Fame"),
-		nav("news", "news", "Berita", "News"), nav("gallery", "gallery", "Galeri", "Gallery"), nav("contact", "contact", "Kontak", "Contact"),
-		nav("location", "location", "Lokasi", "Location")}
+	// group is a dropdown of the header: the parent links to its first
+	// entry (menu items always carry a link) and lists the entries below.
+	group := func(idLabel, enLabel string, children ...CmsMenuItem) CmsMenuItem {
+		it := children[0]
+		it.ID, it.Label, it.Children = uuid.NewString(), map[string]string{"id": idLabel, "en": enLabel}, children
+		return it
+	}
+	// Header grouping is a PROPOSAL pending the product owner (P4 fix
+	// package H): every Naming Convention §26 entry stays reachable (Home
+	// through the logo) and the club re-orders or renames it in the CMS.
+	header := []CmsMenuItem{
+		group("Golf", "Golf", nav("golf", "golf", "Golf", "Golf"), nav("", "tournaments", "Turnamen", "Tournaments"),
+			nav("hall_of_fame", "hall_of_fame", "Hall of Fame", "Hall of Fame")),
+		nav("membership", "membership", "Keanggotaan", "Membership"),
+		group("Fasilitas", "Facilities", nav("sport_club", "sport_club", "Sport Club", "Sport Club"),
+			nav("bungalow", "bungalow", "Menginap & Venue", "Stay & Venue"), nav("vip_suite", "vip_suite", "VIP Suite", "VIP Suite"),
+			nav("meeting_mice", "meeting_mice", "Meeting & MICE", "Meeting & MICE")),
+		group("Acara & Pernikahan", "Events & Wedding", nav("wedding_banquet", "wedding_banquet", "Pernikahan & Banquet", "Wedding & Banquet"),
+			nav("events", "events", "Acara", "Events")),
+		group("Penawaran", "Offers", nav("packages", "packages", "Paket", "Packages"), nav("promotions", "promotions", "Promosi", "Promotions")),
+		group("Berita & Galeri", "News & Gallery", nav("news", "news", "Berita", "News"), nav("gallery", "gallery", "Galeri", "Gallery")),
+		group("Kontak", "Contact", nav("contact", "contact", "Kontak", "Contact"), nav("location", "location", "Lokasi", "Location")),
+	}
 	footer := []CmsMenuItem{nav("", "book_golf", "Pesan Golf", "Book Golf"), nav("", "book_sport_club", "Pesan Sport Club", "Book Sport Club"),
 		nav("", "book_bungalow", "Pesan Bungalow", "Book Bungalow"), nav("", "book_meeting_room", "Pesan Ruang Meeting", "Book Meeting Room"),
 		nav("", "book_event", "Pesan Acara", "Book Event"), nav("contact", "contact", "Kontak", "Contact"), nav("location", "location", "Lokasi", "Location")}

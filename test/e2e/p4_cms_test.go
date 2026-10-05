@@ -608,7 +608,8 @@ func TestP4CMSSiteData(t *testing.T) {
 			labels = append(labels, str(it.(map[string]any)["label"]))
 		}
 	}
-	if strings.Join(labels, ",") != "Home,Golf,Sport Club,Bungalow,VIP Suite,Meeting & MICE,Wedding & Banquet,Events,Membership,Packages,Promotions,Hall of Fame,News,Gallery,Contact,Location" {
+	// Grouped header (P4 fix H proposal; children: TestP4FixWebsiteNavigation).
+	if strings.Join(labels, ",") != "Golf,Membership,Facilities,Events & Wedding,Offers,News & Gallery,Contact" {
 		t.Fatalf("header navigation: %v", labels)
 	}
 

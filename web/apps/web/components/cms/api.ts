@@ -38,7 +38,7 @@ export interface CmsList { language: string; items: CmsSummary[]; categories?: {
 export interface CmsBanner {
   id: string; placement: string; title: string; subtitle?: string; buttonLabel?: string; image?: CmsMedia | null; link?: CmsLink | null;
 }
-export interface CmsNavItem { id: string; label: string; href: string; external: boolean; newTab: boolean; children: CmsNavItem[] }
+export interface CmsNavItem { id: string; label: string; href: string; external: boolean; newTab: boolean; type?: string; routeKey?: string; children: CmsNavItem[] }
 
 /** Appends the property of the website to a public API path. */
 async function withProperty(path: string): Promise<string> {
@@ -70,6 +70,12 @@ export const getBanners = async (lang: string, placement: string, page = '') =>
   (await cmsGet<{ items: CmsBanner[] }>(`/api/v1/public/cms/banners?${new URLSearchParams({ lang, placement, ...(page ? { page } : {}) }).toString()}`))?.items ?? [];
 export const getNavigation = async (lang: string, location: string) =>
   (await cmsGet<{ menus: { code: string; location: string; items: CmsNavItem[] }[] }>(`/api/v1/public/cms/navigation?lang=${lang}&location=${location}`))?.menus ?? [];
+
+/** Sitemap data of the website (FR-CMS-08): published CMS pages, news, albums and structured routes with hreflang alternates. */
+export interface CmsSitemapEntry { loc: string; path: string; language: string; lastmod: string; changefreq: string; priority: string; alternates: { language: string; href: string }[] }
+export const getSitemap = async () => (await cmsGet<{ entries: CmsSitemapEntry[] }>('/api/v1/public/cms/sitemap'))?.entries ?? null;
+/** robots.txt data of the website (Content Policies: indexing switch and disallowed paths). */
+export const getRobots = () => cmsGet<{ allowIndexing: boolean; disallow: string[]; sitemap: string }>('/api/v1/public/cms/robots');
 
 /** A preview of any version through a signed link (never cached). */
 export async function getPreview(token: string): Promise<CmsContent | null> {
