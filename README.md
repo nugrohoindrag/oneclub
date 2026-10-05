@@ -103,10 +103,41 @@ synchronises the permission catalogue (new permissions and role templates such a
   rules that are missing, such as `DEF-INV-OPENING` (opening stock to opening balance equity), `DEF-COMMISSION`
   (sales commission) and the asset disposal rules (`DEF-ASSET-DISP-*`); existing and edited rules are left alone.
 
+## Trial dataset
+
+`oneclub seed-demo --trial` (after the demo configuration, on a **fresh** instance) makes a trial instance look alive:
+it simulates the last 90 business days of the main property and books the next 30, so dashboards, reports, KPIs,
+the books, CRM and the Member App show meaningful, internally consistent numbers. Stop the worker of the instance
+while it runs (the seeder dispatches the events itself at the simulated time); it takes a few minutes.
+
+```bash
+./bin/oneclub seed-demo --trial                 # -days 90 -ahead 30 -seed 20260401 (defaults)
+```
+
+- **What is generated**: go-live (books, periods, bank accounts and opening balances, Rhapsody migration of
+  customers, corporates and members, opening stock), then every day golf bookings, check-in, caddies, carts,
+  scorecards and the driving range, POS sales in five outlets consuming stock by recipe, sport club visits,
+  classes and instructor fees, bungalow stays, banquet events with BEOs, membership applications and renewals,
+  CRM leads → quotations → commission, tickets, surveys / NPS, loyalty, campaigns, a completed and an upcoming
+  tournament, promotions and Family Day packages, purchasing (PR → PO → GR → vendor invoice → payment run), stock
+  opname, member statements and settlements, corporate invoices, e-Faktur upload (`mock-efaktur`), cashier shifts
+  and the Night Audit of every day, the monthly bank reconciliation and a closed month. Trial records use `TRL`
+  codes; the trial staff users (password and PIN of the demo) are printed at the end with a row count per module.
+- **How**: through the modules' own use cases (the in-process API as demo users), deterministic (fixed seed) and
+  idempotent (a marker per step in the audit log; re-running adds nothing), relative to the club's business date.
+  The application clock follows the simulated time; timestamps the database sets itself are moved to the
+  simulated moment except in append-only tables.
+- **Extension point**: an area adds `internal/app/trial_<area>.go` with
+  `registerTrialSeeder(trialSeeder{Name, Order, Setup, Day, Final})` in an `init()` and its main tables in
+  `trialCoverageTables`; see the header of `internal/app/trial.go`.
+- **Test**: `TestTrialDataset` (60 days; `ONECLUB_TRIAL_DAYS=90` for the CLI history) asserts the coverage, a
+  balanced trial balance, stock valuation = GL inventory, no posting exceptions or outbox failures, a closed month
+  and that a second run adds nothing.
+
 ## Binary commands
 
 ```
-oneclub api | worker | migrate up|status|down <module> | instance create|drop | seed-demo
+oneclub api | worker | migrate up|status|down <module> | instance create|drop | seed-demo [--trial [-days N] [-ahead N] [-seed N]]
 oneclub import rhapsody stage|validate|load|reconcile -property CODE [-dir DIR] [-out DIR]
 oneclub openapi [-o file] | healthcheck | version
 ```

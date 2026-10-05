@@ -4,7 +4,7 @@
 //	oneclub worker                   River background jobs
 //	oneclub migrate up|status|down   database migrations (+ catalogue sync)
 //	oneclub instance create|drop     provision a dedicated customer instance
-//	oneclub seed-demo                demo data for dev/staging
+//	oneclub seed-demo [--trial]      demo data for dev/staging (+ the trial dataset)
 //	oneclub import rhapsody <step>   Rhapsody migration: stage|validate|load|reconcile (EP-18)
 //	oneclub import hris [--employees F] [--contracts F] [--certifications F]   HR migration (PRD P5 EP-28)
 //	oneclub import <scope> -file F   P3 / P4 migration importers (dry run; -commit to save):
@@ -59,7 +59,7 @@ func main() {
 	case "instance":
 		err = runInstance(args)
 	case "seed-demo":
-		err = runSeedDemo()
+		err = runSeedDemo(args)
 	case "import":
 		err = runImport(args)
 	case "openapi":
@@ -297,7 +297,13 @@ func runInstance(args []string) error {
 	return fmt.Errorf("unknown instance command %q", args[0])
 }
 
-func runSeedDemo() error {
+func runSeedDemo(args []string) error {
+	fs := flag.NewFlagSet("seed-demo", flag.ExitOnError)
+	trial := fs.Bool("trial", false, "also create the trial dataset: 90 days of club activity and 30 days of upcoming business (README \"Trial dataset\")")
+	days := fs.Int("days", 90, "trial: simulated past business days")
+	ahead := fs.Int("ahead", 30, "trial: days of upcoming business")
+	seed := fs.Uint64("seed", 20260401, "trial: random seed (the same seed gives the same data)")
+	_ = fs.Parse(args)
 	cfg, db, err := load("seed-demo")
 	if err != nil {
 		return err
@@ -320,6 +326,42 @@ func runSeedDemo() error {
 	}
 	if res.DeviceToken != "" {
 		fmt.Println("  Demo POS device token (shown once):", res.DeviceToken)
+	}
+	if *trial {
+		return runSeedTrial(cfg, db, app.TrialOptions{Days: *days, Ahead: *ahead, Seed: *seed})
+	}
+	return nil
+}
+
+// runSeedTrial adds the trial dataset (internal/app/trial.go) after the
+// demo configuration. Stop the worker of the instance while it runs, so the
+// events of the simulated history are dispatched at their simulated time.
+func runSeedTrial(cfg *config.Config, _ *dbtx.DB, o app.TrialOptions) error {
+	db, err := dbtx.Open(context.Background(), app.TrialDatabaseURL(cfg.DatabaseURL), cfg.ReplicaURL(), 20)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	a, err := app.Build(cfg, db, app.Options{})
+	if err != nil {
+		return err
+	}
+	o.Log = func(format string, args ...any) { fmt.Printf(format+"\n", args...) }
+	res, err := a.SeedTrial(context.Background(), o)
+	if err != nil {
+		return err
+	}
+	if res.AlreadyComplete {
+		fmt.Printf("Trial dataset already complete (history %s – %s); nothing added.\n", res.Start, res.Today)
+	} else {
+		fmt.Printf("Trial dataset ready: history %s – %s, %d steps in %s.\n", res.Start, res.Today, res.Steps, res.Duration.Round(time.Second))
+	}
+	for _, c := range res.Coverage {
+		fmt.Printf("  %-12s %-26s %7d\n", c.Module, c.Entity, c.Rows)
+	}
+	fmt.Println("Trial staff (password " + app.DemoPassword + ", PIN " + app.DemoPIN + "):")
+	for _, u := range app.TrialUsers {
+		fmt.Printf("  %-38s %s\n", u.Email, u.Role)
 	}
 	return nil
 }
