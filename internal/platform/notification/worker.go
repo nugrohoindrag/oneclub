@@ -12,6 +12,7 @@ import (
 	"github.com/riverqueue/river"
 
 	"oneclub/internal/kernel/dbtx"
+	"oneclub/internal/kernel/mask"
 	"oneclub/internal/platform/integration"
 	"oneclub/internal/platform/jobs"
 	"oneclub/internal/platform/outbox"
@@ -71,6 +72,13 @@ func (w *Worker) Work(ctx context.Context, job *river.Job[DeliverArgs]) error {
 	}
 	if status == "sent" {
 		return nil // idempotent on retry after a crash post-send
+	}
+	// One-time codes and other secret template variables never reach the
+	// integration call log (they stay in the delivery only).
+	for k, v := range payload {
+		if mask.IsSecretKey(k) {
+			ctx = integration.WithRedactions(ctx, fmt.Sprint(v))
+		}
 	}
 
 	var sendErr error
