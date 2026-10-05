@@ -22,11 +22,29 @@ const METHODS = [
 
 // ── Invoices ──────────────────────────────────────────────────────────────
 
+/** e-Faktur (faktur pajak keluaran) of the invoices from Accounting (PRD P4 §7.1); empty when Accounting is off. */
+function useEFaktur(invoiceId?: string) {
+  const { data } = useGet<Page<R>>(`/api/v1/accounting/invoice-efaktur${qs({ 'filter[invoiceId]': invoiceId })}`, { retry: false });
+  return new Map((data?.items ?? []).map((e) => [String(e.invoiceId), e]));
+}
+
+/** "010.000-26.00000001" with its status, or the status alone before the upload. */
+function EFaktur({ e }: { e?: R }) {
+  if (!e) return <span className="oc-muted">—</span>;
+  return (
+    <span className="oc-row" style={{ gap: 6 }}>
+      {e.fakturNumber ? <span>{String(e.fakturNumber)}</span> : null}
+      <StatusPill status={String(e.status)} label={`e-Faktur ${label(e.status)}`} />
+    </span>
+  );
+}
+
 export function InvoicesPage() {
   const [params, setParams] = useSearchParams();
   const { can } = useAuth();
   const [creating, setCreating] = useState(false);
   const [importing, setImporting] = useState(false);
+  const efaktur = useEFaktur();
   const open = params.get('id');
   return (
     <>
@@ -42,7 +60,7 @@ export function InvoicesPage() {
           { key: 'kind', header: 'Kind', render: (r) => label(r.kind) }, { key: 'issueDate', header: 'Issued', render: (r) => (r.issueDate ? formatDate(String(r.issueDate)) : '—') },
           { key: 'dueDate', header: 'Due', render: (r) => (r.dueDate ? formatDate(String(r.dueDate)) : '—') },
           { key: 'total', header: 'Total', align: 'right', render: (r) => money(r.total) }, { key: 'outstanding', header: 'Outstanding', align: 'right', render: (r) => money(r.outstanding) },
-          { key: 'status', header: 'Status', render: pill('status') }]} />
+          { key: 'status', header: 'Status', render: pill('status') }, { key: 'efaktur', header: 'e-Faktur', render: (r) => <EFaktur e={efaktur.get(String(r.id))} /> }]} />
       {creating && <GenerateInvoice onClose={() => setCreating(false)} onDone={(id) => { setCreating(false); setParams({ id }); }} />}
       {importing && <ImportCorporateAR onClose={() => setImporting(false)} />}
       {open && <InvoiceDrawer id={open} onClose={() => setParams({})} />}
@@ -94,6 +112,7 @@ function InvoiceDrawer({ id, onClose }: { id: string; onClose: () => void }) {
   const { can } = useAuth();
   const toast = useToast();
   const d = useGet<R & { lines: R[]; allocations: R[]; creditNotes: R[]; writeOffs: R[] }>(`/api/v1/billing/invoices/${id}`);
+  const ef = useEFaktur(id).get(id);
   const [modal, setModal] = useState<'' | 'pay' | 'credit' | 'writeoff' | 'send'>('');
   const x = d.data;
   const inv = [...BILLING, `/api/v1/billing/invoices/${id}`];
@@ -108,7 +127,8 @@ function InvoiceDrawer({ id, onClose }: { id: string; onClose: () => void }) {
             ['Issue date', x.issueDate ? formatDate(String(x.issueDate)) : '—'], ['Due date', x.dueDate ? formatDate(String(x.dueDate)) : '—'],
             ['Subtotal', money(x.subtotal)], ['Service', money(x.serviceAmount)], ['Tax', money(x.taxAmount)], ['Total', <strong key="t">{money(x.total)}</strong>],
             ['Paid', money(x.paidAmount)], ['Credited', money(x.creditedAmount)], ['Written off', money(x.writtenOffAmount)],
-            ['Outstanding', <strong key="o">{money(x.outstanding)}</strong>]]} />
+            ['Outstanding', <strong key="o">{money(x.outstanding)}</strong>],
+            ['e-Faktur', <EFaktur key="ef" e={ef} />], ...(ef ? [['Tax period', String(ef.taxPeriod)] as [string, React.ReactNode]] : [])]} />
           <div className="oc-row-wrap">
             {x.status === 'draft' && can('billing.invoice.issue') && <ActionButton label="Issue" kind="primary" path={`/api/v1/billing/invoices/${id}:issue`} invalidate={inv} />}
             {openInv && can('billing.invoice.issue') && <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setModal('send')}>Send</button>}

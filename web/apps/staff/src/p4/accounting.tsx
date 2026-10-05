@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import {
@@ -55,12 +55,71 @@ function useTab(def: string): [string, (v: string) => void] {
   return [params.get('tab') ?? def, (v) => setParams({ tab: v }, { replace: true })];
 }
 
+// ── Drill-down to source documents (FR-FIN-04) ──────────────────────────
+
+const DOC_LABEL: Record<string, string> = {
+  folio: 'Folio', invoice: 'Invoice', credit_note: 'Credit note', write_off: 'Write-off', payment: 'Payment', refund: 'Refund', deposit: 'Deposit',
+  payout: 'Payout', cashier_shift: 'Cashier shift', purchase_order: 'PO', goods_receipt: 'GR', purchase_return: 'Purchase return',
+  vendor_invoice: 'Vendor invoice', stock_movement: 'Stock movement', journal: 'Journal', manual_journal: 'Manual journal',
+  recurring_journal: 'Recurring journal', bank_transaction: 'Bank transaction', cash_transaction: 'Cash document', vendor_bill: 'Vendor bill',
+  vendor_payment: 'Vendor payment', payment_run: 'Payment run', opening_balance: 'Opening balances',
+};
+
+/** Screen (and its permission) showing a document. */
+function docRoute(type: string, id: string): [string, string] | null {
+  switch (type) {
+    case 'folio': return [`/billing/folios?id=${id}`, 'billing.folio.view'];
+    case 'invoice': return [`/billing/invoices?id=${id}`, 'billing.invoice.view'];
+    case 'payment': return ['/billing/payments', 'billing.payment.view'];
+    case 'purchase_order': return [`/procurement/purchase-orders?open=${id}`, 'procurement.purchase_order.view'];
+    case 'goods_receipt': return [`/procurement/goods-receipts?open=${id}`, 'procurement.goods_receipt.view'];
+    case 'purchase_return': return [`/procurement/purchase-returns?open=${id}`, 'procurement.purchase_return.view'];
+    case 'vendor_invoice': return [`/procurement/vendor-invoices?open=${id}`, 'procurement.vendor_invoice.view'];
+    case 'stock_movement': return [`/inventory/stock-movement?id=${id}`, 'inventory.stock_movement.view'];
+    case 'journal': return [`/accounting/general-ledger?tab=journals&journal=${id}`, 'accounting.journal.view'];
+    case 'manual_journal': return ['/accounting/general-ledger?tab=manual', 'accounting.journal.view'];
+    case 'recurring_journal': return ['/accounting/general-ledger?tab=recurring', 'accounting.journal.view'];
+    case 'vendor_bill': case 'vendor_payment': case 'payment_run': return ['/accounting/payables', 'accounting.payable.view'];
+    case 'bank_transaction': case 'cash_transaction': return ['/accounting/cash-bank', 'accounting.bank_transaction.view'];
+    case 'opening_balance': return ['/accounting/setup?tab=opening', 'accounting.opening_balance.view'];
+  }
+  return null;
+}
+
+/** "GR GR-2026-0012" linked to its screen when the user may open it. */
+function DocRef({ type, id, number }: { type: string; id?: unknown; number?: unknown }) {
+  const { can } = useAuth();
+  const text = `${DOC_LABEL[type] ?? label(type)} ${String(number ?? '')}`.trim();
+  const r = id ? docRoute(type, String(id)) : null;
+  return r && can(r[1]) ? <Link to={r[0]} onClick={(e) => e.stopPropagation()}>{text}</Link> : <span>{text}</span>;
+}
+
+/** A source document with its related document (GR · PO, credit note · invoice). */
+function SourceDoc({ d }: { d: R }) {
+  if (d.documentType === 'other') return <span className="oc-muted">{label(d.sourceType)}</span>;
+  return (
+    <span>
+      <DocRef type={String(d.documentType)} id={d.documentId} number={d.number} />
+      {d.relatedType != null && <span className="oc-muted"> · <DocRef type={String(d.relatedType)} id={d.relatedId} number={d.relatedNumber} /></span>}
+    </span>
+  );
+}
+
+/** Opens the General Ledger of an account for a period (drill-down from TB and statements). */
+function useLedgerLink() {
+  const navigate = useNavigate();
+  return (accountId: unknown, from: string, to: string, consolidated: boolean) => navigate(`/accounting/general-ledger${qs({ tab: 'ledger',
+    accountId: String(accountId), from, to, consolidated: consolidated ? '1' : '' })}`);
+}
+
 // ── General Ledger (EP-16) ────────────────────────────────────────────────
 
 function JournalDrawer({ id, onClose }: { id: string; onClose: () => void }) {
   const { can } = useAuth();
   const j = useGet<R>(`${API}/journals/${id}`);
+  const docs = useGet<Page<R>>(`${API}/journals/${id}/documents`);
   const x = j.data;
+  const amountOf = new Map(items(x?.sourceReferences).map((s) => [`${String(s.sourceType)}:${String(s.sourceId)}`, s.amount]));
   return (
     <Drawer open onClose={onClose} title={x ? `Journal ${String(x.number)}` : 'Journal'}>
       {j.isLoading && <Skeleton />}
@@ -74,10 +133,14 @@ function JournalDrawer({ id, onClose }: { id: string; onClose: () => void }) {
             { key: 'description', header: 'Description' }, { key: 'businessLine', header: 'Line', render: (l) => label(l.businessLine) },
             { key: 'costCenter', header: 'Cost center' }, { key: 'partnerName', header: 'Partner' },
             { key: 'debit', header: 'Debit', align: 'right', render: (l) => money(l.debit) }, { key: 'credit', header: 'Credit', align: 'right', render: (l) => money(l.credit) }]} />
-          {items(x.sourceReferences).length > 0 && (
+          {rowsOf(docs.data).length > 0 && (
             <Card title="Source documents" icon="link">
-              <DataTable rows={items(x.sourceReferences)} columns={[{ key: 'sourceType', header: 'Document', render: (s) => label(s.sourceType) },
-                { key: 'sourceId', header: 'Id' }, { key: 'amount', header: 'Amount', align: 'right', render: (s) => money(s.amount) }]} />
+              <DataTable rows={rowsOf(docs.data).map((d, i) => ({ ...d, id: String(i) }) as R)} columns={[
+                { key: 'documentType', header: 'Document', render: (d) => <SourceDoc d={d} /> },
+                { key: 'amount', header: 'Amount', align: 'right', render: (d) => {
+                  const a = amountOf.get(`${String(d.sourceType)}:${String(d.sourceId)}`);
+                  return a === undefined ? '—' : money(a);
+                } }]} />
             </Card>
           )}
           {x.status === 'posted' && !x.reversedByJournalId && can('accounting.journal.reverse') &&
@@ -89,7 +152,10 @@ function JournalDrawer({ id, onClose }: { id: string; onClose: () => void }) {
 }
 
 function JournalsTab() {
-  const [open, setOpen] = useState('');
+  // ?journal=<id> opens a journal (links from source documents and reversals)
+  const [params, setParams] = useSearchParams();
+  const open = params.get('journal') ?? '';
+  const setOpen = (j: string) => setParams(j ? { tab: 'journals', journal: j } : { tab: 'journals' });
   const [from, setFrom] = useState(monthStart());
   const [to, setTo] = useState(today());
   return (
@@ -183,6 +249,7 @@ function TrialBalanceTab() {
   const [to, setTo] = useState(today());
   const [consolidated, setConsolidated] = useState(false);
   const { propertyId } = useAuth();
+  const ledger = useLedgerLink();
   const tb = useGet<R>(`${API}/trial-balance${qs({ from, to, propertyId: consolidated ? '' : propertyId })}`);
   const x = tb.data;
   return (
@@ -191,7 +258,9 @@ function TrialBalanceTab() {
         <Checkbox label="Consolidated MAIN + MDR" checked={consolidated} onChange={setConsolidated} /></div>
       <ErrorAlert error={tb.error} />
       {x && <KV items={[['Balanced', x.balanced ? 'Yes' : 'No'], ['Total debit', money(x.totalDebit)], ['Total credit', money(x.totalCredit)]]} />}
-      <DataTable rows={items(x?.rows)} loading={tb.isLoading} rowKey={(r) => String(r.accountId)} columns={[{ key: 'code', header: 'Code' }, { key: 'name', header: 'Account' },
+      <p className="oc-muted oc-small" style={{ margin: 0 }}>Select an account to open its General Ledger for the period.</p>
+      <DataTable rows={items(x?.rows)} loading={tb.isLoading} rowKey={(r) => String(r.accountId)} onRowClick={(r) => ledger(r.accountId, from, to, consolidated)}
+        columns={[{ key: 'code', header: 'Code' }, { key: 'name', header: 'Account' },
         { key: 'opening', header: 'Opening', align: 'right', render: (r) => money(r.opening) }, { key: 'debit', header: 'Debit', align: 'right', render: (r) => money(r.debit) },
         { key: 'credit', header: 'Credit', align: 'right', render: (r) => money(r.credit) }, { key: 'closing', header: 'Closing', align: 'right', render: (r) => money(r.closing) }]} />
     </div>
@@ -199,22 +268,39 @@ function TrialBalanceTab() {
 }
 
 function LedgerTab() {
-  const [account, setAccount] = useState('');
-  const [from, setFrom] = useState(monthStart());
-  const [to, setTo] = useState(today());
+  // ?accountId=&from=&to=&consolidated=1: drill-down from the Trial Balance and the financial statements
+  const [params] = useSearchParams();
+  const [account, setAccount] = useState(params.get('accountId') ?? '');
+  const [from, setFrom] = useState(params.get('from') ?? monthStart());
+  const [to, setTo] = useState(params.get('to') ?? today());
+  const [consolidated, setConsolidated] = useState(params.get('consolidated') === '1');
   const [open, setOpen] = useState('');
   const { propertyId } = useAuth();
-  const gl = useGet<R>(account ? `${API}/general-ledger${qs({ accountId: account, from, to, propertyId })}` : null);
+  const filter = qs({ accountId: account, from, to, propertyId: consolidated ? '' : propertyId });
+  const gl = useGet<R>(account ? `${API}/general-ledger${filter}` : null);
+  const docs = useGet<Page<R>>(account ? `${API}/general-ledger/documents${filter}` : null);
+  const docsOf = new Map(rowsOf(docs.data).map((d) => [String(d.lineId), d]));
   const x = gl.data;
   return (
     <div className="oc-stack">
       <div className="oc-row-wrap"><div style={{ minWidth: 300 }}><AccountSelect label="Account" value={account} onChange={setAccount} /></div>
-        <DateRange from={from} to={to} setFrom={setFrom} setTo={setTo} /></div>
+        <DateRange from={from} to={to} setFrom={setFrom} setTo={setTo} />
+        <Checkbox label="Consolidated MAIN + MDR" checked={consolidated} onChange={setConsolidated} /></div>
       <ErrorAlert error={gl.error} />
       {x && <KV items={[['Opening balance', money(x.openingBalance)], ['Debit', money(x.debit)], ['Credit', money(x.credit)], ['Closing balance', money(x.closingBalance)]]} />}
       {account && <DataTable rows={items(x?.lines)} loading={gl.isLoading} onRowClick={(l) => setOpen(String(l.journalId))} rowKey={(l) => String(l.lineId)} columns={[
         { key: 'journalDate', header: 'Date', render: (l) => dt(l.journalDate) }, { key: 'journalNumber', header: 'Journal' },
-        { key: 'sourceType', header: 'Source', render: (l) => `${label(l.sourceType)} ${String(l.sourceRef ?? '')}` }, { key: 'description', header: 'Description' },
+        { key: 'sourceType', header: 'Source document', render: (l) => {
+          const d = docsOf.get(String(l.lineId));
+          const list = items(d?.documents);
+          if (list.length === 0) return `${label(l.sourceType)} ${String(l.sourceRef ?? '')}`;
+          return (
+            <span className="oc-stack" style={{ gap: 2 }}>
+              {list.map((doc, i) => <SourceDoc key={i} d={doc} />)}
+              {Number(d?.moreDocuments ?? 0) > 0 && <span className="oc-muted oc-small">+{String(d?.moreDocuments)} more (open the journal)</span>}
+            </span>
+          );
+        } }, { key: 'description', header: 'Description' },
         { key: 'debit', header: 'Debit', align: 'right', render: (l) => money(l.debit) }, { key: 'credit', header: 'Credit', align: 'right', render: (l) => money(l.credit) },
         { key: 'balance', header: 'Balance', align: 'right', render: (l) => money(l.balance) }]} />}
       {open && <JournalDrawer id={open} onClose={() => setOpen('')} />}
@@ -819,6 +905,52 @@ function ReconciliationChecks() {
   );
 }
 
+/** FR-TRS-03 parallel run: the Excel Finance trial balance of the month against OneClub's, per mapped account. */
+function ExcelTBComparison() {
+  const { propertyId } = useAuth();
+  const [from, setFrom] = useState(monthStart());
+  const [to, setTo] = useState(today());
+  const [consolidated, setConsolidated] = useState(false);
+  const [content, setContent] = useState('');
+  const [res, setRes] = useState<R | null>(null);
+  const send = useSend<Record<string, unknown>, R>('POST', `${API}/reconciliations:excel-trial-balance`);
+  const unmapped = items(res?.unmapped);
+  return (
+    <div className="oc-stack">
+      <Card title="Parallel run: OneClub Trial Balance vs Excel Finance (FR-TRS-03)" icon="compare_arrows">
+        <div className="oc-stack">
+          <p className="oc-muted oc-small" style={{ margin: 0 }}>Upload the Excel Finance trial balance of the month as CSV with a header
+            (account,debit,credit or account,balance). Items match OneClub accounts through the Excel Finance Mapping, else by account code.</p>
+          <div className="oc-row-wrap"><DateRange from={from} to={to} setFrom={setFrom} setTo={setTo} />
+            <Checkbox label="Consolidated MAIN + MDR" checked={consolidated} onChange={setConsolidated} /></div>
+          <label className="oc-field"><span>CSV file</span><input type="file" accept=".csv,.txt" aria-label="Excel Finance trial balance (CSV)"
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) void f.text().then(setContent); }} /></label>
+          <TextArea label="account,debit,credit" value={content} onChange={setContent} rows={6} />
+          <div><button className="oc-btn oc-btn-primary" disabled={!content || send.isPending}
+            onClick={() => send.mutate({ from, to, content, propertyId: consolidated ? undefined : propertyId }, { onSuccess: setRes })}>Compare</button></div>
+          <ErrorAlert error={send.error} />
+        </div>
+      </Card>
+      {res && (
+        <>
+          <KV items={[['Period', `${dt(res.from)} – ${dt(res.to)}`],
+            ['Result', <StatusPill key="r" status={res.matched ? 'matched' : 'exceptions'} label={res.matched ? 'Trial balances agree' : 'Differences to explain'} />],
+            ['Accounts with a difference', String(res.differences)], ['Total difference', money(res.totalDifference)], ['Unmapped Excel items', String(unmapped.length)]]} />
+          <DataTable rows={items(res.rows)} rowKey={(r) => String(r.accountId ?? r.code)} columns={[{ key: 'code', header: 'Code' }, { key: 'name', header: 'Account' },
+            { key: 'excelItems', header: 'Excel items', render: (r) => (Array.isArray(r.excelItems) ? r.excelItems.join(', ') : '') || '—' },
+            { key: 'excel', header: 'Excel Finance', align: 'right', render: (r) => money(r.excel) }, { key: 'oneClub', header: 'OneClub', align: 'right', render: (r) => money(r.oneClub) },
+            { key: 'difference', header: 'Difference', align: 'right', render: (r) => money(r.difference) },
+            { key: 'matched', header: 'Result', render: (r) => <StatusPill status={r.matched ? 'matched' : 'exceptions'} /> }]} />
+          {unmapped.length > 0 && <Card title="Excel items without an account" icon="help" actions={<Link className="oc-btn oc-btn-sm oc-btn-neutral" to="/accounting/setup?tab=mappings">Excel Finance Mapping</Link>}>
+            <DataTable rows={unmapped.map((u) => ({ ...u, id: String(u.row) }) as R)} columns={[{ key: 'row', header: 'Row', align: 'right' }, { key: 'account', header: 'Excel item' },
+              { key: 'balance', header: 'Balance', align: 'right', render: (u) => money(u.balance) }]} />
+          </Card>}
+        </>
+      )}
+    </div>
+  );
+}
+
 export function ClosingPage() {
   const { can } = useAuth();
   const [tab, setTab] = useTab('exceptions');
@@ -828,7 +960,7 @@ export function ClosingPage() {
       <PageHeader title="Closing" help="Posting exceptions (no event is lost: unmapped postings go to suspense), processed events and the reconciliations before closing."
         actions={can('accounting.posting.manage') ? <ActionButton label="Run postings up to today" kind="primary" path={`${API}/postings:run`} body={{ upTo: today() }} invalidate={ACC} /> : undefined} />
       <Tabs value={tab} onChange={setTab} tabs={[{ value: 'exceptions', label: 'Posting Exceptions' }, { value: 'events', label: 'Processed Events' },
-        { value: 'reconciliation', label: 'Reconciliations' }]} />
+        { value: 'reconciliation', label: 'Reconciliations' }, { value: 'excel-tb', label: 'Excel TB Comparison' }]} />
       {tab === 'exceptions' && <ListPage title="Posting Exceptions" path={`${API}/posting-exceptions`} search={false} onRowClick={(r) => setOpen(r.id)}
         statuses={['open', 'resolved', 'ignored'].map((s) => ({ value: s, label: label(s) }))}
         columns={[{ key: 'createdAt', header: 'When', render: (r) => formatDateTime(String(r.createdAt)) }, { key: 'eventType', header: 'Event' },
@@ -838,6 +970,7 @@ export function ClosingPage() {
         { key: 'processedAt', header: 'Processed', render: (r) => formatDateTime(String(r.processedAt)) }, { key: 'eventType', header: 'Event' },
         { key: 'status', header: 'Result', render: pill('status') }, { key: 'note', header: 'Note' }, { key: 'attempts', header: 'Deliveries', align: 'right' }]} />}
       {tab === 'reconciliation' && <ReconciliationChecks />}
+      {tab === 'excel-tb' && <ExcelTBComparison />}
       {open && <ExceptionDrawer id={open} onClose={() => setOpen('')} />}
     </div>
   );
@@ -856,6 +989,7 @@ export function FinancialReportsPage() {
   const [compare, setCompare] = useState('');
   const [consolidated, setConsolidated] = useState(false);
   const r = useGet<R>(`${API}/reports/${kind}${qs({ from, to, compare, propertyId: consolidated ? '' : propertyId })}`);
+  const ledger = useLedgerLink();
   const x = r.data;
   const totals = (x?.totals ?? {}) as Record<string, string>;
   return (
@@ -870,7 +1004,10 @@ export function FinancialReportsPage() {
       </div>
       <ErrorAlert error={r.error} />
       {x?.balanced !== undefined && x?.balanced !== null && <StatusPill status={x.balanced ? 'matched' : 'exceptions'} label={x.balanced ? 'Balanced' : 'Not balanced'} />}
-      <DataTable rows={items(x?.rows).map((row, i) => ({ ...row, id: String(i) }) as R)} loading={r.isLoading} columns={[{ key: 'section', header: 'Section', render: (s) => label(s.section) },
+      <p className="oc-muted oc-small" style={{ margin: 0 }}>Select an account row to open its General Ledger, then a line for its journal and source documents.</p>
+      <DataTable rows={items(x?.rows).map((row, i) => ({ ...row, id: String(i) }) as R)} loading={r.isLoading}
+        onRowClick={(s) => { if (s.accountId) ledger(s.accountId, kind === 'balance-sheet' ? `${to.slice(0, 4)}-01-01` : from, to, consolidated); }}
+        columns={[{ key: 'section', header: 'Section', render: (s) => label(s.section) },
         { key: 'code', header: 'Account' }, { key: 'name', header: 'Name', render: (s) => (s.total ? <strong>{String(s.name)}</strong> : String(s.name)) },
         { key: 'amount', header: 'Amount', align: 'right', render: (s) => (s.total ? <strong>{money(s.amount)}</strong> : money(s.amount)) },
         ...(compare ? [{ key: 'compare', header: 'Comparison', align: 'right' as const, render: (s: R) => money(s.compare) }] : [])]} />

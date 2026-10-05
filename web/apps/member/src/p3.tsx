@@ -15,8 +15,20 @@ import { TOURNAMENT_MEMBER_ROUTES } from './areas/tournament';
 type Row = Record<string, unknown>;
 const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : `Rp ${formatNumber(Number(v))}`);
 
+/** e-Faktur (faktur pajak) of my invoices (PRD P4 §7.3); empty when Accounting is off. */
+function useMyEFaktur() {
+  const { data } = useGet<Page<Row>>('/api/v1/member/invoice-efaktur', { retry: false });
+  return new Map((data?.items ?? []).map((e) => [String(e.invoiceId), e]));
+}
+
+function EFakturCell({ e }: { e?: Row }) {
+  if (!e) return <span className="oc-muted">—</span>;
+  return e.fakturNumber ? <span>{String(e.fakturNumber)}</span> : <StatusPill status={String(e.status)} label={`e-Faktur ${String(e.status)}`} />;
+}
+
 export function MyInvoicesPage() {
   const invoices = useGet<Page<Row>>('/api/v1/member/invoices?limit=100');
+  const efaktur = useMyEFaktur();
   const schedules = useGet<Page<Row & { lines: Row[] }>>('/api/v1/member/payment-schedules?limit=50');
   const [checkout, setCheckout] = useState<Schemas['Payment'] | null>(null);
   const [open, setOpen] = useState<string | null>(null);
@@ -45,7 +57,8 @@ export function MyInvoicesPage() {
         <DataTable rows={invoices.data?.items} loading={invoices.isLoading} onRowClick={(r) => setOpen(String(r.id))} columns={[
           { key: 'number', header: 'Invoice' }, { key: 'issueDate', header: 'Issued', render: (r) => formatDate(String(r.issueDate)) },
           { key: 'dueDate', header: 'Due', render: (r) => formatDate(String(r.dueDate)) }, { key: 'total', header: 'Total', render: (r) => money(r.total) },
-          { key: 'outstanding', header: 'To pay', render: (r) => money(r.outstanding) }, { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> }]}
+          { key: 'outstanding', header: 'To pay', render: (r) => money(r.outstanding) }, { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> },
+          { key: 'efaktur', header: 'Faktur pajak', render: (r) => <EFakturCell e={efaktur.get(String(r.id))} /> }]}
           actions={(r) => ['issued', 'partially_paid', 'overdue'].includes(String(r.status)) ? (
             <button className="oc-btn oc-btn-primary oc-btn-sm" disabled={busy} onClick={() => void payOnline(`/api/v1/member/invoices/${String(r.id)}:pay-online`)}>Pay</button>
           ) : null} />
@@ -61,13 +74,13 @@ export function MyInvoicesPage() {
             ) : null} />
         </Card>
       ))}
-      {open && <InvoiceDetail id={open} onClose={() => setOpen(null)} />}
+      {open && <InvoiceDetail id={open} efaktur={efaktur.get(open)} onClose={() => setOpen(null)} />}
       <CheckoutModal checkout={checkout} onClose={() => setCheckout(null)} />
     </div>
   );
 }
 
-function InvoiceDetail({ id, onClose }: { id: string; onClose: () => void }) {
+function InvoiceDetail({ id, efaktur, onClose }: { id: string; efaktur?: Row; onClose: () => void }) {
   const d = useGet<Row & { lines: Row[] }>(`/api/v1/member/invoices/${id}`);
   const x = d.data;
   return (
@@ -78,6 +91,9 @@ function InvoiceDetail({ id, onClose }: { id: string; onClose: () => void }) {
           <div className="oc-row"><StatusPill status={String(x.status)} /><span className="oc-spacer" /><strong>{money(x.total)}</strong></div>
           <DataTable rows={x.lines} columns={[{ key: 'description', header: 'Description' }, { key: 'total', header: 'Total', render: (l) => money(l.total) }]} />
           <div className="oc-row oc-small"><span className="oc-muted">Outstanding</span><span className="oc-spacer" /><strong>{money(x.outstanding)}</strong></div>
+          {efaktur && <div className="oc-row oc-small"><span className="oc-muted">Faktur pajak (e-Faktur)</span><span className="oc-spacer" />
+            {efaktur.fakturNumber ? <strong>{String(efaktur.fakturNumber)}</strong> : null}
+            <StatusPill status={String(efaktur.status)} label={`e-Faktur ${String(efaktur.status)}`} /></div>}
         </div>
       )}
     </Drawer>

@@ -43,6 +43,7 @@ func p4AccountingTemplates() []provision.Template { return accounting.Templates(
 func (a *App) buildP4Accounting(reg *route.Registry, cfg *config.Config, db *dbtx.DB, files *storage.Files) {
 	m := &accounting.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Files: files, Engine: a.Engine, Integrations: a.Integrations}
 	m.Register(reg, a.Engine)
+	m.RegisterP4FixFinance(reg) // P4 gap fixes: drill-down, e-Faktur on invoices, Excel TB comparison
 	a.Approvals.RegisterDocumentType(accounting.ManualJournalDocumentType, m.ManualJournalDecision)
 	a.Approvals.RegisterDocumentType(accounting.ReopenDocumentType, m.ReopenDecision)
 	a.Approvals.RegisterDocumentType(accounting.PaymentRunDocumentType, m.PaymentRunDecision)
