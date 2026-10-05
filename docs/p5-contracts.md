@@ -205,3 +205,56 @@ priority service — the F&B discount is exposed for POS/commercial to apply), `
 `crm.tier_evaluation`, `crm.reward_redemption`, `crm.loyalty_cost`, `crm.nps_analytics`, `crm.complaint_sla`,
 `crm.sales_performance`, `crm.rfm_segment`, `crm.vip_customers`) are in `internal/reporting/p5_crm.go`
 (`P5CRMReports`, `P5CRMContribution`); when merged with the BI registry they should be registered through `RegisterP5Report`.
+
+## Recruitment & Performance Review (`hris/talent`, EP-03, EP-05, EP-27 part)
+
+**Packages.** `internal/hris/talent` (imports the hris root only); root additions in `internal/hris/talent.go`:
+`hris.RecruitmentConfiguration` / `hris.PerformanceConfiguration` (policies `hris.recruitment_configuration`,
+`hris.performance_configuration`, category HR Configuration, appended to `hris.PolicyCodes`), the scoring engine
+(`WeightedScore`, `CombineScores`, `PerformanceConfiguration.Band/RecommendedScore/Distribution/AtLeast`), the stage
+constants, `hris.Onboarding` and `hris.LatestReviewResult`.
+
+**Core HR through `hris.Onboarding`** (wired in `internal/app/p5_hr_talent.go`): `Hire` creates the employee through the
+employee resource (Core HR publishes `hris.employee_hired`), the active contract (`corehr.Module.CreateContract`, new
+file `corehr/hire.go`, same validation / numbering / audit as `POST /hris/contracts`) and the ESS login
+(`iam.ProvisionEmployeeUser`); `ChangeEmployment` is Core HR `:promote` (used by `POST /hris/reviews/{id}:promote`).
+
+**Operational review inputs (FR-PRF-HR-03).** `hris.RegisterReviewInput(key, func(ctx, q, employee, from, to)
+([]hris.ReviewInput, error))`: snapshot at cycle launch. Registered: `training`, `certifications` (talent),
+`sales_target` (internal/app, `sales.TargetAchievements` of the employee's login). The time & attendance area can
+register `attendance` the same way.
+
+**Approval document types.** `hris.job_requisition` (attributes `headcount`, `salaryMax`, `orgUnitId`, `reason`,
+`contractType`) and `hris.job_offer` (`baseSalary`, `aboveBudget` 1/0, `gradeLevel`, `contractType`, `orgUnitId`).
+Without a workflow a submitted document is approved at once.
+
+**Event published — `hris.performance_review_completed`** (aggregate `hris.performance_review`), once per review
+when its cycle is closed; the payroll area may read it (or `hris.LatestReviewResult`) as the salary increase / bonus
+basis (FR-PRF-HR-04):
+
+```json
+{ "reviewId": "uuid", "cycleId": "uuid", "cycleCode": "FNB-ANNUAL-2026", "cycleType": "annual|semester|probation",
+  "periodEnd": "2026-12-31", "propertyId": "uuid", "employeeId": "uuid", "employeeNo": "EMP-00024", "finalScore": "3.9",
+  "finalRating": "exceeds", "recommendation": "salary_increase", "increasePercent": "7", "bonusMonths": "1.5" }
+```
+
+Completed reviews are also written to `hris.employment_history` with the new kind `performance_review` (reason =
+cycle, rating, score; reference = cycle code). `hris.employee_hired` is published by Core HR for every hire.
+
+**Report role hardening.** `hris.harden_report_role()` now also runs every `hris.harden_report_role_<area>()`
+function; talent adds `hris.harden_report_role_talent()` (candidate personal data, salary budgets and offer salaries
+are not readable by the report role). Later hris areas: add your own `harden_report_role_<area>()` instead of
+replacing `harden_report_role()`.
+
+**ESS sections.** `reviews` (My Reviews, order 85) and `team-reviews` (Team Reviews, manager, `hris.team.view`,
+order 105); Staff App views in `web/apps/staff/src/p5/hr_talent.tsx` (`TALENT_ESS`).
+
+**Reports & KPIs** (`internal/reporting/p5_hr_talent.go`, views `reporting.hr_requisitions`, `hr_applications`,
+`hr_performance_reviews` in `reporting/00023_p5_hr_talent.sql`): reports `hris.recruitment_funnel`,
+`hris.time_to_hire`, `hris.performance_review`, `hris.performance_distribution` (RegisterP5Report: HR Manager,
+HR Admin, GM, Property Admin); HR Performance KPIs `time_to_hire`, `open_positions`, `review_completion`,
+`review_score` (RegisterHRKPI).
+
+**Public API.** `GET /api/v1/public/careers?propertyId=`, `GET /api/v1/public/careers/{id}`,
+`POST /api/v1/public/careers/applications` (consent required, talent pool consent optional, CV base64 up to the
+Recruitment Configuration limit, honeypot `website`, 10 / minute per IP).

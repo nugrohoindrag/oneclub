@@ -21,6 +21,7 @@ import (
 	"oneclub/internal/golf"
 	"oneclub/internal/hris"
 	"oneclub/internal/hris/corehr"
+	"oneclub/internal/hris/talent"
 	"oneclub/internal/kernel/config"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
@@ -38,13 +39,17 @@ import (
 // p5HR holds the services of the area.
 type p5HR struct {
 	Module *corehr.Module
+	// Recruitment & Performance Review (EP-03, EP-05): p5_hr_talent.go.
+	Talent *talent.Module
 }
 
 func p5HRContributions() []catalog.Contribution {
-	return []catalog.Contribution{(&corehr.Module{}).Contribution(), reporting.HRCoreContribution()}
+	return append([]catalog.Contribution{(&corehr.Module{}).Contribution(), reporting.HRCoreContribution()}, p5HRTalentContributions()...)
 }
-func p5HRDocumentTypes() []provision.DocumentType { return nil }
-func p5HRTemplates() []provision.Template         { return corehr.Templates() }
+func p5HRDocumentTypes() []provision.DocumentType { return p5HRTalentDocumentTypes() }
+func p5HRTemplates() []provision.Template {
+	return append(corehr.Templates(), p5HRTalentTemplates()...)
+}
 
 // HRDemoUsers are the HR, employee and department head demo logins (PRD P5
 // §4: HR Manager, Employee (self-service), department head).
@@ -110,6 +115,7 @@ func (a *App) buildP5HR(reg *route.Registry, cfg *config.Config, db *dbtx.DB, fi
 		return nil
 	})
 	a.HR.Module = m
+	a.buildP5HRTalent(reg, cfg, db, files, m) // EP-03, EP-05 (p5_hr_talent.go)
 }
 
 // hrisEnabled reports whether the HRIS module is enabled.
@@ -216,5 +222,8 @@ func demoP5HR(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 		FROM golf.caddies c WHERE c.property_id = $1 AND c.archived_at IS NULL
 		  AND NOT EXISTS (SELECT 1 FROM hris.certifications x WHERE x.partner_id = c.id AND x.certification_type_id = $2)`, property, certType,
 		clock.Now().In(calendar.Location(ctx, tx)).Format(time.DateOnly))
-	return err
+	if err != nil {
+		return err
+	}
+	return demoP5HRTalent(ctx, tx, property) // EP-03, EP-05 (p5_hr_talent.go)
 }

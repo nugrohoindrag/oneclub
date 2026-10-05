@@ -269,8 +269,10 @@ var Trees = map[string][]Item{
 		mod("hris", "HRIS", "badge", "/hris/employees",
 			s("hris-employees", "Employees", "/hris/employees", "hris.employee.view"),
 			s("hris-organization", "Organization", "/hris/organization", "hris.org_unit.view"),
-			soon("hris-recruitment", "Recruitment", "/hris/recruitment"),
+			s("hris-recruitment", "Recruitment", "/hris/recruitment", "hris.job_requisition.view"),
 			s("hris-training", "Training & Certification", "/hris/training", "hris.certification.view"),
+			// PRD P5 EP-05 (performance review cycles, calibration).
+			s("hris-performance", "Performance Review", "/hris/performance", "hris.review_cycle.view"),
 			soon("hris-attendance", "Attendance", "/hris/attendance"),
 			soon("hris-schedules", "Schedules", "/hris/schedules"),
 			soon("hris-leave", "Leave & Permission", "/hris/leave"),
