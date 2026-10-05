@@ -11100,6 +11100,317 @@
         ],
         "type": "object"
       },
+      "BonusAction": {
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "BonusLineInput": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "employeeId",
+          "amount"
+        ],
+        "type": "object"
+      },
+      "BonusLinesInput": {
+        "properties": {
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/BonusLineInput"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "lines"
+        ],
+        "type": "object"
+      },
+      "BonusProgramme": {
+        "properties": {
+          "approvalRequestId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "approvedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "bonusType": {
+            "enum": [
+              "performance",
+              "annual",
+              "incentive",
+              "other"
+            ],
+            "type": "string"
+          },
+          "cancelReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "decisionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "employees": {
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "payPeriod": {
+            "description": "YYYY-MM of the payroll that pays it",
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reviewCycleId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "pending_approval",
+              "approved",
+              "paid",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "number",
+          "name",
+          "bonusType",
+          "payPeriod",
+          "status",
+          "employees",
+          "total",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "BonusProgrammeDetail": {
+        "properties": {
+          "approvalRequestId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "approvedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "bonusType": {
+            "enum": [
+              "performance",
+              "annual",
+              "incentive",
+              "other"
+            ],
+            "type": "string"
+          },
+          "cancelReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "decisionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "employees": {
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/BonusProgrammeLine"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "payPeriod": {
+            "description": "YYYY-MM of the payroll that pays it",
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reviewCycleId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "pending_approval",
+              "approved",
+              "paid",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "number",
+          "name",
+          "bonusType",
+          "payPeriod",
+          "status",
+          "employees",
+          "total",
+          "createdAt",
+          "lines"
+        ],
+        "type": "object"
+      },
+      "BonusProgrammeInput": {
+        "properties": {
+          "bonusType": {
+            "enum": [
+              "performance",
+              "annual",
+              "incentive",
+              "other"
+            ],
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "payPeriod": {
+            "description": "YYYY-MM",
+            "type": "string"
+          },
+          "reviewCycleId": {
+            "description": "Performance review cycle whose results are the basis",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "payPeriod"
+        ],
+        "type": "object"
+      },
+      "BonusProgrammeLine": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "basis": {
+            "nullable": true,
+            "type": "string"
+          },
+          "consumedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "employeeNo": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "note": {
+            "nullable": true,
+            "type": "string"
+          },
+          "payrollRunId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "employeeId",
+          "employeeNo",
+          "fullName",
+          "amount"
+        ],
+        "type": "object"
+      },
       "BookInput": {
         "properties": {
           "channel": {
@@ -21562,6 +21873,120 @@
         ],
         "type": "object"
       },
+      "CommissionMatchInput": {
+        "properties": {
+          "employeeId": {
+            "description": "Default: the employee linked to the statement's user",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CommissionPayout": {
+        "properties": {
+          "adjustments": {
+            "type": "string"
+          },
+          "clawback": {
+            "type": "string"
+          },
+          "consumedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "deduction": {
+            "description": "Payroll deduction COMMISSION_CLAWBACK",
+            "type": "string"
+          },
+          "earned": {
+            "type": "string"
+          },
+          "earning": {
+            "description": "Payroll earning COMMISSION",
+            "type": "string"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "employeeName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "employeeNo": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "irregular": {
+            "description": "Irregular income for PPh 21",
+            "type": "boolean"
+          },
+          "number": {
+            "type": "string"
+          },
+          "payrollRunId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "period": {
+            "type": "string"
+          },
+          "receivedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "statementId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "unmatched",
+              "ready",
+              "paid",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          },
+          "userId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "userName": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "statementId",
+          "number",
+          "period",
+          "earned",
+          "clawback",
+          "adjustments",
+          "total",
+          "earning",
+          "deduction",
+          "irregular",
+          "status",
+          "receivedAt"
+        ],
+        "type": "object"
+      },
       "CommissionScheme": {
         "properties": {
           "archivedAt": {
@@ -30790,6 +31215,65 @@
         },
         "type": "object"
       },
+      "EmployeePayoutItem": {
+        "properties": {
+          "deduction": {
+            "description": "Clawback of earlier commission",
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "earning": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "net": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paidAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "period": {
+            "description": "Commission month / bonus pay period (YYYY-MM)",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ready",
+              "paid"
+            ],
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "commission",
+              "bonus"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "number",
+          "description",
+          "period",
+          "earning",
+          "deduction",
+          "net",
+          "status"
+        ],
+        "type": "object"
+      },
       "EmployeePosition": {
         "properties": {
           "archivedAt": {
@@ -31508,6 +31992,81 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "EmployeeServiceCharge": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "attendanceAmount": {
+            "type": "string"
+          },
+          "attendanceFactor": {
+            "type": "string"
+          },
+          "baseShare": {
+            "type": "string"
+          },
+          "distributionId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "exclusionReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paidAt": {
+            "description": "Posted with the payroll",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "payPeriod": {
+            "type": "string"
+          },
+          "period": {
+            "description": "YYYY-MM of the pool",
+            "type": "string"
+          },
+          "presentDays": {
+            "type": "string"
+          },
+          "redistributed": {
+            "type": "string"
+          },
+          "scheduledDays": {
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "approved",
+              "paid"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "distributionId",
+          "number",
+          "period",
+          "payPeriod",
+          "status",
+          "eligible",
+          "scheduledDays",
+          "presentDays",
+          "attendanceFactor",
+          "baseShare",
+          "attendanceAmount",
+          "redistributed",
+          "amount"
+        ],
         "type": "object"
       },
       "EmployeeTrainingProgram": {
@@ -63372,6 +63931,25 @@
         ],
         "type": "object"
       },
+      "PartnerDeductionAmount": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "amount"
+        ],
+        "type": "object"
+      },
       "PasswordChangeRequest": {
         "properties": {
           "currentPassword": {
@@ -64076,6 +64654,1076 @@
         },
         "required": [
           "label"
+        ],
+        "type": "object"
+      },
+      "PayoutHistoryItem": {
+        "properties": {
+          "bpu": {
+            "type": "string"
+          },
+          "deductions": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "caddy",
+              "instructor"
+            ],
+            "type": "string"
+          },
+          "lineId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "net": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paidOn": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "payDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodEnd": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodStart": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "pph21": {
+            "type": "string"
+          },
+          "runId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "runStatus": {
+            "enum": [
+              "approved",
+              "paid"
+            ],
+            "type": "string"
+          },
+          "units": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lineId",
+          "runId",
+          "number",
+          "kind",
+          "periodStart",
+          "periodEnd",
+          "payDate",
+          "runStatus",
+          "units",
+          "gross",
+          "pph21",
+          "bpu",
+          "deductions",
+          "net"
+        ],
+        "type": "object"
+      },
+      "PayoutPartnerProfile": {
+        "properties": {
+          "archivedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "bankAccountName": {
+            "description": "Account Name",
+            "maxLength": 120,
+            "nullable": true,
+            "type": "string"
+          },
+          "bankAccountNo": {
+            "description": "Account No.",
+            "nullable": true,
+            "type": "string"
+          },
+          "bankCode": {
+            "description": "Bank Code",
+            "maxLength": 20,
+            "nullable": true,
+            "type": "string"
+          },
+          "bankName": {
+            "description": "Bank",
+            "maxLength": 80,
+            "nullable": true,
+            "type": "string"
+          },
+          "bpuDeclaredIncome": {
+            "description": "BPU Declared Income",
+            "nullable": true,
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "bpuEnrolled": {
+            "description": "BPJS Ketenagakerjaan BPU",
+            "nullable": true,
+            "type": "boolean"
+          },
+          "bpuNo": {
+            "description": "BPU Membership No.",
+            "maxLength": 30,
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "nik": {
+            "description": "NIK",
+            "nullable": true,
+            "type": "string"
+          },
+          "notes": {
+            "description": "Notes",
+            "maxLength": 2000,
+            "nullable": true,
+            "type": "string"
+          },
+          "npwp": {
+            "description": "NPWP",
+            "nullable": true,
+            "type": "string"
+          },
+          "partnerCode": {
+            "description": "Code",
+            "nullable": true,
+            "type": "string"
+          },
+          "partnerId": {
+            "description": "Caddy / Instructor",
+            "format": "uuid",
+            "type": "string"
+          },
+          "partnerKind": {
+            "description": "Partner",
+            "enum": [
+              "caddy",
+              "instructor"
+            ],
+            "type": "string"
+          },
+          "partnerName": {
+            "description": "Name",
+            "nullable": true,
+            "type": "string"
+          },
+          "partnershipStatus": {
+            "description": "Partnership Status",
+            "enum": [
+              "active",
+              "suspended",
+              "ended"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "paymentMethod": {
+            "description": "Payment Method",
+            "enum": [
+              "bank_transfer",
+              "cash"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "partnerKind",
+          "partnerId"
+        ],
+        "type": "object"
+      },
+      "PayoutPartnerProfileInput": {
+        "properties": {
+          "bankAccountName": {
+            "description": "Account Name",
+            "maxLength": 120,
+            "nullable": true,
+            "type": "string"
+          },
+          "bankAccountNo": {
+            "description": "Account No.",
+            "nullable": true,
+            "type": "string"
+          },
+          "bankCode": {
+            "description": "Bank Code",
+            "maxLength": 20,
+            "nullable": true,
+            "type": "string"
+          },
+          "bankName": {
+            "description": "Bank",
+            "maxLength": 80,
+            "nullable": true,
+            "type": "string"
+          },
+          "bpuDeclaredIncome": {
+            "description": "BPU Declared Income",
+            "nullable": true,
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "bpuEnrolled": {
+            "description": "BPJS Ketenagakerjaan BPU",
+            "nullable": true,
+            "type": "boolean"
+          },
+          "bpuNo": {
+            "description": "BPU Membership No.",
+            "maxLength": 30,
+            "nullable": true,
+            "type": "string"
+          },
+          "nik": {
+            "description": "NIK",
+            "nullable": true,
+            "type": "string"
+          },
+          "notes": {
+            "description": "Notes",
+            "maxLength": 2000,
+            "nullable": true,
+            "type": "string"
+          },
+          "npwp": {
+            "description": "NPWP",
+            "nullable": true,
+            "type": "string"
+          },
+          "partnerId": {
+            "description": "Caddy / Instructor",
+            "format": "uuid",
+            "type": "string"
+          },
+          "partnerKind": {
+            "description": "Partner",
+            "enum": [
+              "caddy",
+              "instructor"
+            ],
+            "type": "string"
+          },
+          "partnershipStatus": {
+            "description": "Partnership Status",
+            "enum": [
+              "active",
+              "suspended",
+              "ended"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "paymentMethod": {
+            "description": "Payment Method",
+            "enum": [
+              "bank_transfer",
+              "cash"
+            ],
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "PayoutRun": {
+        "properties": {
+          "approvalRequestId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "approvedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "bankAmount": {
+            "type": "string"
+          },
+          "bankFileAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "bpu": {
+            "type": "string"
+          },
+          "calculatedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "cancelReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "cancelledAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "cashAmount": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "decisionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          },
+          "heldPartners": {
+            "description": "Partners below the minimum net, left for the next run",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "caddy",
+              "instructor"
+            ],
+            "type": "string"
+          },
+          "net": {
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "otherDeductions": {
+            "type": "string"
+          },
+          "paidAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "paidOn": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "paidReference": {
+            "nullable": true,
+            "type": "string"
+          },
+          "partners": {
+            "type": "integer"
+          },
+          "payDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodEnd": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodStart": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "policyVersions": {
+            "description": "Policy versions used by the calculation (FR-POL-P5-07)",
+            "items": {
+              "$ref": "#/components/schemas/PolicyRef"
+            },
+            "type": "array"
+          },
+          "postedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pph21": {
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "sourceDeductions": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "calculated",
+              "pending_approval",
+              "approved",
+              "paid",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "taxNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "number",
+          "kind",
+          "periodStart",
+          "periodEnd",
+          "payDate",
+          "status",
+          "policyVersions",
+          "partners",
+          "heldPartners",
+          "gross",
+          "sourceDeductions",
+          "pph21",
+          "bpu",
+          "otherDeductions",
+          "net",
+          "bankAmount",
+          "cashAmount",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "PayoutRunAction": {
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "PayoutRunDetail": {
+        "properties": {
+          "approvalRequestId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "approvedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "bankAmount": {
+            "type": "string"
+          },
+          "bankFileAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "bpu": {
+            "type": "string"
+          },
+          "calculatedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "cancelReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "cancelledAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "cashAmount": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "decisionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          },
+          "heldPartners": {
+            "description": "Partners below the minimum net, left for the next run",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "caddy",
+              "instructor"
+            ],
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/PayoutRunLine"
+            },
+            "type": "array"
+          },
+          "net": {
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "otherDeductions": {
+            "type": "string"
+          },
+          "paidAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "paidOn": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "paidReference": {
+            "nullable": true,
+            "type": "string"
+          },
+          "partners": {
+            "type": "integer"
+          },
+          "payDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodEnd": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodStart": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "policyVersions": {
+            "description": "Policy versions used by the calculation (FR-POL-P5-07)",
+            "items": {
+              "$ref": "#/components/schemas/PolicyRef"
+            },
+            "type": "array"
+          },
+          "postedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pph21": {
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "sourceDeductions": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "calculated",
+              "pending_approval",
+              "approved",
+              "paid",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "taxNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "number",
+          "kind",
+          "periodStart",
+          "periodEnd",
+          "payDate",
+          "status",
+          "policyVersions",
+          "partners",
+          "heldPartners",
+          "gross",
+          "sourceDeductions",
+          "pph21",
+          "bpu",
+          "otherDeductions",
+          "net",
+          "bankAmount",
+          "cashAmount",
+          "createdAt",
+          "updatedAt",
+          "lines"
+        ],
+        "type": "object"
+      },
+      "PayoutRunInput": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "caddy",
+              "instructor"
+            ],
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "payDate": {
+            "description": "Default: the period end",
+            "type": "string"
+          },
+          "periodEnd": {
+            "type": "string"
+          },
+          "periodStart": {
+            "description": "Default: the last completed period of the schedule (Payroll Configuration partnerPayout)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "type": "object"
+      },
+      "PayoutRunLine": {
+        "properties": {
+          "bankAccountName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "bankAccountNo": {
+            "description": "Masked without hris.partner_profile.view_sensitive",
+            "nullable": true,
+            "type": "string"
+          },
+          "bankName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "bpuEnrolled": {
+            "type": "boolean"
+          },
+          "bpuJkk": {
+            "type": "string"
+          },
+          "bpuJkm": {
+            "type": "string"
+          },
+          "deductions": {
+            "items": {
+              "$ref": "#/components/schemas/PartnerDeductionAmount"
+            },
+            "type": "array"
+          },
+          "fee": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          },
+          "hasTaxId": {
+            "description": "NPWP / NIK registered (else the non-NPWP surcharge)",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "monthlyDue": {
+            "description": "BPU and monthly deductions taken in this run",
+            "type": "boolean"
+          },
+          "net": {
+            "type": "string"
+          },
+          "otherDeductions": {
+            "type": "string"
+          },
+          "partnerCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "partnerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "partnerName": {
+            "type": "string"
+          },
+          "paymentMethod": {
+            "enum": [
+              "bank_transfer",
+              "cash"
+            ],
+            "type": "string"
+          },
+          "pph21": {
+            "type": "string"
+          },
+          "pph21Rate": {
+            "type": "string"
+          },
+          "runId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "sourceDeductions": {
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/PayoutSourceRef"
+            },
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "payable",
+              "paid"
+            ],
+            "type": "string"
+          },
+          "taxBase": {
+            "type": "string"
+          },
+          "tips": {
+            "type": "string"
+          },
+          "units": {
+            "description": "Rounds (caddy) / sessions (instructor)",
+            "type": "integer"
+          },
+          "ytdTaxBase": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "runId",
+          "partnerId",
+          "partnerName",
+          "paymentMethod",
+          "hasTaxId",
+          "bpuEnrolled",
+          "monthlyDue",
+          "units",
+          "fee",
+          "tips",
+          "gross",
+          "sourceDeductions",
+          "ytdTaxBase",
+          "taxBase",
+          "pph21Rate",
+          "pph21",
+          "bpuJkk",
+          "bpuJkm",
+          "otherDeductions",
+          "deductions",
+          "net",
+          "sources",
+          "status"
+        ],
+        "type": "object"
+      },
+      "PayoutRunPayment": {
+        "properties": {
+          "paidOn": {
+            "description": "Default: today (club date)",
+            "type": "string"
+          },
+          "reference": {
+            "description": "Bank batch / transfer reference",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "PayoutSource": {
+        "properties": {
+          "channel": {
+            "description": "payroll: an employee instructor, paid with payroll",
+            "enum": [
+              "payout",
+              "payroll"
+            ],
+            "type": "string"
+          },
+          "deductions": {
+            "description": "Deductions of the settlement (golf Caddy Policies)",
+            "type": "string"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "fee": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "caddy",
+              "instructor"
+            ],
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "partnerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "partnerName": {
+            "type": "string"
+          },
+          "payoutRunId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "periodEnd": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodStart": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "receivedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "sourceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "sourceType": {
+            "enum": [
+              "golf.caddy_settlement",
+              "sportclub.instructor_fee"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "claimed",
+              "paid",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "tips": {
+            "description": "Non-cash tips",
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          },
+          "units": {
+            "description": "Rounds (caddy) or sessions (instructor)",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "sourceType",
+          "sourceId",
+          "number",
+          "partnerId",
+          "partnerName",
+          "channel",
+          "periodStart",
+          "periodEnd",
+          "units",
+          "fee",
+          "tips",
+          "deductions",
+          "gross",
+          "total",
+          "status",
+          "receivedAt"
+        ],
+        "type": "object"
+      },
+      "PayoutSourceRef": {
+        "properties": {
+          "deductions": {
+            "type": "string"
+          },
+          "gross": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "sourceId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "sourceType": {
+            "enum": [
+              "golf.caddy_settlement",
+              "sportclub.instructor_fee"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "sourceType",
+          "sourceId",
+          "number",
+          "gross",
+          "deductions"
+        ],
+        "type": "object"
+      },
+      "PayoutStatement": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "caddy",
+              "instructor"
+            ],
+            "type": "string"
+          },
+          "line": {
+            "$ref": "#/components/schemas/PayoutRunLine"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paidOn": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "payDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodEnd": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodStart": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "runId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "runStatus": {
+            "enum": [
+              "draft",
+              "calculated",
+              "pending_approval",
+              "approved",
+              "paid",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "taxNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "title": {
+            "description": "Payout Statement (caddy) / Honor Statement (instructor)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "runId",
+          "number",
+          "kind",
+          "title",
+          "periodStart",
+          "periodEnd",
+          "payDate",
+          "runStatus",
+          "line"
         ],
         "type": "object"
       },
@@ -83067,6 +84715,520 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "ServiceChargeAction": {
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ServiceChargeDistribution": {
+        "properties": {
+          "approvalRequestId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "approvedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "attendanceFactor": {
+            "type": "boolean"
+          },
+          "cancelReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "cancelledAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "collected": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "decisionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "distributable": {
+            "type": "string"
+          },
+          "distributed": {
+            "type": "string"
+          },
+          "distributedPercent": {
+            "type": "string"
+          },
+          "eligible": {
+            "type": "integer"
+          },
+          "excluded": {
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "equal",
+              "points"
+            ],
+            "type": "string"
+          },
+          "month": {
+            "type": "integer"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paidAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "payPeriod": {
+            "description": "YYYY-MM of the payroll that pays the lines",
+            "type": "string"
+          },
+          "periodEnd": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodStart": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "policyVersion": {
+            "description": "Service Charge Policy version used (FR-POL-P5-07)",
+            "type": "integer"
+          },
+          "poolId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "poolStatus": {
+            "description": "draft | approved (Accounting → Service Charge Pool)",
+            "nullable": true,
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "redistribute": {
+            "type": "boolean"
+          },
+          "reserve": {
+            "type": "string"
+          },
+          "reservePercent": {
+            "type": "string"
+          },
+          "roundingAccountCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "roundingDifference": {
+            "type": "string"
+          },
+          "simulatedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "simulated",
+              "pending_approval",
+              "approved",
+              "paid",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "undistributed": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "year": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "number",
+          "year",
+          "month",
+          "periodStart",
+          "periodEnd",
+          "payPeriod",
+          "collected",
+          "reservePercent",
+          "distributedPercent",
+          "reserve",
+          "distributable",
+          "distributed",
+          "undistributed",
+          "roundingDifference",
+          "method",
+          "attendanceFactor",
+          "redistribute",
+          "eligible",
+          "excluded",
+          "policyVersion",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "ServiceChargeDistributionDetail": {
+        "properties": {
+          "approvalRequestId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "approvedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "attendanceFactor": {
+            "type": "boolean"
+          },
+          "cancelReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "cancelledAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "collected": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "decisionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "distributable": {
+            "type": "string"
+          },
+          "distributed": {
+            "type": "string"
+          },
+          "distributedPercent": {
+            "type": "string"
+          },
+          "eligible": {
+            "type": "integer"
+          },
+          "excluded": {
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ServiceChargeDistributionLine"
+            },
+            "type": "array"
+          },
+          "method": {
+            "enum": [
+              "equal",
+              "points"
+            ],
+            "type": "string"
+          },
+          "month": {
+            "type": "integer"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paidAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "payPeriod": {
+            "description": "YYYY-MM of the payroll that pays the lines",
+            "type": "string"
+          },
+          "periodEnd": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodStart": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "policyVersion": {
+            "description": "Service Charge Policy version used (FR-POL-P5-07)",
+            "type": "integer"
+          },
+          "poolId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "poolStatus": {
+            "description": "draft | approved (Accounting → Service Charge Pool)",
+            "nullable": true,
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "redistribute": {
+            "type": "boolean"
+          },
+          "reserve": {
+            "type": "string"
+          },
+          "reservePercent": {
+            "type": "string"
+          },
+          "roundingAccountCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "roundingDifference": {
+            "type": "string"
+          },
+          "simulatedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "simulated",
+              "pending_approval",
+              "approved",
+              "paid",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "undistributed": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "year": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "number",
+          "year",
+          "month",
+          "periodStart",
+          "periodEnd",
+          "payPeriod",
+          "collected",
+          "reservePercent",
+          "distributedPercent",
+          "reserve",
+          "distributable",
+          "distributed",
+          "undistributed",
+          "roundingDifference",
+          "method",
+          "attendanceFactor",
+          "redistribute",
+          "eligible",
+          "excluded",
+          "policyVersion",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "lines"
+        ],
+        "type": "object"
+      },
+      "ServiceChargeDistributionInput": {
+        "properties": {
+          "month": {
+            "type": "integer"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "payPeriod": {
+            "description": "YYYY-MM; default the month after the pool month",
+            "type": "string"
+          },
+          "year": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "month"
+        ],
+        "type": "object"
+      },
+      "ServiceChargeDistributionLine": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "attendanceAmount": {
+            "description": "Base share × attendance factor",
+            "type": "string"
+          },
+          "attendanceFactor": {
+            "type": "string"
+          },
+          "baseShare": {
+            "type": "string"
+          },
+          "consumedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "eligible": {
+            "type": "boolean"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "employeeNo": {
+            "type": "string"
+          },
+          "employmentStatus": {
+            "type": "string"
+          },
+          "exclusionReason": {
+            "enum": [
+              "status_not_eligible",
+              "probation",
+              "worker_category",
+              "warning_letter",
+              "unpaid_leave_full_period",
+              "no_department_share",
+              "no_points",
+              "not_employed_in_period"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "gradeCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "orgUnitCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "orgUnitName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "payrollRunId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "points": {
+            "type": "string"
+          },
+          "presentDays": {
+            "description": "Present days (paid leave counts as present)",
+            "type": "string"
+          },
+          "redistributed": {
+            "description": "Part of the amount forfeited by attendance, redistributed by the rule",
+            "type": "string"
+          },
+          "scheduledDays": {
+            "type": "integer"
+          },
+          "shareGroup": {
+            "description": "Department share (org unit code) or * (one pool)",
+            "nullable": true,
+            "type": "string"
+          },
+          "unpaidLeaveDays": {
+            "type": "string"
+          },
+          "warningLevel": {
+            "type": "integer"
+          },
+          "workerCategory": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "employeeId",
+          "employeeNo",
+          "fullName",
+          "employmentStatus",
+          "workerCategory",
+          "warningLevel",
+          "scheduledDays",
+          "presentDays",
+          "unpaidLeaveDays",
+          "eligible",
+          "points",
+          "attendanceFactor",
+          "baseShare",
+          "attendanceAmount",
+          "redistributed",
+          "amount"
+        ],
         "type": "object"
       },
       "ServiceChargePool": {
@@ -197421,6 +199583,99 @@
         "x-permission": "hris.ess.use"
       }
     },
+    "/api/v1/ess/commissions": {
+      "get": {
+        "operationId": "getEssCommissions",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/EmployeePayoutItem"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My commission statements and bonuses paid with payroll",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
     "/api/v1/ess/documents": {
       "get": {
         "operationId": "getEssDocuments",
@@ -199331,6 +201586,99 @@
           }
         ],
         "summary": "My schedule (published shifts, swaps, colleagues)",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
+    "/api/v1/ess/service-charge": {
+      "get": {
+        "operationId": "getEssServiceCharge",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/EmployeeServiceCharge"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My service charge per month",
         "tags": [
           "Employee Self Service"
         ],
@@ -237179,6 +239527,754 @@
         "x-permission": "hris.bank_account.export"
       }
     },
+    "/api/v1/hris/bonus-programmes": {
+      "get": {
+        "operationId": "getHrisBonusProgrammes",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "draft",
+                "pending_approval",
+                "approved",
+                "paid",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/BonusProgramme"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Bonus programmes",
+        "tags": [
+          "HRIS Commissions"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.bonus_programme.view"
+      },
+      "post": {
+        "operationId": "postHrisBonusProgrammes",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BonusProgrammeInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BonusProgrammeDetail"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Create a bonus programme (draft)",
+        "tags": [
+          "HRIS Commissions"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.bonus_programme.manage"
+      }
+    },
+    "/api/v1/hris/bonus-programmes/{id}": {
+      "get": {
+        "operationId": "getHrisBonusProgrammesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BonusProgrammeDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Bonus programme with its lines",
+        "tags": [
+          "HRIS Commissions"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.bonus_programme.view"
+      }
+    },
+    "/api/v1/hris/bonus-programmes/{id}/lines": {
+      "put": {
+        "operationId": "putHrisBonusProgrammesByIdLines",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BonusLinesInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BonusProgrammeDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Set the bonus lines of a draft programme",
+        "tags": [
+          "HRIS Commissions"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.bonus_programme.manage"
+      }
+    },
+    "/api/v1/hris/bonus-programmes/{id}:approve": {
+      "post": {
+        "operationId": "postHrisBonusProgrammesByIdApprove",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BonusAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BonusProgrammeDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Approve the bonus programme (approval engine)",
+        "tags": [
+          "HRIS Commissions"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.bonus_programme.approve"
+      }
+    },
+    "/api/v1/hris/bonus-programmes/{id}:cancel": {
+      "post": {
+        "operationId": "postHrisBonusProgrammesByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BonusAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BonusProgrammeDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel a bonus programme not yet approved",
+        "tags": [
+          "HRIS Commissions"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.bonus_programme.manage"
+      }
+    },
+    "/api/v1/hris/bonus-programmes/{id}:generate": {
+      "post": {
+        "operationId": "postHrisBonusProgrammesByIdGenerate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BonusProgrammeDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Generate the lines from the completed performance reviews (bonus months × fixed wage)",
+        "tags": [
+          "HRIS Commissions"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.bonus_programme.manage"
+      }
+    },
+    "/api/v1/hris/bonus-programmes/{id}:reject": {
+      "post": {
+        "operationId": "postHrisBonusProgrammesByIdReject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BonusAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BonusProgrammeDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Reject the bonus programme at the current approval step",
+        "tags": [
+          "HRIS Commissions"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.bonus_programme.approve"
+      }
+    },
     "/api/v1/hris/candidates": {
       "get": {
         "operationId": "getHrisCandidates",
@@ -239639,6 +242735,221 @@
         ],
         "x-module": "hris",
         "x-permission": "hris.certification.export"
+      }
+    },
+    "/api/v1/hris/commission-payouts": {
+      "get": {
+        "operationId": "getHrisCommissionPayouts",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "unmatched",
+                "ready",
+                "paid",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CommissionPayout"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Approved commission statements to pay with payroll (with clawbacks)",
+        "tags": [
+          "HRIS Commissions"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.commission_payout.view"
+      }
+    },
+    "/api/v1/hris/commission-payouts/{id}:match": {
+      "post": {
+        "operationId": "postHrisCommissionPayoutsByIdMatch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommissionMatchInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommissionPayout"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Link an unmatched commission statement to its employee",
+        "tags": [
+          "HRIS Commissions"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.commission_payout.manage"
       }
     },
     "/api/v1/hris/contracts": {
@@ -249945,6 +253256,283 @@
         "x-permission": "hris.letter_template.export"
       }
     },
+    "/api/v1/hris/my-payouts": {
+      "get": {
+        "operationId": "getHrisMyPayouts",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "schema": {
+              "enum": [
+                "caddy",
+                "instructor"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/PayoutHistoryItem"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My payout history (Caddy App / instructor Honor Statement)",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.payout.own"
+      }
+    },
+    "/api/v1/hris/my-payouts/{lineId}": {
+      "get": {
+        "operationId": "getHrisMyPayoutsByLineId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lineId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutStatement"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My statement",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.payout.own"
+      }
+    },
+    "/api/v1/hris/my-payouts/{lineId}/pdf": {
+      "get": {
+        "operationId": "getHrisMyPayoutsByLineIdPdf",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lineId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My statement (PDF)",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.payout.own"
+      }
+    },
     "/api/v1/hris/offboarding-items/{id}": {
       "patch": {
         "operationId": "patchHrisOffboardingItemsById",
@@ -251404,6 +254992,1714 @@
         "x-audited": true,
         "x-module": "hris",
         "x-permission": "hris.overtime_request.approve"
+      }
+    },
+    "/api/v1/hris/partner-profiles": {
+      "get": {
+        "operationId": "getHrisPartnerProfiles",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeArchived",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Field name, prefix with - for descending",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[partnerKind]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[partnerId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[partnershipStatus]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[paymentMethod]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[bpuEnrolled]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/PayoutPartnerProfile"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "List Partner Profiles",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.partner_profile.view"
+      },
+      "post": {
+        "operationId": "postHrisPartnerProfiles",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayoutPartnerProfileInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutPartnerProfile"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Add Partner Profile",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.partner_profile.create"
+      }
+    },
+    "/api/v1/hris/partner-profiles/{id}": {
+      "delete": {
+        "operationId": "deleteHrisPartnerProfilesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Delete Partner Profile (only when unused; otherwise set Inactive)",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.partner_profile.delete"
+      },
+      "get": {
+        "operationId": "getHrisPartnerProfilesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutPartnerProfile"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "View Partner Profile",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.partner_profile.view"
+      },
+      "patch": {
+        "operationId": "patchHrisPartnerProfilesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayoutPartnerProfileInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutPartnerProfile"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Edit Partner Profile",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.partner_profile.update"
+      }
+    },
+    "/api/v1/hris/partner-profiles:export": {
+      "get": {
+        "operationId": "getHrisPartnerProfilesExport",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Search",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeArchived",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Field name, prefix with - for descending",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[partnerKind]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[partnerId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[partnershipStatus]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[paymentMethod]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[bpuEnrolled]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Export Partner Profiles (CSV/XLSX)",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.partner_profile.export"
+      }
+    },
+    "/api/v1/hris/payout-runs": {
+      "get": {
+        "operationId": "getHrisPayoutRuns",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "schema": {
+              "enum": [
+                "caddy",
+                "instructor"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "draft",
+                "calculated",
+                "pending_approval",
+                "approved",
+                "paid",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/PayoutRun"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Payout runs (caddies, partner instructors)",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.payout_run.view"
+      },
+      "post": {
+        "operationId": "postHrisPayoutRuns",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayoutRunInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutRunDetail"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Create a payout run",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.payout_run.create"
+      }
+    },
+    "/api/v1/hris/payout-runs/{id}": {
+      "get": {
+        "operationId": "getHrisPayoutRunsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutRunDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Payout run with its lines",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.payout_run.view"
+      }
+    },
+    "/api/v1/hris/payout-runs/{id}/bank-file": {
+      "get": {
+        "operationId": "getHrisPayoutRunsByIdBankFile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "schema": {
+              "enum": [
+                "generic_csv",
+                "bca_csv"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Bulk transfer file of the run (CSV)",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.payout_run.export"
+      }
+    },
+    "/api/v1/hris/payout-runs/{id}/statements/{lineId}": {
+      "get": {
+        "operationId": "getHrisPayoutRunsByIdStatementsByLineId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "lineId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Statement of one partner (PDF)",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.payout_run.view"
+      }
+    },
+    "/api/v1/hris/payout-runs/{id}:approve": {
+      "post": {
+        "operationId": "postHrisPayoutRunsByIdApprove",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayoutRunAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutRunDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Approve the run (submits it to the approval engine, or approves the current step); approval posts it to the ledger",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.payout_run.approve"
+      }
+    },
+    "/api/v1/hris/payout-runs/{id}:calculate": {
+      "post": {
+        "operationId": "postHrisPayoutRunsByIdCalculate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutRunDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Calculate (or recalculate) the run: approved settlements / fees, PPh 21 non-employee, BPJS BPU, deductions",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.payout_run.calculate"
+      }
+    },
+    "/api/v1/hris/payout-runs/{id}:cancel": {
+      "post": {
+        "operationId": "postHrisPayoutRunsByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayoutRunAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutRunDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel a run not yet approved (sources released)",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.payout_run.create"
+      }
+    },
+    "/api/v1/hris/payout-runs/{id}:mark-paid": {
+      "post": {
+        "operationId": "postHrisPayoutRunsByIdMarkPaid",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayoutRunPayment"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutRunDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Confirm the payment (bank file transferred, cash paid): statements Paid, ledger cleared",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.payout_run.pay"
+      }
+    },
+    "/api/v1/hris/payout-runs/{id}:reject": {
+      "post": {
+        "operationId": "postHrisPayoutRunsByIdReject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayoutRunAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayoutRunDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Reject the run at the current approval step",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.payout_run.approve"
+      }
+    },
+    "/api/v1/hris/payout-sources": {
+      "get": {
+        "operationId": "getHrisPayoutSources",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "schema": {
+              "enum": [
+                "caddy",
+                "instructor"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "open",
+                "claimed",
+                "paid",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/PayoutSource"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Approved caddy settlements and instructor fees (paid by payout runs or payroll)",
+        "tags": [
+          "HRIS Payouts"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.payout_run.view"
       }
     },
     "/api/v1/hris/permission-requests": {
@@ -255771,6 +261067,670 @@
         "x-audited": true,
         "x-module": "hris",
         "x-permission": "hris.schedule.publish"
+      }
+    },
+    "/api/v1/hris/service-charge-distributions": {
+      "get": {
+        "operationId": "getHrisServiceChargeDistributions",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "draft",
+                "simulated",
+                "pending_approval",
+                "approved",
+                "paid",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/ServiceChargeDistribution"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Service charge distributions",
+        "tags": [
+          "HRIS Service Charge"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.service_charge.view"
+      },
+      "post": {
+        "operationId": "postHrisServiceChargeDistributions",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceChargeDistributionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceChargeDistributionDetail"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Start the distribution of a month's service charge pool",
+        "tags": [
+          "HRIS Service Charge"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.service_charge.manage"
+      }
+    },
+    "/api/v1/hris/service-charge-distributions/{id}": {
+      "get": {
+        "operationId": "getHrisServiceChargeDistributionsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceChargeDistributionDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Service charge distribution with the result per employee",
+        "tags": [
+          "HRIS Service Charge"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.service_charge.view"
+      }
+    },
+    "/api/v1/hris/service-charge-distributions/{id}:approve": {
+      "post": {
+        "operationId": "postHrisServiceChargeDistributionsByIdApprove",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceChargeAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceChargeDistributionDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Approve the distribution (submits it to the approval engine, or approves the current step)",
+        "tags": [
+          "HRIS Service Charge"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.service_charge.approve"
+      }
+    },
+    "/api/v1/hris/service-charge-distributions/{id}:cancel": {
+      "post": {
+        "operationId": "postHrisServiceChargeDistributionsByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceChargeAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceChargeDistributionDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel a distribution not yet approved",
+        "tags": [
+          "HRIS Service Charge"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.service_charge.manage"
+      }
+    },
+    "/api/v1/hris/service-charge-distributions/{id}:reject": {
+      "post": {
+        "operationId": "postHrisServiceChargeDistributionsByIdReject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceChargeAction"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceChargeDistributionDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Reject the distribution at the current approval step",
+        "tags": [
+          "HRIS Service Charge"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.service_charge.approve"
+      }
+    },
+    "/api/v1/hris/service-charge-distributions/{id}:simulate": {
+      "post": {
+        "operationId": "postHrisServiceChargeDistributionsByIdSimulate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceChargeDistributionDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Simulate the distribution (pool, eligibility, attendance factor, amount per employee); repeatable until approval",
+        "tags": [
+          "HRIS Service Charge"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.service_charge.manage"
       }
     },
     "/api/v1/hris/shift-swaps": {
@@ -334873,6 +340833,9 @@
       "name": "HRIS Attendance Kiosk"
     },
     {
+      "name": "HRIS Commissions"
+    },
+    {
       "name": "HRIS Contracts"
     },
     {
@@ -334894,6 +340857,9 @@
       "name": "HRIS Overtime"
     },
     {
+      "name": "HRIS Payouts"
+    },
+    {
       "name": "HRIS Performance Review"
     },
     {
@@ -334901,6 +340867,9 @@
     },
     {
       "name": "HRIS Schedules"
+    },
+    {
+      "name": "HRIS Service Charge"
     },
     {
       "name": "HRIS Training \u0026 Certification"

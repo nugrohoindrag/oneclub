@@ -12463,6 +12463,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ess/commissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My commission statements and bonuses paid with payroll */
+        get: operations["getEssCommissions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ess/documents": {
         parameters: {
             query?: never;
@@ -12766,6 +12783,23 @@ export interface paths {
         };
         /** My schedule (published shifts, swaps, colleagues) */
         get: operations["getEssSchedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/service-charge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My service charge per month */
+        get: operations["getEssServiceCharge"];
         put?: never;
         post?: never;
         delete?: never;
@@ -17791,6 +17825,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/bonus-programmes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bonus programmes */
+        get: operations["getHrisBonusProgrammes"];
+        put?: never;
+        /** Create a bonus programme (draft) */
+        post: operations["postHrisBonusProgrammes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/bonus-programmes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bonus programme with its lines */
+        get: operations["getHrisBonusProgrammesById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/bonus-programmes/{id}/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set the bonus lines of a draft programme */
+        put: operations["putHrisBonusProgrammesByIdLines"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/bonus-programmes/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve the bonus programme (approval engine) */
+        post: operations["postHrisBonusProgrammesByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/bonus-programmes/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a bonus programme not yet approved */
+        post: operations["postHrisBonusProgrammesByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/bonus-programmes/{id}:generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate the lines from the completed performance reviews (bonus months × fixed wage) */
+        post: operations["postHrisBonusProgrammesByIdGenerate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/bonus-programmes/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject the bonus programme at the current approval step */
+        post: operations["postHrisBonusProgrammesByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/candidates": {
         parameters: {
             query?: never;
@@ -18049,6 +18203,40 @@ export interface paths {
         get: operations["getHrisCertificationsExport"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/commission-payouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Approved commission statements to pay with payroll (with clawbacks) */
+        get: operations["getHrisCommissionPayouts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/commission-payouts/{id}:match": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Link an unmatched commission statement to its employee */
+        post: operations["postHrisCommissionPayoutsByIdMatch"];
         delete?: never;
         options?: never;
         head?: never;
@@ -19441,6 +19629,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/my-payouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My payout history (Caddy App / instructor Honor Statement) */
+        get: operations["getHrisMyPayouts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/my-payouts/{lineId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My statement */
+        get: operations["getHrisMyPayoutsByLineId"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/my-payouts/{lineId}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My statement (PDF) */
+        get: operations["getHrisMyPayoutsByLineIdPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/offboarding-items/{id}": {
         parameters: {
             query?: never;
@@ -19609,6 +19848,231 @@ export interface paths {
         put?: never;
         /** Reject an overtime request */
         post: operations["postHrisOvertimeRequestsByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/partner-profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Partner Profiles */
+        get: operations["getHrisPartnerProfiles"];
+        put?: never;
+        /** Add Partner Profile */
+        post: operations["postHrisPartnerProfiles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/partner-profiles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Partner Profile */
+        get: operations["getHrisPartnerProfilesById"];
+        put?: never;
+        post?: never;
+        /** Delete Partner Profile (only when unused; otherwise set Inactive) */
+        delete: operations["deleteHrisPartnerProfilesById"];
+        options?: never;
+        head?: never;
+        /** Edit Partner Profile */
+        patch: operations["patchHrisPartnerProfilesById"];
+        trace?: never;
+    };
+    "/api/v1/hris/partner-profiles:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Partner Profiles (CSV/XLSX) */
+        get: operations["getHrisPartnerProfilesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payout-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payout runs (caddies, partner instructors) */
+        get: operations["getHrisPayoutRuns"];
+        put?: never;
+        /** Create a payout run */
+        post: operations["postHrisPayoutRuns"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payout-runs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payout run with its lines */
+        get: operations["getHrisPayoutRunsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payout-runs/{id}/bank-file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bulk transfer file of the run (CSV) */
+        get: operations["getHrisPayoutRunsByIdBankFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payout-runs/{id}/statements/{lineId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Statement of one partner (PDF) */
+        get: operations["getHrisPayoutRunsByIdStatementsByLineId"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payout-runs/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve the run (submits it to the approval engine, or approves the current step); approval posts it to the ledger */
+        post: operations["postHrisPayoutRunsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payout-runs/{id}:calculate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Calculate (or recalculate) the run: approved settlements / fees, PPh 21 non-employee, BPJS BPU, deductions */
+        post: operations["postHrisPayoutRunsByIdCalculate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payout-runs/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a run not yet approved (sources released) */
+        post: operations["postHrisPayoutRunsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payout-runs/{id}:mark-paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm the payment (bank file transferred, cash paid): statements Paid, ledger cleared */
+        post: operations["postHrisPayoutRunsByIdMarkPaid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payout-runs/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject the run at the current approval step */
+        post: operations["postHrisPayoutRunsByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payout-sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Approved caddy settlements and instructor fees (paid by payout runs or payroll) */
+        get: operations["getHrisPayoutSources"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -20182,6 +20646,109 @@ export interface paths {
         put?: never;
         /** Publish the schedule to Employee Self Service */
         post: operations["postHrisSchedulesByIdPublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/service-charge-distributions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Service charge distributions */
+        get: operations["getHrisServiceChargeDistributions"];
+        put?: never;
+        /** Start the distribution of a month's service charge pool */
+        post: operations["postHrisServiceChargeDistributions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/service-charge-distributions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Service charge distribution with the result per employee */
+        get: operations["getHrisServiceChargeDistributionsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/service-charge-distributions/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve the distribution (submits it to the approval engine, or approves the current step) */
+        post: operations["postHrisServiceChargeDistributionsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/service-charge-distributions/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a distribution not yet approved */
+        post: operations["postHrisServiceChargeDistributionsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/service-charge-distributions/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject the distribution at the current approval step */
+        post: operations["postHrisServiceChargeDistributionsByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/service-charge-distributions/{id}:simulate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Simulate the distribution (pool, eligibility, attendance factor, amount per employee); repeatable until approval */
+        post: operations["postHrisServiceChargeDistributionsByIdSimulate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -35384,6 +35951,101 @@ export interface components {
             readiness: string;
             serviceDue: boolean;
         };
+        BonusAction: {
+            reason?: string;
+        };
+        BonusLineInput: {
+            amount: string;
+            /** Format: uuid */
+            employeeId: string;
+            note?: string;
+        };
+        BonusLinesInput: {
+            lines: components["schemas"]["BonusLineInput"][];
+        };
+        BonusProgramme: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            /** @enum {string} */
+            bonusType: "performance" | "annual" | "incentive" | "other";
+            cancelReason?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            decisionNote?: string | null;
+            employees: number;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            notes?: string | null;
+            number: string;
+            /** @description YYYY-MM of the payroll that pays it */
+            payPeriod: string;
+            /** Format: uuid */
+            propertyId: string;
+            /** Format: uuid */
+            reviewCycleId?: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "approved" | "paid" | "cancelled";
+            total: string;
+        };
+        BonusProgrammeDetail: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            /** @enum {string} */
+            bonusType: "performance" | "annual" | "incentive" | "other";
+            cancelReason?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            decisionNote?: string | null;
+            employees: number;
+            /** Format: uuid */
+            id: string;
+            lines: components["schemas"]["BonusProgrammeLine"][];
+            name: string;
+            notes?: string | null;
+            number: string;
+            /** @description YYYY-MM of the payroll that pays it */
+            payPeriod: string;
+            /** Format: uuid */
+            propertyId: string;
+            /** Format: uuid */
+            reviewCycleId?: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "approved" | "paid" | "cancelled";
+            total: string;
+        };
+        BonusProgrammeInput: {
+            /** @enum {string} */
+            bonusType?: "performance" | "annual" | "incentive" | "other";
+            name: string;
+            notes?: string;
+            /** @description YYYY-MM */
+            payPeriod: string;
+            /**
+             * Format: uuid
+             * @description Performance review cycle whose results are the basis
+             */
+            reviewCycleId?: string | null;
+        };
+        BonusProgrammeLine: {
+            amount: string;
+            basis?: string | null;
+            /** Format: date-time */
+            consumedAt?: string | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeNo: string;
+            fullName: string;
+            /** Format: uuid */
+            id: string;
+            note?: string | null;
+            /** Format: uuid */
+            payrollRunId?: string | null;
+        };
         BookInput: {
             /** @enum {string} */
             channel?: "member_app" | "website" | "back_office" | "walk_in" | "import" | "ops";
@@ -39047,6 +39709,46 @@ export interface components {
             userId: string;
             userName?: string | null;
         };
+        CommissionMatchInput: {
+            /**
+             * Format: uuid
+             * @description Default: the employee linked to the statement's user
+             */
+            employeeId?: string | null;
+        };
+        CommissionPayout: {
+            adjustments: string;
+            clawback: string;
+            /** Format: date-time */
+            consumedAt?: string | null;
+            /** @description Payroll deduction COMMISSION_CLAWBACK */
+            deduction: string;
+            earned: string;
+            /** @description Payroll earning COMMISSION */
+            earning: string;
+            /** Format: uuid */
+            employeeId?: string | null;
+            employeeName?: string | null;
+            employeeNo?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Irregular income for PPh 21 */
+            irregular: boolean;
+            number: string;
+            /** Format: uuid */
+            payrollRunId?: string | null;
+            period: string;
+            /** Format: date-time */
+            receivedAt: string;
+            /** Format: uuid */
+            statementId: string;
+            /** @enum {string} */
+            status: "unmatched" | "ready" | "paid" | "cancelled";
+            total: string;
+            /** Format: uuid */
+            userId?: string | null;
+            userName?: string | null;
+        };
         CommissionScheme: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -42515,6 +43217,24 @@ export interface components {
              */
             unitType?: "division" | "department" | "section" | "outlet" | "team" | null;
         };
+        EmployeePayoutItem: {
+            /** @description Clawback of earlier commission */
+            deduction: string;
+            description: string;
+            earning: string;
+            /** Format: uuid */
+            id: string;
+            net: string;
+            number: string;
+            /** Format: date-time */
+            paidAt?: string | null;
+            /** @description Commission month / bonus pay period (YYYY-MM) */
+            period: string;
+            /** @enum {string} */
+            status: "ready" | "paid";
+            /** @enum {string} */
+            type: "commission" | "bonus";
+        };
         EmployeePosition: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -42858,6 +43578,30 @@ export interface components {
              * @enum {string|null}
              */
             workerCategory?: "regular" | "daily" | "intern" | null;
+        };
+        EmployeeServiceCharge: {
+            amount: string;
+            attendanceAmount: string;
+            attendanceFactor: string;
+            baseShare: string;
+            /** Format: uuid */
+            distributionId: string;
+            eligible: boolean;
+            exclusionReason?: string | null;
+            number: string;
+            /**
+             * Format: date-time
+             * @description Posted with the payroll
+             */
+            paidAt?: string | null;
+            payPeriod: string;
+            /** @description YYYY-MM of the pool */
+            period: string;
+            presentDays: string;
+            redistributed: string;
+            scheduledDays: number;
+            /** @enum {string} */
+            status: "approved" | "paid";
         };
         EmployeeTrainingProgram: {
             /** Format: date-time */
@@ -53801,6 +54545,11 @@ export interface components {
         ParticipantsRequest: {
             employeeIds: string[];
         };
+        PartnerDeductionAmount: {
+            amount: string;
+            code: string;
+            label: string;
+        };
         PasswordChangeRequest: {
             currentPassword: string;
             newPassword: string;
@@ -54029,6 +54778,368 @@ export interface components {
             dueDays?: number | null;
             label: string;
             percent?: string;
+        };
+        PayoutHistoryItem: {
+            bpu: string;
+            deductions: string;
+            gross: string;
+            /** @enum {string} */
+            kind: "caddy" | "instructor";
+            /** Format: uuid */
+            lineId: string;
+            net: string;
+            number: string;
+            /** Format: date-time */
+            paidOn?: string | null;
+            /** Format: date-time */
+            payDate: string;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            pph21: string;
+            /** Format: uuid */
+            runId: string;
+            /** @enum {string} */
+            runStatus: "approved" | "paid";
+            units: number;
+        };
+        PayoutPartnerProfile: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Account Name */
+            bankAccountName?: string | null;
+            /** @description Account No. */
+            bankAccountNo?: string | null;
+            /** @description Bank Code */
+            bankCode?: string | null;
+            /** @description Bank */
+            bankName?: string | null;
+            /** @description BPU Declared Income */
+            bpuDeclaredIncome?: string | null;
+            /** @description BPJS Ketenagakerjaan BPU */
+            bpuEnrolled?: boolean | null;
+            /** @description BPU Membership No. */
+            bpuNo?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** @description NIK */
+            nik?: string | null;
+            /** @description Notes */
+            notes?: string | null;
+            /** @description NPWP */
+            npwp?: string | null;
+            /** @description Code */
+            partnerCode?: string | null;
+            /**
+             * Format: uuid
+             * @description Caddy / Instructor
+             */
+            partnerId: string;
+            /**
+             * @description Partner
+             * @enum {string}
+             */
+            partnerKind: "caddy" | "instructor";
+            /** @description Name */
+            partnerName?: string | null;
+            /**
+             * @description Partnership Status
+             * @enum {string|null}
+             */
+            partnershipStatus?: "active" | "suspended" | "ended" | null;
+            /**
+             * @description Payment Method
+             * @enum {string|null}
+             */
+            paymentMethod?: "bank_transfer" | "cash" | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PayoutPartnerProfileInput: {
+            /** @description Account Name */
+            bankAccountName?: string | null;
+            /** @description Account No. */
+            bankAccountNo?: string | null;
+            /** @description Bank Code */
+            bankCode?: string | null;
+            /** @description Bank */
+            bankName?: string | null;
+            /** @description BPU Declared Income */
+            bpuDeclaredIncome?: string | null;
+            /** @description BPJS Ketenagakerjaan BPU */
+            bpuEnrolled?: boolean | null;
+            /** @description BPU Membership No. */
+            bpuNo?: string | null;
+            /** @description NIK */
+            nik?: string | null;
+            /** @description Notes */
+            notes?: string | null;
+            /** @description NPWP */
+            npwp?: string | null;
+            /**
+             * Format: uuid
+             * @description Caddy / Instructor
+             */
+            partnerId?: string;
+            /**
+             * @description Partner
+             * @enum {string}
+             */
+            partnerKind?: "caddy" | "instructor";
+            /**
+             * @description Partnership Status
+             * @enum {string|null}
+             */
+            partnershipStatus?: "active" | "suspended" | "ended" | null;
+            /**
+             * @description Payment Method
+             * @enum {string|null}
+             */
+            paymentMethod?: "bank_transfer" | "cash" | null;
+        };
+        PayoutRun: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            bankAmount: string;
+            /** Format: date-time */
+            bankFileAt?: string | null;
+            bpu: string;
+            /** Format: date-time */
+            calculatedAt?: string | null;
+            cancelReason?: string | null;
+            /** Format: date-time */
+            cancelledAt?: string | null;
+            cashAmount: string;
+            /** Format: date-time */
+            createdAt: string;
+            decisionNote?: string | null;
+            gross: string;
+            /** @description Partners below the minimum net, left for the next run */
+            heldPartners: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "caddy" | "instructor";
+            net: string;
+            notes?: string | null;
+            number: string;
+            otherDeductions: string;
+            /** Format: date-time */
+            paidAt?: string | null;
+            /** Format: date-time */
+            paidOn?: string | null;
+            paidReference?: string | null;
+            partners: number;
+            /** Format: date-time */
+            payDate: string;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** @description Policy versions used by the calculation (FR-POL-P5-07) */
+            policyVersions: components["schemas"]["PolicyRef"][];
+            /** Format: date-time */
+            postedAt?: string | null;
+            pph21: string;
+            /** Format: uuid */
+            propertyId: string;
+            sourceDeductions: string;
+            /** @enum {string} */
+            status: "draft" | "calculated" | "pending_approval" | "approved" | "paid" | "cancelled";
+            taxNote?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PayoutRunAction: {
+            reason?: string;
+        };
+        PayoutRunDetail: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            bankAmount: string;
+            /** Format: date-time */
+            bankFileAt?: string | null;
+            bpu: string;
+            /** Format: date-time */
+            calculatedAt?: string | null;
+            cancelReason?: string | null;
+            /** Format: date-time */
+            cancelledAt?: string | null;
+            cashAmount: string;
+            /** Format: date-time */
+            createdAt: string;
+            decisionNote?: string | null;
+            gross: string;
+            /** @description Partners below the minimum net, left for the next run */
+            heldPartners: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "caddy" | "instructor";
+            lines: components["schemas"]["PayoutRunLine"][];
+            net: string;
+            notes?: string | null;
+            number: string;
+            otherDeductions: string;
+            /** Format: date-time */
+            paidAt?: string | null;
+            /** Format: date-time */
+            paidOn?: string | null;
+            paidReference?: string | null;
+            partners: number;
+            /** Format: date-time */
+            payDate: string;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** @description Policy versions used by the calculation (FR-POL-P5-07) */
+            policyVersions: components["schemas"]["PolicyRef"][];
+            /** Format: date-time */
+            postedAt?: string | null;
+            pph21: string;
+            /** Format: uuid */
+            propertyId: string;
+            sourceDeductions: string;
+            /** @enum {string} */
+            status: "draft" | "calculated" | "pending_approval" | "approved" | "paid" | "cancelled";
+            taxNote?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PayoutRunInput: {
+            /** @enum {string} */
+            kind: "caddy" | "instructor";
+            notes?: string;
+            /** @description Default: the period end */
+            payDate?: string;
+            periodEnd?: string;
+            /** @description Default: the last completed period of the schedule (Payroll Configuration partnerPayout) */
+            periodStart?: string;
+        };
+        PayoutRunLine: {
+            bankAccountName?: string | null;
+            /** @description Masked without hris.partner_profile.view_sensitive */
+            bankAccountNo?: string | null;
+            bankName?: string | null;
+            bpuEnrolled: boolean;
+            bpuJkk: string;
+            bpuJkm: string;
+            deductions: components["schemas"]["PartnerDeductionAmount"][];
+            fee: string;
+            gross: string;
+            /** @description NPWP / NIK registered (else the non-NPWP surcharge) */
+            hasTaxId: boolean;
+            /** Format: uuid */
+            id: string;
+            /** @description BPU and monthly deductions taken in this run */
+            monthlyDue: boolean;
+            net: string;
+            otherDeductions: string;
+            partnerCode?: string | null;
+            /** Format: uuid */
+            partnerId: string;
+            partnerName: string;
+            /** @enum {string} */
+            paymentMethod: "bank_transfer" | "cash";
+            pph21: string;
+            pph21Rate: string;
+            /** Format: uuid */
+            runId: string;
+            sourceDeductions: string;
+            sources: components["schemas"]["PayoutSourceRef"][];
+            /** @enum {string} */
+            status: "payable" | "paid";
+            taxBase: string;
+            tips: string;
+            /** @description Rounds (caddy) / sessions (instructor) */
+            units: number;
+            ytdTaxBase: string;
+        };
+        PayoutRunPayment: {
+            /** @description Default: today (club date) */
+            paidOn?: string;
+            /** @description Bank batch / transfer reference */
+            reference?: string;
+        };
+        PayoutSource: {
+            /**
+             * @description payroll: an employee instructor, paid with payroll
+             * @enum {string}
+             */
+            channel: "payout" | "payroll";
+            /** @description Deductions of the settlement (golf Caddy Policies) */
+            deductions: string;
+            /** Format: uuid */
+            employeeId?: string | null;
+            fee: string;
+            gross: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "caddy" | "instructor";
+            number: string;
+            /** Format: uuid */
+            partnerId: string;
+            partnerName: string;
+            /** Format: uuid */
+            payoutRunId?: string | null;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** Format: date-time */
+            receivedAt: string;
+            /** Format: uuid */
+            sourceId: string;
+            /** @enum {string} */
+            sourceType: "golf.caddy_settlement" | "sportclub.instructor_fee";
+            /** @enum {string} */
+            status: "open" | "claimed" | "paid" | "cancelled";
+            /** @description Non-cash tips */
+            tips: string;
+            total: string;
+            /** @description Rounds (caddy) or sessions (instructor) */
+            units: number;
+        };
+        PayoutSourceRef: {
+            deductions: string;
+            gross: string;
+            number: string;
+            /** Format: uuid */
+            sourceId: string;
+            /** @enum {string} */
+            sourceType: "golf.caddy_settlement" | "sportclub.instructor_fee";
+        };
+        PayoutStatement: {
+            /** @enum {string} */
+            kind: "caddy" | "instructor";
+            line: components["schemas"]["PayoutRunLine"];
+            number: string;
+            /** Format: date-time */
+            paidOn?: string | null;
+            /** Format: date-time */
+            payDate: string;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** Format: uuid */
+            runId: string;
+            /** @enum {string} */
+            runStatus: "draft" | "calculated" | "pending_approval" | "approved" | "paid" | "cancelled";
+            taxNote?: string | null;
+            /** @description Payout Statement (caddy) / Honor Statement (instructor) */
+            title: string;
         };
         PerformanceDashboard: {
             code: string;
@@ -60309,6 +61420,162 @@ export interface components {
              * @enum {string|null}
              */
             tieRule?: "split" | "full" | null;
+        };
+        ServiceChargeAction: {
+            reason?: string;
+        };
+        ServiceChargeDistribution: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            attendanceFactor: boolean;
+            cancelReason?: string | null;
+            /** Format: date-time */
+            cancelledAt?: string | null;
+            collected: string;
+            /** Format: date-time */
+            createdAt: string;
+            decisionNote?: string | null;
+            distributable: string;
+            distributed: string;
+            distributedPercent: string;
+            eligible: number;
+            excluded: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            method: "equal" | "points";
+            month: number;
+            notes?: string | null;
+            number: string;
+            /** Format: date-time */
+            paidAt?: string | null;
+            /** @description YYYY-MM of the payroll that pays the lines */
+            payPeriod: string;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** @description Service Charge Policy version used (FR-POL-P5-07) */
+            policyVersion: number;
+            /** Format: uuid */
+            poolId?: string | null;
+            /** @description draft | approved (Accounting → Service Charge Pool) */
+            poolStatus?: string | null;
+            /** Format: uuid */
+            propertyId: string;
+            redistribute: boolean;
+            reserve: string;
+            reservePercent: string;
+            roundingAccountCode?: string | null;
+            roundingDifference: string;
+            /** Format: date-time */
+            simulatedAt?: string | null;
+            /** @enum {string} */
+            status: "draft" | "simulated" | "pending_approval" | "approved" | "paid" | "cancelled";
+            undistributed: string;
+            /** Format: date-time */
+            updatedAt: string;
+            year: number;
+        };
+        ServiceChargeDistributionDetail: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            attendanceFactor: boolean;
+            cancelReason?: string | null;
+            /** Format: date-time */
+            cancelledAt?: string | null;
+            collected: string;
+            /** Format: date-time */
+            createdAt: string;
+            decisionNote?: string | null;
+            distributable: string;
+            distributed: string;
+            distributedPercent: string;
+            eligible: number;
+            excluded: number;
+            /** Format: uuid */
+            id: string;
+            lines: components["schemas"]["ServiceChargeDistributionLine"][];
+            /** @enum {string} */
+            method: "equal" | "points";
+            month: number;
+            notes?: string | null;
+            number: string;
+            /** Format: date-time */
+            paidAt?: string | null;
+            /** @description YYYY-MM of the payroll that pays the lines */
+            payPeriod: string;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** @description Service Charge Policy version used (FR-POL-P5-07) */
+            policyVersion: number;
+            /** Format: uuid */
+            poolId?: string | null;
+            /** @description draft | approved (Accounting → Service Charge Pool) */
+            poolStatus?: string | null;
+            /** Format: uuid */
+            propertyId: string;
+            redistribute: boolean;
+            reserve: string;
+            reservePercent: string;
+            roundingAccountCode?: string | null;
+            roundingDifference: string;
+            /** Format: date-time */
+            simulatedAt?: string | null;
+            /** @enum {string} */
+            status: "draft" | "simulated" | "pending_approval" | "approved" | "paid" | "cancelled";
+            undistributed: string;
+            /** Format: date-time */
+            updatedAt: string;
+            year: number;
+        };
+        ServiceChargeDistributionInput: {
+            month: number;
+            notes?: string;
+            /** @description YYYY-MM; default the month after the pool month */
+            payPeriod?: string;
+            year: number;
+        };
+        ServiceChargeDistributionLine: {
+            amount: string;
+            /** @description Base share × attendance factor */
+            attendanceAmount: string;
+            attendanceFactor: string;
+            baseShare: string;
+            /** Format: date-time */
+            consumedAt?: string | null;
+            eligible: boolean;
+            /** Format: uuid */
+            employeeId: string;
+            employeeNo: string;
+            employmentStatus: string;
+            /** @enum {string|null} */
+            exclusionReason?: "status_not_eligible" | "probation" | "worker_category" | "warning_letter" | "unpaid_leave_full_period" | "no_department_share" | "no_points" | "not_employed_in_period" | null;
+            fullName: string;
+            gradeCode?: string | null;
+            /** Format: uuid */
+            id: string;
+            orgUnitCode?: string | null;
+            orgUnitName?: string | null;
+            /** Format: uuid */
+            payrollRunId?: string | null;
+            points: string;
+            /** @description Present days (paid leave counts as present) */
+            presentDays: string;
+            /** @description Part of the amount forfeited by attendance, redistributed by the rule */
+            redistributed: string;
+            scheduledDays: number;
+            /** @description Department share (org unit code) or * (one pool) */
+            shareGroup?: string | null;
+            unpaidLeaveDays: string;
+            warningLevel: number;
+            workerCategory: string;
         };
         ServiceChargePool: {
             /** Format: date-time */
@@ -121742,6 +123009,61 @@ export interface operations {
             };
         };
     };
+    getEssCommissions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EmployeePayoutItem"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getEssDocuments: {
         parameters: {
             query?: {
@@ -122933,6 +124255,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MyShiftSchedule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssServiceCharge: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EmployeeServiceCharge"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -144934,6 +146311,453 @@ export interface operations {
             };
         };
     };
+    getHrisBonusProgrammes: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                status?: "draft" | "pending_approval" | "approved" | "paid" | "cancelled";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BonusProgramme"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisBonusProgrammes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BonusProgrammeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BonusProgrammeDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisBonusProgrammesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BonusProgrammeDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putHrisBonusProgrammesByIdLines: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BonusLinesInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BonusProgrammeDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisBonusProgrammesByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BonusAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BonusProgrammeDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisBonusProgrammesByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BonusAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BonusProgrammeDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisBonusProgrammesByIdGenerate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BonusProgrammeDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisBonusProgrammesByIdReject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BonusAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BonusProgrammeDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getHrisCandidates: {
         parameters: {
             query?: {
@@ -146255,6 +148079,122 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisCommissionPayouts: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                status?: "unmatched" | "ready" | "paid" | "cancelled";
+                period?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CommissionPayout"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisCommissionPayoutsByIdMatch: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommissionMatchInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommissionPayout"];
                 };
             };
             /** @description Not authenticated */
@@ -152234,6 +154174,169 @@ export interface operations {
             };
         };
     };
+    getHrisMyPayouts: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                kind?: "caddy" | "instructor";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PayoutHistoryItem"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisMyPayoutsByLineId: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                lineId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutStatement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisMyPayoutsByLineIdPdf: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                lineId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     patchHrisOffboardingItemsById: {
         parameters: {
             query?: never;
@@ -153009,6 +155112,965 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OvertimeRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisPartnerProfiles: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[partnerKind]"?: string;
+                "filter[partnerId]"?: string;
+                "filter[partnershipStatus]"?: string;
+                "filter[paymentMethod]"?: string;
+                "filter[bpuEnrolled]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PayoutPartnerProfile"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisPartnerProfiles: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutPartnerProfileInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutPartnerProfile"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisPartnerProfilesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutPartnerProfile"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteHrisPartnerProfilesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchHrisPartnerProfilesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutPartnerProfileInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutPartnerProfile"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisPartnerProfilesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[partnerKind]"?: string;
+                "filter[partnerId]"?: string;
+                "filter[partnershipStatus]"?: string;
+                "filter[paymentMethod]"?: string;
+                "filter[bpuEnrolled]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisPayoutRuns: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                kind?: "caddy" | "instructor";
+                status?: "draft" | "calculated" | "pending_approval" | "approved" | "paid" | "cancelled";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PayoutRun"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisPayoutRuns: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutRunInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutRunDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisPayoutRunsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutRunDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisPayoutRunsByIdBankFile: {
+        parameters: {
+            query?: {
+                format?: "generic_csv" | "bca_csv";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisPayoutRunsByIdStatementsByLineId: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                lineId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisPayoutRunsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutRunAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutRunDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisPayoutRunsByIdCalculate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutRunDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisPayoutRunsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutRunAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutRunDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisPayoutRunsByIdMarkPaid: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutRunPayment"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutRunDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisPayoutRunsByIdReject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayoutRunAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PayoutRunDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisPayoutSources: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                kind?: "caddy" | "instructor";
+                status?: "open" | "claimed" | "paid" | "cancelled";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PayoutSource"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -155539,6 +158601,398 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ShiftScheduleDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisServiceChargeDistributions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                year?: string;
+                status?: "draft" | "simulated" | "pending_approval" | "approved" | "paid" | "cancelled";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ServiceChargeDistribution"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisServiceChargeDistributions: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceChargeDistributionInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceChargeDistributionDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisServiceChargeDistributionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceChargeDistributionDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisServiceChargeDistributionsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceChargeAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceChargeDistributionDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisServiceChargeDistributionsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceChargeAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceChargeDistributionDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisServiceChargeDistributionsByIdReject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ServiceChargeAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceChargeDistributionDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisServiceChargeDistributionsByIdSimulate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ServiceChargeDistributionDetail"];
                 };
             };
             /** @description Not authenticated */
