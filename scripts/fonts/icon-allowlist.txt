@@ -1,0 +1,60 @@
+# Material Symbols icons kept in the self-hosted subset font although no code
+# names them literally (decision 4g). scripts/fonts/subset-icons.py adds them
+# to web/packages/shell/src/assets/material-symbols-rounded.subset.woff2.
+#
+# This is the curated set for icon fields a user may configure (loyalty tier
+# badges, CMS blocks, promotion highlights, facility tiles). Today no API field
+# accepts a free-text icon — every icon the server returns comes from code
+# (internal/platform/navigation, ESS sections) and is checked by
+# internal/app/icons_test.go. When a configurable icon field is added, the API
+# must restrict it to this list (422 otherwise) so it always renders offline.
+#
+# One Material Symbols Rounded name per line; '#' starts a comment.
+
+# Tiers, rewards, recognition
+workspace_premium
+military_tech
+diamond
+crown
+trophy
+emoji_events
+star
+stars
+grade
+verified
+loyalty
+card_membership
+redeem
+celebration
+local_activity
+favorite
+bolt
+rocket_launch
+new_releases
+auto_awesome
+shield
+
+# Club facilities and activities
+golf_course
+sports_golf
+sports_tennis
+fitness_center
+pool
+spa
+restaurant
+local_bar
+hotel
+cake
+family_restroom
+park
+eco
+event
+campaign
+flag
+
+# Generic
+info
+sell
+percent
+circle
+check_circle

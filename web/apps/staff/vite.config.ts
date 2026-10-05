@@ -102,6 +102,10 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
+        // woff2: the self-hosted Material Symbols subset (@oneclub/shell,
+        // decision 4g), so icons render on a device that never was online
+        // after install.
+        globPatterns: ['**/*.{js,css,html,woff2}'],
         manifestTransforms: [
           async (entries) => ({ manifest: entries.filter((e) => !/\.(js|css)$/.test(e.url) || offline.files.has(e.url)), warnings: [] }),
         ],
@@ -114,7 +118,8 @@ export default defineConfig({
             options: { cacheName: 'staff-api', networkTimeoutSeconds: 3, expiration: { maxAgeSeconds: 12 * 3600 } },
           },
           { urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\//, handler: 'CacheFirst',
-            // Google Fonts are cross-origin (opaque, status 0) — allow caching them so icons render offline.
+            // Text fonts (Inter, Roboto Flex) still come from Google Fonts and fall back to system
+            // fonts offline; cross-origin (opaque, status 0) — allow caching them once seen.
             options: { cacheName: 'fonts', cacheableResponse: { statuses: [0, 200] }, expiration: { maxEntries: 30, maxAgeSeconds: 365 * 86400 } } },
         ],
       },

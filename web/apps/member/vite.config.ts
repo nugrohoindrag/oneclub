@@ -21,6 +21,8 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
+        // woff2: the self-hosted Material Symbols subset (@oneclub/shell, decision 4g).
+        globPatterns: ['**/*.{js,css,html,woff2}'],
         runtimeCaching: [{ urlPattern: /^\/api\/v1\/public\/bootstrap/, handler: 'StaleWhileRevalidate', options: { cacheName: 'bootstrap' } }],
       },
     }),
