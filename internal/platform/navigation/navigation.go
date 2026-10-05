@@ -271,6 +271,10 @@ var Trees = map[string][]Item{
 			s("reports-exports", "Exports", "/reports/exports", "reporting.export.create"),
 			s("management-dashboard", "Management Dashboard", "/management", catalog.ManagementView),
 			s("kpi-dashboards", "KPI Dashboards", "/dashboards/golf-performance", catalog.ManagementView),
+			// PRD P5 EP-21 / EP-27: HR Reports, scheduled reports, report builder.
+			s("hr-reports-list", "HR Reports", "/reports?module=hris", "reporting.report.view"),
+			s("scheduled-reports", "Scheduled Reports", "/reports/scheduled", "reporting.scheduled_report.view"),
+			s("report-builder", "Report Builder", "/reports/builder", "reporting.dataset.view"),
 		}},
 		{Key: "settings", Label: "Settings", Path: "/settings", Icon: "settings", Module: "platform", Children: []Item{
 			s("organization", "Organization", "/settings/organization", "platform.organization.view",
@@ -320,6 +324,9 @@ var Trees = map[string][]Item{
 		{Key: "banquet-performance", Label: "Banquet Performance", Path: "/management/banquet-performance", Module: "banquet", Permission: catalog.ManagementView},
 		{Key: "procurement-performance", Label: "Procurement Performance", Path: "/management/procurement-performance", Module: "procurement", Permission: catalog.ManagementView},
 		{Key: "financial-performance", Label: "Financial Performance", Path: "/management/financial", Module: "accounting", Permission: catalog.ManagementView},
+		// PRD P5 EP-21 / EP-27: HR Performance and the KPI targets of the Executive Overview.
+		{Key: "hr-performance", Label: "HR Performance", Path: "/management/hr-performance", Module: "reporting", Permission: "reporting.hr_performance.view"},
+		{Key: "kpi-targets", Label: "KPI Targets", Path: "/management/targets", Module: "reporting", Permission: "reporting.kpi_target.view"},
 	},
 	"member": {
 		{Key: "home", Label: "Home", Path: "/", Icon: "home", Permission: catalog.ShellMemberPortal},

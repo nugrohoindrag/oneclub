@@ -3820,6 +3820,125 @@
         ],
         "type": "object"
       },
+      "AnalyticsRefreshRequest": {
+        "properties": {
+          "from": {
+            "description": "YYYY-MM-DD",
+            "type": "string"
+          },
+          "to": {
+            "description": "YYYY-MM-DD",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "AnalyticsRefreshRun": {
+        "properties": {
+          "durationMs": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "error": {
+            "nullable": true,
+            "type": "string"
+          },
+          "factsWritten": {
+            "type": "integer"
+          },
+          "finishedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "incremental",
+              "backfill",
+              "manual",
+              "seed"
+            ],
+            "type": "string"
+          },
+          "kpis": {
+            "type": "integer"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "startedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "running",
+              "completed",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "valuesWritten": {
+            "type": "integer"
+          },
+          "windowFrom": {
+            "type": "string"
+          },
+          "windowTo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "kind",
+          "windowFrom",
+          "windowTo",
+          "status",
+          "kpis",
+          "valuesWritten",
+          "factsWritten",
+          "startedAt"
+        ],
+        "type": "object"
+      },
+      "AnalyticsStatus": {
+        "properties": {
+          "dataAsOf": {
+            "description": "Oldest refresh time of the current month's KPI values",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "latencyMinutes": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "runs": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsRefreshRun"
+            },
+            "type": "array"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "staleAfterMinutes": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "stale",
+          "staleAfterMinutes",
+          "runs"
+        ],
+        "type": "object"
+      },
       "Application": {
         "properties": {
           "approvalRequestId": {
@@ -24228,6 +24347,160 @@
         ],
         "type": "object"
       },
+      "Dataset": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "dimensions": {
+            "items": {
+              "$ref": "#/components/schemas/DatasetField"
+            },
+            "type": "array"
+          },
+          "metrics": {
+            "items": {
+              "$ref": "#/components/schemas/DatasetField"
+            },
+            "type": "array"
+          },
+          "module": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "description",
+          "dimensions",
+          "metrics"
+        ],
+        "type": "object"
+      },
+      "DatasetDefinition": {
+        "properties": {
+          "dimensions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "filters": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "from": {
+            "type": "string"
+          },
+          "metrics": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "period": {
+            "description": "Relative period; empty = from / to",
+            "enum": [
+              "month_to_date",
+              "previous_month",
+              "year_to_date",
+              "last_30_days"
+            ],
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "dimensions",
+          "metrics"
+        ],
+        "type": "object"
+      },
+      "DatasetField": {
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "string",
+              "date",
+              "number"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "type"
+        ],
+        "type": "object"
+      },
+      "DatasetResult": {
+        "properties": {
+          "columns": {
+            "items": {
+              "$ref": "#/components/schemas/Column"
+            },
+            "type": "array"
+          },
+          "dataset": {
+            "type": "string"
+          },
+          "dimensions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "from": {
+            "type": "string"
+          },
+          "metrics": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "to": {
+            "type": "string"
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "dataset",
+          "from",
+          "to",
+          "dimensions",
+          "metrics",
+          "columns",
+          "rows",
+          "truncated"
+        ],
+        "type": "object"
+      },
       "DayAvailability": {
         "properties": {
           "available": {
@@ -29400,6 +29673,625 @@
         },
         "type": "object"
       },
+      "ExecutiveDomain": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "dashboardPath": {
+            "type": "string"
+          },
+          "kpis": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutiveKPI"
+            },
+            "type": "array"
+          },
+          "label": {
+            "type": "string"
+          },
+          "module": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "module",
+          "dashboardPath",
+          "kpis"
+        ],
+        "type": "object"
+      },
+      "ExecutiveDrillLine": {
+        "properties": {
+          "businessLine": {
+            "type": "string"
+          },
+          "day": {
+            "type": "string"
+          },
+          "daypart": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "folioId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "folioNumber": {
+            "type": "string"
+          },
+          "holderName": {
+            "type": "string"
+          },
+          "lineId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "outlet": {
+            "type": "string"
+          },
+          "postedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string"
+          },
+          "revenueComponent": {
+            "type": "string"
+          },
+          "segment": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "lineId",
+          "postedAt",
+          "day",
+          "folioId",
+          "folioNumber",
+          "holderName",
+          "description",
+          "businessLine",
+          "revenueComponent",
+          "outlet",
+          "segment",
+          "daypart",
+          "source",
+          "quantity",
+          "total"
+        ],
+        "type": "object"
+      },
+      "ExecutiveDrillRow": {
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "lines": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "share": {
+            "nullable": true,
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "value"
+        ],
+        "type": "object"
+      },
+      "ExecutiveDrilldown": {
+        "properties": {
+          "by": {
+            "enum": [
+              "day",
+              "weekday",
+              "daypart",
+              "business_line",
+              "revenue_component",
+              "outlet",
+              "segment",
+              "lines"
+            ],
+            "type": "string"
+          },
+          "dimensions": {
+            "description": "Dimensions available for the next step",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "filters": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "from": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "kpi": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutiveDrillLine"
+            },
+            "type": "array"
+          },
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutiveLink"
+            },
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutiveDrillRow"
+            },
+            "type": "array"
+          },
+          "to": {
+            "type": "string"
+          },
+          "total": {
+            "description": "KPI value of the period and filters",
+            "nullable": true,
+            "type": "string"
+          },
+          "truncated": {
+            "type": "boolean"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "kpi",
+          "label",
+          "unit",
+          "kind",
+          "from",
+          "to",
+          "by",
+          "filters",
+          "rows",
+          "lines",
+          "truncated",
+          "dimensions",
+          "links"
+        ],
+        "type": "object"
+      },
+      "ExecutiveKPI": {
+        "properties": {
+          "achievement": {
+            "description": "Value ÷ target to date (target ÷ value when lower is better)",
+            "nullable": true,
+            "type": "string"
+          },
+          "breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/ReportingBreakdown"
+            },
+            "type": "array"
+          },
+          "dashboard": {
+            "description": "Source dashboard code",
+            "type": "string"
+          },
+          "definition": {
+            "type": "string"
+          },
+          "direction": {
+            "description": "up = higher is better",
+            "enum": [
+              "up",
+              "down"
+            ],
+            "type": "string"
+          },
+          "drillBy": {
+            "description": "Dimensions of the drill-down",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "indicator": {
+            "enum": [
+              "on_track",
+              "watch",
+              "off_track",
+              "no_target"
+            ],
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "flow",
+              "rate",
+              "stock",
+              "current"
+            ],
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "lastYear": {
+            "description": "Same month last year",
+            "nullable": true,
+            "type": "string"
+          },
+          "lastYearChange": {
+            "description": "YoY change ratio",
+            "nullable": true,
+            "type": "string"
+          },
+          "previous": {
+            "description": "Previous month (or previous year)",
+            "nullable": true,
+            "type": "string"
+          },
+          "previousChange": {
+            "description": "MoM (or YoY for the year) change ratio",
+            "nullable": true,
+            "type": "string"
+          },
+          "refreshedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "report": {
+            "description": "Source report code",
+            "type": "string"
+          },
+          "sourceKpi": {
+            "description": "KPI key in the source dashboard",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "coming_soon",
+              "not_refreshed"
+            ],
+            "type": "string"
+          },
+          "target": {
+            "description": "Target of the period (approved KPI target plan)",
+            "nullable": true,
+            "type": "string"
+          },
+          "targetToDate": {
+            "description": "Target pro-rated to the days elapsed for flow KPIs of the running month",
+            "nullable": true,
+            "type": "string"
+          },
+          "unit": {
+            "enum": [
+              "count",
+              "idr",
+              "ratio",
+              "hours",
+              "balls",
+              "points",
+              "days"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "nullable": true,
+            "type": "string"
+          },
+          "variance": {
+            "description": "Value − target to date",
+            "nullable": true,
+            "type": "string"
+          },
+          "ytd": {
+            "description": "Year to date (flow KPIs)",
+            "nullable": true,
+            "type": "string"
+          },
+          "ytdTarget": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "unit",
+          "kind",
+          "direction",
+          "definition",
+          "status",
+          "indicator",
+          "dashboard",
+          "sourceKpi",
+          "drillBy"
+        ],
+        "type": "object"
+      },
+      "ExecutiveLink": {
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "path"
+        ],
+        "type": "object"
+      },
+      "ExecutiveOverview": {
+        "properties": {
+          "dataAsOf": {
+            "description": "Oldest refresh of the values shown (analytics store)",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "domains": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutiveDomain"
+            },
+            "type": "array"
+          },
+          "from": {
+            "type": "string"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "month": {
+            "description": "YYYY-MM",
+            "type": "string"
+          },
+          "period": {
+            "enum": [
+              "month",
+              "year"
+            ],
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "stale": {
+            "type": "boolean"
+          },
+          "targetPlan": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ExecutiveTargetPlanRef"
+              }
+            ],
+            "nullable": true
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "propertyId",
+          "period",
+          "month",
+          "from",
+          "to",
+          "stale",
+          "domains",
+          "generatedAt"
+        ],
+        "type": "object"
+      },
+      "ExecutivePropertyComparison": {
+        "properties": {
+          "kpis": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutivePropertyKPI"
+            },
+            "type": "array"
+          },
+          "month": {
+            "type": "string"
+          },
+          "properties": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutivePropertyRef"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "month",
+          "properties",
+          "kpis"
+        ],
+        "type": "object"
+      },
+      "ExecutivePropertyKPI": {
+        "properties": {
+          "domain": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "values": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutivePropertyValue"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "domain",
+          "unit",
+          "values"
+        ],
+        "type": "object"
+      },
+      "ExecutivePropertyRef": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "type": "object"
+      },
+      "ExecutivePropertyValue": {
+        "properties": {
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "target": {
+            "nullable": true,
+            "type": "string"
+          },
+          "value": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "propertyId"
+        ],
+        "type": "object"
+      },
+      "ExecutiveTargetPlanRef": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "year": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "year",
+          "version",
+          "title"
+        ],
+        "type": "object"
+      },
+      "ExecutiveTrend": {
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/ExecutiveTrendPoint"
+            },
+            "type": "array"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "unit",
+          "points"
+        ],
+        "type": "object"
+      },
+      "ExecutiveTrendPoint": {
+        "properties": {
+          "lastYear": {
+            "nullable": true,
+            "type": "string"
+          },
+          "month": {
+            "type": "string"
+          },
+          "target": {
+            "nullable": true,
+            "type": "string"
+          },
+          "value": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "month"
+        ],
+        "type": "object"
+      },
       "ExperienceConsentInput": {
         "properties": {
           "consent": {
@@ -32261,6 +33153,112 @@
         },
         "required": [
           "witnesses"
+        ],
+        "type": "object"
+      },
+      "HRPerformanceDashboard": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "kpis": {
+            "items": {
+              "$ref": "#/components/schemas/HRPerformanceKPI"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "from",
+          "to",
+          "kpis",
+          "generatedAt"
+        ],
+        "type": "object"
+      },
+      "HRPerformanceKPI": {
+        "properties": {
+          "breakdown": {
+            "items": {
+              "$ref": "#/components/schemas/ReportingBreakdown"
+            },
+            "type": "array"
+          },
+          "definition": {
+            "type": "string"
+          },
+          "direction": {
+            "enum": [
+              "up",
+              "down"
+            ],
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "flow",
+              "rate",
+              "stock",
+              "current"
+            ],
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "report": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "coming_soon"
+            ],
+            "type": "string"
+          },
+          "unit": {
+            "enum": [
+              "count",
+              "idr",
+              "ratio",
+              "hours",
+              "balls",
+              "points",
+              "days"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "unit",
+          "kind",
+          "direction",
+          "definition",
+          "status"
         ],
         "type": "object"
       },
@@ -37345,6 +38343,259 @@
           "value",
           "unit"
         ],
+        "type": "object"
+      },
+      "KPIDefinition": {
+        "properties": {
+          "dashboard": {
+            "type": "string"
+          },
+          "dashboardName": {
+            "type": "string"
+          },
+          "definition": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "executive": {
+            "type": "boolean"
+          },
+          "executiveKey": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "report": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "coming_soon"
+            ],
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "dashboard",
+          "dashboardName",
+          "unit",
+          "definition",
+          "executive",
+          "status"
+        ],
+        "type": "object"
+      },
+      "KPITargetAnnual": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "kpiKey": {
+            "type": "string"
+          },
+          "split": {
+            "description": "Default: even for flow KPIs, same otherwise",
+            "enum": [
+              "even",
+              "same"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "kpiKey",
+          "amount"
+        ],
+        "type": "object"
+      },
+      "KPITargetLine": {
+        "properties": {
+          "kpiKey": {
+            "type": "string"
+          },
+          "month": {
+            "type": "integer"
+          },
+          "target": {
+            "description": "Decimal; ratios 0–1",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kpiKey",
+          "month",
+          "target"
+        ],
+        "type": "object"
+      },
+      "KPITargetPlan": {
+        "properties": {
+          "approvalRequestId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "decidedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "decisionReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "pending_approval",
+              "approved",
+              "rejected",
+              "superseded"
+            ],
+            "type": "string"
+          },
+          "submittedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "targetCount": {
+            "type": "integer"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/KPITargetLine"
+            },
+            "type": "array"
+          },
+          "title": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "year": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "year",
+          "version",
+          "title",
+          "status",
+          "targetCount",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "KPITargetPlanRequest": {
+        "properties": {
+          "annual": {
+            "items": {
+              "$ref": "#/components/schemas/KPITargetAnnual"
+            },
+            "type": "array"
+          },
+          "copyFromPlanId": {
+            "description": "Start from the targets of another plan",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/KPITargetLine"
+            },
+            "type": "array"
+          },
+          "title": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "year",
+          "title"
+        ],
+        "type": "object"
+      },
+      "KPITargetPlanUpdate": {
+        "properties": {
+          "annual": {
+            "items": {
+              "$ref": "#/components/schemas/KPITargetAnnual"
+            },
+            "type": "array"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "remove": {
+            "description": "KPI keys whose targets are removed",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "targets": {
+            "items": {
+              "$ref": "#/components/schemas/KPITargetLine"
+            },
+            "type": "array"
+          },
+          "title": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "Kiosk": {
@@ -64474,6 +65725,91 @@
         ],
         "type": "object"
       },
+      "SavedReport": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "dataset": {
+            "type": "string"
+          },
+          "definition": {
+            "$ref": "#/components/schemas/DatasetDefinition"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "mine": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "shared": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "dataset",
+          "definition",
+          "shared",
+          "mine",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "SavedReportRequest": {
+        "properties": {
+          "dataset": {
+            "type": "string"
+          },
+          "definition": {
+            "$ref": "#/components/schemas/DatasetDefinition"
+          },
+          "name": {
+            "type": "string"
+          },
+          "shared": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "dataset",
+          "definition"
+        ],
+        "type": "object"
+      },
+      "SavedReportUpdate": {
+        "properties": {
+          "definition": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DatasetDefinition"
+              }
+            ],
+            "nullable": true
+          },
+          "name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "shared": {
+            "nullable": true,
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
       "Schedule": {
         "properties": {
           "corporateAccountId": {
@@ -64717,6 +66053,371 @@
           "label",
           "dueDate"
         ],
+        "type": "object"
+      },
+      "ScheduledReport": {
+        "properties": {
+          "channels": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "format": {
+            "enum": [
+              "csv",
+              "xlsx",
+              "pdf"
+            ],
+            "type": "string"
+          },
+          "frequency": {
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lastRunAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "lastStatus": {
+            "nullable": true,
+            "type": "string"
+          },
+          "monthDay": {
+            "description": "Monthly: day 1–28",
+            "nullable": true,
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nextRunAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "period": {
+            "enum": [
+              "previous_day",
+              "previous_week",
+              "previous_month",
+              "month_to_date",
+              "year_to_date"
+            ],
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "recipientRoles": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "recipientUserIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "reportCode": {
+            "type": "string"
+          },
+          "reportName": {
+            "type": "string"
+          },
+          "sendTime": {
+            "description": "HH:MM in the club time zone",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "paused"
+            ],
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "weekday": {
+            "description": "Weekly: 0 = Sunday … 6 = Saturday",
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "name",
+          "reportCode",
+          "reportName",
+          "format",
+          "params",
+          "period",
+          "frequency",
+          "sendTime",
+          "channels",
+          "recipientRoles",
+          "recipientUserIds",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "ScheduledReportRequest": {
+        "properties": {
+          "channels": {
+            "description": "email, whatsapp, in_app (default email + in_app)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "format": {
+            "enum": [
+              "csv",
+              "xlsx",
+              "pdf"
+            ],
+            "type": "string"
+          },
+          "frequency": {
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly"
+            ],
+            "type": "string"
+          },
+          "monthDay": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Report parameters besides the period (from / to are set by the period)",
+            "type": "object"
+          },
+          "period": {
+            "enum": [
+              "previous_day",
+              "previous_week",
+              "previous_month",
+              "month_to_date",
+              "year_to_date"
+            ],
+            "type": "string"
+          },
+          "recipientRoles": {
+            "description": "Role codes, e.g. general_manager",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "recipientUserIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "reportCode": {
+            "type": "string"
+          },
+          "sendTime": {
+            "description": "HH:MM (default 07:00)",
+            "type": "string"
+          },
+          "weekday": {
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "reportCode",
+          "format",
+          "period",
+          "frequency"
+        ],
+        "type": "object"
+      },
+      "ScheduledReportRun": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "delivered": {
+            "type": "integer"
+          },
+          "error": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "periodFrom": {
+            "type": "string"
+          },
+          "periodTo": {
+            "type": "string"
+          },
+          "recipients": {
+            "type": "integer"
+          },
+          "rowCount": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "scheduleId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "skipped": {
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "completed",
+              "partial",
+              "failed",
+              "skipped"
+            ],
+            "type": "string"
+          },
+          "trigger": {
+            "enum": [
+              "schedule",
+              "manual"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "scheduleId",
+          "trigger",
+          "periodFrom",
+          "periodTo",
+          "status",
+          "recipients",
+          "delivered",
+          "skipped",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "ScheduledReportUpdate": {
+        "properties": {
+          "channels": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "format": {
+            "enum": [
+              "csv",
+              "xlsx",
+              "pdf"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "frequency": {
+            "enum": [
+              "daily",
+              "weekly",
+              "monthly"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "monthDay": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "period": {
+            "enum": [
+              "previous_day",
+              "previous_week",
+              "previous_month",
+              "month_to_date",
+              "year_to_date"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "recipientRoles": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "recipientUserIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "sendTime": {
+            "nullable": true,
+            "type": "string"
+          },
+          "weekday": {
+            "nullable": true,
+            "type": "integer"
+          }
+        },
         "type": "object"
       },
       "ScoreAudit": {
@@ -252389,6 +254090,163 @@
         "x-module": "banquet"
       }
     },
+    "/api/v1/reporting/analytics/status": {
+      "get": {
+        "operationId": "getReportingAnalyticsStatus",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsStatus"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Freshness of the analytics store and the last refresh runs",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.analytics.refresh"
+      }
+    },
+    "/api/v1/reporting/analytics:refresh": {
+      "post": {
+        "operationId": "postReportingAnalyticsRefresh",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyticsRefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsRefreshRun"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Refresh the analytics store of the property now (default: the incremental window of the BI Policies)",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.analytics.refresh"
+      }
+    },
     "/api/v1/reporting/dashboards/executive-overview": {
       "get": {
         "operationId": "getReportingDashboardsExecutiveOverview",
@@ -252622,6 +254480,613 @@
         "x-permission": "reporting.dashboard.view"
       }
     },
+    "/api/v1/reporting/datasets": {
+      "get": {
+        "operationId": "getReportingDatasets",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/Dataset"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Datasets of the report builder I may use",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dataset.view"
+      }
+    },
+    "/api/v1/reporting/datasets/{code}/query": {
+      "get": {
+        "operationId": "getReportingDatasetsByCodeQuery",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated",
+            "in": "query",
+            "name": "dimensions",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Comma-separated",
+            "in": "query",
+            "name": "metrics",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "enum": [
+                "month_to_date",
+                "previous_month",
+                "year_to_date",
+                "last_30_days"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Dimension = value",
+            "in": "query",
+            "name": "filter[...]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetResult"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Run a report builder query (dimensions, metrics, filters; read replica, query budget)",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dataset.view"
+      }
+    },
+    "/api/v1/reporting/drilldown": {
+      "get": {
+        "operationId": "getReportingDrilldown",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kpi",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "by",
+            "schema": {
+              "enum": [
+                "day",
+                "weekday",
+                "daypart",
+                "business_line",
+                "revenue_component",
+                "outlet",
+                "segment",
+                "lines"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "day, weekday (1 = Monday), daypart, business_line, revenue_component, outlet, segment",
+            "in": "query",
+            "name": "filter[...]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutiveDrilldown"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Drill-down of an executive KPI by day and dimension down to the source transactions",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dashboard.view"
+      }
+    },
+    "/api/v1/reporting/executive": {
+      "get": {
+        "operationId": "getReportingExecutive",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "enum": [
+                "month",
+                "year"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "YYYY-MM (default: this month)",
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutiveOverview"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Executive Overview across domains with targets, MoM / YoY and year to date (analytics store)",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dashboard.view"
+      }
+    },
+    "/api/v1/reporting/executive/properties": {
+      "get": {
+        "operationId": "getReportingExecutiveProperties",
+        "parameters": [
+          {
+            "description": "YYYY-MM",
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutivePropertyComparison"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Executive KPIs of the month per property the user manages",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dashboard.view"
+      }
+    },
+    "/api/v1/reporting/executive/trend": {
+      "get": {
+        "operationId": "getReportingExecutiveTrend",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kpi",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "months",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutiveTrend"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Monthly series of an executive KPI with targets and last year",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dashboard.view"
+      }
+    },
     "/api/v1/reporting/exports": {
       "get": {
         "operationId": "getReportingExports",
@@ -252795,6 +255260,786 @@
         "x-permission": "reporting.export.create"
       }
     },
+    "/api/v1/reporting/hr-performance": {
+      "get": {
+        "operationId": "getReportingHrPerformance",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HRPerformanceDashboard"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "HR Performance dashboard (registered HR KPIs)",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.hr_performance.view"
+      }
+    },
+    "/api/v1/reporting/kpi-definitions": {
+      "get": {
+        "operationId": "getReportingKpiDefinitions",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/KPIDefinition"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "KPI definitions (one definition per KPI)",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dashboard.view"
+      }
+    },
+    "/api/v1/reporting/kpi-targets": {
+      "get": {
+        "operationId": "getReportingKpiTargets",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/KPITargetPlan"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "KPI target plans",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.kpi_target.view"
+      },
+      "post": {
+        "operationId": "postReportingKpiTargets",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KPITargetPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KPITargetPlan"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Create a KPI target plan (targets per KPI and month, or an annual budget split per month)",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.kpi_target.manage"
+      }
+    },
+    "/api/v1/reporting/kpi-targets/{id}": {
+      "delete": {
+        "operationId": "deleteReportingKpiTargetsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Delete a draft or rejected KPI target plan",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.kpi_target.manage"
+      },
+      "get": {
+        "operationId": "getReportingKpiTargetsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KPITargetPlan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "KPI target plan with its targets",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.kpi_target.view"
+      },
+      "patch": {
+        "operationId": "patchReportingKpiTargetsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KPITargetPlanUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KPITargetPlan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Change a draft or rejected KPI target plan",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.kpi_target.manage"
+      }
+    },
+    "/api/v1/reporting/kpi-targets/{id}:revise": {
+      "post": {
+        "operationId": "postReportingKpiTargetsByIdRevise",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KPITargetPlan"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Revise an approved plan into a new draft version",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.kpi_target.manage"
+      }
+    },
+    "/api/v1/reporting/kpi-targets/{id}:submit": {
+      "post": {
+        "operationId": "postReportingKpiTargetsByIdSubmit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KPITargetPlan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Submit a KPI target plan for approval (approved at once without a workflow)",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.kpi_target.manage"
+      }
+    },
     "/api/v1/reporting/reports": {
       "get": {
         "operationId": "getReportingReports",
@@ -252965,6 +256210,1223 @@
         ],
         "x-module": "reporting",
         "x-permission": "reporting.report.view"
+      }
+    },
+    "/api/v1/reporting/saved-reports": {
+      "get": {
+        "operationId": "getReportingSavedReports",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/SavedReport"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Saved report builder reports (mine and shared)",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dataset.view"
+      },
+      "post": {
+        "operationId": "postReportingSavedReports",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedReportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedReport"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Save a report builder report",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.saved_report.manage"
+      }
+    },
+    "/api/v1/reporting/saved-reports/{id}": {
+      "delete": {
+        "operationId": "deleteReportingSavedReportsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Delete my saved report",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.saved_report.manage"
+      },
+      "patch": {
+        "operationId": "patchReportingSavedReportsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedReportUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SavedReport"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Change my saved report",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.saved_report.manage"
+      }
+    },
+    "/api/v1/reporting/saved-reports/{id}/run": {
+      "get": {
+        "operationId": "getReportingSavedReportsByIdRun",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatasetResult"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Run a saved report",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dataset.view"
+      }
+    },
+    "/api/v1/reporting/scheduled-reports": {
+      "get": {
+        "operationId": "getReportingScheduledReports",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/ScheduledReport"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Scheduled reports",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.scheduled_report.view"
+      },
+      "post": {
+        "operationId": "postReportingScheduledReports",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledReportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledReport"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Schedule a report (daily / weekly / monthly, e-mail / WhatsApp, per role)",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.scheduled_report.manage"
+      }
+    },
+    "/api/v1/reporting/scheduled-reports/{id}": {
+      "delete": {
+        "operationId": "deleteReportingScheduledReportsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Remove a scheduled report",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.scheduled_report.manage"
+      },
+      "get": {
+        "operationId": "getReportingScheduledReportsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledReport"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Scheduled report",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.scheduled_report.view"
+      },
+      "patch": {
+        "operationId": "patchReportingScheduledReportsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledReportUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledReport"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Change a scheduled report",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.scheduled_report.manage"
+      }
+    },
+    "/api/v1/reporting/scheduled-reports/{id}/runs": {
+      "get": {
+        "operationId": "getReportingScheduledReportsByIdRuns",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/ScheduledReportRun"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Deliveries of a scheduled report",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.scheduled_report.view"
+      }
+    },
+    "/api/v1/reporting/scheduled-reports/{id}:pause": {
+      "post": {
+        "operationId": "postReportingScheduledReportsByIdPause",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledReport"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Pause a scheduled report",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.scheduled_report.manage"
+      }
+    },
+    "/api/v1/reporting/scheduled-reports/{id}:resume": {
+      "post": {
+        "operationId": "postReportingScheduledReportsByIdResume",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledReport"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Resume a scheduled report",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.scheduled_report.manage"
+      }
+    },
+    "/api/v1/reporting/scheduled-reports/{id}:run": {
+      "post": {
+        "operationId": "postReportingScheduledReportsByIdRun",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScheduledReportRun"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Deliver a scheduled report now",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-audited": true,
+        "x-module": "reporting",
+        "x-permission": "reporting.scheduled_report.manage"
       }
     },
     "/api/v1/reservation/availability": {
@@ -266350,6 +270812,9 @@
     },
     {
       "name": "Loyalty"
+    },
+    {
+      "name": "Management \u0026 BI"
     },
     {
       "name": "Master Data"

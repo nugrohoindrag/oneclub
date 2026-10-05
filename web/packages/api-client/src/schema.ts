@@ -23441,6 +23441,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reporting/analytics/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Freshness of the analytics store and the last refresh runs */
+        get: operations["getReportingAnalyticsStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/analytics:refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refresh the analytics store of the property now (default: the incremental window of the BI Policies) */
+        post: operations["postReportingAnalyticsRefresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reporting/dashboards/executive-overview": {
         parameters: {
             query?: never;
@@ -23492,6 +23526,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reporting/datasets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Datasets of the report builder I may use */
+        get: operations["getReportingDatasets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/datasets/{code}/query": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run a report builder query (dimensions, metrics, filters; read replica, query budget) */
+        get: operations["getReportingDatasetsByCodeQuery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/drilldown": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Drill-down of an executive KPI by day and dimension down to the source transactions */
+        get: operations["getReportingDrilldown"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/executive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Executive Overview across domains with targets, MoM / YoY and year to date (analytics store) */
+        get: operations["getReportingExecutive"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/executive/properties": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Executive KPIs of the month per property the user manages */
+        get: operations["getReportingExecutiveProperties"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/executive/trend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Monthly series of an executive KPI with targets and last year */
+        get: operations["getReportingExecutiveTrend"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reporting/exports": {
         parameters: {
             query?: never;
@@ -23504,6 +23640,111 @@ export interface paths {
         put?: never;
         /** Export a report asynchronously (notified when ready) */
         post: operations["postReportingExports"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/hr-performance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** HR Performance dashboard (registered HR KPIs) */
+        get: operations["getReportingHrPerformance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/kpi-definitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** KPI definitions (one definition per KPI) */
+        get: operations["getReportingKpiDefinitions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/kpi-targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** KPI target plans */
+        get: operations["getReportingKpiTargets"];
+        put?: never;
+        /** Create a KPI target plan (targets per KPI and month, or an annual budget split per month) */
+        post: operations["postReportingKpiTargets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/kpi-targets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** KPI target plan with its targets */
+        get: operations["getReportingKpiTargetsById"];
+        put?: never;
+        post?: never;
+        /** Delete a draft or rejected KPI target plan */
+        delete: operations["deleteReportingKpiTargetsById"];
+        options?: never;
+        head?: never;
+        /** Change a draft or rejected KPI target plan */
+        patch: operations["patchReportingKpiTargetsById"];
+        trace?: never;
+    };
+    "/api/v1/reporting/kpi-targets/{id}:revise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revise an approved plan into a new draft version */
+        post: operations["postReportingKpiTargetsByIdRevise"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/kpi-targets/{id}:submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a KPI target plan for approval (approved at once without a workflow) */
+        post: operations["postReportingKpiTargetsByIdSubmit"];
         delete?: never;
         options?: never;
         head?: never;
@@ -23538,6 +23779,164 @@ export interface paths {
         get: operations["getReportingReportsByCode"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/saved-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Saved report builder reports (mine and shared) */
+        get: operations["getReportingSavedReports"];
+        put?: never;
+        /** Save a report builder report */
+        post: operations["postReportingSavedReports"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/saved-reports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete my saved report */
+        delete: operations["deleteReportingSavedReportsById"];
+        options?: never;
+        head?: never;
+        /** Change my saved report */
+        patch: operations["patchReportingSavedReportsById"];
+        trace?: never;
+    };
+    "/api/v1/reporting/saved-reports/{id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Run a saved report */
+        get: operations["getReportingSavedReportsByIdRun"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/scheduled-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scheduled reports */
+        get: operations["getReportingScheduledReports"];
+        put?: never;
+        /** Schedule a report (daily / weekly / monthly, e-mail / WhatsApp, per role) */
+        post: operations["postReportingScheduledReports"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/scheduled-reports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scheduled report */
+        get: operations["getReportingScheduledReportsById"];
+        put?: never;
+        post?: never;
+        /** Remove a scheduled report */
+        delete: operations["deleteReportingScheduledReportsById"];
+        options?: never;
+        head?: never;
+        /** Change a scheduled report */
+        patch: operations["patchReportingScheduledReportsById"];
+        trace?: never;
+    };
+    "/api/v1/reporting/scheduled-reports/{id}/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Deliveries of a scheduled report */
+        get: operations["getReportingScheduledReportsByIdRuns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/scheduled-reports/{id}:pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pause a scheduled report */
+        post: operations["postReportingScheduledReportsByIdPause"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/scheduled-reports/{id}:resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume a scheduled report */
+        post: operations["postReportingScheduledReportsByIdResume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/scheduled-reports/{id}:run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deliver a scheduled report now */
+        post: operations["postReportingScheduledReportsByIdRun"];
         delete?: never;
         options?: never;
         head?: never;
@@ -26369,6 +26768,44 @@ export interface components {
             }[];
             /** Format: uuid */
             paymentId: string;
+        };
+        AnalyticsRefreshRequest: {
+            /** @description YYYY-MM-DD */
+            from?: string;
+            /** @description YYYY-MM-DD */
+            to?: string;
+        };
+        AnalyticsRefreshRun: {
+            durationMs?: number | null;
+            error?: string | null;
+            factsWritten: number;
+            /** Format: date-time */
+            finishedAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "incremental" | "backfill" | "manual" | "seed";
+            kpis: number;
+            /** Format: uuid */
+            propertyId: string;
+            /** Format: date-time */
+            startedAt: string;
+            /** @enum {string} */
+            status: "running" | "completed" | "failed";
+            valuesWritten: number;
+            windowFrom: string;
+            windowTo: string;
+        };
+        AnalyticsStatus: {
+            /**
+             * Format: date-time
+             * @description Oldest refresh time of the current month's KPI values
+             */
+            dataAsOf?: string | null;
+            latencyMinutes?: number | null;
+            runs: components["schemas"]["AnalyticsRefreshRun"][];
+            stale: boolean;
+            staleAfterMinutes: number;
         };
         Application: {
             /** Format: uuid */
@@ -33734,6 +34171,44 @@ export interface components {
             /** @enum {string} */
             status: "pending" | "completed" | "rejected";
         };
+        Dataset: {
+            code: string;
+            description: string;
+            dimensions: components["schemas"]["DatasetField"][];
+            metrics: components["schemas"]["DatasetField"][];
+            module?: string;
+            name: string;
+        };
+        DatasetDefinition: {
+            dimensions: string[];
+            filters?: {
+                [key: string]: string;
+            };
+            from?: string;
+            metrics: string[];
+            /**
+             * @description Relative period; empty = from / to
+             * @enum {string}
+             */
+            period?: "month_to_date" | "previous_month" | "year_to_date" | "last_30_days";
+            to?: string;
+        };
+        DatasetField: {
+            key: string;
+            label: string;
+            /** @enum {string} */
+            type: "string" | "date" | "number";
+        };
+        DatasetResult: {
+            columns: components["schemas"]["Column"][];
+            dataset: string;
+            dimensions: string[];
+            from: string;
+            metrics: string[];
+            rows: Record<string, never>[];
+            to: string;
+            truncated: boolean;
+        };
         DayAvailability: {
             available: boolean;
             components: components["schemas"]["ComponentAvailability"][];
@@ -35496,6 +35971,177 @@ export interface components {
         ExceptionResolveInput: {
             reason?: string;
         };
+        ExecutiveDomain: {
+            code: string;
+            dashboardPath: string;
+            kpis: components["schemas"]["ExecutiveKPI"][];
+            label: string;
+            module: string;
+        };
+        ExecutiveDrillLine: {
+            businessLine: string;
+            day: string;
+            daypart: string;
+            description: string;
+            /** Format: uuid */
+            folioId: string;
+            folioNumber: string;
+            holderName: string;
+            /** Format: uuid */
+            lineId: string;
+            outlet: string;
+            /** Format: date-time */
+            postedAt: string;
+            quantity: string;
+            revenueComponent: string;
+            segment: string;
+            source: string;
+            total: string;
+        };
+        ExecutiveDrillRow: {
+            key: string;
+            label: string;
+            lines?: number | null;
+            share?: string | null;
+            value: string;
+        };
+        ExecutiveDrilldown: {
+            /** @enum {string} */
+            by: "day" | "weekday" | "daypart" | "business_line" | "revenue_component" | "outlet" | "segment" | "lines";
+            /** @description Dimensions available for the next step */
+            dimensions: string[];
+            filters: {
+                [key: string]: string;
+            };
+            from: string;
+            kind: string;
+            kpi: string;
+            label: string;
+            lines: components["schemas"]["ExecutiveDrillLine"][];
+            links: components["schemas"]["ExecutiveLink"][];
+            rows: components["schemas"]["ExecutiveDrillRow"][];
+            to: string;
+            /** @description KPI value of the period and filters */
+            total?: string | null;
+            truncated: boolean;
+            unit: string;
+        };
+        ExecutiveKPI: {
+            /** @description Value ÷ target to date (target ÷ value when lower is better) */
+            achievement?: string | null;
+            breakdown?: components["schemas"]["ReportingBreakdown"][];
+            /** @description Source dashboard code */
+            dashboard: string;
+            definition: string;
+            /**
+             * @description up = higher is better
+             * @enum {string}
+             */
+            direction: "up" | "down";
+            /** @description Dimensions of the drill-down */
+            drillBy: string[];
+            /** @enum {string} */
+            indicator: "on_track" | "watch" | "off_track" | "no_target";
+            key: string;
+            /** @enum {string} */
+            kind: "flow" | "rate" | "stock" | "current";
+            label: string;
+            /** @description Same month last year */
+            lastYear?: string | null;
+            /** @description YoY change ratio */
+            lastYearChange?: string | null;
+            /** @description Previous month (or previous year) */
+            previous?: string | null;
+            /** @description MoM (or YoY for the year) change ratio */
+            previousChange?: string | null;
+            /** Format: date-time */
+            refreshedAt?: string | null;
+            /** @description Source report code */
+            report?: string;
+            /** @description KPI key in the source dashboard */
+            sourceKpi: string;
+            /** @enum {string} */
+            status: "available" | "coming_soon" | "not_refreshed";
+            /** @description Target of the period (approved KPI target plan) */
+            target?: string | null;
+            /** @description Target pro-rated to the days elapsed for flow KPIs of the running month */
+            targetToDate?: string | null;
+            /** @enum {string} */
+            unit: "count" | "idr" | "ratio" | "hours" | "balls" | "points" | "days";
+            value?: string | null;
+            /** @description Value − target to date */
+            variance?: string | null;
+            /** @description Year to date (flow KPIs) */
+            ytd?: string | null;
+            ytdTarget?: string | null;
+        };
+        ExecutiveLink: {
+            label: string;
+            path: string;
+        };
+        ExecutiveOverview: {
+            /**
+             * Format: date-time
+             * @description Oldest refresh of the values shown (analytics store)
+             */
+            dataAsOf?: string | null;
+            domains: components["schemas"]["ExecutiveDomain"][];
+            from: string;
+            /** Format: date-time */
+            generatedAt: string;
+            /** @description YYYY-MM */
+            month: string;
+            /** @enum {string} */
+            period: "month" | "year";
+            /** Format: uuid */
+            propertyId: string;
+            stale: boolean;
+            targetPlan?: components["schemas"]["ExecutiveTargetPlanRef"] | null;
+            to: string;
+        };
+        ExecutivePropertyComparison: {
+            kpis: components["schemas"]["ExecutivePropertyKPI"][];
+            month: string;
+            properties: components["schemas"]["ExecutivePropertyRef"][];
+        };
+        ExecutivePropertyKPI: {
+            domain: string;
+            key: string;
+            label: string;
+            unit: string;
+            values: components["schemas"]["ExecutivePropertyValue"][];
+        };
+        ExecutivePropertyRef: {
+            code: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        ExecutivePropertyValue: {
+            /** Format: uuid */
+            propertyId: string;
+            target?: string | null;
+            value?: string | null;
+        };
+        ExecutiveTargetPlanRef: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            version: number;
+            year: number;
+        };
+        ExecutiveTrend: {
+            key: string;
+            label: string;
+            points: components["schemas"]["ExecutiveTrendPoint"][];
+            unit: string;
+        };
+        ExecutiveTrendPoint: {
+            lastYear?: string | null;
+            month: string;
+            target?: string | null;
+            value?: string | null;
+        };
         ExperienceConsentInput: {
             /** @enum {string} */
             consent: "granted" | "withdrawn";
@@ -36454,6 +37100,31 @@ export interface components {
             attachments?: string[];
             notes?: string;
             witnesses: components["schemas"]["Witness"][];
+        };
+        HRPerformanceDashboard: {
+            code: string;
+            from: string;
+            /** Format: date-time */
+            generatedAt: string;
+            kpis: components["schemas"]["HRPerformanceKPI"][];
+            name: string;
+            to: string;
+        };
+        HRPerformanceKPI: {
+            breakdown?: components["schemas"]["ReportingBreakdown"][];
+            definition: string;
+            /** @enum {string} */
+            direction: "up" | "down";
+            key: string;
+            /** @enum {string} */
+            kind: "flow" | "rate" | "stock" | "current";
+            label: string;
+            report?: string;
+            /** @enum {string} */
+            status: "available" | "coming_soon";
+            /** @enum {string} */
+            unit: "count" | "idr" | "ratio" | "hours" | "balls" | "points" | "days";
+            value?: string | null;
         };
         HallOfFameConsentInput: {
             /** @enum {string} */
@@ -38519,6 +39190,82 @@ export interface components {
             unit: "count" | "idr" | "ratio" | "hours" | "balls" | "points" | "days";
             /** @description Decimal as text (counts, money, ratios 0–1) */
             value: string;
+        };
+        KPIDefinition: {
+            dashboard: string;
+            dashboardName: string;
+            definition: string;
+            direction?: string;
+            domain?: string;
+            executive: boolean;
+            executiveKey?: string;
+            key: string;
+            kind?: string;
+            label: string;
+            report?: string;
+            /** @enum {string} */
+            status: "available" | "coming_soon";
+            unit: string;
+        };
+        KPITargetAnnual: {
+            amount: string;
+            kpiKey: string;
+            /**
+             * @description Default: even for flow KPIs, same otherwise
+             * @enum {string}
+             */
+            split?: "even" | "same";
+        };
+        KPITargetLine: {
+            kpiKey: string;
+            month: number;
+            /** @description Decimal; ratios 0–1 */
+            target: string;
+        };
+        KPITargetPlan: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt?: string | null;
+            decisionReason?: string | null;
+            /** Format: uuid */
+            id: string;
+            notes?: string | null;
+            /** Format: uuid */
+            propertyId: string;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "approved" | "rejected" | "superseded";
+            /** Format: date-time */
+            submittedAt?: string | null;
+            targetCount: number;
+            targets?: components["schemas"]["KPITargetLine"][];
+            title: string;
+            /** Format: date-time */
+            updatedAt: string;
+            version: number;
+            year: number;
+        };
+        KPITargetPlanRequest: {
+            annual?: components["schemas"]["KPITargetAnnual"][];
+            /**
+             * Format: uuid
+             * @description Start from the targets of another plan
+             */
+            copyFromPlanId?: string | null;
+            notes?: string | null;
+            targets?: components["schemas"]["KPITargetLine"][];
+            title: string;
+            year: number;
+        };
+        KPITargetPlanUpdate: {
+            annual?: components["schemas"]["KPITargetAnnual"][];
+            notes?: string | null;
+            /** @description KPI keys whose targets are removed */
+            remove?: string[];
+            targets?: components["schemas"]["KPITargetLine"][];
+            title?: string | null;
         };
         Kiosk: {
             entries: components["schemas"]["PublicEntry"][];
@@ -47577,6 +48324,30 @@ export interface components {
             id: string;
             teams: string[];
         };
+        SavedReport: {
+            /** Format: date-time */
+            createdAt: string;
+            dataset: string;
+            definition: components["schemas"]["DatasetDefinition"];
+            /** Format: uuid */
+            id: string;
+            mine: boolean;
+            name: string;
+            shared: boolean;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SavedReportRequest: {
+            dataset: string;
+            definition: components["schemas"]["DatasetDefinition"];
+            name: string;
+            shared?: boolean;
+        };
+        SavedReportUpdate: {
+            definition?: components["schemas"]["DatasetDefinition"] | null;
+            name?: string | null;
+            shared?: boolean | null;
+        };
         Schedule: {
             /** Format: uuid */
             corporateAccountId?: string | null;
@@ -47647,6 +48418,104 @@ export interface components {
             kind?: "down_payment" | "installment" | "final";
             label: string;
             percent?: string;
+        };
+        ScheduledReport: {
+            channels: string[];
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            format: "csv" | "xlsx" | "pdf";
+            /** @enum {string} */
+            frequency: "daily" | "weekly" | "monthly";
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            lastRunAt?: string | null;
+            lastStatus?: string | null;
+            /** @description Monthly: day 1–28 */
+            monthDay?: number | null;
+            name: string;
+            /** Format: date-time */
+            nextRunAt?: string | null;
+            params: {
+                [key: string]: string;
+            };
+            /** @enum {string} */
+            period: "previous_day" | "previous_week" | "previous_month" | "month_to_date" | "year_to_date";
+            /** Format: uuid */
+            propertyId: string;
+            recipientRoles: string[];
+            recipientUserIds: string[];
+            reportCode: string;
+            reportName: string;
+            /** @description HH:MM in the club time zone */
+            sendTime: string;
+            /** @enum {string} */
+            status: "active" | "paused";
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Weekly: 0 = Sunday … 6 = Saturday */
+            weekday?: number | null;
+        };
+        ScheduledReportRequest: {
+            /** @description email, whatsapp, in_app (default email + in_app) */
+            channels?: string[];
+            /** @enum {string} */
+            format: "csv" | "xlsx" | "pdf";
+            /** @enum {string} */
+            frequency: "daily" | "weekly" | "monthly";
+            monthDay?: number | null;
+            name: string;
+            /** @description Report parameters besides the period (from / to are set by the period) */
+            params?: {
+                [key: string]: string;
+            };
+            /** @enum {string} */
+            period: "previous_day" | "previous_week" | "previous_month" | "month_to_date" | "year_to_date";
+            /** @description Role codes, e.g. general_manager */
+            recipientRoles?: string[];
+            recipientUserIds?: string[];
+            reportCode: string;
+            /** @description HH:MM (default 07:00) */
+            sendTime?: string;
+            weekday?: number | null;
+        };
+        ScheduledReportRun: {
+            /** Format: date-time */
+            createdAt: string;
+            delivered: number;
+            error?: string | null;
+            /** Format: uuid */
+            id: string;
+            periodFrom: string;
+            periodTo: string;
+            recipients: number;
+            rowCount?: number | null;
+            /** Format: uuid */
+            scheduleId: string;
+            skipped: number;
+            /** @enum {string} */
+            status: "completed" | "partial" | "failed" | "skipped";
+            /** @enum {string} */
+            trigger: "schedule" | "manual";
+        };
+        ScheduledReportUpdate: {
+            channels?: string[] | null;
+            /** @enum {string|null} */
+            format?: "csv" | "xlsx" | "pdf" | null;
+            /** @enum {string|null} */
+            frequency?: "daily" | "weekly" | "monthly" | null;
+            monthDay?: number | null;
+            name?: string | null;
+            params?: {
+                [key: string]: string;
+            } | null;
+            /** @enum {string|null} */
+            period?: "previous_day" | "previous_week" | "previous_month" | "month_to_date" | "year_to_date" | null;
+            recipientRoles?: string[] | null;
+            recipientUserIds?: string[] | null;
+            sendTime?: string | null;
+            weekday?: number | null;
         };
         ScoreAudit: {
             after: Record<string, never>;
@@ -153096,6 +153965,110 @@ export interface operations {
             };
         };
     };
+    getReportingAnalyticsStatus: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsStatus"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postReportingAnalyticsRefresh: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AnalyticsRefreshRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalyticsRefreshRun"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getReportingDashboardsExecutiveOverview: {
         parameters: {
             query?: never;
@@ -153248,6 +154221,340 @@ export interface operations {
             };
         };
     };
+    getReportingDatasets: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Dataset"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingDatasetsByCodeQuery: {
+        parameters: {
+            query: {
+                /** @description Comma-separated */
+                dimensions?: string;
+                /** @description Comma-separated */
+                metrics: string;
+                period?: "month_to_date" | "previous_month" | "year_to_date" | "last_30_days";
+                from?: string;
+                to?: string;
+                /** @description Dimension = value */
+                "filter[...]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatasetResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingDrilldown: {
+        parameters: {
+            query: {
+                kpi: string;
+                from?: string;
+                to?: string;
+                by?: "day" | "weekday" | "daypart" | "business_line" | "revenue_component" | "outlet" | "segment" | "lines";
+                /** @description day, weekday (1 = Monday), daypart, business_line, revenue_component, outlet, segment */
+                "filter[...]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecutiveDrilldown"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingExecutive: {
+        parameters: {
+            query?: {
+                period?: "month" | "year";
+                /** @description YYYY-MM (default: this month) */
+                month?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecutiveOverview"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingExecutiveProperties: {
+        parameters: {
+            query?: {
+                /** @description YYYY-MM */
+                month?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecutivePropertyComparison"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingExecutiveTrend: {
+        parameters: {
+            query: {
+                kpi: string;
+                months?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExecutiveTrend"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getReportingExports: {
         parameters: {
             query?: {
@@ -153357,6 +154664,489 @@ export interface operations {
             };
         };
     };
+    getReportingHrPerformance: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HRPerformanceDashboard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingKpiDefinitions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["KPIDefinition"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingKpiTargets: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                year?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["KPITargetPlan"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postReportingKpiTargets: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KPITargetPlanRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPITargetPlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingKpiTargetsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPITargetPlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteReportingKpiTargetsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchReportingKpiTargetsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["KPITargetPlanUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPITargetPlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postReportingKpiTargetsByIdRevise: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPITargetPlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postReportingKpiTargetsByIdSubmit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["KPITargetPlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getReportingReports: {
         parameters: {
             query?: {
@@ -153433,6 +155223,762 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Result"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingSavedReports: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SavedReport"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postReportingSavedReports: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteReportingSavedReportsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchReportingSavedReportsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SavedReportUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SavedReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingSavedReportsByIdRun: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatasetResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingScheduledReports: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ScheduledReport"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postReportingScheduledReports: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScheduledReportRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingScheduledReportsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteReportingScheduledReportsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchReportingScheduledReportsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScheduledReportUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingScheduledReportsByIdRuns: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ScheduledReportRun"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postReportingScheduledReportsByIdPause: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postReportingScheduledReportsByIdResume: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postReportingScheduledReportsByIdRun: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledReportRun"];
                 };
             };
             /** @description Not authenticated */
