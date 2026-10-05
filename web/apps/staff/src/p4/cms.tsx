@@ -23,7 +23,7 @@ const TEMPLATES = opts(['home', 'standard', 'landing', 'golf', 'course_guide', '
   'membership', 'packages', 'promotions', 'hall_of_fame', 'news', 'gallery', 'contact', 'location']);
 const PLACEMENTS = opts(['home_hero', 'home_highlight', 'page_header', 'page_inline', 'sidebar', 'popup', 'announcement_bar', 'footer']);
 const ROUTE_KEYS = opts(['home', 'golf', 'course_guide', 'hole_by_hole', 'handicap', 'facilities', 'reciprocal_clubs', 'sport_club', 'bungalow', 'vip_suite',
-  'meeting_mice', 'wedding_banquet', 'events', 'membership', 'packages', 'promotions', 'hall_of_fame', 'news', 'gallery', 'contact', 'location', 'book_golf',
+  'meeting_mice', 'wedding_banquet', 'events', 'tournaments', 'membership', 'packages', 'promotions', 'hall_of_fame', 'news', 'gallery', 'contact', 'location', 'book_golf',
   'book_sport_club', 'book_bungalow', 'book_meeting_room', 'book_event', 'member_portal']);
 const BLOCK_TYPES = opts(['rich_text', 'image', 'gallery', 'video', 'cta', 'faq', 'contact_form', 'map', 'data', 'banner_slot'],
   { rich_text: 'Text', cta: 'Call to action', faq: 'FAQ', data: 'Structured data (rates, packages …)' });
