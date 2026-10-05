@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { qs, request, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
+import { download, qs, request, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import { enqueue } from '@oneclub/offline';
 import {
@@ -680,6 +680,54 @@ export function GoodsReceiptsPage() {
   );
 }
 
+type DNFile = { id: string; filename: string };
+
+/** Delivery note (surat jalan) photos / documents of a goods receipt
+ * (FR-GR-01): each file is uploaded at once and its id is sent with the
+ * receipt (attachmentFileIds), so a receipt queued offline keeps the files
+ * uploaded before the connection dropped. On the warehouse device the
+ * camera opens directly. */
+function DeliveryNoteFiles({ files, onChange, camera }: { files: DNFile[]; onChange: (f: DNFile[]) => void; camera?: boolean }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<unknown>(null);
+  const online = typeof navigator === 'undefined' || navigator.onLine;
+  const upload = async (f: File) => {
+    setBusy(true);
+    setErr(null);
+    const fd = new FormData();
+    fd.append('file', f);
+    try {
+      const r = await request<R>('POST', '/api/v1/procurement/delivery-note-files', fd);
+      onChange([...files, { id: String(r.id), filename: String(r.filename ?? f.name) }]);
+    } catch (e) {
+      setErr(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="oc-stack" style={{ gap: 8 }}>
+      <ErrorAlert error={err} />
+      <div className="oc-row-wrap" style={{ alignItems: 'center' }} aria-label="Delivery note files">
+        <label className={`oc-btn oc-btn-neutral${camera ? '' : ' oc-btn-sm'}`} style={{ cursor: online && !busy ? 'pointer' : 'not-allowed' }} aria-disabled={!online || busy}>
+          <Icon name={camera ? 'photo_camera' : 'attach_file'} size={18} /> {busy ? 'Uploading…' : camera ? 'Photo of delivery note' : 'Attach delivery note'}
+          <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" capture={camera ? 'environment' : undefined} className="oc-sr"
+            disabled={!online || busy} onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void upload(f); }} />
+        </label>
+        {files.map((f) => (
+          <span key={f.id} className="oc-chip">
+            <Icon name="description" size={16} /> {f.filename}
+            <button type="button" className="oc-btn oc-btn-text oc-btn-sm" aria-label={`Remove ${f.filename}`} onClick={() => onChange(files.filter((x) => x.id !== f.id))}>
+              <Icon name="close" size={16} />
+            </button>
+          </span>
+        ))}
+      </div>
+      {!online && <span className="oc-small oc-muted" role="status">Uploading a delivery note needs a connection; the receipt can still be saved offline.</span>}
+    </div>
+  );
+}
+
 type RLine = { accepted: string; rejected: string; reason: string; batch: string; expiry: string; serials: string };
 const emptyRLine = (): RLine => ({ accepted: '', rejected: '', reason: '', batch: '', expiry: '', serials: '' });
 
@@ -694,6 +742,7 @@ function ReceiveGoods({ onDone, ops }: { onDone: () => void; ops?: boolean }) {
   const [orderId, setOrderId] = useState('');
   const [noPO, setNoPO] = useState(false);
   const [dn, setDn] = useState('');
+  const [dnFiles, setDnFiles] = useState<DNFile[]>([]);
   const [reason, setReason] = useState('');
   const [lines, setLines] = useState<Record<string, RLine>>({});
   const [busy, setBusy] = useState(false);
@@ -718,6 +767,7 @@ function ReceiveGoods({ onDone, ops }: { onDone: () => void; ops?: boolean }) {
   };
   const body = () => ({
     purchaseOrderId: orderId, ...optional('deliveryNoteNo', dn), ...optional('reason', reason),
+    ...(dnFiles.length ? { attachmentFileIds: dnFiles.map((f) => f.id) } : {}),
     lines: olines.filter((l) => lines[l.id]?.accepted || lines[l.id]?.rejected).map((l) => {
       const x = lines[l.id];
       return { purchaseOrderLineId: l.id, acceptedQuantity: x.accepted || '0', ...optional('rejectedQuantity', x.rejected), ...optional('rejectionReason', x.reason),
@@ -737,6 +787,7 @@ function ReceiveGoods({ onDone, ops }: { onDone: () => void; ops?: boolean }) {
         toast(`Goods Receipt ${String(g.number)}: ${label(g.status)}`);
       }
       setLines({});
+      setDnFiles([]);
       setOrderId('');
       onDone();
     } catch (e) {
@@ -764,6 +815,7 @@ function ReceiveGoods({ onDone, ops }: { onDone: () => void; ops?: boolean }) {
         </div>
         <ScanField label="Scan items (+1 per scan)" onCode={(c) => void scan(c)} />
         <TextField label="Delivery note no. (surat jalan)" value={dn} onChange={setDn} />
+        <DeliveryNoteFiles files={dnFiles} onChange={setDnFiles} camera={ops} />
         {olines.map((l) => {
           const x = lines[l.id] ?? emptyRLine();
           return (
@@ -792,6 +844,7 @@ function ReceiptWithoutPO({ onDone, onBack }: { onDone: () => void; onBack: () =
   const items = useItems();
   const [f, setF] = useState({ supplierId: '', warehouseId: '', reason: '', deliveryNoteNo: '' });
   const [ls, setLs] = useState([{ itemId: '', acceptedQuantity: '', unitCost: '', batchNo: '', expiryDate: '' }]);
+  const [dnFiles, setDnFiles] = useState<DNFile[]>([]);
   const send = useSend<Record<string, unknown>, R>('POST', '/api/v1/procurement/goods-receipts', PRC, idem);
   const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v });
   return (
@@ -804,6 +857,7 @@ function ReceiptWithoutPO({ onDone, onBack }: { onDone: () => void; onBack: () =
         <TextField label="Delivery note" value={f.deliveryNoteNo} onChange={set('deliveryNoteNo')} />
         <TextField label="Reason" value={f.reason} onChange={set('reason')} required />
       </div>
+      <DeliveryNoteFiles files={dnFiles} onChange={setDnFiles} />
       {ls.map((l, i) => (
         <div key={i} className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
           <SelectField label={`Item ${i + 1}`} value={l.itemId} onChange={(v) => setLs(ls.map((x, j) => (j === i ? { ...x, itemId: v } : x)))} options={items} placeholder="Select" />
@@ -817,6 +871,7 @@ function ReceiptWithoutPO({ onDone, onBack }: { onDone: () => void; onBack: () =
         <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setLs([...ls, { itemId: '', acceptedQuantity: '', unitCost: '', batchNo: '', expiryDate: '' }])}>Add line</button>
         <button className="oc-btn oc-btn-text" onClick={onBack}>Back</button>
         <button className="oc-btn oc-btn-primary" disabled={send.isPending} onClick={() => send.mutate({ ...Object.fromEntries(Object.entries(f).filter(([, v]) => v)),
+          ...(dnFiles.length ? { attachmentFileIds: dnFiles.map((x) => x.id) } : {}),
           lines: ls.filter((l) => l.itemId && l.acceptedQuantity).map((l) => Object.fromEntries(Object.entries(l).filter(([, v]) => v))) }, { onSuccess: onDone })}>Submit receipt</button>
       </div>
     </div>
@@ -833,6 +888,16 @@ function ReceiptDrawer({ id, onClose }: { id: string; onClose: () => void }) {
       {!d ? <Skeleton /> : <>
         <KV items={[['Status', label(d.status)], ['Date', date(d.receivedDate)], ['PO', val(d.poNumber)], ['Supplier', String(d.supplierName)],
           ['Delivery note', val(d.deliveryNoteNo)], ['Approval', val(label(d.approvalReason))], ['Value', money(d.total)], ['Notes', val(d.notes)]]} />
+        {((d.attachmentFileIds as string[] | null) ?? []).length > 0 && (
+          <div className="oc-row-wrap" aria-label="Delivery note files">
+            {((d.attachmentFileIds as string[] | null) ?? []).map((fid, i) => (
+              <button key={fid} className="oc-btn oc-btn-neutral oc-btn-sm"
+                onClick={() => void download('GET', `/api/v1/procurement/goods-receipts/${id}/attachments/${fid}`, undefined, `delivery-note-${String(d.number)}-${i + 1}`)}>
+                <Icon name="description" size={16} /> Delivery note {i + 1}
+              </button>
+            ))}
+          </div>
+        )}
         <DataTable rows={rows(d.lines)} columns={[{ key: 'description', header: 'Item' }, { key: 'deliveredQuantity', header: 'Delivered', align: 'right' },
           { key: 'acceptedQuantity', header: 'Accepted', align: 'right' }, { key: 'rejectedQuantity', header: 'Rejected', align: 'right' },
           { key: 'rejectionReason', header: 'Reason', render: (l) => val(l.rejectionReason) }, { key: 'batchNo', header: 'Batch', render: (l) => val(l.batchNo) },
@@ -930,14 +995,20 @@ function InvoiceModal({ onClose, onDone }: { onClose: () => void; onDone: (id: s
   const sups = useSuppliers();
   const [f, setF] = useState({ purchaseOrderId: '', supplierId: '', supplierInvoiceNo: '', taxInvoiceNo: '', invoiceDate: today(), dueDate: '' });
   const [lines, setLines] = useState<Line[]>([]);
+  const [landed, setLanded] = useState<LandedLine[]>([]);
   const send = useSend<Record<string, unknown>, R>('POST', '/api/v1/procurement/vendor-invoices', PRC, idem);
   const set = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v });
+  const allLines = [
+    ...lines.filter((l) => l.quantity && l.price).map((l) => ({ quantity: l.quantity, unitPrice: l.price, ...optional('itemId', l.itemId),
+      ...optional('description', l.description), ...optional('taxPercent', l.tax) })),
+    ...landed.filter((l) => l.amount && l.description).map((l) => ({ quantity: '1', unitPrice: l.amount, description: l.description, landedCost: l.basis,
+      ...optional('landedGoodsReceiptId', l.goodsReceiptId), ...optional('taxPercent', l.tax) })),
+  ];
   return (
     <Modal open onClose={onClose} title="Record Vendor Invoice" wide actions={<>
       <button className="oc-btn oc-btn-neutral" onClick={onClose}>Cancel</button>
       <button className="oc-btn oc-btn-primary" disabled={!f.supplierInvoiceNo || send.isPending} onClick={() => send.mutate({ ...Object.fromEntries(Object.entries(f).filter(([, v]) => v)),
-        ...(lines.length ? { lines: lines.filter((l) => l.quantity && l.price).map((l) => ({ quantity: l.quantity, unitPrice: l.price, ...optional('itemId', l.itemId),
-          ...optional('description', l.description), ...optional('taxPercent', l.tax) })) } : {}), match: true }, { onSuccess: (r) => onDone(r.id) })}>Record & match</button>
+        ...(allLines.length ? { lines: allLines } : {}), match: true }, { onSuccess: (r) => onDone(r.id) })}>Record & match</button>
     </>}>
       <ErrorAlert error={send.error} />
       <div className="oc-row-wrap">
@@ -950,7 +1021,35 @@ function InvoiceModal({ onClose, onDone }: { onClose: () => void; onDone: (id: s
       </div>
       <p className="oc-small oc-muted">Without lines, the received and not yet invoiced quantities of the order are billed at the order price; add lines for other amounts.</p>
       <LinesEditor lines={lines} onChange={setLines} priceLabel="Invoiced price" tax />
+      <LandedCostEditor lines={landed} onChange={setLanded} />
     </Modal>
+  );
+}
+
+type LandedLine = { description: string; amount: string; basis: string; goodsReceiptId: string; tax: string };
+
+/** Landed cost lines (FR-VAL-03): freight, duty or insurance allocated to the
+ * received stock of a goods receipt by value or quantity; the stock still on
+ * hand is revalued, the part already used goes to cost of sales. */
+function LandedCostEditor({ lines, onChange }: { lines: LandedLine[]; onChange: (l: LandedLine[]) => void }) {
+  const grs = useOptions('/api/v1/procurement/goods-receipts?limit=300&filter[status]=posted', (x) => `${String(x.number)} · ${String(x.supplierName ?? '')}`);
+  const set = (i: number, k: keyof LandedLine, v: string) => onChange(lines.map((l, j) => (j === i ? { ...l, [k]: v } : l)));
+  return (
+    <Card title="Landed cost" icon="local_shipping">
+      <p className="oc-small oc-muted">Freight, duty or insurance added to the cost of the received goods. Without a goods receipt, the receipts of the invoice lines above are used.
+        With lines, the order is not billed automatically.</p>
+      {lines.map((l, i) => (
+        <div key={i} className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+          <TextField label={`Landed cost ${i + 1}`} value={l.description} onChange={(v) => set(i, 'description', v)} placeholder="Freight, import duty" required />
+          <TextField label="Amount" type="number" value={l.amount} onChange={(v) => set(i, 'amount', v)} required />
+          <SelectField label="Allocate by" value={l.basis} onChange={(v) => set(i, 'basis', v)} options={[{ value: 'value', label: 'Value' }, { value: 'quantity', label: 'Quantity' }]} />
+          <SelectField label="Goods receipt" value={l.goodsReceiptId} onChange={(v) => set(i, 'goodsReceiptId', v)} options={grs} placeholder="Receipts of the invoice" />
+          <TextField label="PPN %" type="number" value={l.tax} onChange={(v) => set(i, 'tax', v)} placeholder="0" />
+          <button className="oc-btn oc-btn-text" aria-label={`Remove landed cost ${i + 1}`} onClick={() => onChange(lines.filter((_, j) => j !== i))}><Icon name="delete" size={18} /></button>
+        </div>
+      ))}
+      <div><button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => onChange([...lines, { description: '', amount: '', basis: 'value', goodsReceiptId: '', tax: '' }])}>Add landed cost</button></div>
+    </Card>
   );
 }
 
@@ -975,7 +1074,7 @@ function InvoiceDrawer({ id, onClose }: { id: string; onClose: () => void }) {
           { key: 'expectedQuantity', header: 'Received, not invoiced', align: 'right', render: (l) => val(l.expectedQuantity) },
           { key: 'unitPrice', header: 'Price', align: 'right', render: (l) => money(l.unitPrice) }, { key: 'expectedUnitPrice', header: 'Ordered price', align: 'right', render: (l) => money(l.expectedUnitPrice) },
           { key: 'lineTotal', header: 'Total', align: 'right', render: (l) => money(l.lineTotal) }, { key: 'matchStatus', header: 'Match', render: pill('matchStatus') },
-          { key: 'matchNote', header: 'Note', render: (l) => val(l.matchNote) }]} />
+          { key: 'matchNote', header: 'Note', render: (l) => (l.landedCost ? `Landed cost (${label(l.landedCost)}) · ${val(l.matchNote)}` : val(l.matchNote)) }]} />
         <div className="oc-row-wrap">
           {['draft', 'mismatch', 'on_hold', 'matched'].includes(st) && can('procurement.vendor_invoice.match') && <ActionButton label="Perform 3-Way Matching" kind="primary" path={`${base}:match`} body={{}} invalidate={PRC} />}
           {['draft', 'matched', 'mismatch'].includes(st) && can('procurement.vendor_invoice.hold') && <ActionButton label="Put on hold" path={`${base}:hold`} invalidate={PRC} reason="required" />}
@@ -1126,7 +1225,7 @@ function GoodsReceiptOps() {
   const [n, setN] = useState(0);
   return (
     <div className="oc-stack">
-      <div className="oc-page-head"><div><h1>Goods Receipt</h1><p>Pick the purchase order, scan the items (or type the quantities), add batch / expiry and save. Offline receipts sync once.</p></div></div>
+      <div className="oc-page-head"><div><h1>Goods Receipt</h1><p>Pick the purchase order, scan the items (or type the quantities), add batch / expiry, take a photo of the delivery note and save. Offline receipts sync once.</p></div></div>
       <ReceiveGoods key={n} ops onDone={() => setN((x) => x + 1)} />
     </div>
   );

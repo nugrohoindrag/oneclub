@@ -411,8 +411,8 @@ func TestP3CommercialPromotions(t *testing.T) {
 		"noPromotions": true}); !dec(lp["unitPrice"]).Equal(decimal.NewFromInt(300000)) {
 		t.Fatalf("peak rate: %v", lp)
 	}
-	pcPolicy(t, sa, "Pricing Policies", "commercial.pricing", map[string]any{"peakPeriods": []any{}, "peakHours": []any{}, "holidaysArePeak": false,
-		"manualDiscountLimits": map[string]any{}})
+	// back to the default tiers of PRD P3 §16 #5 (manualDiscountLimits omitted)
+	pcPolicy(t, sa, "Pricing Policies", "commercial.pricing", map[string]any{"peakPeriods": []any{}, "peakHours": []any{}, "holidaysArePeak": false})
 
 	// ── website & member app (FR-WEB-P3-01/07, FR-APP-P3-02) ────────────
 	pub := anon(t, inst)

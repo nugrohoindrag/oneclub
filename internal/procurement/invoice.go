@@ -94,6 +94,9 @@ type VendorInvoiceLine struct {
 	ExpectedQuantity    *string    `json:"expectedQuantity" db:"expected_quantity"`
 	ExpectedUnitPrice   *string    `json:"expectedUnitPrice" db:"expected_unit_price"`
 	MatchNote           *string    `json:"matchNote" db:"match_note"`
+	// PRD P4 FR-VAL-03 (additive): landed cost line and its receipt.
+	LandedCost           *string    `json:"landedCost" db:"landed_cost_basis" enum:"value,quantity"`
+	LandedGoodsReceiptID *uuid.UUID `json:"landedGoodsReceiptId" db:"landed_goods_receipt_id"`
 }
 
 // VendorInvoiceLineInput is one invoiced line.
@@ -106,6 +109,9 @@ type VendorInvoiceLineInput struct {
 	UnitPrice           string     `json:"unitPrice"`
 	TaxPercent          string     `json:"taxPercent,omitempty" doc:"Default: the PO line's"`
 	AccountHint         string     `json:"accountHint,omitempty" enum:"inventory,expense,asset"`
+	// PRD P4 FR-VAL-03 (additive): freight / duty / insurance allocated to the received stock.
+	LandedCost           string     `json:"landedCost,omitempty" enum:"value,quantity" doc:"Landed cost line allocated to the received goods by value or base quantity (no order line, receipt line or item)"`
+	LandedGoodsReceiptID *uuid.UUID `json:"landedGoodsReceiptId,omitempty" doc:"Goods receipt of the landed cost (default: the receipts of the invoice's other lines)"`
 }
 
 // VendorInvoiceInput records (or corrects) a vendor invoice.
@@ -164,7 +170,7 @@ const invoiceLineSelect = `SELECT l.id, l.line_no, l.purchase_order_line_id, l.g
 	trim_scale(l.quantity)::text AS quantity, trim_scale(l.unit_price)::text AS unit_price, trim_scale(l.tax_percent)::text AS tax_percent,
 	trim_scale(l.line_subtotal)::text AS line_subtotal, trim_scale(l.tax_amount)::text AS tax_amount, trim_scale(l.line_total)::text AS line_total,
 	l.account_hint, l.match_status, trim_scale(l.expected_quantity)::text AS expected_quantity, trim_scale(l.expected_unit_price)::text AS expected_unit_price,
-	l.match_note FROM procurement.vendor_invoice_lines l LEFT JOIN inventory.items i ON i.id = l.item_id`
+	l.match_note, l.landed_cost_basis, l.landed_goods_receipt_id FROM procurement.vendor_invoice_lines l LEFT JOIN inventory.items i ON i.id = l.item_id`
 
 // GetInvoice loads a vendor invoice with lines.
 func GetInvoice(ctx context.Context, q dbtx.Querier, iid uuid.UUID) (VendorInvoice, error) {
@@ -261,6 +267,12 @@ func (m *Module) writeInvoiceLines(ctx context.Context, tx pgx.Tx, property, iid
 		}
 		desc, item, hint, defTax := strings.TrimSpace(l.Description), l.ItemID, l.AccountHint, decimal.Zero
 		poLine := l.PurchaseOrderLineID
+		if l.LandedCost != "" { // FR-VAL-03: valued into the stock (clears GRNI with the revaluation)
+			if err := checkLandedLine(ctx, tx, property, f, l); err != nil {
+				return sub, tax, err
+			}
+			hint = "inventory"
+		}
 		if l.GoodsReceiptLineID != nil {
 			var gpl *uuid.UUID
 			if err := tx.QueryRow(ctx, `SELECT l.purchase_order_line_id FROM procurement.goods_receipt_lines l JOIN procurement.goods_receipts g
@@ -309,9 +321,11 @@ func (m *Module) writeInvoiceLines(ctx context.Context, tx pgx.Tx, property, iid
 		ls, lt, total, _ := lineAmounts(qty, price, decimal.Zero, tp, cur)
 		sub, tax = sub.Add(ls), tax.Add(lt)
 		if _, err := tx.Exec(ctx, `INSERT INTO procurement.vendor_invoice_lines (id, property_id, vendor_invoice_id, line_no, purchase_order_line_id,
-			goods_receipt_line_id, item_id, description, quantity, unit_price, tax_percent, line_subtotal, tax_amount, line_total, account_hint)
-			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::numeric,$10::numeric,$11::numeric,$12::numeric,$13::numeric,$14::numeric,$15)`, id.New(), property, iid, i+1,
-			poLine, l.GoodsReceiptLineID, item, desc, qty.String(), price.String(), tp.String(), ls.String(), lt.String(), total.String(), hint); err != nil {
+			goods_receipt_line_id, item_id, description, quantity, unit_price, tax_percent, line_subtotal, tax_amount, line_total, account_hint,
+			landed_cost_basis, landed_goods_receipt_id)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::numeric,$10::numeric,$11::numeric,$12::numeric,$13::numeric,$14::numeric,$15,$16,$17)`, id.New(), property, iid, i+1,
+			poLine, l.GoodsReceiptLineID, item, desc, qty.String(), price.String(), tp.String(), ls.String(), lt.String(), total.String(), hint,
+			nz(l.LandedCost), l.LandedGoodsReceiptID); err != nil {
 			return sub, tax, err
 		}
 	}
@@ -564,6 +578,19 @@ func (m *Module) match(ctx context.Context, tx pgx.Tx, v VendorInvoice, pol Proc
 	for _, l := range v.Lines {
 		lm := lineMatch{LineID: l.ID, LineNo: l.LineNo, Quantity: l.Quantity, UnitPrice: l.UnitPrice, Status: "matched", Variance: "0"}
 		qty, price := dec(l.Quantity), dec(l.UnitPrice)
+		if l.LandedCost != nil { // FR-VAL-03
+			st, note, err := matchLanded(ctx, tx, v, l)
+			if err != nil {
+				return nil, "", variance, err
+			}
+			lm.Status, lm.Note = st, note
+			if st != "matched" {
+				variance = variance.Add(dec(l.LineSubtotal))
+				lm.Variance = l.LineSubtotal
+			}
+			out = append(out, lm)
+			continue
+		}
 		if l.PurchaseOrderLineID == nil {
 			lm.Status, lm.Note = "not_on_order", "the line is not on a purchase order"
 			variance = variance.Add(dec(l.LineSubtotal))
@@ -1003,6 +1030,22 @@ func (m *Module) publishPriceVariance(ctx context.Context, tx pgx.Tx, property u
 	rows.Close()
 	if err := rows.Err(); err != nil {
 		return err
+	}
+	// FR-VAL-03: landed cost per base unit on top of the invoiced (else received) cost
+	landed, landedOrder, err := landedShares(ctx, tx, v)
+	if err != nil {
+		return err
+	}
+	for i, x := range list {
+		if s, ok := landed[landedKey{x.gr, x.item}]; ok && !s.perUnit.IsZero() {
+			list[i].invoiced = dec(x.invoiced).Add(s.perUnit).String()
+			s.perUnit = decimal.Zero // applied
+		}
+	}
+	for _, k := range landedOrder {
+		if s := landed[k]; !s.perUnit.IsZero() {
+			list = append(list, pv{gr: k.gr, wh: s.wh, item: k.item, invoiced: s.received.Add(s.perUnit).String(), received: s.received.String()})
+		}
 	}
 	byGR := map[uuid.UUID][]map[string]any{}
 	whOf := map[uuid.UUID]uuid.UUID{}

@@ -49,9 +49,11 @@ type POSPolicy struct {
 	OfflineMemberCharge   bool   `json:"offlineMemberCharge"`
 	ScheduledLeadMinutes  int    `json:"scheduledLeadMinutes"`
 	DefaultKitchenStation string `json:"defaultKitchenStation"`
+	MarkSoldOut           bool   `json:"markSoldOut" doc:"Mark stock-tracked retail items without available stock at the outlet as Sold Out on the menu (K9 stock availability, PRD P4 FR-CNS-07)"`
 }
 
-var defaultPOSPolicy = POSPolicy{MaxDiscountPercent: "10", OfflineMemberCharge: true, ScheduledLeadMinutes: 30, DefaultKitchenStation: "kitchen"}
+var defaultPOSPolicy = POSPolicy{MaxDiscountPercent: "10", OfflineMemberCharge: true, ScheduledLeadMinutes: 30, DefaultKitchenStation: "kitchen",
+	MarkSoldOut: true}
 
 // ── views ─────────────────────────────────────────────────────────────────
 
@@ -445,8 +447,10 @@ type DiscountInput struct {
 	Reason  string `json:"reason"`
 }
 
-// Discount applies a manual discount; above the POS Policies limit the
-// permission commercial.pos.discount_override (supervisor) is required.
+// Discount applies a manual discount; above the limit of the user's roles
+// (Pricing Policies, default tiers of PRD P3 §16 #5; roles without a tier:
+// POS Policies) the permission commercial.pos.discount_override
+// (supervisor) is required.
 func (m *Module) Discount(ctx context.Context, tx pgx.Tx, oid, lineID uuid.UUID, in DiscountInput) (Order, error) {
 	o, err := m.lockOrder(ctx, tx, oid)
 	if err != nil {
@@ -494,7 +498,7 @@ func (m *Module) Discount(ctx context.Context, tx pgx.Tx, oid, lineID uuid.UUID,
 	}
 	if gross.IsPositive() && disc.Mul(decimal.NewFromInt(100)).Div(gross).GreaterThan(limit) {
 		if err := authz.RequireAt(ctx, "commercial.pos.discount_override", o.PropertyID); err != nil {
-			return o, errs.Forbidden("discounts above " + limit.String() + "% need a supervisor (POS Policies)")
+			return o, errs.Forbidden("discounts above " + limit.String() + "% need a supervisor (Pricing Policies discount limit of your role)")
 		}
 	}
 	ou, err := loadOutlet(ctx, tx, o.OutletID)
@@ -536,6 +540,10 @@ func (m *Module) VoidLine(ctx context.Context, tx pgx.Tx, oid, lineID uuid.UUID,
 	if o.Status != "open" {
 		return o, errs.Conflict("order_closed", "paid orders are refunded, not voided")
 	}
+	prepared, err := preparedLines(ctx, tx, oid)
+	if err != nil {
+		return o, err
+	}
 	tag, err := tx.Exec(ctx, `UPDATE commercial.order_lines SET status = 'voided', void_reason = $3 WHERE id = $1 AND order_id = $2 AND status = 'active'
 		AND charged_folio_id IS NULL`, lineID, oid, reason)
 	if err != nil {
@@ -560,6 +568,15 @@ func (m *Module) VoidLine(ctx context.Context, tx pgx.Tx, oid, lineID uuid.UUID,
 	if err := publishRT(ctx, tx, "kds", o.PropertyID, "order_changed", oid.String(), nil); err != nil {
 		return after, err
 	}
+	var voided []OrderLine
+	for _, l := range o.Lines {
+		if l.ID == lineID {
+			voided = append(voided, l)
+		}
+	}
+	if err := m.publishSaleEvent(ctx, tx, EventSaleVoided, o, voided, prepared, map[string]any{"scope": "line", "reason": reason}); err != nil {
+		return after, err
+	}
 	return after, audit.Record(ctx, tx, audit.Entry{Module: "commercial", Action: audit.ActionVoid, EntityType: "commercial.order_line",
 		EntityID: lineID.String(), EntityLabel: o.OrderNo, PropertyID: &o.PropertyID, Reason: reason})
 }
@@ -578,6 +595,10 @@ func (m *Module) VoidOrder(ctx context.Context, tx pgx.Tx, oid uuid.UUID, reason
 			return o, errs.Conflict("partly_paid", "the order is partly paid; refund it instead")
 		}
 	}
+	prepared, err := preparedLines(ctx, tx, oid)
+	if err != nil {
+		return o, err
+	}
 	if _, err := tx.Exec(ctx, `UPDATE commercial.order_lines SET status = 'voided', void_reason = $2 WHERE order_id = $1 AND status = 'active'`, oid, reason); err != nil {
 		return o, err
 	}
@@ -595,6 +616,15 @@ func (m *Module) VoidOrder(ctx context.Context, tx pgx.Tx, oid uuid.UUID, reason
 		return after, err
 	}
 	if err := publishRT(ctx, tx, "kds", o.PropertyID, "order_changed", oid.String(), nil); err != nil {
+		return after, err
+	}
+	var voided []OrderLine
+	for _, l := range o.Lines {
+		if l.Status == "active" {
+			voided = append(voided, l)
+		}
+	}
+	if err := m.publishSaleEvent(ctx, tx, EventSaleVoided, o, voided, prepared, map[string]any{"scope": "order", "reason": reason}); err != nil {
 		return after, err
 	}
 	return after, audit.Record(ctx, tx, audit.Entry{Module: "commercial", Action: audit.ActionVoid, EntityType: "commercial.order",
@@ -1172,6 +1202,63 @@ func (m *Module) complete(ctx context.Context, tx pgx.Tx, oid uuid.UUID, status 
 	return o, err
 }
 
+// Sale void / refund events (PRD P4 FR-CNS-02, docs/p3-p4-contracts.md):
+// commercial.sale_voided (an unpaid order or line voided: nothing was
+// consumed yet, stock is deducted on commercial.sale_completed only) and
+// commercial.sale_refunded (an approved refund of a completed sale:
+// inventory returns the consumption to stock per its configuration). Each
+// line says whether the kitchen had started it (prepared).
+const (
+	EventSaleVoided   = "commercial.sale_voided"
+	EventSaleRefunded = "commercial.sale_refunded"
+)
+
+// preparedLines are the order lines whose kitchen ticket was started
+// (preparing, ready, out for delivery or served).
+func preparedLines(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (map[uuid.UUID]bool, error) {
+	rows, err := q.Query(ctx, `SELECT DISTINCT unnest(line_ids) FROM commercial.kitchen_tickets WHERE order_id = $1
+		AND status IN ('preparing', 'ready', 'out_for_delivery', 'served')`, oid)
+	if err != nil {
+		return nil, err
+	}
+	ids, err := pgx.CollectRows(rows, pgx.RowTo[uuid.UUID])
+	out := map[uuid.UUID]bool{}
+	for _, x := range ids {
+		out[x] = true
+	}
+	return out, err
+}
+
+// saleEventLines are the contract lines of a void / refund event.
+func saleEventLines(lines []OrderLine, prepared map[uuid.UUID]bool) []map[string]any {
+	out := []map[string]any{}
+	for _, l := range lines {
+		mods := []string{}
+		for _, md := range l.Modifiers {
+			mods = append(mods, fmt.Sprint(md["modifierId"]))
+		}
+		out = append(out, map[string]any{"lineId": l.ID, "productId": l.ProductID, "variantId": l.VariantID, "quantity": l.Quantity,
+			"modifierIds": mods, "netAmount": l.NetAmount, "totalAmount": l.TotalAmount, "sent": l.SentAt != nil, "prepared": prepared[l.ID]})
+	}
+	return out
+}
+
+// publishSaleEvent publishes a void / refund event of an order.
+func (m *Module) publishSaleEvent(ctx context.Context, tx pgx.Tx, typ string, o Order, lines []OrderLine, prepared map[uuid.UUID]bool,
+	extra map[string]any) error {
+	if m.Events == nil || len(lines) == 0 {
+		return nil
+	}
+	oid, pid := o.ID, o.PropertyID
+	payload := map[string]any{"orderId": oid, "orderNo": o.OrderNo, "outletId": o.OutletID, "customerId": o.CustomerID, "source": o.Source,
+		"lines": saleEventLines(lines, prepared), "at": clock.Now()}
+	for k, v := range extra {
+		payload[k] = v
+	}
+	_, err := m.Events.Publish(ctx, tx, typ, "commercial.order", &oid, &pid, payload)
+	return err
+}
+
 // RefundInput requests a refund of a paid order (approval).
 type RefundInput struct {
 	Reason string `json:"reason"`
@@ -1263,6 +1350,20 @@ func (m *Module) RefundDecision(ctx context.Context, tx pgx.Tx, d approval.Decis
 	}
 	_, err = tx.Exec(ctx, `UPDATE commercial.order_requests SET status = 'applied' WHERE id = $1`, d.DocumentID)
 	if err != nil {
+		return err
+	}
+	prepared, err := preparedLines(ctx, tx, oid)
+	if err != nil {
+		return err
+	}
+	var refunded []OrderLine
+	for _, l := range o.Lines {
+		if l.Status == "active" {
+			refunded = append(refunded, l)
+		}
+	}
+	if err := m.publishSaleEvent(ctx, tx, EventSaleRefunded, o, refunded, prepared, map[string]any{"refundRequestId": d.DocumentID,
+		"reason": reason, "total": o.Total}); err != nil {
 		return err
 	}
 	pid := o.PropertyID

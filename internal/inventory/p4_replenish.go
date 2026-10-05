@@ -145,6 +145,11 @@ func (s *Stock) Replenish(ctx context.Context, tx pgx.Tx, property uuid.UUID) (R
 		}
 		if s.Events != nil {
 			whID := wh
+			// PRD P4 §11: inventory.stock_low (the notification below stays)
+			if _, err := s.Events.Publish(ctx, tx, EventStockLow, "inventory.warehouse", &whID, &property, map[string]any{"warehouseId": wh,
+				"warehouseCode": list[0].WarehouseCode, "items": items, "businessDate": res.BusinessDate}); err != nil {
+				return res, err
+			}
 			eid, err := s.Events.Publish(ctx, tx, EventReorderNeeded, "inventory.warehouse", &whID, &property, map[string]any{"warehouseId": wh, "items": items,
 				"businessDate": res.BusinessDate, "source": "reorder"})
 			if err != nil {
@@ -266,7 +271,8 @@ func (s *Stock) ExpiryAlerts(ctx context.Context, tx pgx.Tx, property uuid.UUID)
 // ── jobs ──────────────────────────────────────────────────────────────────
 
 // DailyArgs runs the daily inventory jobs: replenishment (automatic PR),
-// expiry alerts, maintenance reminders and the monthly depreciation.
+// expiry alerts, golf cart usage hours, maintenance reminders and the
+// monthly depreciation.
 type DailyArgs struct{}
 
 func (DailyArgs) Kind() string { return "inventory_daily" }
@@ -293,6 +299,8 @@ type DailyReport struct {
 	Expiring     int
 	Maintenance  int
 	Depreciation int
+	// GolfCartUsages are the P2 cart assignments added to asset usage hours.
+	GolfCartUsages int
 }
 
 // RunDaily runs the daily jobs for every property (exported for tests and ops).
@@ -327,6 +335,11 @@ func (s *Stock) RunDaily(ctx context.Context) (DailyReport, error) {
 			rep.Requisitions += len(r.Requisitions)
 			n, err := s.ExpiryAlerts(sys, tx, p)
 			rep.Expiring += n
+			if err != nil {
+				return err
+			}
+			g, err := s.GolfCartUsage(sys, tx, p)
+			rep.GolfCartUsages += g
 			if err != nil {
 				return err
 			}

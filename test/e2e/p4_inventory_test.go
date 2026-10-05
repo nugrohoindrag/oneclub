@@ -573,8 +573,8 @@ func TestP4InventoryOpname(t *testing.T) {
 	if bal["packQuantity"] != "5 CTN"+k.sfx {
 		t.Fatalf("pack quantity: %v", bal)
 	}
-	sa.Must(201, "POST", "/api/v1/platform/approval-workflows", map[string]any{"documentType": "stock_opname", "name": "Opname variance " + k.sfx,
-		"steps": []map[string]any{{"stepNo": 1, "name": "General Manager", "approverType": "role", "approverRoleId": roleID(t, sa, "general_manager")}}})
+	// PRD P4 §16 #8: the seeded Stock Opname workflow — above tolerance the Finance Manager approves.
+	fm := roleUser(t, inst, "finance_manager")
 
 	o := ws.Must(201, "POST", "/api/v1/inventory/stock-opnames", map[string]any{"warehouseId": wh, "freeze": true, "blind": true}, "Idempotency-Key", newKey()).JSON()
 	oid := str(o["id"])
@@ -613,7 +613,10 @@ func TestP4InventoryOpname(t *testing.T) {
 		t.Fatalf("variance above tolerance needs approval: %v", o)
 	}
 	invEq(t, "nothing posted before approval", invOnHand(t, sa, wh, beer), "120")
-	gm.Must(200, "POST", "/api/v1/platform/approvals/"+str(o["approvalRequestId"])+":approve", map[string]any{"reason": "Breakage confirmed"})
+	if r := gm.Do("POST", "/api/v1/platform/approvals/"+str(o["approvalRequestId"])+":approve", map[string]any{"reason": "Breakage confirmed"}); r.Status < 400 {
+		t.Fatalf("the General Manager is not the seeded opname approver: %s", r)
+	}
+	fm.Must(200, "POST", "/api/v1/platform/approvals/"+str(o["approvalRequestId"])+":approve", map[string]any{"reason": "Breakage confirmed"})
 	o = sa.Must(200, "GET", "/api/v1/inventory/stock-opnames/"+oid, nil).JSON()
 	if o["status"] != "posted" || o["movementId"] == nil {
 		t.Fatalf("posted opname: %v", o)

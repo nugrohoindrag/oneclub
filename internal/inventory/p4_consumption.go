@@ -344,6 +344,132 @@ func (s *Stock) OnSaleCompleted(ctx context.Context, tx pgx.Tx, e outbox.Event) 
 		BusinessDate: localDay(ctx, tx, p.At), Reason: "POS sale " + p.OrderNo})
 }
 
+// OnSaleRefunded returns the consumption of a refunded POS sale to stock
+// (commercial.sale_refunded, FR-CNS-02) per the Inventory Configuration:
+// with refundRestock, retail items sold 1:1 always come back; recipe / combo
+// lines come back unless the kitchen had started them (prepared), which
+// refundRestockPrepared allows too. The quantities are taken back from the
+// sale's consumption movements at their original cost and batch (never more
+// than was consumed); one movement per warehouse (source sale_refund), so a
+// repeated event posts nothing. Consignment items are not returned
+// automatically (posting exception: supplier stock and payable are settled
+// through a consignment movement).
+func (s *Stock) OnSaleRefunded(ctx context.Context, tx pgx.Tx, e outbox.Event) error {
+	var p struct {
+		OrderID  uuid.UUID  `json:"orderId"`
+		OrderNo  string     `json:"orderNo"`
+		OutletID *uuid.UUID `json:"outletId"`
+		Reason   string     `json:"reason"`
+		At       time.Time  `json:"at"`
+		Lines    []struct {
+			LineID      uuid.UUID `json:"lineId"`
+			ProductID   uuid.UUID `json:"productId"`
+			Quantity    string    `json:"quantity"`
+			ModifierIDs []string  `json:"modifierIds"`
+			Prepared    bool      `json:"prepared"`
+		} `json:"lines"`
+	}
+	if err := e.Decode(&p); err != nil || e.PropertyID == nil || p.OrderID == uuid.Nil {
+		return nil //nolint:nilerr // malformed or property-less events are not stock events
+	}
+	property := *e.PropertyID
+	ctx = eventCtx(ctx, property)
+	if p.At.IsZero() {
+		p.At = e.OccurredAt
+	}
+	cfg, err := LoadConfiguration(ctx, tx, property)
+	if err != nil || !cfg.RefundRestock {
+		return err
+	}
+	// item → base quantity to return
+	back := map[uuid.UUID]decimal.Decimal{}
+	for _, l := range p.Lines {
+		var mods []uuid.UUID
+		for _, m := range l.ModifierIDs {
+			if u, err := uuid.Parse(m); err == nil {
+				mods = append(mods, u)
+			}
+		}
+		var made bool // F&B: a recipe or combo, not a retail item sold 1:1
+		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM inventory.recipes WHERE product_id = $1 AND status = 'active' AND archived_at IS NULL)
+			OR NOT EXISTS (SELECT 1 FROM inventory.items WHERE property_id = $2 AND product_id = $1 AND archived_at IS NULL)`, l.ProductID, property).
+			Scan(&made); err != nil {
+			return err
+		}
+		if made && l.Prepared && !cfg.RefundRestockPrepared {
+			continue // made by the kitchen: stays consumed
+		}
+		per, err := s.stockConsumption(ctx, tx, property, l.ProductID, mods, cfg, 0)
+		if err != nil {
+			if de, ok := errs.As(err); ok && de.Kind == errs.KindValidation {
+				continue // the sale could not be deducted either (posting exception of the sale)
+			}
+			return err
+		}
+		units := dec(l.Quantity)
+		for item, q := range per {
+			if t := q.Mul(units); t.IsPositive() {
+				back[item] = back[item].Add(t)
+			}
+		}
+	}
+	if len(back) == 0 {
+		return nil
+	}
+	rows, err := tx.Query(ctx, `SELECT m.id FROM inventory.stock_movements m WHERE m.property_id = $1 AND m.source_type = 'sale' AND m.source_id = $2
+		AND m.movement_type = $3 AND m.reversal_of IS NULL AND NOT EXISTS (SELECT 1 FROM inventory.stock_movements r WHERE r.reversal_of = m.id)
+		ORDER BY m.number`, property, p.OrderID, MoveConsumption)
+	if err != nil {
+		return err
+	}
+	mids, err := pgx.CollectRows(rows, pgx.RowTo[uuid.UUID])
+	if err != nil {
+		return err
+	}
+	for _, mid := range mids {
+		m, err := GetMovement(ctx, tx, mid)
+		if err != nil {
+			return err
+		}
+		var lines []PostLine
+		for _, l := range m.Lines {
+			want := back[l.ItemID]
+			used := dec(l.Quantity).Neg()
+			if !want.IsPositive() || !used.IsPositive() {
+				continue
+			}
+			q := decimal.Min(want, used)
+			back[l.ItemID] = want.Sub(q)
+			if l.Consignment {
+				it := l.ItemID
+				if err := exception(ctx, tx, property, e, "sale_refund", &p.OrderID, &it, &m.WarehouseID, &q,
+					"consignment item refunded: return it to the supplier stock through a consignment movement"); err != nil {
+					return err
+				}
+				continue
+			}
+			c := dec(l.UnitCost)
+			serials := l.SerialNos
+			if n := int(q.IntPart()); len(serials) > 0 && n < len(serials) {
+				serials = serials[:n]
+			}
+			lines = append(lines, PostLine{ItemID: l.ItemID, Quantity: q, UnitCost: &c, BatchID: l.BatchID, SerialNos: serials})
+		}
+		if len(lines) == 0 {
+			continue
+		}
+		if _, _, err := s.Post(ctx, tx, property, PostInput{Type: MoveConsumption, SourceType: "sale_refund", SourceID: &p.OrderID, WarehouseID: m.WarehouseID,
+			OutletID: m.OutletID, Auto: true, ExplicitCost: true, BusinessDate: localDay(ctx, tx, p.At),
+			Reason: "refund_restock", Notes: strings.TrimSpace("POS refund " + p.OrderNo + " " + p.Reason), Lines: lines}); err != nil {
+			if de, ok := errs.As(err); ok && de.Code == "no_stock_lines" {
+				continue
+			}
+			return err
+		}
+	}
+	return nil
+}
+
 type consumptionLine struct {
 	ItemID   uuid.UUID  `json:"itemId"`
 	Quantity string     `json:"quantity"`

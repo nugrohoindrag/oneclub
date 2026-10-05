@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/shopspring/decimal"
 
 	"oneclub/internal/kernel/httpx"
 	"oneclub/internal/kernel/route"
@@ -61,6 +62,11 @@ type MenuItem struct {
 	Price          string    `json:"price" db:"price"`
 	MemberPrice    *string   `json:"memberPrice" db:"member_price"`
 	KitchenStation *string   `json:"kitchenStation" db:"kitchen_station"`
+	// PRD P4 FR-CNS-07 (additive): stock of retail items sold 1:1 in the
+	// warehouses of the outlet (K9 reporting.stock_availability).
+	StockTracked bool    `json:"stockTracked" doc:"The item is stocked in a warehouse of the outlet (inventory)"`
+	Available    *string `json:"available" doc:"Available quantity at the outlet (stock-tracked items)"`
+	SoldOut      bool    `json:"soldOut" doc:"No available stock at the outlet (POS Policies markSoldOut)"`
 }
 
 func (m *Module) registerPOS(reg *route.Registry, eng *resource.Engine) {
@@ -371,6 +377,59 @@ func (m *Module) MenuNow(ctx context.Context, tx pgx.Tx, outletID uuid.UUID, cha
 	if err != nil {
 		return nil, err
 	}
+	items, err := m.menuNow(ctx, tx, ou, outletID, channel)
+	if err != nil || len(items) == 0 {
+		return items, err
+	}
+	return items, m.markSoldOut(ctx, tx, ou.PropertyID, outletID, items)
+}
+
+// markSoldOut flags stock-tracked items of the menu with their available
+// quantity at the outlet from the K9 stock availability read model
+// (reporting.stock_availability: retail items sold 1:1 in the warehouses
+// mapped to the outlet) and marks those without stock Sold Out (PRD P4
+// FR-CNS-07, POS Policies markSoldOut).
+func (m *Module) markSoldOut(ctx context.Context, tx pgx.Tx, property, outletID uuid.UUID, items []MenuItem) error {
+	pol, err := m.posPolicy(ctx, tx, property)
+	if err != nil {
+		return err
+	}
+	ids := make([]uuid.UUID, 0, len(items))
+	for _, it := range items {
+		ids = append(ids, it.ProductID)
+	}
+	rows, err := tx.Query(ctx, `SELECT product_id, trim_scale(sum(available))::text FROM reporting.stock_availability
+		WHERE property_id = $1 AND outlet_id = $2 AND product_id = ANY($3) GROUP BY product_id`, property, outletID, ids)
+	if err != nil {
+		return err
+	}
+	avail := map[uuid.UUID]string{}
+	for rows.Next() {
+		var pid uuid.UUID
+		var q string
+		if err := rows.Scan(&pid, &q); err != nil {
+			rows.Close()
+			return err
+		}
+		avail[pid] = q
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	for i := range items {
+		q, ok := avail[items[i].ProductID]
+		if !ok {
+			continue
+		}
+		items[i].StockTracked, items[i].Available = true, &q
+		d, _ := decimal.NewFromString(q)
+		items[i].SoldOut = pol.MarkSoldOut && !d.IsPositive()
+	}
+	return nil
+}
+
+func (m *Module) menuNow(ctx context.Context, tx pgx.Tx, ou outlet, outletID uuid.UUID, channel string) ([]MenuItem, error) {
 	now := time.Now().In(locOf(ctx, tx))
 	wd := int(now.Weekday())
 	if wd == 0 {

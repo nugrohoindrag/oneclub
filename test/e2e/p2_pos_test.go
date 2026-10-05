@@ -197,7 +197,11 @@ func TestP2POSKitchenBOM(t *testing.T) {
 	if r := cashier.Do("POST", "/api/v1/commercial/orders/"+str(small["id"])+"/lines/"+str(sl["id"])+":discount", map[string]any{"percent": "50", "reason": "friend"}); r.Status != 403 {
 		t.Fatalf("cashier 50%% discount must need a supervisor: %s", r)
 	}
-	cashier.Must(200, "POST", "/api/v1/commercial/orders/"+str(small["id"])+"/lines/"+str(sl["id"])+":discount", map[string]any{"percent": "10", "reason": "member birthday"})
+	// PRD P3 §16 #5 default tiers (Pricing Policies): a cashier up to 5%
+	if r := cashier.Do("POST", "/api/v1/commercial/orders/"+str(small["id"])+"/lines/"+str(sl["id"])+":discount", map[string]any{"percent": "8", "reason": "regular"}); r.Status != 403 {
+		t.Fatalf("cashier 8%% discount is above the 5%% tier: %s", r)
+	}
+	cashier.Must(200, "POST", "/api/v1/commercial/orders/"+str(small["id"])+"/lines/"+str(sl["id"])+":discount", map[string]any{"percent": "5", "reason": "member birthday"})
 	sa.Must(200, "POST", "/api/v1/commercial/orders/"+str(small["id"])+"/lines/"+str(sl["id"])+":discount", map[string]any{"percent": "50", "reason": "service recovery"})
 	cashier.Must(200, "POST", "/api/v1/commercial/orders/"+str(small["id"])+"/lines", map[string]any{"lines": []map[string]any{{"productId": teh}}})
 	sm := cashier.Must(200, "GET", "/api/v1/commercial/orders/"+str(small["id"]), nil).JSON()

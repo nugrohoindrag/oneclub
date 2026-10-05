@@ -65,6 +65,7 @@ func (a *App) buildP4Inventory(reg *route.Registry, cfg *config.Config, db *dbtx
 func (a *App) subscribeP4Inventory() {
 	s := a.Stock.Service
 	a.Bus.Subscribe("commercial.sale_completed", "inventory.stock_consumption", s.OnSaleCompleted)
+	a.Bus.Subscribe("commercial.sale_refunded", "inventory.refund_restock", s.OnSaleRefunded)
 	a.Bus.Subscribe("commercial.package_consumed", "inventory.package_consumption", s.OnPackageConsumed)
 	a.Bus.Subscribe("banquet.event_completed", "inventory.banquet_consumption", s.OnBanquetCompleted)
 	a.Bus.Subscribe("golf.round_finished", "inventory.golf_round_consumption", s.OnRoundFinished)
@@ -75,30 +76,56 @@ func (a *App) subscribeP4Inventory() {
 	a.Bus.Subscribe("procurement.invoice_price_variance", "inventory.price_revaluation", s.OnInvoicePriceVariance)
 }
 
-// demoP4Inventory seeds the inventory structure of PRD P4 §7.5 (Modern
-// Golf) on the MAIN property: categories, warehouses with the codes of the
-// default Inventory Configuration, the transit warehouse and asset
-// categories (idempotent).
+// demoP4Inventory seeds the inventory structure of PRD P4 §16 #8 / #9 (Modern
+// Golf) on the MAIN property: categories valued at moving average with the
+// opname tolerances of §16 #8, the warehouses and outlet sub-stores of §16
+// #9 (plus Golf Ops, the service BOM store of the Inventory Configuration,
+// and the transit warehouse), asset categories and the Stock Opname
+// approval to the Finance Manager above tolerance (idempotent).
 func demoP4Inventory(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
-	for _, c := range [][3]string{{"FNB", "Food & Beverage", "fifo"}, {"BEV", "Beverage", "moving_average"}, {"PROSHOP", "Pro Shop", "moving_average"},
-		{"GOLFOPS", "Golf Operations Supplies", "moving_average"}, {"SPORT", "Sport Club Supplies", "moving_average"},
-		{"AMENITY", "Bungalow Amenities & Linen", "moving_average"}, {"SPARE", "Spare Parts (Engineering)", "moving_average"},
-		{"GENERAL", "General Supplies", "moving_average"}} {
+	// §16 #8: moving average for every category; tolerance F&B 2%, beverage /
+	// alcohol 0.5%, pro shop 0.5%, general supplies 1%.
+	for _, c := range [][3]string{{"FNB", "Food & Beverage", "2"}, {"BEV", "Beverage", "0.5"}, {"PROSHOP", "Pro Shop", "0.5"},
+		{"GOLFOPS", "Golf Operations Supplies", "1"}, {"SPORT", "Sport Club Supplies", "1"}, {"AMENITY", "Bungalow Amenities & Linen", "1"},
+		{"SPARE", "Spare Parts (Engineering)", "1"}, {"GENERAL", "General Supplies", "1"}} {
 		if _, err := tx.Exec(ctx, `INSERT INTO inventory.item_categories (id, property_id, code, name, valuation_method, opname_tolerance_percent)
-			VALUES ($1,$2,$3,$4,$5, CASE WHEN $3 IN ('FNB', 'BEV') THEN 2 END) ON CONFLICT (property_id, code) DO NOTHING`,
+			VALUES ($1,$2,$3,$4,'moving_average',$5::numeric) ON CONFLICT (property_id, code) DO NOTHING`,
 			id.New(), property, c[0], c[1], c[2]); err != nil {
 			return err
 		}
 	}
 	type wh struct{ code, name, kind, parent, cc string }
-	for _, w := range []wh{{"MAIN-STORE", "Main Store", "store", "", "store"}, {"KITCHEN", "Kitchen (Spike Bar, Pool, Banquet)", "kitchen", "MAIN-STORE", "kitchen"},
-		{"BAR", "Bar & Beverage", "outlet", "MAIN-STORE", "bar"}, {"PRO-SHOP", "Pro Shop", "outlet", "MAIN-STORE", "pro_shop"},
-		{"GOLF-OPS", "Golf Ops", "store", "MAIN-STORE", "golf_ops"}, {"SPORT-CLUB", "Sport Club", "store", "MAIN-STORE", "sport_club"},
-		{"BUNGALOW", "Bungalow", "store", "MAIN-STORE", "bungalow"}, {"ENGINEERING", "Engineering / Maintenance", "store", "MAIN-STORE", "engineering"},
-		{"GENERAL", "General", "store", "MAIN-STORE", "general"}, {"TRANSIT", "In Transit", "transit", "", "transit"}} {
+	// §16 #9: stores Main Store, Cold Store, Beverage Store, Pro Shop Store,
+	// Engineering Store; outlet sub-stores Clubhouse Restaurant, Bar, Halfway
+	// House, Banquet Kitchen (code KITCHEN, the banquet warehouse of the
+	// Inventory Configuration), Sport Club Café.
+	for _, w := range []wh{{"MAIN-STORE", "Main Store", "store", "", "store"}, {"COLD-STORE", "Cold Store", "store", "", "store"},
+		{"BEV-STORE", "Beverage Store", "store", "", "store"}, {"PRO-SHOP", "Pro Shop Store", "store", "", "pro_shop"},
+		{"ENGINEERING", "Engineering Store", "store", "", "engineering"},
+		{"CLUBHOUSE", "Clubhouse Restaurant", "kitchen", "MAIN-STORE", "kitchen"}, {"BAR", "Bar", "outlet", "BEV-STORE", "bar"},
+		{"HALFWAY", "Halfway House", "outlet", "MAIN-STORE", "halfway_house"}, {"KITCHEN", "Banquet Kitchen", "kitchen", "MAIN-STORE", "banquet"},
+		{"SPORT-CAFE", "Sport Club Café", "outlet", "MAIN-STORE", "sport_club"},
+		{"GOLF-OPS", "Golf Ops", "store", "MAIN-STORE", "golf_ops"}, {"TRANSIT", "In Transit", "transit", "", "transit"}} {
 		if _, err := tx.Exec(ctx, `INSERT INTO inventory.warehouses (id, property_id, code, name, location_type, parent_id, cost_center)
 			VALUES ($1,$2,$3,$4,$5,(SELECT id FROM inventory.warehouses WHERE property_id = $2 AND code = $6),$7) ON CONFLICT (property_id, code) DO NOTHING`,
 			id.New(), property, w.code, w.name, w.kind, w.parent, w.cc); err != nil {
+			return err
+		}
+	}
+	// §16 #8: an opname variance above tolerance is approved by the Finance Manager.
+	var wf bool
+	if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM platform.approval_workflows WHERE document_type = $1)`, inventory.DocOpname.Code).Scan(&wf); err != nil {
+		return err
+	}
+	if !wf {
+		wid := id.New()
+		if _, err := tx.Exec(ctx, `INSERT INTO platform.approval_workflows (id, document_type, name) VALUES ($1,$2,'Stock Opname Variance above Tolerance')`,
+			wid, inventory.DocOpname.Code); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(ctx, `INSERT INTO platform.approval_workflow_steps (id, workflow_id, step_no, name, approver_type, approver_role_id, conditions, sla_hours)
+			SELECT $1, $2, 1, 'Finance Manager approval', 'role', r.id, '[]'::jsonb, 24 FROM platform.roles r WHERE r.code = 'finance_manager'`,
+			id.New(), wid); err != nil {
 			return err
 		}
 	}

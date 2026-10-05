@@ -48,6 +48,11 @@ const (
 	EventConsignmentSold  = "inventory.consignment_sold"
 	// EventAssetDisposed is additive (not yet in the contracts page).
 	EventAssetDisposed = "inventory.asset_disposed"
+	// PRD P4 §11 outbox events (additive, docs/p3-p4-contracts.md).
+	EventOpnamePosted        = "inventory.opname_posted"
+	EventProductionCompleted = "inventory.production_completed"
+	EventStockLow            = "inventory.stock_low"
+	EventMaintenanceDue      = "inventory.asset_maintenance_due"
 )
 
 // Movement types (contract inventory.movement_posted).

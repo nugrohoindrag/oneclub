@@ -186,11 +186,25 @@ type PricingPolicy struct {
 	PeakPeriods          []PeakPeriod      `json:"peakPeriods" doc:"Peak seasons"`
 	PeakHours            []TimeWindow      `json:"peakHours" doc:"Peak hours per weekday"`
 	HolidaysArePeak      bool              `json:"holidaysArePeak" doc:"Public holidays count as peak"`
-	ManualDiscountLimits map[string]string `json:"manualDiscountLimits" doc:"Manual discount limit (percent) per role code; empty = POS Policies"`
+	ManualDiscountLimits map[string]string `json:"manualDiscountLimits" doc:"Manual discount limit (percent) per role code (default: the tiers of PRD P3 §16 #5); {} = POS Policies for every role"`
 }
 
-// DefaultPricingPolicy: no peak periods; manual discounts follow the POS Policies.
-var DefaultPricingPolicy = PricingPolicy{PeakPeriods: []PeakPeriod{}, PeakHours: []TimeWindow{}, ManualDiscountLimits: map[string]string{}}
+// DefaultManualDiscountLimits are the manual discount tiers of PRD P3 §16 #5,
+// the same as the quotation tiers of the Sales Policies
+// (crm/sales.DefaultRoleDiscountLimits, which commercial may not import):
+// sales / cashier / POS / marketing staff 5%, CRM / membership / golf
+// admins 10%, managers 20%, the General Manager 100%. Above the limit the
+// POS asks for a supervisor (commercial.pos.discount_override). Roles not
+// listed keep the POS Policies limit. A fresh map is returned on every call.
+func DefaultManualDiscountLimits() map[string]string {
+	return map[string]string{"sales_executive": "5", "banquet_sales": "5", "cashier": "5", "pos_staff": "5", "marketing_staff": "5",
+		"crm_admin": "10", "membership_admin": "10", "golf_admin": "10",
+		"banquet_manager": "20", "event_manager": "20", "outlet_manager": "20", "membership_manager": "20", "golf_manager": "20",
+		"sport_club_manager": "20", "club_manager": "20", "resort_manager": "20", "general_manager": "100"}
+}
+
+// DefaultPricingPolicy: no peak periods; manual discounts per role of PRD P3 §16 #5.
+var DefaultPricingPolicy = PricingPolicy{PeakPeriods: []PeakPeriod{}, PeakHours: []TimeWindow{}, ManualDiscountLimits: DefaultManualDiscountLimits()}
 
 // Policy codes.
 const (
@@ -222,7 +236,16 @@ func LoadPromotionPolicy(ctx context.Context, q dbtx.Querier, property uuid.UUID
 
 // LoadPricingPolicy returns the Pricing Policies in force.
 func LoadPricingPolicy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (PricingPolicy, rules.PolicyRef, error) {
-	return rules.PolicyAt(ctx, q, PolicyPricing, property, DefaultPricingPolicy)
+	// decoded into a fresh value: a configured policy must never merge into
+	// the shared default map; a version without manualDiscountLimits keeps
+	// the default tiers, an explicit {} means the POS Policies limit
+	def := DefaultPricingPolicy
+	def.ManualDiscountLimits = nil
+	pol, ref, err := rules.PolicyAt(ctx, q, PolicyPricing, property, def)
+	if pol.ManualDiscountLimits == nil {
+		pol.ManualDiscountLimits = DefaultManualDiscountLimits()
+	}
+	return pol, ref, err
 }
 
 // ManualDiscountLimit is the manual discount limit (percent) of a user with

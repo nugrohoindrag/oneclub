@@ -413,7 +413,8 @@ type Configuration struct {
 	SparePartWarehouse          string `json:"sparePartWarehouse" doc:"Engineering store issuing spare parts"`
 	TransitWarehouse            string `json:"transitWarehouse" doc:"Code of the In Transit warehouse of stock transfers (created when missing)"`
 	AutoDepreciation            bool   `json:"autoDepreciation" doc:"Post the monthly depreciation of the previous month automatically"`
-	RefundRestock               bool   `json:"refundRestock" doc:"Consumption of refunded POS sales may be reversed (returned to stock)"`
+	RefundRestock               bool   `json:"refundRestock" doc:"Refunded POS sales return their consumption to stock (commercial.sale_refunded; retail items 1:1 always, F&B per the next setting)"`
+	RefundRestockPrepared       bool   `json:"refundRestockPrepared" doc:"Refunded F&B lines the kitchen had already started are returned to stock too (default: they stay consumed)"`
 	PriceVarianceTo             string `json:"priceVarianceTo" doc:"cogs or price_variance: account of the invoice − receipt price difference of goods already used (FR-VAL-06)"`
 }
 

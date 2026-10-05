@@ -1594,6 +1594,18 @@ func (s *Stock) CompleteProduction(ctx context.Context, tx pgx.Tx, property, pid
 	if err != nil {
 		return after, err
 	}
+	if s.Events != nil { // PRD P4 §11: inventory.production_completed
+		var inputs []map[string]any
+		for item, q := range use {
+			inputs = append(inputs, map[string]any{"itemId": item, "quantity": q.String(), "totalCost": costs[item].String()})
+		}
+		if _, err := s.Events.Publish(ctx, tx, EventProductionCompleted, "inventory.production_order", &pid, &property, map[string]any{"productionOrderId": pid,
+			"number": p.Number, "recipeId": p.RecipeID, "warehouseId": p.WarehouseID, "outputItemId": p.OutputItemID, "plannedQuantity": p.PlannedQuantity,
+			"actualQuantity": actual.String(), "inputCost": cost.String(), "outputUnitCost": unit.String(), "batchId": bid, "outputMovementId": inm.ID,
+			"businessDate": inm.BusinessDate, "sourceType": p.SourceType, "sourceId": p.SourceID, "inputs": inputs}); err != nil {
+			return after, err
+		}
+	}
 	return after, record(ctx, tx, property, "inventory.production_order", pid, p.Number, "complete", map[string]any{"status": p.Status},
 		map[string]any{"status": "completed", "actualQuantity": actual.String(), "inputCost": cost.String()}, "")
 }
@@ -1732,6 +1744,16 @@ func (s *Stock) ReverseMovement(ctx context.Context, tx pgx.Tx, property, mid uu
 	}
 	if m.SourceType == "sale" && !cfg.RefundRestock {
 		return m, errs.Conflict("refund_restock_disabled", "Inventory Configuration does not return refunded sales to stock")
+	}
+	if m.SourceType == "sale" && m.SourceID != nil {
+		var restocked bool
+		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM inventory.stock_movements WHERE property_id = $1 AND source_type = 'sale_refund'
+			AND source_id = $2)`, property, *m.SourceID).Scan(&restocked); err != nil {
+			return m, err
+		}
+		if restocked {
+			return m, errs.Conflict("already_restocked", "the refund of this sale was already returned to stock automatically")
+		}
 	}
 	var lines []PostLine
 	for _, l := range m.Lines {

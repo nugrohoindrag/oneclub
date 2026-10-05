@@ -331,7 +331,9 @@ export function POSPage() {
   const toast = useToast();
   const { propertyId, can } = useAuth();
   const outlet = read(OUTLET_KEY);
-  const menu = useGet<Page<Schemas['MenuItem']>>(outlet ? `/api/v1/commercial/outlets/${outlet}/menu` : null);
+  // PRD P4 FR-CNS-07: stock-tracked retail items carry their outlet stock (K9) and Sold Out
+  const menu = useGet<Page<Schemas['MenuItem'] & { stockTracked?: boolean; available?: string | null; soldOut?: boolean }>>(
+    outlet ? `/api/v1/commercial/outlets/${outlet}/menu` : null, { refetchInterval: 60_000 });
   const shifts = useGet<Page<Row>>(`/api/v1/commercial/shifts${qs({ 'filter[status]': 'open', 'filter[outletId]': outlet })}`);
   const openShift = useSend<Row>('POST', '/api/v1/commercial/shifts:open', ['/api/v1/commercial/shifts']);
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -400,8 +402,12 @@ export function POSPage() {
       )}
       <div className="oc-grid">
         {items.map((p) => (
-          <button key={p.productId} className="oc-card" style={{ textAlign: 'left', cursor: 'pointer', minHeight: 90 }} onClick={() => setCart({ ...cart, [p.productId]: (cart[p.productId] ?? 0) + 1 })}>
+          <button key={p.productId} className="oc-card" disabled={p.soldOut} aria-label={p.soldOut ? `${p.name}, sold out` : undefined}
+            style={{ textAlign: 'left', cursor: p.soldOut ? 'not-allowed' : 'pointer', minHeight: 90, opacity: p.soldOut ? 0.6 : 1 }}
+            onClick={() => setCart({ ...cart, [p.productId]: (cart[p.productId] ?? 0) + 1 })}>
             <strong>{p.name}</strong><div className="oc-small">{money(p.price)}</div>
+            {p.soldOut ? <span className="oc-status" data-tone="error">Sold Out</span>
+              : p.stockTracked && p.available != null ? <div className="oc-small oc-muted">{formatNumber(Number(p.available))} in stock</div> : null}
             {cart[p.productId] ? <span className="oc-chip">× {cart[p.productId]}</span> : null}
           </button>
         ))}

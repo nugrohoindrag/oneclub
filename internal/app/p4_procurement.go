@@ -36,11 +36,13 @@ func p4ProcurementDocumentTypes() []provision.DocumentType { return procurement.
 func p4ProcurementTemplates() []provision.Template { return procurement.Templates() }
 
 // buildP4Procurement wires routes, hooks, approval decisions and jobs.
-func (a *App) buildP4Procurement(reg *route.Registry, cfg *config.Config, db *dbtx.DB, _ *storage.Files) {
+func (a *App) buildP4Procurement(reg *route.Registry, cfg *config.Config, db *dbtx.DB, files *storage.Files) {
 	m := &procurement.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Notify: a.Notification,
 		PublicURL: func() string { return cfg.PublicBaseURL }, WebsiteURL: func() string { return cfg.WebsiteURL }}
 	a.Purchasing.Procurement = m
 	m.Register(reg, a.Engine)
+	// FR-GR-01: delivery note photo / document of goods receipts (platform files).
+	m.RegisterGoodsReceiptAttachments(reg, files)
 	hooks := m.Decisions()
 	for _, dt := range procurement.DocumentTypes {
 		a.Approvals.RegisterDocumentType(dt, hooks[dt.Code])

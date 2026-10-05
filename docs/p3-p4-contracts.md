@@ -302,10 +302,34 @@ Additive (inventory): `movementId`, `salesAmount`, `commissionAmount` (club comm
 `totalCost` is the amount payable to the supplier (sales − commission). Monthly settlements:
 `POST /api/v1/inventory/consignment-settlements`.
 
+### `inventory.opname_posted` (PRD P4 §11, additive, inventory)
+`{ opnameId, number, warehouseId, warehouseCode, categoryId?, movementId?, businessDate?, varianceValue, lines, linesWithVariance, approvalRequestId? }`
+Published when a stock opname is posted (directly within tolerance, or once its variance is approved — PRD P4 §16 #8: Finance
+Manager). The journal comes with the variance movement's `inventory.movement_posted` (`movementType: opname`); `movementId` is null
+when nothing differed.
+
+### `inventory.production_completed` (PRD P4 §11, additive, inventory)
+`{ productionOrderId, number, recipeId, warehouseId, outputItemId, plannedQuantity, actualQuantity, inputCost, outputUnitCost, batchId?,
+   outputMovementId, businessDate, sourceType?, sourceId?, inputs: [{ itemId, quantity, totalCost }] }`
+The stock and journal come with the `production_out` / `production_in` movements.
+
+### `inventory.stock_low` (PRD P4 §11, additive, inventory)
+`{ warehouseId, warehouseCode, businessDate, items: [{ itemId, itemCode, onHand, reorderPoint, parLevel, suggestedQuantity, uomId, preferredSupplierId?, onOrder }] }`
+Published by the daily reorder job once per warehouse and day, with `inventory.reorder_needed` (procurement's automatic PR);
+the `inventory.low_stock` notification to the holders of `inventory.replenishment.view` stays.
+
+### `inventory.asset_maintenance_due` (PRD P4 §11, additive, inventory)
+`{ scheduleId, assetId, assetCode, assetName, schedule, triggerType: time|usage_hours, nextDueOn?, hoursSince, intervalHours?, businessDate }`
+Published by the daily job when a maintenance schedule becomes due (same cadence as the `inventory.maintenance_due`
+notification, which stays). Usage hours include the P2 golf cart assignments of assets linked to a cart (`golfCartRef`, FR-AST-02):
+the daily job adds the minutes out of each returned assignment (`reporting.golf_cart_usage`) once, as an asset usage
+`usageType: golf_cart` referencing the assignment.
+
 ### Consumed by inventory (EP-06, FR-PRD-05)
 | Event | Use |
 |---|---|
 | `commercial.sale_completed` (K7) | consumption of the outlet warehouse (`inventory.warehouses.outlet_id`) per recipe / retail item 1:1 / combo + modifiers; idempotent per order |
+| `commercial.sale_refunded` (FR-CNS-02) | with Inventory Configuration `refundRestock`: the consumption of the refunded lines comes back to stock at its original cost / batch (movement `consumption`, `sourceType: sale_refund`, positive quantities, one per warehouse; never more than consumed). Retail items sold 1:1 always; recipe / combo lines only when the kitchen had not started them (`prepared: false`) unless `refundRestockPrepared`. Consignment items become posting exceptions (returned through a consignment movement). The manual `:reverse` of the sale movement is refused once restocked |
 | `commercial.package_consumed`, `banquet.event_completed` (K6) | consumption of `consumption[]` (base UOM) at the outlet warehouse, else the configured package / banquet warehouse |
 | `golf.round_finished` | service BOM `golf.round[.<holes>]` × checked-in players (`reporting.golf_rounds`; an optional `players` count is accepted when the flight has none) at the Golf Ops warehouse |
 | `banquet.beo_issued`, `banquet.beo_revised` (K1) | draft production orders for the semi-finished items of the menu recipes × pax (revision replaces the drafts) |
@@ -313,6 +337,18 @@ Additive (inventory): `movementId`, `salesAmount`, `commissionAmount` (club comm
 | `procurement.invoice_price_variance` (proposed, additive) | FR-VAL-06 / FR-VAL-03: revaluation of a receipt whose invoiced (or landed) base cost differs |
 Unknown items / warehouses become `inventory.posting_exceptions` (never block the outbox). Late events dated in a closed
 accounting period post on the current business day.
+
+### `commercial.sale_voided` / `commercial.sale_refunded` (FR-CNS-02, additive, commercial)
+`{ orderId, orderNo, outletId, customerId?, source, at, lines: [{ lineId, productId, variantId?, quantity, modifierIds: [], netAmount, totalAmount, sent, prepared }] }`
+`sale_voided` adds `scope: order | line` and `reason` — an unpaid order or line was voided; nothing was consumed (stock is deducted on
+`sale_completed` only), so inventory does not consume it. `sale_refunded` adds `refundRequestId`, `reason`, `total` — published when the
+POS refund is approved (`pos_refund`) for the active lines of the paid order. `prepared` = a kitchen ticket of the line reached
+preparing / ready / out for delivery / served.
+
+### K9 consumed by commercial (FR-CNS-07, additive)
+The POS menu (`GET /api/v1/commercial/outlets/{id}/menu`) reads `reporting.stock_availability` for the warehouses mapped to the outlet
+(`outlet_id`): items sold 1:1 there carry `stockTracked`, `available` (sum of `available`) and `soldOut` (no available stock, POS Policies
+`markSoldOut`, default on). Recipe products are not marked.
 
 ### `procurement.goods_received` — consumed by inventory (stock receipt into `warehouseId`) and accounting (GRNI)
 `{ goodsReceiptId, number, purchaseOrderId, poNumber, supplierId, warehouseId, receivedDate, currency, total,
@@ -333,6 +369,11 @@ receipt) and publishes `inventory.revaluation_posted`
 Procurement publishes it (one event per goods receipt) when an invoice is approved and the invoiced base cost
 (`invoice unit price × accepted ÷ base quantity` of the receipt line) differs from the receipt's `baseUnitCost`; additive
 fields `currency` and per line `receivedBaseUnitCost`.
+Landed cost (FR-VAL-03, procurement): a vendor invoice line with `landedCost: value | quantity` (no order line / receipt line / item,
+optional `landedGoodsReceiptId`, else the receipts of the invoice's other lines) is posted with `accountHint: inventory` (clears GRNI)
+and allocated to the stock lines of those receipts by received value or base quantity; the allocated cost per base unit is added to
+`invoicedBaseUnitCost` (to the receipt cost when the goods were invoiced separately), so the revaluation above values it into the stock
+still on hand and the used part into COGS / price variance. A landed line without received stock to allocate to is `not_received`.
 
 ### `procurement.vendor_invoice_approved` — consumed by accounting (AP)
 `{ vendorInvoiceId, number, supplierInvoiceNo, supplierId, invoiceDate, dueDate, currency, subtotal, taxAmount, total,

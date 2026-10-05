@@ -560,8 +560,23 @@ func (s *Stock) postOpname(ctx context.Context, tx pgx.Tx, property, oid uuid.UU
 		}
 		mid, value = &m.ID, m.TotalCost
 	}
-	_, err = tx.Exec(ctx, `UPDATE inventory.stock_opnames SET status = 'posted', posted_at = now(), movement_id = $2, variance_value = $3::numeric WHERE id = $1`,
-		oid, mid, value)
+	if _, err := tx.Exec(ctx, `UPDATE inventory.stock_opnames SET status = 'posted', posted_at = now(), movement_id = $2, variance_value = $3::numeric WHERE id = $1`,
+		oid, mid, value); err != nil {
+		return err
+	}
+	if s.Events == nil {
+		return nil
+	}
+	// PRD P4 §11: inventory.opname_posted (the journal comes with the movement's inventory.movement_posted)
+	var whCode string
+	var bd *string
+	if err := tx.QueryRow(ctx, `SELECT w.code, to_char(m.business_date, 'YYYY-MM-DD') FROM inventory.warehouses w
+		LEFT JOIN inventory.stock_movements m ON m.id = $2 WHERE w.id = $1`, o.WarehouseID, mid).Scan(&whCode, &bd); err != nil {
+		return err
+	}
+	_, err = s.Events.Publish(ctx, tx, EventOpnamePosted, "inventory.stock_opname", &oid, &property, map[string]any{"opnameId": oid, "number": o.Number,
+		"warehouseId": o.WarehouseID, "warehouseCode": whCode, "categoryId": o.CategoryID, "movementId": mid, "businessDate": bd, "varianceValue": value,
+		"lines": len(o.Lines), "linesWithVariance": len(lines), "approvalRequestId": o.ApprovalRequestID})
 	return err
 }
 

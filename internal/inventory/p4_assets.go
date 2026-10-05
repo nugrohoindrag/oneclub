@@ -281,6 +281,58 @@ func (s *Stock) RecordUsage(ctx context.Context, tx pgx.Tx, property, aid uuid.U
 	return after, record(ctx, tx, property, "inventory.asset", aid, a.Code, "record_usage", nil, map[string]any{"hours": h.String()}, "")
 }
 
+// GolfCartUsage adds the hours of the returned P2 golf cart assignments
+// (reporting.golf_cart_usage) to the usage hours of the linked assets
+// (golfCartRef), so usage-based maintenance schedules follow the fleet's
+// real use (FR-AST-02). One usage record per assignment (idempotent); run
+// by the daily inventory job before the maintenance reminders.
+func (s *Stock) GolfCartUsage(ctx context.Context, tx pgx.Tx, property uuid.UUID) (int, error) {
+	ctx = reqctx.WithProperty(ctx, property)
+	rows, err := tx.Query(ctx, `SELECT a.id, u.assignment_id, u.out_at, u.returned_at, round(u.minutes_out::numeric / 60, 2)::text, u.golf_cart_code
+		FROM inventory.assets a JOIN reporting.golf_cart_usage u ON u.golf_cart_id = a.golf_cart_ref
+		WHERE a.property_id = $1 AND a.status <> 'disposed' AND u.status = 'returned' AND u.minutes_out > 0
+		AND NOT EXISTS (SELECT 1 FROM inventory.asset_usages x WHERE x.asset_id = a.id AND x.usage_type = 'golf_cart' AND x.reference = u.assignment_id::text)
+		ORDER BY u.returned_at`, property)
+	if err != nil {
+		return 0, err
+	}
+	type use struct {
+		asset, assignment uuid.UUID
+		out, back         time.Time
+		hours, cart       string
+	}
+	var list []use
+	for rows.Next() {
+		var u use
+		if err := rows.Scan(&u.asset, &u.assignment, &u.out, &u.back, &u.hours, &u.cart); err != nil {
+			rows.Close()
+			return 0, err
+		}
+		list = append(list, u)
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return 0, err
+	}
+	n := 0
+	for _, u := range list {
+		tag, err := tx.Exec(ctx, `INSERT INTO inventory.asset_usages (id, property_id, asset_id, usage_type, started_at, ended_at, hours, reference, notes)
+			VALUES ($1,$2,$3,'golf_cart',$4,$5,$6::numeric,$7,$8) ON CONFLICT (asset_id, reference) WHERE usage_type = 'golf_cart' DO NOTHING`,
+			id.New(), property, u.asset, u.out, u.back, u.hours, u.assignment.String(), "Golf cart "+u.cart+" assignment (P2)")
+		if err != nil {
+			return n, err
+		}
+		if tag.RowsAffected() == 0 {
+			continue
+		}
+		if _, err := tx.Exec(ctx, `UPDATE inventory.assets SET usage_hours = usage_hours + $2::numeric WHERE id = $1`, u.asset, u.hours); err != nil {
+			return n, err
+		}
+		n++
+	}
+	return n, nil
+}
+
 // AssetHistory is the usage, maintenance, spare part and depreciation
 // history of an asset.
 type AssetHistory struct {
@@ -296,7 +348,7 @@ type AssetHistory struct {
 // AssetUsage is one usage record.
 type AssetUsage struct {
 	ID          uuid.UUID  `json:"id" db:"id"`
-	UsageType   string     `json:"usageType" db:"usage_type" enum:"rental,operation"`
+	UsageType   string     `json:"usageType" db:"usage_type" enum:"rental,operation,golf_cart"`
 	StartedAt   time.Time  `json:"startedAt" db:"started_at"`
 	EndedAt     *time.Time `json:"endedAt" db:"ended_at"`
 	Hours       *string    `json:"hours" db:"hours"`
@@ -389,6 +441,14 @@ func (s *Stock) MaintenanceReminders(ctx context.Context, tx pgx.Tx, property uu
 			continue
 		}
 		n++
+		if s.Events != nil { // PRD P4 §11: inventory.asset_maintenance_due (the notification stays)
+			sid, p := m.ID, property
+			if _, err := s.Events.Publish(ctx, tx, EventMaintenanceDue, "inventory.maintenance_schedule", &sid, &p, map[string]any{"scheduleId": m.ID,
+				"assetId": m.AssetID, "assetCode": m.AssetCode, "assetName": m.AssetName, "schedule": m.Name, "triggerType": m.TriggerType,
+				"nextDueOn": m.NextDueOn, "hoursSince": m.HoursSince, "intervalHours": m.IntervalHours, "businessDate": day.Format("2006-01-02")}); err != nil {
+				return n, err
+			}
+		}
 		if s.Notify == nil {
 			continue
 		}
