@@ -24,11 +24,11 @@ import (
 	"oneclub/internal/reporting"
 )
 
-// p3Contributions are the catalogue contributions of P3 and P4.
+// p3Contributions are the catalogue contributions of P3, P4 and P5.
 func p3Contributions() []catalog.Contribution {
 	out := []catalog.Contribution{billing.P3Contribution(), reporting.P3P4Contribution()}
 	for _, c := range [][]catalog.Contribution{p3SalesContributions(), p3EngagementContributions(), p3CommercialContributions(),
-		p3BanquetContributions(), p3TournamentContributions(), p4Contributions()} {
+		p3BanquetContributions(), p3TournamentContributions(), p4Contributions(), p5Contributions()} {
 		out = append(out, c...)
 	}
 	return out
@@ -39,7 +39,7 @@ func p3DocumentTypes() []provision.DocumentType {
 	var out []provision.DocumentType
 	out = append(out, billing.P3DocumentTypes...)
 	for _, d := range [][]provision.DocumentType{p3SalesDocumentTypes(), p3EngagementDocumentTypes(), p3CommercialDocumentTypes(),
-		p3BanquetDocumentTypes(), p3TournamentDocumentTypes(), p4DocumentTypes()} {
+		p3BanquetDocumentTypes(), p3TournamentDocumentTypes(), p4DocumentTypes(), p5DocumentTypes()} {
 		out = append(out, d...)
 	}
 	return out
@@ -50,7 +50,7 @@ func p3Templates() []provision.Template {
 	var out []provision.Template
 	out = append(out, billing.P3Templates()...)
 	for _, t := range [][]provision.Template{p3SalesTemplates(), p3EngagementTemplates(), p3CommercialTemplates(), p3BanquetTemplates(),
-		p3TournamentTemplates(), p4Templates()} {
+		p3TournamentTemplates(), p4Templates(), p5Templates()} {
 		out = append(out, t...)
 	}
 	return out
@@ -84,6 +84,7 @@ func (a *App) buildP3(reg *route.Registry, cfg *config.Config, db *dbtx.DB, file
 	a.buildP3Banquet(reg, cfg, db, files)
 	a.buildP3Tournament(reg, cfg, db, files)
 	a.buildP4(reg, cfg, db, files)
+	a.buildP5(reg, cfg, db, files)
 }
 
 // subscribeP3 registers the P3 (and P4) event subscribers.
@@ -106,12 +107,13 @@ func (a *App) subscribeP3() {
 	a.subscribeP3Banquet()
 	a.subscribeP3Tournament()
 	a.subscribeP4()
+	a.subscribeP5()
 }
 
 // seedP3P4Demo seeds the demo data of the P3 and P4 areas.
 func seedP3P4Demo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 	for _, f := range []func(context.Context, pgx.Tx, uuid.UUID) error{demoP3Sales, demoP3Engagement, demoP3Commercial, demoP3Banquet,
-		demoP3Tournament, demoP4Inventory, demoP4Procurement, demoP4Accounting, demoP4CMS} {
+		demoP3Tournament, demoP4Inventory, demoP4Procurement, demoP4Accounting, demoP4CMS, seedP5Demo} {
 		if err := f(ctx, tx, property); err != nil {
 			return err
 		}

@@ -7,6 +7,8 @@ import { BANQUET_MEMBER_ROUTES } from './areas/banquet';
 import { COMMERCIAL_MEMBER_ROUTES } from './areas/commercial';
 import { ENGAGEMENT_MEMBER_ROUTES } from './areas/engagement';
 import { TOURNAMENT_MEMBER_ROUTES } from './areas/tournament';
+import { CRM_P5_MEMBER_ROUTES } from './areas/crm_p5';
+import { LEISURE_MEMBER_ROUTES } from './areas/leisure';
 
 // Member App P3 (PRD P3 EP-19): Transactions → Invoices with payment
 // schedules and online payment of invoices and schedule lines (DP, termin)
@@ -104,4 +106,5 @@ function InvoiceDetail({ id, efaktur, onClose }: { id: string; efaktur?: Row; on
 export const P3_MEMBER_ROUTES = [
   { path: 'transactions/invoices', element: <MyInvoicesPage /> },
   ...BANQUET_MEMBER_ROUTES, ...TOURNAMENT_MEMBER_ROUTES, ...COMMERCIAL_MEMBER_ROUTES, ...ENGAGEMENT_MEMBER_ROUTES,
+  ...CRM_P5_MEMBER_ROUTES, ...LEISURE_MEMBER_ROUTES,
 ];

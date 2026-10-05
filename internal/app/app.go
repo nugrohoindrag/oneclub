@@ -123,6 +123,7 @@ type App struct {
 	P2
 	P3
 	P4
+	P5
 }
 
 // Options control process-specific wiring.

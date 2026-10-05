@@ -11,6 +11,12 @@ import { ACCOUNTING_OPS_ROUTES, ACCOUNTING_OPS_TILES } from '../p4/accounting';
 import { CMS_OPS_ROUTES, CMS_OPS_TILES } from '../p4/cms';
 import { INVENTORY_OPS_ROUTES, INVENTORY_OPS_TILES } from '../p4/inventory';
 import { PROCUREMENT_OPS_ROUTES, PROCUREMENT_OPS_TILES } from '../p4/procurement';
+import { BI_OPS_ROUTES, BI_OPS_TILES } from '../p5/bi';
+import { CRM_P5_OPS_ROUTES, CRM_P5_OPS_TILES } from '../p5/crm';
+import { HR_OPS_ROUTES, HR_OPS_TILES } from '../p5/hr';
+import { HR_TIME_OPS_ROUTES, HR_TIME_OPS_TILES } from '../p5/hr_time';
+import { LEISURE_OPS_ROUTES, LEISURE_OPS_TILES } from '../p5/leisure';
+import { PAYROLL_OPS_ROUTES, PAYROLL_OPS_TILES } from '../p5/payroll';
 
 // Operational interfaces of PRD P3 (EP-21, §7.2) and PRD P4: Front Desk
 // cashier shift across lines and folios per customer; the event, tournament,
@@ -20,6 +26,7 @@ const TILES: OpsTile[] = [
   ['point_of_sale', 'Cashier', '/ops/front-desk/cashier', 'billing.cashier_shift.operate'],
   ...BANQUET_OPS_TILES, ...TOURNAMENT_OPS_TILES, ...COMMERCIAL_P3_OPS_TILES, ...ENGAGEMENT_OPS_TILES,
   ...INVENTORY_OPS_TILES, ...PROCUREMENT_OPS_TILES, ...ACCOUNTING_OPS_TILES, ...CMS_OPS_TILES,
+  ...HR_OPS_TILES, ...HR_TIME_OPS_TILES, ...PAYROLL_OPS_TILES, ...CRM_P5_OPS_TILES, ...BI_OPS_TILES, ...LEISURE_OPS_TILES,
 ];
 
 const ROUTES: OpsRoute[] = [
@@ -27,6 +34,7 @@ const ROUTES: OpsRoute[] = [
   { path: 'front-desk/customer-folios', element: <CustomerFoliosPage /> },
   ...BANQUET_OPS_ROUTES, ...TOURNAMENT_OPS_ROUTES, ...COMMERCIAL_P3_OPS_ROUTES, ...ENGAGEMENT_OPS_ROUTES,
   ...INVENTORY_OPS_ROUTES, ...PROCUREMENT_OPS_ROUTES, ...ACCOUNTING_OPS_ROUTES, ...CMS_OPS_ROUTES,
+  ...HR_OPS_ROUTES, ...HR_TIME_OPS_ROUTES, ...PAYROLL_OPS_ROUTES, ...CRM_P5_OPS_ROUTES, ...BI_OPS_ROUTES, ...LEISURE_OPS_ROUTES,
 ];
 
 export const P3_OPS_ROUTES = ROUTES;
