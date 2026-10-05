@@ -4645,6 +4645,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/bridge/hris/attendance-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Attendance events of a device (bridge agent bearer token) */
+        post: operations["postBridgeHrisAttendanceEvents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/cms/articles": {
         parameters: {
             query?: never;
@@ -7330,6 +7347,23 @@ export interface paths {
         };
         /** Promotion cache of an offline POS terminal (per shift) */
         get: operations["getCommercialPosPromotions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/pos/tier-discount": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Loyalty tier F&B discount of a customer (POS customer picker; cached offline) */
+        get: operations["getCommercialPosTierDiscount"];
         put?: never;
         post?: never;
         delete?: never;
@@ -10151,6 +10185,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/loyalty/accounts/{id}/tier-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tier history of an account with its source (auto / manual) */
+        get: operations["getCrmLoyaltyAccountsByIdTierHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/loyalty/accounts/{id}:adjust": {
         parameters: {
             query?: never;
@@ -10162,6 +10213,23 @@ export interface paths {
         put?: never;
         /** Adjust Points (approval, reason required) */
         post: operations["postCrmLoyaltyAccountsByIdAdjust"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/accounts/{id}:override-tier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Classify a member manually (tier, reason, valid until; approval) */
+        post: operations["postCrmLoyaltyAccountsByIdOverrideTier"];
         delete?: never;
         options?: never;
         head?: never;
@@ -10270,6 +10338,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/loyalty/customer-tiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tier badges of customers (lists and pickers) */
+        get: operations["getCrmLoyaltyCustomerTiers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/loyalty/earning-rules": {
         parameters: {
             query?: never;
@@ -10333,6 +10418,23 @@ export interface paths {
         };
         /** Loyalty liability (outstanding points × redemption value) */
         get: operations["getCrmLoyaltyLiability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/member-tiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Memberships with the tier class of the member (Members by tier) */
+        get: operations["getCrmLoyaltyMemberTiers"];
         put?: never;
         post?: never;
         delete?: never;
@@ -10586,6 +10688,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/loyalty/tier-classes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tier classes: badge, thresholds in force and accounts per tier */
+        get: operations["getCrmLoyaltyTierClasses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/loyalty/tier-evaluations": {
         parameters: {
             query?: never;
@@ -10621,6 +10740,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/loyalty/tier-evaluations:preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview a tier evaluation (re-evaluate now): members moving up / down, nothing changed */
+        get: operations["getCrmLoyaltyTierEvaluationsPreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/tier-overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Manual classification overrides */
+        get: operations["getCrmLoyaltyTierOverrides"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/tier-overrides/{id}:revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End a manual classification now (the member returns to the tier held before) */
+        post: operations["postCrmLoyaltyTierOverridesByIdRevoke"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/loyalty/tiers": {
         parameters: {
             query?: never;
@@ -10650,12 +10820,29 @@ export interface paths {
         get: operations["getCrmLoyaltyTiersById"];
         put?: never;
         post?: never;
-        /** Delete Loyalty Tier (only when unused; otherwise set Inactive) */
+        /** Delete Loyalty Tier (only when no account has ever been in it; otherwise archived) */
         delete: operations["deleteCrmLoyaltyTiersById"];
         options?: never;
         head?: never;
         /** Edit Loyalty Tier */
         patch: operations["patchCrmLoyaltyTiersById"];
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/tiers/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Threshold versions of a tier (pending, in force, superseded) */
+        get: operations["getCrmLoyaltyTiersByIdVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/crm/loyalty/tiers:evaluate": {
@@ -12088,6 +12275,194 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ess/approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Requests of my team waiting for me */
+        get: operations["getEssApprovals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/approvals/{kind}/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a request of my team */
+        post: operations["postEssApprovalsByKindByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/approvals/{kind}/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a request of my team */
+        post: operations["postEssApprovalsByKindByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My attendance history */
+        get: operations["getEssAttendance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/attendance-corrections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My attendance corrections */
+        get: operations["getEssAttendanceCorrections"];
+        put?: never;
+        /** Ask to correct my attendance */
+        post: operations["postEssAttendanceCorrections"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/attendance-corrections/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw my attendance correction */
+        post: operations["postEssAttendanceCorrectionsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/attendance-events/{id}:review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept or reject a flagged clock-in of my team */
+        post: operations["postEssAttendanceEventsByIdReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/attendance-pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set my attendance PIN for the kiosk */
+        post: operations["postEssAttendancePin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/attendance-qr": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My personal QR for the Attendance Kiosk (valid 2 minutes) */
+        get: operations["getEssAttendanceQr"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/attendance:clock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Clock in / out with mobile GPS */
+        post: operations["postEssAttendanceClock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/clock-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My shift and attendance of today */
+        get: operations["getEssClockStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ess/documents": {
         parameters: {
             query?: never;
@@ -12122,6 +12497,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ess/leave-balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My leave balances */
+        get: operations["getEssLeaveBalances"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/leave-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My leave requests */
+        get: operations["getEssLeaveRequests"];
+        put?: never;
+        /** Request leave */
+        post: operations["postEssLeaveRequests"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/leave-requests/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw or cancel my leave (before it starts) */
+        post: operations["postEssLeaveRequestsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/leave-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leave and permission types I may request */
+        get: operations["getEssLeaveTypes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ess/me": {
         parameters: {
             query?: never;
@@ -12133,6 +12577,76 @@ export interface paths {
         get: operations["getEssMe"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/overtime-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My overtime */
+        get: operations["getEssOvertimeRequests"];
+        put?: never;
+        /** Request overtime */
+        post: operations["postEssOvertimeRequests"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/overtime-requests/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw my overtime request */
+        post: operations["postEssOvertimeRequestsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/permission-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My permission requests */
+        get: operations["getEssPermissionRequests"];
+        put?: never;
+        /** Request permission (izin) */
+        post: operations["postEssPermissionRequests"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/permission-requests/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw my permission request */
+        post: operations["postEssPermissionRequestsByIdCancel"];
         delete?: never;
         options?: never;
         head?: never;
@@ -12243,6 +12757,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ess/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My schedule (published shifts, swaps, colleagues) */
+        get: operations["getEssSchedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/shift-swaps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My shift swaps (asked by me or to me) */
+        get: operations["getEssShiftSwaps"];
+        put?: never;
+        /** Ask a colleague to swap a shift */
+        post: operations["postEssShiftSwaps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/shift-swaps/{id}:accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept a swap a colleague asked (goes to approval) */
+        post: operations["postEssShiftSwapsByIdAccept"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/shift-swaps/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw my swap request */
+        post: operations["postEssShiftSwapsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/shift-swaps/{id}:decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline a swap a colleague asked */
+        post: operations["postEssShiftSwapsByIdDecline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ess/team": {
         parameters: {
             query?: never;
@@ -12252,6 +12852,40 @@ export interface paths {
         };
         /** My team (department heads) */
         get: operations["getEssTeam"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/team-attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Attendance of my team on a day */
+        get: operations["getEssTeamAttendance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/team-calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leave calendar of my team */
+        get: operations["getEssTeamCalendar"];
         put?: never;
         post?: never;
         delete?: never;
@@ -12306,6 +12940,23 @@ export interface paths {
         put?: never;
         /** Submit my manager review for calibration */
         post: operations["postEssTeamReviewsByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/team-schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Schedule of my team */
+        get: operations["getEssTeamSchedule"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -16759,6 +17410,333 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/attendance-corrections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Attendance corrections */
+        get: operations["getHrisAttendanceCorrections"];
+        put?: never;
+        /** Request an attendance correction for an employee */
+        post: operations["postHrisAttendanceCorrections"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-corrections/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve an attendance correction */
+        post: operations["postHrisAttendanceCorrectionsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-corrections/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject an attendance correction */
+        post: operations["postHrisAttendanceCorrectionsByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-days": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Attendance days */
+        get: operations["getHrisAttendanceDays"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Attendance Devices */
+        get: operations["getHrisAttendanceDevices"];
+        put?: never;
+        /** Add Attendance Device */
+        post: operations["postHrisAttendanceDevices"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-devices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Attendance Device */
+        get: operations["getHrisAttendanceDevicesById"];
+        put?: never;
+        post?: never;
+        /** Delete Attendance Device (only when unused; otherwise set Inactive) */
+        delete: operations["deleteHrisAttendanceDevicesById"];
+        options?: never;
+        head?: never;
+        /** Edit Attendance Device */
+        patch: operations["patchHrisAttendanceDevicesById"];
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-devices/{id}:simulate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fire a face / fingerprint event on a mock device (trial adapter) */
+        post: operations["postHrisAttendanceDevicesByIdSimulate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-devices/{id}:sync-employees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send the employee list (no biometrics) to a device */
+        post: operations["postHrisAttendanceDevicesByIdSyncEmployees"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-devices:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Attendance Devices (CSV/XLSX) */
+        get: operations["getHrisAttendanceDevicesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Clock events (review queue with review=pending) */
+        get: operations["getHrisAttendanceEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-events/{id}:review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept or reject a flagged clock event */
+        post: operations["postHrisAttendanceEventsByIdReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Attendance profiles of the employees */
+        get: operations["getHrisAttendanceProfiles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-profiles/{id}:consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record or withdraw the written biometric consent */
+        post: operations["postHrisAttendanceProfilesByIdConsent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance-profiles/{id}:set-pin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset the attendance PIN of an employee */
+        post: operations["postHrisAttendanceProfilesByIdSetPin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance/kiosk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The Attendance Kiosk of this registered device */
+        get: operations["getHrisAttendanceKiosk"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance/kiosk:clock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Clock in / out at the kiosk (QR or PIN) */
+        post: operations["postHrisAttendanceKioskClock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance/kiosk:sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send the offline queue of the kiosk (idempotent) */
+        post: operations["postHrisAttendanceKioskSync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance:clock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record a clock-in / out on behalf of an employee */
+        post: operations["postHrisAttendanceClock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/attendance:recalculate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Re-evaluate attendance days of a period */
+        post: operations["postHrisAttendanceRecalculate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/bank-accounts": {
         parameters: {
             query?: never;
@@ -17647,6 +18625,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/geofences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Geofences */
+        get: operations["getHrisGeofences"];
+        put?: never;
+        /** Add Geofence */
+        post: operations["postHrisGeofences"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/geofences/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Geofence */
+        get: operations["getHrisGeofencesById"];
+        put?: never;
+        post?: never;
+        /** Delete Geofence (only when unused; otherwise set Inactive) */
+        delete: operations["deleteHrisGeofencesById"];
+        options?: never;
+        head?: never;
+        /** Edit Geofence */
+        patch: operations["patchHrisGeofencesById"];
+        trace?: never;
+    };
+    "/api/v1/hris/geofences:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Geofences (CSV/XLSX) */
+        get: operations["getHrisGeofencesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/grades": {
         parameters: {
             query?: never;
@@ -17693,6 +18725,60 @@ export interface paths {
         };
         /** Export Grades (CSV/XLSX) */
         get: operations["getHrisGradesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/holidays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Holidays */
+        get: operations["getHrisHolidays"];
+        put?: never;
+        /** Add Holiday */
+        post: operations["postHrisHolidays"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/holidays/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Holiday */
+        get: operations["getHrisHolidaysById"];
+        put?: never;
+        post?: never;
+        /** Delete Holiday (only when unused; otherwise set Inactive) */
+        delete: operations["deleteHrisHolidaysById"];
+        options?: never;
+        head?: never;
+        /** Edit Holiday */
+        patch: operations["patchHrisHolidaysById"];
+        trace?: never;
+    };
+    "/api/v1/hris/holidays:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Holidays (CSV/XLSX) */
+        get: operations["getHrisHolidaysExport"];
         put?: never;
         post?: never;
         delete?: never;
@@ -18113,6 +19199,194 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/leave-balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leave balances */
+        get: operations["getHrisLeaveBalances"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/leave-balances:accrue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run the leave accrual, carry-over and expiry now */
+        post: operations["postHrisLeaveBalancesAccrue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/leave-balances:adjust": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adjust a leave balance */
+        post: operations["postHrisLeaveBalancesAdjust"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/leave-balances:import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import leave balances from CSV (migration) */
+        post: operations["postHrisLeaveBalancesImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/leave-calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leave calendar with schedule conflicts */
+        get: operations["getHrisLeaveCalendar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/leave-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leave requests */
+        get: operations["getHrisLeaveRequests"];
+        put?: never;
+        /** Request leave for an employee */
+        post: operations["postHrisLeaveRequests"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/leave-requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leave request with its approvals */
+        get: operations["getHrisLeaveRequestsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/leave-requests/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a leave request */
+        post: operations["postHrisLeaveRequestsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/leave-requests/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a leave request (approved leave is restored to the balance) */
+        post: operations["postHrisLeaveRequestsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/leave-requests/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a leave request */
+        post: operations["postHrisLeaveRequestsByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/leave-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leave and permission types (Leave Policy) */
+        get: operations["getHrisLeaveTypes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/letter-templates": {
         parameters: {
             query?: never;
@@ -18266,6 +19540,127 @@ export interface paths {
         get: operations["getHrisOrgUnitsExport"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/overtime-exceptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overtime worked without approval */
+        get: operations["getHrisOvertimeExceptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/overtime-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overtime requests */
+        get: operations["getHrisOvertimeRequests"];
+        put?: never;
+        /** Request overtime for an employee */
+        post: operations["postHrisOvertimeRequests"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/overtime-requests/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve an overtime request */
+        post: operations["postHrisOvertimeRequestsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/overtime-requests/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject an overtime request */
+        post: operations["postHrisOvertimeRequestsByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/permission-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Permission (izin) requests */
+        get: operations["getHrisPermissionRequests"];
+        put?: never;
+        /** Request permission for an employee */
+        post: operations["postHrisPermissionRequests"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/permission-requests/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a permission request */
+        post: operations["postHrisPermissionRequestsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/permission-requests/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a permission request */
+        post: operations["postHrisPermissionRequestsByIdReject"];
         delete?: never;
         options?: never;
         head?: never;
@@ -18666,6 +20061,355 @@ export interface paths {
         put?: never;
         /** Submit the manager review for calibration */
         post: operations["postHrisReviewsByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Shift schedules */
+        get: operations["getHrisSchedules"];
+        put?: never;
+        /** Create a shift schedule (draft) */
+        post: operations["postHrisSchedules"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/schedules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Shift schedule with grid, coverage and issues */
+        get: operations["getHrisSchedulesById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit a shift schedule */
+        patch: operations["patchHrisSchedulesById"];
+        trace?: never;
+    };
+    "/api/v1/hris/schedules/{id}:apply-pattern": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Repeat a shift pattern over the period */
+        post: operations["postHrisSchedulesByIdApplyPattern"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/schedules/{id}:assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set shifts and days off */
+        post: operations["postHrisSchedulesByIdAssign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/schedules/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a draft schedule */
+        post: operations["postHrisSchedulesByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/schedules/{id}:copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Copy the assignments of another schedule */
+        post: operations["postHrisSchedulesByIdCopy"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/schedules/{id}:publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish the schedule to Employee Self Service */
+        post: operations["postHrisSchedulesByIdPublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/shift-swaps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Shift swaps */
+        get: operations["getHrisShiftSwaps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/shift-swaps/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a shift swap (HR) */
+        post: operations["postHrisShiftSwapsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/shift-swaps/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a shift swap (HR) */
+        post: operations["postHrisShiftSwapsByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/shift-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Shift Templates */
+        get: operations["getHrisShiftTemplates"];
+        put?: never;
+        /** Add Shift Template */
+        post: operations["postHrisShiftTemplates"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/shift-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Shift Template */
+        get: operations["getHrisShiftTemplatesById"];
+        put?: never;
+        post?: never;
+        /** Delete Shift Template (only when unused; otherwise set Inactive) */
+        delete: operations["deleteHrisShiftTemplatesById"];
+        options?: never;
+        head?: never;
+        /** Edit Shift Template */
+        patch: operations["patchHrisShiftTemplatesById"];
+        trace?: never;
+    };
+    "/api/v1/hris/shift-templates:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Shift Templates (CSV/XLSX) */
+        get: operations["getHrisShiftTemplatesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/staffing-demand": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Operational demand as scheduling reference */
+        get: operations["getHrisStaffingDemand"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/staffing-requirements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Staffing Requirements */
+        get: operations["getHrisStaffingRequirements"];
+        put?: never;
+        /** Add Staffing Requirement */
+        post: operations["postHrisStaffingRequirements"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/staffing-requirements/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Staffing Requirement */
+        get: operations["getHrisStaffingRequirementsById"];
+        put?: never;
+        post?: never;
+        /** Delete Staffing Requirement (only when unused; otherwise set Inactive) */
+        delete: operations["deleteHrisStaffingRequirementsById"];
+        options?: never;
+        head?: never;
+        /** Edit Staffing Requirement */
+        patch: operations["patchHrisStaffingRequirementsById"];
+        trace?: never;
+    };
+    "/api/v1/hris/staffing-requirements:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Staffing Requirements (CSV/XLSX) */
+        get: operations["getHrisStaffingRequirementsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/time-locks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payroll period locks of attendance */
+        get: operations["getHrisTimeLocks"];
+        put?: never;
+        /** Close and lock the attendance of a payroll period */
+        post: operations["postHrisTimeLocks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/time-locks/{id}:release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Release a payroll period lock */
+        post: operations["postHrisTimeLocksByIdRelease"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/time-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Time & attendance per employee of a payroll period (payroll input) */
+        get: operations["getHrisTimeSummary"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -31255,6 +32999,14 @@ export interface components {
             stackable: boolean;
             version: number;
         };
+        AppliedTierVersion: {
+            tierCode: string;
+            /** Format: uuid */
+            tierId: string;
+            version: number;
+            /** Format: uuid */
+            versionId: string;
+        };
         ApplyPromotionInput: {
             /** @description Promo code entered by the cashier */
             promoCode?: string;
@@ -31496,6 +33248,279 @@ export interface components {
             /** Format: date-time */
             workDate: string;
         };
+        AttendanceClockRequest: {
+            accuracyMeters?: number | null;
+            /** @description Client UUID; a resubmission returns the recorded event (offline sync) */
+            clientEventId?: string;
+            /**
+             * @description Empty: in when the last event was an out
+             * @enum {string}
+             */
+            direction?: "in" | "out";
+            latitude?: number | null;
+            longitude?: number | null;
+            /** @description RFC 3339; only for offline events (offline=true), else the server time */
+            occurredAt?: string;
+            offline?: boolean;
+        };
+        AttendanceClockResult: {
+            day: components["schemas"]["AttendanceDaySnapshot"];
+            /** @description The event was already recorded (resubmission) */
+            duplicate: boolean;
+            event: components["schemas"]["AttendanceEventView"];
+            message: string;
+        };
+        AttendanceClockStatus: {
+            day: components["schemas"]["AttendanceDaySnapshot"];
+            geofences: components["schemas"]["AttendanceGeofenceRef"][];
+            lastEvent?: components["schemas"]["AttendanceEventView"] | null;
+            /** @description The employee may clock in with mobile GPS */
+            mobileGps: boolean;
+            /** @enum {string} */
+            nextDirection: "in" | "out";
+            pinSet: boolean;
+            /** Format: date-time */
+            serverTime: string;
+            shift?: components["schemas"]["ShiftAssignmentView"] | null;
+            today: string;
+        };
+        AttendanceConsentRequest: {
+            /** @description false = consent withdrawn: the employee is removed from the biometric devices */
+            consent: boolean;
+            /**
+             * Format: uuid
+             * @description Scan of the signed consent (POST /api/v1/hris/document-files)
+             */
+            fileId?: string | null;
+            /** @description Date of the signed consent (required when consenting) */
+            signedOn?: string;
+        };
+        AttendanceCorrection: {
+            approvals: components["schemas"]["TimeApprovalStep"][];
+            /** Format: uuid */
+            attachmentFileId?: string | null;
+            /** Format: date-time */
+            clockIn?: string | null;
+            /** Format: date-time */
+            clockOut?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            decisionNote?: string | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            propertyId: string;
+            reason: string;
+            /** @enum {string} */
+            status: "submitted" | "approved" | "rejected" | "cancelled";
+            /** Format: date-time */
+            workDate: string;
+        };
+        AttendanceCorrectionRequest: {
+            /** Format: uuid */
+            attachmentFileId?: string | null;
+            /** @description HH:MM local */
+            clockIn?: string;
+            /** @description HH:MM local */
+            clockOut?: string;
+            /**
+             * Format: uuid
+             * @description HR only; ESS corrects my own attendance
+             */
+            employeeId?: string | null;
+            reason: string;
+            workDate: string;
+        };
+        AttendanceDaySnapshot: {
+            earlyLeaveMinutes: number;
+            firstIn?: string | null;
+            lastOut?: string | null;
+            lateMinutes: number;
+            overtimeMinutes: number;
+            /** @enum {string} */
+            status: "scheduled" | "present" | "late" | "early_leave" | "absent" | "on_leave" | "off" | "holiday";
+            workedMinutes: number;
+        };
+        AttendanceDayView: {
+            /** @enum {string} */
+            dayKind: "workday" | "rest_day" | "shortest_day";
+            earlyLeaveMinutes: number;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            finalized: boolean;
+            /** Format: date-time */
+            firstIn?: string | null;
+            flags: string[];
+            holidayName?: string | null;
+            /** Format: date-time */
+            lastOut?: string | null;
+            lateMinutes: number;
+            leaveType?: string | null;
+            locked: boolean;
+            orgUnitName?: string | null;
+            overtimeMinutes: number;
+            /** Format: date-time */
+            scheduledEnd?: string | null;
+            /** Format: date-time */
+            scheduledStart?: string | null;
+            shiftCode?: string | null;
+            shiftName?: string | null;
+            /** @enum {string} */
+            status: "scheduled" | "present" | "late" | "early_leave" | "absent" | "on_leave" | "off" | "holiday";
+            /** Format: date-time */
+            workDate: string;
+            workedMinutes: number;
+        };
+        AttendanceDevice: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /**
+             * Format: uuid
+             * @description Bridge Agent
+             */
+            bridgeAgentId?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * @description Kind
+             * @enum {string}
+             */
+            deviceKind: "biometric" | "kiosk";
+            /**
+             * Format: uuid
+             * @description Geofence
+             */
+            geofenceId?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: date-time
+             * @description Last Event
+             */
+            lastEventAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Last Employee Sync
+             */
+            lastSyncAt?: string | null;
+            /** @description Location */
+            locationPoint?: string | null;
+            /** @description Methods */
+            methods?: ("fingerprint" | "face_recognition" | "kiosk_qr" | "kiosk_pin")[] | null;
+            /** @description Name */
+            name: string;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Registered Device (kiosk)
+             */
+            platformDeviceId?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Serial No. */
+            serialNo?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * @description Vendor (mock = trial adapter)
+             * @enum {string|null}
+             */
+            vendor?: "mock" | "zkteco" | "other" | null;
+        };
+        AttendanceDeviceEventInput: {
+            deviceUserNo: string;
+            /** @enum {string} */
+            direction?: "in" | "out";
+            /** @description Device event id (idempotency) */
+            eventId: string;
+            /** @enum {string} */
+            method: "face_recognition" | "fingerprint";
+            /** @description RFC 3339 */
+            occurredAt: string;
+        };
+        AttendanceDeviceEventsRequest: {
+            deviceCode?: string;
+            deviceSerial?: string;
+            events: components["schemas"]["AttendanceDeviceEventInput"][];
+        };
+        AttendanceDeviceEventsResult: {
+            results: components["schemas"]["AttendanceSyncItemResult"][];
+        };
+        AttendanceDeviceInput: {
+            /**
+             * Format: uuid
+             * @description Bridge Agent
+             */
+            bridgeAgentId?: string | null;
+            /** @description Code */
+            code?: string;
+            /**
+             * @description Kind
+             * @enum {string}
+             */
+            deviceKind?: "biometric" | "kiosk";
+            /**
+             * Format: uuid
+             * @description Geofence
+             */
+            geofenceId?: string | null;
+            /** @description Location */
+            locationPoint?: string | null;
+            /** @description Methods */
+            methods?: ("fingerprint" | "face_recognition" | "kiosk_qr" | "kiosk_pin")[] | null;
+            /** @description Name */
+            name?: string;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Registered Device (kiosk)
+             */
+            platformDeviceId?: string | null;
+            /** @description Serial No. */
+            serialNo?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * @description Vendor (mock = trial adapter)
+             * @enum {string|null}
+             */
+            vendor?: "mock" | "zkteco" | "other" | null;
+        };
+        AttendanceDeviceSyncResult: {
+            /**
+             * Format: uuid
+             * @description Bridge command (real devices)
+             */
+            commandId?: string | null;
+            /** Format: uuid */
+            deviceId: string;
+            /** @description Leavers / withdrawn consents removed from the device */
+            removals: number;
+            /** @enum {string} */
+            status: "synced" | "queued";
+            /** @description Employees with biometric consent sent to the device */
+            users: number;
+            vendor: string;
+        };
         AttendanceEntry: {
             /** Format: uuid */
             caddyId: string;
@@ -31503,16 +33528,210 @@ export interface components {
             /** @enum {string} */
             status: "present" | "absent" | "leave";
         };
+        AttendanceEventView: {
+            accuracyMeters?: number | null;
+            /** Format: uuid */
+            correctionId?: string | null;
+            deviceName?: string | null;
+            /** @enum {string} */
+            direction: "in" | "out";
+            distanceMeters?: number | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            flags: string[];
+            geofenceName?: string | null;
+            /** Format: uuid */
+            id: string;
+            method: string;
+            note?: string | null;
+            /** Format: date-time */
+            occurredAt: string;
+            offline: boolean;
+            /** Format: date-time */
+            receivedAt: string;
+            reviewNote?: string | null;
+            /** @enum {string} */
+            reviewStatus: "not_required" | "pending" | "accepted" | "rejected";
+            /** @enum {string} */
+            source: "ess" | "kiosk" | "device" | "hr" | "correction";
+            voided: boolean;
+            withinGeofence?: boolean | null;
+            /** Format: date-time */
+            workDate: string;
+        };
+        AttendanceGeofence: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Latitude */
+            latitude: string;
+            /** @description Longitude */
+            longitude: string;
+            /** @description Name */
+            name: string;
+            /** @description Notes */
+            notes?: string | null;
+            /** @description Org Units (codes; empty = all) */
+            orgUnitCodes?: string[] | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Radius (m)
+             */
+            radiusMeters?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AttendanceGeofenceInput: {
+            /** @description Code */
+            code?: string;
+            /** @description Latitude */
+            latitude?: string;
+            /** @description Longitude */
+            longitude?: string;
+            /** @description Name */
+            name?: string;
+            /** @description Notes */
+            notes?: string | null;
+            /** @description Org Units (codes; empty = all) */
+            orgUnitCodes?: string[] | null;
+            /**
+             * Format: int64
+             * @description Radius (m)
+             */
+            radiusMeters?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        AttendanceGeofenceRef: {
+            latitude: number;
+            longitude: number;
+            name: string;
+            radiusMeters: number;
+        };
         AttendanceInput: {
             /** Format: uuid */
             sessionBookingId: string;
             /** @enum {string} */
             status: "present" | "absent" | "excused";
         };
+        AttendanceKioskClockRequest: {
+            clientEventId?: string;
+            /** @enum {string} */
+            direction?: "in" | "out";
+            employeeNo?: string;
+            /** @description RFC 3339; only for offline events */
+            occurredAt?: string;
+            offline?: boolean;
+            pin?: string;
+            qrToken?: string;
+        };
+        AttendanceKioskInfo: {
+            code: string;
+            /** Format: uuid */
+            deviceId: string;
+            location?: string | null;
+            methods: string[];
+            name: string;
+            recent: components["schemas"]["AttendanceEventView"][];
+            /** Format: date-time */
+            serverTime: string;
+        };
+        AttendanceKioskSyncRequest: {
+            events: components["schemas"]["AttendanceKioskClockRequest"][];
+        };
+        AttendanceKioskSyncResult: {
+            results: components["schemas"]["AttendanceSyncItemResult"][];
+        };
+        AttendancePINRequest: {
+            /** @description Required when changing your own PIN in ESS */
+            currentPin?: string;
+            pin: string;
+        };
+        AttendancePINResult: {
+            pinSet: boolean;
+        };
+        AttendanceProfile: {
+            biometricConsent: boolean;
+            /** Format: uuid */
+            consentFileId?: string | null;
+            /** Format: date-time */
+            consentSignedOn?: string | null;
+            /** Format: date-time */
+            consentWithdrawnAt?: string | null;
+            deviceUserNo?: string | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            /** Format: date-time */
+            enrolledAt?: string | null;
+            orgUnitName?: string | null;
+            pinLocked: boolean;
+            pinSet: boolean;
+            /** Format: date-time */
+            removalRequestedAt?: string | null;
+        };
+        AttendanceQR: {
+            /** Format: date-time */
+            expiresAt: string;
+            token: string;
+        };
+        AttendanceRecalculateRequest: {
+            /** Format: uuid */
+            employeeId?: string | null;
+            from: string;
+            to: string;
+        };
+        AttendanceRecalculateResult: {
+            days: number;
+            from: string;
+            to: string;
+        };
         AttendanceRequest: {
             /** @description Default today */
             date?: string;
             entries: components["schemas"]["AttendanceEntry"][];
+        };
+        AttendanceReviewRequest: {
+            /** @enum {string} */
+            decision: "accepted" | "rejected";
+            note?: string;
+        };
+        AttendanceSimulateRequest: {
+            /** @enum {string} */
+            direction?: "in" | "out";
+            /** Format: uuid */
+            employeeId: string;
+            /** @description Device event id; resending it is idempotent */
+            eventId?: string;
+            /** @enum {string} */
+            method?: "face_recognition" | "fingerprint";
+            /** @description RFC 3339 (default now) */
+            occurredAt?: string;
+        };
+        AttendanceSyncItemResult: {
+            clientEventId: string;
+            error?: string;
+            result?: components["schemas"]["AttendanceClockResult"] | null;
+            /** @enum {string} */
+            status: "accepted" | "duplicate" | "rejected";
         };
         AuditFinding: {
             check: string;
@@ -31856,6 +34075,15 @@ export interface components {
             status: string;
             typeName: string;
             unit: string;
+        };
+        BalanceAdjustRequest: {
+            /** @description Positive adds, negative deducts */
+            days: string;
+            /** Format: uuid */
+            employeeId: string;
+            leaveType: string;
+            note: string;
+            year: number;
         };
         BandShare: {
             code: string;
@@ -39439,6 +41667,19 @@ export interface components {
             /** @description YYYY-MM */
             taxPeriod: string;
         };
+        ESSColleague: {
+            assignments: components["schemas"]["ShiftAssignmentView"][];
+            employeeNo: string;
+            fullName: string;
+            /** Format: uuid */
+            id: string;
+            position?: string | null;
+        };
+        ESSHoliday: {
+            date: string;
+            kind: string;
+            name: string;
+        };
         ESSMe: {
             employee: components["schemas"]["SelfProfile"];
             /** @description My documents and certificates expiring within 30 days */
@@ -43043,6 +45284,71 @@ export interface components {
             notes?: string;
             witnesses: components["schemas"]["Witness"][];
         };
+        HRClockRequest: {
+            /** @enum {string} */
+            direction: "in" | "out";
+            /** Format: uuid */
+            employeeId: string;
+            note: string;
+            /** @description RFC 3339 */
+            occurredAt: string;
+        };
+        HRHoliday: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Deducts Annual Leave (collective leave) */
+            deductsAnnualLeave?: boolean | null;
+            /**
+             * Format: date
+             * @description Date
+             */
+            holidayDate: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Kind
+             * @enum {string|null}
+             */
+            kind?: "public_holiday" | "collective_leave" | "company_holiday" | null;
+            /** @description Name */
+            name: string;
+            /** @description Notes */
+            notes?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        HRHolidayInput: {
+            /** @description Deducts Annual Leave (collective leave) */
+            deductsAnnualLeave?: boolean | null;
+            /**
+             * Format: date
+             * @description Date
+             */
+            holidayDate?: string;
+            /**
+             * @description Kind
+             * @enum {string|null}
+             */
+            kind?: "public_holiday" | "collective_leave" | "company_holiday" | null;
+            /** @description Name */
+            name?: string;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
         HRImportRequest: {
             /** @description CSV with a header row (column names of the entity, see the HRIS import screen) */
             csv: string;
@@ -46132,6 +48438,146 @@ export interface components {
             /** @description Rounds or active days */
             value: number;
         };
+        LeaveAccrualReport: {
+            carriedOver: number;
+            /** @description Collective leave days deducted */
+            collective: number;
+            expired: number;
+            granted: number;
+        };
+        LeaveAccrueRequest: {
+            /** Format: uuid */
+            employeeId?: string | null;
+        };
+        LeaveBalanceView: {
+            adjusted: string;
+            /** @description entitled + carried over − expired + adjusted − used − pending */
+            available: string;
+            carriedExpired: string;
+            carriedOver: string;
+            /** Format: date-time */
+            carryOverExpiresOn?: string | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            entitled: string;
+            /** Format: date-time */
+            grantedOn?: string | null;
+            /** Format: uuid */
+            id: string;
+            leaveType: string;
+            orgUnitName?: string | null;
+            /** @description Days of requests waiting for approval (reserved) */
+            pending: string;
+            used: string;
+            year: number;
+        };
+        LeaveCalendarEntry: {
+            days: string;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            /** Format: date-time */
+            endDate: string;
+            leaveType: string;
+            number: string;
+            orgUnitName?: string | null;
+            /** Format: uuid */
+            requestId: string;
+            /** @description Shifts on the leave days (not yet covered) */
+            scheduleConflicts: number;
+            /** Format: date-time */
+            startDate: string;
+            status: string;
+        };
+        LeaveImportIssue: {
+            key: string;
+            message: string;
+            row: number;
+        };
+        LeaveImportReport: {
+            dryRun: boolean;
+            failed: number;
+            inserted: number;
+            issues: components["schemas"]["LeaveImportIssue"][];
+            rows: number;
+            updated: number;
+        };
+        LeaveImportRequest: {
+            /** @description Columns: employeeNo, leaveType, year, entitled, carriedOver, carryOverExpiresOn, used, note */
+            csv: string;
+            dryRun?: boolean;
+        };
+        LeaveRequestInput: {
+            /**
+             * Format: uuid
+             * @description e.g. a doctor's letter (POST /api/v1/hris/document-files)
+             */
+            documentFileId?: string | null;
+            /**
+             * Format: uuid
+             * @description HR only
+             */
+            employeeId?: string | null;
+            /** @description Default: the start date */
+            endDate?: string;
+            /** @enum {string} */
+            halfDay?: "am" | "pm";
+            leaveType: string;
+            reason?: string;
+            startDate: string;
+        };
+        LeaveRequestView: {
+            approvals: components["schemas"]["TimeApprovalStep"][];
+            /** Format: date-time */
+            createdAt: string;
+            days: string;
+            /** Format: date-time */
+            decidedAt?: string | null;
+            decisionNote?: string | null;
+            /** Format: uuid */
+            documentFileId?: string | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            /** Format: date-time */
+            endDate: string;
+            /** @enum {string|null} */
+            halfDay?: "am" | "pm" | null;
+            /** Format: uuid */
+            id: string;
+            leaveType: string;
+            number: string;
+            orgUnitName?: string | null;
+            paid: boolean;
+            /** Format: uuid */
+            propertyId: string;
+            reason?: string | null;
+            /** @description Published shifts in the period (FR-LVE-03) */
+            scheduleConflicts: number;
+            /** Format: date-time */
+            startDate: string;
+            /** @enum {string} */
+            status: "submitted" | "approved" | "rejected" | "cancelled";
+        };
+        LeaveTypeView: {
+            accrual: string;
+            code: string;
+            countsWorkingDays: boolean;
+            days: number;
+            eligibleAfterMonths: number;
+            gender?: string;
+            hasBalance: boolean;
+            /** @enum {string} */
+            kind: "leave" | "permission";
+            maxHours?: string;
+            name: string;
+            paid: boolean;
+            policyVersion: number;
+            requiresDocument: boolean;
+        };
         LedgerEntry: {
             actorName?: string | null;
             amount: string;
@@ -46808,6 +49254,22 @@ export interface components {
             utilisation: string;
             withinBudget: boolean;
         };
+        LoyaltyCustomerTier: {
+            /** Format: uuid */
+            accountId: string;
+            /** Format: uuid */
+            customerId: string;
+            graceUntil?: string | null;
+            tierCode?: string | null;
+            tierColor?: string | null;
+            tierIcon?: string | null;
+            /** Format: uuid */
+            tierId?: string | null;
+            tierName?: string | null;
+            tierRank?: number | null;
+            /** @enum {string} */
+            tierSource: "auto" | "manual";
+        };
         LoyaltyEligibleReward: {
             /** @description Eligible and enough points */
             affordable: boolean;
@@ -46902,6 +49364,39 @@ export interface components {
             /** @description Outstanding points */
             points: number;
             redemptionValue: string;
+        };
+        LoyaltyMemberTier: {
+            /**
+             * Format: uuid
+             * @description Loyalty account (null: not enrolled)
+             */
+            accountId?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            endsOn?: string | null;
+            /**
+             * Format: uuid
+             * @description Membership id
+             */
+            id: string;
+            /** Format: uuid */
+            memberId: string;
+            memberName: string;
+            memberNo: string;
+            overrideUntil?: string | null;
+            role: string;
+            startsOn?: string | null;
+            status: string;
+            tierCode?: string | null;
+            tierColor?: string | null;
+            tierIcon?: string | null;
+            /** Format: uuid */
+            tierId?: string | null;
+            tierName?: string | null;
+            tierRank?: number | null;
+            /** @enum {string|null} */
+            tierSource?: "auto" | "manual" | null;
+            typeName: string;
         };
         LoyaltyRedeemInput: {
             /** @description Amount to pay with points (default: the folio balance) */
@@ -47213,14 +49708,32 @@ export interface components {
             bookingWindowDays?: number | null;
             /** @description Code */
             code: string;
+            /** @description Badge Colour */
+            color?: string | null;
             /** Format: date-time */
             createdAt: string;
+            /** @description Downgrade Allowed */
+            downgradeAllowed?: boolean | null;
+            /**
+             * Format: int64
+             * @description Version in Force
+             */
+            effectiveVersion?: number | null;
             /** @description VIP Event Access */
             eventAccess?: boolean | null;
             /** @description F&B Discount (%) */
             fnbDiscountPercent?: string | null;
+            /**
+             * Format: int64
+             * @description Grace Before Downgrade (months; empty = programme)
+             */
+            graceMonths?: number | null;
+            /** @description Badge Icon */
+            icon?: string | null;
             /** Format: uuid */
             id: string;
+            /** @description Membership Types (empty = any customer) */
+            membershipTypeIds?: string[] | null;
             /**
              * Format: int64
              * @description Minimum Points (period)
@@ -47232,10 +49745,22 @@ export interface components {
             multiplier?: string | null;
             /** @description Name */
             name: string;
+            /** @description Thresholds Pending (next evaluation) */
+            pendingThresholds?: boolean | null;
+            /**
+             * Format: int64
+             * @description Qualifying Window (months; empty = programme)
+             */
+            periodMonths?: number | null;
             /** @description Priority Service */
             priorityService?: boolean | null;
             /** Format: uuid */
             propertyId?: string;
+            /**
+             * @description Qualification (all thresholds / any threshold)
+             * @enum {string|null}
+             */
+            qualifyMode?: "all" | "any" | null;
             /**
              * Format: int64
              * @description Rank
@@ -47246,6 +49771,11 @@ export interface components {
              * @enum {string|null}
              */
             status?: "active" | "inactive" | null;
+            /**
+             * Format: int64
+             * @description Threshold Version
+             */
+            thresholdVersion?: number | null;
             /** Format: date-time */
             updatedAt: string;
         };
@@ -47262,18 +49792,56 @@ export interface components {
             fnbDiscountPercent: string;
             /** @description The tier is kept until this date (grace period) */
             graceUntil?: string | null;
+            /** @description A manual classification override is in force */
+            overridden: boolean;
+            /** @description End of the manual classification override in force (null: none or open-ended) */
+            overrideUntil?: string | null;
             pointsMultiplier: string;
             priorityService: boolean;
             tierCode?: string | null;
+            /** @description Badge colour #RRGGBB */
+            tierColor?: string | null;
+            /** @description Badge icon (Material Symbols name) */
+            tierIcon?: string | null;
             /** Format: uuid */
             tierId?: string | null;
             tierName?: string | null;
+            tierRank?: number | null;
+            /**
+             * @description auto: tier evaluation; manual: Set Tier or a classification override
+             * @enum {string}
+             */
+            tierSource: "auto" | "manual";
+        };
+        LoyaltyTierClass: {
+            /** @description Active loyalty accounts in the tier */
+            accounts: number;
+            bookingWindowDays: number;
+            code: string;
+            color: string;
+            fnbDiscountPercent: string;
+            icon: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Of which classified manually */
+            manualAccounts: number;
+            /** @description Points threshold in force */
+            minPoints: number;
+            /** @description Spend threshold in force */
+            minSpend: string;
+            multiplier: string;
+            name: string;
+            pendingThresholds: boolean;
+            rank: number;
+            /** @enum {string} */
+            status: "active" | "inactive";
         };
         LoyaltyTierEvaluation: {
             changed: number;
         };
         LoyaltyTierEvaluationDetail: {
             accounts: number;
+            appliedVersions: components["schemas"]["AppliedTierVersion"][];
             /** Format: date-time */
             createdAt: string;
             downgraded: number;
@@ -47295,6 +49863,8 @@ export interface components {
         LoyaltyTierEvaluationInput: {
             /** @description Evaluate only these accounts (default: every active account) */
             accountIds?: string[];
+            /** @description Put the pending tier thresholds in force before evaluating */
+            applyPendingVersions?: boolean;
             /**
              * @description annual: full evaluation with grace; periodic: upgrades and ended grace; grace_review: ended grace only
              * @enum {string}
@@ -47321,8 +49891,27 @@ export interface components {
             toTierId?: string | null;
             toTierName?: string | null;
         };
+        LoyaltyTierEvaluationPreview: {
+            accounts: number;
+            downgraded: number;
+            graceStarted: number;
+            inGrace: number;
+            /** @enum {string} */
+            kind: "annual" | "periodic" | "grace_review";
+            /** @description Accounts whose tier or grace would change (first 500) */
+            lines: components["schemas"]["LoyaltyTierPreviewLine"][];
+            locked: number;
+            moves: components["schemas"]["LoyaltyTierMove"][];
+            /** @description Evaluated with the pending threshold versions */
+            pendingThresholds: boolean;
+            /** @description Codes of the tiers with pending thresholds */
+            pendingTiers: string[];
+            retained: number;
+            upgraded: number;
+        };
         LoyaltyTierEvaluationRun: {
             accounts: number;
+            appliedVersions: components["schemas"]["AppliedTierVersion"][];
             /** Format: date-time */
             createdAt: string;
             downgraded: number;
@@ -47340,6 +49929,26 @@ export interface components {
             windowFrom: string;
             windowTo: string;
         };
+        LoyaltyTierHistoryEntry: {
+            /** Format: date-time */
+            createdAt: string;
+            createdByName?: string | null;
+            /** @enum {string} */
+            direction: "up" | "down" | "same";
+            fromTierName?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            overrideId?: string | null;
+            overrideNumber?: string | null;
+            pointsBasis?: number | null;
+            reason: string;
+            /** @enum {string} */
+            source: "auto" | "manual";
+            spendBasis?: string | null;
+            toTierColor?: string | null;
+            toTierName?: string | null;
+        };
         LoyaltyTierInput: {
             /** @description Benefits */
             benefits?: string | null;
@@ -47350,10 +49959,23 @@ export interface components {
             bookingWindowDays?: number | null;
             /** @description Code */
             code?: string;
+            /** @description Badge Colour */
+            color?: string | null;
+            /** @description Downgrade Allowed */
+            downgradeAllowed?: boolean | null;
             /** @description VIP Event Access */
             eventAccess?: boolean | null;
             /** @description F&B Discount (%) */
             fnbDiscountPercent?: string | null;
+            /**
+             * Format: int64
+             * @description Grace Before Downgrade (months; empty = programme)
+             */
+            graceMonths?: number | null;
+            /** @description Badge Icon */
+            icon?: string | null;
+            /** @description Membership Types (empty = any customer) */
+            membershipTypeIds?: string[] | null;
             /**
              * Format: int64
              * @description Minimum Points (period)
@@ -47365,8 +49987,18 @@ export interface components {
             multiplier?: string | null;
             /** @description Name */
             name?: string;
+            /**
+             * Format: int64
+             * @description Qualifying Window (months; empty = programme)
+             */
+            periodMonths?: number | null;
             /** @description Priority Service */
             priorityService?: boolean | null;
+            /**
+             * @description Qualification (all thresholds / any threshold)
+             * @enum {string|null}
+             */
+            qualifyMode?: "all" | "any" | null;
             /**
              * Format: int64
              * @description Rank
@@ -47377,6 +50009,13 @@ export interface components {
              * @enum {string|null}
              */
             status?: "active" | "inactive" | null;
+        };
+        LoyaltyTierMove: {
+            accounts: number;
+            /** @enum {string} */
+            direction: "up" | "down";
+            fromTierName?: string | null;
+            toTierName?: string | null;
         };
         LoyaltyTierNote: {
             /** Format: date-time */
@@ -47389,6 +50028,93 @@ export interface components {
             /** Format: uuid */
             suggestedTierId?: string | null;
             suggestedTierName?: string | null;
+        };
+        LoyaltyTierOverride: {
+            /** Format: uuid */
+            accountId: string;
+            accountNumber: string;
+            /** Format: date-time */
+            appliedAt?: string | null;
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            createdByName?: string | null;
+            /** Format: uuid */
+            customerId: string;
+            customerName: string;
+            endReason?: string | null;
+            /** Format: date-time */
+            endedAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            previousTierId?: string | null;
+            previousTierName?: string | null;
+            reason: string;
+            /** @enum {string} */
+            status: "pending" | "active" | "ended" | "revoked" | "rejected" | "cancelled";
+            tierCode: string;
+            /** Format: uuid */
+            tierId: string;
+            tierName: string;
+            validUntil?: string | null;
+        };
+        LoyaltyTierOverrideEndInput: {
+            reason: string;
+        };
+        LoyaltyTierOverrideInput: {
+            reason: string;
+            /** Format: uuid */
+            tierId: string;
+            /** @description Last day of the override (YYYY-MM-DD); empty = until revoked */
+            validUntil?: string;
+        };
+        LoyaltyTierPreviewLine: {
+            /** Format: uuid */
+            accountId: string;
+            accountNumber: string;
+            /** Format: uuid */
+            customerId: string;
+            customerName: string;
+            fromTierName?: string | null;
+            /** @enum {string} */
+            outcome: "upgraded" | "retained" | "grace_started" | "in_grace" | "downgraded" | "locked";
+            points: number;
+            qualifiedTierName?: string | null;
+            spend: string;
+            toTierName?: string | null;
+        };
+        LoyaltyTierRemoval: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description archived: an account has been in the tier (history kept)
+             * @enum {string}
+             */
+            result: "deleted" | "archived";
+        };
+        LoyaltyTierVersion: {
+            /** Format: date-time */
+            createdAt: string;
+            createdByName?: string | null;
+            effectiveOn?: string | null;
+            /** Format: uuid */
+            evaluationId?: string | null;
+            /** Format: uuid */
+            id: string;
+            membershipTypeIds: string[];
+            minPoints: number;
+            minSpend: string;
+            periodMonths?: number | null;
+            /** @enum {string} */
+            qualifyMode: "all" | "any";
+            /** @enum {string} */
+            status: "pending" | "effective" | "superseded";
+            /** Format: uuid */
+            tierId: string;
+            version: number;
         };
         LoyaltyTopSpenderProgram: {
             /** Format: date-time */
@@ -48572,6 +51298,10 @@ export interface components {
             /** @description Position in today's rotation when no assignment is waiting */
             queuePosition?: number | null;
         };
+        MyAttendance: {
+            days: components["schemas"]["AttendanceDayView"][];
+            events: components["schemas"]["AttendanceEventView"][];
+        };
         MyClass: {
             roster: components["schemas"]["SessionBooking"][];
             session: components["schemas"]["SportclubSession"];
@@ -48785,6 +51515,20 @@ export interface components {
         MySessionInput: {
             /** Format: uuid */
             sessionId: string;
+        };
+        MyShiftSchedule: {
+            assignments: components["schemas"]["ShiftAssignmentView"][];
+            /**
+             * Format: date-time
+             * @description Server time; the app keeps the schedule for offline use
+             */
+            cachedAt: string;
+            colleagues: components["schemas"]["ESSColleague"][];
+            from: string;
+            holidays: components["schemas"]["ESSHoliday"][];
+            leave: components["schemas"]["LeaveCalendarEntry"][];
+            swaps: components["schemas"]["ShiftSwap"][];
+            to: string;
         };
         MyStayInput: {
             adults?: number;
@@ -49513,6 +52257,13 @@ export interface components {
             /** @enum {string} */
             status: "open" | "paid" | "charged" | "voided" | "refunded";
             tableNo?: string | null;
+            tierCode?: string | null;
+            /** @description Tier discount of the active lines */
+            tierDiscount: string;
+            /** @description e.g. Gold member 5% */
+            tierDiscountLabel?: string | null;
+            tierDiscountPercent?: string | null;
+            tierName?: string | null;
             total: string;
             voidReason?: string | null;
         };
@@ -49590,6 +52341,7 @@ export interface components {
             /** @enum {string} */
             status: "active" | "voided";
             taxAmount: string;
+            tierDiscount: string;
             totalAmount: string;
             unitPrice: string;
             /** Format: uuid */
@@ -49855,6 +52607,102 @@ export interface components {
             /** @description Weekdays */
             weekdays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
         };
+        OvertimeException: {
+            approvedHours: string;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            /** Format: date-time */
+            lastOut?: string | null;
+            orgUnitName?: string | null;
+            overtimeMinutes: number;
+            /** Format: date-time */
+            scheduledEnd?: string | null;
+            /** Format: date-time */
+            workDate: string;
+        };
+        OvertimeLine: {
+            approvedHours: string;
+            /** @enum {string} */
+            dayKind: "workday" | "rest_day" | "shortest_day";
+            multipliedHours: string;
+            number: string;
+            payableHours: string;
+            /** Format: uuid */
+            requestId: string;
+            tiers: components["schemas"]["OvertimeTier"][];
+            workDate: string;
+        };
+        OvertimeRequestInput: {
+            /**
+             * Format: uuid
+             * @description HR only
+             */
+            employeeId?: string | null;
+            /** @description HH:MM local */
+            endTime: string;
+            reason: string;
+            /** @description HH:MM local; an end before the start is on the next day */
+            startTime: string;
+            workDate: string;
+        };
+        OvertimeRequestView: {
+            /** @description Overtime clocked on the day */
+            actualHours?: string | null;
+            approvals: components["schemas"]["TimeApprovalStep"][];
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
+            dayKind: "workday" | "rest_day" | "shortest_day";
+            decisionNote?: string | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            /** Format: date-time */
+            endsAt: string;
+            /** @description Hourly wage (1/173) × multiplied hours; for the employee and salary viewers */
+            estimatedPay?: string | null;
+            hours: string;
+            /** Format: uuid */
+            id: string;
+            multipliedHours: string;
+            number: string;
+            orgUnitName?: string | null;
+            payableHours: string;
+            /** Format: uuid */
+            propertyId: string;
+            reason: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** @enum {string} */
+            status: "submitted" | "approved" | "rejected" | "cancelled";
+            tiers: components["schemas"]["OvertimeTier"][];
+            /** @enum {string} */
+            timing: "before" | "after";
+            /** Format: date-time */
+            workDate: string;
+            workWeekDays: number;
+        };
+        OvertimeSummary: {
+            /** @description Hours approved on the requests */
+            approvedHours: string;
+            lines: components["schemas"]["OvertimeLine"][];
+            /** @description Σ payable hours × multiplier; pay = hourly wage (1/173) × multiplied hours */
+            multipliedHours: string;
+            /** @description Approved hours capped by the attendance of each day (paid basis) */
+            payableHours: string;
+            requests: number;
+            /** @description Payable hours per multiplier, e.g. 1.5 → 2 h, 2 → 3 h */
+            tiers: components["schemas"]["OvertimeTier"][];
+        };
+        OvertimeTier: {
+            /** @description Multiplier of the hourly wage, e.g. 1.5 */
+            factor: string;
+            /** @description Decimal amount as string (never float). */
+            hours: string;
+        };
         Overview: {
             accounts: components["schemas"]["OverviewAccount"][];
             handicapIndex?: number | null;
@@ -49929,6 +52777,23 @@ export interface components {
             timezone: string;
             /** Format: date-time */
             validUntil: string;
+        };
+        POSTierDiscount: {
+            currency: string;
+            /** Format: uuid */
+            customerId: string;
+            /** @description The customer gets a tier discount at the POS */
+            enabled: boolean;
+            /** @description Label of the discount line, e.g. Gold member 5% */
+            label: string;
+            /** @description Promotion Policies stacking ceiling (percent of the line) */
+            maxStackedPercent: string;
+            percent: string;
+            /** @description F&B product types the discount applies to */
+            productTypes: string[];
+            stackWithPromotions: boolean;
+            tierCode?: string | null;
+            tierName?: string | null;
         };
         PPNReport: {
             /** @description Debits to the PPN input account in the period */
@@ -51336,6 +54201,47 @@ export interface components {
             module: string;
             object: string;
             platformOnly: boolean;
+        };
+        PermissionRequestInput: {
+            /**
+             * Format: uuid
+             * @description HR only
+             */
+            employeeId?: string | null;
+            /** @description HH:MM local */
+            endTime: string;
+            permissionType: string;
+            reason: string;
+            /** @description HH:MM local */
+            startTime: string;
+            workDate: string;
+        };
+        PermissionRequestView: {
+            approvals: components["schemas"]["TimeApprovalStep"][];
+            /** Format: date-time */
+            createdAt: string;
+            decisionNote?: string | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            /** Format: date-time */
+            endsAt: string;
+            /** Format: uuid */
+            id: string;
+            minutes: number;
+            number: string;
+            paid: boolean;
+            permissionType: string;
+            /** Format: uuid */
+            propertyId: string;
+            reason: string;
+            /** Format: date-time */
+            startsAt: string;
+            /** @enum {string} */
+            status: "submitted" | "approved" | "rejected" | "cancelled";
+            /** Format: date-time */
+            workDate: string;
         };
         PersonalCode: {
             code: string;
@@ -57663,6 +60569,87 @@ export interface components {
             variance?: string | null;
             zReport: Record<string, never>;
         };
+        ShiftAssignRequest: {
+            assignments: components["schemas"]["ShiftAssignmentInput"][];
+        };
+        ShiftAssignmentInput: {
+            /** @description Remove the assignment of the day */
+            clear?: boolean;
+            /** Format: uuid */
+            employeeId: string;
+            notes?: string;
+            off?: boolean;
+            /**
+             * Format: uuid
+             * @description The shift; empty with off=true for a day off
+             */
+            shiftTemplateId?: string | null;
+            workDate: string;
+        };
+        ShiftAssignmentView: {
+            color?: string | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            endTime?: string | null;
+            /** Format: date-time */
+            endsAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "shift" | "off";
+            notes?: string | null;
+            orgUnitName: string;
+            /** Format: uuid */
+            scheduleId: string;
+            scheduleStatus: string;
+            shiftCode?: string | null;
+            shiftName?: string | null;
+            /** Format: uuid */
+            shiftTemplateId?: string | null;
+            startTime?: string | null;
+            /** Format: date-time */
+            startsAt?: string | null;
+            /** @enum {string} */
+            status: "scheduled" | "on_leave" | "cancelled";
+            swappedFrom?: string | null;
+            /** Format: date-time */
+            workDate: string;
+            workMinutes: number;
+            workforceRole?: string | null;
+        };
+        ShiftCopyRequest: {
+            /**
+             * Format: uuid
+             * @description Default: the schedule of the unit for the period just before
+             */
+            fromScheduleId?: string | null;
+        };
+        ShiftCoverage: {
+            assigned: number;
+            date: string;
+            position?: string | null;
+            required: number;
+            requirementId: string;
+            shift?: string | null;
+            short: number;
+        };
+        ShiftLeaveMark: {
+            /** Format: date-time */
+            date: string;
+            /** Format: uuid */
+            employeeId: string;
+            leaveType: string;
+            status: string;
+        };
+        ShiftPatternRequest: {
+            employeeIds: string[];
+            /** @description Cycle of shift template ids (null = day off), repeated from startDate */
+            pattern: string[];
+            /** @description Day the cycle starts (default: period start) */
+            startDate?: string;
+        };
         ShiftReport: {
             cashIn: string;
             cashOut: string;
@@ -57674,6 +60661,308 @@ export interface components {
             payments: Record<string, never>[];
             sales: string;
             shift: components["schemas"]["Shift"];
+        };
+        ShiftSchedule: {
+            /** Format: date-time */
+            createdAt: string;
+            employeeCount: number;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            notes?: string | null;
+            orgUnitCode: string;
+            /** Format: uuid */
+            orgUnitId: string;
+            orgUnitName: string;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** Format: uuid */
+            propertyId: string;
+            /** Format: date-time */
+            publishedAt?: string | null;
+            shifts: number;
+            /** @enum {string} */
+            status: "draft" | "published" | "cancelled";
+            version: number;
+        };
+        ShiftScheduleCreateRequest: {
+            /**
+             * Format: uuid
+             * @description Copy the assignments of another schedule (copy week)
+             */
+            copyFromScheduleId?: string | null;
+            name?: string;
+            notes?: string;
+            /** Format: uuid */
+            orgUnitId: string;
+            /** @description Last day; default one week */
+            periodEnd?: string;
+            /** @description First day (YYYY-MM-DD) */
+            periodStart: string;
+        };
+        ShiftScheduleDetail: {
+            assignments: components["schemas"]["ShiftAssignmentView"][];
+            canEdit: boolean;
+            coverage: components["schemas"]["ShiftCoverage"][];
+            /** Format: date-time */
+            createdAt: string;
+            demand: components["schemas"]["StaffingDemandDay"][];
+            employeeCount: number;
+            employees: components["schemas"]["ShiftScheduleEmployee"][];
+            /** Format: uuid */
+            id: string;
+            issues: components["schemas"]["ShiftScheduleIssue"][];
+            leave: components["schemas"]["ShiftLeaveMark"][];
+            name: string;
+            notes?: string | null;
+            orgUnitCode: string;
+            /** Format: uuid */
+            orgUnitId: string;
+            orgUnitName: string;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** Format: uuid */
+            propertyId: string;
+            /** Format: date-time */
+            publishedAt?: string | null;
+            shifts: number;
+            /** @enum {string} */
+            status: "draft" | "published" | "cancelled";
+            version: number;
+        };
+        ShiftScheduleEmployee: {
+            employeeNo: string;
+            fullName: string;
+            /** Format: uuid */
+            id: string;
+            position?: string | null;
+            scheduledMinutes: number;
+            shifts: number;
+            workforceRole?: string | null;
+        };
+        ShiftScheduleIssue: {
+            code: string;
+            date?: string | null;
+            /** Format: uuid */
+            employeeId?: string | null;
+            message: string;
+            /** @enum {string} */
+            severity: "error" | "warning";
+        };
+        ShiftScheduleMutation: {
+            applied: number;
+            schedule: components["schemas"]["ShiftScheduleDetail"];
+            skipped: components["schemas"]["ShiftScheduleIssue"][];
+        };
+        ShiftScheduleUpdateRequest: {
+            name?: string | null;
+            notes?: string | null;
+        };
+        ShiftStaffingRequirement: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int64
+             * @description Minimum Staff
+             */
+            minStaff: number;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Department
+             */
+            orgUnitId: string;
+            /**
+             * Format: uuid
+             * @description Position (empty = any)
+             */
+            positionId?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: uuid
+             * @description Shift (empty = any)
+             */
+            shiftTemplateId?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Weekdays (1 = Monday … 7 = Sunday) */
+            weekdays?: number[] | null;
+        };
+        ShiftStaffingRequirementInput: {
+            /**
+             * Format: int64
+             * @description Minimum Staff
+             */
+            minStaff?: number;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Department
+             */
+            orgUnitId?: string;
+            /**
+             * Format: uuid
+             * @description Position (empty = any)
+             */
+            positionId?: string | null;
+            /**
+             * Format: uuid
+             * @description Shift (empty = any)
+             */
+            shiftTemplateId?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Weekdays (1 = Monday … 7 = Sunday) */
+            weekdays?: number[] | null;
+        };
+        ShiftSwap: {
+            approvals: components["schemas"]["TimeApprovalStep"][];
+            /** Format: uuid */
+            counterpartAssignmentId?: string | null;
+            /** Format: date-time */
+            counterpartDate?: string | null;
+            /** Format: uuid */
+            counterpartId: string;
+            counterpartName: string;
+            counterpartShift?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            decisionNote?: string | null;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** Format: uuid */
+            propertyId: string;
+            reason: string;
+            /** Format: uuid */
+            requesterAssignmentId: string;
+            /** Format: date-time */
+            requesterDate: string;
+            /** Format: uuid */
+            requesterId: string;
+            requesterName: string;
+            requesterShift?: string | null;
+            /** @enum {string} */
+            status: "requested" | "submitted" | "approved" | "rejected" | "declined" | "cancelled";
+        };
+        ShiftSwapRequest: {
+            /**
+             * Format: uuid
+             * @description My shift
+             */
+            assignmentId: string;
+            /**
+             * Format: uuid
+             * @description The colleague's shift I take in return (empty = the colleague covers my shift)
+             */
+            counterpartAssignmentId?: string | null;
+            /** Format: uuid */
+            counterpartEmployeeId: string;
+            reason: string;
+        };
+        ShiftTemplate: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /**
+             * Format: int64
+             * @description Break (minutes)
+             */
+            breakMinutes?: number | null;
+            /** @description Code */
+            code: string;
+            /** @description Color */
+            color?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Crosses Midnight */
+            crossesMidnight?: boolean | null;
+            /** @description Description */
+            description?: string | null;
+            /** @description End (before the start = next day) */
+            endTime: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Name */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Department
+             */
+            orgUnitId?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Start */
+            startTime: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: int64
+             * @description Working Minutes
+             */
+            workMinutes?: number | null;
+            /**
+             * @description Workforce Role (certification check)
+             * @enum {string|null}
+             */
+            workforceRole?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "other" | null;
+        };
+        ShiftTemplateInput: {
+            /**
+             * Format: int64
+             * @description Break (minutes)
+             */
+            breakMinutes?: number | null;
+            /** @description Code */
+            code?: string;
+            /** @description Color */
+            color?: string | null;
+            /** @description Description */
+            description?: string | null;
+            /** @description End (before the start = next day) */
+            endTime?: string;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: uuid
+             * @description Department
+             */
+            orgUnitId?: string | null;
+            /** @description Start */
+            startTime?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * @description Workforce Role (certification check)
+             * @enum {string|null}
+             */
+            workforceRole?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "other" | null;
         };
         SimulateInput: {
             scenarios: components["schemas"]["EvaluateInput"][];
@@ -57938,6 +61227,13 @@ export interface components {
             customerId?: string | null;
             /** @description 0–10: how likely are you to recommend the club? */
             score: number;
+        };
+        StaffingDemandDay: {
+            date: string;
+            /** @description Indicator → count, e.g. teeTimes, golfers, events, eventPax, classSessions, facilityBookings */
+            values: {
+                [key: string]: number;
+            };
         };
         StageMove: {
             /** Format: date-time */
@@ -59367,6 +62663,12 @@ export interface components {
              */
             status?: "active" | "inactive" | null;
         };
+        TeamAttendance: {
+            date: string;
+            days: components["schemas"]["AttendanceDayView"][];
+            exceptions: components["schemas"]["OvertimeException"][];
+            pendingReview: components["schemas"]["AttendanceEventView"][];
+        };
         TeamFormat: {
             /** @description Handicap Allowance % (lowest handicap first; empty = WHS recommendation) */
             allowances?: number[] | null;
@@ -60013,6 +63315,18 @@ export interface components {
             id: string;
             note: string;
         };
+        TimeApprovalStep: {
+            approverId?: string | null;
+            approverName?: string | null;
+            decidedAt?: string | null;
+            decidedBy?: string | null;
+            /** @enum {string} */
+            level: "supervisor" | "department_head" | "hr" | "workflow";
+            note?: string | null;
+            /** @enum {string} */
+            status: "waiting" | "pending" | "approved" | "rejected" | "skipped" | "cancelled";
+            stepNo: number;
+        };
         TimeBand: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -60072,6 +63386,85 @@ export interface components {
              * @enum {string|null}
              */
             status?: "active" | "inactive" | null;
+        };
+        TimeDecision: {
+            /** @description Required to reject */
+            note?: string;
+        };
+        TimeLock: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            lockedAt: string;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** Format: uuid */
+            propertyId: string;
+            reference: string;
+            releaseNote?: string | null;
+            /** Format: date-time */
+            releasedAt?: string | null;
+            /** @enum {string} */
+            status: "locked" | "released";
+        };
+        TimeLockRelease: {
+            note: string;
+        };
+        TimeLockRequest: {
+            periodEnd: string;
+            periodStart: string;
+            /** @description e.g. the payroll run, PAY-2026-10 */
+            reference: string;
+        };
+        TimePendingApproval: {
+            /** @description I am the approver of the step (else a manager above) */
+            direct: boolean;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            /** @enum {string} */
+            kind: "leave" | "permission" | "overtime" | "shift_swap" | "attendance_correction";
+            level: string;
+            number: string;
+            /** Format: uuid */
+            requestId: string;
+            /** @description Request status after the decision (submitted while further levels wait) */
+            status: string;
+            /** Format: date-time */
+            submittedAt: string;
+            summary: string;
+        };
+        TimeSummary: {
+            absentDays: number;
+            earlyLeaveDays: number;
+            earlyLeaveMinutes: number;
+            /** Format: uuid */
+            employeeId: string;
+            employeeNo: string;
+            /** @description Missing clock-in / out, clock-ins waiting for review and corrections waiting for approval */
+            exceptions: number;
+            fullName: string;
+            holidayDays: number;
+            lateDays: number;
+            lateMinutes: number;
+            offDays: number;
+            /** @description Days of the period not closed yet (future or still running) */
+            openDays: number;
+            overtime: components["schemas"]["OvertimeSummary"];
+            /** @description Decimal amount as string (never float). */
+            paidLeaveDays: string;
+            /** @description Days clocked in (Present, Late, Early Leave) */
+            presentDays: number;
+            /** @description Days with a shift on a published schedule */
+            scheduledDays: number;
+            /** @description Days of approved unpaid leave (payroll deduction basis) */
+            unpaidLeaveDays: string;
+            /** @description Approved unpaid permission (izin) hours */
+            unpaidPermissionHours: string;
+            /** @description Decimal amount as string (never float). */
+            workedHours: string;
         };
         TimeWindow: {
             days?: number[];
@@ -82730,6 +86123,39 @@ export interface operations {
             };
         };
     };
+    postBridgeHrisAttendanceEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceDeviceEventsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceDeviceEventsResult"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCmsArticles: {
         parameters: {
             query?: {
@@ -95606,6 +99032,58 @@ export interface operations {
             };
         };
     };
+    getCommercialPosTierDiscount: {
+        parameters: {
+            query: {
+                customerId: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["POSTierDiscount"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCommercialPrepaidBalances: {
         parameters: {
             query?: {
@@ -108067,6 +111545,66 @@ export interface operations {
             };
         };
     };
+    getCrmLoyaltyAccountsByIdTierHistory: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoyaltyTierHistoryEntry"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postCrmLoyaltyAccountsByIdAdjust: {
         parameters: {
             query?: never;
@@ -108092,6 +111630,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoyaltyAdjustment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyAccountsByIdOverrideTier: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltyTierOverrideInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyTierOverride"];
                 };
             };
             /** @description Not authenticated */
@@ -108431,6 +112025,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoyaltyBudget"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyCustomerTiers: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Comma-separated customer ids (max 200) */
+                customerIds: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoyaltyCustomerTier"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -108824,6 +112478,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoyaltyLiability"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyMemberTiers: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+                "filter[status]"?: string;
+                /** @description Tier id, or none (not classified) */
+                "filter[tierId]"?: string;
+                "filter[memberNo]"?: string;
+                "filter[customerId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoyaltyMemberTier"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -110036,6 +113754,65 @@ export interface operations {
             };
         };
     };
+    getCrmLoyaltyTierClasses: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoyaltyTierClass"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCrmLoyaltyTierEvaluations: {
         parameters: {
             query?: {
@@ -110170,6 +113947,178 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoyaltyTierEvaluationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyTierEvaluationsPreview: {
+        parameters: {
+            query?: {
+                /** @description annual (default), periodic, grace_review */
+                kind?: string;
+                /** @description Evaluate with the pending thresholds (default true) */
+                pending?: boolean;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyTierEvaluationPreview"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyTierOverrides: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+                "filter[accountId]"?: string;
+                "filter[customerId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoyaltyTierOverride"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyTierOverridesByIdRevoke: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltyTierOverrideEndInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyTierOverride"];
                 };
             };
             /** @description Not authenticated */
@@ -110387,12 +114336,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description No Content */
-            204: {
+            /** @description OK */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LoyaltyTierRemoval"];
+                };
             };
             /** @description Not authenticated */
             401: {
@@ -110448,6 +114399,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoyaltyTier"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyTiersByIdVersions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoyaltyTierVersion"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -117107,6 +121118,630 @@ export interface operations {
             };
         };
     };
+    getEssApprovals: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TimePendingApproval"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssApprovalsByKindByIdApprove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimePendingApproval"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssApprovalsByKindByIdReject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimePendingApproval"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssAttendance: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyAttendance"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssAttendanceCorrections: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AttendanceCorrection"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssAttendanceCorrections: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceCorrectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceCorrection"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssAttendanceCorrectionsByIdCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceCorrection"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssAttendanceEventsByIdReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceEventView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssAttendancePin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendancePINRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendancePINResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssAttendanceQr: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceQR"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssAttendanceClock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceClockRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceClockResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssClockStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceClockStatus"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getEssDocuments: {
         parameters: {
             query?: {
@@ -117211,6 +121846,278 @@ export interface operations {
             };
         };
     };
+    getEssLeaveBalances: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LeaveBalanceView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssLeaveRequests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LeaveRequestView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssLeaveRequests: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaveRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssLeaveRequestsByIdCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssLeaveTypes: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LeaveTypeView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getEssMe: {
         parameters: {
             query?: never;
@@ -117227,6 +122134,330 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ESSMe"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssOvertimeRequests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OvertimeRequestView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssOvertimeRequests: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OvertimeRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OvertimeRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssOvertimeRequestsByIdCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OvertimeRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssPermissionRequests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PermissionRequestView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssPermissionRequests: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PermissionRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssPermissionRequestsByIdCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionRequestView"];
                 };
             };
             /** @description Not authenticated */
@@ -117683,6 +122914,324 @@ export interface operations {
             };
         };
     };
+    getEssSchedule: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyShiftSchedule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssShiftSwaps: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ShiftSwap"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssShiftSwaps: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftSwapRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftSwap"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssShiftSwapsByIdAccept: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftSwap"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssShiftSwapsByIdCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftSwap"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssShiftSwapsByIdDecline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftSwap"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getEssTeam: {
         parameters: {
             query?: {
@@ -117705,6 +123254,112 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["TeamMember"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssTeamAttendance: {
+        parameters: {
+            query?: {
+                date?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamAttendance"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssTeamCalendar: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LeaveCalendarEntry"][];
                         nextCursor?: string;
                     };
                 };
@@ -117918,6 +123573,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PerformanceReviewDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssTeamSchedule: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyShiftSchedule"];
                 };
             };
             /** @description Not authenticated */
@@ -137587,6 +143292,1310 @@ export interface operations {
             };
         };
     };
+    getHrisAttendanceCorrections: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                status?: "submitted" | "approved" | "rejected" | "cancelled";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AttendanceCorrection"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceCorrections: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceCorrectionRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceCorrection"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceCorrectionsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceCorrection"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceCorrectionsByIdReject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceCorrection"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisAttendanceDays: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+                orgUnitId?: string;
+                employeeId?: string;
+                status?: "scheduled" | "present" | "late" | "early_leave" | "absent" | "on_leave" | "off" | "holiday";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AttendanceDayView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisAttendanceDevices: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[deviceKind]"?: string;
+                "filter[platformDeviceId]"?: string;
+                "filter[bridgeAgentId]"?: string;
+                "filter[geofenceId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AttendanceDevice"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceDevices: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceDeviceInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceDevice"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisAttendanceDevicesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceDevice"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteHrisAttendanceDevicesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchHrisAttendanceDevicesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceDeviceInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceDevice"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceDevicesByIdSimulate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceSimulateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceClockResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceDevicesByIdSyncEmployees: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceDeviceSyncResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisAttendanceDevicesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[deviceKind]"?: string;
+                "filter[platformDeviceId]"?: string;
+                "filter[bridgeAgentId]"?: string;
+                "filter[geofenceId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisAttendanceEvents: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+                employeeId?: string;
+                review?: "pending" | "accepted" | "rejected";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AttendanceEventView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceEventsByIdReview: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceReviewRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceEventView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisAttendanceProfiles: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+                orgUnitId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AttendanceProfile"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceProfilesByIdConsent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceConsentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceProfile"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceProfilesByIdSetPin: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendancePINRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceProfile"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisAttendanceKiosk: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceKioskInfo"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceKioskClock: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceKioskClockRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceClockResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceKioskSync: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceKioskSyncRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceKioskSyncResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceClock: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HRClockRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceClockResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisAttendanceRecalculate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceRecalculateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceRecalculateResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getHrisBankAccounts: {
         parameters: {
             query?: {
@@ -141657,6 +148666,342 @@ export interface operations {
             };
         };
     };
+    getHrisGeofences: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AttendanceGeofence"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisGeofences: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceGeofenceInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceGeofence"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisGeofencesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceGeofence"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteHrisGeofencesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchHrisGeofencesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceGeofenceInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceGeofence"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisGeofencesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getHrisGrades: {
         parameters: {
             query?: {
@@ -141933,6 +149278,346 @@ export interface operations {
                 "filter[status]"?: string;
             };
             header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisHolidays: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[holidayDate]"?: string;
+                "filter[kind]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["HRHoliday"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisHolidays: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HRHolidayInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HRHoliday"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisHolidaysById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HRHoliday"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteHrisHolidaysById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchHrisHolidaysById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HRHolidayInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HRHoliday"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisHolidaysExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[holidayDate]"?: string;
+                "filter[kind]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
             path?: never;
             cookie?: never;
         };
@@ -143546,6 +151231,688 @@ export interface operations {
             };
         };
     };
+    getHrisLeaveBalances: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                year?: string;
+                employeeId?: string;
+                orgUnitId?: string;
+                leaveType?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LeaveBalanceView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisLeaveBalancesAccrue: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaveAccrueRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveAccrualReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisLeaveBalancesAdjust: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BalanceAdjustRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveBalanceView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisLeaveBalancesImport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaveImportRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveImportReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisLeaveCalendar: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+                orgUnitId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LeaveCalendarEntry"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisLeaveRequests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                status?: "submitted" | "approved" | "rejected" | "cancelled";
+                from?: string;
+                to?: string;
+                employeeId?: string;
+                orgUnitId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LeaveRequestView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisLeaveRequests: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LeaveRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisLeaveRequestsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisLeaveRequestsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisLeaveRequestsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisLeaveRequestsByIdReject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LeaveRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisLeaveTypes: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LeaveTypeView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getHrisLetterTemplates: {
         parameters: {
             query?: {
@@ -144352,6 +152719,523 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisOvertimeExceptions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OvertimeException"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisOvertimeRequests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                status?: "submitted" | "approved" | "rejected" | "cancelled";
+                from?: string;
+                to?: string;
+                employeeId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OvertimeRequestView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisOvertimeRequests: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OvertimeRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OvertimeRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisOvertimeRequestsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OvertimeRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisOvertimeRequestsByIdReject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OvertimeRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisPermissionRequests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                status?: "submitted" | "approved" | "rejected" | "cancelled";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PermissionRequestView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisPermissionRequests: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PermissionRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisPermissionRequestsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionRequestView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisPermissionRequestsByIdReject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PermissionRequestView"];
                 };
             };
             /** @description Not authenticated */
@@ -146149,6 +155033,1656 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PerformanceReviewDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisSchedules: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+                orgUnitId?: string;
+                status?: "draft" | "published" | "cancelled";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ShiftSchedule"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisSchedules: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftScheduleCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftScheduleDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisSchedulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftScheduleDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchHrisSchedulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftScheduleUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftScheduleDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisSchedulesByIdApplyPattern: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftPatternRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftScheduleMutation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisSchedulesByIdAssign: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftAssignRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftScheduleMutation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisSchedulesByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftSchedule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisSchedulesByIdCopy: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftCopyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftScheduleMutation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisSchedulesByIdPublish: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftScheduleDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisShiftSwaps: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                status?: "requested" | "submitted" | "approved" | "rejected" | "declined" | "cancelled";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ShiftSwap"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisShiftSwapsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftSwap"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisShiftSwapsByIdReject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftSwap"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisShiftTemplates: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[orgUnitId]"?: string;
+                "filter[workforceRole]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ShiftTemplate"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisShiftTemplates: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftTemplate"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisShiftTemplatesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftTemplate"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteHrisShiftTemplatesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchHrisShiftTemplatesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftTemplate"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisShiftTemplatesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[orgUnitId]"?: string;
+                "filter[workforceRole]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisStaffingDemand: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StaffingDemandDay"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisStaffingRequirements: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[orgUnitId]"?: string;
+                "filter[positionId]"?: string;
+                "filter[shiftTemplateId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ShiftStaffingRequirement"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisStaffingRequirements: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftStaffingRequirementInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftStaffingRequirement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisStaffingRequirementsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftStaffingRequirement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteHrisStaffingRequirementsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchHrisStaffingRequirementsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShiftStaffingRequirementInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShiftStaffingRequirement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisStaffingRequirementsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[orgUnitId]"?: string;
+                "filter[positionId]"?: string;
+                "filter[shiftTemplateId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisTimeLocks: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TimeLock"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisTimeLocks: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeLockRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimeLock"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisTimeLocksByIdRelease: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeLockRelease"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TimeLock"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisTimeSummary: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from: string;
+                to: string;
+                employeeId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TimeSummary"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
