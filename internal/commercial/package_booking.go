@@ -464,6 +464,13 @@ func (m *P3Module) BookPackage(ctx context.Context, tx pgx.Tx, property uuid.UUI
 	} else if left != nil && *left <= 0 {
 		return PackageBooking{}, errs.Conflict("package_sold_out", spec.Name+" is sold out on "+in.StartDate+" (daily quota)")
 	}
+	// PRD P5 EP-22 (p5_package_capacity.go): choices, sequence & time windows,
+	// capacity and time blocks, payment template of the package type
+	if bookingRules != nil {
+		if err := bookingRules(ctx, tx, property, &spec, &in, day, false); err != nil {
+			return PackageBooking{}, err
+		}
+	}
 	cur := currencyOf(ctx, tx)
 	pl := places(cur)
 	mult := multiplier(spec.PricingMode, in.Pax, in.Nights)
@@ -1459,13 +1466,28 @@ func (m *P3Module) Availability(ctx context.Context, tx pgx.Tx, property, pid uu
 			out = append(out, da)
 			continue
 		}
+		// PRD P5 EP-22: default choices, schedule and capacity of the day
+		dspec := spec
+		dspec.Components = slices.Clone(spec.Components)
+		if bookingRules != nil {
+			if err := bookingRules(ctx, tx, property, &dspec, &BookingInput{Pax: pax, Nights: nights, Channel: channel, CustomerID: customer}, day,
+				true); err != nil {
+				de, ok := errs.As(err)
+				if !ok || de.Kind == errs.KindInternal {
+					return nil, err
+				}
+				da.Reason = de.Message
+				out = append(out, da)
+				continue
+			}
+		}
 		sp, err := tx.Begin(ctx)
 		if err != nil {
 			return nil, err
 		}
 		da.Available = true
 		in := BookingInput{Pax: pax, Nights: nights, Channel: channel, CustomerID: customer, GuestName: "Availability check"}
-		for _, cs := range spec.Components {
+		for _, cs := range dspec.Components {
 			if cs.Optional {
 				continue
 			}
