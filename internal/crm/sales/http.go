@@ -46,6 +46,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.registerQuotations(reg)
 	m.registerCommission(reg)
 	m.registerPublic(reg)
+	m.registerAcceptance(reg)
 }
 
 // ── leads & follow-ups ────────────────────────────────────────────────────
@@ -657,6 +658,10 @@ type PublicQuotation struct {
 	Terms          *string               `json:"terms"`
 	AcceptedAt     *time.Time            `json:"acceptedAt"`
 	AcceptedByName *string               `json:"acceptedByName"`
+	// PRD P3 §16 #18 (p3_acceptance.go)
+	OtpRequired      bool                     `json:"otpRequired" doc:"Acceptance needs the one-time code (:request-otp)"`
+	EMeteraiRequired bool                     `json:"eMeteraiRequired" doc:"An e-Meterai is applied on acceptance"`
+	EMeterai         *PublicQuotationEMeterai `json:"eMeterai"`
 }
 
 // PublicAcceptInput accepts a quotation from its link.
@@ -664,6 +669,7 @@ type PublicAcceptInput struct {
 	Name          string `json:"name" doc:"Name of the person accepting"`
 	TermsAccepted bool   `json:"termsAccepted" doc:"The terms & conditions are accepted"`
 	Note          string `json:"note,omitempty"`
+	OtpCode       string `json:"otpCode,omitempty" doc:"One-time code sent by :request-otp (required by the Sales Policies)"`
 }
 
 // PublicRejectInput rejects a quotation from its link.
@@ -698,7 +704,8 @@ func (m *Module) publicView(ctx context.Context, tx pgx.Tx, qid uuid.UUID) (Publ
 	out := PublicQuotation{Number: d.Number, Version: d.Version, Title: d.Title, Status: d.Status, CustomerName: d.CustomerName,
 		CompanyName: d.CorporateName, EventType: d.EventType, EventDate: d.EventDate, EndDate: d.EndDate, Pax: d.Pax, Currency: d.Currency,
 		Subtotal: d.Subtotal, Discount: d.Discount, ServiceAmount: d.ServiceAmount, TaxAmount: d.TaxAmount, Total: d.Total, ValidUntil: d.ValidUntil,
-		PaymentTerms: d.PaymentTerms, Terms: d.Terms, AcceptedAt: d.AcceptedAt, AcceptedByName: d.AcceptedByName, Lines: []PublicQuotationLine{}}
+		PaymentTerms: d.PaymentTerms, Terms: d.Terms, AcceptedAt: d.AcceptedAt, AcceptedByName: d.AcceptedByName, Lines: []PublicQuotationLine{},
+		OtpRequired: d.otpRequired, EMeteraiRequired: d.EMeteraiRequired, EMeterai: publicEMeterai(d)}
 	for _, l := range d.Lines {
 		out.Lines = append(out.Lines, PublicQuotationLine{Description: l.Description, Quantity: l.Quantity, UnitPrice: l.UnitPrice, Discount: l.Discount,
 			Total: l.Total})
@@ -754,22 +761,9 @@ func (m *Module) registerPublic(reg *route.Registry) {
 				httpx.JSON(w, http.StatusOK, out)
 			})})
 	}
-	decide(":accept", "Accept the quotation (name and terms; recorded with IP and time)", PublicAcceptInput{},
-		func(ctx context.Context, tx pgx.Tx, property uuid.UUID, q Quotation, r *http.Request) error {
-			var in PublicAcceptInput
-			if err := httpx.Decode(r, &in); err != nil {
-				return err
-			}
-			if err := handle.Required("name", in.Name); err != nil {
-				return err
-			}
-			if !in.TermsAccepted {
-				return handle.Invalid("termsAccepted", "required", "accept the terms & conditions")
-			}
-			_, err := m.accept(ctx, tx, property, q, decisionMeta{via: "public_link", name: in.Name, ip: httpx.ClientIP(r), userAgent: r.UserAgent(),
-				note: in.Note, termsAccepted: true})
-			return err
-		})
+	reg.Add(route.Route{Method: http.MethodPost, Path: "/api/v1/public/quotations/{token}:accept", Module: "crm", Tag: "Public Website",
+		Auth: route.AuthPublic, Summary: "Accept the quotation (name, terms and the one-time code; recorded with IP, time and the verified code)",
+		Request: PublicAcceptInput{}, Response: PublicQuotation{}, Handler: publicLimiter.Wrap(m.publicAccept)})
 	decide(":reject", "Reject the quotation with a reason", PublicRejectInput{},
 		func(ctx context.Context, tx pgx.Tx, property uuid.UUID, q Quotation, r *http.Request) error {
 			var in PublicRejectInput

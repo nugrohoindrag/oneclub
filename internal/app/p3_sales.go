@@ -22,10 +22,12 @@ import (
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/config"
 	"oneclub/internal/kernel/dbtx"
+	"oneclub/internal/kernel/id"
 	"oneclub/internal/kernel/reqctx"
 	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/catalog"
 	"oneclub/internal/platform/handle"
+	"oneclub/internal/platform/integration"
 	"oneclub/internal/platform/outbox"
 	"oneclub/internal/platform/provision"
 	"oneclub/internal/platform/storage"
@@ -64,7 +66,8 @@ func p3SalesTemplates() []provision.Template { return sales.Templates() }
 // buildP3Sales wires routes, hooks, approval decisions and jobs.
 func (a *App) buildP3Sales(reg *route.Registry, cfg *config.Config, db *dbtx.DB, files *storage.Files) {
 	m := &sales.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Notify: a.Notification, Price: quotePrice,
-		WebsiteURL: func() string { return cfg.WebsiteURL }, StaffURL: func() string { return cfg.PublicBaseURL }}
+		WebsiteURL: func() string { return cfg.WebsiteURL }, StaffURL: func() string { return cfg.PublicBaseURL },
+		Integrations: a.Integrations, OTPKey: []byte(cfg.AppSecret)}
 	m.Register(reg, a.Engine)
 	a.Approvals.RegisterDocumentType(sales.DiscountDocumentType, m.DiscountDecision)
 	a.Approvals.RegisterDocumentType(sales.StatementDocumentType, m.StatementDecision)
@@ -189,9 +192,16 @@ func (a *App) quotationSchedule(ctx context.Context, tx pgx.Tx, e outbox.Event) 
 	return err
 }
 
-// demoP3Sales seeds the default pipelines of the demo property.
+// demoP3Sales seeds the default pipelines of the demo property and enables
+// the sandbox e-Meterai for the trial (PRD P3 §16 #18; mock until a PERURI
+// distributor is contracted).
 func demoP3Sales(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
-	_, err := sales.SeedPipelines(ctx, tx, property)
+	if _, err := sales.SeedPipelines(ctx, tx, property); err != nil {
+		return err
+	}
+	_, err := tx.Exec(ctx, `INSERT INTO platform.integrations (id, code, adapter, capability, name, enabled, mode)
+		VALUES ($1, 'mock-emeterai', 'mock-emeterai', $2, 'Mock e-Meterai (Sandbox)', true, 'sandbox') ON CONFLICT (code) DO NOTHING`,
+		id.New(), integration.CapEMeterai)
 	return err
 }
 

@@ -43,6 +43,10 @@ so `propertyId` is also on the event envelope.
   "acceptedAt": "RFC3339", "acceptedVia": "staff | public_link"
 }
 ```
+Payload unchanged by PRD P3 §16 #18: `public_link` acceptances are verified with a one-time code (Sales Policies
+`requireAcceptanceOtp`) before the event is published; the acceptance evidence (IP, user agent, code channel / time) and the
+e-Meterai (`not_required | pending | stamped | failed`, integration capability `e_meterai`) stay on the quotation
+(`GET /api/v1/crm/quotations/{id}` → `acceptanceEvidence`, `eMeterai`). Consumers need no change.
 
 ### `crm.quotation_sent` — consumed by `banquet` (tentative venue hold until the option date, FR-QUO-04 / EP-15)
 `{ quotationId, number, version, customerId, corporateAccountId?, opportunityId?, line, title, eventType?, eventDate?, endDate?, pax?,

@@ -53240,6 +53240,10 @@
           "note": {
             "type": "string"
           },
+          "otpCode": {
+            "description": "One-time code sent by :request-otp (required by the Sales Policies)",
+            "type": "string"
+          },
           "termsAccepted": {
             "description": "The terms \u0026 conditions are accepted",
             "type": "boolean"
@@ -54583,6 +54587,18 @@
           "discount": {
             "type": "string"
           },
+          "eMeterai": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PublicQuotationEMeterai"
+              }
+            ],
+            "nullable": true
+          },
+          "eMeteraiRequired": {
+            "description": "An e-Meterai is applied on acceptance",
+            "type": "boolean"
+          },
           "endDate": {
             "nullable": true,
             "type": "string"
@@ -54603,6 +54619,10 @@
           },
           "number": {
             "type": "string"
+          },
+          "otpRequired": {
+            "description": "Acceptance needs the one-time code (:request-otp)",
+            "type": "boolean"
           },
           "pax": {
             "nullable": true,
@@ -54663,7 +54683,39 @@
           "taxAmount",
           "total",
           "validUntil",
-          "paymentTerms"
+          "paymentTerms",
+          "otpRequired",
+          "eMeteraiRequired"
+        ],
+        "type": "object"
+      },
+      "PublicQuotationEMeterai": {
+        "properties": {
+          "sandbox": {
+            "type": "boolean"
+          },
+          "serialNumber": {
+            "nullable": true,
+            "type": "string"
+          },
+          "stampedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "not_required",
+              "pending",
+              "stamped",
+              "failed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "sandbox"
         ],
         "type": "object"
       },
@@ -57203,6 +57255,38 @@
         ],
         "type": "object"
       },
+      "QuotationAcceptanceEvidence": {
+        "properties": {
+          "ip": {
+            "nullable": true,
+            "type": "string"
+          },
+          "otpChannel": {
+            "enum": [
+              "email",
+              "whatsapp"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "otpDestination": {
+            "description": "Masked destination of the verified code",
+            "nullable": true,
+            "type": "string"
+          },
+          "otpVerifiedAt": {
+            "description": "Time the one-time code was verified (public link)",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "userAgent": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "QuotationBrief": {
         "properties": {
           "acceptedAt": {
@@ -57339,6 +57423,14 @@
       },
       "QuotationDetail": {
         "properties": {
+          "acceptanceEvidence": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/QuotationAcceptanceEvidence"
+              }
+            ],
+            "nullable": true
+          },
           "acceptedAt": {
             "format": "date-time",
             "nullable": true,
@@ -57409,6 +57501,13 @@
           },
           "discountPercent": {
             "type": "string"
+          },
+          "eMeterai": {
+            "$ref": "#/components/schemas/QuotationEMeterai"
+          },
+          "eMeteraiRequired": {
+            "description": "Total above the e-Meterai threshold of the Sales Policies",
+            "type": "boolean"
           },
           "endDate": {
             "nullable": true,
@@ -57630,7 +57729,63 @@
           "createdAt",
           "updatedAt",
           "lines",
-          "versions"
+          "versions",
+          "eMeteraiRequired",
+          "eMeterai"
+        ],
+        "type": "object"
+      },
+      "QuotationEMeterai": {
+        "properties": {
+          "error": {
+            "description": "Last provider error (pending / failed)",
+            "nullable": true,
+            "type": "string"
+          },
+          "provider": {
+            "description": "Integration that stamped",
+            "nullable": true,
+            "type": "string"
+          },
+          "reference": {
+            "nullable": true,
+            "type": "string"
+          },
+          "required": {
+            "description": "Total above the Sales Policies e-Meterai threshold",
+            "type": "boolean"
+          },
+          "sandbox": {
+            "description": "Stamped by a sandbox adapter (mock / trial, no legal value)",
+            "type": "boolean"
+          },
+          "serialNumber": {
+            "nullable": true,
+            "type": "string"
+          },
+          "stampedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "not_required",
+              "pending",
+              "stamped",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "threshold": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "required",
+          "threshold",
+          "status",
+          "sandbox"
         ],
         "type": "object"
       },
@@ -57911,6 +58066,37 @@
           "itemType",
           "description",
           "quantity"
+        ],
+        "type": "object"
+      },
+      "QuotationOtpRequestResult": {
+        "properties": {
+          "channel": {
+            "enum": [
+              "email",
+              "whatsapp"
+            ],
+            "type": "string"
+          },
+          "destinationMasked": {
+            "description": "Masked e-mail / phone the code was sent to",
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "resendAfter": {
+            "description": "A new code can be requested from this time",
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "channel",
+          "destinationMasked",
+          "expiresAt",
+          "resendAfter"
         ],
         "type": "object"
       },
@@ -158004,6 +158190,88 @@
         "x-permission": "crm.quotation.send"
       }
     },
+    "/api/v1/crm/quotations/{id}:stamp-e-meterai": {
+      "post": {
+        "operationId": "postCrmQuotationsByIdStampEMeterai",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotationDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Stamp (retry) the e-Meterai of an accepted quotation above the threshold",
+        "tags": [
+          "CRM Sales"
+        ],
+        "x-audited": true,
+        "x-module": "crm",
+        "x-permission": "crm.quotation.stamp"
+      }
+    },
     "/api/v1/crm/quotations/{id}:submit-approval": {
       "post": {
         "operationId": "postCrmQuotationsByIdSubmitApproval",
@@ -249896,7 +250164,7 @@
           }
         },
         "security": [],
-        "summary": "Accept the quotation (name and terms; recorded with IP and time)",
+        "summary": "Accept the quotation (name, terms and the one-time code; recorded with IP, time and the verified code)",
         "tags": [
           "Public Website"
         ],
@@ -249951,6 +250219,50 @@
         },
         "security": [],
         "summary": "Reject the quotation with a reason",
+        "tags": [
+          "Public Website"
+        ],
+        "x-audited": true,
+        "x-module": "crm"
+      }
+    },
+    "/api/v1/public/quotations/{token}:request-otp": {
+      "post": {
+        "operationId": "postPublicQuotationsByTokenRequestOtp",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuotationOtpRequestResult"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Send a one-time acceptance code to the customer contact on file (WhatsApp or e-mail; the code is never returned)",
         "tags": [
           "Public Website"
         ],

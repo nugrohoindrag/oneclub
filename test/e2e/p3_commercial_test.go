@@ -848,7 +848,7 @@ func TestP3CommercialPackages(t *testing.T) {
 		"lines":        []map[string]any{{"itemType": "package", "itemRef": "SG" + sfx, "description": "Stay & Golf", "quantity": "1", "unitPrice": "3200000"}}},
 		"Idempotency-Key", newKey()).JSON()
 	sent := sa.Must(200, "POST", "/api/v1/crm/quotations/"+str(q["id"])+":send", map[string]any{}).JSON()
-	pub.Must(200, "POST", "/api/v1/public/quotations/"+slsToken(t, sent)+":accept", map[string]any{"name": "Package Guest", "termsAccepted": true})
+	slsAcceptPublic(t, pub, slsToken(t, sent), map[string]any{"name": "Package Guest", "termsAccepted": true})
 	var qb map[string]any
 	pcDispatch(t, "package booked from the quotation", func() bool {
 		for _, x := range rs.Must(200, "GET", "/api/v1/commercial/package-bookings?filter[customerId]="+cust+"&limit=100", nil).Items() {

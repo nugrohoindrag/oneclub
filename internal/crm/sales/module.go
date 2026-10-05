@@ -23,6 +23,7 @@ import (
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/platform/approval"
 	"oneclub/internal/platform/handle"
+	"oneclub/internal/platform/integration"
 	"oneclub/internal/platform/notify"
 	"oneclub/internal/platform/org"
 	"oneclub/internal/platform/provision"
@@ -78,6 +79,12 @@ type Module struct {
 	Price      Pricer        // price & tax hook (internal/app wires Commercial pricing); nil = manual prices, no tax
 	WebsiteURL func() string // public website base (quotation links)
 	StaffURL   func() string // Staff App base (deep links in notifications)
+	// Integrations resolves e-Meterai and tells whether WhatsApp is
+	// configured for acceptance codes (nil: neither).
+	Integrations *integration.Service
+	// OTPKey peppers the hashes of quotation acceptance codes (the instance
+	// application secret).
+	OTPKey []byte
 }
 
 // Document types of the approval engine.
@@ -128,6 +135,11 @@ type SalesPolicy struct {
 	LeadRetentionDays     int               `json:"leadRetentionDays" doc:"Leads that never became customers are anonymised after N days without activity"`
 	EmailLines            map[string]string `json:"emailLines" doc:"Department mailbox (local part) → business line of e-mail leads"`
 	WhatsAppIntegrations  []string          `json:"whatsAppIntegrations" doc:"Messaging integration codes whose inbound messages become leads of this property"`
+	RequireAcceptanceOtp  bool              `json:"requireAcceptanceOtp" doc:"Acceptance on the public link needs a one-time code sent to the customer contact on file (PRD P3 §16 #18)"`
+	OtpTTLMinutes         int               `json:"otpTtlMinutes" doc:"Validity of an acceptance code in minutes"`
+	OtpMaxAttempts        int               `json:"otpMaxAttempts" doc:"Wrong entries before an acceptance code is locked"`
+	EMeteraiThreshold     string            `json:"eMeteraiThreshold" doc:"Quotations / contracts with a total above this amount carry an e-Meterai"`
+	EMeteraiOnAcceptance  bool              `json:"eMeteraiOnAcceptance" doc:"Stamp the e-Meterai automatically on acceptance (otherwise staff stamps it)"`
 }
 
 func intp(n int) *int { return &n }
@@ -151,6 +163,7 @@ func NewDefaultPolicy() SalesPolicy {
 		EmailLines: map[string]string{"wedding": "wedding", "banquet": "banquet", "mice": "mice", "events": "event", "golf": "golf",
 			"membership": "membership", "reservation": "stay", "marketing": "other", "sales": "other"},
 		WhatsAppIntegrations: []string{},
+		RequireAcceptanceOtp: true, OtpTTLMinutes: 10, OtpMaxAttempts: 5, EMeteraiThreshold: "5000000", EMeteraiOnAcceptance: true,
 	}
 }
 
@@ -160,7 +173,7 @@ const PolicyCode = "crm.sales"
 func init() {
 	rules.RegisterPolicy(rules.PolicyDef{Code: PolicyCode, Category: "Sales Policies", Name: "Leads, quotations & commission",
 		Description: "Lead assignment and first-response SLA, quotation validity, discount approval limits, payment terms, tax & service " +
-			"of manual prices and default commission rates", Default: NewDefaultPolicy()})
+			"of manual prices, default commission rates, the acceptance code (OTP) and the e-Meterai threshold", Default: NewDefaultPolicy()})
 }
 
 // LoadPolicy returns the Sales Policies version in force at the property.

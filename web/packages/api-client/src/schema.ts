@@ -10138,6 +10138,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/quotations/{id}:stamp-e-meterai": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Stamp (retry) the e-Meterai of an accepted quotation above the threshold */
+        post: operations["postCrmQuotationsByIdStampEMeterai"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/quotations/{id}:submit-approval": {
         parameters: {
             query?: never;
@@ -23007,7 +23024,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Accept the quotation (name and terms; recorded with IP and time) */
+        /** Accept the quotation (name, terms and the one-time code; recorded with IP, time and the verified code) */
         post: operations["postPublicQuotationsByTokenAccept"];
         delete?: never;
         options?: never;
@@ -23026,6 +23043,23 @@ export interface paths {
         put?: never;
         /** Reject the quotation with a reason */
         post: operations["postPublicQuotationsByTokenReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/quotations/{token}:request-otp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a one-time acceptance code to the customer contact on file (WhatsApp or e-mail; the code is never returned) */
+        post: operations["postPublicQuotationsByTokenRequestOtp"];
         delete?: never;
         options?: never;
         head?: never;
@@ -43638,6 +43672,8 @@ export interface components {
             /** @description Name of the person accepting */
             name: string;
             note?: string;
+            /** @description One-time code sent by :request-otp (required by the Sales Policies) */
+            otpCode?: string;
             /** @description The terms & conditions are accepted */
             termsAccepted: boolean;
         };
@@ -44020,11 +44056,16 @@ export interface components {
             currency: string;
             customerName?: string | null;
             discount: string;
+            eMeterai?: components["schemas"]["PublicQuotationEMeterai"] | null;
+            /** @description An e-Meterai is applied on acceptance */
+            eMeteraiRequired: boolean;
             endDate?: string | null;
             eventDate?: string | null;
             eventType?: string | null;
             lines: components["schemas"]["PublicQuotationLine"][];
             number: string;
+            /** @description Acceptance needs the one-time code (:request-otp) */
+            otpRequired: boolean;
             pax?: number | null;
             paymentTerms: components["schemas"]["PaymentTerm"][];
             serviceAmount: string;
@@ -44037,6 +44078,14 @@ export interface components {
             total: string;
             validUntil: string;
             version: number;
+        };
+        PublicQuotationEMeterai: {
+            sandbox: boolean;
+            serialNumber?: string | null;
+            /** Format: date-time */
+            stampedAt?: string | null;
+            /** @enum {string} */
+            status: "not_required" | "pending" | "stamped" | "failed";
         };
         PublicQuotationLine: {
             description: string;
@@ -44833,6 +44882,19 @@ export interface components {
             status: "waiting" | "on_hold" | "dispatched" | "removed";
             waitMinutes: number;
         };
+        QuotationAcceptanceEvidence: {
+            ip?: string | null;
+            /** @enum {string|null} */
+            otpChannel?: "email" | "whatsapp" | null;
+            /** @description Masked destination of the verified code */
+            otpDestination?: string | null;
+            /**
+             * Format: date-time
+             * @description Time the one-time code was verified (public link)
+             */
+            otpVerifiedAt?: string | null;
+            userAgent?: string | null;
+        };
         QuotationBrief: {
             /** Format: date-time */
             acceptedAt?: string | null;
@@ -44872,6 +44934,7 @@ export interface components {
             via: "staff" | "public_link";
         };
         QuotationDetail: {
+            acceptanceEvidence?: components["schemas"]["QuotationAcceptanceEvidence"] | null;
             /** Format: date-time */
             acceptedAt?: string | null;
             acceptedByName?: string | null;
@@ -44893,6 +44956,9 @@ export interface components {
             decision?: components["schemas"]["QuotationDecision"] | null;
             discount: string;
             discountPercent: string;
+            eMeterai: components["schemas"]["QuotationEMeterai"];
+            /** @description Total above the e-Meterai threshold of the Sales Policies */
+            eMeteraiRequired: boolean;
             endDate?: string | null;
             eventDate?: string | null;
             eventType?: string | null;
@@ -44954,6 +45020,23 @@ export interface components {
             venueResourceId?: string | null;
             version: number;
             versions: components["schemas"]["QuotationVersion"][];
+        };
+        QuotationEMeterai: {
+            /** @description Last provider error (pending / failed) */
+            error?: string | null;
+            /** @description Integration that stamped */
+            provider?: string | null;
+            reference?: string | null;
+            /** @description Total above the Sales Policies e-Meterai threshold */
+            required: boolean;
+            /** @description Stamped by a sandbox adapter (mock / trial, no legal value) */
+            sandbox: boolean;
+            serialNumber?: string | null;
+            /** Format: date-time */
+            stampedAt?: string | null;
+            /** @enum {string} */
+            status: "not_required" | "pending" | "stamped" | "failed";
+            threshold: string;
         };
         QuotationInput: {
             clearOptionDate?: boolean;
@@ -45050,6 +45133,19 @@ export interface components {
             serviceType?: string;
             /** @description Manual unit price; empty = from the pricing engine */
             unitPrice?: string;
+        };
+        QuotationOtpRequestResult: {
+            /** @enum {string} */
+            channel: "email" | "whatsapp";
+            /** @description Masked e-mail / phone the code was sent to */
+            destinationMasked: string;
+            /** Format: date-time */
+            expiresAt: string;
+            /**
+             * Format: date-time
+             * @description A new code can be requested from this time
+             */
+            resendAfter: string;
         };
         QuotationVersion: {
             /** Format: date-time */
@@ -97608,6 +97704,58 @@ export interface operations {
                 "application/json": components["schemas"]["SalesSendInput"];
             };
         };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuotationDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmQuotationsByIdStampEMeterai: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description OK */
             200: {
@@ -151631,6 +151779,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicQuotation"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicQuotationsByTokenRequestOtp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuotationOtpRequestResult"];
                 };
             };
             /** @description Problem Details (RFC 9457) */

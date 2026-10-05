@@ -293,6 +293,11 @@ type QuotationDetail struct {
 	Versions   []QuotationVersion `json:"versions"`
 	PublicLink *string            `json:"publicLink" doc:"Secure acceptance link (sent quotations)"`
 	Decision   *QuotationDecision `json:"decision"`
+	// Acceptance evidence and e-Meterai (PRD P3 §16 #18, p3_acceptance.go).
+	AcceptanceEvidence *QuotationAcceptanceEvidence `json:"acceptanceEvidence" doc:"IP, user agent and verified one-time code of the acceptance"`
+	EMeteraiRequired   bool                         `json:"eMeteraiRequired" doc:"Total above the e-Meterai threshold of the Sales Policies"`
+	EMeterai           QuotationEMeterai            `json:"eMeterai"`
+	otpRequired        bool
 }
 
 // QuotationDecision is the recorded acceptance or rejection.
@@ -342,7 +347,7 @@ func (m *Module) QuotationDetailOf(ctx context.Context, q dbtx.Querier, qid uuid
 	if len(decs) > 0 {
 		d.Decision = &decs[0]
 	}
-	return d, nil
+	return d, m.fillAcceptance(ctx, q, &d)
 }
 
 func lockQuotation(ctx context.Context, tx pgx.Tx, property, qid uuid.UUID) (Quotation, error) {
@@ -1478,6 +1483,7 @@ type RejectInput struct {
 type decisionMeta struct {
 	via, name, ip, userAgent, note string
 	termsAccepted                  bool
+	otp                            *acceptanceOtp // verified one-time code (public link)
 }
 
 // AcceptQuotation accepts a quotation for the customer (staff).
@@ -1577,6 +1583,9 @@ func (m *Module) accept(ctx context.Context, tx pgx.Tx, property uuid.UUID, q Qu
 		customer, opp, actor(ctx)); err != nil {
 		return QuotationDetail{}, err
 	}
+	if err := m.recordAcceptance(ctx, tx, q, meta, now); err != nil {
+		return QuotationDetail{}, err
+	}
 	if opp != nil {
 		o, err := lockOpportunity(ctx, tx, property, *opp)
 		if err != nil {
@@ -1601,9 +1610,12 @@ func (m *Module) accept(ctx context.Context, tx pgx.Tx, property uuid.UUID, q Qu
 	if err != nil {
 		return after, err
 	}
+	if after, err = m.eMeteraiOnAcceptance(ctx, tx, property, after); err != nil {
+		return after, err
+	}
 	if err := audit.Record(ctx, tx, audit.Entry{Module: "crm", Action: "accept", EntityType: "crm.quotation", EntityID: q.ID.String(),
 		EntityLabel: q.Number + " v" + itoa(q.Version), PropertyID: &property, Before: map[string]any{"status": q.Status},
-		After: map[string]any{"status": "accepted", "via": meta.via, "name": name, "ip": meta.ip}}); err != nil {
+		After: map[string]any{"status": "accepted", "via": meta.via, "name": name, "ip": meta.ip}, Metadata: meta.otpAudit()}); err != nil {
 		return after, err
 	}
 	if _, err := m.Events.Publish(ctx, tx, EventQuotationAccepted, "crm.quotation", &q.ID, &property, AcceptedPayload(after, property, now,

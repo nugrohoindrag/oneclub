@@ -413,7 +413,7 @@ func TestP3SalesQuotationToCommission(t *testing.T) {
 	q2 = sx.Must(200, "POST", "/api/v1/crm/quotations/"+q2id+":send", map[string]any{}).JSON()
 	tok2 := slsToken(t, q2)
 	pub.Must(422, "POST", "/api/v1/public/quotations/"+tok2+":accept", map[string]any{"name": "Budi"})
-	acc := pub.Must(200, "POST", "/api/v1/public/quotations/"+tok2+":accept", map[string]any{"name": "Budi Partner", "termsAccepted": true}).JSON()
+	acc := slsAcceptPublic(t, pub, tok2, map[string]any{"name": "Budi Partner", "termsAccepted": true})
 	if acc["status"] != "accepted" || acc["acceptedByName"] != "Budi Partner" {
 		t.Fatalf("public acceptance: %v", acc)
 	}

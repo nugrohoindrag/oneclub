@@ -714,7 +714,7 @@ function QuotationForm({ onClose, onDone, preset, quotation }: { onClose: () => 
 function QuotationDrawer({ id, onClose, onOpen }: { id: string; onClose: () => void; onOpen: (id: string) => void }) {
   const { can } = useAuth();
   const toast = useToast();
-  const d = useGet<R & { lines: R[]; versions: R[]; paymentTerms: R[]; decision: R | null }>(`/api/v1/crm/quotations/${id}`);
+  const d = useGet<R & { lines: R[]; versions: R[]; paymentTerms: R[]; decision: R | null; acceptanceEvidence: R | null; eMeterai: R }>(`/api/v1/crm/quotations/${id}`);
   const [modal, setModal] = useState<'' | 'edit' | 'send' | 'accept' | 'reject'>('');
   const x = d.data;
   const inv = [...CRM, `/api/v1/crm/quotations/${id}`];
@@ -764,6 +764,8 @@ function QuotationDrawer({ id, onClose, onOpen }: { id: string; onClose: () => v
               ['IP address', String(x.decision.ip ?? '—')], ['Terms accepted', x.decision.termsAccepted ? 'Yes' : 'No'], ['Note', String(x.decision.note ?? '—')],
               ['At', formatDateTime(String(x.decision.decidedAt))]]} />
           </Card>}
+          {x.acceptanceEvidence && <AcceptanceEvidence ev={x.acceptanceEvidence} />}
+          {x.eMeteraiRequired === true && <EMeteraiCard id={id} status={st} e={x.eMeterai} invalidate={inv} />}
           {x.versions.length > 1 && <Card title="Versions" icon="history">
             <DataTable rows={x.versions} onRowClick={(v) => onOpen(v.id)} columns={[{ key: 'version', header: 'Version' },
               { key: 'total', header: 'Total', align: 'right', render: (v) => money(v.total) }, { key: 'status', header: 'Status', render: pill('status') },
@@ -776,6 +778,34 @@ function QuotationDrawer({ id, onClose, onOpen }: { id: string; onClose: () => v
         </div>
       )}
     </Drawer>
+  );
+}
+
+// Acceptance evidence of the public link: IP, device and the verified one-time code (PRD P3 §16 #18).
+function AcceptanceEvidence({ ev }: { ev: R }) {
+  const otp = ev.otpChannel ? `${ev.otpChannel === 'whatsapp' ? 'WhatsApp' : 'E-mail'} · ${String(ev.otpDestination ?? '')}` : 'Not used';
+  return (
+    <Card title="Acceptance evidence" icon="verified_user">
+      <KV items={[['IP address', String(ev.ip ?? '—')], ['Device', <span key="ua" className="oc-small">{String(ev.userAgent ?? '—')}</span>],
+        ['Verification code', otp], ['Code verified', ev.otpVerifiedAt ? formatDateTime(String(ev.otpVerifiedAt)) : '—']]} />
+    </Card>
+  );
+}
+
+// e-Meterai of a quotation above the Sales Policies threshold, with the staff retry of a pending / failed stamp.
+function EMeteraiCard({ id, status, e, invalidate }: { id: string; status: string; e: R; invalidate: string[] }) {
+  const { can } = useAuth();
+  const items: [string, React.ReactNode][] = [['Status', e.status === 'not_required' ? 'Applied on acceptance' : <StatusPill key="s" status={String(e.status)} />],
+    ['Serial no.', String(e.serialNumber ?? '—')], ['Stamped', e.stampedAt ? formatDateTime(String(e.stampedAt)) : '—'],
+    ['Provider', e.provider ? `${String(e.provider)}${e.sandbox ? ' (mock / trial, no legal value)' : ''}` : '—']];
+  if (e.error) items.push(['Last error', String(e.error)]);
+  return (
+    <Card title="e-Meterai" icon="approval">
+      {status !== 'accepted' && <p className="oc-small oc-muted">The total is above {money(e.threshold)}: an e-Meterai is applied on acceptance.</p>}
+      <KV items={items} />
+      {status === 'accepted' && (e.status === 'pending' || e.status === 'failed') && can('crm.quotation.stamp') &&
+        <Actions><ActionButton label="Retry e-Meterai" kind="primary" path={`/api/v1/crm/quotations/${id}:stamp-e-meterai`} invalidate={invalidate} /></Actions>}
+    </Card>
   );
 }
 

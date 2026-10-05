@@ -25,7 +25,7 @@ func Permissions() []catalog.Permission {
 		catalog.P("crm", "lead", "view", "create", "update", "assign", "convert", "import", "capture"),
 		catalog.P("crm", "follow_up", "view", "manage"),
 		catalog.P("crm", "opportunity", "view", "create", "update", "close"),
-		catalog.P("crm", "quotation", "view", "create", "update", "send", "accept", "free_item"),
+		catalog.P("crm", "quotation", "view", "create", "update", "send", "accept", "free_item", "stamp"),
 		catalog.P("crm", "pipeline", catalog.CRUD...),
 		catalog.P("crm", "sales_team", catalog.CRUD...),
 		catalog.P("crm", "sales_target", catalog.CRUD...),
@@ -43,7 +43,7 @@ func Contribution() catalog.Contribution {
 		"crm.opportunity.view", "crm.opportunity.create", "crm.opportunity.update", "crm.opportunity.close", "crm.quotation.view", "crm.quotation.create",
 		"crm.quotation.update", "crm.quotation.send", "crm.quotation.accept", "crm.pipeline.view", "crm.sales_target.view", "crm.sales_team.view",
 		"crm.customer.view", "crm.corporate_account.view"}
-	manage := append(append([]string{}, sell...), "crm.quotation.free_item", "crm.lead.assign", "crm.lead.import", "crm.lead.capture", "crm.pipeline.create", "crm.pipeline.update",
+	manage := append(append([]string{}, sell...), "crm.quotation.free_item", "crm.quotation.stamp", "crm.lead.assign", "crm.lead.import", "crm.lead.capture", "crm.pipeline.create", "crm.pipeline.update",
 		"crm.pipeline.delete", "crm.pipeline.export", "crm.pipeline.import", "crm.sales_team.create", "crm.sales_team.update", "crm.sales_team.delete",
 		"crm.sales_team.export", "crm.sales_team.import", "crm.sales_target.create", "crm.sales_target.update", "crm.sales_target.delete",
 		"crm.sales_target.export", "crm.sales_target.import", "crm.commission_scheme.view", "crm.commission_scheme.create", "crm.commission_scheme.update",
@@ -73,6 +73,10 @@ func Templates() []provision.Template {
 		"crm.sales_quotation": {
 			"en": {"Quotation {{.number}} — {{.title}}", "Dear {{.name}},\n\n{{if .message}}{{.message}}\n\n{{end}}Please find our quotation {{.number}} (version {{.version}}) for {{.title}}: {{.currency}} {{.total}}, valid until {{.validUntil}}.\nView and accept online: {{.link}}"},
 			"id": {"Penawaran {{.number}} — {{.title}}", "Yth. {{.name}},\n\n{{if .message}}{{.message}}\n\n{{end}}Berikut penawaran kami {{.number}} (versi {{.version}}) untuk {{.title}}: {{.currency}} {{.total}}, berlaku sampai {{.validUntil}}.\nLihat dan setujui secara online: {{.link}}"},
+		},
+		EventQuotationOtp: {
+			"en": {"Verification code for quotation {{.number}}", "{{.otpCode}} is your code to accept quotation {{.number}}. It is valid for {{.expiresInMinutes}} minutes. Never share this code, not even with our staff."},
+			"id": {"Kode verifikasi penawaran {{.number}}", "{{.otpCode}} adalah kode Anda untuk menyetujui penawaran {{.number}}. Berlaku {{.expiresInMinutes}} menit. Jangan bagikan kode ini kepada siapa pun, termasuk staf kami."},
 		},
 		"crm.sales_lead_assigned": {
 			"en": {"New lead {{.number}}: {{.name}}", "Lead {{.number}} ({{.name}}, {{.line}}, source {{.source}}) is assigned to you. First response due {{.dueAt}}."},
@@ -163,6 +167,7 @@ func QuotationPDF(ctx context.Context, q dbtx.Querier, d QuotationDetail) ([]byt
 			doc.Row(9, false, t.Label+" · "+t.DueDate, d.Currency+" "+formatAmount(dec(t.Amount), d.Currency))
 		}
 	}
+	eMeteraiPDF(doc, d)
 	if d.Terms != nil && *d.Terms != "" {
 		doc.Space(6)
 		doc.Row(11, true, "Terms & Conditions / Syarat & Ketentuan")
