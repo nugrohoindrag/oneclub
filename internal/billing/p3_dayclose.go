@@ -279,11 +279,50 @@ type NightAuditCheck func(ctx context.Context, tx pgx.Tx, property uuid.UUID, da
 // points) for the business day summary.
 type LiabilityProvider func(ctx context.Context, q dbtx.Querier, property uuid.UUID, at time.Time) (map[string]decimal.Decimal, error)
 
+// NightAuditAction is an automatic step of the night audit contributed by
+// another module (FR-EOD-03, §9.5: bungalow room charge per night, no-show
+// processing). Actions run once the checks found no blocking exception,
+// before the day is frozen; they must be idempotent per business date and
+// report what they did as findings.
+type NightAuditAction func(ctx context.Context, tx pgx.Tx, property uuid.UUID, day time.Time) ([]AuditFinding, error)
+
 var (
-	auditMu     sync.RWMutex
-	auditChecks = map[string]NightAuditCheck{}
-	liabilities = map[string]LiabilityProvider{}
+	auditMu      sync.RWMutex
+	auditChecks  = map[string]NightAuditCheck{}
+	auditActions = map[string]NightAuditAction{}
+	liabilities  = map[string]LiabilityProvider{}
 )
+
+// RegisterNightAuditAction plugs an automatic posting / processing step
+// into the night audit.
+func (s *Service) RegisterNightAuditAction(name string, fn NightAuditAction) {
+	auditMu.Lock()
+	defer auditMu.Unlock()
+	auditActions[name] = fn
+}
+
+// runActions runs the automatic steps of the night audit in name order.
+func (s *Service) runActions(ctx context.Context, tx pgx.Tx, property uuid.UUID, day time.Time) ([]AuditFinding, error) {
+	auditMu.RLock()
+	names := make([]string, 0, len(auditActions))
+	for k := range auditActions {
+		names = append(names, k)
+	}
+	auditMu.RUnlock()
+	sort.Strings(names)
+	var out []AuditFinding
+	for _, n := range names {
+		auditMu.RLock()
+		fn := auditActions[n]
+		auditMu.RUnlock()
+		f, err := fn(ctx, tx, property, day)
+		if err != nil {
+			return nil, fmt.Errorf("night audit action %s: %w", n, err)
+		}
+		out = append(out, f...)
+	}
+	return out, nil
+}
 
 // RegisterNightAuditCheck plugs a check into the night audit.
 func (s *Service) RegisterNightAuditCheck(name string, fn NightAuditCheck) {
@@ -540,13 +579,32 @@ func (h *HTTP) RunNightAudit(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	if err != nil {
 		return NightAuditRun{}, err
 	}
-	exceptions, warnings := 0, 0
-	for _, c := range checks {
-		switch c.Severity {
-		case "blocking":
-			exceptions++
-		case "warning":
-			warnings++
+	count := func() (int, int) {
+		exceptions, warnings := 0, 0
+		for _, c := range checks {
+			switch c.Severity {
+			case "blocking":
+				exceptions++
+			case "warning":
+				warnings++
+			}
+		}
+		return exceptions, warnings
+	}
+	exceptions, warnings := count()
+	if exceptions == 0 {
+		// automatic postings and no-shows (FR-EOD-03), then the checks again
+		// so the findings describe the day as it is closed
+		actions, err := s.runActions(ctx, tx, property, day)
+		if err != nil {
+			return NightAuditRun{}, err
+		}
+		if len(actions) > 0 {
+			if checks, err = s.runChecks(ctx, tx, property, day); err != nil {
+				return NightAuditRun{}, err
+			}
+			checks = append(checks, actions...)
+			exceptions, warnings = count()
 		}
 	}
 	rid := id.New()

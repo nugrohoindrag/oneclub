@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
+	"oneclub/internal/billing"
 	"oneclub/internal/kernel/dbtx"
 )
 
@@ -368,4 +369,113 @@ func TestP3FixFulfilmentEventGolfBlock(t *testing.T) {
 	pcDispatch(t, "tee times blocked again", func() bool { in, _ := blocked(); return in > 0 })
 	sa.Must(200, "POST", "/api/v1/banquet/events/"+eid+":cancel", map[string]any{"reason": "outing cancelled"})
 	pcDispatch(t, "event cancelled: tee times open", func() bool { in, _ := blocked(); return in == 0 && courseBlocks(str(gb2["id"])) == 0 })
+}
+
+// PRD P3 FR-EOD-03, §9.5 on a property of its own: the scheduled automatic
+// night audit (AutoNightAudit, after the 02:00 cut-off) posts the bungalow
+// room charge of the night for an in-house stay booked under Stay Policies
+// "nightly" and marks the stay that did not arrive as No-show; the frozen
+// Daily Revenue Report holds the night; the check-out posts the night left;
+// before the cut-off nothing runs.
+func TestP3FixFulfilmentNightAudit(t *testing.T) {
+	base := superAdmin(t, inst)
+	sfx := fmt.Sprint(time.Now().UnixNano() % 1e6)
+	prop := base.Must(201, "POST", "/api/v1/platform/properties", map[string]any{"code": "NA" + sfx, "name": "Night Audit Club " + sfx,
+		"timezone": "Asia/Jakarta"}).JSON()
+	pid := mustUUID(str(prop["id"]))
+	c := *base
+	c.Property = pid
+	na := &c
+	loc := clubLoc(inst)
+
+	pcPolicy(t, na, "Stay Policies", "stay.policy", map[string]any{"roomChargePosting": "nightly", "autoNoShow": true})
+	ro := idOf(na.Must(201, "POST", "/api/v1/commercial/rate-plans", map[string]any{"code": "NARO", "name": "Room Only", "serviceType": "bungalow",
+		"minNights": 1}))
+	rule(t, na, map[string]any{"code": "NAV-RO", "name": "Villa Room Only", "serviceType": "bungalow", "itemRef": "NAV", "ratePlanId": ro,
+		"unit": "night", "price": "900000", "revenueComponent": "bungalow"})
+	bt := idOf(na.Must(201, "POST", "/api/v1/stay/bungalow-types", map[string]any{"code": "NAV", "name": "Night Villa", "maxAdults": 2}))
+	na.Must(201, "POST", "/api/v1/stay/bungalows", map[string]any{"code": "NV-01", "name": "Night Villa 01", "typeId": bt})
+	na.Must(201, "POST", "/api/v1/stay/bungalows", map[string]any{"code": "NV-02", "name": "Night Villa 02", "typeId": bt})
+	days := na.Must(200, "GET", "/api/v1/billing/business-days", nil).Items()
+	if len(days) == 0 || days[0]["current"] != true {
+		t.Fatalf("business days of the new property: %v", days)
+	}
+	day := str(days[0]["businessDate"])
+	d0, _ := time.ParseInLocation("2006-01-02", day, loc)
+	plus := func(n int) string { return d0.AddDate(0, 0, n).Format("2006-01-02") }
+	guest := func(name, phone string) map[string]any { return map[string]any{"name": name + " " + sfx, "phone": phone + sfx} }
+
+	in := na.Must(201, "POST", "/api/v1/stay/stays", map[string]any{"kind": "bungalow", "bungalowTypeId": bt, "arrivalDate": day,
+		"departureDate": plus(2), "ratePlan": "NARO", "guest": guest("In House", "+62827")}).JSON()
+	stay := in["stay"].(map[string]any)
+	sid := str(stay["id"])
+	if stay["roomPosting"] != "nightly" || !dec(in["total"]).Equal(decimal.NewFromInt(1_800_000)) || !dec(in["folio"].(map[string]any)["charges"]).IsZero() ||
+		!dec(in["depositRequired"]).Equal(decimal.NewFromInt(900_000)) {
+		t.Fatalf("nightly stay: posting %v total %v charges %v deposit %v", stay["roomPosting"], in["total"], in["folio"].(map[string]any)["charges"],
+			in["depositRequired"])
+	}
+	na.Must(200, "POST", "/api/v1/stay/stays/"+sid+":check-in", map[string]any{"idType": "ktp", "idNumber": "3171020202020002"})
+	ns := na.Must(201, "POST", "/api/v1/stay/stays", map[string]any{"kind": "bungalow", "bungalowTypeId": bt, "arrivalDate": day,
+		"departureDate": plus(1), "ratePlan": "NARO", "guest": guest("No Show", "+62828")}).JSON()["stay"].(map[string]any)
+
+	auto := func(now time.Time) *billing.NightAuditRun {
+		var run *billing.NightAuditRun
+		ctx := dbtx.System(t.Context())
+		if err := inst.DB.WithTx(ctx, func(tx pgx.Tx) error {
+			var err error
+			run, err = inst.App.BillingHTTP.AutoNightAudit(ctx, tx, pid, now)
+			return err
+		}); err != nil {
+			t.Fatal(err)
+		}
+		return run
+	}
+	// before the 02:00 cut-off after the business date: nothing runs
+	if run := auto(time.Date(d0.Year(), d0.Month(), d0.Day(), 23, 30, 0, 0, loc)); run != nil {
+		t.Fatalf("night audit before the cut-off: %v", run)
+	}
+	run := auto(time.Date(d0.Year(), d0.Month(), d0.Day()+1, 3, 0, 0, 0, loc))
+	if run == nil || run.Status != "completed" || run.Mode != "auto" || run.BusinessDate != day {
+		t.Fatalf("automatic night audit: %+v", run)
+	}
+	found := map[string]billing.AuditFinding{}
+	for _, f := range run.Checks {
+		found[f.Check] = f
+	}
+	if found["stay_room_postings"].Count != 1 || found["stay_no_shows"].Count != 1 {
+		t.Fatalf("night audit steps: %+v", run.Checks)
+	}
+	if s := na.Must(200, "GET", "/api/v1/stay/stays/"+str(ns["id"]), nil).JSON()["stay"].(map[string]any); s["status"] != "no_show" {
+		t.Fatalf("stay that did not arrive: %v", s["status"])
+	}
+	got := na.Must(200, "GET", "/api/v1/stay/stays/"+sid, nil).JSON()
+	if !dec(got["folio"].(map[string]any)["charges"]).Equal(decimal.NewFromInt(900_000)) || !dec(got["total"]).Equal(decimal.NewFromInt(1_800_000)) {
+		t.Fatalf("one night posted: charges %v total %v", got["folio"].(map[string]any)["charges"], got["total"])
+	}
+	dr := na.Must(200, "GET", "/api/v1/billing/daily-revenue?date="+day, nil).JSON()
+	if dr["frozen"] != true || !dec(dr["charges"]).GreaterThanOrEqual(decimal.NewFromInt(900_000)) {
+		t.Fatalf("the night in the frozen Daily Revenue Report: %v", dr)
+	}
+	var nights int
+	sysQueryRow(t, inst, `SELECT count(*) FROM stay.night_postings WHERE stay_id = $1`, []any{mustUUID(sid)}, &nights)
+	if nights != 1 {
+		t.Fatalf("night postings after the audit: %d", nights)
+	}
+	// check-out on the departure date posts the night left (folio settled first)
+	end, _ := time.Parse(time.RFC3339, str(stay["end"]))
+	if r := na.Do("POST", "/api/v1/stay/stays/"+sid+":check-out", map[string]any{"at": rfc(end)}); r.Status != 409 {
+		t.Fatalf("check-out with the nights unpaid: %s", r)
+	}
+	na.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": stay["folioId"], "methodType": "bank_transfer", "amount": "1800000",
+		"reference": "TRF-" + sfx})
+	co := na.Must(200, "POST", "/api/v1/stay/stays/"+sid+":check-out", map[string]any{"at": rfc(end)}).JSON()
+	if co["stay"].(map[string]any)["status"] != "checked_out" || co["folio"].(map[string]any)["status"] != "closed" ||
+		!dec(co["folio"].(map[string]any)["charges"]).Equal(decimal.NewFromInt(1_800_000)) {
+		t.Fatalf("check-out posts the night left: %v", co["folio"])
+	}
+	var sources string
+	sysQueryRow(t, inst, `SELECT string_agg(source, ',' ORDER BY night) FROM stay.night_postings WHERE stay_id = $1`, []any{mustUUID(sid)}, &sources)
+	if sources != "night_audit,check_out" {
+		t.Fatalf("night postings: %s", sources)
+	}
 }

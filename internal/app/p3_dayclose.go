@@ -22,6 +22,9 @@ func (a *App) registerNightAuditChecks() {
 	a.Billing.RegisterNightAuditCheck("open_pos_shifts", nightAuditPOSShifts)
 	a.Billing.RegisterNightAuditCheck("offline_transactions", nightAuditOffline)
 	a.Billing.RegisterNightAuditCheck("unresolved_bookings", nightAuditBookings)
+	// automatic steps (FR-EOD-03, §9.5): bungalow room charge per night and
+	// no-shows of Stay & Venue
+	a.Billing.RegisterNightAuditAction("stay", a.Stay.NightAudit)
 }
 
 func auditList(ctx context.Context, tx pgx.Tx, sql string, args ...any) ([]string, error) {

@@ -200,10 +200,12 @@ type Policy struct {
 	LateCheckoutFeePerHour   string `json:"lateCheckoutFeePerHour"`
 	LateCheckoutGraceMinutes int    `json:"lateCheckoutGraceMinutes"`
 	RequireReadyUnit         bool   `json:"requireReadyUnit"`
+	RoomChargePosting        string `json:"roomChargePosting" enum:"at_booking,nightly" doc:"Bungalow room charge: posted for the whole stay at booking, or one night at a time by the night audit (the nights left at check-out) (PRD P3 FR-EOD-03)"`
+	AutoNoShow               bool   `json:"autoNoShow" doc:"The night audit marks Reserved stays that did not arrive by the business date as No-show"`
 }
 
 var defaultPolicy = Policy{CheckInTime: "14:00", CheckOutTime: "12:00", DepositPercent: "50", LateCheckoutFeePerHour: "100000",
-	LateCheckoutGraceMinutes: 30, RequireReadyUnit: true}
+	LateCheckoutGraceMinutes: 30, RequireReadyUnit: true, RoomChargePosting: "at_booking", AutoNoShow: true}
 
 func (m *Module) policy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (Policy, rules.PolicyRef, error) {
 	return rules.PolicyAt(ctx, q, "stay.policy", property, defaultPolicy)
