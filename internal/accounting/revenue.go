@@ -201,7 +201,8 @@ type ControlReconciliation struct {
 	OK     bool                `json:"ok"`
 }
 
-// ReconcileControls reconciles AR, AP and the liabilities at a date.
+// ReconcileControls reconciles AR, AP, the liabilities and the inventory
+// (Stock Valuation, per inventory account) at a date.
 func ReconcileControls(ctx context.Context, q dbtx.Querier, property uuid.UUID, asOf time.Time) (ControlReconciliation, error) {
 	out := ControlReconciliation{AsOf: ymd(asOf), Checks: []ControlReconCheck{}, OK: true}
 	cfg, err := LoadConfiguration(ctx, q, property)
@@ -247,6 +248,12 @@ func ReconcileControls(ctx context.Context, q dbtx.Querier, property uuid.UUID, 
 		}
 		out.Checks = append(out.Checks, check(r.Type, r.Label+" ("+r.AccountCode+") = sub-ledger", dec(r.GLBalance), dec(r.Subledger)))
 	}
+	// FR-VAL-05 / EP-05 AC2: Stock Valuation = GL inventory per inventory account.
+	inv, err := ReconcileInventory(ctx, q, property, asOf)
+	if err != nil {
+		return out, err
+	}
+	out.Checks = append(out.Checks, inv...)
 	for _, c := range out.Checks {
 		out.OK = out.OK && c.OK
 	}

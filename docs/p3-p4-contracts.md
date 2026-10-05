@@ -275,6 +275,9 @@ Additive fields (inventory): `warehouseCode`, `counterWarehouseId` (the other si
 `reversalOf` (a reversal repeats the original type with the opposite sign), and per line `itemCode`, `batchId`. A stock opname
 variance posts `movementType: opname`; waste `waste`; a shipped − received transfer difference an `adjustment` of the transit
 warehouse with `reason: transfer_discrepancy`. Consignment lines (`consignment: true`) carry no cost.
+Additive value of `sourceType`: `opening_stock` — the opening stock (an `adjustment` with `reason: opening_balance`, posted
+by `/inventory/opening-stock:import`); accounting books it Dr inventory / Cr opening balance equity (never the P&L), or not at
+all when a posted GL opening balance batch already carries an inventory account (FR-MIG-P4-03, FR-TRS-02).
 
 ### `inventory.reorder_needed` — consumed by procurement (automatic Purchase Requisition)
 `{ warehouseId, items: [{ itemId, onHand, reorderPoint, parLevel, suggestedQuantity, uomId, preferredSupplierId? }] }`
@@ -284,11 +287,14 @@ Goods receipts of the warehouse close the open requests ("on order").
 
 ### `inventory.asset_depreciated`
 `{ runId, period: "2026-10", lines: [{ assetId, assetCode, category, amount }], total, currency }`
-Additive (inventory): `number`, `periodEnd`.
+Additive (inventory): `number`, `periodEnd`; per line `expenseAccount`, `accumulatedAccount` (accounts of the asset category, "" =
+posting rules).
 
 ### `inventory.asset_disposed` (additive, inventory) — for accounting (disposal journal)
 `{ assetId, assetCode, name, assetClass, category, disposedOn, acquisitionCost, accumulatedDepreciation, bookValue, proceeds, currency, reason }`
-Published when the disposal is approved (approval document type `asset_disposal`).
+Published when the disposal is approved (approval document type `asset_disposal`). Additive: `assetAccount`,
+`accumulatedAccount` (accounts of the asset category, "" = posting rules). Accounting (FR-AST-06): Dr accumulated depreciation,
+Dr other receivables (proceeds), Cr fixed asset (cost), gain Cr 7120 / loss Dr 7220 (proceeds − book value), dated `disposedOn`.
 
 ### `inventory.consignment_sold`
 `{ supplierId, itemId, quantity, unitCost, totalCost, currency, sourceType, sourceId }`
@@ -395,8 +401,24 @@ Published by `cms` (EP-24) when content goes live / comes down (also by the sche
   (`annual_fee_due`, `fee_paid`), `sportclub.instructor_fee_approved`, golf (`caddy_settlement_approved`,
   `round_finished`), `crm.loyalty_points_changed`, inventory (`movement_posted`, `asset_depreciated`, `consignment_sold`,
   `revaluation_posted`), procurement (`goods_received`, `purchase_returned`, `vendor_invoice_approved`,
-  `debit_note_issued`). Payloads it cannot post go to the suspense account and the Posting Exception queue
-  (`accounting.posting_exception`); nothing is dropped.
+  `debit_note_issued`), `crm.commission_approved` and `inventory.asset_disposed`. Payloads it cannot post go to the suspense
+  account and the Posting Exception queue (`accounting.posting_exception`); nothing is dropped.
+- `crm.commission_approved` `{ statementId, number, userId, period, total, currency }` posts Dr sales commission expense (6130) /
+  Cr commission payable (2173) for the statement's net total (clawbacks and adjustments are lines of the statement; a negative
+  total reverses the sides); the payable is cleared by the payroll / bank payment (FR-PST-02).
+- `golf.caddy_settlement_approved` (K8, published by golf when a caddy fee settlement is approved — by its workflow or at once
+  without one): `{ settlementId, number, caddyId, caddyName, periodStart, periodEnd, rounds, caddyFee, tips, deductions, total }`.
+  Accounting posts the partner payouts recorded up to the event date (Dr caddy fee liability = total + deductions, Cr cash /
+  bank, Cr caddy deduction income); a payout made after the approval is posted by the next business day close or posting run.
+- Item categories (FR-INV-01/02): the `inventoryAccount`, `cogsAccount` (consumption, issues to sales / packages / banquets /
+  rounds), `expenseAccount` (other issues), `wasteAccount` and `varianceAccount` (adjustments, opname) of an item's category —
+  or of its nearest parent category that sets them (`reporting.acc_inventory_item_accounts`) — come before the posting rules for
+  stock movements, goods receipts, purchase returns and price variances; the asset category accounts for depreciation and
+  disposal. An account code that does not exist goes to suspense with a `missing_account` exception.
+- FR-VAL-05: the control reconciliation (`GET /accounting/reconciliation`) compares per inventory account (the default and the
+  category accounts) the GL balance with the Stock Valuation at the date (`reporting.acc_inventory_valuation`); the period
+  closing checklist shows it as `inventory_reconciled`, blocking when the Accounting Policies (period closing checklist)
+  set `requireInventoryReconciled`.
 - `inventory.movement_posted` with `sourceType: revaluation` is not posted (the value comes with
   `inventory.revaluation_posted`: `stockAmount` Dr inventory, `consumedAmount` Dr COGS or price variance per
   `consumedTo`, both Cr GRNI). Receipts of goods receipts, returns of purchase returns and consignment movements are

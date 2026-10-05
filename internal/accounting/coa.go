@@ -149,7 +149,9 @@ var Template = []tplAccount{
 	a("6990", "6000", "Rounding", "Pembulatan", "expense", "expense", "operating"),
 	h("7000", "", "Other Income & Expenses", "Pendapatan & Beban Lain-lain", "expense"),
 	a("7110", "7000", "Interest Income", "Pendapatan Bunga", "revenue", "other_income", "operating"),
+	a("7120", "7000", "Gain on Disposal of Fixed Assets", "Laba Pelepasan Aset Tetap", "revenue", "other_income", "operating"),
 	a("7210", "7000", "Interest Expense", "Beban Bunga", "expense", "other_expense", "operating"),
+	a("7220", "7000", "Loss on Disposal of Fixed Assets", "Rugi Pelepasan Aset Tetap", "expense", "other_expense", "operating"),
 }
 
 // normalBalance returns the normal side of an account type.

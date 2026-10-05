@@ -27,6 +27,12 @@ import (
 	"oneclub/internal/platform/handle"
 )
 
+// OpeningStockReason is the adjustment reason of the opening stock; its
+// movements are published with sourceType opening_stock (contract
+// inventory.movement_posted) so the ledger books them against opening balance
+// equity, never the P&L (FR-MIG-P4-03).
+const OpeningStockReason = "opening_balance"
+
 // OpeningStockInput is an opening stock file.
 type OpeningStockInput struct {
 	Mode         string `json:"mode" enum:"preview,commit"`
@@ -236,7 +242,7 @@ func (s *Stock) ImportOpeningStock(ctx context.Context, tx pgx.Tx, property uuid
 		return res, nil
 	}
 	for i, wh := range whs {
-		a, err := s.CreateAdjustment(ctx, tx, property, StockAdjustmentInput{WarehouseID: wh, Reason: "opening_balance", BusinessDate: in.BusinessDate,
+		a, err := s.CreateAdjustment(ctx, tx, property, StockAdjustmentInput{WarehouseID: wh, Reason: OpeningStockReason, BusinessDate: in.BusinessDate,
 			Notes: strings.TrimSpace("Opening stock import " + in.Filename), Submit: true, Lines: groups[wh]})
 		if err != nil {
 			return res, err

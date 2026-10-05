@@ -133,7 +133,7 @@ func (s *Stock) DisposeAsset(ctx context.Context, tx pgx.Tx, property, aid uuid.
 
 // disposeNow writes the disposal off (approved) and publishes it.
 func (s *Stock) disposeNow(ctx context.Context, tx pgx.Tx, property, aid uuid.UUID) error {
-	var code, name, class, category string
+	var code, name, class, category, assetAcct, accAcct string
 	var on time.Time
 	var cost, acc, book string
 	var proceeds *string
@@ -141,7 +141,8 @@ func (s *Stock) disposeNow(ctx context.Context, tx pgx.Tx, property, aid uuid.UU
 	err := tx.QueryRow(ctx, `UPDATE inventory.assets a SET status = 'disposed', rental_status = 'available' FROM inventory.asset_categories c
 		WHERE a.id = $1 AND c.id = a.category_id AND a.status <> 'disposed'
 		RETURNING a.code, a.name, c.asset_class, c.name, coalesce(a.disposed_on, current_date), a.acquisition_cost::text, a.accumulated_depreciation::text,
-		a.book_value::text, a.disposal_proceeds::text, a.disposal_reason`, aid).Scan(&code, &name, &class, &category, &on, &cost, &acc, &book, &proceeds, &reason)
+		a.book_value::text, a.disposal_proceeds::text, a.disposal_reason, coalesce(c.asset_account, ''), coalesce(c.accumulated_account, '')`, aid).
+		Scan(&code, &name, &class, &category, &on, &cost, &acc, &book, &proceeds, &reason, &assetAcct, &accAcct)
 	if dbtx.IsNoRows(err) {
 		return nil
 	}
@@ -161,7 +162,8 @@ func (s *Stock) disposeNow(ctx context.Context, tx pgx.Tx, property, aid uuid.UU
 	}
 	_, err = s.Events.Publish(ctx, tx, EventAssetDisposed, "inventory.asset", &aid, &property, map[string]any{"assetId": aid, "assetCode": code, "name": name,
 		"assetClass": class, "category": category, "disposedOn": on.Format("2006-01-02"), "acquisitionCost": dec(cost).String(),
-		"accumulatedDepreciation": dec(acc).String(), "bookValue": dec(book).String(), "proceeds": dec(pr).String(), "currency": cfg.Currency, "reason": reason})
+		"accumulatedDepreciation": dec(acc).String(), "bookValue": dec(book).String(), "proceeds": dec(pr).String(), "currency": cfg.Currency, "reason": reason,
+		"assetAccount": assetAcct, "accumulatedAccount": accAcct})
 	return err
 }
 
@@ -751,11 +753,12 @@ func (s *Stock) RunDepreciation(ctx context.Context, tx pgx.Tx, property uuid.UU
 		cost, residual, acc, rate decimal.Decimal
 		life                      int
 		method                    string
+		expenseAcct, accAcct      string // ledger accounts of the asset category (FR-AST-05)
 	}
 	rows, err := tx.Query(ctx, `SELECT a.id, a.code, c.name, a.acquisition_cost::text,
 		(CASE WHEN a.residual_value > 0 THEN a.residual_value ELSE round(a.acquisition_cost * c.residual_percent / 100, 4) END)::text,
 		a.accumulated_depreciation::text, coalesce(c.declining_rate_percent, 0)::text, coalesce(a.useful_life_months, c.useful_life_months),
-		coalesce(a.depreciation_method, c.depreciation_method)
+		coalesce(a.depreciation_method, c.depreciation_method), coalesce(c.expense_account, ''), coalesce(c.accumulated_account, '')
 		FROM inventory.assets a JOIN inventory.asset_categories c ON c.id = a.category_id
 		WHERE a.property_id = $1 AND a.archived_at IS NULL AND a.acquisition_cost > 0
 		AND (a.status <> 'disposed' OR a.disposed_on > $2::date)
@@ -769,7 +772,7 @@ func (s *Stock) RunDepreciation(ctx context.Context, tx pgx.Tx, property uuid.UU
 	for rows.Next() {
 		var x asset
 		var cost, res, acc, rate string
-		if err := rows.Scan(&x.id, &x.code, &x.category, &cost, &res, &acc, &rate, &x.life, &x.method); err != nil {
+		if err := rows.Scan(&x.id, &x.code, &x.category, &cost, &res, &acc, &rate, &x.life, &x.method, &x.expenseAcct, &x.accAcct); err != nil {
 			rows.Close()
 			return AssetDepreciationRun{}, err
 		}
@@ -809,7 +812,8 @@ func (s *Stock) RunDepreciation(ctx context.Context, tx pgx.Tx, property uuid.UU
 		}
 		computed = append(computed, line{a, amount, a.acc.Add(amount)})
 		total = total.Add(amount)
-		lines = append(lines, map[string]any{"assetId": a.id, "assetCode": a.code, "category": a.category, "amount": amount.String()})
+		lines = append(lines, map[string]any{"assetId": a.id, "assetCode": a.code, "category": a.category, "amount": amount.String(),
+			"expenseAccount": a.expenseAcct, "accumulatedAccount": a.accAcct})
 	}
 	if len(computed) == 0 {
 		return AssetDepreciationRun{}, errs.Validation("nothing_to_depreciate", "no asset to depreciate in "+period)

@@ -3,10 +3,11 @@ package accounting
 // FR-ACC-06/07 Financial Period & Period Closing: monthly periods per
 // property (Open → Soft Closed: only finance adjustments → Closed), the
 // closing checklist (business days closed, posting exceptions, bank
-// reconciliation, AP posting, stock opname) with the blocking items of the
-// closing policy, reopening through approval, accounting.period_closed /
-// accounting.period_reopened (contract K10) and the year-end closing of the
-// revenue and expense accounts to retained earnings.
+// reconciliation, AP posting, stock opname, stock valuation = GL inventory)
+// with the blocking items of the closing policy, reopening through approval,
+// accounting.period_closed / accounting.period_reopened (contract K10) and
+// the year-end closing of the revenue and expense accounts to retained
+// earnings.
 
 import (
 	"context"
@@ -32,7 +33,7 @@ var ReopenDocumentType = provision.DocumentType{Code: "accounting_period_reopen"
 
 // PeriodChecklistItem is one check of the period closing.
 type PeriodChecklistItem struct {
-	Code     string `json:"code" enum:"business_days_closed,no_posting_exceptions,bank_reconciled,ap_matched,opname_posted"`
+	Code     string `json:"code" enum:"business_days_closed,no_posting_exceptions,bank_reconciled,ap_matched,opname_posted,inventory_reconciled"`
 	Label    string `json:"label"`
 	OK       bool   `json:"ok"`
 	Blocking bool   `json:"blocking" doc:"Blocks the close (Accounting Policies → period closing checklist)"`
@@ -127,6 +128,10 @@ func checklist(ctx context.Context, q dbtx.Querier, property uuid.UUID, p Financ
 		AND business_date BETWEEN $2 AND $3`, property, start, end).Scan(&opnames); err != nil {
 		return nil, err
 	}
+	inv, err := inventoryChecklistItem(ctx, q, property, end, pol.RequireInventoryReconciled)
+	if err != nil {
+		return nil, err
+	}
 	return []PeriodChecklistItem{
 		{Code: "business_days_closed", Label: "Business days closed (night audit)", OK: openDays == 0, Blocking: pol.RequireBusinessDaysClosed,
 			Detail: fmt.Sprintf("%d business days with charges not closed", openDays)},
@@ -138,6 +143,7 @@ func checklist(ctx context.Context, q dbtx.Querier, property uuid.UUID, p Financ
 			Detail: fmt.Sprintf("%d open procurement posting exceptions", apOpen)},
 		{Code: "opname_posted", Label: "Stock opname posted", OK: opnames > 0, Blocking: pol.RequireOpnamePosted,
 			Detail: fmt.Sprintf("%d stock opname movements posted in the period", opnames)},
+		inv,
 	}, nil
 }
 

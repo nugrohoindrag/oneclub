@@ -6,6 +6,7 @@ package accounting
 import (
 	"context"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,6 +27,7 @@ var ConsumedEvents = []string{
 	"inventory.movement_posted", "inventory.asset_depreciated", "inventory.consignment_sold",
 	"procurement.goods_received", "procurement.purchase_returned", "procurement.vendor_invoice_approved", "procurement.debit_note_issued",
 	"commercial.sale_completed", "commercial.shift_closed", "golf.round_finished", "inventory.revaluation_posted",
+	"crm.commission_approved", "inventory.asset_disposed",
 }
 
 func (m *Module) handlers() map[string]evHandler {
@@ -61,6 +63,8 @@ func (m *Module) handlers() map[string]evHandler {
 		"commercial.shift_closed":             m.onShiftClosed,
 		"golf.round_finished":                 m.onRoundFinished,
 		"inventory.revaluation_posted":        m.onRevaluation,
+		"crm.commission_approved":             m.onCommissionApproved,
+		"inventory.asset_disposed":            m.onAssetDisposed,
 	}
 }
 
@@ -330,12 +334,28 @@ func (m *Module) onInstructorFee(ctx context.Context, tx pgx.Tx, ev Ev) (outcome
 	return out, err
 }
 
-// onCaddySettlement posts the caddy fee payouts recorded so far (the caddy
-// fee liability is released when the settlement is paid).
+// onCaddySettlement (golf.caddy_settlement_approved, K8) posts the partner
+// payouts recorded so far: the caddy fee liability is released when the
+// approved settlement is paid (Dr caddy fee liability = total + deductions,
+// Cr cash / bank, Cr caddy deduction income); a payout made later is posted
+// by the next business day close or posting run.
 func (m *Module) onCaddySettlement(ctx context.Context, tx pgx.Tx, ev Ev) (outcome, error) {
+	var p struct {
+		SettlementID uuid.UUID `json:"settlementId"`
+		Number       string    `json:"number"`
+	}
+	_ = ev.decode(&p)
 	d := eventDate(ctx, tx, ev)
-	return m.sweepBilling(ctx, tx, ev.Property, sweepFilter{UpTo: &d, Payouts: true},
-		sweepHeader{Date: d, SourceType: ev.Type, SourceID: ev.ID.String(), EventID: &ev.ID, Description: "Caddy settlement " + ymd(d)})
+	src, ref := ev.ID.String(), ""
+	if p.SettlementID != uuid.Nil {
+		src, ref = p.SettlementID.String(), p.Number
+	}
+	out, err := m.sweepBilling(ctx, tx, ev.Property, sweepFilter{UpTo: &d, Payouts: true},
+		sweepHeader{Date: d, SourceType: ev.Type, SourceID: src, SourceRef: ref, EventID: &ev.ID, Description: "Caddy settlement " + strings.TrimSpace(ref+" "+ymd(d))})
+	if err == nil && out.Status == "" {
+		out = outcome{Status: "no_posting", Note: "caddy fee liability released when the settlement payout is posted"}
+	}
+	return out, err
 }
 
 // onLoyalty posts the loyalty points liability (FR-REV-02/03): earned
@@ -394,9 +414,10 @@ type movementPayload struct {
 	SourceType   string    `json:"sourceType"`
 	TotalCost    string    `json:"totalCost"`
 	Lines        []struct {
-		Quantity    string `json:"quantity"`
-		TotalCost   string `json:"totalCost"`
-		Consignment bool   `json:"consignment"`
+		ItemID      *uuid.UUID `json:"itemId"`
+		Quantity    string     `json:"quantity"`
+		TotalCost   string     `json:"totalCost"`
+		Consignment bool       `json:"consignment"`
 	} `json:"lines"`
 }
 
@@ -417,8 +438,38 @@ func (m *Module) onMovement(ctx context.Context, tx pgx.Tx, ev Ev) (outcome, err
 	if p.SourceType == "revaluation" {
 		return outcome{Status: "no_posting", Note: "posted from inventory.revaluation_posted"}, nil
 	}
-	// signed value: stock in > 0, stock out < 0
+	if p.SourceType == "opening_stock" {
+		// FR-MIG-P4-03 / FR-TRS-02: the opening stock is a balance, never P&L
+		carried, err := openingCarriesInventory(ctx, tx, ev.Property)
+		if err != nil {
+			return outcome{}, err
+		}
+		if carried {
+			return outcome{Status: "no_posting", Note: "opening stock: the inventory is carried by the posted GL opening balances"}, nil
+		}
+	}
+	// signed value per category accounts: stock in > 0, stock out < 0
+	var ids []uuid.UUID
+	for _, l := range p.Lines {
+		if l.ItemID != nil && !l.Consignment {
+			ids = append(ids, *l.ItemID)
+		}
+	}
+	accts, err := loadItemAccounts(ctx, tx, ids)
+	if err != nil {
+		return outcome{}, err
+	}
+	type acctPair struct{ inv, ctr string }
+	sums := map[acctPair]decimal.Decimal{}
+	var order []acctPair
 	amt := decimal.Zero
+	add := func(k acctPair, v decimal.Decimal) {
+		if _, ok := sums[k]; !ok {
+			order = append(order, k)
+		}
+		sums[k] = sums[k].Add(v)
+		amt = amt.Add(v)
+	}
 	for _, l := range p.Lines {
 		if l.Consignment {
 			continue
@@ -427,29 +478,47 @@ func (m *Module) onMovement(ctx context.Context, tx pgx.Tx, ev Ev) (outcome, err
 		if dec(l.Quantity).IsNegative() {
 			c = c.Neg()
 		}
-		amt = amt.Add(c)
+		var k acctPair
+		if l.ItemID != nil {
+			a := accts[*l.ItemID]
+			k = acctPair{a.Inventory, a.counter(p.MovementType, p.SourceType)}
+		}
+		add(k, c)
 	}
 	if len(p.Lines) == 0 {
-		amt = dec(p.TotalCost)
-		if !inbound[p.MovementType] && amt.IsPositive() && p.MovementType != "adjustment" && p.MovementType != "opname" {
-			amt = amt.Neg()
+		v := dec(p.TotalCost)
+		if !inbound[p.MovementType] && v.IsPositive() && p.MovementType != "adjustment" && p.MovementType != "opname" {
+			v = v.Neg()
 		}
+		add(acctPair{}, v)
 	}
 	if amt.IsZero() {
-		return outcome{Status: "no_posting", Note: "no value"}, nil
+		nonZero := false
+		for _, v := range sums {
+			nonZero = nonZero || !v.IsZero()
+		}
+		if !nonZero {
+			return outcome{Status: "no_posting", Note: "no value"}, nil
+		}
 	}
 	d := eventDate(ctx, tx, ev)
 	if t, err := time.Parse("2006-01-02", p.BusinessDate); err == nil {
 		d = t
 	}
 	cc := deref(p.CostCenter)
+	var items []Item
+	for _, k := range order {
+		if sums[k].IsZero() {
+			continue
+		}
+		items = append(items, Item{Source: ev.Type, Attrs: map[string]string{"movementType": p.MovementType, "sourceType": p.SourceType, "costCenter": cc},
+			Amount: sums[k], Dims: Dims{CostCenter: cc}, DimSide: "credit", Description: p.Number, SourceType: "inventory.movement",
+			SourceID: p.MovementID.String(), FallbackDebit: "inventory", DebitCode: k.inv, CreditCode: k.ctr})
+	}
 	var out outcome
 	j, missing, err := m.postSources(ctx, tx, posting{Entry: Entry{Property: ev.Property, Date: d, SourceType: ev.Type, SourceID: p.MovementID.String(),
 		SourceRef: p.Number, EventID: &ev.ID, Description: "Stock movement " + p.Number + " (" + p.MovementType + ")"},
-		Sources: []sourceMark{{Type: "inventory.movement", ID: p.MovementID, BusinessDate: &d, Key1: p.MovementType, Key2: cc, Amount: amt,
-			Items: []Item{{Source: ev.Type, Attrs: map[string]string{"movementType": p.MovementType, "sourceType": p.SourceType, "costCenter": cc},
-				Amount: amt, Dims: Dims{CostCenter: cc}, DimSide: "credit", Description: p.Number, SourceType: "inventory.movement",
-				SourceID: p.MovementID.String(), FallbackDebit: "inventory"}}}}})
+		Sources: []sourceMark{{Type: "inventory.movement", ID: p.MovementID, BusinessDate: &d, Key1: p.MovementType, Key2: cc, Amount: amt, Items: items}}})
 	out.add(j, missing)
 	return out, err
 }
@@ -466,8 +535,9 @@ func (m *Module) onRevaluation(ctx context.Context, tx pgx.Tx, ev Ev) (outcome, 
 		GoodsReceiptID  uuid.UUID `json:"goodsReceiptId"`
 		ConsumedTo      string    `json:"consumedTo"`
 		Lines           []struct {
-			StockAmount    string `json:"stockAmount"`
-			ConsumedAmount string `json:"consumedAmount"`
+			ItemID         *uuid.UUID `json:"itemId"`
+			StockAmount    string     `json:"stockAmount"`
+			ConsumedAmount string     `json:"consumedAmount"`
 		} `json:"lines"`
 	}
 	if err := ev.decode(&p); err != nil || p.VendorInvoiceID == uuid.Nil || p.GoodsReceiptID == uuid.Nil {
@@ -485,16 +555,46 @@ func (m *Module) onRevaluation(ctx context.Context, tx pgx.Tx, ev Ev) (outcome, 
 		to = "cogs"
 	}
 	src := uuid.NewSHA1(p.VendorInvoiceID, []byte(p.GoodsReceiptID.String()))
-	var items []Item
-	for _, x := range []struct {
-		part string
-		amt  decimal.Decimal
-	}{{"stock", stock}, {"consumed", consumed}} {
-		if x.amt.IsZero() {
-			continue
+	var ids []uuid.UUID
+	for _, l := range p.Lines {
+		if l.ItemID != nil {
+			ids = append(ids, *l.ItemID)
 		}
-		items = append(items, Item{Source: ev.Type, Attrs: map[string]string{"part": x.part, "consumedTo": to}, Amount: x.amt,
-			Description: "Price variance " + p.Number, SourceType: "inventory.revaluation", SourceID: src.String(), FallbackCredit: "grni"})
+	}
+	accts, err := loadItemAccounts(ctx, tx, ids)
+	if err != nil {
+		return outcome{}, err
+	}
+	// per category account: the stock part on the inventory account, the
+	// consumed part on the COGS or stock variance account of the category
+	type part struct{ part, code string }
+	sums := map[part]decimal.Decimal{}
+	var order []part
+	add := func(k part, v decimal.Decimal) {
+		if v.IsZero() {
+			return
+		}
+		if _, ok := sums[k]; !ok {
+			order = append(order, k)
+		}
+		sums[k] = sums[k].Add(v)
+	}
+	for _, l := range p.Lines {
+		var a itemAccounts
+		if l.ItemID != nil {
+			a = accts[*l.ItemID]
+		}
+		cc := a.COGS
+		if to == "price_variance" {
+			cc = a.Variance
+		}
+		add(part{"stock", a.Inventory}, dec(l.StockAmount))
+		add(part{"consumed", cc}, dec(l.ConsumedAmount))
+	}
+	var items []Item
+	for _, k := range order {
+		items = append(items, Item{Source: ev.Type, Attrs: map[string]string{"part": k.part, "consumedTo": to}, Amount: sums[k],
+			Description: "Price variance " + p.Number, SourceType: "inventory.revaluation", SourceID: src.String(), FallbackCredit: "grni", DebitCode: k.code})
 	}
 	d := eventDate(ctx, tx, ev)
 	var out outcome
@@ -511,9 +611,11 @@ func (m *Module) onDepreciation(ctx context.Context, tx pgx.Tx, ev Ev) (outcome,
 		RunID  uuid.UUID `json:"runId"`
 		Period string    `json:"period"`
 		Lines  []struct {
-			AssetCode string `json:"assetCode"`
-			Category  string `json:"category"`
-			Amount    string `json:"amount"`
+			AssetCode          string `json:"assetCode"`
+			Category           string `json:"category"`
+			Amount             string `json:"amount"`
+			ExpenseAccount     string `json:"expenseAccount"`
+			AccumulatedAccount string `json:"accumulatedAccount"`
 		} `json:"lines"`
 		Total string `json:"total"`
 	}
@@ -530,7 +632,8 @@ func (m *Module) onDepreciation(ctx context.Context, tx pgx.Tx, ev Ev) (outcome,
 		a := dec(l.Amount)
 		sum = sum.Add(a)
 		items = append(items, Item{Source: ev.Type, Attrs: map[string]string{"category": l.Category}, Amount: a, Description: "Depreciation " + l.AssetCode,
-			Dims: Dims{CostCenter: l.Category}, DimSide: "debit", SourceType: "inventory.asset", SourceID: l.AssetCode})
+			Dims: Dims{CostCenter: l.Category}, DimSide: "debit", SourceType: "inventory.asset", SourceID: l.AssetCode,
+			DebitCode: l.ExpenseAccount, CreditCode: l.AccumulatedAccount})
 	}
 	if len(items) == 0 {
 		sum = dec(p.Total)
@@ -595,6 +698,10 @@ func (m *Module) onGoodsReceived(ctx context.Context, tx pgx.Tx, ev Ev) (outcome
 		SupplierID     uuid.UUID `json:"supplierId"`
 		ReceivedDate   string    `json:"receivedDate"`
 		Total          string    `json:"total"`
+		Lines          []struct {
+			ItemID    *uuid.UUID `json:"itemId"`
+			TotalCost string     `json:"totalCost"`
+		} `json:"lines"`
 	}
 	if err := ev.decode(&p); err != nil || p.GoodsReceiptID == uuid.Nil {
 		return outcome{}, badPayload("goods_received payload")
@@ -609,13 +716,24 @@ func (m *Module) onGoodsReceived(ctx context.Context, tx pgx.Tx, ev Ev) (outcome
 	}
 	sup := p.SupplierID
 	amt := dec(p.Total)
+	lines := make([]amountLine, 0, len(p.Lines))
+	for _, l := range p.Lines {
+		lines = append(lines, amountLine{ItemID: l.ItemID, Amount: dec(l.TotalCost)})
+	}
+	groups, err := inventoryGroups(ctx, tx, amt, lines)
+	if err != nil {
+		return outcome{}, err
+	}
+	var items []Item
+	for _, g := range groups {
+		items = append(items, Item{Source: ev.Type, Attrs: map[string]string{}, Amount: g.Amount, Dims: Dims{PartnerType: "supplier", PartnerID: &sup, PartnerName: name},
+			DimSide: "credit", Description: "GR " + p.Number, SourceType: "procurement.goods_receipt", SourceID: p.GoodsReceiptID.String(),
+			FallbackDebit: "inventory", DebitCode: g.Code})
+	}
 	var out outcome
 	j, missing, err := m.postSources(ctx, tx, posting{Entry: Entry{Property: ev.Property, Date: d, SourceType: ev.Type, SourceID: p.GoodsReceiptID.String(),
 		SourceRef: p.Number, EventID: &ev.ID, Description: "Goods receipt " + p.Number + " (" + p.PONumber + ") · " + name},
-		Sources: []sourceMark{{Type: "procurement.goods_receipt", ID: p.GoodsReceiptID, BusinessDate: &d, Key1: p.PONumber, Amount: amt,
-			Items: []Item{{Source: ev.Type, Attrs: map[string]string{}, Amount: amt, Dims: Dims{PartnerType: "supplier", PartnerID: &sup, PartnerName: name},
-				DimSide: "credit", Description: "GR " + p.Number, SourceType: "procurement.goods_receipt", SourceID: p.GoodsReceiptID.String(),
-				FallbackDebit: "inventory"}}}}})
+		Sources: []sourceMark{{Type: "procurement.goods_receipt", ID: p.GoodsReceiptID, BusinessDate: &d, Key1: p.PONumber, Amount: amt, Items: items}}})
 	out.add(j, missing)
 	return out, err
 }
@@ -626,6 +744,10 @@ func (m *Module) onPurchaseReturned(ctx context.Context, tx pgx.Tx, ev Ev) (outc
 		Number           string    `json:"number"`
 		SupplierID       uuid.UUID `json:"supplierId"`
 		Total            string    `json:"total"`
+		Lines            []struct {
+			ItemID    *uuid.UUID `json:"itemId"`
+			TotalCost string     `json:"totalCost"`
+		} `json:"lines"`
 	}
 	if err := ev.decode(&p); err != nil || p.PurchaseReturnID == uuid.Nil {
 		return outcome{}, badPayload("purchase_returned payload")
@@ -637,12 +759,24 @@ func (m *Module) onPurchaseReturned(ctx context.Context, tx pgx.Tx, ev Ev) (outc
 	}
 	sup := p.SupplierID
 	amt := dec(p.Total)
+	lines := make([]amountLine, 0, len(p.Lines))
+	for _, l := range p.Lines {
+		lines = append(lines, amountLine{ItemID: l.ItemID, Amount: dec(l.TotalCost)})
+	}
+	groups, err := inventoryGroups(ctx, tx, amt, lines)
+	if err != nil {
+		return outcome{}, err
+	}
+	var items []Item
+	for _, g := range groups {
+		items = append(items, Item{Source: ev.Type, Attrs: map[string]string{}, Amount: g.Amount, Dims: Dims{PartnerType: "supplier", PartnerID: &sup, PartnerName: name},
+			DimSide: "debit", Description: "Return " + p.Number, SourceType: "procurement.purchase_return", SourceID: p.PurchaseReturnID.String(),
+			CreditCode: g.Code})
+	}
 	var out outcome
 	j, missing, err := m.postSources(ctx, tx, posting{Entry: Entry{Property: ev.Property, Date: d, SourceType: ev.Type, SourceID: p.PurchaseReturnID.String(),
 		SourceRef: p.Number, EventID: &ev.ID, Description: "Purchase return " + p.Number + " · " + name},
-		Sources: []sourceMark{{Type: "procurement.purchase_return", ID: p.PurchaseReturnID, BusinessDate: &d, Amount: amt,
-			Items: []Item{{Source: ev.Type, Attrs: map[string]string{}, Amount: amt, Dims: Dims{PartnerType: "supplier", PartnerID: &sup, PartnerName: name},
-				DimSide: "debit", Description: "Return " + p.Number, SourceType: "procurement.purchase_return", SourceID: p.PurchaseReturnID.String()}}}}})
+		Sources: []sourceMark{{Type: "procurement.purchase_return", ID: p.PurchaseReturnID, BusinessDate: &d, Amount: amt, Items: items}}})
 	out.add(j, missing)
 	return out, err
 }

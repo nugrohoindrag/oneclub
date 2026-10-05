@@ -95,6 +95,11 @@ type Item struct {
 	FallbackCredit string
 	DebitAccount   *uuid.UUID // explicit account (bypasses the rule for that side)
 	CreditAccount  *uuid.UUID
+	// DebitCode / CreditCode name an explicit account by code (the ledger
+	// accounts of an item category, FR-INV-01/02): they take precedence over
+	// the rule for that side; an unusable code is a missing_account.
+	DebitCode  string
+	CreditCode string
 }
 
 // Missing is an item without a usable mapping.
@@ -316,6 +321,26 @@ func (r *resolver) resolve(items []Item) ([]Line, error) {
 			}
 			it.CreditAccount = acct
 		}
+		// Explicit account codes (category accounts) come before the rules.
+		var codeErr string
+		for _, x := range []struct {
+			code string
+			acct **uuid.UUID
+		}{{it.DebitCode, &it.DebitAccount}, {it.CreditCode, &it.CreditAccount}} {
+			if x.code == "" || *x.acct != nil {
+				continue
+			}
+			a, err := r.accountByCode(x.code)
+			if err != nil {
+				return nil, err
+			}
+			if a.Err != "" {
+				codeErr = a.Err
+				continue
+			}
+			id := a.ID
+			*x.acct = &id
+		}
 		var rl *postingRule
 		var err error
 		if it.DebitAccount == nil || it.CreditAccount == nil {
@@ -349,6 +374,17 @@ func (r *resolver) resolve(items []Item) ([]Line, error) {
 				if x.Err != "" {
 					reason, detail = "missing_account", x.Err
 				}
+			}
+		}
+		if codeErr != "" {
+			// the configured category account is unusable: the side it names
+			// goes to suspense (or is held), never silently to the default
+			reason, detail = "missing_account", codeErr
+			if it.DebitCode != "" && it.DebitAccount == nil {
+				dr = acctInfo{Err: codeErr}
+			}
+			if it.CreditCode != "" && it.CreditAccount == nil {
+				cr = acctInfo{Err: codeErr}
 			}
 		}
 		if reason != "" {
@@ -537,6 +573,8 @@ func defaultRuleSpecs() []ruleSpec {
 		"sourceType": "banquet"}, "@inventory", "5140", 60)
 	add("DEF-INV-COGS", "Cost of sales / consumption", "inventory.movement_posted", map[string]any{"movementType": []any{"issue", "consumption"}},
 		"@inventory", "@cogs", 100)
+	add("DEF-INV-OPENING", "Opening stock (balance sheet: opening balance equity, never P&L)", "inventory.movement_posted",
+		map[string]any{"sourceType": "opening_stock"}, "@inventory", "@opening_balance_equity", 20)
 	add("DEF-INV-ADJ", "Stock adjustment / opname variance", "inventory.movement_posted", map[string]any{"movementType": []any{"adjustment", "opname"}},
 		"@inventory", "@inventory_variance", 100)
 	add("DEF-INV-WASTE", "Waste / spoilage", "inventory.movement_posted", map[string]any{"movementType": "waste"}, "@inventory", "@waste_expense", 100)
@@ -549,6 +587,17 @@ func defaultRuleSpecs() []ruleSpec {
 	add("DEF-REVAL-COGS", "Invoice price variance consumed (cost of sales)", "inventory.revaluation_posted", map[string]any{"part": "consumed"},
 		"@cogs", "@grni", 100)
 	add("DEF-ASSET-DEPR", "Asset depreciation", "inventory.asset_depreciated", nil, "@depreciation_expense", "@accumulated_depreciation", 100)
+	add("DEF-ASSET-DISP-COST", "Asset disposal – cost derecognised", "inventory.asset_disposed", map[string]any{"part": "cost"}, "@posting_clearing",
+		"@fixed_asset", 100)
+	add("DEF-ASSET-DISP-ACC", "Asset disposal – accumulated depreciation", "inventory.asset_disposed", map[string]any{"part": "accumulated"},
+		"@accumulated_depreciation", "@posting_clearing", 100)
+	add("DEF-ASSET-DISP-PROCEEDS", "Asset disposal – proceeds receivable", "inventory.asset_disposed", map[string]any{"part": "proceeds"}, "@ar_other",
+		"@posting_clearing", 100)
+	add("DEF-ASSET-DISP-GAIN", "Asset disposal – gain", "inventory.asset_disposed", map[string]any{"part": "gain"}, "@posting_clearing",
+		"@asset_disposal_gain", 100)
+	add("DEF-ASSET-DISP-LOSS", "Asset disposal – loss", "inventory.asset_disposed", map[string]any{"part": "loss"}, "@asset_disposal_loss",
+		"@posting_clearing", 100)
+	add("DEF-COMMISSION", "Sales commission approved", "crm.commission_approved", nil, "@commission_expense", "@commission_payable", 100)
 	add("DEF-CONSIGN", "Consignment item sold", "inventory.consignment_sold", nil, "@cogs_consignment", "@consignment_payable", 100)
 	add("DEF-GR", "Goods received (GRNI)", "procurement.goods_received", nil, "@inventory", "@grni", 100)
 	add("DEF-PRET", "Purchase return", "procurement.purchase_returned", nil, "@grni", "@inventory", 100)

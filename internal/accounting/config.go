@@ -65,7 +65,7 @@ var DefaultAccounts = map[string]string{
 	"caddy_fee_payable": "2171", "instructor_fee_payable": "2172", "commission_payable": "2173", "accrued_expenses": "2181", "suspense": "2199",
 	"share_capital": "3100", "retained_earnings": "3200", "opening_balance_equity": "3900",
 	"revenue_other": "4890", "breakage_income": "4810", "cancellation_income": "4820", "caddy_deduction_income": "4830", "discounts": "4910",
-	"sales_allowance": "4920", "interest_income": "7110",
+	"sales_allowance": "4920", "interest_income": "7110", "asset_disposal_gain": "7120", "asset_disposal_loss": "7220",
 	"cogs": "5110", "cogs_consignment": "5130", "waste_expense": "5180", "inventory_variance": "5190",
 	"instructor_fee_expense": "6120", "commission_expense": "6130", "loyalty_expense": "6410", "depreciation_expense": "6510",
 	"bad_debt_expense": "6610", "bank_charges": "6620", "general_expense": "6640", "cash_over_short": "6910", "rounding": "6990",
@@ -86,6 +86,7 @@ type ClosingPolicy struct {
 	RequireBankReconciled      bool `json:"requireBankReconciled" doc:"No unmatched bank transaction dated in the period"`
 	RequireApMatched           bool `json:"requireApMatched" doc:"No unposted goods receipt / vendor invoice exception in the period"`
 	RequireOpnamePosted        bool `json:"requireOpnamePosted" doc:"Stock opname of the period posted (inventory movement received)"`
+	RequireInventoryReconciled bool `json:"requireInventoryReconciled" doc:"Stock Valuation = GL inventory per inventory account at the period end (FR-VAL-05)"`
 }
 
 // DefaultClosingPolicy: the checklist is shown with warnings; only posting
@@ -127,8 +128,9 @@ func init() {
 		Description: "Default accounts, posting mode per business line, suspense / hold of unmapped postings, late postings into closed periods, " +
 			"manual journal approval threshold, loyalty point value and dimensions", Default: DefaultConfiguration})
 	rules.RegisterPolicy(rules.PolicyDef{Code: ClosingPolicyCode, Category: "Accounting Policies", Name: "Period closing checklist",
-		Description: "Which checks block a period close: business days closed, posting exceptions, bank reconciliation, 3-way matching, stock opname",
-		Default:     DefaultClosingPolicy})
+		Description: "Which checks block a period close: business days closed, posting exceptions, bank reconciliation, 3-way matching, stock opname, " +
+			"stock valuation = GL inventory",
+		Default: DefaultClosingPolicy})
 	rules.RegisterPolicy(rules.PolicyDef{Code: AllowanceCode, Category: "Accounting Policies", Name: "Allowance for doubtful accounts",
 		Description: "Provision rate per AR ageing bucket", Default: DefaultAllowancePolicy})
 	rules.RegisterPolicy(rules.PolicyDef{Code: ServiceChargeCode, Category: "Accounting Policies", Name: "Service charge pool",

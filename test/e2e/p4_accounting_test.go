@@ -375,7 +375,7 @@ func accLedgerJournals(t *testing.T, c *Client, sfx string) {
 			dec2025 = str(p["id"])
 		}
 	}
-	if p := c.Must(200, "GET", accBase+"/periods/"+dec2025, nil).JSON(); len(p["checklist"].([]any)) != 5 || p["canClose"] != true {
+	if p := c.Must(200, "GET", accBase+"/periods/"+dec2025, nil).JSON(); len(p["checklist"].([]any)) != 6 || p["canClose"] != true {
 		t.Fatalf("closing checklist: %v", p)
 	}
 	if p := c.Must(200, "POST", accBase+"/periods/"+dec2025+":soft-close", map[string]any{}).JSON(); p["status"] != "soft_closed" {
@@ -1060,6 +1060,22 @@ func TestP4AccountingBillingAR(t *testing.T) {
 		if m := r.(map[string]any); m["difference"] != "0" {
 			t.Fatalf("deferred revenue %v: GL %v ≠ sub-ledger %v", m["type"], m["glBalance"], m["subledger"])
 		}
+	}
+	// FR-VAL-05: MDR holds no stock; the inventory events published by the
+	// tests above are synthetic, so the reconciliation shows their balance
+	// as the difference until it is reclassified.
+	if b := accBal(t, m, "1151", day); !b.IsZero() {
+		_, checks := fixChecks(t, c, day)
+		if inv := checks["inventory_valuation:1151"]; inv["ok"] != false || !dec(inv["difference"]).Equal(b) || inv["subledger"] != "0" {
+			t.Fatalf("inventory 1151 vs an empty Stock Valuation: %v (GL %s)", inv, b)
+		}
+		dr, cr := "5190", "1151"
+		if b.IsNegative() {
+			dr, cr = cr, dr
+		}
+		c.Must(201, "POST", accBase+"/manual-journals", map[string]any{"journalDate": day, "journalType": "adjustment", "submit": true,
+			"description": "Reclassify synthetic test stock postings", "lines": []map[string]any{{"accountId": accAccount(t, dr), "debit": b.Abs().String()},
+				{"accountId": accAccount(t, cr), "credit": b.Abs().String()}}})
 	}
 	if rec := c.Must(200, "GET", accBase+"/reconciliation?asOf="+day, nil).JSON(); rec["ok"] != true {
 		t.Fatalf("control reconciliation: %v", rec["checks"])

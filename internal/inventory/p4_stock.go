@@ -1028,7 +1028,7 @@ func (p *poster) write(ctx context.Context) (StockMovement, bool, error) {
 		}
 		if _, err := p.s.Events.Publish(ctx0, tx, EventMovementPosted, "inventory.stock_movement", &mid, &p.property, map[string]any{
 			"movementId": mid, "number": number, "movementType": in.Type, "businessDate": in.BusinessDate.Format("2006-01-02"), "warehouseId": p.wh.ID,
-			"warehouseCode": p.wh.Code, "counterWarehouseId": in.CounterWarehouseID, "costCenter": cc, "outletId": in.OutletID, "sourceType": in.SourceType,
+			"warehouseCode": p.wh.Code, "counterWarehouseId": in.CounterWarehouseID, "costCenter": cc, "outletId": in.OutletID, "sourceType": eventSourceType(in),
 			"sourceId": in.SourceID, "reversalOf": in.ReversalOf, "reason": nullStr(in.Reason), "currency": p.cfg.Currency, "totalCost": total.String(),
 			"lines": lines}); err != nil {
 			return StockMovement{}, false, err
@@ -1039,6 +1039,17 @@ func (p *poster) write(ctx context.Context) (StockMovement, bool, error) {
 	}
 	m, err := GetMovement(ctx, tx, mid)
 	return m, true, err
+}
+
+// eventSourceType is the sourceType published with inventory.movement_posted:
+// the opening stock (an adjustment with reason opening_balance, posted by the
+// opening stock import) is published as opening_stock so the ledger books it
+// against opening balance equity instead of the stock variance (P&L).
+func eventSourceType(in PostInput) string {
+	if in.SourceType == "adjustment" && in.Reason == OpeningStockReason {
+		return "opening_stock"
+	}
+	return in.SourceType
 }
 
 func (p *poster) writeSerials(ctx context.Context, pc *piece, mid uuid.UUID) error {
