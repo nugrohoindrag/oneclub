@@ -1,0 +1,2 @@
+poNumber,supplierCode,orderDate,warehouseCode,itemCode,quantity,unitPrice,receivedQuantity,taxPercent
+CLPO-{SFX},CLS{SFX},{TODAY},CLW{SFX},CLI1{SFX},10,14500,4,11

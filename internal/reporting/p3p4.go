@@ -18,7 +18,7 @@ func P3Reports() []*Report {
 
 // P4Reports are the reports of PRD P4.
 func P4Reports() []*Report {
-	return concatReports(inventoryReports, procurementReports, accountingReports, cmsReports)
+	return concatReports(inventoryReports, banquetFoodCostReports, procurementReports, accountingReports, cmsReports)
 }
 
 func concatReports(lists ...[]*Report) []*Report {
@@ -54,6 +54,14 @@ var reportRoles = map[string][]string{
 	"cms":         {"property_admin", "marketing_staff"},
 }
 
+// reportExtraRoles grants single reports to roles outside the owning module
+// (the banquet food cost per event is also read by the banquet roles on the
+// event detail screen, PRD P4 §9.2).
+var reportExtraRoles = map[string][]string{
+	"inventory.banquet_food_cost":       {"banquet_manager", "event_manager", "resort_manager"},
+	"inventory.banquet_food_cost_lines": {"banquet_manager", "event_manager", "resort_manager"},
+}
+
 // P3P4Contribution adds one permission per P3 / P4 report and grants it
 // with the dashboards to the owning roles.
 func P3P4Contribution() catalog.Contribution {
@@ -66,7 +74,7 @@ func P3P4Contribution() catalog.Contribution {
 		}
 		seen[r.Permission] = true
 		perms = append(perms, catalog.Permission{Code: r.Permission, Description: r.Name})
-		for _, role := range reportRoles[r.Module] {
+		for _, role := range append(append([]string{}, reportRoles[r.Module]...), reportExtraRoles[r.Code]...) {
 			roles[role] = append(roles[role], r.Permission, "reporting.report.view", "reporting.dashboard.view", "reporting.export.create")
 		}
 	}

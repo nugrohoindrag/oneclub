@@ -6,7 +6,7 @@ INSERT INTO platform.users (id, email, full_name, password_hash, password_change
 SELECT gen_random_uuid(), 'e2e.' || r.code || '@test.oneclub.id', r.name || ' (E2E)',
        (SELECT password_hash FROM platform.users WHERE email = 'gm@demo.oneclub.id'), now(), 'en'
 FROM platform.roles r WHERE r.code IN ('platform_admin','super_admin','general_manager','golf_manager','starter_marshal','member','cashier','caddy','caddy_manager','sport_club_receptionist','kitchen_staff','property_admin','screen',
-  'accountant','procurement_staff','inventory_manager','warehouse_staff')
+  'accountant','procurement_staff','inventory_manager','warehouse_staff','banquet_manager','finance_manager','procurement_manager')
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO platform.role_assignments (id, user_id, role_id, property_id)

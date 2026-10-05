@@ -1,0 +1,4 @@
+legacyRef,title,eventType,customerName,customerPhone,customerEmail,date,startTime,endTime,pax,contractTotal,downPayment,downPaymentDate,notes
+CLI-BQ-{SFX}-1,CLI Wedding {SFX},SOCIAL,CLI Lina {SFX},+62827{SFX},,{D+45},18:00,22:00,120,30000000,9000000,{D-20},Menu A
+CLI-BQ-{SFX}-2,CLI Arisan {SFX},SOCIAL,CLI Sri {SFX},,sri{SFX}@bq.test,{D+20},,,40,8000000,,,
+CLI-BQ-{SFX}-3,CLI Bad pax {SFX},SOCIAL,CLI Bad {SFX},,,{D+30},,,forty,1000000,,,

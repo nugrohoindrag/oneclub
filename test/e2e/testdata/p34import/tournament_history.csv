@@ -1,0 +1,4 @@
+tournamentRef,tournamentName,startDate,endDate,tournamentType,format,category,division,hallOfFameDivision,position,playerName,score,toPar,publicConsent
+RH-CLI-{SFX},CLI Championship {SFX},2024-08-16,2024-08-17,club_championship,stroke_play,gross,,,1,CLI Juara {SFX},142,-2,true
+RH-CLI-{SFX},CLI Championship {SFX},2024-08-16,2024-08-17,club_championship,stroke_play,gross,,,2,CLI Kedua {SFX},145,+1,false
+RH-CLI-{SFX},CLI Championship {SFX},2024-08-16,2024-08-17,club_championship,stroke_play,net,Ladies,ladies,1,CLI Ladies {SFX},70,,false

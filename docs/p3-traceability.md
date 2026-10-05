@@ -12,7 +12,7 @@ counted). 🟡 marks verification that needs an environment the dev machine does
 external pen test).
 
 Test locations: `test/e2e/p3_*_test.go` and `test/e2e/p3fix_*_test.go` (Go acceptance tests on real PostgreSQL, run
-together with the P0, P1, P2 and P4 suites), `web/e2e/p3.spec.ts` and `web/e2e/p4fix-website.spec.ts` (Playwright),
+together with the P0, P1, P2 and P4 suites), `web/e2e/p3.spec.ts`, `web/e2e/p34-flows.spec.ts` and `web/e2e/p4fix-website.spec.ts` (Playwright),
 `test/load/*.js` (k6), unit tests next to the code. Module contracts with P4 (events, payloads, renames):
 [`docs/p3-p4-contracts.md`](p3-p4-contracts.md).
 
@@ -25,9 +25,9 @@ domains); P3 adds the module `banquet`, the CRM sub-packages `crm/sales`, `crm/e
 
 | Status | Count |
 |---|---|
-| Done | 288 |
+| Done | 289 |
 | Done (mock provider for trial) | 2 |
-| Partial | 3 |
+| Partial | 2 |
 | Deferred | 4 |
 | Not built by decision | 0 |
 | **Total requirement rows** | **297** |
@@ -119,7 +119,7 @@ never exercised successfully. Run at `28ead3a`: **1071/1071 mutating routes exer
 |---|---|---|---|---|
 | FR-C360-01 | Customer 360 sections Banquet/Event, Lead & Opportunity, Quotation, Campaign, Loyalty, Complaint, Tournament | Done | `internal/crm/foundation.go` sections; `internal/banquet/crm360.go`; wiring `app/p3_banquet.go`, `p3_engagement.go`, `p3_tournament.go` | `TestP3FixChannelsCustomer360Banquet`, `TestP3EngagementLoyalty`, `TestP3TournamentClub` |
 | FR-C360-02 | Segmentation dimensions incl. outlet | Done | `crm/engagement/segment.go` | `TestP3EngagementCampaigns` |
-| FR-C360-03 | Dynamic (scheduled) and static segments, count, export | Done | `segment.go` (refresh job, `members.csv`) | `TestP3EngagementCampaigns` (export endpoint not asserted) |
+| FR-C360-03 | Dynamic (scheduled) and static segments, count, export | Done | `segment.go` (refresh job, `members.csv`) | `TestP3EngagementCampaigns`, `TestP34LeftoversTestGaps` (CSV export: header, members, permission) |
 | FR-C360-04 | Corporate 360 (nominees, events, billing, AR, golf) | Done | `crm/engagement/c360.go`, `banquet/crm360.go`, `golf/tournament/corporate360.go` | `TestP3FixChannelsCustomer360Banquet`, `TestP3EngagementCampaigns` |
 | FR-C360-05 | Automatic interactions from campaign, quotation, ticket, event | Done | `campaign.go`, `ticket.go`, `quotation.go`, `app/p3_engagement.go` | `TestP3EngagementCampaigns` |
 | FR-C360-06 | Masking and permissions of sensitive data | Done | `crm/foundation.go` | `TestP3EngagementCampaigns` |
@@ -391,7 +391,7 @@ never exercised successfully. Run at `28ead3a`: **1071/1071 mutating routes exer
 | FR-INT-P3-02 | E-mail inbound → lead (Should) | Done | `capture.go` (the department mailbox forwards to the API) | `TestP3SalesLeads` |
 | FR-INT-P3-03 | Meta / TikTok lead form adapter | Deferred | §16 #6: social leads entered manually with a mandatory source | `TestP3SalesLeads` (manual source) |
 | FR-INT-P3-04 | Payment link for DP, terms and invoices | Done | `billing/p3_schedule_link.go`, `/public/invoices/{token}:pay`; gateway per method & property through the integration layer (`internal/billing/api.go`) | `TestP3BillingCorporateInvoices`, `TestP3FixChannelsSchedulePayOnline`, `TestP3FixMoneyBilling` |
-| FR-INT-P3-05 | Accounting Export extended (invoices, DP, package allocation, promotions, points, commission, business day) | Done | `billing/p3_export.go` + sections (`app/p3_sales.go` commission) | `TestP3BillingCorporateInvoices`, `TestP3CommercialPackages`, `TestP3EngagementLoyalty` (commission section not asserted) |
+| FR-INT-P3-05 | Accounting Export extended (invoices, DP, package allocation, promotions, points, commission, business day) | Done | `billing/p3_export.go` + sections (`app/p3_sales.go` commission) | `TestP3BillingCorporateInvoices`, `TestP3CommercialPackages`, `TestP3EngagementLoyalty`, `TestP34LeftoversTestGaps` (commission section: earned / clawback / adjustment amounts) |
 | FR-INT-P3-06 | P3 notification templates ID / EN | Done | `Templates()` of banquet, crm/sales, crm/engagement, golf/tournament, billing (seeded per instance) | deliveries asserted in `TestP3QuotationOtpAndEMeterai` (quotation code), `TestP3FixMoneyBilling` (overdue reminder), `TestP3EngagementCampaigns` |
 | FR-INT-P3-07 | Third-party e-signature (Should) | Deferred | §16 #18: certified PSrE e-signature postponed | — |
 
@@ -405,14 +405,14 @@ never exercised successfully. Run at `28ead3a`: **1071/1071 mutating routes exer
 | FR-MIG-P3-04 | Active leads & opportunities from the sales spreadsheet | Done | `crm/sales/import.go` (`/crm/leads:import`); runbook [`leads-migration-p3.md`](runbooks/leads-migration-p3.md) | `TestP3SalesLeads` |
 | FR-MIG-P3-05 | Reconciliation: DP = deposit liability, corporate AR, future events; signed | Done | `banquet/import.go`, `billing/p3_import.go` | `TestP3BanquetImport`, `TestP3FixMoneyARImport` |
 | FR-MIG-P3-06 | Two dry runs on Staging, tournament & banquet cut-over runbook | Done | runbooks [`banquet-migration-p3.md`](runbooks/banquet-migration-p3.md), [`tournament-migration-p3.md`](runbooks/tournament-migration-p3.md), [`corporate-ar-migration-p3.md`](runbooks/corporate-ar-migration-p3.md), [`leads-migration-p3.md`](runbooks/leads-migration-p3.md) | 🟡 dry runs on Staging |
-| §11 migration CLI | `oneclub import rhapsody --scope=banquet\|corporate-ar\|tournament-history`, `oneclub import sales` | Partial | Same imports as Back Office / API importers with preview, idempotent re-run and reconciliation (above); `cmd/oneclub` `import` supports only the P1–P2 Rhapsody pipeline | — |
+| §11 migration CLI | `oneclub import rhapsody --scope=banquet\|corporate-ar\|tournament-history`, `oneclub import sales` | Done | `oneclub import <scope>` (also `import rhapsody --scope=…`) in `cmd/oneclub`, scopes `sales`, `banquet`, `tournament-history`, `corporate-ar` in `internal/app/dataimport`: the API importer functions run as the system actor; dry run by default (rolled back), `-commit`, idempotent re-run, rejected rows with their line, reconciliation (banquet DP = deposit liability, AR control total) printed and written as a JSON report | `TestP34LeftoversImportCLI` (CSV fixtures `test/e2e/testdata/p34import`) |
 
 ## EP-26 Production Readiness (Release 3)
 
 | ID | Requirement | Status | Implementation | Evidence |
 |---|---|---|---|---|
 | FR-REL-P3-01 | k6: tournament registration, campaign 10.000, promotions at POS peak, night audit on a month | Done | `test/load/tournament-registration.js`, `campaign-10k.js`, `promotion-pos-peak.js`, `night-audit.js`; targets in [`production-readiness.md`](runbooks/production-readiness.md) §4 | 🟡 run on Staging, results to record |
-| FR-REL-P3-02 | Playwright for the §9 flows (wedding, corporate event, tournament, package, promotion offline, night audit) | Partial | `web/e2e/p3.spec.ts` (POS points, Kitchen Display BEO, website consent, Member App DP), `p4fix-website.spec.ts`; the flows themselves run as Go API e2e | Browser runs of the wedding, corporate event, tournament, package and night audit flows not written |
+| FR-REL-P3-02 | Playwright for the §9 flows (wedding, corporate event, tournament, package, promotion offline, night audit) | Partial | `web/e2e/p3.spec.ts` (POS points, Kitchen Display BEO, website consent, Member App DP), `p34-flows.spec.ts` (§9.1 wedding chained in the browser: website inquiry → quotation accepted on the public link with the one-time code → DP → Definite → BEO issued by the Banquet Manager), `p4fix-website.spec.ts`; the other flows run as Go API e2e | Browser runs of the corporate event, tournament, package, promotion offline and night audit flows not written |
 | FR-REL-P3-03 | P1–P2 regression on the Release 3 build | Done | CI `backend` + `browser` jobs | P0–P4 suites green together |
 | FR-REL-P3-04 | Pen test of the new public endpoints | Done | scope in [`production-readiness.md`](runbooks/production-readiness.md) §6 (Release 3 table); rate limits, random tokens, single-use acceptance | 🟡 external pen test |
 | FR-REL-P3-05 | VPS build with `garble`, no source maps | Done | `deploy/docker/Dockerfile`, `Dockerfile.web` (`SOURCEMAPS=false`) | build config |
@@ -509,14 +509,12 @@ never exercised successfully. Run at `28ead3a`: **1071/1071 mutating routes exer
 
 | # | Item | Owner (suggested) |
 |---|---|---|
-| 1 | FR-REL-P3-02: Playwright runs of the §9 flows (wedding, corporate event, tournament, package, promotion offline, night audit) — today 4 P3 browser tests plus the Go API e2e | Engineering (QA) |
+| 1 | FR-REL-P3-02: Playwright runs of the remaining §9 flows (corporate event, tournament, package, promotion offline, night audit) — the wedding flow runs in `web/e2e/p34-flows.spec.ts` | Engineering (QA) |
 | 2 | FR-REL-P3-06: Release 3 training per role (sales, banquet, event, marketing, finance AR, tournament desk) and 2–4 weeks hypercare per wave; add a Release 3 row to [`production-readiness.md`](runbooks/production-readiness.md) §7 | Delivery lead + club |
 | 3 | NFR-Availability: event-day / tournament-day monitoring plan (on-call, probes on public registration and leaderboard) | OneClub ops |
-| 4 | §11 migration CLI (`oneclub import … --scope`, `oneclub import sales`): wrap the API importers in the CLI or amend the PRD to the Back Office importers | Product + engineering |
-| 5 | 🟡 k6 Release 3 scenarios on Staging with results recorded; external pen test of the P3 public endpoints; two migration dry runs per runbook; chained UAT of §9.1–§9.5 with club sign-off per wave | Engineering + OneClub ops + club |
-| 6 | Real providers before production: configure WhatsApp (`whatsapp-cloud`), e-mail (`sendgrid` / `smtp`) and Xendit per instance (the trial runs on `mock-whatsapp`, `mock-email`, `mock-payment`); **e-Meterai has only the sandbox adapter `mock-emeterai`** — a production adapter for the club's e-Meterai distributor must be built (capability `e_meterai` is ready) | Platform / integration area + OneClub ops + club |
-| 7 | FR-QUO-09 / FR-INT-P3-07 certified PSrE e-signature and FR-INT-P3-03 Meta / TikTok lead adapter — deferred by §16 #6 / #18, to be re-planned | Product |
-| 8 | Small test gaps: segment CSV export (FR-C360-03) and the commission section of the Accounting Export (FR-INT-P3-05) are implemented but not asserted | Engineering |
+| 4 | 🟡 k6 Release 3 scenarios on Staging with results recorded; external pen test of the P3 public endpoints; two migration dry runs per runbook; chained UAT of §9.1–§9.5 with club sign-off per wave | Engineering + OneClub ops + club |
+| 5 | Real providers before production: configure WhatsApp (`whatsapp-cloud`), e-mail (`sendgrid` / `smtp`) and Xendit per instance (the trial runs on `mock-whatsapp`, `mock-email`, `mock-payment`); **e-Meterai has only the sandbox adapter `mock-emeterai`** — a production adapter for the club's e-Meterai distributor must be built (capability `e_meterai` is ready) | Platform / integration area + OneClub ops + club |
+| 6 | FR-QUO-09 / FR-INT-P3-07 certified PSrE e-signature and FR-INT-P3-03 Meta / TikTok lead adapter — deferred by §16 #6 / #18, to be re-planned | Product |
 
 ## Product decisions pending
 

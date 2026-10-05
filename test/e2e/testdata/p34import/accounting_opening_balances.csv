@@ -1,0 +1,5 @@
+account,debit,credit,partner_type,partner,document_no,document_date,due_date,description
+CLI-BANK-{SFX},50000000,,,,,,,Bank (CLI)
+1111,5000000,,,,,,,Cash on hand
+2111,,3000000,supplier,CLS{SFX},VI-CLI-{SFX},{D-40},{D-10},Open vendor invoice
+3900,,52000000,,,,,,Opening balance equity

@@ -1,0 +1,3 @@
+code,name,baseUomId,itemType,categoryId,standardCost
+CLI1{SFX},CLI Sugar {SFX},{KG},raw,{CAT},14000
+CLI2{SFX},CLI Flour {SFX},{KG},raw,{CAT},9000

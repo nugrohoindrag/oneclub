@@ -90,7 +90,7 @@ accounting book) before R4.2 (Inventory + Procurement) and R4.3 (Accounting) go 
 | Procure-to-pay: 10 buyers × PO → approval → GR → 3-way-matched vendor invoice | `procure-to-pay.js` | p95 of each step < 1.5 s, every cycle ends with a matched (approved) vendor invoice; afterwards GRNI and AP control = sub-ledgers (Closing → Reconciliations) | |
 | Stock opname of the main store counted from 8 handhelds (offline replays), submit and post | `opname.js` | count p95 < 800 ms, replays counted once, post < 30 s, no 5xx | |
 | Stock deduction at the POS peak (K6 consumption) | `pos-peak.js` with Inventory enabled | as in Release 2, and Inventory → Posting Exceptions empty / consumption posted within 5 min after the run | |
-| CMS publication | — (package CMS) | *proposal*: a `cms-publish.js` script (publish + cache purge under website traffic) is owned by the CMS area | |
+| CMS publication under website traffic: 50 public reads/s (site revision, navigation, page, news, sitemap) while Marketing creates and submits pages and the approver publishes them | `cms-publish.js` | visitor p95 < 500 ms, approve → page served by the public API and website revision bumped (cache purge) p95 < 5 s, every page live, no 5xx | |
 
 Correctness under contention is covered by the Go acceptance tests: idempotent posting of an event delivered three
 times (`TestP4AccountingGolfPerTransaction`), balanced and append-only journals enforced by the database

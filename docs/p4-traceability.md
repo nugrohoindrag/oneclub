@@ -12,8 +12,8 @@ counted). 🟡 marks verification that needs an environment the dev machine does
 external pen test).
 
 Test locations: `test/e2e/p4_*_test.go` and `test/e2e/p4fix_*_test.go` (Go acceptance tests on real PostgreSQL, run
-together with the P0–P3 suites; `p4_zz_fixledger_test.go` sorts last on purpose), `web/e2e/p4.spec.ts` and
-`web/e2e/p4fix-website.spec.ts` (Playwright), `test/load/*.js` (k6), unit tests next to the code
+together with the P0–P3 suites; `p4_zz_fixledger_test.go` sorts last on purpose), `web/e2e/p4.spec.ts`,
+`web/e2e/p34-flows.spec.ts` and `web/e2e/p4fix-website.spec.ts` (Playwright), `test/load/*.js` (k6), unit tests next to the code
 (`internal/accounting/posting_coverage_test.go`, `internal/platform/integration/p4_test.go`, `internal/cms/cms_test.go`,
 `internal/reporting/p4fix_pdf_test.go`, `internal/inventory/p4_packs_test.go`). Module contracts with P3 (events,
 payloads, renames): [`docs/p3-p4-contracts.md`](p3-p4-contracts.md).
@@ -26,9 +26,9 @@ in `web/apps/staff/src/p4/{inventory,procurement,accounting,cms}.tsx`.
 
 | Status | Count |
 |---|---|
-| Done | 239 |
+| Done | 242 |
 | Done (mock provider for trial) | 2 |
-| Partial | 8 |
+| Partial | 5 |
 | Deferred | 2 |
 | Not built by decision | 1 |
 | **Total requirement rows** | **252** |
@@ -109,7 +109,7 @@ posting rule.
 | ID | Requirement | Status | Implementation | Evidence |
 |---|---|---|---|---|
 | FR-VAL-01 | Moving average and FIFO per category / item | Done | `p4_stock.go` | `TestP4InventoryValuation` |
-| FR-VAL-02 | COGS at valuation cost | Done | `p4_stock.go` | `TestP4InventoryValuation` |
+| FR-VAL-02 | COGS at valuation cost | Done | `p4_stock.go`; standard cost stays the theoretical basis (Banquet Food Cost Report) | `TestP4InventoryValuation`, `TestP34LeftoversBanquetFoodCost` |
 | FR-VAL-03 | Landed cost allocated to receipt lines (Should) | Done | `internal/procurement/landed_cost.go` (by value or quantity, on-hand and used part) → `procurement.invoice_price_variance` → inventory revaluation | `TestP4FixStockLandedCost` |
 | FR-VAL-04 | Inventory journal per valued movement through posting rules | Done | `accounting/events.go`, `inventory_post.go`, rules DEF-INV-* | `TestP4AccountingAutomaticPosting`, `TestP4FixLedgerInventoryValuation` |
 | FR-VAL-05 | Stock Valuation Report as of a date = GL inventory | Done | `accounting/revenue.go` control reconciliation per inventory account; period-close check (`accounting/period.go`) | `TestP4FixLedgerInventoryValuation` |
@@ -123,7 +123,7 @@ posting rule.
 |---|---|---|---|---|
 | FR-CNS-01 | POS `commercial.sale_completed` (K7) per recipe incl. modifiers, combos, sub-recipes; retail 1:1 | Done | `inventory/p4_consumption.go` | `TestP4InventoryConsumption`, `TestP4FixStockConsumptionModifiersCombos` |
 | FR-CNS-02 | Void / refund reverses consumption per configuration | Done | `commercial.sale_voided` / `sale_refunded` (`internal/commercial/pos/pos.go`) → `p4_consumption.go` (retail always, F&B only when not prepared) | `TestP4FixStockRefundRestock` |
-| FR-CNS-03 | Banquet `event_completed` (K6) per final pax | Done | `p4_consumption.go` | `TestP4InventoryConsumption` |
+| FR-CNS-03 | Banquet `event_completed` (K6) per final pax | Done | `p4_consumption.go` | `TestP4InventoryConsumption`, `TestP34LeftoversBanquetFoodCost` (real BEO → completion with 110 final pax) |
 | FR-CNS-04 | Package (K6) and service BOM (golf round) | Done | `p4_consumption.go` | `TestP4InventoryConsumption` |
 | FR-CNS-05 | Idempotent per event; late events to their business day | Done | `p4_consumption.go` | `TestP4InventoryConsumption`, `TestP4InventoryValuation` |
 | FR-CNS-06 | Theoretical vs actual per outlet per period | Done | `/inventory/consumption-variance` | `TestP4InventoryConsumption` |
@@ -243,7 +243,7 @@ posting rule.
 | ID | Requirement | Status | Implementation | Evidence |
 |---|---|---|---|---|
 | FR-PST-01 | Configurable posting rules (event + conditions → accounts, dimensions) | Done | `accounting/rules.go` | `TestP4AccountingLedgerCore`, `TestP4AccountingCashBank` |
-| FR-PST-02 | Minimum sources: billing, voucher, loyalty, membership fee, caddy settlement, instructor, commission, POS shift, inventory, procurement, AP, bank | Done | `accounting/events.go`, `billing_post.go`, `cash_post.go`, `inventory_post.go` (commission, disposal); `golf.caddy_settlement_approved` published by `internal/golf/experience/caddy.go` | `TestP4AccountingAutomaticPosting`, `TestP4AccountingBillingAR`, `TestP4FixLedgerCommission`, `TestP4FixLedgerCaddySettlement`, `TestP4FixLedgerBillingPostings`; unit `TestPostingCoverage`, `TestDefaultRuleSources` |
+| FR-PST-02 | Minimum sources: billing, voucher, loyalty, membership fee, caddy settlement, instructor, commission, POS shift, inventory, procurement, AP, bank | Done | `accounting/events.go`, `billing_post.go`, `cash_post.go`, `inventory_post.go` (commission, disposal); `golf.caddy_settlement_approved` published by `internal/golf/experience/caddy.go` | `TestP4AccountingAutomaticPosting`, `TestP4AccountingBillingAR`, `TestP4FixLedgerCommission`, `TestP4FixLedgerCaddySettlement`, `TestP4FixLedgerBillingPostings`, `TestP34LeftoversTestGaps` (POS shift short Rp20.000: Dr 6910 / Cr 1111), `TestP34LeftoversBanquetFoodCost` (banquet COGS: Dr 5140 / Cr 1151); unit `TestPostingCoverage`, `TestDefaultRuleSources` |
 | FR-PST-03 | Posting mode per source (per transaction / daily summary) | Done | Accounting Configuration | `TestP4AccountingGolfPerTransaction`, `TestP4AccountingBillingAR` |
 | FR-PST-04 | Suspense and exception queue; no event lost | Done | `accounting/exceptions.go` | `TestP4AccountingAutomaticPosting` |
 | FR-PST-05 | Idempotent, replay safe | Done | processed events, posted sources | `TestP4AccountingAutomaticPosting`, `TestP4AccountingGolfPerTransaction` |
@@ -383,7 +383,7 @@ posting rule.
 | FR-RPT-P4-01 | Inventory Performance | Done | `internal/reporting/p4_inventory.go` | `TestP4InventoryImport`, `TestP4InventoryValuation` |
 | FR-RPT-P4-02 | Procurement Performance | Done | `reporting/p4_procurement.go` | `TestP4ProcurementReports` |
 | FR-RPT-P4-03 | Financial Performance | Done | `reporting/p4_accounting.go` | `TestP4AccountingLedgerCore` |
-| FR-RPT-P4-04 | The 29 listed reports | Done | `reporting/p4_{inventory,procurement,accounting,cms}.go` | `TestP4InventoryImport`, `TestP4ProcurementReports`, `TestP4AccountingLedgerCore` |
+| FR-RPT-P4-04 | The 29 listed reports | Done | `reporting/p4_{inventory,procurement,accounting,cms}.go`; plus the Banquet Food Cost (Detail) Report (`reporting/p34_banquet_food_cost.go`, §9.2) | `TestP4InventoryImport`, `TestP4ProcurementReports`, `TestP4AccountingLedgerCore`, `TestP34LeftoversBanquetFoodCost` |
 | FR-RPT-P4-05 | Filters, CSV / XLSX / PDF export, permission per report | Done | `reporting.go`, `p4fix_pdf.go` | `TestP4ProcurementReports`, `TestP4CMSSiteData`, `TestP4FixFinancePDFExport` |
 | EP-28 AC | Inventory Value dashboard = Stock Valuation Report = GL inventory | Done | — | `TestP4InventoryValuation`, `TestP4FixLedgerInventoryValuation` |
 
@@ -398,14 +398,14 @@ posting rule.
 | FR-MIG-P4-05 | Assets with accumulated depreciation | Done | `/platform/imports` `inventory.asset` | `TestP4InventoryAssets` |
 | FR-MIG-P4-06 | Reconciliation signed by the Finance Manager | Done | opening batch reconciliation, import previews | `TestP4AccountingLedgerCore`, `TestP4InventoryImport`, `TestP4ProcurementMigration`, `TestP4FixLedgerInventoryValuation` |
 | FR-MIG-P4-07 | Two dry runs on Staging; accounting & warehouse cut-over runbook | Done | [`accounting-migration-p4.md`](runbooks/accounting-migration-p4.md), [`inventory-migration-p4.md`](runbooks/inventory-migration-p4.md), [`procurement-migration-p4.md`](runbooks/procurement-migration-p4.md) | 🟡 dry runs on Staging |
-| §11 migration CLI | `oneclub import accounting\|inventory\|procurement` | Partial | Same imports as Back Office / API importers with preview and reconciliation (above); `cmd/oneclub` `import` supports only the Rhapsody pipeline | — |
+| §11 migration CLI | `oneclub import accounting\|inventory\|procurement` | Done | `oneclub import <scope>` in `cmd/oneclub`, scopes `inventory` (items, categories, warehouses, opening-stock), `procurement` (suppliers, supplier-items, open-purchase-orders), `accounting` (accounts, opening-balances incl. AR / AP open items) in `internal/app/dataimport`: the API importer functions run as the system actor; dry run by default, `-commit`, idempotent re-run (opening stock already posted and a posted opening batch are reported as existing, a draft batch of the same description is replaced), reconciliation printed and written as a JSON report | `TestP34LeftoversImportCLI` (CSV fixtures `test/e2e/testdata/p34import`) |
 
 ## EP-30 Production Readiness (Release 4)
 
 | ID | Requirement | Status | Implementation | Evidence |
 |---|---|---|---|---|
-| FR-REL-P4-01 | k6: posting a month, POS stock peak, annual reports on the replica, CMS publish | Partial | `test/load/posting-month.js`, `period-close.js`, `procure-to-pay.js`, `opname.js`, `pos-peak.js` with Inventory; targets in [`production-readiness.md`](runbooks/production-readiness.md) §4 | No `cms-publish.js` (proposal in §4); 🟡 Staging runs |
-| FR-REL-P4-02 | Playwright for §9 (procure-to-pay, POS → stock → COGS → journal, opname, period close, CMS publish) | Partial | `web/e2e/p4.spec.ts` (Accounting, Procurement, Inventory, Warehouse screens open), `p4fix-website.spec.ts` (CMS header, sitemap) | The flows run as Go API e2e; no browser run of procure-to-pay, opname, period close or CMS publish |
+| FR-REL-P4-01 | k6: posting a month, POS stock peak, annual reports on the replica, CMS publish | Done | `test/load/posting-month.js`, `period-close.js`, `procure-to-pay.js`, `opname.js`, `pos-peak.js` with Inventory, `cms-publish.js` (publication under website traffic: page live and revision bumped); targets in [`production-readiness.md`](runbooks/production-readiness.md) §4 | 🟡 Staging runs |
+| FR-REL-P4-02 | Playwright for §9 (procure-to-pay, POS → stock → COGS → journal, opname, period close, CMS publish) | Partial | `web/e2e/p4.spec.ts` (Accounting, Procurement, Inventory, Warehouse screens open), `p34-flows.spec.ts` (§9.1 procure-to-pay: PR on the requisition screen → approval → PO → goods received on the Warehouse workstation → vendor invoice matched; period close: opening stock posted, *Stock valuation = GL inventory* on the closing checklist, soft close), `p4fix-website.spec.ts` (CMS header, sitemap) | POS → stock → journal, opname and CMS publish run as Go API e2e (CMS publish also as k6 `cms-publish.js`); no browser run of them |
 | FR-REL-P4-03 | P1–P3 regression on the Release 4 build | Done | CI `backend` + `browser` jobs | P0–P4 suites green together |
 | FR-REL-P4-04 | Integration test of every posting rule and balance reconciliation | Done | `test/e2e/p4_accounting_test.go`, `p4_zz_fixledger_test.go` | `TestP4FixLedgerBillingPostings`, `TestP4FixLedgerCommission`, `TestP4FixLedgerAssetDisposal`, `TestP4FixLedgerCaddySettlement`, `TestP4FixLedgerInventoryValuation`; unit `TestPostingCoverage` |
 | FR-REL-P4-05 | Pen test: CMS, bank / Coretax, financial data access | Done | scope in [`production-readiness.md`](runbooks/production-readiness.md) §6 (Release 4 table); sanitiser, upload checks, masking | `TestP4CMSPageWorkflow`; unit `TestSanitizeHTML`; 🟡 external pen test |
@@ -457,7 +457,7 @@ posting rule.
 | Flow | Status | Evidence (hop by hop) |
 |---|---|---|
 | §9.1 Procure-to-pay | Done | reorder PR, approval, RFQ to 3 suppliers, selection, PO sent, partial and remaining GR, vendor invoice matched `TestP4ProcurementProcureToPay`, `TestP4ProcurementMatching` → AP, payment run, bank file `TestP4AccountingAutomaticPosting` → statement import and reconciliation `TestP4AccountingCashBank` → inventory / GRNI / AP / cash journals `TestP4AccountingAutomaticPosting`; k6 `procure-to-pay.js` 🟡 |
-| §9.2 Banquet supply | Partial | BEO 300 pax → PR, revision 320 pax `TestP4ProcurementRequisitions` → event completed, BOM per final pax from the Banquet Kitchen, production from BEO `TestP4InventoryConsumption` → banquet COGS by rule DEF-INV-COGS-BQT (`internal/accounting/rules.go`, movements carry `sourceType: banquet`). Gap: food cost actual vs theoretical is reported per outlet / period (`inventory.food_cost`, `inventory.consumption_variance`), not per event; the banquet COGS rule is not asserted by an e2e test |
+| §9.2 Banquet supply | Done | BEO 300 pax → PR, revision 320 pax `TestP4ProcurementRequisitions` → event completed, BOM per final pax from the Banquet Kitchen, production from BEO `TestP4InventoryConsumption` → through a real BEO (issued 100 pax) and completion (110 final pax): stock deducted at moving average and banquet COGS by rule DEF-INV-COGS-BQT, Dr 5140 / Cr 1151 Rp2.904.000 `TestP34LeftoversBanquetFoodCost` → food cost actual vs theoretical per event: report `inventory.banquet_food_cost` (+ `inventory.banquet_food_cost_lines` per ingredient; view `reporting.inventory_banquet_food_cost_lines`: theoretical = issued BEO scaled to the final pax × standard cost, actual = stock deducted for the event at valuation cost) and the *Food Cost* tab of the banquet event detail screen |
 | §9.3 POS → stock → journal | Done | sale_completed incl. offline-synced sales, modifiers, combos `TestP4InventoryConsumption`, `TestP4FixStockConsumptionModifiersCombos` → business day close, revenue / tax / service / COGS journals `TestP4AccountingBillingAR`, `TestP4AccountingAutomaticPosting` → opname variance and adjustment `TestP4InventoryOpname` → theoretical vs actual `TestP4InventoryConsumption`; volume (200 trx, 40 offline) 🟡 k6 `pos-peak.js` |
 | §9.4 Month-end close | Done | checklist, soft close, adjustment, close, statements `TestP4AccountingLedgerCore`; Stock Valuation = GL check blocks the close `TestP4FixLedgerInventoryValuation`; e-Faktur uploaded `TestP4AccountingBillingAR`; k6 `period-close.js` 🟡 |
 | §9.5 Website update | Done | ID / EN promo page + banner scheduled, structured promotion block, published and unpublished on schedule `TestP4CMSPageWorkflow`, `TestP4CMSNewsGalleryBanners` |
@@ -475,10 +475,10 @@ posting rule.
 | `procurement.po_approved` | Done | `procurement/service.go` | `TestP4ProcurementProcureToPay` |
 | `procurement.goods_received` | Done | `procurement/receipt.go` | `TestP4ProcurementProcureToPay`, `TestP4AccountingAutomaticPosting` |
 | `procurement.vendor_invoice_matched` | Done | `procurement/service.go` | `TestP4ProcurementProcureToPay` |
-| `accounting.journal_posted` | Done | `internal/accounting/ledger.go` (on every post) | published by every posting test, e.g. `TestP4AccountingLedgerCore` (payload not asserted; no consumer yet) |
+| `accounting.journal_posted` | Done | `internal/accounting/ledger.go` (on every post) | published by every posting test, e.g. `TestP4AccountingLedgerCore`; payload asserted in `TestP34LeftoversBanquetFoodCost` (no consumer yet) |
 | `accounting.posting_exception` | Done | `accounting/posting.go` | `TestP4AccountingAutomaticPosting` |
 | `accounting.period_closed` | Done | `accounting/period.go` | `TestP4AccountingLedgerCore` |
-| `accounting.payment_run_executed` | Done | `accounting/ap.go` | published by the executed payment run in `TestP4AccountingAutomaticPosting` (payload not asserted; no consumer yet) |
+| `accounting.payment_run_executed` | Done | `accounting/ap.go` | published by the executed payment run in `TestP4AccountingAutomaticPosting`; payload asserted in `TestP34LeftoversImportCLI` (no consumer yet) |
 | `accounting.tax_invoice_uploaded` | Done | `accounting/tax.go` | `TestP4AccountingBillingAR` |
 | `cms.page_published` | Done | `cms.<kind>_published` (`internal/cms/content.go`) | `TestP4CMSPageWorkflow` |
 
@@ -486,19 +486,16 @@ posting rule.
 
 | # | Item | Owner (suggested) |
 |---|---|---|
-| 1 | FR-REL-P4-02: Playwright runs of procure-to-pay, POS → stock → journal, opname, period close and CMS publish (today 4 P4 smoke tests + 4 website tests; the flows run as Go API e2e) | Engineering (QA) |
-| 2 | FR-REL-P4-01: `test/load/cms-publish.js` (publish + cache purge under website traffic) | CMS area |
-| 3 | FR-REL-P4-08: training per role (accountant, warehouse, procurement, inventory, marketing CMS) and hypercare through the first period close — outline in [`production-readiness.md`](runbooks/production-readiness.md) §7 | Delivery lead + club Finance |
-| 4 | FR-FIN-06: confirm the financial statement layout with the club's auditor; add a report-line mapping if it differs from the CoA hierarchy | Club Finance + accounting area |
-| 5 | §16 #15: Marketing Manager role template as approver of website publication (today the General Manager) | Platform / CMS area + club Marketing |
-| 6 | §16 #7: golf tax treatment — the demo golf rate card is all-in with PPN 11 % while the assumption names PBJT 10 % for golf; confirm with the tax consultant and configure the rate card | Club Finance + tax consultant |
-| 7 | NFR-SEO & web: measure Core Web Vitals of the public pages on mobile | Web area |
-| 8 | §11 migration CLI (`oneclub import accounting\|inventory\|procurement`): wrap the API importers or amend the PRD and runbooks | Product + engineering |
-| 9 | FR-INT-P4-03 bank statement API / host-to-host (Should, deferred by §16 #11); BCA / Mandiri bulk payment layouts for FR-AP-06 when the club provides them | Accounting area + club Finance |
-| 10 | 🟡 Release 4 k6 runs on Staging with results recorded; external pen test (P4 scope); bucket lifecycle ≥ 5 years and a recorded restore drill with `accounting`; two dry runs per cut-over runbook; 1-month reconciliation; month-end close sign-off | OneClub ops + engineering + club Finance |
-| 11 | Real providers before production: Coretax PJAP credentials (trial on `mock-efaktur`), Xendit (`mock-payment`), production e-mail (`mock-email`), Modernland resident data (`mock-resident`). For the trial itself `mock-efaktur` is not enabled by provisioning or `seed-demo`: the Platform Admin adds it under Integrations, otherwise e-Faktur upload answers *not_configured* | OneClub ops + club |
-| 12 | §9.2: food cost actual vs theoretical per banquet event (today per outlet / period; consumption movements already carry the event as source) and an e2e assertion of the banquet COGS rule DEF-INV-COGS-BQT | Inventory + accounting areas |
-| 13 | After deploying this release to an existing instance: run `POST /api/v1/accounting/posting-rules:generate-defaults` once (see [`accounting-migration-p4.md`](runbooks/accounting-migration-p4.md)) | OneClub ops |
+| 1 | FR-REL-P4-02: Playwright runs of POS → stock → journal, opname and CMS publish (procure-to-pay and period close run in `web/e2e/p34-flows.spec.ts`; the others as Go API e2e) | Engineering (QA) |
+| 2 | FR-REL-P4-08: training per role (accountant, warehouse, procurement, inventory, marketing CMS) and hypercare through the first period close — outline in [`production-readiness.md`](runbooks/production-readiness.md) §7 | Delivery lead + club Finance |
+| 3 | FR-FIN-06: confirm the financial statement layout with the club's auditor; add a report-line mapping if it differs from the CoA hierarchy | Club Finance + accounting area |
+| 4 | §16 #15: Marketing Manager role template as approver of website publication (today the General Manager) | Platform / CMS area + club Marketing |
+| 5 | §16 #7: golf tax treatment — the demo golf rate card is all-in with PPN 11 % while the assumption names PBJT 10 % for golf; confirm with the tax consultant and configure the rate card | Club Finance + tax consultant |
+| 6 | NFR-SEO & web: measure Core Web Vitals of the public pages on mobile | Web area |
+| 7 | FR-INT-P4-03 bank statement API / host-to-host (Should, deferred by §16 #11); BCA / Mandiri bulk payment layouts for FR-AP-06 when the club provides them | Accounting area + club Finance |
+| 8 | 🟡 Release 4 k6 runs on Staging with results recorded; external pen test (P4 scope); bucket lifecycle ≥ 5 years and a recorded restore drill with `accounting`; two dry runs per cut-over runbook; 1-month reconciliation; month-end close sign-off | OneClub ops + engineering + club Finance |
+| 9 | Real providers before production: Coretax PJAP credentials (trial on `mock-efaktur`), Xendit (`mock-payment`), production e-mail (`mock-email`), Modernland resident data (`mock-resident`). For the trial itself `mock-efaktur` is not enabled by provisioning or `seed-demo`: the Platform Admin adds it under Integrations, otherwise e-Faktur upload answers *not_configured* | OneClub ops + club |
+| 10 | After deploying this release to an existing instance: run `POST /api/v1/accounting/posting-rules:generate-defaults` once (see [`accounting-migration-p4.md`](runbooks/accounting-migration-p4.md)) | OneClub ops |
 
 ## Product decisions pending
 

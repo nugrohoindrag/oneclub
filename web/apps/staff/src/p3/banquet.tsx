@@ -159,8 +159,11 @@ function EventForm({ onClose, onDone }: { onClose: () => void; onDone: (id: stri
 const TABS: Option[] = [{ value: 'overview', label: 'Overview' }, { value: 'menu', label: 'Menu' }, { value: 'schedule', label: 'Run-of-show' },
   { value: 'resources', label: 'Resources & Vendors' }, { value: 'checklist', label: 'Checklist' }, { value: 'guests', label: 'Guests' },
   { value: 'billing', label: 'Event Billing' }];
+// Food Cost tab (PRD P4 §9.2): only with the banquet food cost report.
+const FOOD_COST_PERM = 'reporting.inventory_banquet_food_cost.view';
 
 export function EventDetailPage() {
+  const { can } = useAuth();
   const { id = '' } = useParams();
   const [params, setParams] = useSearchParams();
   const tab = params.get('tab') ?? 'overview';
@@ -172,7 +175,7 @@ export function EventDetailPage() {
     <div className="oc-stack">
       <PageHeader title={`${String(e.number)} · ${String(e.title)}`} help={`${String(e.eventTypeName)} · ${formatDateTime(String(e.start))} – ${formatDateTime(String(e.end))}`}
         actions={<StatusPill status={String(e.status)} />} />
-      <Tabs tabs={TABS} value={tab} onChange={(v) => setParams({ tab: v })} />
+      <Tabs tabs={can(FOOD_COST_PERM) ? [...TABS, { value: 'food_cost', label: 'Food Cost' }] : TABS} value={tab} onChange={(v) => setParams({ tab: v })} />
       {tab === 'overview' && <Overview e={e} />}
       {tab === 'menu' && <MenuTab e={e} />}
       {tab === 'schedule' && <RundownTab e={e} />}
@@ -180,6 +183,7 @@ export function EventDetailPage() {
       {tab === 'checklist' && <ChecklistTab e={e} />}
       {tab === 'guests' && <GuestsTab e={e} />}
       {tab === 'billing' && <BillingTab e={e} />}
+      {tab === 'food_cost' && can(FOOD_COST_PERM) && <FoodCostTab e={e} />}
     </div>
   );
 }
@@ -564,6 +568,43 @@ function GuestsTab({ e }: { e: R }) {
             {list(imp.data.skipped).length > 0 && <>: {(imp.data.skipped as string[]).join('; ')}</>}</p>}
         </Card>
       </div>}
+    </div>
+  );
+}
+
+// Food cost actual vs theoretical of the event (PRD P4 §9.2, report
+// inventory.banquet_food_cost): theoretical = issued BEO for the final pax at
+// standard cost; actual = stock deducted on completion at valuation cost
+// (= banquet cost of sales journal).
+function FoodCostTab({ e }: { e: R }) {
+  const day = (d: number) => {
+    const t = new Date(String(e.start));
+    t.setDate(t.getDate() + d);
+    return t.toISOString().slice(0, 10);
+  };
+  const q = `?params[from]=${day(-1)}&params[to]=${day(1)}&params[event]=${encodeURIComponent(String(e.number))}`;
+  const sum = useGet<{ rows: R[] }>(`/api/v1/reporting/reports/inventory.banquet_food_cost${q}`);
+  const lines = useGet<{ rows: R[] }>(`/api/v1/reporting/reports/inventory.banquet_food_cost_lines${q}`);
+  if (sum.error) return <ErrorAlert error={sum.error} />;
+  if (sum.isLoading || lines.isLoading) return <Skeleton />;
+  const s = sum.data?.rows?.[0];
+  const pct = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : `${String(v)} %`);
+  return (
+    <div className="oc-stack">
+      <Card title="Food cost" icon="restaurant">
+        {s ? <KV items={[['Pax', String(s.pax ?? '—')], ['F&B revenue', money(s.fnbRevenue)], ['Theoretical cost (BEO × standard cost)', money(s.theoreticalCost)],
+          ['Actual cost (stock deducted)', money(s.actualCost)], ['Variance', money(s.variance)], ['Theoretical food cost %', pct(s.theoreticalPercent)],
+          ['Actual food cost %', pct(s.actualPercent)], ['Actual cost / pax', money(s.actualPerPax)]]} />
+          : <Empty title="No food cost yet" icon="restaurant" help="The theoretical cost appears when the BEO is issued; the actual cost when the event is completed and the stock is deducted." />}
+      </Card>
+      <Card title="Ingredients" icon="kitchen">
+        <DataTable rows={lines.data?.rows ?? []} empty="No ingredients" columns={[{ key: 'item', header: 'Ingredient', render: (l) => <>{String(l.item)}<div className="oc-small oc-muted">{String(l.itemCode)}</div></> },
+          { key: 'theoreticalQuantity', header: 'Theoretical', align: 'right', render: (l) => `${String(l.theoreticalQuantity)} ${String(l.uom)}` },
+          { key: 'actualQuantity', header: 'Actual', align: 'right', render: (l) => `${String(l.actualQuantity)} ${String(l.uom)}` },
+          { key: 'theoreticalCost', header: 'Theoretical cost', align: 'right', render: (l) => money(l.theoreticalCost) },
+          { key: 'actualCost', header: 'Actual cost', align: 'right', render: (l) => money(l.actualCost) },
+          { key: 'variance', header: 'Variance', align: 'right', render: (l) => money(l.variance) }]} />
+      </Card>
     </div>
   );
 }
