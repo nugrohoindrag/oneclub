@@ -403,6 +403,7 @@ type candidate struct {
 	From        time.Time
 	Price       decimal.Decimal
 	Components  []Component
+	TaxCodes    []string
 }
 
 // Resolve finds the price for q.
@@ -456,7 +457,7 @@ func Resolve(ctx context.Context, q dbtx.Querier, pq PriceQuery) (PriceResult, e
 		 CASE WHEN r.time_band_id IS NULL THEN 0 ELSE 1 END + CASE WHEN r.playing_route_id IS NULL THEN 0 ELSE 1 END +
 		 CASE WHEN r.channel IS NULL THEN 0 ELSE 1 END + CASE WHEN r.peak IS NULL THEN 0 ELSE 1 END +
 		 CASE WHEN r.holiday IS NULL THEN 0 ELSE 1 END + CASE WHEN r.corporate_account_id IS NULL THEN 0 ELSE 2 END),
-		r.priority, r.effective_from, r.price::text, r.components
+		r.priority, r.effective_from, r.price::text, r.components, r.tax_codes
 		FROM commercial.pricing_rules r JOIN commercial.rate_plans p ON p.id = r.rate_plan_id
 		WHERE r.property_id = $1 AND r.charge_type = $2 AND r.status = 'active' AND p.status = 'active' AND p.archived_at IS NULL
 		  AND r.effective_from <= $3::date AND (r.effective_to IS NULL OR r.effective_to >= $3::date)
@@ -479,7 +480,7 @@ func Resolve(ctx context.Context, q dbtx.Querier, pq PriceQuery) (PriceResult, e
 		var price string
 		var comps []byte
 		if err := rows.Scan(&c.ID, &c.Code, &c.Version, &c.Name, &c.PlanID, &c.PlanCode, &c.Mode, &c.Currency, &c.Segment, &c.Specificity,
-			&c.Priority, &c.From, &price, &comps); err != nil {
+			&c.Priority, &c.From, &price, &comps, &c.TaxCodes); err != nil {
 			rows.Close()
 			return PriceResult{}, err
 		}
@@ -534,6 +535,9 @@ func Resolve(ctx context.Context, q dbtx.Querier, pq PriceQuery) (PriceResult, e
 	if err != nil {
 		return PriceResult{}, err
 	}
+	// only the Tax & Service codes of the rule (empty = all): a property's
+	// banquet service or POS PB1 must not split a golf all-in price
+	taxRules = WithCodes(taxRules, best.TaxCodes)
 	finish(&res, best.Price, best.Components, taxRules, pq.PlayAt)
 	res.Discount, res.Promotions = "0", []AppliedPromotion{}
 	if !pq.NoPromotions {
@@ -623,6 +627,11 @@ func ApplyOverride(ctx context.Context, q dbtx.Querier, property uuid.UUID, res 
 	if err != nil {
 		return res, err
 	}
+	var codes []string
+	if err := q.QueryRow(ctx, `SELECT tax_codes FROM commercial.pricing_rules WHERE id = $1`, res.RuleID).Scan(&codes); err != nil && !dbtx.IsNoRows(err) {
+		return res, err
+	}
+	taxRules = WithCodes(taxRules, codes)
 	var comps []Component
 	for _, c := range res.Components {
 		cc := c

@@ -446,15 +446,7 @@ func (Pricer) Resolve(ctx context.Context, q dbtx.Querier, property uuid.UUID, r
 	if err != nil {
 		return LinePrice{}, err
 	}
-	if len(r.TaxCodes) > 0 {
-		var sel []Rule
-		for _, t := range taxRules {
-			if slices.Contains(r.TaxCodes, t.Code) {
-				sel = append(sel, t)
-			}
-		}
-		taxRules = sel
-	}
+	taxRules = WithCodes(taxRules, r.TaxCodes)
 	b := CalculateMode(taxRules, gross, r.Currency, req.Start, r.PricingMode)
 	comps := []LineComponent{}
 	var defs []lineComponentDef
@@ -540,15 +532,7 @@ func (Pricer) ManualSnapshot(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	if err != nil {
 		return uuid.Nil, Breakdown{}, err
 	}
-	if len(taxCodes) > 0 {
-		var sel []Rule
-		for _, t := range taxRules {
-			if slices.Contains(taxCodes, t.Code) {
-				sel = append(sel, t)
-			}
-		}
-		taxRules = sel
-	}
+	taxRules = WithCodes(taxRules, taxCodes)
 	var cur string
 	if err := tx.QueryRow(ctx, `SELECT currency FROM platform.instance`).Scan(&cur); err != nil {
 		return uuid.Nil, Breakdown{}, err

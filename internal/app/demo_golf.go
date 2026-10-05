@@ -204,8 +204,10 @@ func seedGolfDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 			b := bands[r.band]
 			band = &b
 		}
+		// the all-in rate card includes PPN 11% only (the club's other Tax &
+		// Service rules belong to F&B, banquet … and must not split it)
 		if _, err := tx.Exec(ctx, `INSERT INTO commercial.pricing_rules (id, property_id, rate_plan_id, code, name, charge_type, segment, day_type_id, time_band_id,
-			price, components, priority, effective_from) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'2026-04-01')
+			price, components, priority, tax_codes, effective_from) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'{PPN}','2026-04-01')
 			ON CONFLICT (property_id, code, version) DO NOTHING`,
 			id.New(), property, plan, r.code, r.name, r.charge, seg, day, band, r.price, r.comps, r.priority); err != nil {
 			return err

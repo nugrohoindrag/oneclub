@@ -11,7 +11,6 @@ package commercial
 import (
 	"context"
 	"encoding/json"
-	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -224,15 +223,7 @@ func (Pricer) LineSnapshot(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 	if err != nil {
 		return uuid.Nil, Breakdown{}, err
 	}
-	if len(in.TaxCodes) > 0 {
-		var sel []Rule
-		for _, t := range taxRules {
-			if slices.Contains(in.TaxCodes, t.Code) {
-				sel = append(sel, t)
-			}
-		}
-		taxRules = sel
-	}
+	taxRules = WithCodes(taxRules, in.TaxCodes)
 	cur := currencyOf(ctx, tx)
 	gross := in.Units.Mul(in.UnitPrice)
 	b := CalculateMode(taxRules, gross, cur, in.At, in.Mode)

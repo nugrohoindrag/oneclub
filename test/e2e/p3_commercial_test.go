@@ -889,3 +889,76 @@ func TestP3CommercialPackages(t *testing.T) {
 	}
 	sa.Must(200, "POST", "/api/v1/commercial/promotions/"+pp+":deactivate", map[string]any{"reason": "end of test"})
 }
+
+// FR-PRC-06 / P2 pricing rule "Tax & Service Codes (empty = all)": a golf
+// rate rule applies only its own tax codes. The demo rate card is all-in
+// with PPN 11%; the banquet service 5% and PB1 10% of the same property
+// must not split it (list price and manual override alike), otherwise the
+// green fee residual of the per-transaction journal turns negative.
+func TestP3CommercialGolfRateTaxCodes(t *testing.T) {
+	sa := superAdmin(t, inst)
+	gm := login(t, inst, "golf.manager@demo.oneclub.id", demoPassword)
+	cashier := login(t, inst, "cashier@demo.oneclub.id", demoPassword)
+	sfx := fmt.Sprint(time.Now().UnixNano() % 1e6)
+	for _, r := range []map[string]any{
+		{"code": "GS" + sfx, "name": "Banquet service 5% " + sfx, "kind": "service", "ratePercent": "5", "basis": "net_amount", "pricingMode": "plus_plus"},
+		{"code": "GT" + sfx, "name": "PB1 10% " + sfx, "kind": "tax", "ratePercent": "10", "basis": "net_plus_service", "pricingMode": "plus_plus"},
+	} {
+		r["effectiveFrom"] = past()
+		rid := idOf(sa.Must(201, "POST", "/api/v1/commercial/tax-service-rules", r))
+		t.Cleanup(func() {
+			sa.Must(200, "PATCH", "/api/v1/commercial/tax-service-rules/"+rid, map[string]any{"status": "inactive"})
+		})
+	}
+	ppnOnly := func(what string, taxService any) {
+		t.Helper()
+		ls, _ := taxService.([]any)
+		if len(ls) != 1 || ls[0].(map[string]any)["code"] != "PPN" {
+			t.Fatalf("%s: only the PPN of the rate card applies, got %v", what, taxService)
+		}
+	}
+
+	day := clubDay(inst, 9, isWeekday)
+	r := gm.Must(200, "POST", "/api/v1/commercial/pricing:resolve", map[string]any{"date": day, "time": "06:00", "segments": []string{"member"},
+		"chargeType": "golf_round", "channel": "back_office"}).JSON()
+	ppnOnly("member rate", r["taxService"])
+	eqAmount(t, "member rate total", r["total"], 640000)
+	eqAmount(t, "member rate net", r["netAmount"], 576577)
+	eqAmount(t, "member rate PPN", r["taxAmount"], 63423)
+	eqAmount(t, "member rate service", r["serviceAmount"], 0)
+	green := false
+	for _, c := range r["components"].([]any) {
+		if cm := c.(map[string]any); cm["code"] == "green_fee" {
+			green = true
+			eqAmount(t, "green fee (net − caddy, buggy, HIO, water)", cm["amount"], 576577-290000)
+		}
+	}
+	if !green {
+		t.Fatalf("member rate components: %v", r["components"])
+	}
+
+	// a manual price (ApplyOverride) keeps the rule's tax codes too; the
+	// Super Admin may override any discount (the list price of the slot
+	// depends on the calendar left by earlier tests)
+	course := demoCourse(t, inst)
+	slot := slotsOf(teeTimes(t, gm, course, day), "afternoon", 10)[16]
+	sysExec(t, inst, `UPDATE golf.tee_times SET min_players = 1 WHERE id = $1`, mustUUID(str(slot["id"])))
+	bk := sa.Must(201, "POST", "/api/v1/golf/bookings", map[string]any{"bookingType": "non_member", "channel": "walk_in", "teeTimeId": slot["id"],
+		"contactName": "Tax Scope " + sfx, "contactPhone": "+62813" + sfx,
+		"players": []map[string]any{{"playerType": "non_member", "name": "Tax Scope " + sfx, "phone": "+62813" + sfx,
+			"priceOverride": "900000", "overrideReason": "Regression: rate card tax codes"}}}).JSON()
+	eqAmount(t, "overridden round", bk["folio"].(map[string]any)["charges"], 900000)
+	f := cashier.Must(200, "GET", "/api/v1/billing/folios/"+str(bk["folioId"]), nil).JSON()
+	var round map[string]any
+	for _, l := range f["lines"].([]any) {
+		if lm := l.(map[string]any); lm["chargeType"] == "golf_round" {
+			round = lm
+		}
+	}
+	if round == nil {
+		t.Fatalf("golf round line: %v", f["lines"])
+	}
+	eqAmount(t, "overridden round net", round["netAmount"], 810811)
+	eqAmount(t, "overridden round PPN", round["taxAmount"], 89189)
+	eqAmount(t, "overridden round service", round["serviceAmount"], 0)
+}
