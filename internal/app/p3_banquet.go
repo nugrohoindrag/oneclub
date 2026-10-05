@@ -99,6 +99,7 @@ func (a *App) subscribeP3Banquet() {
 	a.Bus.Subscribe(banquet.QuotationRejected, "banquet.quotation_release_rejected", m.OnQuotationClosed)
 	a.Bus.Subscribe(banquet.QuotationExpired, "banquet.quotation_release_expired", m.OnQuotationClosed)
 	a.Bus.Subscribe(banquet.PackageBooked, "banquet.package_event", m.OnPackageBooked)
+	a.Bus.Subscribe(banquet.PackageCancelled, "banquet.package_cancelled", m.OnPackageCancelled)
 	a.Bus.Subscribe(billing.EventPaymentSettled, "banquet.payment_settled", m.OnPaymentSettled)
 	a.Bus.Subscribe(billing.EventInvoicePaid, "banquet.invoice_paid", m.OnInvoicePaid)
 	a.Bus.Subscribe(billing.EventScheduleDue, "banquet.payment_due", m.OnScheduleDue)

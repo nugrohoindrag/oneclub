@@ -36,12 +36,13 @@ type BookingPolicy struct {
 	DefiniteRequiresDeposit bool   `json:"definiteRequiresDeposit" doc:"Manual Definite before the DP needs approval"`
 	DefaultStartTime        string `json:"defaultStartTime" doc:"Start time of events created from a quotation (HH:MM)"`
 	RequirementLeadDays     int    `json:"requirementLeadDays" doc:"Ingredients needed N days before the event (K1)"`
+	PackageCancellation     string `json:"packageCancellation" enum:"cancel,tentative" doc:"Event of a cancelled package: cancelled with it, or back to Tentative until its option date (FR-PKG-08)"`
 }
 
 // DefaultBooking is the code default (PRD P3 §16 #11).
 var DefaultBooking = BookingPolicy{TentativeHoldDays: 7, WaitlistEnabled: true, MinDownPaymentPercent: "30", DownPaymentDueDays: 7,
 	SecondTermPercent: "0", SecondTermDaysBefore: 60, FinalPaymentDaysBefore: 7, GuaranteedPaxDaysBefore: 7, MaxPaxDecreasePercent: "10",
-	DefiniteRequiresDeposit: true, DefaultStartTime: "10:00", RequirementLeadDays: 1}
+	DefiniteRequiresDeposit: true, DefaultStartTime: "10:00", RequirementLeadDays: 1, PackageCancellation: "cancel"}
 
 // CancellationTier forfeits a share of a basis when the event is cancelled
 // at least MinDaysBefore days before it starts.

@@ -6,7 +6,6 @@ package e2e
 // audit postings.
 
 import (
-	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
@@ -166,5 +165,68 @@ func TestP3FixFulfilmentPackages(t *testing.T) {
 	if pl := asMaps(sa.Must(200, "GET", "/api/v1/golf/bookings/"+gid2, nil).JSON()["players"]); pl[0]["status"] != "cancelled" {
 		t.Fatalf("players of the cancelled package: %v", pl)
 	}
-	_ = json.Marshal
+}
+
+// pfPublish publishes a domain event through the outbox of the instance
+// (as the owning module would) so the wired subscribers receive it.
+func pfPublish(t *testing.T, eventType, aggregate string, property uuid.UUID, payload map[string]any) {
+	t.Helper()
+	ctx := dbtx.System(t.Context())
+	agg := uuid.New()
+	if err := inst.DB.WithTx(ctx, func(tx pgx.Tx) error {
+		_, err := inst.App.Bus.Publish(ctx, tx, eventType, aggregate, &agg, &property, payload)
+		return err
+	}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// PRD P3 FR-PKG-08: the event of the banquet component of a package follows
+// commercial.package_cancelled — cancelled with it, or back to Tentative
+// with an option date under Banquet Policies "tentative".
+func TestP3FixFulfilmentBanquetPackageCancel(t *testing.T) {
+	sa := superAdmin(t, inst)
+	sfx := fmt.Sprint(time.Now().UnixNano() % 1e6)
+	cust := customer(t, sa, "PFB"+sfx, "Package Couple "+sfx, map[string]any{"email": "pfb" + sfx + "@pkg.test"})
+	day := time.Now().In(clubLoc(inst)).AddDate(0, 0, 75).Format("2006-01-02")
+	n := 0
+	book := func() (string, string) {
+		n++
+		bid, comp := uuid.NewString(), uuid.NewString()
+		pfPublish(t, "commercial.package_booked", "commercial.package_booking", inst.Main, map[string]any{"bookingId": bid,
+			"number": fmt.Sprintf("PKF-%s-%d", sfx, n), "packageCode": "WED-PF", "customerId": cust, "startDate": day, "endDate": day, "pax": 80,
+			"components": []map[string]any{{"bookingComponentId": comp, "componentType": "banquet", "serviceDate": day, "quantity": "1"}}})
+		var eid uuid.UUID
+		pcDispatch(t, "package event", func() bool {
+			sysQueryRow(t, inst, `SELECT coalesce((SELECT id FROM banquet.events WHERE package_component_id = $1), '00000000-0000-0000-0000-000000000000')`,
+				[]any{mustUUID(comp)}, &eid)
+			return eid != uuid.Nil
+		})
+		if ev := sa.Must(200, "GET", "/api/v1/banquet/events/"+eid.String(), nil).JSON(); ev["status"] != "definite" {
+			t.Fatalf("package event: %v", ev["status"])
+		}
+		return bid, eid.String()
+	}
+	cancel := func(bid string) {
+		pfPublish(t, "commercial.package_cancelled", "commercial.package_booking", inst.Main, map[string]any{"bookingId": bid, "number": "PKF-" + sfx,
+			"status": "cancelled", "reason": "couple postponed"})
+	}
+	bid, eid := book()
+	cancel(bid)
+	pcDispatch(t, "event cancelled with the package", func() bool {
+		return sa.Must(200, "GET", "/api/v1/banquet/events/"+eid, nil).JSON()["status"] == "cancelled"
+	})
+	if ev := sa.Must(200, "GET", "/api/v1/banquet/events/"+eid, nil).JSON(); !dec(ev["cancellationFee"]).IsZero() {
+		t.Fatalf("nothing forfeited on the event (the package policy applies): %v", ev["cancellationFee"])
+	}
+	pcPolicy(t, sa, "Banquet Policies", "banquet.booking", map[string]any{"packageCancellation": "tentative"})
+	t.Cleanup(func() { pcPolicy(t, sa, "Banquet Policies", "banquet.booking", map[string]any{"packageCancellation": "cancel"}) })
+	bid2, eid2 := book()
+	cancel(bid2)
+	pcDispatch(t, "event back to tentative", func() bool {
+		return sa.Must(200, "GET", "/api/v1/banquet/events/"+eid2, nil).JSON()["status"] == "tentative"
+	})
+	if ev := sa.Must(200, "GET", "/api/v1/banquet/events/"+eid2, nil).JSON(); ev["optionDate"] == nil {
+		t.Fatalf("tentative event has an option date: %v", ev)
+	}
 }
