@@ -352,3 +352,14 @@ employee / type / year, dry run).
   `crm_tier_movements` (evaluation runs and manual overrides), `crm_membership_types`; `crm_tier_benefits` gains `tier_color`,
   `tier_icon`, `tier_source`. Reports `crm.members_by_tier` (Members by Tier Report) and `crm.tier_movement` (Tier Movement Report)
   in `internal/reporting/p5_tiers.go` (`P5TierReports`, `P5TierContribution`).
+
+## Payroll inputs (EP-09, EP-11, EP-12) — integrator contract
+
+`internal/hris/p5_payroll_inputs.go` (root package `hris`): sources outside the payroll engine (service charge
+distribution EP-11, commission & bonus payout EP-12, …) register a `PayrollInputSource{Code, Lines, Consumed}` with
+`RegisterPayrollInputSource`. The payroll engine (EP-09) calls `CollectPayrollInputs(ctx, q, property, from, to,
+employees)` when it calculates a run and `MarkPayrollInputsConsumed(ctx, q, property, runID, lines)` in the
+transaction that posts the run. A line carries `employeeId`, `componentCode`, `kind` (`earning` | `deduction` |
+`non_taxable`), `amount`, `sourceType`/`sourceId` (drill-down and the consumed marker) and `irregular` (PPh 21
+irregular income). Sources never write payroll tables; a line consumed by a posted run is not returned again.
+Partner payouts (caddy EP-13, instructor EP-14) are separate payout runs, not payroll inputs.
