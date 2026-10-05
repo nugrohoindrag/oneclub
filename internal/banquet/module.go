@@ -40,6 +40,9 @@ const (
 	EventCompleted = "banquet.event_completed" // K6
 	EventBEOIssued = "banquet.beo_issued"      // K1
 	EventBEORevise = "banquet.beo_revised"     // K1
+	// EventGuestCheckedIn is a registered guest checked in at the event
+	// (CRM activity points, FR-LOY-02).
+	EventGuestCheckedIn = "banquet.event_guest_checked_in"
 )
 
 // Events consumed (decoded by name: banquet never imports crm/sales or the

@@ -883,6 +883,10 @@ func (m *Module) checkIn(ctx context.Context, tx pgx.Tx, p EventParticipant, pay
 	if err != nil {
 		return EventCheckInResult{}, err
 	}
+	if _, err := m.Events.Publish(ctx, tx, EventGuestCheckedIn, "banquet.participant", &p.ID, &e.PropertyID, map[string]any{"eventId": e.ID,
+		"registrationId": p.ID, "customerId": p.CustomerID, "number": e.Number, "partySize": p.PartySize}); err != nil {
+		return EventCheckInResult{}, err
+	}
 	return EventCheckInResult{Participant: after}, audit.Record(ctx, tx, audit.Entry{Module: "banquet", Action: "check_in", EntityType: "banquet.participant",
 		EntityID: p.ID.String(), EntityLabel: e.Number + " · " + p.Name, PropertyID: &e.PropertyID, Before: p, After: after})
 }

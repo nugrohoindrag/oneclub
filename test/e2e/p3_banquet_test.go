@@ -951,6 +951,13 @@ func TestP3BanquetRegistration(t *testing.T) {
 		}
 	}
 	staff.Must(200, "POST", "/api/v1/banquet/participants/"+memberPID+":check-in", map[string]any{})
+	// The member's check-in is published for CRM activity points.
+	var checkedIn int
+	sysQueryRow(t, inst, `SELECT count(*) FROM platform.outbox WHERE event_type = 'banquet.event_guest_checked_in' AND aggregate_id = $1
+		AND payload->>'customerId' IS NOT NULL AND payload->>'eventId' = $2`, []any{mustUUID(memberPID), gala}, &checkedIn)
+	if checkedIn != 1 {
+		t.Fatalf("banquet.event_guest_checked_in of the member: %d", checkedIn)
+	}
 	staff.Must(201, "POST", "/api/v1/banquet/events/"+gala+"/incidents", map[string]any{"note": "Projector replaced"})
 	// Offline queue: the waitlisted guest promoted after a withdrawal is checked in once; a withdrawn ticket conflicts.
 	sa.Must(200, "POST", "/api/v1/banquet/participants/"+str(wl["id"])+":withdraw", map[string]any{"reason": "No seat"})

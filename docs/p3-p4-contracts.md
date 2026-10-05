@@ -97,7 +97,7 @@ Points are posted by CRM itself; a voucher / refund compensation is issued by it
 | `crm.opportunity_won` | Member referral reward to `referrerCustomerId` (`referral` earning rules), once per opportunity |
 | `commercial.promotion_applied` | Campaign conversion of the recipient whose personal / shared code was used |
 | `banquet.event_confirmed` | Interaction "Event confirmed" in the Customer 360 and segmentation tag `wedding` / `event_host` |
-| `banquet.event_guest_checked_in` *(proposal)* `{ eventId, registrationId?, customerId?, number }` | Activity points (`event_attended`) when Event Operations checks a registered guest in |
+| `banquet.event_guest_checked_in` `{ eventId, registrationId, customerId?, number, partySize }` | Activity points (`event_attended`) when Event Operations checks a registered guest in |
 | `golf.tournament_registration_confirmed` `{ tournamentId, customerId? }` | Segmentation tag `tournament_participant` |
 | `golf.tournament_results_published` | Tags `tournament_participant`, `tournament_champion` of the champions |
 | `crm.quotation_accepted` | Segmentation tag `deal_<line>` (e.g. `deal_wedding`) |
