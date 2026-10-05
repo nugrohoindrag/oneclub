@@ -46,3 +46,28 @@ KPI targets: approval document type `reporting.kpi_target_plan` (attributes `yea
 submitted plan is approved at once; approving a revision supersedes the plan in force of the year.
 
 Scheduled reports notify with the template event `reporting.scheduled_report_ready` (in-app, e-mail, WhatsApp; ID/EN).
+
+### Advanced Package & Tournament (EP-22–23)
+
+**Published — `golf.series_standing_updated`** (aggregate `golf.tournament_series`), after an event of an active series is counted (the
+tournament was finalized, an event added / reweighted / removed), on activation, recalculation and completion (`final = true`):
+
+```json
+{ "seriesId": "uuid", "code": "CCS-2026", "name": "Club Championship Series", "season": 2026, "status": "active", "final": false,
+  "tournamentId": "uuid|null", "players": 24,
+  "leaders": [{ "rank": 1, "positionLabel": "1", "customerId": "uuid|null", "playerName": "…", "points": "45", "events": 3 }] }
+```
+
+`leaders` are the first five ranked players (names unmasked: internal consumers only; public channels mask players without consent).
+
+**Consumed:**
+
+| Event | Subscriber | Use |
+|---|---|---|
+| `golf.tournament_finalized` (P3) | `golf.tournament_series_points` | Freeze the team results of a team tournament, count the tournament in its active series (points per player; team members get the team's position) |
+| `commercial.package_booked`, `commercial.package_consumed`, `commercial.package_cancelled` (P3, K3/K6) | `commercial.package_costs_*` | Refresh the cost lines of the booking (BOM COGS estimated / actual at the P4 inventory cost, cost rules) for the Package Profitability |
+
+**Hooks (additive, inside P3 code):** the P3 package booking and availability call the P5 booking rules (choice groups, sequence & time
+gap, service windows, allotment / blackout / time blocks, inventory check of large bookings, payment template of the package type);
+the P3 tournament registration takes the P5 registration category (quota per member / guest / sponsor invitation) and the category /
+early-bird fees, and the waitlist promotion skips players whose category is full (`golf.tournament_category_full`).

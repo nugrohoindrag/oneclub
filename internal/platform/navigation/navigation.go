@@ -92,6 +92,10 @@ var Trees = map[string][]Item{
 				s("tournament-sponsors", "Sponsors", "/golf/tournament-section/sponsors", "golf.tournament_sponsor.view"),
 				s("tournament-prizes", "Prizes", "/golf/tournament-section/prizes", "golf.tournament_prize.view"),
 				s("tournament-reports", "Tournament Reports", "/reports/golf.tournament", "reporting.golf_tournament.view"),
+				// PRD P5 EP-23 (§7.1, §7.6): Series (Order of Merit), Team Formats, Tournament History
+				s("tournament-series", "Series", "/golf/tournament-series", "golf.tournament_series.view"),
+				s("team-formats", "Team Formats", "/golf/team-formats", "golf.team_format.view"),
+				s("tournament-history", "Tournament History", "/golf/tournament-history", "golf.tournament_history.view"),
 			),
 		),
 		live("sportclub", "Sport Club", "sports_tennis", "/sport-club"),
@@ -169,6 +173,9 @@ var Trees = map[string][]Item{
 			s("packages", "Packages", "/commercial/packages", "commercial.package.view",
 				s("package-list", "Packages", "/commercial/packages", "commercial.package.view"),
 				s("package-bookings", "Package Bookings", "/commercial/package-bookings", "commercial.package_booking.view"),
+				// PRD P5 EP-22 (§7.1): Profitability, Capacity
+				s("package-profitability", "Profitability", "/commercial/package-profitability", "commercial.package_profitability.view"),
+				s("package-capacity", "Capacity", "/commercial/package-capacity", "commercial.package_capacity.view"),
 			),
 			s("vouchers", "Voucher & Prepaid", "/commercial/operations", "commercial.voucher.view"),
 			s("commercial-master", "Outlets & Products", "/commercial/master", "commercial.outlet.view"),
@@ -342,6 +349,9 @@ var Trees = map[string][]Item{
 			s("tournaments", "Tournaments", "/golf/tournaments", catalog.ShellMemberPortal),
 			s("my-tournaments", "My Tournaments", "/golf/my-tournaments", catalog.ShellMemberPortal),
 			s("tournament-leaderboard", "Leaderboard", "/golf/tournaments/leaderboard", catalog.ShellMemberPortal),
+			// PRD P5 §7.4: series standing (Order of Merit) and tournament history
+			s("order-of-merit", "Order of Merit", "/golf/order-of-merit", catalog.ShellMemberPortal),
+			s("tournament-history", "Tournament History", "/golf/tournament-history", catalog.ShellMemberPortal),
 		}},
 		{Key: "sport-club", Label: "Sport Club", Path: "/sport-club", Icon: "sports_tennis", Module: "sportclub", Permission: catalog.ShellMemberPortal},
 		{Key: "stay-venue", Label: "Stay & Venue", Path: "/stay", Icon: "hotel", Module: "stay", Permission: catalog.ShellMemberPortal},
@@ -403,6 +413,7 @@ var Trees = map[string][]Item{
 				s("tournament-draw", "Draw", "/ops/tournament-desk/draw", "golf.tournament.view"),
 				s("tournament-desk-scoring", "Scoring", "/ops/tournament-desk/scoring", "golf.tournament_score.enter"),
 				s("tournament-desk-leaderboard", "Leaderboard", "/ops/tournament-desk/leaderboard", "golf.tournament_leaderboard.view"),
+				s("tournament-desk-team-scoring", "Team Scoring", "/ops/tournament-desk/team-scoring", "golf.tournament_score.enter"), // PRD P5 EP-23
 			}},
 		{Key: "caddy-master", Label: "Caddy Master", Path: "/ops/caddy", Icon: "hiking", Module: "golf", Permission: "golf.caddy_assignment.manage", Children: []Item{
 			s("caddy-queue", "Caddy Queue", "/ops/caddy", "golf.caddy.view"),
