@@ -233,7 +233,7 @@ func TestP5CRMTierProgram(t *testing.T) {
 		return p5cCount(t, `SELECT count(*) FROM platform.notification_deliveries WHERE event_code = 'crm.loyalty_tier_grace' AND recipient = $1`,
 			"budi"+sfx+"@p5.test") > 0
 	})
-	sysExec(t, inst, `UPDATE crm.loyalty_accounts SET grace_until = current_date - 1 WHERE id = $1`, mustUUID(bid))
+	sysExec(t, inst, `UPDATE crm.loyalty_accounts SET grace_until = $2::date - 1 WHERE id = $1`, mustUUID(bid), engToday())
 	gr := sa.Must(201, "POST", "/api/v1/crm/loyalty/tier-evaluations", map[string]any{"kind": "grace_review", "accountIds": []string{bid}}).JSON()
 	if gr["downgraded"].(float64) != 1 {
 		t.Fatalf("grace review: %v", gr)
@@ -849,7 +849,7 @@ func TestP5CRMJourneyTemplates(t *testing.T) {
 	wanda := customer(t, sa, "P5WB"+sfx, "Wanda Winback "+sfx, map[string]any{"email": "wanda" + sfx + "@p5.test", "phone": "+62819" + sfx})
 	p5cOptIn(t, sa, wanda)
 	folio := engFolio(t, sa, wanda, "Old visit "+sfx, "500000")
-	sysExec(t, inst, `UPDATE billing.folio_lines SET business_date = current_date - 60, posted_at = now() - interval '60 days' WHERE folio_id = $1`, mustUUID(folio))
+	sysExec(t, inst, `UPDATE billing.folio_lines SET business_date = $2::date - 60, posted_at = now() - interval '60 days' WHERE folio_id = $1`, mustUUID(folio), engToday())
 	wbj := start("win_back")
 	p5cRun(t, sa, wbj)
 	we := p5cEnrollment(t, sa, wbj, wanda)
@@ -912,18 +912,19 @@ func TestP5CRMAnalytics(t *testing.T) {
 	for i, line := range []string{"golf", "pos", "stay", "golf", "pos", "stay"} {
 		f := engFolio(t, sa, champ, fmt.Sprintf("Visit %d %s", i, sfx), "60000000")
 		sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": f, "amount": "60000000", "methodType": "cash", "channel": "venue"})
-		sysExec(t, inst, `UPDATE billing.folio_lines SET business_line = $2, business_date = current_date - $3::int WHERE folio_id = $1`, mustUUID(f), line, i)
+		sysExec(t, inst, `UPDATE billing.folio_lines SET business_line = $2, business_date = $4::date - $3::int WHERE folio_id = $1`, mustUUID(f), line, i, engToday())
 	}
 	lf := engFolio(t, sa, lapsed, "Long ago "+sfx, "200000")
-	sysExec(t, inst, `UPDATE billing.folio_lines SET business_date = current_date - 250, posted_at = now() - interval '250 days' WHERE folio_id = $1`, mustUUID(lf))
+	sysExec(t, inst, `UPDATE billing.folio_lines SET business_date = $2::date - 250, posted_at = now() - interval '250 days' WHERE folio_id = $1`, mustUUID(lf), engToday())
 	// A previous snapshot to compare with.
 	ref := sa.Must(200, "POST", "/api/v1/crm/analytics:refresh", nil).JSON()
 	if ref["customers"].(float64) < 2 {
 		t.Fatalf("refresh: %v", ref)
 	}
-	sysExec(t, inst, `UPDATE crm.rfm_scores SET as_of = as_of - 30 WHERE as_of = current_date AND customer_id = ANY($1::uuid[])`,
-		[]uuid.UUID{mustUUID(champ), mustUUID(lapsed)})
-	sysExec(t, inst, `UPDATE crm.rfm_scores SET rfm_group = 'potential' WHERE as_of = current_date - 30 AND customer_id = $1`, mustUUID(champ))
+	// The club's date (as_of), not the database server's.
+	sysExec(t, inst, `UPDATE crm.rfm_scores SET as_of = as_of - 30 WHERE as_of = $2::date AND customer_id = ANY($1::uuid[])`,
+		[]uuid.UUID{mustUUID(champ), mustUUID(lapsed)}, engToday())
+	sysExec(t, inst, `UPDATE crm.rfm_scores SET rfm_group = 'potential' WHERE as_of = $2::date - 30 AND customer_id = $1`, mustUUID(champ), engToday())
 	sa.Must(200, "POST", "/api/v1/crm/analytics:refresh", nil)
 
 	b := sa.Must(200, "GET", "/api/v1/crm/analytics/customers/"+champ, nil).JSON()
