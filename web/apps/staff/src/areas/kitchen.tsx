@@ -2,11 +2,14 @@ import { useMemo, useState } from 'react';
 import { Outlet, useRoutes } from 'react-router';
 import { qs, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
-import { Brand, ErrorAlert, HeaderActions, NotFoundPage, NotificationsPage, ProfilePage, TextField, useToast } from '@oneclub/shell';
+import { Brand, ErrorAlert, HeaderActions, NotFoundPage, NotificationsPage, ProfilePage, TextField, useAuth, useToast } from '@oneclub/shell';
 import { useLive } from '../live';
+import { Tabs, today } from '../p1/common';
 
 // Kitchen Display area (`/kitchen`, EP-21): the screen in the kitchen or bar,
-// full width without the Operational menus (Technical Doc §6.1).
+// full width without the Operational menus (Technical Doc §6.1). PRD P3
+// FR-BEO-04: the dishes of the issued BEOs appear on the same display at
+// their serving time (Banquet Production).
 
 type Row = Record<string, unknown>;
 
@@ -24,7 +27,20 @@ function KitchenLayout() {
   );
 }
 
+/** Kitchen Display: POS tickets and, for the banquet kitchen, the BEO production. */
 function KitchenBoardPage() {
+  const { can } = useAuth();
+  const [view, setView] = useState('orders');
+  const banquet = can('banquet.production.view');
+  return (
+    <div className="oc-stack">
+      {banquet && <Tabs tabs={[{ value: 'orders', label: 'Orders' }, { value: 'banquet', label: 'Banquet Production' }]} value={view} onChange={setView} />}
+      {banquet && view === 'banquet' ? <BanquetProductionBoard /> : <OrdersBoard />}
+    </div>
+  );
+}
+
+function OrdersBoard() {
   const toast = useToast();
   const [station, setStation] = useState('');
   const tickets = useGet<Page<Schemas['Ticket']>>(`/api/v1/commercial/kitchen-orders${qs({ station })}`, { refetchInterval: 30_000 });
@@ -48,6 +64,45 @@ function KitchenBoardPage() {
                 <ul style={{ margin: '8px 0', paddingLeft: 18 }}>{(t.items as unknown as Row[]).map((i, n) => <li key={n}>{String(i.quantity)} × {String(i.name)}{i.notes ? ` (${String(i.notes)})` : ''}</li>)}</ul>
                 <button className="oc-btn oc-btn-ink oc-btn-sm oc-btn-block" onClick={() => state.mutate({ id: t.id, state: next[s] }, { onSuccess: () => toast('Updated') })}>
                   {next[s] === 'served' ? 'Served' : next[s] === 'ready' ? 'Ready' : 'Start'}</button>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Banquet Production (FR-BEO-04): dishes of the issued BEOs per serving time; a BEO revision replaces the list. */
+function BanquetProductionBoard() {
+  const toast = useToast();
+  const { can } = useAuth();
+  const [day, setDay] = useState(today());
+  const [station, setStation] = useState('');
+  const q = useGet<Page<Row>>(`/api/v1/banquet/production${qs({ date: day, 'filter[station]': station })}`, { refetchInterval: 30_000 });
+  const move = useSend<Row>('POST', (b) => `/api/v1/banquet/production-items/${String(b.id)}:status`, ['/api/v1/banquet/production']);
+  const cols: [string, string][] = [['pending', 'To produce'], ['in_progress', 'In progress'], ['ready', 'Ready']];
+  const next: Record<string, [string, string]> = { pending: ['in_progress', 'Start'], in_progress: ['ready', 'Ready'], ready: ['served', 'Served'] };
+  return (
+    <div className="oc-stack">
+      <div className="oc-page-head"><div><h1>Banquet Production</h1><p>Dishes of the issued BEOs by serving time.</p></div><span className="oc-spacer" />
+        <div className="oc-row-wrap"><TextField label="Date" type="date" value={day} onChange={setDay} />
+          <div style={{ width: 200 }}><TextField label="Station" value={station} onChange={setStation} placeholder="buffet, kitchen…" /></div></div></div>
+      <ErrorAlert error={q.error ?? move.error} />
+      {q.isSuccess && (q.data?.items.length ?? 0) === 0 && <p className="oc-muted">No banquet dishes for this day.</p>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
+        {cols.map(([s, label]) => (
+          <div key={s} className="oc-stack">
+            <h3>{label}</h3>
+            {(q.data?.items ?? []).filter((p) => p.status === s).map((p) => (
+              <div key={String(p.id)} className="oc-card">
+                <div className="oc-row"><strong>{String(p.quantity)} × {String(p.name)}</strong><span className="oc-spacer" />
+                  <span className="oc-small">{formatDateTime(String(p.serveAt))}</span></div>
+                <div className="oc-small oc-muted">{String(p.eventNumber)} {String(p.eventTitle)} · BEO v{String(p.beoVersion)}{p.station ? ` · ${String(p.station)}` : ''}</div>
+                {can('banquet.production.update') && (
+                  <button className="oc-btn oc-btn-ink oc-btn-sm oc-btn-block" style={{ marginTop: 8, minHeight: 44 }} disabled={move.isPending}
+                    onClick={() => move.mutate({ id: p.id, status: next[s][0] }, { onSuccess: () => toast('Updated') })}>{next[s][1]}</button>
+                )}
               </div>
             ))}
           </div>
