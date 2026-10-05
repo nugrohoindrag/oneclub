@@ -7,6 +7,7 @@ import {
   Brand, Card, DataTable, Empty, ErrorAlert, HeaderActions, Icon, NotFoundPage, NotificationsPage, ProfilePage, SelectField, StatusPill, useAuth, useToast,
 } from '@oneclub/shell';
 import { ConnectivityChip, SyncPage, read, write } from '../offline';
+import { TabletTournamentCard, TabletTournamentPage } from '../p3/tournament';
 
 /*
  * Caddy Tablet area (`/tablet`, PRD P2 EP-06): My Assignments → Current Round
@@ -74,6 +75,7 @@ function AssignmentsPage() {
           <div>{a.current.teeTime} · {a.current.playerNames.join(', ')}</div>
         </Link>
       )}
+      <TabletTournamentCard />
       <Card title="Next Assignment" icon="schedule">
         {a?.next.length === 0 && <div className="oc-muted">{a.queuePosition ? `Position ${a.queuePosition} in today's rotation` : 'No assignment yet'}</div>}
         <div className="oc-stack">
@@ -304,6 +306,7 @@ const routes = [
     children: [
       { index: true, element: <AssignmentsPage /> },
       { path: 'round/:id', element: <RoundPage /> },
+      { path: 'tournament/:tid/:fid', element: <TabletTournamentPage /> }, // PRD P3 §7.3 tournament scorecard
       { path: 'earnings', element: <EarningsPage /> },
       { path: 'sync', element: <SyncPage /> },
       { path: 'notifications', element: <NotificationsPage /> },

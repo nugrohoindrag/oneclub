@@ -17,6 +17,7 @@ export function SiteNav({ lang, labels }: { lang: Lang; labels: Record<string, s
     [`/${lang}/promotions`, lang === 'id' ? 'Promo' : 'Promotions'],
     [`/${lang}/wedding-banquet`, 'Wedding & Banquet'],
     [`/${lang}/events`, lang === 'id' ? 'Acara' : 'Events'],
+    [`/${lang}/tournaments`, lang === 'id' ? 'Turnamen' : 'Tournaments'], // PRD P3 FR-WEB-P3-03
     [`/${lang}/contact`, labels.contact],
     [`/${lang}/location`, labels.location],
   ];

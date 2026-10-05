@@ -190,6 +190,14 @@ and folios of events use `sourceType = banquet_event` with `sourceId` = event id
 
 ### `golf.tournament_results_published`
 `{ tournamentId, code, name, endDate, champions: [{ division, category: gross|net|stableford, customerId?, playerName, score }] }`
+Published by `golf/tournament` at Finalize (once per tournament). Other tournament events of the owner:
+`golf.tournament_registration_confirmed` `{ tournamentId, registrationId, number, customerId, playerType: member|guest, channel: back_office|member_app|website|quotation, status, promoted? }`,
+`golf.tournament_started` `{ tournamentId, code, round, startType: shotgun|tee_times, startedAt }`,
+`golf.tournament_finalized` `{ tournamentId, code, finalizedAt }`.
+`golf/tournament` consumes `crm.quotation_accepted` (line `tournament` → one draft corporate tournament with the folio and payment
+schedule of source `tournament`, idempotent per quotation; the generic quotation schedule is skipped for this line) and
+`banquet.event_confirmed` / `banquet.event_cancelled` (`eventId`, `number`, `title`, `status` kept as a snapshot on the tournament
+whose `eventId` matches). Billing folios of source `tournament` have `sourceId` = registration, sponsor or tournament id.
 
 ### Billing (owner: billing, P3) — K2, K4
 | Event | Payload |
