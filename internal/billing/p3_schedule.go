@@ -473,9 +473,10 @@ func (h *HTTP) ScheduleReminders(ctx context.Context, tx pgx.Tx, property uuid.U
 		reminders    []string
 		customer     *uuid.UUID
 		corporate    *uuid.UUID
+		token        string
 	}
 	rows, err := tx.Query(ctx, `SELECT l.id, l.schedule_id, l.label, s.title, s.number, l.due_date, (l.amount - l.paid_amount)::text, l.status, l.reminders,
-		s.customer_id, s.corporate_account_id FROM billing.payment_schedule_lines l JOIN billing.payment_schedules s ON s.id = l.schedule_id
+		s.customer_id, s.corporate_account_id, s.public_token FROM billing.payment_schedule_lines l JOIN billing.payment_schedules s ON s.id = l.schedule_id
 		WHERE l.property_id = $1 AND s.status = 'active' AND l.status IN ('pending', 'partially_paid', 'overdue') FOR UPDATE OF l`, property)
 	if err != nil {
 		return 0, err
@@ -483,7 +484,7 @@ func (h *HTTP) ScheduleReminders(ctx context.Context, tx pgx.Tx, property uuid.U
 	var list []row
 	for rows.Next() {
 		var r row
-		if err := rows.Scan(&r.id, &r.schedule, &r.label, &r.title, &r.number, &r.due, &r.outstanding, &r.status, &r.reminders, &r.customer, &r.corporate); err != nil {
+		if err := rows.Scan(&r.id, &r.schedule, &r.label, &r.title, &r.number, &r.due, &r.outstanding, &r.status, &r.reminders, &r.customer, &r.corporate, &r.token); err != nil {
 			rows.Close()
 			return 0, err
 		}
@@ -521,7 +522,7 @@ func (h *HTTP) ScheduleReminders(ctx context.Context, tx pgx.Tx, property uuid.U
 		}
 		msg := notify.Message{Event: "billing.payment_schedule_reminder", Category: "billing", PropertyID: &property,
 			Data: map[string]any{"title": r.title, "label": r.label, "dueDate": r.due.Format("02 Jan 2006"), "amount": r.outstanding, "schedule": r.number,
-				"overdue": tag == "overdue"}}
+				"overdue": tag == "overdue", "link": h.scheduleLink(r.token)}} // pay online (FR-INT-P3-04)
 		ok := false
 		if r.customer != nil {
 			if ok, err = crm.Recipient(ctx, tx, *r.customer, &msg); err != nil {

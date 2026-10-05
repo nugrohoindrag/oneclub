@@ -556,6 +556,7 @@ func (h *HTTP) RegisterP3(reg *route.Registry) {
 		})})
 	h.registerP3Member(reg)
 	h.registerP3Public(reg)
+	h.registerP3ScheduleLinks(reg)
 }
 
 func hasPerm(ctx context.Context, perm string) bool {
@@ -785,8 +786,8 @@ func P3Templates() []provision.Template {
 			"id": {"Pengingat tagihan {{.number}}", "Yth. {{.billTo}},\n\nTagihan {{.number}} masih tersisa {{.currency}} {{.outstanding}}, jatuh tempo {{.dueDate}}.\nBayar online: {{.link}}"},
 		},
 		"billing.payment_schedule_reminder": {
-			"en": {"Payment due: {{.label}}", "Hello,\n\n{{.label}} for {{.title}} ({{.amount}}) is due on {{.dueDate}}.{{if .overdue}} It is now overdue.{{end}}"},
-			"id": {"Jatuh tempo pembayaran: {{.label}}", "Halo,\n\n{{.label}} untuk {{.title}} ({{.amount}}) jatuh tempo pada {{.dueDate}}.{{if .overdue}} Pembayaran sudah lewat jatuh tempo.{{end}}"},
+			"en": {"Payment due: {{.label}}", "Hello,\n\n{{.label}} for {{.title}} ({{.amount}}) is due on {{.dueDate}}.{{if .overdue}} It is now overdue.{{end}}{{if .link}}\nPay online: {{.link}}{{end}}"},
+			"id": {"Jatuh tempo pembayaran: {{.label}}", "Halo,\n\n{{.label}} untuk {{.title}} ({{.amount}}) jatuh tempo pada {{.dueDate}}.{{if .overdue}} Pembayaran sudah lewat jatuh tempo.{{end}}{{if .link}}\nBayar online: {{.link}}{{end}}"},
 		},
 		"billing.night_audit_blocked": {
 			"en": {"Night audit blocked for {{.businessDate}}", "The night audit of {{.businessDate}} found {{.exceptions}} blocking exception(s). Close the open shifts and run it again."},

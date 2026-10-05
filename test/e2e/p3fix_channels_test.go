@@ -6,11 +6,15 @@ package e2e
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
+
+	"oneclub/internal/kernel/dbtx"
 )
 
 // FR-C360-01 / FR-C360-04: the Banquet / Event section of the Customer 360
@@ -225,4 +229,124 @@ func TestP3FixChannelsWebsiteConsent(t *testing.T) {
 	if !yes {
 		t.Fatal("an unticked box revoked the consent")
 	}
+}
+
+// fixSchedule creates a payment schedule (DP 30% due today, settlement 70%)
+// of a customer on a folio of that customer.
+func fixSchedule(t *testing.T, sa *Client, cust, title string) (sid, dp, final string) {
+	t.Helper()
+	loc := clubLoc(inst)
+	folio := idOf(sa.Must(201, "POST", "/api/v1/billing/folios", map[string]any{"holderName": title, "customerId": cust}))
+	sch := sa.Must(201, "POST", "/api/v1/billing/payment-schedules", map[string]any{"title": title, "folioId": folio, "customerId": cust,
+		"sourceType": "other", "totalAmount": "10000000", "lines": []map[string]any{
+			{"label": "DP 30%", "kind": "down_payment", "percent": "30", "dueDate": time.Now().In(loc).Format("2006-01-02")},
+			{"label": "Pelunasan", "kind": "final", "percent": "70", "dueDate": time.Now().In(loc).AddDate(0, 0, 30).Format("2006-01-02")}}},
+		"Idempotency-Key", newKey()).JSON()
+	lines := asMaps(sch["lines"])
+	return str(sch["id"]), str(lines[0]["id"]), str(lines[1]["id"])
+}
+
+// fixLineStatus is the status of a schedule line.
+func fixLineStatus(t *testing.T, line string) string {
+	t.Helper()
+	var st string
+	sysQueryRow(t, inst, `SELECT status FROM billing.payment_schedule_lines WHERE id = $1`, []any{mustUUID(line)}, &st)
+	return st
+}
+
+// FR-APP-P3-07 / FR-WEB-P3-05 / FR-INT-P3-04: a DP or termin is paid online
+// (payment gateway) from the Member App, from the schedule's payment link
+// (also sent in the schedule reminder) and right after the online
+// acceptance of a quotation ("Pay down payment") — without an invoice first.
+func TestP3FixChannelsSchedulePayOnline(t *testing.T) {
+	sa := superAdmin(t, inst)
+	sx := roleUser(t, inst, "sales_executive")
+	pub := anon(t, inst)
+	sfx := fmt.Sprint(time.Now().UnixNano() % 1e7)
+
+	// Member App: Pay on my schedule line; never on somebody else's.
+	mc, memberCust := trnMemberClient(t, sa)
+	sid, dp, final := fixSchedule(t, sa, memberCust, "Family wedding "+sfx)
+	found := false
+	for _, s := range mc.Must(200, "GET", "/api/v1/member/payment-schedules", nil).Items() {
+		found = found || s["id"] == sid
+	}
+	if !found {
+		t.Fatal("my payment schedules")
+	}
+	other := customer(t, sa, "SPO"+sfx, "Other Payer "+sfx, map[string]any{"email": "other" + sfx + "@pay.test"})
+	osid, odp, _ := fixSchedule(t, sa, other, "Other wedding "+sfx)
+	mc.Must(404, "POST", "/api/v1/member/payment-schedules/"+osid+"/lines/"+odp+":pay-online", map[string]any{"method": "qris"})
+	mc.Must(404, "POST", "/api/v1/member/payment-schedules/"+sid+"/lines/"+odp+":pay-online", map[string]any{"method": "qris"})
+	mc.Must(422, "POST", "/api/v1/member/payment-schedules/"+sid+"/lines/"+dp+":pay-online", map[string]any{"method": "cash"})
+	op := mc.Must(201, "POST", "/api/v1/member/payment-schedules/"+sid+"/lines/"+dp+":pay-online", map[string]any{"method": "qris"}).JSON()
+	if op["status"] != "pending" || op["channel"] != "online" || !bilDec(op["amount"]).Equal(decimal.NewFromInt(3_000_000)) {
+		t.Fatalf("member DP checkout: %v", op)
+	}
+	bilSettleOnline(t, op["externalId"], func() bool { return fixLineStatus(t, dp) == "paid" })
+
+	// Payment link of the schedule (website /payment/{token}): the settlement.
+	var token string
+	sysQueryRow(t, inst, `SELECT public_token FROM billing.payment_schedules WHERE id = $1`, []any{mustUUID(sid)}, &token)
+	if len(token) < 32 {
+		t.Fatalf("schedule payment link token: %q", token)
+	}
+	pub.Must(404, "GET", "/api/v1/public/payment-schedules/not-a-token", nil)
+	ps := pub.Must(200, "GET", "/api/v1/public/payment-schedules/"+token, nil).JSON()
+	if str(ps["nextLineId"]) != final || ps["token"] != token || len(asMaps(ps["lines"])) != 2 || asMaps(ps["lines"])[0]["payable"] != false {
+		t.Fatalf("public schedule: %v", ps)
+	}
+	pub.Must(404, "POST", "/api/v1/public/payment-schedules/"+token+"/lines/"+odp+":pay", map[string]any{"method": "qris"})
+	lp := pub.Must(201, "POST", "/api/v1/public/payment-schedules/"+token+"/lines/"+final+":pay", map[string]any{"method": "virtual_account"}).JSON()
+	if lp["status"] != "pending" || !bilDec(lp["amount"]).Equal(decimal.NewFromInt(7_000_000)) {
+		t.Fatalf("payment link checkout: %v", lp)
+	}
+	bilSettleOnline(t, lp["externalId"], func() bool { return fixLineStatus(t, final) == "paid" })
+	if s := sa.Must(200, "GET", "/api/v1/billing/payment-schedules/"+sid, nil).JSON(); s["status"] != "completed" {
+		t.Fatalf("schedule paid online: %v", s)
+	}
+	if ps := pub.Must(200, "GET", "/api/v1/public/payment-schedules/"+token, nil).JSON(); ps["nextLineId"] != nil || ps["status"] != "completed" {
+		t.Fatalf("paid schedule behind the link: %v", ps)
+	}
+
+	// The schedule reminder carries the payment link.
+	var otoken string
+	sysQueryRow(t, inst, `SELECT public_token FROM billing.payment_schedules WHERE id = $1`, []any{mustUUID(osid)}, &otoken)
+	sysExec(t, inst, `UPDATE billing.payment_schedule_lines SET due_date = current_date - 1 WHERE id = $1`, mustUUID(odp))
+	ctx := dbtx.System(t.Context())
+	if err := inst.DB.WithTx(ctx, func(tx pgx.Tx) error {
+		_, err := inst.App.BillingHTTP.ScheduleReminders(ctx, tx, inst.Main)
+		return err
+	}); err != nil {
+		t.Fatal(err)
+	}
+	var body string
+	sysQueryRow(t, inst, `SELECT coalesce((SELECT body FROM platform.notification_deliveries WHERE event_code = 'billing.payment_schedule_reminder'
+		AND recipient = $1 ORDER BY created_at DESC LIMIT 1), '')`, []any{"other" + sfx + "@pay.test"}, &body)
+	if !strings.Contains(body, "/payment/"+otoken) {
+		t.Fatalf("schedule reminder without the payment link: %q", body)
+	}
+
+	// Quotation accepted online → "Pay down payment" on the same page.
+	qc := customer(t, sa, "SPQ"+sfx, "Golf Day Host "+sfx, map[string]any{"email": "host" + sfx + "@pay.test"})
+	q := sx.Must(201, "POST", "/api/v1/crm/quotations", map[string]any{"customerId": qc, "title": "Golf day " + sfx, "line": "golf", "pricingMode": "nett",
+		"paymentTerms": []map[string]any{{"label": "Down Payment 50%", "percent": "50", "dueDays": 3}, {"label": "Final Payment", "percent": "50", "dueDays": 10}},
+		"lines": []map[string]any{{"itemType": "service", "description": "Green fee", "quantity": "20", "unitPrice": "1000000"}}}, "Idempotency-Key", newKey()).JSON()
+	tok := slsToken(t, sx.Must(200, "POST", "/api/v1/crm/quotations/"+str(q["id"])+":send", map[string]any{}).JSON())
+	pub.Must(404, "GET", "/api/v1/public/quotations/"+tok+"/payment-schedule", nil) // not accepted yet
+	pub.Must(200, "POST", "/api/v1/public/quotations/"+tok+":accept", map[string]any{"name": "Golf Day Host", "termsAccepted": true})
+	var qs map[string]any
+	slsDispatch(t, "quotation schedule for the DP step", func() bool {
+		r := pub.Do("GET", "/api/v1/public/quotations/"+tok+"/payment-schedule", nil)
+		if r.Status == 200 {
+			qs = r.JSON()
+		}
+		return qs != nil
+	})
+	ql := asMaps(qs["lines"])
+	if len(ql) != 2 || str(qs["nextLineId"]) != str(ql[0]["id"]) || ql[0]["kind"] != "down_payment" || !bilDec(ql[0]["amount"]).Equal(decimal.NewFromInt(10_000_000)) {
+		t.Fatalf("quotation payment schedule: %v", qs)
+	}
+	qp := pub.Must(201, "POST", "/api/v1/public/payment-schedules/"+str(qs["token"])+"/lines/"+str(ql[0]["id"])+":pay", map[string]any{"method": "qris"}).JSON()
+	bilSettleOnline(t, qp["externalId"], func() bool { return fixLineStatus(t, str(ql[0]["id"])) == "paid" })
 }
