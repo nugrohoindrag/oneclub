@@ -10,6 +10,8 @@ import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/co
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
 // Recruitment & Performance Review (EP-03, EP-05) live in hr_talent.tsx.
 import { TALENT_ESS, TALENT_ROUTES } from './hr_talent';
+// Gap closure (partner clock-in, migration reconciliation, push notifications) lives in gaps.tsx.
+import { GAPS_OPS_ROUTES, GAPS_OPS_TILES, GAPS_ROUTES, PushSettings } from './gaps';
 
 // PRD P5 — core HR (EP-01 Organization & Employee, EP-02 Contracts & Documents, EP-04 Training & Certification, EP-24 HR Policies)
 // and Employee Self Service (EP-16). Back Office routes (HRIS → Employees, Organization, Training & Certification), the ESS area of
@@ -620,6 +622,10 @@ const IMPORT_HEADERS: Record<string, string> = {
   employees: 'employeeNo,fullName,orgUnitCode,positionCode,gradeCode,supervisorNo,employmentStatus,workerCategory,joinDate,gender,birthDate,birthPlace,religion,maritalStatus,nik,npwp,ptkpStatus,bpjsKesehatanNo,bpjsKetenagakerjaanNo,email,personalEmail,phone,address,city,postalCode,bankName,bankCode,accountNo,accountName,legacyRef',
   contracts: 'employeeNo,contractType,startDate,endDate,probationMonths,positionCode,gradeCode,baseSalary,allowances,workWeekDays,status,previousNumber,notes',
   certifications: 'holderKind,employeeNo,partnerCode,typeCode,certificateNo,issuer,issuedOn,expiresOn,notes',
+  grades: 'code,name,level,minSalary,maxSalary,description,status',
+  org_units: 'code,name,parentCode,unitType,costCenter,headEmployeeNo,description,sortOrder,status',
+  positions: 'code,name,orgUnitCode,gradeCode,reportsToCode,isHead,workforceRole,requiredCertifications,headcount,description,status',
+  documents: 'employeeNo,documentType,title,documentNo,issuedOn,expiresOn,warningLevel,confidential,file,notes (file = id of an uploaded file)',
 };
 
 function ImportPanel() {
@@ -630,9 +636,9 @@ function ImportPanel() {
   const rep = send.data;
   return (
     <div className="oc-stack">
-      <PageHeader title="HR Migration Import" help="Employees, contracts and certifications from the club's HR system or Excel (CSV). Load employees first; loads are repeatable. Also available as `oneclub import hris`." />
+      <PageHeader title="HR Migration Import" help="Organization (grades, org units, positions), employees, contracts, documents and certifications from the club's HR system or Excel (CSV), in that order; loads are repeatable. Reconcile the headcount and leave balances afterwards in HR Migration Reconciliation. Also available as `oneclub import hris`." />
       <div className="oc-form">
-        <SelectField label="Entity" value={entity} onChange={setEntity} options={opts(['employees', 'contracts', 'certifications'])} />
+        <SelectField label="Entity" value={entity} onChange={setEntity} options={opts(['grades', 'org_units', 'positions', 'employees', 'contracts', 'documents', 'certifications'])} />
         <label className="oc-btn oc-btn-neutral oc-btn-sm" style={{ alignSelf: 'end', width: 'fit-content', cursor: 'pointer' }}>
           <Icon name="upload_file" size={18} /> Load CSV file
           <input type="file" accept=".csv,text/csv" className="oc-sr" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void f.text().then(setCsv); }} />
@@ -1025,6 +1031,7 @@ function EssProfile({ base }: { base: string }) {
           { key: 'status', header: 'Status', render: pill('status') }, { key: 'reviewNote', header: 'HR note', render: (r) => val(r.reviewNote) },
         ]} empty={<p className="oc-muted">No changes sent.</p>} />
       </Card>
+      <PushSettings surface="staff" />
       {open && <EssChangeModal e={e} onClose={() => setOpen(false)} />}
     </div>
   );
@@ -1148,11 +1155,13 @@ export const HR_ROUTES: AreaRoute[] = [
   { path: 'ess/:section', perm: 'hris.ess.use', element: <EssSectionPage base="/ess" /> },
   // EP-03 Recruitment, EP-05 Performance Review (hr_talent.tsx).
   ...TALENT_ROUTES,
+  ...GAPS_ROUTES,
 ];
 
-export const HR_OPS_TILES: OpsTile[] = [['badge', 'Employee Self Service', '/ops/ess', 'hris.ess.use']];
+export const HR_OPS_TILES: OpsTile[] = [['badge', 'Employee Self Service', '/ops/ess', 'hris.ess.use'], ...GAPS_OPS_TILES];
 
 export const HR_OPS_ROUTES: OpsRoute[] = [
   { path: 'ess', element: <EssHome base="/ops/ess" /> },
   { path: 'ess/:section', element: <EssSectionPage base="/ops/ess" /> },
+  ...GAPS_OPS_ROUTES,
 ];

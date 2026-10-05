@@ -6,8 +6,6 @@ package reporting
 // reporting views (db/migrations/reporting/00018_p5_hr_core.sql). Salary
 // and identity data never reach these views (FR-HR-03, FR-RPT-P5-04).
 
-import "oneclub/internal/platform/catalog"
-
 var hrCoreReports = []*Report{
 	sqlReport("hris.headcount", "Headcount Report", "hris",
 		"Employees per org unit on the To date by employment status and worker category, with joiners and leavers of the period.",
@@ -84,29 +82,14 @@ var hrCoreReports = []*Report{
 		GROUP BY session_id, program_name, category, title, session_status ORDER BY min(starts_at), title`),
 }
 
-// HRCoreReports are the core HR reports (wired by internal/app).
+// HRCoreReports are the core HR reports (registered in the BI registry by init).
 func HRCoreReports() []*Report { return hrCoreReports }
 
-// HRCoreContribution adds one permission per core HR report and grants it
-// with the reporting views to the HR roles and the General Manager.
-func HRCoreContribution() catalog.Contribution {
-	var perms []catalog.Permission
-	roles := map[string][]string{}
-	for _, r := range hrCoreReports {
-		perms = append(perms, catalog.Permission{Code: r.Permission, Description: r.Name})
-		for _, role := range []string{"hr_admin", "hr_manager", "general_manager"} {
-			roles[role] = append(roles[role], r.Permission, "reporting.report.view", "reporting.export.create")
-		}
-	}
-	return catalog.Contribution{Permissions: perms, RolePermissions: roles}
-}
-
-// HRCoreKPI is an HR Performance KPI of core HR (FR-RPT-P5-01), in the
-// shape of the BI area's HRKPI registry (RegisterHRKPI, P5 BI on staging):
-// once both are merged, internal/app registers each definition there —
-// the keys replace the BI defaults of the same name (headcount from the P0
-// master today). SQL follows the dashboard convention: one row, one text
-// column; $1 from, $2 to (inclusive), $3 time zone.
+// HRCoreKPI is an HR Performance KPI of core HR (FR-RPT-P5-01), registered
+// in the BI registry (RegisterHRKPI, init below): the keys replace the BI
+// defaults of the same name (headcount read the P0 master before). SQL
+// follows the dashboard convention: one row, one text column; $1 from, $2
+// to (inclusive), $3 time zone.
 type HRCoreKPI struct {
 	Key, Label, Unit, Kind, Direction, Definition, SQL, Breakdown, Report string
 	Executive                                                             bool
@@ -134,4 +117,25 @@ var HRCoreKPIs = []HRCoreKPI{
 		AND $3::text <> '' GROUP BY employee_id) x`,
 		Breakdown: `SELECT type_name AS label, count(*) FILTER (WHERE NOT valid)::text AS value FROM reporting.hr_certification_requirements
 		WHERE $1::date IS NOT NULL AND $2::date IS NOT NULL AND $3::text <> '' GROUP BY 1 ORDER BY 1`},
+}
+
+// hrCoreReportRoles may run the core HR reports (identity and salary data
+// never reach them, FR-RPT-P5-04).
+var hrCoreReportRoles = []string{"hr_admin", "hr_manager", "general_manager"}
+
+// hrCoreKPIOrder keeps the HR Performance order of FR-RPT-P5-01.
+var hrCoreKPIOrder = map[string]int{"headcount": 10, "turnover": 70, "certification_compliance": 80}
+
+// The core HR reports and KPIs join the BI registry (EP-27): one permission
+// per report (reporting.hris_<code>.view, unchanged), granted with the
+// report view and export to the HR roles; the KPIs replace the defaults of
+// HR Performance (headcount stays on the Executive Overview).
+func init() {
+	for _, r := range hrCoreReports {
+		RegisterP5Report(r, hrCoreReportRoles...)
+	}
+	for _, k := range HRCoreKPIs {
+		RegisterHRKPI(HRKPI{Key: k.Key, Label: k.Label, Unit: k.Unit, Kind: k.Kind, Direction: k.Direction, Definition: k.Definition, SQL: k.SQL,
+			Breakdown: k.Breakdown, Module: "hris", Executive: k.Executive, Report: k.Report, Order: hrCoreKPIOrder[k.Key]})
+	}
 }

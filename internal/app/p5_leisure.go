@@ -29,7 +29,6 @@ import (
 	"oneclub/internal/platform/catalog"
 	"oneclub/internal/platform/provision"
 	"oneclub/internal/platform/storage"
-	"oneclub/internal/reporting"
 )
 
 // p5Leisure holds the services of the area.
@@ -38,13 +37,8 @@ type p5Leisure struct {
 	Tournament *tournament.Module   // P3 tournament extended by P5 (EP-23)
 }
 
-func init() {
-	// FR-RPT-P5-03: Package Profitability Report, Tournament Series Report.
-	Reports = append(Reports, reporting.LeisureReports()...)
-}
-
 func p5LeisureContributions() []catalog.Contribution {
-	return []catalog.Contribution{commercial.P5Contribution(), tournament.P5Contribution(), reporting.LeisureContribution()}
+	return []catalog.Contribution{commercial.P5Contribution(), tournament.P5Contribution()}
 }
 func p5LeisureDocumentTypes() []provision.DocumentType { return nil }
 func p5LeisureTemplates() []provision.Template         { return tournament.P5Templates() }

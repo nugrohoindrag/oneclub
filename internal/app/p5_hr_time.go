@@ -13,17 +13,21 @@ package app
 import (
 	"context"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"oneclub/internal/golf"
 	"oneclub/internal/hris"
 	"oneclub/internal/hris/hrtime"
 	"oneclub/internal/kernel/config"
 	"oneclub/internal/kernel/dbtx"
+	"oneclub/internal/kernel/reqctx"
 	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/catalog"
+	"oneclub/internal/platform/outbox"
 	"oneclub/internal/platform/provision"
 	"oneclub/internal/platform/storage"
 )
@@ -42,7 +46,8 @@ func p5HRTimeTemplates() []provision.Template         { return hrtime.Templates(
 // buildP5HRTime wires routes, hooks, approval decisions and jobs.
 func (a *App) buildP5HRTime(reg *route.Registry, cfg *config.Config, db *dbtx.DB, files *storage.Files) {
 	m := &hrtime.Module{DB: db, Engine: a.Engine, Events: a.Bus, Approvals: a.Approvals, Notify: a.Notification, Files: files,
-		Demand: staffingDemand, StaffURL: func() string { return cfg.PublicBaseURL }, Location: a.Instance.Location, Secret: []byte(cfg.AppSecret)}
+		Demand: staffingDemand, StaffURL: func() string { return cfg.PublicBaseURL }, Location: a.Instance.Location, Secret: []byte(cfg.AppSecret),
+		Partners: hrPartners{}}
 	m.Register(reg)
 	m.RegisterDecisions(a.Approvals.RegisterDocumentType)
 	m.RegisterJobs(a.Registrar, a.Instance.Location)
@@ -55,6 +60,38 @@ func (a *App) buildP5HRTime(reg *route.Registry, cfg *config.Config, db *dbtx.DB
 // from the biometric devices (PRD P5 §16 #10).
 func (a *App) subscribeP5HRTime() {
 	a.Bus.Subscribe(hris.EventEmployeeTerminated, "hris.attendance_device_removal", a.Time.Module.OnEmployeeTerminated)
+	// FR-ATT-08: a caddy's first device clock-in of the day marks the caddy
+	// present in Caddy Master (joins the Caddy Queue) unless the caddy master
+	// already recorded the day.
+	a.Bus.Subscribe(hris.EventPartnerAttendanceRecorded, "golf.caddy_device_attendance", a.caddyDeviceAttendance)
+}
+
+// caddyDeviceAttendance records the attendance of a caddy who clocked in on
+// a biometric device (golf never imports hris).
+func (a *App) caddyDeviceAttendance(ctx context.Context, tx pgx.Tx, e outbox.Event) error {
+	var p hris.PartnerAttendanceRecorded
+	if err := e.Decode(&p); err != nil {
+		return nil //nolint:nilerr // foreign payload
+	}
+	if p.HolderKind != hris.HolderCaddy || p.Direction != "in" {
+		return nil
+	}
+	ctx = reqctx.WithProperty(dbtx.System(ctx), p.PropertyID)
+	var status string
+	err := tx.QueryRow(ctx, `SELECT status FROM golf.caddy_attendance WHERE caddy_id = $1 AND work_date = $2::date`, p.PartnerID, p.WorkDate).Scan(&status)
+	if err != nil && !dbtx.IsNoRows(err) {
+		return err
+	}
+	if status != "" {
+		return nil // recorded by the caddy master (or an earlier clock-in)
+	}
+	local := p.OccurredAt
+	if loc := a.Instance.Location(); loc != nil {
+		local = local.In(loc)
+	}
+	_, err = a.Golf.RecordAttendance(ctx, tx, p.PropertyID, golf.AttendanceRequest{Date: p.WorkDate, Entries: []golf.AttendanceEntry{{CaddyID: p.PartnerID,
+		Status: "present", Notes: "Clock-in " + local.Format("15:04") + " on " + p.DeviceCode + " (" + strings.ReplaceAll(p.Method, "_", " ") + ")"}}})
+	return err
 }
 
 // staffingDemand reads the operational demand of a period (FR-SCH-04): golf

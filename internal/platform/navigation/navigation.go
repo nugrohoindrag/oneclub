@@ -53,12 +53,6 @@ func mod(module, label, icon, path string, children ...Item) Item {
 	return Item{Key: module, Label: label, Path: path, Icon: icon, Module: module, Permission: catalog.ModuleAccess(module), Children: children}
 }
 
-// soon is a menu of a module that arrives later in the phase (shown as
-// Coming Soon to holders of the module access).
-func soon(key, label, path string) Item {
-	return Item{Key: key, Label: label, Path: path, Permission: catalog.ModuleAccess("hris"), ComingSoon: true, Phase: "P5"}
-}
-
 func s(key, label, path, perm string, children ...Item) Item {
 	return Item{Key: key, Label: label, Path: path, Permission: perm, Children: children}
 }
@@ -274,17 +268,21 @@ var Trees = map[string][]Item{
 			s("hris-training", "Training & Certification", "/hris/training", "hris.certification.view"),
 			// PRD P5 EP-05 (performance review cycles, calibration).
 			s("hris-performance", "Performance Review", "/hris/performance", "hris.review_cycle.view"),
-			s("hris-attendance", "Attendance", "/hris/attendance", "hris.attendance.view"),                 // PRD P5 EP-07
-			s("hris-schedules", "Schedules", "/hris/schedules", "hris.schedule.view"),                      // PRD P5 EP-06
-			s("hris-leave", "Leave & Permission", "/hris/leave", "hris.leave_request.view"),                // PRD P5 EP-08
-			s("hris-overtime", "Overtime", "/hris/overtime", "hris.overtime_request.view"),                 // PRD P5 EP-08
+			s("hris-attendance", "Attendance", "/hris/attendance", "hris.attendance.view"),  // PRD P5 EP-07
+			s("hris-schedules", "Schedules", "/hris/schedules", "hris.schedule.view"),       // PRD P5 EP-06
+			s("hris-leave", "Leave & Permission", "/hris/leave", "hris.leave_request.view"), // PRD P5 EP-08
+			s("hris-overtime", "Overtime", "/hris/overtime", "hris.overtime_request.view"),  // PRD P5 EP-08
+			// PRD P5 FR-ATT-08 (partner caddies / instructors on the attendance devices) and EP-28 (migration wave 5).
+			s("hris-partner-attendance", "Partner Clock-in", "/hris/partner-attendance", "hris.partner_attendance.view"),
+			s("hris-migration", "HR Migration", "/hris/import", "hris.import.create"),
+			s("hris-migration-reconciliation", "Migration Reconciliation", "/hris/migration-reconciliation", "hris.migration_reconciliation.view"),
 			s("hris-payroll", "Payroll", "/hris/payroll", "hris.payroll_run.view"),                         // PRD P5 EP-09/10/15
 			s("hris-benefits", "Benefits", "/hris/benefits", "hris.payroll_profile.view"),                  // PRD P5 EP-10 (PTKP, BPJS)
 			s("hris-service-charge", "Service Charge", "/hris/service-charge", "hris.service_charge.view"), // PRD P5 EP-11
 			s("hris-commissions", "Commissions", "/hris/commissions", "hris.commission_payout.view"),       // PRD P5 EP-12
 			s("hris-caddy", "Caddy", "/hris/caddy", "hris.payout_run.view"),                                // PRD P5 EP-13
 			s("hris-instructors", "Instructors", "/hris/instructors", "hris.payout_run.view"),              // PRD P5 EP-14
-			soon("hris-reports", "HR Reports", "/reports?module=hris"),
+			s("hris-reports", "HR Reports", "/reports?module=hris", "reporting.report.view"),               // PRD P5 EP-27 (BI registry)
 		),
 		// Employee Self Service for office staff (PRD P5 EP-16; the ops shell
 		// has the same area at /ops/ess).
@@ -474,6 +472,8 @@ var Trees = map[string][]Item{
 			s("caddy-attendance", "Caddy Attendance", "/ops/caddy/availability", "golf.caddy_assignment.manage"),
 			s("caddy-history", "Caddy History", "/ops/caddy/history", "golf.caddy.view"),
 			s("caddy-incidents", "Incidents & Settlement", "/ops/caddy/incidents", "golf.caddy_incident.create"),
+			// PRD P5 FR-ATT-08: caddies clocking in on the caddy house device join the queue.
+			{Key: "caddy-device-clock-ins", Label: "Device Clock-ins", Path: "/ops/caddy/clock-ins", Module: "hris", Permission: "hris.partner_attendance.view"},
 		}},
 		{Key: "front-desk", Label: "Front Desk", Path: "/ops/front-desk", Icon: "concierge", Module: "golf", Permission: "golf.check_in.perform", Children: []Item{
 			s("reservations", "Reservations", "/ops/front-desk", "golf.booking.view"),

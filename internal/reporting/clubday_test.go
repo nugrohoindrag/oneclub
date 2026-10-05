@@ -73,7 +73,7 @@ var utcDate = regexp.MustCompile(`\b[a-z_]+_at\)?::date|current_date|\b[a-z_]+_a
 
 func TestReportsDateTimestampsAtTheClub(t *testing.T) {
 	pinEveningUTC(t)
-	reports := slices.Concat(P1Reports, P2Reports, P3Reports(), P4Reports(), P5Reports(), LeisureReports())
+	reports := slices.Concat(P1Reports, P2Reports, P3Reports(), P4Reports(), P5Reports())
 	for _, r := range reports {
 		tx := &captureTx{}
 		if _, err := r.Query(context.Background(), tx, map[string]string{"from": "2026-10-01", "to": "2026-10-06", "date": "2026-10-06"}, 10); !errors.Is(err, errCaptured) {

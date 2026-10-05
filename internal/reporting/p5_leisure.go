@@ -3,10 +3,8 @@ package reporting
 // Reports of PRD P5 EP-22/23 (FR-RPT-P5-03): Package Profitability Report
 // and Tournament Series Report, on the reporting views of the area
 // (reporting.commercial_package_profit_lines, reporting.golf_series_standings),
-// and the Package Margin KPI of Commercial Performance. Registered by
-// internal/app (p5_leisure.go).
-
-import "oneclub/internal/platform/catalog"
+// and the Package Margin KPI of Commercial Performance. Registered in
+// the BI registry (init below) with the roles of the owning module.
 
 var leisureReports = []*Report{
 	sqlReport("commercial.package_profitability", "Package Profitability Report", "commercial",
@@ -46,21 +44,6 @@ var leisureReports = []*Report{
 // LeisureReports are the reports of PRD P5 EP-22/23.
 func LeisureReports() []*Report { return leisureReports }
 
-// LeisureContribution adds the report permissions and grants them with the
-// dashboards to the owning roles (the Tournament Series Report also to the
-// golf roles, the Package Profitability Report to finance).
-func LeisureContribution() catalog.Contribution {
-	var perms []catalog.Permission
-	roles := map[string][]string{}
-	for _, r := range leisureReports {
-		perms = append(perms, catalog.Permission{Code: r.Permission, Description: r.Name})
-		for _, role := range reportRoles[r.Module] {
-			roles[role] = append(roles[role], r.Permission, "reporting.report.view", "reporting.dashboard.view", "reporting.export.create")
-		}
-	}
-	return catalog.Contribution{Permissions: perms, RolePermissions: roles}
-}
-
 // packageMarginKPI is the margin of the packages taking place in the period.
 var packageMarginKPI = kpiDef{key: "package_margin", label: "Package Margin", unit: "idr",
 	def: "Allocated revenue minus COGS and direct costs of the packages taking place in the period (Package Profitability)",
@@ -71,6 +54,9 @@ var packageMarginKPI = kpiDef{key: "package_margin", label: "Package Margin", un
 	WHERE start_date BETWEEN $1::date AND $2::date AND $3::text <> '' GROUP BY 1 ORDER BY 1`}
 
 func init() {
+	for _, r := range leisureReports {
+		RegisterP5Report(r, reportRoles[r.Module]...)
+	}
 	d := dashboards[commercialPerformance]
 	d.kpis = append(append([]kpiDef{}, d.kpis...), packageMarginKPI)
 	dashboards[commercialPerformance] = d

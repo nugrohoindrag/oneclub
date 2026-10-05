@@ -32,7 +32,6 @@ import (
 	"oneclub/internal/platform/outbox"
 	"oneclub/internal/platform/provision"
 	"oneclub/internal/platform/storage"
-	"oneclub/internal/reporting"
 	"oneclub/internal/sportclub"
 )
 
@@ -44,7 +43,7 @@ type p5HR struct {
 }
 
 func p5HRContributions() []catalog.Contribution {
-	return append([]catalog.Contribution{(&corehr.Module{}).Contribution(), reporting.HRCoreContribution()}, p5HRTalentContributions()...)
+	return append([]catalog.Contribution{(&corehr.Module{}).Contribution()}, p5HRTalentContributions()...)
 }
 func p5HRDocumentTypes() []provision.DocumentType { return p5HRTalentDocumentTypes() }
 func p5HRTemplates() []provision.Template {
@@ -60,8 +59,8 @@ var HRDemoUsers = []DemoUser{
 	{"employee@demo.oneclub.id", "Andi Waiter", "employee_self_service", "MAIN"},
 }
 
+// The core HR reports join the BI registry (reporting/p5_hr_core.go).
 func init() {
-	Reports = append(Reports, reporting.HRCoreReports()...)
 	DemoUsers = append(DemoUsers, HRDemoUsers...)
 }
 

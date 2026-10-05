@@ -34,16 +34,25 @@ import (
 
 // Import entities.
 const (
+	ImportGrades         = "grades"
+	ImportOrgUnits       = "org_units"
+	ImportPositions      = "positions"
 	ImportEmployees      = "employees"
 	ImportContracts      = "contracts"
+	ImportDocuments      = "documents"
 	ImportCertifications = "certifications"
 )
 
-// ImportEntities lists the entities in load order.
-var ImportEntities = []string{ImportEmployees, ImportContracts, ImportCertifications}
+// ImportEntities lists the entities in load order (organization first,
+// FR-MIG-P5-01).
+var ImportEntities = []string{ImportGrades, ImportOrgUnits, ImportPositions, ImportEmployees, ImportContracts, ImportDocuments, ImportCertifications}
 
 // ImportColumns documents the CSV header of each entity.
 var ImportColumns = map[string][]string{
+	ImportGrades:    {"code", "name", "level", "minSalary", "maxSalary", "description", "status"},
+	ImportOrgUnits:  {"code", "name", "parentCode", "unitType", "costCenter", "headEmployeeNo", "description", "sortOrder", "status"},
+	ImportPositions: {"code", "name", "orgUnitCode", "gradeCode", "reportsToCode", "isHead", "workforceRole", "requiredCertifications", "headcount", "description", "status"},
+	ImportDocuments: {"employeeNo", "documentType", "title", "documentNo", "issuedOn", "expiresOn", "warningLevel", "confidential", "file", "notes"},
 	ImportEmployees: {"employeeNo", "fullName", "orgUnitCode", "positionCode", "gradeCode", "supervisorNo", "employmentStatus", "workerCategory", "joinDate",
 		"gender", "birthDate", "birthPlace", "religion", "maritalStatus", "nik", "npwp", "ptkpStatus", "bpjsKesehatanNo", "bpjsKetenagakerjaanNo", "email",
 		"personalEmail", "phone", "address", "city", "postalCode", "bankName", "bankCode", "accountNo", "accountName", "legacyRef"},
@@ -54,8 +63,8 @@ var ImportColumns = map[string][]string{
 
 // HRImportRequest is a CSV upload.
 type HRImportRequest struct {
-	Entity string `json:"entity" enum:"employees,contracts,certifications"`
-	CSV    string `json:"csv" doc:"CSV with a header row (column names of the entity, see the HRIS import screen)"`
+	Entity string `json:"entity" enum:"grades,org_units,positions,employees,contracts,documents,certifications"`
+	CSV    string `json:"csv" doc:"CSV with a header row (column names of the entity, see the HRIS import screen); documents: the file column is the id of a file uploaded with POST /api/v1/hris/document-files"`
 	DryRun bool   `json:"dryRun,omitempty" doc:"Validate only; nothing is saved"`
 }
 
@@ -80,7 +89,7 @@ type ImportReport struct {
 
 func (m *Module) registerImports(reg *route.Registry) {
 	add(reg, "HRIS Migration", route.Route{Method: http.MethodPost, Path: "/api/v1/hris/imports",
-		Summary: "Import employees, contracts or certifications from CSV (migration wave 5)", Permission: "hris.import.create",
+		Summary: "Import grades, org units, positions, employees, contracts, documents or certifications from CSV (migration wave 5)", Permission: "hris.import.create",
 		Request: HRImportRequest{}, Response: ImportReport{}, Status: http.StatusOK, Handler: m.importHTTP})
 }
 
@@ -149,6 +158,10 @@ func (m *Module) ImportCSV(ctx context.Context, property uuid.UUID, entity strin
 	err = m.DB.WithTx(ctx, func(tx pgx.Tx) error {
 		var err error
 		switch entity {
+		case ImportGrades, ImportOrgUnits, ImportPositions:
+			err = m.importOrganization(ctx, tx, property, entity, rows, &rep)
+		case ImportDocuments:
+			err = m.importDocuments(ctx, tx, property, rows, &rep)
 		case ImportEmployees:
 			err = m.importEmployees(ctx, tx, property, rows, &rep)
 		case ImportContracts:

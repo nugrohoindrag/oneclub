@@ -180,16 +180,19 @@ func TestHRKPIRegistry(t *testing.T) {
 	if head.SQL == "" || !head.Executive {
 		t.Fatalf("headcount default: %+v", head)
 	}
-	for _, k := range before {
-		if k.Key == "turnover" && k.SQL != "" {
-			t.Fatal("turnover must be coming soon until an HR area registers it")
-		}
-	}
+	// every default HR KPI may already be registered by an HR area: replace
+	// one and put the area's registration back afterwards
+	regMu.Lock()
+	orig, had := hrKPIRegistry["turnover"]
+	regMu.Unlock()
 	RegisterHRKPI(HRKPI{Key: "turnover", Label: "Turnover", Unit: "ratio", Kind: KindRate, SQL: "SELECT '1'", Executive: true})
 	RegisterHRKPI(HRKPI{Key: "zz_test_kpi", Label: "Test", Unit: "count", SQL: "SELECT '2'"})
 	t.Cleanup(func() {
 		regMu.Lock()
 		delete(hrKPIRegistry, "turnover")
+		if had {
+			hrKPIRegistry["turnover"] = orig
+		}
 		delete(hrKPIRegistry, "zz_test_kpi")
 		regMu.Unlock()
 	})

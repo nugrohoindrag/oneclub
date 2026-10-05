@@ -77,7 +77,8 @@ type AttendanceConsentRequest struct {
 type AttendanceDeviceSyncResult struct {
 	DeviceID  uuid.UUID  `json:"deviceId"`
 	Vendor    string     `json:"vendor"`
-	Users     int        `json:"users" doc:"Employees with biometric consent sent to the device"`
+	Users     int        `json:"users" doc:"Employees and partners with biometric consent sent to the device"`
+	Partners  int        `json:"partners" doc:"Partner caddies and instructors among the users (FR-ATT-08)"`
 	Removals  int        `json:"removals" doc:"Leavers / withdrawn consents removed from the device"`
 	CommandID *uuid.UUID `json:"commandId" doc:"Bridge command (real devices)"`
 	Status    string     `json:"status" enum:"synced,queued"`
@@ -169,17 +170,28 @@ func ensureProfile(ctx context.Context, tx pgx.Tx, emp hris.Employee) (string, e
 			cand = strconv.Itoa(n)
 		}
 	}
+	// one namespace with the partners' numbers (p5_partners.go)
 	var taken bool
 	if cand != "" {
-		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM hris.attendance_profiles WHERE property_id = $1 AND device_user_no = $2)`,
-			emp.PropertyID, cand).Scan(&taken); err != nil {
+		if taken, err = deviceUserNoTaken(ctx, tx, emp.PropertyID, cand); err != nil {
 			return "", err
 		}
 	}
 	if cand == "" || taken {
-		if err := tx.QueryRow(ctx, `SELECT (coalesce(max(device_user_no::bigint) FILTER (WHERE device_user_no ~ '^[0-9]{1,15}$'), 0) + 1)::text
-			FROM hris.attendance_profiles WHERE property_id = $1`, emp.PropertyID).Scan(&cand); err != nil {
+		var n int64
+		if err := tx.QueryRow(ctx, `SELECT coalesce(max(device_user_no::bigint) FILTER (WHERE device_user_no ~ '^[0-9]{1,15}$'), 0) + 1
+			FROM hris.attendance_profiles WHERE property_id = $1`, emp.PropertyID).Scan(&n); err != nil {
 			return "", err
+		}
+		for {
+			cand = strconv.FormatInt(n, 10)
+			if taken, err = deviceUserNoTaken(ctx, tx, emp.PropertyID, cand); err != nil {
+				return "", err
+			}
+			if !taken {
+				break
+			}
+			n++
 		}
 	}
 	_, err = tx.Exec(ctx, `INSERT INTO hris.attendance_profiles (employee_id, property_id, device_user_no) VALUES ($1,$2,$3)`, emp.ID, emp.PropertyID, cand)
@@ -352,11 +364,24 @@ func (m *Module) syncEmployeesHTTP(ctx context.Context, tx pgx.Tx, r *http.Reque
 	if removals, err = pgx.CollectRows(rrows, pgx.RowTo[string]); err != nil {
 		return AttendanceDeviceSyncResult{}, err
 	}
-	res := AttendanceDeviceSyncResult{DeviceID: d.ID, Vendor: d.Vendor, Users: len(users), Removals: len(removals), Status: "synced"}
+	// partner caddies and instructors enrolled for device clock-in (FR-ATT-08)
+	partners, partnerRemovals, err := partnerDeviceUsers(ctx, tx, property)
+	if err != nil {
+		return AttendanceDeviceSyncResult{}, err
+	}
+	for _, p := range partners {
+		users = append(users, user{No: p[0], Name: p[1]})
+	}
+	removals = append(removals, partnerRemovals...)
+	res := AttendanceDeviceSyncResult{DeviceID: d.ID, Vendor: d.Vendor, Users: len(users), Partners: len(partners), Removals: len(removals), Status: "synced"}
 	if d.Vendor == "mock" {
 		// the trial adapter enrols at once
 		if _, err := tx.Exec(ctx, `UPDATE hris.attendance_profiles SET enrolled_at = coalesce(enrolled_at, now()) WHERE property_id = $1 AND biometric_consent`,
 			property); err != nil {
+			return res, err
+		}
+		if _, err := tx.Exec(ctx, `UPDATE hris.partner_attendance_profiles SET enrolled_at = coalesce(enrolled_at, now())
+			WHERE property_id = $1 AND biometric_consent AND status = 'active'`, property); err != nil {
 			return res, err
 		}
 	} else {
@@ -389,8 +414,14 @@ func (m *Module) queueRemoval(ctx context.Context, tx pgx.Tx, emp hris.Employee)
 		}
 		return err
 	}
+	return m.queueDeviceRemoval(ctx, tx, emp.PropertyID, no)
+}
+
+// queueDeviceRemoval removes a device user number from the real biometric
+// devices of a property (employee or partner).
+func (m *Module) queueDeviceRemoval(ctx context.Context, tx pgx.Tx, property uuid.UUID, no string) error {
 	rows, err := tx.Query(ctx, `SELECT id, code FROM hris.attendance_devices WHERE property_id = $1 AND device_kind = 'biometric' AND vendor <> 'mock'
-		AND status = 'active' AND archived_at IS NULL`, emp.PropertyID)
+		AND status = 'active' AND archived_at IS NULL`, property)
 	if err != nil {
 		return err
 	}
@@ -409,7 +440,7 @@ func (m *Module) queueRemoval(ctx context.Context, tx pgx.Tx, emp hris.Employee)
 	}
 	rows.Close()
 	for _, d := range devs {
-		if _, err := integration.Enqueue(ctx, tx, integration.CommandRequest{PropertyID: emp.PropertyID, Device: d.code, Command: "delete_users",
+		if _, err := integration.Enqueue(ctx, tx, integration.CommandRequest{PropertyID: property, Device: d.code, Command: "delete_users",
 			Payload: map[string]any{"deviceUserNos": []string{no}}, SourceType: "hris.attendance_device", SourceID: &d.id, TTL: 24 * time.Hour}); err != nil {
 			return err
 		}
@@ -578,6 +609,31 @@ func (m *Module) bridgeEventsHTTP(w http.ResponseWriter, r *http.Request) {
 			sp, err := tx.Begin(ctx)
 			if err != nil {
 				return err
+			}
+			if p, err := partnerByDeviceNo(ctx, sp, d.PropertyID, ev.DeviceUserNo); err != nil {
+				_ = sp.Rollback(ctx)
+				return err
+			} else if p != nil {
+				// a partner caddy / instructor (FR-ATT-08)
+				pr, err := m.ingestPartnerEvent(ctx, sp, d, *p, ev)
+				if err != nil {
+					_ = sp.Rollback(ctx)
+					if pe, ok := errs.As(err); ok && pe.Kind != errs.KindInternal {
+						res.Status, res.Error = "rejected", pe.Message
+						out.Results = append(out.Results, res)
+						continue
+					}
+					return err
+				}
+				if err := sp.Commit(ctx); err != nil {
+					return err
+				}
+				res.PartnerResult, res.Status = &pr, map[bool]string{true: "duplicate", false: "accepted"}[pr.Duplicate]
+				if !pr.Duplicate {
+					accepted++
+				}
+				out.Results = append(out.Results, res)
+				continue
 			}
 			o, err := m.ingestDeviceEvent(ctx, sp, d, ev)
 			if err != nil {

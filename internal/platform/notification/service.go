@@ -134,11 +134,27 @@ func (s *Service) Send(ctx context.Context, tx pgx.Tx, m notify.Message) error {
 		if m.Link != "" {
 			data["link"] = m.Link
 		}
-		for _, ch := range channels {
+		chans := channels
+		pushable := false
+		if r.ID != uuid.Nil && (slices.Contains(channels, notify.ChannelInApp) || slices.Contains(channels, notify.ChannelPush)) {
+			var err error
+			if pushable, err = hasPushDevice(ctx, tx, r.ID); err != nil {
+				return err
+			}
+		}
+		// FR-INT-P5-05: in-app notifications also reach the user's
+		// subscribed devices (Staff App ESS, Member App) as a push.
+		if pushable && !slices.Contains(chans, notify.ChannelPush) {
+			chans = append(slices.Clone(chans), notify.ChannelPush)
+		}
+		for _, ch := range chans {
 			if optedOut[ch] {
 				continue
 			}
 			if ch == notify.ChannelInApp && r.ID == uuid.Nil {
+				continue
+			}
+			if ch == notify.ChannelPush && !pushable {
 				continue
 			}
 			if ch == notify.ChannelEmail && r.Email == "" {
@@ -200,6 +216,18 @@ func (s *Service) queue(ctx context.Context, tx pgx.Tx, m notify.Message, r reci
 		}
 		_, err = tx.Exec(ctx, `UPDATE platform.notification_deliveries SET job_id = $2 WHERE id = $1`, did, jid)
 		return err
+	case notify.ChannelPush:
+		if _, err := tx.Exec(ctx, `INSERT INTO platform.notification_deliveries (id, user_id, event_code, category, channel, locale,
+			recipient, subject, body, status, payload) VALUES ($1,$2,$3,$4,'push',$5,$6,$7,$8,'pending',$9)`,
+			did, uid, m.Event, m.Category, r.Locale, r.Name, finalSubject, finalBody, payload); err != nil {
+			return err
+		}
+		jid, err := s.Jobs.Insert(ctx, tx, DeliverArgs{DeliveryID: did}, nil)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(ctx, `UPDATE platform.notification_deliveries SET job_id = $2 WHERE id = $1`, did, jid)
+		return err
 	default:
 		return fmt.Errorf("notification: unknown channel %q", ch)
 	}
@@ -212,14 +240,22 @@ func nullable(s string) *string {
 	return &s
 }
 
+// hasPushDevice reports whether a user has a subscribed device.
+func hasPushDevice(ctx context.Context, q dbtx.Querier, user uuid.UUID) (bool, error) {
+	var ok bool
+	err := q.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM platform.push_subscriptions WHERE user_id = $1 AND revoked_at IS NULL)`, user).Scan(&ok)
+	return ok, err
+}
+
 // render picks the template for (event, channel, locale) with fallbacks:
-// channel → email template; locale → other locale.
+// channel → in-app template (push) or e-mail template; locale → other
+// locale.
 func (s *Service) render(ctx context.Context, q dbtx.Querier, event, channel, locale string, data map[string]any) (string, string, error) {
 	var subj, body string
 	err := q.QueryRow(ctx, `
 		SELECT subject, body FROM platform.notification_templates
 		WHERE event_code = $1 AND is_active
-		ORDER BY (channel = $2) DESC, (channel = 'email') DESC, (locale = $3) DESC, (locale = 'en') DESC
+		ORDER BY (channel = $2) DESC, ($2 = 'push' AND channel = 'in_app') DESC, (channel = 'email') DESC, (locale = $3) DESC, (locale = 'en') DESC
 		LIMIT 1`, event, channel, locale).Scan(&subj, &body)
 	if dbtx.IsNoRows(err) {
 		subj, body = event, "{{range $k, $v := .}}{{$k}}: {{$v}}\n{{end}}"

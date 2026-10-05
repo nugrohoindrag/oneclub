@@ -91,6 +91,17 @@ var trialCoverageTables = [][3]string{
 	{"accounting", "bank reconciliations", "accounting.bank_reconciliations"},
 	{"accounting", "tax invoices", "accounting.tax_invoices"},
 	{"cms", "contents", "cms.contents"},
+	// PRD P5 (trial_p5.go and the P5 demo seed)
+	{"hris", "employees", "hris.employees"},
+	{"hris", "shift schedules", "hris.schedules"},
+	{"hris", "attendance events", "hris.attendance_events"},
+	{"hris", "attendance days", "hris.attendance_days"},
+	{"hris", "overtime requests", "hris.overtime_requests"},
+	{"hris", "leave requests", "hris.leave_requests"},
+	{"hris", "partner clock events", "hris.partner_attendance_events"},
+	{"crm", "journey enrollments", "crm.journey_enrollments"},
+	{"crm", "tier evaluations", "crm.loyalty_tier_evaluations"},
+	{"reporting", "analytics KPI values", "analytics.kpi_values"},
 }
 
 // TrialCoverage counts the rows of the main entities of a property.

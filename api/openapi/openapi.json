@@ -5904,6 +5904,10 @@
             "format": "uuid",
             "type": "string"
           },
+          "partners": {
+            "description": "Partner caddies and instructors among the users (FR-ATT-08)",
+            "type": "integer"
+          },
           "removals": {
             "description": "Leavers / withdrawn consents removed from the device",
             "type": "integer"
@@ -5916,7 +5920,7 @@
             "type": "string"
           },
           "users": {
-            "description": "Employees with biometric consent sent to the device",
+            "description": "Employees and partners with biometric consent sent to the device",
             "type": "integer"
           },
           "vendor": {
@@ -5927,6 +5931,7 @@
           "deviceId",
           "vendor",
           "users",
+          "partners",
           "removals",
           "status"
         ],
@@ -6584,6 +6589,14 @@
           },
           "error": {
             "type": "string"
+          },
+          "partnerResult": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PartnerClockResult"
+              }
+            ],
+            "nullable": true
           },
           "result": {
             "allOf": [
@@ -28346,7 +28359,8 @@
             "enum": [
               "in_app",
               "email",
-              "whatsapp"
+              "whatsapp",
+              "push"
             ],
             "type": "string"
           },
@@ -39727,7 +39741,7 @@
       "HRImportRequest": {
         "properties": {
           "csv": {
-            "description": "CSV with a header row (column names of the entity, see the HRIS import screen)",
+            "description": "CSV with a header row (column names of the entity, see the HRIS import screen); documents: the file column is the id of a file uploaded with POST /api/v1/hris/document-files",
             "type": "string"
           },
           "dryRun": {
@@ -39736,8 +39750,12 @@
           },
           "entity": {
             "enum": [
+              "grades",
+              "org_units",
+              "positions",
               "employees",
               "contracts",
+              "documents",
               "certifications"
             ],
             "type": "string"
@@ -55726,6 +55744,144 @@
         ],
         "type": "object"
       },
+      "MigrationReconciliation": {
+        "properties": {
+          "calculatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "checks": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "cutoverDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "financeNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "financeSignedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "financeSignedName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "hrNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "hrSignedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "hrSignedName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "legacySystem": {
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/ReconciliationLine"
+            },
+            "type": "array"
+          },
+          "mismatches": {
+            "type": "integer"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "hr_signed",
+              "finance_signed",
+              "signed_off",
+              "cancelled"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "cutoverDate",
+          "legacySystem",
+          "lines",
+          "checks",
+          "mismatches",
+          "status",
+          "calculatedAt",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "MigrationReconciliationRequest": {
+        "properties": {
+          "cutoverDate": {
+            "type": "string"
+          },
+          "legacySystem": {
+            "description": "e.g. the club's HR Excel / previous HRIS",
+            "type": "string"
+          },
+          "lines": {
+            "description": "Control totals: metric (headcount, leave_balance, …), key (TOTAL, org unit code, leave type, EMPLOYEENO:TYPE) and the legacy value",
+            "items": {
+              "$ref": "#/components/schemas/ReconciliationInput"
+            },
+            "type": "array"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cutoverDate",
+          "legacySystem",
+          "lines"
+        ],
+        "type": "object"
+      },
+      "MigrationReconciliationSignOff": {
+        "properties": {
+          "note": {
+            "description": "Required when the reconciliation has mismatches (explanation of the differences)",
+            "type": "string"
+          },
+          "role": {
+            "description": "hr = HR Manager, finance = Finance Manager",
+            "enum": [
+              "hr",
+              "finance"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "role"
+        ],
+        "type": "object"
+      },
       "Modifier": {
         "properties": {
           "archivedAt": {
@@ -64161,6 +64317,207 @@
         ],
         "type": "object"
       },
+      "PartnerAttendanceConsentRequest": {
+        "properties": {
+          "consent": {
+            "description": "false = consent withdrawn: the partner is removed from the biometric devices",
+            "type": "boolean"
+          },
+          "signedOn": {
+            "description": "Date of the signed consent (required when consenting)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "consent"
+        ],
+        "type": "object"
+      },
+      "PartnerAttendanceEvent": {
+        "properties": {
+          "deviceCode": {
+            "type": "string"
+          },
+          "direction": {
+            "enum": [
+              "in",
+              "out"
+            ],
+            "type": "string"
+          },
+          "holderKind": {
+            "enum": [
+              "caddy",
+              "instructor"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "face_recognition",
+              "fingerprint"
+            ],
+            "type": "string"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "offline": {
+            "type": "boolean"
+          },
+          "partnerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "partnerName": {
+            "type": "string"
+          },
+          "profileId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "workDate": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "profileId",
+          "holderKind",
+          "partnerId",
+          "partnerName",
+          "workDate",
+          "direction",
+          "occurredAt",
+          "method",
+          "deviceCode",
+          "offline"
+        ],
+        "type": "object"
+      },
+      "PartnerAttendanceProfile": {
+        "properties": {
+          "biometricConsent": {
+            "type": "boolean"
+          },
+          "consentSignedOn": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "consentWithdrawnAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "deviceUserNo": {
+            "type": "string"
+          },
+          "enrolledAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "holderKind": {
+            "enum": [
+              "caddy",
+              "instructor"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lastEventAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "partnerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "partnerName": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "holderKind",
+          "partnerId",
+          "partnerName",
+          "deviceUserNo",
+          "biometricConsent",
+          "status",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "PartnerAttendanceProfileRequest": {
+        "properties": {
+          "consent": {
+            "description": "Written biometric consent signed (required before the partner is sent to a device)",
+            "type": "boolean"
+          },
+          "holderKind": {
+            "enum": [
+              "caddy",
+              "instructor"
+            ],
+            "type": "string"
+          },
+          "partnerId": {
+            "description": "Caddy (golf) or instructor (sport club) id",
+            "type": "string"
+          },
+          "signedOn": {
+            "description": "Date of the signed consent (required with consent)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "holderKind",
+          "partnerId"
+        ],
+        "type": "object"
+      },
+      "PartnerClockResult": {
+        "properties": {
+          "duplicate": {
+            "type": "boolean"
+          },
+          "event": {
+            "$ref": "#/components/schemas/PartnerAttendanceEvent"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "event",
+          "duplicate",
+          "message"
+        ],
+        "type": "object"
+      },
       "PartnerDeductionAmount": {
         "properties": {
           "amount": {
@@ -64177,6 +64534,40 @@
           "code",
           "label",
           "amount"
+        ],
+        "type": "object"
+      },
+      "PartnerSimulateRequest": {
+        "properties": {
+          "direction": {
+            "enum": [
+              "in",
+              "out"
+            ],
+            "type": "string"
+          },
+          "eventId": {
+            "description": "Device event id; resending it is idempotent",
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "face_recognition",
+              "fingerprint"
+            ],
+            "type": "string"
+          },
+          "occurredAt": {
+            "description": "RFC 3339 (default now)",
+            "type": "string"
+          },
+          "profileId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "profileId"
         ],
         "type": "object"
       },
@@ -69327,6 +69718,10 @@
             "type": "string"
           },
           "mandatory": {
+            "type": "boolean"
+          },
+          "push": {
+            "nullable": true,
             "type": "boolean"
           },
           "whatsapp": {
@@ -76490,6 +76885,103 @@
         ],
         "type": "object"
       },
+      "PushConfig": {
+        "properties": {
+          "enabled": {
+            "description": "false when no push integration is configured (production)",
+            "type": "boolean"
+          },
+          "publicKey": {
+            "description": "VAPID application server key (base64url) for PushManager.subscribe",
+            "type": "string"
+          }
+        },
+        "required": [
+          "enabled",
+          "publicKey"
+        ],
+        "type": "object"
+      },
+      "PushSubscriptionKeys": {
+        "properties": {
+          "auth": {
+            "type": "string"
+          },
+          "p256dh": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "p256dh",
+          "auth"
+        ],
+        "type": "object"
+      },
+      "PushSubscriptionRequest": {
+        "properties": {
+          "endpoint": {
+            "type": "string"
+          },
+          "keys": {
+            "$ref": "#/components/schemas/PushSubscriptionKeys"
+          },
+          "surface": {
+            "enum": [
+              "staff",
+              "member"
+            ],
+            "type": "string"
+          },
+          "userAgent": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "endpoint",
+          "keys",
+          "surface"
+        ],
+        "type": "object"
+      },
+      "PushSubscriptionView": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lastSuccessAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "service": {
+            "description": "Host of the browser push service",
+            "type": "string"
+          },
+          "surface": {
+            "enum": [
+              "staff",
+              "member"
+            ],
+            "type": "string"
+          },
+          "userAgent": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "surface",
+          "service",
+          "createdAt"
+        ],
+        "type": "object"
+      },
       "QualifyInput": {
         "properties": {
           "note": {
@@ -79013,6 +79505,25 @@
         ],
         "type": "object"
       },
+      "ReconciliationInput": {
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "legacy": {
+            "type": "string"
+          },
+          "metric": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric",
+          "key",
+          "legacy"
+        ],
+        "type": "object"
+      },
       "ReconciliationItem": {
         "properties": {
           "externalId": {
@@ -79058,6 +79569,62 @@
           "id",
           "externalId",
           "result"
+        ],
+        "type": "object"
+      },
+      "ReconciliationLine": {
+        "properties": {
+          "difference": {
+            "description": "OneClub − legacy",
+            "type": "string"
+          },
+          "key": {
+            "type": "string"
+          },
+          "legacy": {
+            "description": "null = not in the legacy file (OneClub only)",
+            "nullable": true,
+            "type": "string"
+          },
+          "match": {
+            "type": "boolean"
+          },
+          "metric": {
+            "type": "string"
+          },
+          "metricLabel": {
+            "type": "string"
+          },
+          "oneclub": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "metric",
+          "metricLabel",
+          "key",
+          "oneclub",
+          "difference",
+          "match"
+        ],
+        "type": "object"
+      },
+      "ReconciliationMetricInfo": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "keyHelp": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "keyHelp"
         ],
         "type": "object"
       },
@@ -95300,7 +95867,8 @@
             "enum": [
               "in_app",
               "email",
-              "whatsapp"
+              "whatsapp",
+              "push"
             ],
             "type": "string"
           },
@@ -240546,6 +241114,98 @@
         "x-permission": "hris.attendance.record"
       }
     },
+    "/api/v1/hris/attendance-devices/{id}:simulate-partner": {
+      "post": {
+        "operationId": "postHrisAttendanceDevicesByIdSimulatePartner",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerSimulateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerClockResult"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Fire a face / fingerprint event of a partner on a mock device (trial adapter)",
+        "tags": [
+          "HRIS Attendance"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.partner_attendance.manage"
+      }
+    },
     "/api/v1/hris/attendance-devices/{id}:sync-employees": {
       "post": {
         "operationId": "postHrisAttendanceDevicesByIdSyncEmployees",
@@ -252349,7 +253009,7 @@
             "apiKey": []
           }
         ],
-        "summary": "Import employees, contracts or certifications from CSV (migration wave 5)",
+        "summary": "Import grades, org units, positions, employees, contracts, documents or certifications from CSV (migration wave 5)",
         "tags": [
           "HRIS Migration"
         ],
@@ -256662,6 +257322,741 @@
         "x-permission": "hris.letter_template.export"
       }
     },
+    "/api/v1/hris/migration-reconciliation-metrics": {
+      "get": {
+        "operationId": "getHrisMigrationReconciliationMetrics",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/ReconciliationMetricInfo"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Metrics of the HR migration reconciliation",
+        "tags": [
+          "HRIS Migration"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.migration_reconciliation.view"
+      }
+    },
+    "/api/v1/hris/migration-reconciliations": {
+      "get": {
+        "operationId": "getHrisMigrationReconciliations",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/MigrationReconciliation"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "HR migration reconciliations (cutover sign-off)",
+        "tags": [
+          "HRIS Migration"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.migration_reconciliation.view"
+      },
+      "post": {
+        "operationId": "postHrisMigrationReconciliations",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MigrationReconciliationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MigrationReconciliation"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Reconcile the legacy HR control totals with OneClub",
+        "tags": [
+          "HRIS Migration"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.migration_reconciliation.create"
+      }
+    },
+    "/api/v1/hris/migration-reconciliations/{id}": {
+      "get": {
+        "operationId": "getHrisMigrationReconciliationsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MigrationReconciliation"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "HR migration reconciliation",
+        "tags": [
+          "HRIS Migration"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.migration_reconciliation.view"
+      }
+    },
+    "/api/v1/hris/migration-reconciliations/{id}/csv": {
+      "get": {
+        "operationId": "getHrisMigrationReconciliationsByIdCsv",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "HR migration reconciliation as CSV",
+        "tags": [
+          "HRIS Migration"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.migration_reconciliation.view"
+      }
+    },
+    "/api/v1/hris/migration-reconciliations/{id}:cancel": {
+      "post": {
+        "operationId": "postHrisMigrationReconciliationsByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MigrationReconciliation"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel a reconciliation that is not signed off",
+        "tags": [
+          "HRIS Migration"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.migration_reconciliation.create"
+      }
+    },
+    "/api/v1/hris/migration-reconciliations/{id}:recalculate": {
+      "post": {
+        "operationId": "postHrisMigrationReconciliationsByIdRecalculate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MigrationReconciliation"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Recalculate the OneClub values (before any sign-off)",
+        "tags": [
+          "HRIS Migration"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.migration_reconciliation.create"
+      }
+    },
+    "/api/v1/hris/migration-reconciliations/{id}:sign-off": {
+      "post": {
+        "operationId": "postHrisMigrationReconciliationsByIdSignOff",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MigrationReconciliationSignOff"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MigrationReconciliation"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Sign the reconciliation as HR Manager or Finance Manager",
+        "tags": [
+          "HRIS Migration"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.migration_reconciliation.view"
+      }
+    },
     "/api/v1/hris/my-payouts": {
       "get": {
         "operationId": "getHrisMyPayouts",
@@ -258398,6 +259793,444 @@
         "x-audited": true,
         "x-module": "hris",
         "x-permission": "hris.overtime_request.approve"
+      }
+    },
+    "/api/v1/hris/partner-attendance-events": {
+      "get": {
+        "operationId": "getHrisPartnerAttendanceEvents",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "holderKind",
+            "schema": {
+              "enum": [
+                "caddy",
+                "instructor"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "profileId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/PartnerAttendanceEvent"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Clock events of partner caddies and instructors",
+        "tags": [
+          "HRIS Attendance"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.partner_attendance.view"
+      }
+    },
+    "/api/v1/hris/partner-attendance-profiles": {
+      "get": {
+        "operationId": "getHrisPartnerAttendanceProfiles",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "holderKind",
+            "schema": {
+              "enum": [
+                "caddy",
+                "instructor"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/PartnerAttendanceProfile"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Device clock-in profiles of partner caddies and instructors",
+        "tags": [
+          "HRIS Attendance"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.partner_attendance.view"
+      },
+      "post": {
+        "operationId": "postHrisPartnerAttendanceProfiles",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerAttendanceProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerAttendanceProfile"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Enrol a caddy or instructor for device clock-in",
+        "tags": [
+          "HRIS Attendance"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.partner_attendance.manage"
+      }
+    },
+    "/api/v1/hris/partner-attendance-profiles/{id}:consent": {
+      "post": {
+        "operationId": "postHrisPartnerAttendanceProfilesByIdConsent",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerAttendanceConsentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerAttendanceProfile"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Record or withdraw the written biometric consent of a partner",
+        "tags": [
+          "HRIS Attendance"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.partner_attendance.manage"
       }
     },
     "/api/v1/hris/partner-profiles": {
@@ -315129,6 +316962,291 @@
         ],
         "x-module": "platform",
         "x-permission": "platform.property.export"
+      }
+    },
+    "/api/v1/platform/push-config": {
+      "get": {
+        "operationId": "getPlatformPushConfig",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushConfig"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Push notification key of this instance (VAPID)",
+        "tags": [
+          "Notifications"
+        ],
+        "x-module": "platform"
+      }
+    },
+    "/api/v1/platform/push-subscriptions": {
+      "get": {
+        "operationId": "getPlatformPushSubscriptions",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/PushSubscriptionView"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My devices subscribed to push notifications",
+        "tags": [
+          "Notifications"
+        ],
+        "x-module": "platform"
+      },
+      "post": {
+        "operationId": "postPlatformPushSubscriptions",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PushSubscriptionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushSubscriptionView"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Subscribe this device to push notifications",
+        "tags": [
+          "Notifications"
+        ],
+        "x-audited": true,
+        "x-module": "platform"
+      }
+    },
+    "/api/v1/platform/push-subscriptions/{id}": {
+      "delete": {
+        "operationId": "deletePlatformPushSubscriptionsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Unsubscribe a device from push notifications",
+        "tags": [
+          "Notifications"
+        ],
+        "x-audited": true,
+        "x-module": "platform"
       }
     },
     "/api/v1/platform/resource-definitions": {

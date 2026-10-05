@@ -211,6 +211,7 @@
     "note",
     "notes",
     "notifications",
+    "notifications_active",
     "open_in_new",
     "orders",
     "outbound",

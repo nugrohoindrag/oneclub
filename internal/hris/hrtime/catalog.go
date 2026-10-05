@@ -74,6 +74,8 @@ func customPermissions() []catalog.Permission {
 		d(PermOvertimeView, "View overtime requests and exceptions"), d(PermOvertimeCreate, "Request overtime for employees"),
 		d(PermOvertimeApprove, "Approve or reject overtime requests"),
 		d(PermLockView, "View payroll period locks and time summaries"), d(PermLockManage, "Lock and release payroll periods of attendance"),
+		d(PermPartnerView, "View the device clock-in of partner caddies and instructors"),
+		d(PermPartnerManage, "Enrol partner caddies and instructors for device clock-in (consent, device numbers)"),
 	}
 }
 
@@ -111,6 +113,10 @@ func (m *Module) Contribution() catalog.Contribution {
 	}
 	for _, r := range managerRoles {
 		roles[r] = append(roles[r], scheduling...)
+	}
+	// FR-ATT-08: Caddy Master and Sport Club enrol their partners for device clock-in.
+	for _, r := range []string{"caddy_manager", "golf_manager", "sport_club_manager"} {
+		roles[r] = append(roles[r], PermPartnerView, PermPartnerManage)
 	}
 	for r := range roles {
 		roles[r] = uniq(roles[r])

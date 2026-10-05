@@ -63,6 +63,9 @@ type Module struct {
 	Location func() *time.Location
 	// Secret signs the personal attendance QR codes of ESS.
 	Secret []byte
+	// Partners resolves caddies and instructors for device clock-in
+	// (FR-ATT-08; nil = partners cannot be enrolled).
+	Partners PartnerDirectory
 }
 
 // Register adds the routes and resources of time & attendance.
@@ -74,6 +77,7 @@ func (m *Module) Register(reg *route.Registry) {
 	m.registerSwaps(reg)
 	m.registerAttendance(reg)
 	m.registerDevices(reg)
+	m.registerPartners(reg)
 	m.registerCorrections(reg)
 	m.registerLeave(reg)
 	m.registerPermissions(reg)

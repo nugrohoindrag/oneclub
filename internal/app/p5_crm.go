@@ -30,18 +30,12 @@ import (
 	"oneclub/internal/platform/catalog"
 	"oneclub/internal/platform/provision"
 	"oneclub/internal/platform/storage"
-	"oneclub/internal/reporting"
 )
 
 // p5CRM holds the services of the area.
 type p5CRM struct {
 	Journeys  *journey.Service
 	Analytics *analytics.Service
-}
-
-func init() {
-	// Reports of the area (FR-RPT-P5-03) next to the P2–P4 reports.
-	Reports = append(Reports, reporting.P5CRMReports()...)
 }
 
 func p5CRMContributions() []catalog.Contribution {
@@ -52,7 +46,7 @@ func p5CRMContributions() []catalog.Contribution {
 			roles[role] = append(roles[role], ps...)
 		}
 	}
-	return append([]catalog.Contribution{{Permissions: perms, RolePermissions: roles}, reporting.P5CRMContribution()}, p5TiersContributions()...)
+	return append([]catalog.Contribution{{Permissions: perms, RolePermissions: roles}}, p5TiersContributions()...)
 }
 
 func p5CRMDocumentTypes() []provision.DocumentType {

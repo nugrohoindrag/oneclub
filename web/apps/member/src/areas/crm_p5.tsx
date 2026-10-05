@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { useGet, useSend, type Page } from '@oneclub/api-client';
+import { request, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatNumber } from '@oneclub/i18n';
 import { Card, DataTable, Empty, ErrorAlert, Icon, PageHeader, Skeleton, StatusPill } from '@oneclub/shell';
 
@@ -113,6 +113,7 @@ export function OffersPage() {
     <div className="oc-stack">
       <PageHeader title="Personal Offers" />
       <LoyaltyNav />
+      <PushCard />
       {offers.isLoading ? <Skeleton /> : items.length === 0 ? <Empty title="No offers right now" help="Personal offers from the club appear here." icon="local_offer" /> : (
         <div className="oc-grid">
           {items.map((o) => (
@@ -135,3 +136,57 @@ export const CRM_P5_MEMBER_ROUTES: { path: string; element: React.ReactNode }[] 
   { path: 'loyalty/offers', element: <OffersPage /> },
   { path: 'loyalty/offers/:token', element: <OffersPage /> },
 ];
+
+const b64ToBytes = (s: string) => {
+  const raw = atob((s + '='.repeat((4 - (s.length % 4)) % 4)).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+};
+const bytesToB64 = (b: ArrayBuffer | null) => (b ? btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') : '');
+
+/** PRD P5 FR-INT-P5-05: offers, tier changes and bookings as push notifications on the installed Member App. */
+export function PushCard() {
+  const cfg = useGet<{ enabled: boolean; publicKey: string }>('/api/v1/platform/push-config', { retry: false });
+  const subs = useGet<Page<Row>>('/api/v1/platform/push-subscriptions', { retry: false });
+  const [on, setOn] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<unknown>(null);
+  const supported = typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  useEffect(() => {
+    if (!supported) return;
+    void navigator.serviceWorker.getRegistration().then((r) => r?.pushManager.getSubscription()).then((x) => setOn(Boolean(x)));
+  }, [supported]);
+  if (!supported || !cfg.data?.enabled) return null;
+  const toggle = async () => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const cur = await reg.pushManager.getSubscription();
+      if (cur) {
+        const row = (subs.data?.items ?? []).find((x) => cur.endpoint.includes(String(x.service)));
+        if (row) await request('DELETE', `/api/v1/platform/push-subscriptions/${row.id}`);
+        await cur.unsubscribe();
+        setOn(false);
+      } else {
+        if ((await Notification.requestPermission()) !== 'granted') throw new Error('Notifications are blocked for this app in the phone settings.');
+        const x = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(cfg.data!.publicKey) });
+        await request('POST', '/api/v1/platform/push-subscriptions', { endpoint: x.endpoint, surface: 'member', userAgent: navigator.userAgent.slice(0, 300),
+          keys: { p256dh: bytesToB64(x.getKey('p256dh')), auth: bytesToB64(x.getKey('auth')) } });
+        setOn(true);
+      }
+      await subs.refetch();
+    } catch (e) {
+      setErr(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Card title="Notifications on this phone" icon="notifications">
+      <ErrorAlert error={err} />
+      <p className="oc-muted">{on ? 'Offers and club news arrive on this phone.' : 'Get personal offers and booking reminders on this phone.'}</p>
+      <button className={`oc-btn ${on ? 'oc-btn-neutral' : 'oc-btn-ink'}`} style={{ minHeight: 44 }} disabled={busy} onClick={() => void toggle()}>
+        {on ? 'Turn off' : 'Turn on notifications'}</button>
+    </Card>
+  );
+}

@@ -129,6 +129,22 @@ func (w *Worker) Work(ctx context.Context, job *river.Job[DeliverArgs]) error {
 			_, _ = s.DB.Primary.Exec(ctx, `UPDATE platform.notification_deliveries SET external_id = $2, delivery_status = $3 WHERE id = $1`,
 				job.Args.DeliveryID, res.ExternalID, res.Status)
 		}
+	case "push":
+		link, _ := payload["link"].(string)
+		sent, skip, err := s.deliverPush(ctx, job.Args.DeliveryID, event, subject, body, link)
+		if err == nil && (skip != "" || sent == 0) {
+			if skip == "" {
+				skip = "no subscribed device"
+			}
+			_, uerr := s.DB.Primary.Exec(ctx, `UPDATE platform.notification_deliveries SET status = 'skipped', attempts = attempts + 1,
+				last_error = $2, payload = $3, subject = $4, body = $5 WHERE id = $1`, job.Args.DeliveryID, skip, erasedPayload, erasedSubject, erasedBody)
+			return uerr
+		}
+		if err == nil {
+			_, _ = s.DB.Primary.Exec(ctx, `UPDATE platform.notification_deliveries SET recipient = $2 WHERE id = $1`, job.Args.DeliveryID,
+				fmt.Sprintf("%d device(s)", sent))
+		}
+		sendErr = err
 	default:
 		return river.JobCancel(errors.New("unsupported channel " + channel))
 	}

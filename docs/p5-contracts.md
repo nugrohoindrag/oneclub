@@ -517,3 +517,45 @@ CLI: `oneclub import hris -property MAIN --payroll-ytd F | --legacy-payroll F --
 HR Manager, HR Admin, Finance Manager, GM) on `reporting.hr_payroll_runs|slips|lines|legacy|parallel` (reporting/00027);
 KPIs `payroll_cost` (executive), `payroll_cost_per_head`, `overtime_cost` (permission `hris.payroll_run.view`).
 **Report-role hardening:** `hris.harden_report_role_payroll()` (identity numbers and bank accounts of payslip snapshots).
+
+## P5 gap closure (docs/p5-gap-audit.md) — notes for the other areas
+
+**BI registry (EP-27).** The Core HR, CRM, member tier and package / tournament reports now register through
+`RegisterP5Report` from the `init()` of their `internal/reporting/p5_*.go` files (same codes, permissions and URLs); the
+area contributions `HRCoreContribution`, `P5CRMContribution`, `P5TierContribution` and `LeisureContribution` and the
+`Reports = append(…)` lines of `internal/app` are gone (BI's `P5Contribution` grants the permission with
+`reporting.report.view` and `reporting.export.create`). The core HR KPIs `headcount` (HRIS master, Executive),
+`turnover` and `certification_compliance` are registered with `RegisterHRKPI` (`reporting.HRCoreKPIs`). HR datasets of
+the report builder: `hr_attendance`, `hr_overtime`, `hr_leave` (permission of their HR report). Payroll registers
+`payroll_cost` and its reports the same way.
+
+**Partner clock-in (FR-ATT-08).** Caddies and instructors get a device user number (from `hris.PartnerDeviceUserBase` =
+90001, one namespace with the employees) and a written consent (`/api/v1/hris/partner-attendance-profiles`); the employee
+list pushed to the devices carries them, the bridge push routes their numbers to them. Published (outbox, aggregate
+`hris.partner_attendance_event`), once per device event:
+
+```json
+// hris.partner_attendance_recorded
+{ "eventId": "uuid", "propertyId": "uuid", "profileId": "uuid", "holderKind": "caddy|instructor", "partnerId": "uuid", "partnerName": "…",
+  "workDate": "2026-10-05", "direction": "in|out", "occurredAt": "2026-10-05T23:12:00Z", "method": "face_recognition|fingerprint",
+  "deviceId": "uuid", "deviceCode": "BIO-CADDY", "offline": false, "firstInOfDay": true }
+```
+
+Consumed by `golf.caddy_device_attendance` (internal/app `p5_hr_time.go`): a caddy's clock-in marks the caddy present in
+Caddy Master (`golf.Module.RecordAttendance`, joins the queue) unless the day is already recorded. The payouts area may
+read the instructor events (`GET /api/v1/hris/partner-attendance-events?holderKind=instructor`) for the teaching schedule.
+
+**Migration reconciliation (FR-MIG-P5-05).** `hris.RegisterReconciliationMetric(hris.ReconciliationMetric{Code, Label,
+KeyHelp, Keys, Value})` adds a control total; Core HR registers `headcount` (TOTAL / org unit code) and `leave_balance`
+(TOTAL / leave type / EMPLOYEENO:TYPE). **The payroll area registers its payroll totals** (e.g. `payroll_gross`,
+`payroll_net`, `pph21`, key TOTAL / employee number) from its own package; they then appear in
+`/api/v1/hris/migration-reconciliations` and `oneclub import hris --reconcile` (CSV `metric,key,legacy`). Sign-off:
+`hris.migration_reconciliation.sign_hr` (HR Manager) and `.sign_finance` (Finance Manager), two different people; a
+mismatch needs an explanation. `oneclub import hris` also loads `--grades`, `--org-units`, `--positions` and
+`--documents` (+ `--documents-dir`); payroll adds `--payroll-ytd` to the same command.
+
+**Push notifications (FR-INT-P5-05).** Platform channel `notify.ChannelPush` ("push") and integration capability `push`
+(adapters `webpush` — VAPID, RFC 8291 — and `mock-push`; a log pusher outside production). In-app notifications are
+mirrored to push for users with a subscribed device (`/api/v1/platform/push-subscriptions`, ESS profile and Member App
+offers), unless the user opted out (preference channel `push`). The payslip notification of the payroll area therefore
+reaches the phone without a change; keep amounts out of the push text.

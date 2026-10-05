@@ -171,6 +171,8 @@ type AttendanceSyncItemResult struct {
 	Status        string                 `json:"status" enum:"accepted,duplicate,rejected"`
 	Error         string                 `json:"error,omitempty"`
 	Result        *AttendanceClockResult `json:"result,omitempty"`
+	// PartnerResult is the outcome for a partner caddy / instructor (FR-ATT-08).
+	PartnerResult *PartnerClockResult `json:"partnerResult,omitempty"`
 }
 
 // AttendanceKioskSyncResult is the outcome of an offline batch.

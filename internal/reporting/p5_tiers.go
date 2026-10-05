@@ -6,8 +6,6 @@ package reporting
 // tier) and Tier Movement (each evaluation run and manual override with the
 // members moved up / down).
 
-import "oneclub/internal/platform/catalog"
-
 var tierReports = []*Report{
 	sqlReport("crm.members_by_tier", "Members by Tier Report", "crm",
 		"Active loyalty members per tier class at the end of the period with the manual classifications and the members in grace, their spend of the period, and the members moved up into / down into the tier by the evaluations of the period.",
@@ -40,19 +38,13 @@ var tierReports = []*Report{
 		ORDER BY moved_on, created_at, number`),
 }
 
-// P5TierReports are the reports of the member tier classes (registered by internal/app).
+// P5TierReports are the reports of the member tier classes (registered in the BI registry by init).
 func P5TierReports() []*Report { return tierReports }
 
-// P5TierContribution adds one permission per tier report and grants it to
-// the CRM report roles.
-func P5TierContribution() catalog.Contribution {
-	var perms []catalog.Permission
-	roles := map[string][]string{}
+// The tier reports join the BI registry (FR-RPT-P5-03/04) with the CRM
+// report roles; permissions are unchanged.
+func init() {
 	for _, r := range tierReports {
-		perms = append(perms, catalog.Permission{Code: r.Permission, Description: r.Name})
-		for _, role := range reportRoles[r.Module] {
-			roles[role] = append(roles[role], r.Permission)
-		}
+		RegisterP5Report(r, reportRoles[r.Module]...)
 	}
-	return catalog.Contribution{Permissions: perms, RolePermissions: roles}
 }

@@ -7,10 +7,6 @@ package reporting
 // Segment and VIP Customer Reports; and the P5 figures of the CRM
 // Performance dashboard (journey conversion, loyalty cost ratio, VIPs).
 
-import (
-	"oneclub/internal/platform/catalog"
-)
-
 var crmP5Reports = []*Report{
 	sqlReport("crm.journey_performance", "Journey Performance Report", "crm",
 		"Per journey and step of the period: executed, messages sent, skipped (consent, suppression, contact, frequency cap), read, clicked, converted enrollments and attributed revenue.",
@@ -146,22 +142,8 @@ var crmP5Reports = []*Report{
 		AND ($4 = '' OR status = $4) ORDER BY level DESC, customer_name`),
 }
 
-// P5CRMReports are the reports of the P5 CRM area (registered by internal/app).
+// P5CRMReports are the reports of the P5 CRM area (registered in the BI registry by init).
 func P5CRMReports() []*Report { return crmP5Reports }
-
-// P5CRMContribution adds one permission per P5 CRM report and grants it to
-// the CRM report roles (PRD P5 FR-RPT-P5-04).
-func P5CRMContribution() catalog.Contribution {
-	var perms []catalog.Permission
-	roles := map[string][]string{}
-	for _, r := range crmP5Reports {
-		perms = append(perms, catalog.Permission{Code: r.Permission, Description: r.Name})
-		for _, role := range reportRoles[r.Module] {
-			roles[role] = append(roles[role], r.Permission)
-		}
-	}
-	return catalog.Contribution{Permissions: perms, RolePermissions: roles}
-}
 
 // crmP5KPIs are the P5 figures of the CRM Performance dashboard.
 var crmP5KPIs = []kpiDef{
@@ -184,6 +166,11 @@ var crmP5KPIs = []kpiDef{
 }
 
 func init() {
+	// FR-RPT-P5-03/04: one permission per report (unchanged codes), granted
+	// with the report view and export to the CRM report roles.
+	for _, r := range crmP5Reports {
+		RegisterP5Report(r, reportRoles[r.Module]...)
+	}
 	d := dashboards[crmPerformance]
 	d.kpis = append(append([]kpiDef{}, d.kpis...), crmP5KPIs...)
 	dashboards[crmPerformance] = d

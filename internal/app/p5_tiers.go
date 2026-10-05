@@ -29,15 +29,10 @@ import (
 	"oneclub/internal/platform/catalog"
 	"oneclub/internal/platform/numbering"
 	"oneclub/internal/platform/provision"
-	"oneclub/internal/reporting"
 )
 
-func init() {
-	Reports = append(Reports, reporting.P5TierReports()...)
-}
-
 func p5TiersContributions() []catalog.Contribution {
-	return []catalog.Contribution{{Permissions: loyalty.TierPermissions(), RolePermissions: loyalty.TierRolePermissions()}, reporting.P5TierContribution()}
+	return []catalog.Contribution{{Permissions: loyalty.TierPermissions(), RolePermissions: loyalty.TierRolePermissions()}}
 }
 
 func p5TiersDocumentTypes() []provision.DocumentType {

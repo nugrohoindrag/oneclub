@@ -84,6 +84,7 @@ func (m *Module) Register(reg *route.Registry) {
 	m.registerTraining(reg)
 	m.registerESS(reg)
 	m.registerImports(reg)
+	m.registerReconciliation(reg) // EP-28 FR-MIG-P5-05
 	m.registerLetters(reg)
 }
 

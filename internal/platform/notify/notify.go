@@ -16,6 +16,10 @@ const (
 	ChannelInApp    = "in_app"
 	ChannelEmail    = "email"
 	ChannelWhatsApp = "whatsapp"
+	// ChannelPush is a Web Push to the user's subscribed devices (PRD P5
+	// FR-INT-P5-05). In-app notifications are mirrored to push for users
+	// with a subscribed device unless they opted out.
+	ChannelPush = "push"
 )
 
 // Message is a notification request. Content comes from the template for

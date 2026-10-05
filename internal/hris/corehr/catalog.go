@@ -29,6 +29,10 @@ func customPermissions() []catalog.Permission {
 		catalog.P("hris", "offboarding", "view", "manage"),
 		catalog.P("hris", "profile_change", "view", "review"),
 		catalog.P("hris", "import", "create"),
+		{{Code: PermReconView, Description: "View the HR migration reconciliations"},
+			{Code: PermReconCreate, Description: "Reconcile the legacy HR control totals with OneClub"},
+			{Code: PermReconSignHR, Description: "Sign the HR migration reconciliation as HR Manager"},
+			{Code: PermReconSignFinance, Description: "Sign the HR migration reconciliation as Finance Manager"}},
 		catalog.P("hris", "letter", "generate"),
 		{{Code: hris.PermissionESS, Description: "Open Employee Self Service (personal login)"},
 			{Code: hris.PermissionTeam, Description: "See my team in Employee Self Service (department heads)"},
@@ -60,11 +64,12 @@ func (m *Module) Contribution() catalog.Contribution {
 		}
 	}
 	roles := map[string][]string{
-		"hr_admin":        withoutOf(all, hris.PermissionTeamApprove),
-		"hr_manager":      all,
+		// FR-MIG-P5-05: HR Manager and Finance Manager each sign their part of the migration reconciliation.
+		"hr_admin":        withoutOf(all, hris.PermissionTeamApprove, PermReconSignHR, PermReconSignFinance),
+		"hr_manager":      withoutOf(all, PermReconSignFinance),
 		"general_manager": append(slices.Clone(views), "hris.contract.view"),
 		"finance_manager": {"hris.employee.view", "hris.employee.view_sensitive", "hris.contract.view", "hris.contract.view_salary",
-			"hris.org_unit.view", "hris.position.view", "hris.grade.view", "hris.bank_account.view"},
+			"hris.org_unit.view", "hris.position.view", "hris.grade.view", "hris.bank_account.view", PermReconView, PermReconSignFinance},
 		// The Property Admin creates property users (FR-IAM-08) and may only assign roles whose permissions it holds:
 		// it keeps the ESS permissions every staff role now carries.
 		"property_admin": {"hris.org_unit.view", "hris.employee.view", "hris.position.view", "hris.grade.view", hris.PermissionESS,
