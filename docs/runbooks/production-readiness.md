@@ -156,13 +156,23 @@ Self-check before the external test:
 * The monthly restore drill (`deploy/scripts/restore-drill.sh`) also checks the `accounting` schema: journal count,
   latest journal date, no unbalanced journal, tax invoices.
 
-### Two-person review (NFR Security, PRD §5.4 / Technical Doc §13) — proposal
+### Two-person review (NFR Security, PRD §5.4 / Technical Doc §13)
 
-Changes to `internal/accounting/**`, `db/migrations/**` (destructive migrations) and `deploy/**` should need two
-approvals. Proposal (not applied: repository governance is decided by the repository owners): add
-`.github/CODEOWNERS` with the Finance-platform owners for `internal/accounting/`, `internal/reporting/p4_accounting.go`,
-`db/migrations/accounting/` and the platform owners for `db/migrations/` and `deploy/`, and enable *Require review
-from Code Owners* with 2 required approvals on `main` / `staging`.
+`.github/CODEOWNERS` names the code owner (`@textedoh`) as default owner of every path and, explicitly, of the
+sensitive paths: `internal/accounting/**`, `internal/hris/**`, `internal/billing/**`, `internal/platform/iam/**`,
+`internal/kernel/**` (incl. `internal/kernel/authz`), `db/migrations/**`, `deploy/**` and `.github/**`.
+
+### Branch protection
+
+CODEOWNERS alone does not block a merge. A **repository admin** must enable, in GitHub *Settings → Branches →
+Branch protection rules* (or *Rulesets*) for `main` and `staging`:
+
+* *Require a pull request before merging* with *Require review from Code Owners* (and at least 1 approval;
+  2 approvals for a strict two-person rule when a second owner is added to CODEOWNERS);
+* *Dismiss stale pull request approvals when new commits are pushed*;
+* *Require status checks to pass* (the `ci.yml` jobs) and *Do not allow bypassing the above settings*.
+
+This cannot be configured from the repository contents; check it at every release (go-live checklist §8, item 8d).
 
 ## 7. Hypercare (FR-REL-09)
 
@@ -193,5 +203,6 @@ Two to four weeks after go-live:
 | 8a | Release 3 migrations reconciled and signed: banquet, corporate AR, tournaments, leads | `banquet-migration-p3.md`, `corporate-ar-migration-p3.md`, `tournament-migration-p3.md`, `leads-migration-p3.md` | Club + OneClub | |
 | 8b | Release 4 cut-overs: two dry runs each, go/no-go minutes, sign-off — inventory (cut-over opname, purchase freeze), procurement, accounting (opening balances, parallel-run month, Excel TB comparison, sign-off stops the Accounting Export) | `inventory-migration-p4.md`, `procurement-migration-p4.md`, `accounting-migration-p4.md` | Club Finance + OneClub | |
 | 8c | Release 4 load tests (§4 Release 4), pen-test P4 scope (§6) without open High, retention 5 years configured and a restore drill including `accounting` recorded | §4, §6, Retention, `backup-restore.md` | OneClub ops + Engineering | |
+| 8d | Branch protection on `main` / `staging` with *Require review from Code Owners* enabled by a repository admin | §6 Branch protection, `.github/CODEOWNERS` | Repository admin | |
 | 9 | Parallel run without open critical finding (Exit #6) | `cutover-runbook.md` §2 | Club | |
 | 10 | Staff trained per interface (Starter, Caddy Master, Front Desk, Golf Staff, Back Office) | training log | Club | |

@@ -1,0 +1,17 @@
+# Code owners (PRD NFR Security — two-person / owner review; docs/runbooks/production-readiness.md §6).
+# Review from code owners is enforced only when a repository admin enables
+# "Require review from Code Owners" in the branch protection rules of main and staging.
+# Later rules take precedence over earlier ones.
+
+# Default owner
+*                         @textedoh
+
+# Sensitive paths
+/internal/accounting/**   @textedoh
+/internal/hris/**         @textedoh
+/internal/billing/**      @textedoh
+/internal/platform/iam/** @textedoh
+/internal/kernel/**       @textedoh
+/db/migrations/**         @textedoh
+/deploy/**                @textedoh
+/.github/**               @textedoh
