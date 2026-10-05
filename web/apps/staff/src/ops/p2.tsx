@@ -5,6 +5,7 @@ import { enqueue } from '@oneclub/offline';
 import { Link } from 'react-router';
 import { useLive } from '../live';
 import { OUTLET_KEY, read } from '../offline';
+import { PosPromotionPanel, usePosPromotions } from '../p3/commercial';
 import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
@@ -324,11 +325,14 @@ export function POSPage() {
   const shift = shifts.data?.items.find((s) => s.outletId === outlet);
   const items = menu.data?.items ?? [];
   const total = items.reduce((s, p) => s + Number(p.price) * (cart[p.productId] ?? 0), 0);
+  // PRD P3 FR-OPS-P3-03: promotions of the cart (online and offline)
+  const promo = usePosPromotions(outlet, items.filter((p) => (cart[p.productId] ?? 0) > 0)
+    .map((p) => ({ productId: p.productId, quantity: cart[p.productId], unitPrice: Number(p.price) })));
   if (!outlet) return <Empty title="Choose an outlet on the Home screen first" icon="storefront" />;
   const checkout = async () => {
     const id = uuidv7();
     const order = { id, outletId: outlet, shiftId: shift?.id, tableNo: table, send: true, offline: !navigator.onLine,
-      lines: Object.entries(cart).filter(([, n]) => n > 0).map(([productId, n]) => ({ productId, quantity: String(n) })) };
+      lines: Object.entries(cart).filter(([, n]) => n > 0).map(([productId, n]) => ({ productId, quantity: String(n) })), ...promo.orderFields(total) };
     await enqueue('commercial.pos_order', { order, payment: { shiftId: shift?.id, tenders: [{ methodType: method }] } }, propertyId);
     setCart({});
     setTable('');
@@ -357,11 +361,12 @@ export function POSPage() {
           <div style={{ width: 140 }}><TextField label="Table" value={table} onChange={setTable} /></div>
           <div style={{ width: 200 }}><SelectField label="Payment" value={method} onChange={setMethod}
             options={['cash', 'qris', 'card', 'member_account'].map((m) => ({ value: m, label: m.replace('_', ' ') }))} /></div>
-          <div className="oc-metric" style={{ alignSelf: 'flex-end' }}>{money(total)}</div>
+          <div className="oc-metric" style={{ alignSelf: 'flex-end' }}>{money(Math.max(total - promo.discount, 0))}</div>
           <span className="oc-spacer" />
           <button className="oc-btn oc-btn-neutral" style={{ alignSelf: 'flex-end' }} onClick={() => setCart({})}>Clear</button>
           <button className="oc-btn oc-btn-ink" style={{ alignSelf: 'flex-end' }} disabled={total === 0 || !shift} onClick={() => void checkout()}>Pay & send</button>
         </div>
+        <PosPromotionPanel promo={promo} />
       </Card>
     </div>
   );

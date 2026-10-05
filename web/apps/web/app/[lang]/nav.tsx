@@ -13,6 +13,8 @@ export function SiteNav({ lang, labels }: { lang: Lang; labels: Record<string, s
     ...p2Nav(lang),
     [`/${lang}/news`, lang === 'id' ? 'Berita' : 'News'],
     [`/${lang}/gallery`, lang === 'id' ? 'Galeri' : 'Gallery'],
+    [`/${lang}/packages`, lang === 'id' ? 'Paket' : 'Packages'],
+    [`/${lang}/promotions`, lang === 'id' ? 'Promo' : 'Promotions'],
     [`/${lang}/contact`, labels.contact],
     [`/${lang}/location`, labels.location],
   ];

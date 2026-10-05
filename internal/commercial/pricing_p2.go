@@ -174,9 +174,10 @@ func ruleP2BeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before 
 		  AND segment IS NOT DISTINCT FROM $8 AND line_day_type_id IS NOT DISTINCT FROM $9::uuid AND time_band_id IS NOT DISTINCT FROM $10::uuid
 		  AND channel IS NOT DISTINCT FROM $11 AND priority = $12
 		  AND daterange(effective_from, coalesce(effective_to, 'infinity'::date), '[]') && daterange($13::date, coalesce($14::date, 'infinity'::date), '[]')
+		  AND corporate_account_id IS NOT DISTINCT FROM $15::uuid AND holiday IS NOT DISTINCT FROM $16::bool AND peak IS NOT DISTINCT FROM $17::bool
 		LIMIT 1`, pid, m["code"], st, nullable("itemRef"), nullable("packageRateId"), nullable("ratePlanId"), nonEmpty(str(m["unit"]), "pax"),
 		nullable("segment"), nullable("lineDayTypeId"), nullable("timeBandId"), nullable("channel"), m["priority"], str(m["effectiveFrom"]),
-		nullable("effectiveTo")).Scan(&conflict)
+		nullable("effectiveTo"), nullable("corporateAccountId"), nullable("holiday"), nullable("peak")).Scan(&conflict)
 	if err == nil {
 		return errs.Conflict("rule_conflict", "rule "+conflict+" prices the same service, item, segment, day type, time band and channel with the same priority in an overlapping period")
 	}
@@ -239,6 +240,11 @@ type LineResolveRequest struct {
 	Package     string     `json:"package,omitempty"`
 	Channel     string     `json:"channel,omitempty"`
 	Persist     bool       `json:"persist,omitempty" doc:"Store an immutable pricing snapshot"`
+	// PRD P3 (additive): contract rate and promotions.
+	CorporateAccountID *uuid.UUID `json:"corporateAccountId,omitempty" doc:"Corporate Rate (contract rate) of a corporate account"`
+	CustomerID         *uuid.UUID `json:"customerId,omitempty" doc:"Customer for promotion eligibility"`
+	PromoCodes         []string   `json:"promoCodes,omitempty" doc:"Promo codes entered"`
+	NoPromotions       bool       `json:"noPromotions,omitempty" doc:"List price without promotions"`
 }
 
 // RegisterP2 adds the P2 pricing resources and routes (wired by

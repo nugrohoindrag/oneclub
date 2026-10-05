@@ -61,6 +61,10 @@ Sent again after a revision (new quotationId, same number): the hold follows the
 
 ### `commercial.promotion_applied` (K3 — discount by component)
 `{ promotionId, code, sourceType: pos_order|folio|package_booking, sourceId, customerId?, businessLine, discount, currency }`
+Additive fields: `promoCode?` (the promo code entered, upper case; `code` is the promotion code), `promotionVersion`, `redemptionId`,
+`channel` (pos | member_app | website | back_office | ops), `lines: [{ key, discount }]`. Published once per promotion when the sale
+completes: POS order paid / charged (`pos_order`), booking folio closed (`folio`, priced bookings), package booking confirmed
+(`package_booking`). Voids, refunds and cancellations reverse the redemption (no event; the Promotion Performance Report shows them).
 
 ### `commercial.package_booked`
 ```json
@@ -80,6 +84,36 @@ Sent again after a revision (new quotationId, same number): the hold follows the
   "revenue": { "revenueComponent": "package", "net": "0", "service": "0", "tax": "0", "total": "0", "currency": "IDR" } }
 ```
 `consumption` holds base-UOM quantities from the recipe (BOM) of the component; empty when the component has no recipe.
+Additive fields: `consumptionId`, `bookingNumber`, `packageCode`, `businessLine`, `reference?`. Partial uses of a component publish one
+event each; the last use takes the rounding of the allocated revenue.
+
+`commercial.package_booked` additive fields: `corporateAccountId?`, `nights`, `channel`, `discount`, `net`, `service`, `tax`, and per component
+`name`, `businessLine`, `liability`, `allocationId?`, `resourceId?`, `scheduledStart?`, `scheduledEnd?`. Component types: `reservation`
+(Reservation Engine resource, booked by commercial as a confirmed reservation with `sourceType = package_booking`), `tee_time` (golf seats
+of the tee times confirmed in the Reservation Engine for the booking component — `allocationDetails.teeTimeIds`; golf books the players
+from this event), `voucher` (vouchers issued to the customer), `fnb`, `service`, `banquet`, `other`. Published when the booking is
+Confirmed (back office / quotation at once; website and member app when paid).
+
+### `commercial.package_cancelled`
+`{ bookingId, number, packageId, packageCode, status: cancelled|expired, reason, fee }` — unused components are released by commercial
+(reservations cancelled, tee time seats freed, unused vouchers voided); business lines drop their details of the booking.
+
+### Consumed by `commercial` (packages)
+| Event | Effect |
+|---|---|
+| `crm.quotation_accepted` with `line = package` | Package booking of `packageRef` (or the line `itemType = package` / `itemRef`) on `eventDate` for `pax`, priced at the quotation `total`, with the quotation `paymentTerms` as its payment schedule; once per quotation (FR-QUO-06). `internal/app` marks the line as converted, so no generic quotation schedule is issued |
+| `reservation.checked_in` `{ reservationId }` | The package component allocated to that reservation is consumed |
+| `commercial.voucher_redeemed` `{ voucherId }` | One unit of the voucher component that issued the voucher is consumed |
+| `billing.payment_settled` (folio source `package_booking`) | A pending website / member app booking is confirmed |
+| `billing.folio_closed` | The promotions of the booking prices on the folio are redeemed (`commercial.promotion_applied`, sourceType `folio`) |
+
+### `crm.campaign_sent` — consumed by `commercial` (personal promo codes, FR-CMP-05 / FR-APP-P3-02)
+`{ campaignId, code, channel, sent, skipped, promoMode?: none|shared|unique, promoCode?, promotionId?, promoExpiresAt?,
+   recipients?: [{ customerId, promoCode }] }`
+With `promoMode = unique` (or no mode) and recipients, commercial registers each recipient's code as a personal promo code (one use, that
+customer only, `campaign_id` kept) of `promotionId`, else of the promotion owning the shared code / promotion code `promoCode`; a code that
+is not a valid promo code (3–40 of A–Z, 0–9, - or _) is replaced by a generated one and sent to the customer (`commercial.promo_code_issued`).
+Idempotent per campaign and customer. CRM matches conversions on `commercial.promotion_applied.promoCode`.
 
 ### `banquet.event_confirmed`, `banquet.event_cancelled`
 `{ eventId, number, eventType, title, customerId, startDate, endDate, pax, status }`

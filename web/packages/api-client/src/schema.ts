@@ -3333,6 +3333,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/commercial/orders/{id}:apply-promotion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply Promotion: promo code or a removed promotion again */
+        post: operations["postCommercialOrdersByIdApplyPromotion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/commercial/orders/{id}:charge": {
         parameters: {
             query?: never;
@@ -3378,6 +3395,23 @@ export interface paths {
         put?: never;
         /** Refund Transaction (approval) */
         post: operations["postCommercialOrdersByIdRefund"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/orders/{id}:remove-promotion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove a promotion from the sale (supervisor permission) */
+        post: operations["postCommercialOrdersByIdRemovePromotion"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3540,6 +3574,130 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/commercial/package-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Package Bookings */
+        get: operations["getCommercialPackageBookings"];
+        put?: never;
+        /** Package Booking (all components allocated or none) */
+        post: operations["postCommercialPackageBookings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-bookings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Package Booking detail with revenue allocation */
+        get: operations["getCommercialPackageBookingsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-bookings/{id}/consumption": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consumptions of a package booking */
+        get: operations["getCommercialPackageBookingsByIdConsumption"];
+        put?: never;
+        /** Package PackageConsumption: use a component (K6 event with BOM) */
+        post: operations["postCommercialPackageBookingsByIdConsumption"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-bookings/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Package Booking (unused components released, fee per policy) */
+        post: operations["postCommercialPackageBookingsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-components": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Package Components */
+        get: operations["getCommercialPackageComponents"];
+        put?: never;
+        /** Add Package Component */
+        post: operations["postCommercialPackageComponents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-components/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Package Component */
+        get: operations["getCommercialPackageComponentsById"];
+        put?: never;
+        post?: never;
+        /** Delete Package Component (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCommercialPackageComponentsById"];
+        options?: never;
+        head?: never;
+        /** Edit Package Component */
+        patch: operations["patchCommercialPackageComponentsById"];
+        trace?: never;
+    };
+    "/api/v1/commercial/package-components:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Package Components (CSV/XLSX) */
+        get: operations["getCommercialPackageComponentsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/commercial/package-rates": {
         parameters: {
             query?: never;
@@ -3586,6 +3744,128 @@ export interface paths {
         };
         /** Export Package Rates (CSV/XLSX) */
         get: operations["getCommercialPackageRatesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Packages */
+        get: operations["getCommercialPackages"];
+        put?: never;
+        /** Add Package */
+        post: operations["postCommercialPackages"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/packages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Package */
+        get: operations["getCommercialPackagesById"];
+        put?: never;
+        post?: never;
+        /** Delete Package (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCommercialPackagesById"];
+        options?: never;
+        head?: never;
+        /** Edit Package */
+        patch: operations["patchCommercialPackagesById"];
+        trace?: never;
+    };
+    "/api/v1/commercial/packages/{id}/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Package Availability: sale rules, quota and every component */
+        get: operations["getCommercialPackagesByIdAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/packages/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Package History (published versions) */
+        get: operations["getCommercialPackagesByIdVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/packages/{id}:publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish Package (new version; bookings keep theirs) */
+        post: operations["postCommercialPackagesByIdPublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/packages:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Packages (CSV/XLSX) */
+        get: operations["getCommercialPackagesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/pos/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Promotion cache of an offline POS terminal (per shift) */
+        get: operations["getCommercialPosPromotions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3849,6 +4129,250 @@ export interface paths {
         };
         /** Find a product by barcode (retail) */
         get: operations["getCommercialProductsLookup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/promo-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Promo Codes */
+        get: operations["getCommercialPromoCodes"];
+        put?: never;
+        /** Add Promo Code */
+        post: operations["postCommercialPromoCodes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/promo-codes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Promo Code */
+        get: operations["getCommercialPromoCodesById"];
+        put?: never;
+        post?: never;
+        /** Delete Promo Code (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCommercialPromoCodesById"];
+        options?: never;
+        head?: never;
+        /** Edit Promo Code */
+        patch: operations["patchCommercialPromoCodesById"];
+        trace?: never;
+    };
+    "/api/v1/commercial/promo-codes:check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check a promo code (never redeems) */
+        post: operations["postCommercialPromoCodesCheck"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/promo-codes:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Promo Codes (CSV/XLSX) */
+        get: operations["getCommercialPromoCodesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/promo-codes:generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate unique promo codes (bulk or one per customer) */
+        post: operations["postCommercialPromoCodesGenerate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Promotions */
+        get: operations["getCommercialPromotions"];
+        put?: never;
+        /** Add Promotion */
+        post: operations["postCommercialPromotions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/promotions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Promotion */
+        get: operations["getCommercialPromotionsById"];
+        put?: never;
+        post?: never;
+        /** Delete Promotion (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCommercialPromotionsById"];
+        options?: never;
+        head?: never;
+        /** Edit Promotion */
+        patch: operations["patchCommercialPromotionsById"];
+        trace?: never;
+    };
+    "/api/v1/commercial/promotions/{id}/redemptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Promotion usage (redemption ledger) */
+        get: operations["getCommercialPromotionsByIdRedemptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/promotions/{id}:activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate Promotion (Promotion Activation approval when required) */
+        post: operations["postCommercialPromotionsByIdActivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/promotions/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve the pending activation of a promotion */
+        post: operations["postCommercialPromotionsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/promotions/{id}:deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deactivate Promotion */
+        post: operations["postCommercialPromotionsByIdDeactivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/promotions/{id}:simulate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Simulate a promotion on example sales before it is activated */
+        post: operations["postCommercialPromotionsByIdSimulate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/promotions:evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Price a cart with the Active promotions (booking, quotation, website checkout) */
+        post: operations["postCommercialPromotionsEvaluate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/promotions:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Promotions (CSV/XLSX) */
+        get: operations["getCommercialPromotionsExport"];
         put?: never;
         post?: never;
         delete?: never;
@@ -10216,6 +10740,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/offers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Offers: promotions, personal promo codes and packages for me */
+        get: operations["getMemberOffers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/orders": {
         parameters: {
             query?: never;
@@ -10262,6 +10803,24 @@ export interface paths {
         get: operations["getMemberOutletsByIdMenu"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/package-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Packages */
+        get: operations["getMemberPackageBookings"];
+        put?: never;
+        /** Book a Package (member app) */
+        post: operations["postMemberPackageBookings"];
         delete?: never;
         options?: never;
         head?: never;
@@ -13801,6 +14360,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/package-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Book Package on the website (held until paid) */
+        post: operations["postPublicPackageBookings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Packages on sale for the website (K5) */
+        get: operations["getPublicPackages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/packages/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Package detail with availability for a date (K5) */
+        get: operations["getPublicPackagesByCode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/promo-codes:check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check a promo code at the website checkout (rate-limited) */
+        post: operations["postPublicPromoCodesCheck"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active promotions for the website (K5) */
+        get: operations["getPublicPromotions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/quotations/{token}": {
         parameters: {
             query?: never;
@@ -15978,6 +16622,30 @@ export interface components {
             /** Format: uuid */
             typeId: string;
         };
+        AppliedPromotion: {
+            code: string;
+            discount: string;
+            lines: components["schemas"]["LineDiscount"][];
+            name: string;
+            priority: number;
+            promoCode?: string;
+            /** Format: uuid */
+            promoCodeId?: string | null;
+            promoType: string;
+            /** Format: uuid */
+            promotionId: string;
+            stackable: boolean;
+            version: number;
+        };
+        ApplyPromotionInput: {
+            /** @description Promo code entered by the cashier */
+            promoCode?: string;
+            /**
+             * Format: uuid
+             * @description Restore a promotion removed from this sale
+             */
+            promotionId?: string | null;
+        };
         AssetInfo: {
             assetType: string;
             code: string;
@@ -16353,6 +17021,50 @@ export interface components {
             /** Format: uuid */
             teeTimeId: string;
         };
+        BookingComponent: {
+            allocatedNet: string;
+            allocatedService: string;
+            allocatedTax: string;
+            allocatedTotal: string;
+            allocationDetails: Record<string, never>;
+            /** Format: uuid */
+            allocationId?: string | null;
+            allocationRef?: string | null;
+            businessLine: string;
+            /** Format: uuid */
+            componentId: string;
+            componentType: string;
+            /** Format: date-time */
+            consumedAt?: string | null;
+            consumedQuantity: string;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            /** Format: uuid */
+            folioLineId?: string | null;
+            /** Format: uuid */
+            id: string;
+            liability: boolean;
+            name: string;
+            optional: boolean;
+            /** Format: uuid */
+            productId?: string | null;
+            quantity: string;
+            /** Format: uuid */
+            recipeId?: string | null;
+            refCode?: string | null;
+            /** Format: uuid */
+            resourceId?: string | null;
+            resourceTypeCode?: string | null;
+            revenueComponent: string;
+            /** Format: date-time */
+            scheduledEnd?: string | null;
+            /** Format: date-time */
+            scheduledStart?: string | null;
+            seq: number;
+            serviceDate: string;
+            /** @enum {string} */
+            status: "unused" | "consumed" | "expired" | "cancelled";
+        };
         BookingFlight: {
             flightNo: number;
             /** Format: uuid */
@@ -16369,6 +17081,47 @@ export interface components {
             teeOffAt?: string | null;
             /** Format: uuid */
             teeTimeId: string;
+        };
+        BookingInput: {
+            /** @description Optional components (add-ons) chosen */
+            addons?: string[];
+            /** @enum {string} */
+            channel?: "back_office" | "website" | "member_app" | "ops" | "quotation";
+            /**
+             * Format: uuid
+             * @description Billed to the company (corporate package)
+             */
+            corporateAccountId?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            guestEmail?: string;
+            guestName?: string;
+            guestPhone?: string;
+            /** @description Default: the package nights */
+            nights?: number;
+            notes?: string;
+            packageCode?: string;
+            /** Format: uuid */
+            packageId?: string | null;
+            /** @description Default: the package minimum */
+            pax?: number;
+            payment?: components["schemas"]["BookingPayment"] | null;
+            promoCodes?: string[];
+            /** @description Payment terms (default for large packages: down payment now, the rest H-7) */
+            scheduleLines?: components["schemas"]["ScheduleLineInput"][];
+            /** Format: uuid */
+            sourceId?: string | null;
+            /** @description e.g. quotation */
+            sourceType?: string;
+            /** @description Local start date YYYY-MM-DD */
+            startDate: string;
+        };
+        BookingPayment: {
+            /** @description Default: the down payment of the schedule, else the total */
+            amount?: string;
+            /** @enum {string} */
+            methodType: "cash" | "bank_transfer" | "qris" | "card" | "virtual_account" | "payment_gateway" | "member_account" | "voucher_prepaid";
+            reference?: string;
         };
         BookingRequest: {
             /** @enum {string} */
@@ -16570,6 +17323,11 @@ export interface components {
             sessionId?: string | null;
             /** @enum {string} */
             source: "sale" | "prepaid" | "complimentary";
+        };
+        BundleItem: {
+            /** Format: uuid */
+            productId: string;
+            quantity: number;
         };
         Bungalow: {
             /** Format: date-time */
@@ -17397,6 +18155,10 @@ export interface components {
             status: string;
             /** Format: uuid */
             voucherId: string;
+        };
+        ChannelBooking: {
+            booking: components["schemas"]["PackageBooking"];
+            checkout?: components["schemas"]["Checkout"] | null;
         };
         ChargeInput: {
             /**
@@ -18893,6 +19655,25 @@ export interface components {
             reason?: string;
             versionNo: number;
         };
+        CodeCheck: {
+            code: string;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            promotion?: components["schemas"]["PromotionView"] | null;
+            reason?: string;
+            usesLeft?: number | null;
+            valid: boolean;
+        };
+        CodeCheckInput: {
+            /** @description Purchase amount (minimum purchase) */
+            amount?: string;
+            businessLine?: string;
+            /** @enum {string} */
+            channel?: "pos" | "member_app" | "website" | "back_office" | "ops";
+            code: string;
+            /** Format: uuid */
+            customerId?: string | null;
+        };
         Column: {
             key: string;
             label: string;
@@ -18923,6 +19704,475 @@ export interface components {
         CommandResult: {
             result?: Record<string, never>;
             success: boolean;
+        };
+        CommercialPackage: {
+            /**
+             * @description Revenue Allocation
+             * @enum {string|null}
+             */
+            allocationMethod?: "standalone" | "fixed" | "percent" | null;
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Late Cancellation Fee (%) */
+            cancellationFeePercent?: string | null;
+            /**
+             * Format: int64
+             * @description Free Cancellation (hours before start)
+             */
+            cancellationHours?: number | null;
+            /** @description Channels (empty = all) */
+            channels?: ("back_office" | "website" | "member_app" | "ops" | "quotation")[] | null;
+            /** @description Code */
+            code: string;
+            /**
+             * Format: int64
+             * @description Unused Components Expire After (days)
+             */
+            componentValidityDays?: number | null;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: int64
+             * @description Daily Quota
+             */
+            dailyQuota?: number | null;
+            /** @description Description */
+            description?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int64
+             * @description Maximum Pax
+             */
+            maxPax?: number | null;
+            /**
+             * Format: int64
+             * @description Minimum Pax
+             */
+            minPax?: number | null;
+            /** @description Name */
+            name: string;
+            /**
+             * Format: int64
+             * @description Nights
+             */
+            nights?: number | null;
+            /**
+             * @description Package Type
+             * @enum {string|null}
+             */
+            packageType?: "golf_day" | "golf_lunch" | "stay_golf" | "corporate" | "wedding" | "family" | "other" | null;
+            /** @description Price */
+            price: string;
+            /**
+             * @description Package Pricing
+             * @enum {string|null}
+             */
+            pricingMode?: "fixed" | "per_pax" | "per_night" | "per_pax_per_night" | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Show on Website & Member App */
+            public?: boolean | null;
+            /**
+             * Format: date-time
+             * @description Published At
+             */
+            publishedAt?: string | null;
+            /** @description Segments allowed (empty = everyone) */
+            segments?: string[] | null;
+            /**
+             * Format: date
+             * @description Sell From
+             */
+            sellFrom?: string | null;
+            /**
+             * Format: date
+             * @description Sell To
+             */
+            sellTo?: string | null;
+            /** @description Start Time */
+            startTime?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "draft" | "active" | "inactive" | null;
+            /** @description Tax & Service Codes (empty = all) */
+            taxCodes?: string[] | null;
+            /**
+             * @description Nett / ++
+             * @enum {string|null}
+             */
+            taxMode?: "nett" | "plus_plus" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Start Days (empty = every day) */
+            validDays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
+            /**
+             * Format: date
+             * @description Valid From (service dates)
+             */
+            validFrom?: string | null;
+            /**
+             * Format: date
+             * @description Valid To (service dates)
+             */
+            validTo?: string | null;
+            /**
+             * Format: int64
+             * @description Published Version
+             */
+            version?: number | null;
+        };
+        CommercialPackageInput: {
+            /**
+             * @description Revenue Allocation
+             * @enum {string|null}
+             */
+            allocationMethod?: "standalone" | "fixed" | "percent" | null;
+            /** @description Late Cancellation Fee (%) */
+            cancellationFeePercent?: string | null;
+            /**
+             * Format: int64
+             * @description Free Cancellation (hours before start)
+             */
+            cancellationHours?: number | null;
+            /** @description Channels (empty = all) */
+            channels?: ("back_office" | "website" | "member_app" | "ops" | "quotation")[] | null;
+            /** @description Code */
+            code?: string;
+            /**
+             * Format: int64
+             * @description Unused Components Expire After (days)
+             */
+            componentValidityDays?: number | null;
+            /**
+             * Format: int64
+             * @description Daily Quota
+             */
+            dailyQuota?: number | null;
+            /** @description Description */
+            description?: string | null;
+            /**
+             * Format: int64
+             * @description Maximum Pax
+             */
+            maxPax?: number | null;
+            /**
+             * Format: int64
+             * @description Minimum Pax
+             */
+            minPax?: number | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: int64
+             * @description Nights
+             */
+            nights?: number | null;
+            /**
+             * @description Package Type
+             * @enum {string|null}
+             */
+            packageType?: "golf_day" | "golf_lunch" | "stay_golf" | "corporate" | "wedding" | "family" | "other" | null;
+            /** @description Price */
+            price?: string;
+            /**
+             * @description Package Pricing
+             * @enum {string|null}
+             */
+            pricingMode?: "fixed" | "per_pax" | "per_night" | "per_pax_per_night" | null;
+            /** @description Show on Website & Member App */
+            public?: boolean | null;
+            /** @description Segments allowed (empty = everyone) */
+            segments?: string[] | null;
+            /**
+             * Format: date
+             * @description Sell From
+             */
+            sellFrom?: string | null;
+            /**
+             * Format: date
+             * @description Sell To
+             */
+            sellTo?: string | null;
+            /** @description Start Time */
+            startTime?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "draft" | "active" | "inactive" | null;
+            /** @description Tax & Service Codes (empty = all) */
+            taxCodes?: string[] | null;
+            /**
+             * @description Nett / ++
+             * @enum {string|null}
+             */
+            taxMode?: "nett" | "plus_plus" | null;
+            /** @description Start Days (empty = every day) */
+            validDays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
+            /**
+             * Format: date
+             * @description Valid From (service dates)
+             */
+            validFrom?: string | null;
+            /**
+             * Format: date
+             * @description Valid To (service dates)
+             */
+            validTo?: string | null;
+        };
+        CommercialPromotion: {
+            /**
+             * Format: date-time
+             * @description Activated At
+             */
+            activatedAt?: string | null;
+            /**
+             * Format: uuid
+             * @description Approval Request
+             */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Budget (maximum total discount) */
+            budgetAmount?: string | null;
+            /** @description Bundle Items */
+            bundleItems?: Record<string, never>[] | null;
+            /** @description Bundle / Group Price */
+            bundlePrice?: string | null;
+            /** @description Business Lines (empty = all) */
+            businessLines?: ("golf" | "sportclub" | "stay" | "pos" | "membership" | "voucher" | "banquet" | "package" | "other")[] | null;
+            /**
+             * Format: int64
+             * @description Buy Quantity (N)
+             */
+            buyQuantity?: number | null;
+            /** @description Product Categories / Types (empty = all) */
+            categories?: string[] | null;
+            /** @description Channels (empty = all) */
+            channels?: ("pos" | "member_app" | "website" | "back_office" | "ops")[] | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description CRM Segments */
+            customerSegmentIds?: string[] | null;
+            /** @description Day Kinds (weekday, weekend, holiday, peak, off-peak) */
+            dayKinds?: ("weekday" | "weekend" | "holiday" | "peak" | "off_peak")[] | null;
+            /** @description Day Types (codes) */
+            dayTypeCodes?: string[] | null;
+            /** @description Description */
+            description?: string | null;
+            /** @description Discount Amount */
+            discountAmount?: string | null;
+            /** @description Discount (%) */
+            discountPercent?: string | null;
+            /**
+             * Format: int64
+             * @description Get Quantity (X)
+             */
+            getQuantity?: number | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Items (resource type, resource, package codes; empty = all) */
+            itemRefs?: string[] | null;
+            /** @description Maximum Discount per Transaction */
+            maxDiscount?: string | null;
+            /**
+             * Format: int64
+             * @description Maximum per Customer
+             */
+            maxPerCustomer?: number | null;
+            /**
+             * Format: int64
+             * @description Maximum Redemptions
+             */
+            maxRedemptions?: number | null;
+            /** @description Membership Types (codes) */
+            membershipTypes?: string[] | null;
+            /** @description Minimum Purchase */
+            minPurchase?: string | null;
+            /**
+             * Format: int64
+             * @description Minimum Quantity
+             */
+            minQuantity?: number | null;
+            /** @description Name */
+            name: string;
+            /** @description Outlets (empty = all) */
+            outletIds?: string[] | null;
+            /** @description Amount per Unit */
+            perUnit?: boolean | null;
+            /**
+             * Format: int64
+             * @description Priority (lower first)
+             */
+            priority?: number | null;
+            /** @description Products (empty = all) */
+            productIds?: string[] | null;
+            /**
+             * @description Promotion Type
+             * @enum {string}
+             */
+            promoType: "percent_discount" | "amount_discount" | "happy_hour" | "buy_n_get_x" | "buy_n_price_x" | "bundle" | "member_discount" | "promo_code" | "period";
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Show on Website & Member App */
+            public?: boolean | null;
+            /** @description Requires Promo Code */
+            requiresCode?: boolean | null;
+            /** @description Customer Segments (pricing; empty = everyone) */
+            segments?: string[] | null;
+            /** @description Service Types (empty = all) */
+            serviceTypes?: ("golf" | "sport_court" | "facility_entry" | "class_session" | "class_registration" | "class_package" | "bungalow" | "vip_suite" | "meeting_room" | "meeting_package" | "equipment" | "driving_range" | "voucher_sale" | "membership" | "pos" | "locker" | "other" | "package")[] | null;
+            /** @description Stack Group */
+            stackGroup?: string | null;
+            /** @description Stackable */
+            stackable?: boolean | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "draft" | "pending" | "active" | "inactive" | "rejected" | "expired" | null;
+            /** @description Terms & Conditions */
+            terms?: string | null;
+            /** @description Time Windows (happy hour) */
+            timeWindows?: Record<string, never>[] | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Discount Given */
+            usedAmount?: string | null;
+            /**
+             * Format: int64
+             * @description Redemptions
+             */
+            usedCount?: number | null;
+            /**
+             * Format: date
+             * @description Valid From
+             */
+            validFrom?: string | null;
+            /**
+             * Format: date
+             * @description Valid To
+             */
+            validTo?: string | null;
+            /**
+             * Format: int64
+             * @description Version
+             */
+            version?: number | null;
+            /** @description Weekdays (empty = every day) */
+            weekdays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
+        };
+        CommercialPromotionInput: {
+            /** @description Budget (maximum total discount) */
+            budgetAmount?: string | null;
+            /** @description Bundle Items */
+            bundleItems?: Record<string, never>[] | null;
+            /** @description Bundle / Group Price */
+            bundlePrice?: string | null;
+            /** @description Business Lines (empty = all) */
+            businessLines?: ("golf" | "sportclub" | "stay" | "pos" | "membership" | "voucher" | "banquet" | "package" | "other")[] | null;
+            /**
+             * Format: int64
+             * @description Buy Quantity (N)
+             */
+            buyQuantity?: number | null;
+            /** @description Product Categories / Types (empty = all) */
+            categories?: string[] | null;
+            /** @description Channels (empty = all) */
+            channels?: ("pos" | "member_app" | "website" | "back_office" | "ops")[] | null;
+            /** @description Code */
+            code?: string;
+            /** @description CRM Segments */
+            customerSegmentIds?: string[] | null;
+            /** @description Day Kinds (weekday, weekend, holiday, peak, off-peak) */
+            dayKinds?: ("weekday" | "weekend" | "holiday" | "peak" | "off_peak")[] | null;
+            /** @description Day Types (codes) */
+            dayTypeCodes?: string[] | null;
+            /** @description Description */
+            description?: string | null;
+            /** @description Discount Amount */
+            discountAmount?: string | null;
+            /** @description Discount (%) */
+            discountPercent?: string | null;
+            /**
+             * Format: int64
+             * @description Get Quantity (X)
+             */
+            getQuantity?: number | null;
+            /** @description Items (resource type, resource, package codes; empty = all) */
+            itemRefs?: string[] | null;
+            /** @description Maximum Discount per Transaction */
+            maxDiscount?: string | null;
+            /**
+             * Format: int64
+             * @description Maximum per Customer
+             */
+            maxPerCustomer?: number | null;
+            /**
+             * Format: int64
+             * @description Maximum Redemptions
+             */
+            maxRedemptions?: number | null;
+            /** @description Membership Types (codes) */
+            membershipTypes?: string[] | null;
+            /** @description Minimum Purchase */
+            minPurchase?: string | null;
+            /**
+             * Format: int64
+             * @description Minimum Quantity
+             */
+            minQuantity?: number | null;
+            /** @description Name */
+            name?: string;
+            /** @description Outlets (empty = all) */
+            outletIds?: string[] | null;
+            /** @description Amount per Unit */
+            perUnit?: boolean | null;
+            /**
+             * Format: int64
+             * @description Priority (lower first)
+             */
+            priority?: number | null;
+            /** @description Products (empty = all) */
+            productIds?: string[] | null;
+            /**
+             * @description Promotion Type
+             * @enum {string}
+             */
+            promoType?: "percent_discount" | "amount_discount" | "happy_hour" | "buy_n_get_x" | "buy_n_price_x" | "bundle" | "member_discount" | "promo_code" | "period";
+            /** @description Show on Website & Member App */
+            public?: boolean | null;
+            /** @description Requires Promo Code */
+            requiresCode?: boolean | null;
+            /** @description Customer Segments (pricing; empty = everyone) */
+            segments?: string[] | null;
+            /** @description Service Types (empty = all) */
+            serviceTypes?: ("golf" | "sport_court" | "facility_entry" | "class_session" | "class_registration" | "class_package" | "bungalow" | "vip_suite" | "meeting_room" | "meeting_package" | "equipment" | "driving_range" | "voucher_sale" | "membership" | "pos" | "locker" | "other" | "package")[] | null;
+            /** @description Stack Group */
+            stackGroup?: string | null;
+            /** @description Stackable */
+            stackable?: boolean | null;
+            /** @description Terms & Conditions */
+            terms?: string | null;
+            /** @description Time Windows (happy hour) */
+            timeWindows?: Record<string, never>[] | null;
+            /**
+             * Format: date
+             * @description Valid From
+             */
+            validFrom?: string | null;
+            /**
+             * Format: date
+             * @description Valid To
+             */
+            validTo?: string | null;
+            /** @description Weekdays (empty = every day) */
+            weekdays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
         };
         CommissionLine: {
             amount: string;
@@ -19105,6 +20355,44 @@ export interface components {
             type: string;
             value?: string;
         };
+        ComponentAvailability: {
+            available: boolean;
+            componentType: string;
+            name: string;
+            reason?: string;
+            /** @description What would be allocated (resource, tee time …) */
+            ref?: string;
+            seq: number;
+        };
+        ComponentSpec: {
+            addonPrice?: string | null;
+            allocationValue?: string | null;
+            businessLine: string;
+            componentType: string;
+            dayOffset: number;
+            durationMinutes?: number | null;
+            /** Format: uuid */
+            id: string;
+            liability: boolean;
+            name: string;
+            nights?: number | null;
+            optional: boolean;
+            perNight: boolean;
+            perPax: boolean;
+            /** Format: uuid */
+            productId?: string | null;
+            quantity: string;
+            /** Format: uuid */
+            recipeId?: string | null;
+            refCode?: string | null;
+            /** Format: uuid */
+            resourceId?: string | null;
+            resourceTypeCode?: string | null;
+            revenueComponent: string;
+            seq: number;
+            standalonePrice: string;
+            startTime?: string | null;
+        };
         Condition: {
             attribute: string;
             /** @enum {string} */
@@ -19119,6 +20407,16 @@ export interface components {
             marketing?: boolean | null;
             profiling?: boolean | null;
         };
+        ConsumeInput: {
+            /** Format: uuid */
+            bookingComponentId: string;
+            /** Format: uuid */
+            outletId?: string | null;
+            /** @description Default: everything left */
+            quantity?: string;
+            /** @description POS order, check-in, voucher redemption … */
+            reference?: string;
+        };
         Consumption: {
             cost: string;
             /** Format: uuid */
@@ -19126,6 +20424,39 @@ export interface components {
             name: string;
             quantity: string;
             uom: string;
+        };
+        ConsumptionLine: {
+            /** Format: uuid */
+            itemId: string;
+            quantity: string;
+            /** Format: uuid */
+            uomId: string;
+        };
+        ConsumptionRevenue: {
+            currency: string;
+            net: string;
+            revenueComponent: string;
+            service: string;
+            tax: string;
+            total: string;
+        };
+        ConsumptionRow: {
+            /** Format: uuid */
+            bookingComponentId: string;
+            businessDate: string;
+            component: string;
+            /** Format: date-time */
+            consumedAt: string;
+            /** Format: uuid */
+            id: string;
+            net: string;
+            /** Format: uuid */
+            outletId?: string | null;
+            quantity: string;
+            reference?: string | null;
+            service: string;
+            tax: string;
+            total: string;
         };
         ContactInput: {
             guest: components["schemas"]["PublicGuest"];
@@ -20344,6 +21675,15 @@ export interface components {
             /** @enum {string} */
             status: "pending" | "completed" | "rejected";
         };
+        DayAvailability: {
+            available: boolean;
+            components: components["schemas"]["ComponentAvailability"][];
+            date: string;
+            /** @description List price for the pax and nights (before promotions) */
+            price: string;
+            quotaLeft?: number | null;
+            reason?: string;
+        };
         DayType: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -20903,6 +22243,7 @@ export interface components {
              */
             status?: "active" | "inactive" | null;
         };
+        Empty: Record<string, never>;
         EnrollInput: {
             channel?: string;
             /** Format: uuid */
@@ -21078,6 +22419,53 @@ export interface components {
         };
         EraseRequest: {
             reason: string;
+        };
+        EvaluateInput: {
+            /**
+             * Format: date-time
+             * @description Sale / service time (default now)
+             */
+            at?: string | null;
+            businessLine?: string;
+            /** @enum {string} */
+            channel?: "pos" | "member_app" | "website" | "back_office" | "ops";
+            /** Format: uuid */
+            customerId?: string | null;
+            /** @description Promotions removed from this sale */
+            exclude?: string[];
+            label?: string;
+            lines: components["schemas"]["EvaluateLine"][];
+            /** Format: uuid */
+            outletId?: string | null;
+            promoCodes?: string[];
+            segment?: string;
+        };
+        EvaluateLine: {
+            category?: string;
+            itemRef?: string;
+            key?: string;
+            /** Format: uuid */
+            productId?: string | null;
+            productType?: string;
+            /** @description Default 1 */
+            quantity?: string;
+            serviceType?: string;
+            unitPrice: string;
+        };
+        Evaluation: {
+            applied: components["schemas"]["AppliedPromotion"][];
+            currency: string;
+            discount: string;
+            /** Format: date-time */
+            evaluatedAt: string;
+            label?: string;
+            lines: components["schemas"]["LineDiscount"][];
+            rejected: components["schemas"]["RejectedPromotion"][];
+            /** @enum {string} */
+            selection: "priority" | "best_price";
+            subtotal: string;
+            /** @description Subtotal − discount */
+            total: string;
         };
         ExperienceConsentInput: {
             /** @enum {string} */
@@ -21572,6 +22960,19 @@ export interface components {
         GenerateStatementsRequest: {
             /** @description YYYY-MM */
             period: string;
+        };
+        GeneratedCodeRow: {
+            code: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** Format: uuid */
+            id: string;
+        };
+        GeneratedCodes: {
+            /** Format: uuid */
+            batchId: string;
+            codes: components["schemas"]["GeneratedCodeRow"][];
+            count: number;
         };
         GolfCart: {
             /** Format: date-time */
@@ -23435,6 +24836,10 @@ export interface components {
             /** @description Weekdays (1=Mon … 7=Sun) */
             weekdays?: string | null;
         };
+        LineDiscount: {
+            discount: string;
+            key: string;
+        };
         LineInput: {
             modifierIds?: string[];
             notes?: string;
@@ -23449,6 +24854,8 @@ export interface components {
         LinePrice: {
             components: components["schemas"]["LineComponent"][];
             dayType?: string | null;
+            /** @description Promotion discount on the gross; tax & service follow the discounted amount */
+            discount: string;
             explanation: string[];
             /** @description Units × unit price + overtime, in the rule pricing mode */
             gross: string;
@@ -23456,6 +24863,7 @@ export interface components {
             /** @description Overtime amount above the block (VIP Suite) */
             overtime: string;
             package?: string | null;
+            promotions: components["schemas"]["AppliedPromotion"][];
             ratePlan?: string | null;
             revenueComponent: string;
             ruleCode: string;
@@ -23489,14 +24897,28 @@ export interface components {
         LineResolveRequest: {
             channel?: string;
             /**
+             * Format: uuid
+             * @description Corporate Rate (contract rate) of a corporate account
+             */
+            corporateAccountId?: string | null;
+            /**
+             * Format: uuid
+             * @description Customer for promotion eligibility
+             */
+            customerId?: string | null;
+            /**
              * Format: date-time
              * @description Service end (time-based units)
              */
             end?: string | null;
             itemRef?: string;
+            /** @description List price without promotions */
+            noPromotions?: boolean;
             package?: string;
             /** @description Store an immutable pricing snapshot */
             persist?: boolean;
+            /** @description Promo codes entered */
+            promoCodes?: string[];
             quantity?: number;
             ratePlan?: string;
             /** @description Customer segment (default any) */
@@ -23854,6 +25276,20 @@ export interface components {
              * @description Portal User
              */
             userId?: string | null;
+        };
+        MemberBookingInput: {
+            addons?: string[];
+            nights?: number;
+            notes?: string;
+            packageCode: string;
+            pax?: number;
+            /**
+             * @description Empty = pay later before the hold expires
+             * @enum {string}
+             */
+            paymentMethod?: "qris" | "virtual_account" | "card" | "member_account";
+            promoCodes?: string[];
+            startDate: string;
         };
         MemberInput: {
             /** @description Attributes */
@@ -24800,6 +26236,27 @@ export interface components {
             facilityType?: string | null;
             inside: number;
         };
+        OfferAddon: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            perNight: boolean;
+            perPax: boolean;
+            price: string;
+        };
+        OfferComponent: {
+            componentType: string;
+            dayOffset: number;
+            name: string;
+            perNight: boolean;
+            perPax: boolean;
+            quantity: string;
+        };
+        Offers: {
+            packages: components["schemas"]["PackageOffer"][];
+            promoCodes: components["schemas"]["PersonalCode"][];
+            promotions: components["schemas"]["PromotionView"][];
+        };
         OfficialHandicapInput: {
             index: string;
             /** @description e.g. PGI */
@@ -25002,6 +26459,7 @@ export interface components {
             bills: components["schemas"]["Bill"][];
             /** Format: uuid */
             chargeFolioId?: string | null;
+            clientTotal?: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: uuid */
@@ -25021,6 +26479,10 @@ export interface components {
             /** Format: uuid */
             outletId: string;
             outletName: string;
+            promoCodes: string[];
+            promotionExclusions: string[];
+            promotionMismatch: boolean;
+            promotions: components["schemas"]["Redemption"][];
             /** Format: uuid */
             propertyId: string;
             /** Format: date-time */
@@ -25045,6 +26507,8 @@ export interface components {
             chargeFolioId?: string | null;
             /** Format: date-time */
             clientCreatedAt?: string | null;
+            /** @description Offline: the total the terminal computed with its cached promotions (checked at sync) */
+            clientTotal?: string;
             /** Format: uuid */
             customerId?: string | null;
             /** @description Table, hole number, halfway house, stay number … */
@@ -25064,6 +26528,9 @@ export interface components {
             orderType?: "dine_in" | "takeaway" | "on_course" | "delivery" | "catering" | "pre_order" | "retail";
             /** Format: uuid */
             outletId: string;
+            /** @description Promo codes entered */
+            promoCodes?: string[];
+            promotionExclusions?: string[];
             /**
              * Format: date-time
              * @description Pre-order ready time / catering serve time
@@ -25096,6 +26563,8 @@ export interface components {
             notes?: string | null;
             /** Format: uuid */
             productId: string;
+            promotionDiscount: string;
+            promotions: components["schemas"]["AppliedPromotion"][];
             quantity: string;
             seat?: string | null;
             /** Format: date-time */
@@ -25108,6 +26577,10 @@ export interface components {
             unitPrice: string;
             /** Format: uuid */
             variantId?: string | null;
+        };
+        OrderPromotionResult: {
+            order: components["schemas"]["Order"];
+            rejected: components["schemas"]["RejectedPromotion"][];
         };
         OrderRequest: {
             /** Format: uuid */
@@ -25346,6 +26819,29 @@ export interface components {
             rounds: number;
             totalPayments: number;
         };
+        POSCachedCode: {
+            code: string;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            /** Format: uuid */
+            promotionId: string;
+        };
+        POSPromotionCache: {
+            currency: string;
+            /** Format: date-time */
+            generatedAt: string;
+            maxStackedPercent: string;
+            offlineTolerance: string;
+            /** Format: uuid */
+            outletId: string;
+            promoCodes: components["schemas"]["POSCachedCode"][];
+            promotions: components["schemas"]["PromotionRule"][];
+            /** @enum {string} */
+            selection: "priority" | "best_price";
+            timezone: string;
+            /** Format: date-time */
+            validUntil: string;
+        };
         PaceFlight: {
             aheadLabel?: string | null;
             /** @description Positive: behind the target */
@@ -25383,6 +26879,295 @@ export interface components {
         };
         PaceToleranceInput: {
             toleranceMinutes: number;
+        };
+        PackageBooking: {
+            addons: string[];
+            cancelReason?: string | null;
+            cancellationFee?: string | null;
+            /** Format: date-time */
+            cancelledAt?: string | null;
+            channel: string;
+            /** Format: date-time */
+            completedAt?: string | null;
+            components: components["schemas"]["BookingComponent"][];
+            /** Format: date-time */
+            confirmedAt?: string | null;
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            /** Format: uuid */
+            customerFolioId?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            discountTotal: string;
+            /** Format: date-time */
+            endAt: string;
+            folio?: components["schemas"]["Summary"] | null;
+            /** Format: uuid */
+            folioId?: string | null;
+            guestEmail?: string | null;
+            guestName?: string | null;
+            guestPhone?: string | null;
+            /** Format: date-time */
+            holdExpiresAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            listTotal: string;
+            netTotal: string;
+            nights: number;
+            notes?: string | null;
+            number: string;
+            packageCode: string;
+            /** Format: uuid */
+            packageId: string;
+            packageName: string;
+            packageVersion: number;
+            pax: number;
+            /** Format: uuid */
+            pricingSnapshotId?: string | null;
+            promoCodes: string[];
+            promotions: components["schemas"]["Redemption"][];
+            schedule?: components["schemas"]["Schedule"] | null;
+            /** Format: uuid */
+            scheduleId?: string | null;
+            serviceTotal: string;
+            /** Format: uuid */
+            sourceId?: string | null;
+            sourceType?: string | null;
+            /** Format: date-time */
+            startAt: string;
+            startDate: string;
+            /** @enum {string} */
+            status: "pending" | "confirmed" | "completed" | "cancelled" | "expired";
+            taxTotal: string;
+            total: string;
+        };
+        PackageCancelInput: {
+            reason: string;
+        };
+        PackageCancelResult: {
+            booking: components["schemas"]["PackageBooking"];
+            fee: string;
+            /** @description Refunds requested for the overpaid amount */
+            refunds: number;
+            /** @description Components whose allocation was released */
+            released: number;
+        };
+        PackageComponent: {
+            /** @description Add-on Price */
+            addonPrice?: string | null;
+            /** @description Allocation (fixed amount or percent) */
+            allocationValue?: string | null;
+            /**
+             * @description Business Line
+             * @enum {string|null}
+             */
+            businessLine?: "golf" | "sportclub" | "stay" | "pos" | "membership" | "voucher" | "banquet" | "package" | "other" | null;
+            /**
+             * @description Component Type
+             * @enum {string}
+             */
+            componentType: "reservation" | "tee_time" | "voucher" | "fnb" | "service" | "banquet" | "other";
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: int64
+             * @description Day (0 = first day)
+             */
+            dayOffset?: number | null;
+            /**
+             * Format: int64
+             * @description Duration (minutes) / Tee Time Search Window
+             */
+            durationMinutes?: number | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Held for a Third Party (liability) */
+            liability?: boolean | null;
+            /** @description Name */
+            name: string;
+            /**
+             * Format: int64
+             * @description Nights (empty = package nights)
+             */
+            nights?: number | null;
+            /** @description Add-on (optional) */
+            optional?: boolean | null;
+            /**
+             * Format: uuid
+             * @description Package
+             */
+            packageId: string;
+            /** @description Per Night */
+            perNight?: boolean | null;
+            /** @description Per Pax */
+            perPax?: boolean | null;
+            /**
+             * Format: uuid
+             * @description Product
+             */
+            productId?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Quantity */
+            quantity?: string | null;
+            /**
+             * Format: uuid
+             * @description Recipe (BOM)
+             */
+            recipeId?: string | null;
+            /** @description Reference (course / voucher type / product code) */
+            refCode?: string | null;
+            /**
+             * Format: uuid
+             * @description Specific Resource
+             */
+            resourceId?: string | null;
+            /** @description Resource Type (Reservation Engine) */
+            resourceTypeCode?: string | null;
+            /**
+             * @description Revenue Component
+             * @enum {string|null}
+             */
+            revenueComponent?: "green_fee" | "caddy_fee" | "caddy_tip" | "buggy_fee" | "hio_insurance" | "golf_other" | "sport_entry" | "court" | "class" | "registration_fee" | "locker" | "bungalow" | "vip_suite" | "meeting" | "equipment" | "fnb" | "pro_shop" | "driving_range" | "voucher_deferred" | "breakage" | "membership_fee" | "membership_annual_fee" | "card_replacement_fee" | "reactivation_fee" | "nominee_fee" | "caddy_fee_settlement" | "instructor_fee" | "cancellation_fee" | "damage_charge" | "late_checkout_fee" | "deposit" | "other" | "banquet_package" | "banquet_fnb" | "venue_rental" | "corkage" | "outdoor_venue" | "electricity" | "event_fee" | "tournament_fee" | "sponsorship" | "package" | "promotion_discount" | "loyalty_redemption" | null;
+            /**
+             * Format: int64
+             * @description Sequence
+             */
+            seq?: number | null;
+            /** @description Standalone Selling Price */
+            standalonePrice?: string | null;
+            /** @description Start Time (empty = package start) */
+            startTime?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PackageComponentInput: {
+            /** @description Add-on Price */
+            addonPrice?: string | null;
+            /** @description Allocation (fixed amount or percent) */
+            allocationValue?: string | null;
+            /**
+             * @description Business Line
+             * @enum {string|null}
+             */
+            businessLine?: "golf" | "sportclub" | "stay" | "pos" | "membership" | "voucher" | "banquet" | "package" | "other" | null;
+            /**
+             * @description Component Type
+             * @enum {string}
+             */
+            componentType?: "reservation" | "tee_time" | "voucher" | "fnb" | "service" | "banquet" | "other";
+            /**
+             * Format: int64
+             * @description Day (0 = first day)
+             */
+            dayOffset?: number | null;
+            /**
+             * Format: int64
+             * @description Duration (minutes) / Tee Time Search Window
+             */
+            durationMinutes?: number | null;
+            /** @description Held for a Third Party (liability) */
+            liability?: boolean | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: int64
+             * @description Nights (empty = package nights)
+             */
+            nights?: number | null;
+            /** @description Add-on (optional) */
+            optional?: boolean | null;
+            /**
+             * Format: uuid
+             * @description Package
+             */
+            packageId?: string;
+            /** @description Per Night */
+            perNight?: boolean | null;
+            /** @description Per Pax */
+            perPax?: boolean | null;
+            /**
+             * Format: uuid
+             * @description Product
+             */
+            productId?: string | null;
+            /** @description Quantity */
+            quantity?: string | null;
+            /**
+             * Format: uuid
+             * @description Recipe (BOM)
+             */
+            recipeId?: string | null;
+            /** @description Reference (course / voucher type / product code) */
+            refCode?: string | null;
+            /**
+             * Format: uuid
+             * @description Specific Resource
+             */
+            resourceId?: string | null;
+            /** @description Resource Type (Reservation Engine) */
+            resourceTypeCode?: string | null;
+            /**
+             * @description Revenue Component
+             * @enum {string|null}
+             */
+            revenueComponent?: "green_fee" | "caddy_fee" | "caddy_tip" | "buggy_fee" | "hio_insurance" | "golf_other" | "sport_entry" | "court" | "class" | "registration_fee" | "locker" | "bungalow" | "vip_suite" | "meeting" | "equipment" | "fnb" | "pro_shop" | "driving_range" | "voucher_deferred" | "breakage" | "membership_fee" | "membership_annual_fee" | "card_replacement_fee" | "reactivation_fee" | "nominee_fee" | "caddy_fee_settlement" | "instructor_fee" | "cancellation_fee" | "damage_charge" | "late_checkout_fee" | "deposit" | "other" | "banquet_package" | "banquet_fnb" | "venue_rental" | "corkage" | "outdoor_venue" | "electricity" | "event_fee" | "tournament_fee" | "sponsorship" | "package" | "promotion_discount" | "loyalty_redemption" | null;
+            /**
+             * Format: int64
+             * @description Sequence
+             */
+            seq?: number | null;
+            /** @description Standalone Selling Price */
+            standalonePrice?: string | null;
+            /** @description Start Time (empty = package start) */
+            startTime?: string | null;
+        };
+        PackageConsumption: {
+            /** Format: uuid */
+            bookingComponentId: string;
+            /** Format: uuid */
+            bookingId: string;
+            bookingStatus: string;
+            businessDate: string;
+            componentStatus: string;
+            consumption: components["schemas"]["ConsumptionLine"][];
+            duplicate: boolean;
+            /** Format: uuid */
+            id: string;
+            quantity: string;
+            revenue: components["schemas"]["ConsumptionRevenue"];
+        };
+        PackageDetail: {
+            availability: components["schemas"]["DayAvailability"][];
+            package: components["schemas"]["PackageOffer"];
+        };
+        PackageOffer: {
+            addons: components["schemas"]["OfferAddon"][];
+            code: string;
+            components: components["schemas"]["OfferComponent"][];
+            description?: string | null;
+            /** Format: uuid */
+            id: string;
+            maxPax?: number | null;
+            minPax: number;
+            name: string;
+            nights: number;
+            packageType: string;
+            price: string;
+            /** @enum {string} */
+            pricingMode: "fixed" | "per_pax" | "per_night" | "per_pax_per_night";
+            sellFrom?: string | null;
+            sellTo?: string | null;
+            /** @enum {string} */
+            taxMode: "nett" | "plus_plus";
+            validDays: number[];
+            validFrom?: string | null;
+            validTo?: string | null;
+            version: number;
         };
         PackageRate: {
             /**
@@ -25493,6 +27278,45 @@ export interface components {
              * @enum {string|null}
              */
             status?: "active" | "inactive" | null;
+        };
+        PackageSpec: {
+            allocationMethod: string;
+            cancellationFeePercent: string;
+            cancellationHours: number;
+            channels: string[];
+            code: string;
+            componentValidityDays: number;
+            components: components["schemas"]["ComponentSpec"][];
+            dailyQuota?: number | null;
+            description?: string | null;
+            /** Format: uuid */
+            id: string;
+            maxPax?: number | null;
+            minPax: number;
+            name: string;
+            nights: number;
+            packageType: string;
+            price: string;
+            pricingMode: string;
+            public: boolean;
+            segments: string[];
+            sellFrom?: string | null;
+            sellTo?: string | null;
+            startTime: string;
+            status: string;
+            taxCodes: string[];
+            taxMode: string;
+            validDays: number[];
+            validFrom?: string | null;
+            validTo?: string | null;
+            version: number;
+        };
+        PackageVersion: {
+            /** Format: date-time */
+            publishedAt: string;
+            publishedBy?: string | null;
+            snapshot: Record<string, never>;
+            version: number;
         };
         Param: {
             enum?: string[];
@@ -25746,6 +27570,15 @@ export interface components {
             module: string;
             object: string;
             platformOnly: boolean;
+        };
+        PersonalCode: {
+            code: string;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            maxUses?: number | null;
+            promotionCode: string;
+            promotionName: string;
+            usedCount: number;
         };
         PersonalDataExport: {
             file: components["schemas"]["File"];
@@ -26022,9 +27855,14 @@ export interface components {
             components: components["schemas"]["Component"][];
             currency: string;
             dayTypeCode: string;
+            /** @description Promotion discount */
+            discount: string;
+            /** @description Unit price before promotions (set when a promotion applies) */
+            listUnitPrice?: string;
             netAmount: string;
             /** @enum {string} */
             pricingMode: "nett" | "plus_plus";
+            promotions: components["schemas"]["AppliedPromotion"][];
             quantity: number;
             ratePlanCode: string;
             /** Format: uuid */
@@ -26057,6 +27895,11 @@ export interface components {
             code: string;
             /** @description Price Components (all-in breakdown) */
             components?: Record<string, never> | null;
+            /**
+             * Format: uuid
+             * @description Corporate Account (Corporate Rate; empty = any)
+             */
+            corporateAccountId?: string | null;
             /** Format: date-time */
             createdAt: string;
             /**
@@ -26074,6 +27917,8 @@ export interface components {
              * @description Effective To
              */
             effectiveTo?: string | null;
+            /** @description Public Holiday (Holiday Rate; empty = any) */
+            holiday?: boolean | null;
             /** Format: uuid */
             id: string;
             /** @description Item (resource type, resource, product, package …; empty = any) */
@@ -26107,7 +27952,7 @@ export interface components {
              * @description Package Rate
              */
             packageRateId?: string | null;
-            /** @description Peak (empty = any) */
+            /** @description Peak (Peak / Off-Peak Rate; empty = any) */
             peak?: boolean | null;
             /**
              * Format: uuid
@@ -26195,6 +28040,11 @@ export interface components {
             components?: Record<string, never> | null;
             /**
              * Format: uuid
+             * @description Corporate Account (Corporate Rate; empty = any)
+             */
+            corporateAccountId?: string | null;
+            /**
+             * Format: uuid
              * @description Day Type (empty = any)
              */
             dayTypeId?: string | null;
@@ -26208,6 +28058,8 @@ export interface components {
              * @description Effective To
              */
             effectiveTo?: string | null;
+            /** @description Public Holiday (Holiday Rate; empty = any) */
+            holiday?: boolean | null;
             /** @description Item (resource type, resource, product, package …; empty = any) */
             itemRef?: string | null;
             /**
@@ -26239,7 +28091,7 @@ export interface components {
              * @description Package Rate
              */
             packageRateId?: string | null;
-            /** @description Peak (empty = any) */
+            /** @description Peak (Peak / Off-Peak Rate; empty = any) */
             peak?: boolean | null;
             /**
              * Format: uuid
@@ -26461,10 +28313,199 @@ export interface components {
             marketingOptIn?: boolean | null;
             phone?: string | null;
         };
+        PromoCode: {
+            /**
+             * Format: uuid
+             * @description Generation Batch
+             */
+            batchId?: string | null;
+            /** @description Campaign */
+            campaignRef?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: uuid
+             * @description Customer (personal code)
+             */
+            customerId?: string | null;
+            /**
+             * Format: date-time
+             * @description Expires At
+             */
+            expiresAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int64
+             * @description Maximum Uses
+             */
+            maxUses?: number | null;
+            /**
+             * Format: int64
+             * @description Maximum Uses per Customer
+             */
+            maxUsesPerCustomer?: number | null;
+            /**
+             * Format: uuid
+             * @description Promotion
+             */
+            promotionId: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: int64
+             * @description Used
+             */
+            usedCount?: number | null;
+        };
+        PromoCodeGenerateInput: {
+            campaignRef?: string;
+            /** @description Number of codes (ignored with customerIds) */
+            count?: number;
+            /** @description One personal code per customer (campaign) */
+            customerIds?: string[];
+            /** Format: date-time */
+            expiresAt?: string | null;
+            /** @description Random part length (6–16, default 8) */
+            length?: number;
+            maxUses?: number | null;
+            maxUsesPerCustomer?: number | null;
+            prefix?: string;
+            /** Format: uuid */
+            promotionId: string;
+        };
+        PromoCodeInput: {
+            /** @description Campaign */
+            campaignRef?: string | null;
+            /** @description Code */
+            code?: string;
+            /**
+             * Format: uuid
+             * @description Customer (personal code)
+             */
+            customerId?: string | null;
+            /**
+             * Format: date-time
+             * @description Expires At
+             */
+            expiresAt?: string | null;
+            /**
+             * Format: int64
+             * @description Maximum Uses
+             */
+            maxUses?: number | null;
+            /**
+             * Format: int64
+             * @description Maximum Uses per Customer
+             */
+            maxUsesPerCustomer?: number | null;
+            /**
+             * Format: uuid
+             * @description Promotion
+             */
+            promotionId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
         PromotionInput: {
             reason: string;
             /** Format: uuid */
             toLevelId: string;
+        };
+        PromotionReasonInput: {
+            reason?: string;
+        };
+        PromotionRule: {
+            budgetAmount?: string | null;
+            bundleItems: components["schemas"]["BundleItem"][];
+            bundlePrice?: string | null;
+            businessLines: string[];
+            buyQuantity?: number | null;
+            categories: string[];
+            channels: string[];
+            code: string;
+            customerSegmentIds: string[];
+            dayKinds: string[];
+            dayTypeCodes: string[];
+            description?: string | null;
+            discountAmount?: string | null;
+            discountPercent?: string | null;
+            getQuantity?: number | null;
+            /** Format: uuid */
+            id: string;
+            itemRefs: string[];
+            maxDiscount?: string | null;
+            maxPerCustomer?: number | null;
+            maxRedemptions?: number | null;
+            membershipTypes: string[];
+            minPurchase?: string | null;
+            minQuantity?: number | null;
+            name: string;
+            outletIds: string[];
+            perUnit: boolean;
+            priority: number;
+            productIds: string[];
+            promoType: string;
+            public: boolean;
+            requiresCode: boolean;
+            segments: string[];
+            serviceTypes: string[];
+            stackGroup?: string | null;
+            stackable: boolean;
+            status: string;
+            timeWindows: components["schemas"]["TimeWindow"][];
+            validFrom?: string | null;
+            validTo?: string | null;
+            version: number;
+            weekdays: number[];
+        };
+        PromotionState: {
+            /** Format: date-time */
+            activatedAt?: string | null;
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            code: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            status: "draft" | "pending" | "active" | "inactive" | "rejected" | "expired";
+            usedAmount: string;
+            usedCount: number;
+            version: number;
+        };
+        PromotionView: {
+            bundlePrice?: string | null;
+            businessLines: string[];
+            buyQuantity?: number | null;
+            channels: string[];
+            code: string;
+            description?: string | null;
+            discountAmount?: string | null;
+            discountPercent?: string | null;
+            getQuantity?: number | null;
+            /** Format: uuid */
+            id: string;
+            minPurchase?: string | null;
+            name: string;
+            promoType: string;
+            requiresCode: boolean;
+            timeWindows: components["schemas"]["TimeWindow"][];
+            validFrom?: string | null;
+            validTo?: string | null;
+            weekdays: number[];
         };
         Property: {
             /** @description Address */
@@ -26580,6 +28621,23 @@ export interface components {
             startAt: string;
             status: string;
         };
+        PublicBookingInput: {
+            addons?: string[];
+            guest: components["schemas"]["PublicGuest"];
+            nights?: number;
+            notes?: string;
+            packageCode: string;
+            pax?: number;
+            /**
+             * @description Pay online now; empty = pay later before the hold expires
+             * @enum {string}
+             */
+            paymentMethod?: "qris" | "virtual_account" | "card";
+            promoCodes?: string[];
+            /** Format: uuid */
+            propertyId: string;
+            startDate: string;
+        };
         PublicBookingRequest: {
             caddyRequest?: string;
             captchaToken?: string;
@@ -26605,6 +28663,13 @@ export interface components {
             code: string;
             country: string;
             name: string;
+        };
+        PublicCodeCheckInput: {
+            amount?: string;
+            businessLine?: string;
+            code: string;
+            /** Format: uuid */
+            propertyId: string;
         };
         PublicContact: {
             email: string;
@@ -27767,6 +29832,34 @@ export interface components {
             recognizedRevenue: string;
             voucher: components["schemas"]["Voucher"];
         };
+        Redemption: {
+            businessLine: string;
+            channel: string;
+            createdAt: string;
+            currency: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            discount: string;
+            /** Format: uuid */
+            folioId?: string | null;
+            /** Format: uuid */
+            id: string;
+            lines: components["schemas"]["LineDiscount"][];
+            needsReview: boolean;
+            offline: boolean;
+            promoCode?: string | null;
+            promotionCode: string;
+            /** Format: uuid */
+            promotionId: string;
+            promotionVersion: number;
+            /** Format: uuid */
+            sourceId: string;
+            sourceRef?: string | null;
+            /** @enum {string} */
+            sourceType: "pos_order" | "pricing_snapshot" | "package_booking";
+            /** @enum {string} */
+            status: "applied" | "redeemed" | "reversed";
+        };
         Refund: {
             amount: string;
             /** Format: uuid */
@@ -27799,6 +29892,15 @@ export interface components {
             reason: string;
         };
         RejectInput: {
+            reason: string;
+        };
+        RejectedPromotion: {
+            code: string;
+            reason: string;
+        };
+        RemovePromotionInput: {
+            /** Format: uuid */
+            promotionId: string;
             reason: string;
         };
         RenewRequest: {
@@ -28082,6 +30184,16 @@ export interface components {
             /** @enum {string} */
             chargeType?: "golf_round" | "caddy_fee" | "cart_fee" | "extra_cart";
             /**
+             * Format: uuid
+             * @description Corporate Rate (contract rate) of a corporate account
+             */
+            corporateAccountId?: string | null;
+            /**
+             * Format: uuid
+             * @description Customer for promotion eligibility
+             */
+            customerId?: string | null;
+            /**
              * Format: date
              * @description Local play date YYYY-MM-DD
              */
@@ -28089,6 +30201,7 @@ export interface components {
             peak?: boolean | null;
             /** Format: uuid */
             playingRouteId?: string | null;
+            promoCodes?: string[];
             quantity?: number;
             /** @description Eligible player segments; the cheapest resolving one wins */
             segments: string[];
@@ -29436,6 +31549,14 @@ export interface components {
             sales: string;
             shift: components["schemas"]["Shift"];
         };
+        SimulateInput: {
+            scenarios: components["schemas"]["EvaluateInput"][];
+        };
+        Simulation: {
+            /** Format: uuid */
+            promotionId: string;
+            scenarios: components["schemas"]["Evaluation"][];
+        };
         Slot: {
             blockReason?: string | null;
             capacity: number;
@@ -30466,6 +32587,11 @@ export interface components {
              * @enum {string|null}
              */
             status?: "active" | "inactive" | null;
+        };
+        TimeWindow: {
+            days?: number[];
+            end: string;
+            start: string;
         };
         TipRequest: {
             amount: string;
@@ -45195,6 +47321,62 @@ export interface operations {
             };
         };
     };
+    postCommercialOrdersByIdApplyPromotion: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApplyPromotionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderPromotionResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postCommercialOrdersByIdCharge: {
         parameters: {
             query?: never;
@@ -45334,6 +47516,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OrderRequest"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialOrdersByIdRemovePromotion: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemovePromotionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderPromotionResult"];
                 };
             };
             /** @description Not authenticated */
@@ -46038,6 +48276,689 @@ export interface operations {
             };
         };
     };
+    getCommercialPackageBookings: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+                "filter[packageId]"?: string;
+                "filter[customerId]"?: string;
+                /** @description Start date */
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PackageBooking"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPackageBookings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageBooking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageBookingsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageBooking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageBookingsByIdConsumption: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConsumptionRow"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPackageBookingsByIdConsumption: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsumeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageConsumption"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPackageBookingsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageCancelInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageCancelResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageComponents: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[packageId]"?: string;
+                "filter[componentType]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PackageComponent"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPackageComponents: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageComponentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageComponent"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageComponentsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageComponent"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCommercialPackageComponentsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCommercialPackageComponentsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageComponentInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageComponent"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageComponentsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[packageId]"?: string;
+                "filter[componentType]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCommercialPackageRates: {
         parameters: {
             query?: {
@@ -46376,6 +49297,580 @@ export interface operations {
             };
         };
     };
+    getCommercialPackages: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[code]"?: string;
+                "filter[packageType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CommercialPackage"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPackages: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommercialPackageInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialPackage"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackagesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialPackage"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCommercialPackagesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCommercialPackagesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommercialPackageInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialPackage"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackagesByIdAvailability: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                date?: string;
+                days?: number;
+                pax?: number;
+                nights?: number;
+                channel?: "back_office" | "website" | "member_app" | "ops" | "quotation";
+                customerId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DayAvailability"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackagesByIdVersions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PackageVersion"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPackagesByIdPublish: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageSpec"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackagesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[code]"?: string;
+                "filter[packageType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPosPromotions: {
+        parameters: {
+            query: {
+                outletId: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["POSPromotionCache"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCommercialPrepaidBalances: {
         parameters: {
             query?: {
@@ -46518,6 +50013,7 @@ export interface operations {
                 "filter[timeBandId]"?: string;
                 "filter[playingRouteId]"?: string;
                 "filter[channel]"?: string;
+                "filter[corporateAccountId]"?: string;
                 "filter[serviceType]"?: string;
                 "filter[itemRef]"?: string;
                 "filter[lineDayTypeId]"?: string;
@@ -46754,6 +50250,7 @@ export interface operations {
                 "filter[timeBandId]"?: string;
                 "filter[playingRouteId]"?: string;
                 "filter[channel]"?: string;
+                "filter[corporateAccountId]"?: string;
                 "filter[serviceType]"?: string;
                 "filter[itemRef]"?: string;
                 "filter[lineDayTypeId]"?: string;
@@ -47667,6 +51164,1136 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProductLookup"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPromoCodes: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[promotionId]"?: string;
+                "filter[customerId]"?: string;
+                "filter[campaignRef]"?: string;
+                "filter[batchId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PromoCode"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPromoCodes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromoCodeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromoCode"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPromoCodesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromoCode"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCommercialPromoCodesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCommercialPromoCodesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromoCodeInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromoCode"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPromoCodesCheck: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CodeCheckInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CodeCheck"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPromoCodesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[promotionId]"?: string;
+                "filter[customerId]"?: string;
+                "filter[campaignRef]"?: string;
+                "filter[batchId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPromoCodesGenerate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromoCodeGenerateInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeneratedCodes"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPromotions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[code]"?: string;
+                "filter[promoType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CommercialPromotion"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPromotions: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommercialPromotionInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialPromotion"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPromotionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialPromotion"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCommercialPromotionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCommercialPromotionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommercialPromotionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommercialPromotion"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPromotionsByIdRedemptions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Redemption"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPromotionsByIdActivate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionState"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPromotionsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionState"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPromotionsByIdDeactivate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PromotionReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PromotionState"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPromotionsByIdSimulate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SimulateInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Simulation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPromotionsEvaluate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EvaluateInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Evaluation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPromotionsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[code]"?: string;
+                "filter[promoType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
                 };
             };
             /** @description Not authenticated */
@@ -76773,6 +81400,53 @@ export interface operations {
             };
         };
     };
+    getMemberOffers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Offers"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getMemberOrders: {
         parameters: {
             query?: {
@@ -76963,6 +81637,112 @@ export interface operations {
                         items: components["schemas"]["MenuItem"][];
                         nextCursor?: string;
                     };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberPackageBookings: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PackageBooking"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberPackageBookings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelBooking"];
                 };
             };
             /** @description Not authenticated */
@@ -90414,6 +95194,186 @@ export interface operations {
                 content: {
                     "application/json": {
                         [key: string]: string;
+                    };
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicPackageBookings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChannelBooking"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicPackages: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                propertyId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PackageOffer"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicPackagesByCode: {
+        parameters: {
+            query: {
+                propertyId: string;
+                date?: string;
+                days?: number;
+                pax?: number;
+                nights?: number;
+            };
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageDetail"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicPromoCodesCheck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicCodeCheckInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CodeCheck"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicPromotions: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                propertyId: string;
+                businessLine?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PromotionView"][];
+                        nextCursor?: string;
                     };
                 };
             };

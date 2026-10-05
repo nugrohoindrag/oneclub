@@ -278,9 +278,11 @@ func ruleBeforeWrite(ctx context.Context, tx pgx.Tx, v map[string]any, before ma
 		  AND playing_route_id IS NOT DISTINCT FROM $7::uuid AND channel IS NOT DISTINCT FROM $8 AND peak IS NOT DISTINCT FROM $9::bool
 		  AND priority = $10
 		  AND daterange(effective_from, coalesce(effective_to, 'infinity'::date), '[]') && daterange($11::date, coalesce($12::date, 'infinity'::date), '[]')
+		  AND corporate_account_id IS NOT DISTINCT FROM $13::uuid AND holiday IS NOT DISTINCT FROM $14::bool
 		LIMIT 1`,
 		pid, m["code"], str(m["chargeType"]), nullable("segment"), nullable("dayTypeId"), nullable("timeBandId"), nullable("playingRouteId"),
-		nullable("channel"), nullable("peak"), m["priority"], str(m["effectiveFrom"]), nullable("effectiveTo")).Scan(&conflict)
+		nullable("channel"), nullable("peak"), m["priority"], str(m["effectiveFrom"]), nullable("effectiveTo"), nullable("corporateAccountId"),
+		nullable("holiday")).Scan(&conflict)
 	if err == nil {
 		return errs.Conflict("rule_conflict", "rule "+conflict+" matches the same segment, day type, time band, route, channel and peak with the same priority in an overlapping period; change the priority or the dimensions")
 	}
@@ -306,6 +308,11 @@ type PriceQuery struct {
 	Channel        string
 	Peak           *bool
 	Quantity       int
+	// PRD P3 (additive): contract rate, holiday rate and promotions.
+	CorporateAccountID *uuid.UUID // Corporate Rate (contract rate) of a corporate account
+	CustomerID         *uuid.UUID // promotion eligibility (membership type, CRM segment, limits)
+	PromoCodes         []string   // promo codes entered
+	NoPromotions       bool       // list price only (e.g. standalone component prices)
 }
 
 // PriceResult is a resolved price (not yet snapshotted).
@@ -331,6 +338,10 @@ type PriceResult struct {
 	Components   []Component   `json:"components"`
 	TaxService   []Line        `json:"taxService"`
 	Candidates   []SegmentCost `json:"candidates" doc:"Price per eligible segment (lowest wins)"`
+	// PRD P3 (additive): promotions applied to the price (FR-PRM-06/07).
+	ListUnitPrice string             `json:"listUnitPrice,omitempty" doc:"Unit price before promotions (set when a promotion applies)"`
+	Discount      string             `json:"discount" doc:"Promotion discount"`
+	Promotions    []AppliedPromotion `json:"promotions"`
 }
 
 // SegmentCost is the resolved unit price for one candidate segment.
@@ -436,10 +447,15 @@ func Resolve(ctx context.Context, q dbtx.Querier, pq PriceQuery) (PriceResult, e
 		}
 	}
 	day := pq.PlayDate.Format("2006-01-02")
+	holiday, err := ruleHoliday(ctx, q, pq.Property, pq.PlayDate)
+	if err != nil {
+		return PriceResult{}, err
+	}
 	rows, err := q.Query(ctx, `SELECT r.id, r.code, r.version, r.name, p.id, p.code, p.pricing_mode, p.currency, r.segment,
 		(CASE WHEN r.segment IS NULL THEN 0 ELSE 1 END + CASE WHEN r.day_type_id IS NULL THEN 0 ELSE 1 END +
 		 CASE WHEN r.time_band_id IS NULL THEN 0 ELSE 1 END + CASE WHEN r.playing_route_id IS NULL THEN 0 ELSE 1 END +
-		 CASE WHEN r.channel IS NULL THEN 0 ELSE 1 END + CASE WHEN r.peak IS NULL THEN 0 ELSE 1 END),
+		 CASE WHEN r.channel IS NULL THEN 0 ELSE 1 END + CASE WHEN r.peak IS NULL THEN 0 ELSE 1 END +
+		 CASE WHEN r.holiday IS NULL THEN 0 ELSE 1 END + CASE WHEN r.corporate_account_id IS NULL THEN 0 ELSE 2 END),
 		r.priority, r.effective_from, r.price::text, r.components
 		FROM commercial.pricing_rules r JOIN commercial.rate_plans p ON p.id = r.rate_plan_id
 		WHERE r.property_id = $1 AND r.charge_type = $2 AND r.status = 'active' AND p.status = 'active' AND p.archived_at IS NULL
@@ -450,8 +466,10 @@ func Resolve(ctx context.Context, q dbtx.Querier, pq PriceQuery) (PriceResult, e
 		  AND (r.time_band_id IS NULL OR r.time_band_id = $6::uuid)
 		  AND (r.playing_route_id IS NULL OR r.playing_route_id = $7::uuid)
 		  AND (r.channel IS NULL OR r.channel = $8)
-		  AND (r.peak IS NULL OR r.peak = $9::bool)`,
-		pq.Property, pq.ChargeType, day, pq.Segments, dayTypeID, timeBandID, pq.PlayingRouteID, pq.Channel, pq.Peak)
+		  AND (r.peak IS NULL OR r.peak = $9::bool)
+		  AND (r.holiday IS NULL OR r.holiday = $10::bool)
+		  AND (r.corporate_account_id IS NULL OR r.corporate_account_id = $11::uuid)`,
+		pq.Property, pq.ChargeType, day, pq.Segments, dayTypeID, timeBandID, pq.PlayingRouteID, pq.Channel, pq.Peak, holiday, pq.CorporateAccountID)
 	if err != nil {
 		return PriceResult{}, err
 	}
@@ -517,6 +535,12 @@ func Resolve(ctx context.Context, q dbtx.Querier, pq PriceQuery) (PriceResult, e
 		return PriceResult{}, err
 	}
 	finish(&res, best.Price, best.Components, taxRules, pq.PlayAt)
+	res.Discount, res.Promotions = "0", []AppliedPromotion{}
+	if !pq.NoPromotions {
+		if err := applyGolfPromotions(ctx, q, pq, &res, best.Price, best.Components, taxRules); err != nil {
+			return PriceResult{}, err
+		}
+	}
 	return res, nil
 }
 
@@ -610,6 +634,8 @@ func ApplyOverride(ctx context.Context, q dbtx.Querier, property uuid.UUID, res 
 	}
 	// Fixed-amount components keep their amount; the remainder absorbs the discount.
 	finish(&res, unit, comps, taxRules, at)
+	// a manual price replaces promotions (PRD P3 FR-PRM-06)
+	res.ListUnitPrice, res.Discount, res.Promotions = "", "0", []AppliedPromotion{}
 	return res, nil
 }
 
@@ -647,12 +673,17 @@ func Snapshot(ctx context.Context, tx pgx.Tx, in SnapshotInput) (uuid.UUID, erro
 	}
 	_, err := tx.Exec(ctx, `INSERT INTO commercial.pricing_snapshots (id, property_id, charge_type, rule_id, rule_code, rule_version, rate_plan_id,
 		rate_plan_code, segment, day_type_code, time_band_code, playing_route_id, channel, peak, play_at, currency, pricing_mode, list_price, quantity,
-		net_amount, tax_amount, service_amount, total, components, tax_service, override, context, created_by)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18::numeric,$19,$20::numeric,$21::numeric,$22::numeric,$23::numeric,$24,$25,$26,$27,$28)`,
+		net_amount, tax_amount, service_amount, total, components, tax_service, override, context, created_by, promotions)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18::numeric,$19,$20::numeric,$21::numeric,$22::numeric,$23::numeric,$24,$25,$26,$27,$28,$29)`,
 		sid, in.Query.Property, r.ChargeType, ruleID, nullStr(r.RuleCode), nullInt(r.RuleVersion), planID, nullStr(r.RatePlanCode), r.Segment,
 		nullStr(r.DayTypeCode), nullStr(r.TimeBandCode), in.Query.PlayingRouteID, nullStr(in.Query.Channel), in.Query.Peak, in.Query.PlayAt,
-		r.Currency, r.PricingMode, r.UnitPrice, r.Quantity, r.NetAmount, r.TaxAmount, r.ServiceAmt, r.Total, comps, ts, ov, cxRaw, uid)
-	return sid, err
+		r.Currency, r.PricingMode, r.UnitPrice, r.Quantity, r.NetAmount, r.TaxAmount, r.ServiceAmt, r.Total, comps, ts, ov, cxRaw, uid,
+		SnapshotPromotions(r.Promotions))
+	if err != nil || len(r.Promotions) == 0 {
+		return sid, err
+	}
+	// PRD P3 FR-PRM-07: the redemption of the promotions of this price
+	return sid, recordSnapshot(ctx, tx, in.Query.Property, sid, r.Promotions, in.Query.CustomerID, in.Query.Channel, "golf", r.Currency)
 }
 
 func nullStr(s string) *string {

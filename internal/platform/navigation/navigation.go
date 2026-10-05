@@ -129,6 +129,13 @@ var Trees = map[string][]Item{
 				s("pricing-rules", "Pricing Rules", "/commercial/pricing/rules", "commercial.pricing.view"),
 				s("effective-dates", "Effective Dates", "/commercial/pricing/effective-dates", "commercial.pricing.view"),
 				s("commercial-tax-service", "Tax & Service", "/settings/tax-service", "commercial.tax_service.view"),
+				s("discounts", "Discounts", "/commercial/pricing/discounts", "commercial.promotion.view"),
+				s("promo-codes", "Promo Codes", "/commercial/pricing/promo-codes", "commercial.promo_code.view"),
+			),
+			s("promotions", "Promotions", "/commercial/promotions", "commercial.promotion.view"),
+			s("packages", "Packages", "/commercial/packages", "commercial.package.view",
+				s("package-list", "Packages", "/commercial/packages", "commercial.package.view"),
+				s("package-bookings", "Package Bookings", "/commercial/package-bookings", "commercial.package_booking.view"),
 			),
 			s("vouchers", "Voucher & Prepaid", "/commercial/operations", "commercial.voucher.view"),
 			s("commercial-master", "Outlets & Products", "/commercial/master", "commercial.outlet.view"),
@@ -230,6 +237,7 @@ var Trees = map[string][]Item{
 	},
 	"member": {
 		{Key: "home", Label: "Home", Path: "/", Icon: "home", Permission: catalog.ShellMemberPortal},
+		{Key: "offers", Label: "Offers", Path: "/offers", Icon: "local_offer", Module: "commercial", Permission: catalog.ShellMemberPortal},
 		{Key: "golf", Label: "Golf", Path: "/golf", Icon: "golf_course", Module: "golf", Permission: catalog.ShellMemberPortal, Children: []Item{
 			s("book-golf", "Book Golf", "/golf", catalog.ShellMemberPortal),
 			s("tee-time", "Tee Time", "/golf/tee-time", catalog.ShellMemberPortal),
@@ -240,6 +248,7 @@ var Trees = map[string][]Item{
 		}},
 		{Key: "sport-club", Label: "Sport Club", Path: "/sport-club", Icon: "sports_tennis", Module: "sportclub", Permission: catalog.ShellMemberPortal},
 		{Key: "stay-venue", Label: "Stay & Venue", Path: "/stay", Icon: "hotel", Module: "stay", Permission: catalog.ShellMemberPortal},
+		{Key: "packages", Label: "Packages", Path: "/packages", Icon: "card_travel", Module: "commercial", Permission: catalog.ShellMemberPortal},
 		{Key: "bookings", Label: "Bookings", Path: "/bookings", Icon: "event_available", Module: "reservation", Permission: catalog.ShellMemberPortal},
 		{Key: "membership", Label: "Membership", Path: "/membership", Icon: "card_membership", Module: "membership", Permission: catalog.ShellMemberPortal, Children: []Item{
 			s("my-membership", "My Membership", "/membership", catalog.ShellMemberPortal),
@@ -303,6 +312,7 @@ var Trees = map[string][]Item{
 		{Key: "sport-reception", Label: "Sport Reception", Path: "/ops/sport-reception", Icon: "sports_tennis", Module: "sportclub", Permission: "sportclub.access.validate"},
 		{Key: "instructor", Label: "Instructor", Path: "/ops/instructor", Icon: "school", Module: "sportclub", Permission: "sportclub.class.attendance"},
 		{Key: "pos", Label: "POS", Path: "/ops/pos", Icon: "point_of_sale", Module: "commercial", Permission: "commercial.order.create"},
+		{Key: "package-use", Label: "Package Use", Path: "/ops/packages", Icon: "card_travel", Module: "commercial", Permission: "commercial.package_booking.consume"},
 		{Key: "sync", Label: "Sync Queue", Path: "/ops/sync", Icon: "sync", Permission: catalog.ShellOps},
 		{Key: "notifications", Label: "Notifications", Path: "/ops/notifications", Icon: "notifications", Permission: catalog.ShellOps},
 	},

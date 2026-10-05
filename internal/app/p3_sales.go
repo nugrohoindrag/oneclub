@@ -207,7 +207,7 @@ func quotePrice(ctx context.Context, q dbtx.Querier, property uuid.UUID, in sale
 		unit = *in.UnitPrice
 	case in.ServiceType != "":
 		lp, err := commercial.Pricer{}.Resolve(ctx, q, property, commercial.PriceRequest{ServiceType: in.ServiceType, ItemRef: in.ItemRef, Start: at,
-			Quantity: 1})
+			Quantity: 1, NoPromotions: true})
 		if err != nil {
 			return out, err
 		}
