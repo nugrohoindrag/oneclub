@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"oneclub/internal/accounting"
 	"regexp"
 	"strings"
 	"testing"
@@ -714,7 +715,7 @@ func TestP4ProcurementReceipts(t *testing.T) {
 	inst.App.Purchasing.Procurement.SetPeriodGuard(func(context.Context, dbtx.Querier, uuid.UUID, time.Time) (string, error) { return "closed", nil })
 	r := sa.Do("POST", "/api/v1/procurement/goods-receipts", map[string]any{"purchaseOrderId": po2["id"], "lines": []map[string]any{{"purchaseOrderLineId": l2,
 		"acceptedQuantity": "1"}}})
-	inst.App.Purchasing.Procurement.SetPeriodGuard(nil)
+	inst.App.Purchasing.Procurement.SetPeriodGuard(accounting.PeriodStatus)
 	if r.Status != 422 || !strings.Contains(string(r.Body), "period_closed") {
 		t.Fatalf("closed period: %s", r)
 	}

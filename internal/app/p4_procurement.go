@@ -5,6 +5,7 @@ package app
 
 import (
 	"context"
+	"oneclub/internal/accounting"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -47,9 +48,8 @@ func (a *App) buildP4Procurement(reg *route.Registry, cfg *config.Config, db *db
 	procurement.RegisterJobs(a.Registrar, db, a.Instance.Location)
 	// FR-OPS-P4-04: goods receipts recorded offline on a warehouse device.
 	a.Sync.Handle(procurement.SyncGoodsReceiptAction, m.SyncGoodsReceipt)
-	// K10: no accounting period guard yet (every period open); Accounting
-	// registers accounting.PeriodStatus through m.SetPeriodGuard.
-	m.SetPeriodGuard(nil)
+	// K10: documents dated in a closed accounting period are refused.
+	m.SetPeriodGuard(accounting.PeriodStatus)
 }
 
 // subscribeP4Procurement registers the event subscribers.

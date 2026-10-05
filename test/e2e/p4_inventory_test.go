@@ -3,6 +3,7 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"oneclub/internal/accounting"
 	"strings"
 	"testing"
 	"time"
@@ -317,7 +318,7 @@ func TestP4InventoryValuation(t *testing.T) {
 		}
 		return "open", nil
 	})
-	defer inst.App.Stock.Service.SetPeriodGuard(nil)
+	defer inst.App.Stock.Service.SetPeriodGuard(accounting.PeriodStatus)
 	if r := sa.Do("POST", "/api/v1/inventory/adjustments", map[string]any{"warehouseId": wh, "reason": "found", "businessDate": last.Format("2006-01-02"),
 		"submit": true, "lines": []map[string]any{{"itemId": beef, "quantity": "1", "unitCost": "110000"}}}); r.Status != 422 || !strings.Contains(string(r.Body), "period_closed") {
 		t.Fatalf("closed period: %s", r)
@@ -329,7 +330,19 @@ func TestP4InventoryValuation(t *testing.T) {
 	if m := sa.Must(200, "GET", "/api/v1/inventory/stock-movements?sourceId="+gr.String(), nil).Items(); len(m) != 1 || m[0]["businessDate"] != invToday() {
 		t.Fatalf("late receipt in a closed period: %v", m)
 	}
-	inst.App.Stock.Service.SetPeriodGuard(nil)
+	// The wired guard reads Accounting's periods (K10).
+	inst.App.Stock.Service.SetPeriodGuard(accounting.PeriodStatus)
+	var whProperty uuid.UUID
+	sysQueryRow(t, inst, `SELECT property_id FROM inventory.warehouses WHERE id = $1`, []any{mustUUID(wh)}, &whProperty)
+	sysExec(t, inst, `INSERT INTO accounting.periods (id, property_id, year, month, start_date, end_date, status)
+		VALUES ($1, $2, 2020, 3, '2020-03-01', '2020-03-31', 'closed')`, uuid.New(), whProperty)
+	t.Cleanup(func() {
+		sysExec(t, inst, `DELETE FROM accounting.periods WHERE property_id = $1 AND year = 2020 AND month = 3`, whProperty)
+	})
+	if r := sa.Do("POST", "/api/v1/inventory/adjustments", map[string]any{"warehouseId": wh, "reason": "found", "businessDate": "2020-03-15",
+		"submit": true, "lines": []map[string]any{{"itemId": beef, "quantity": "1", "unitCost": "110000"}}}); r.Status != 422 || !strings.Contains(string(r.Body), "period_closed") {
+		t.Fatalf("period closed in Accounting: %s", r)
+	}
 
 	// Unknown warehouse → posting exception, resolved by staff.
 	bad := uuid.New()

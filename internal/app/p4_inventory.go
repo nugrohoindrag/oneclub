@@ -8,6 +8,7 @@ package app
 
 import (
 	"context"
+	"oneclub/internal/accounting"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -53,9 +54,8 @@ func (a *App) buildP4Inventory(reg *route.Registry, cfg *config.Config, db *dbtx
 	a.Approvals.RegisterDocumentType(inventory.DocAssetDisposal, s.DisposalDecision)
 	s.RegisterJobs(a.Registrar, a.Instance.Location)
 	a.Sync.Handle(inventory.SyncCountAction, s.SyncCount)
-	// K10: no accounting period guard yet (every period open); Accounting
-	// registers accounting.PeriodStatus through s.SetPeriodGuard.
-	s.SetPeriodGuard(nil)
+	// K10: documents dated in a closed accounting period are refused.
+	s.SetPeriodGuard(accounting.PeriodStatus)
 	a.Stock.Service = s
 }
 
