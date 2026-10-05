@@ -273,6 +273,13 @@ test('public website renders branding in Indonesian and English', async ({ page 
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Selamat datang');
   await page.getByRole('link', { name: 'EN', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Welcome');
-  await page.getByRole('link', { name: 'Contact' }).click();
+  // The header follows the CMS menu (FR-CMS-09): Contact may sit in a dropdown.
+  const nav = page.getByRole('navigation', { name: 'Main' });
+  const group = nav.getByRole('button', { name: 'Contact', exact: true });
+  if (await group.count()) {
+    await expect(nav).toHaveAttribute('data-ready', 'true'); // hydrated
+    await group.click();
+  }
+  await nav.getByRole('link', { name: 'Contact', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Contact' })).toBeVisible();
 });

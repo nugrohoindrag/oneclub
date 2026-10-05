@@ -50,8 +50,11 @@ export function SiteNav({ lang, labels, items }: { lang: Lang; labels: Record<st
   const navRef = useRef<HTMLElement>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const groupRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [ready, setReady] = useState(false);
   const uid = useId();
   const listId = `${uid}-list`;
+
+  useEffect(() => setReady(true), []); // hydrated: the buttons respond (data-ready, for tests)
 
   useEffect(() => {
     setOpen(null);
@@ -90,7 +93,7 @@ export function SiteNav({ lang, labels, items }: { lang: Lang; labels: Record<st
   };
 
   return (
-    <nav ref={navRef} className="w-nav" aria-label="Main" data-open={menuOpen ? 'true' : 'false'}>
+    <nav ref={navRef} className="w-nav" aria-label="Main" data-open={menuOpen ? 'true' : 'false'} data-ready={ready ? 'true' : undefined}>
       <button ref={toggleRef} type="button" className="w-nav-toggle" aria-expanded={menuOpen} aria-controls={listId} onClick={() => setMenuOpen((v) => !v)}>
         <span className="w-burger" aria-hidden="true" />
         Menu
