@@ -8,6 +8,8 @@ import {
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
+// Recruitment & Performance Review (EP-03, EP-05) live in hr_talent.tsx.
+import { TALENT_ESS, TALENT_ROUTES } from './hr_talent';
 
 // PRD P5 — core HR (EP-01 Organization & Employee, EP-02 Contracts & Documents, EP-04 Training & Certification, EP-24 HR Policies)
 // and Employee Self Service (EP-16). Back Office routes (HRIS → Employees, Organization, Training & Certification), the ESS area of
@@ -1119,6 +1121,8 @@ registerEssSection('profile', ({ base }) => <EssProfile base={base} />);
 registerEssSection('documents', ({ base }) => <EssDocuments base={base} />);
 registerEssSection('training', ({ base }) => <EssTraining base={base} />);
 registerEssSection('team', ({ base }) => <EssTeam base={base} />);
+// EP-05: My Reviews and Team Reviews (hr_talent.tsx).
+for (const [key, view] of TALENT_ESS) registerEssSection(key, view);
 
 /** Renders a registered ESS section (ops /ops/ess/:section, Back Office /ess/:section). */
 function EssSectionPage({ base }: { base: string }) {
@@ -1142,6 +1146,8 @@ export const HR_ROUTES: AreaRoute[] = [
   { path: 'hris/import', perm: 'hris.import.create', element: <ImportPanel /> },
   { path: 'ess', perm: 'hris.ess.use', element: <EssHome base="/ess" /> },
   { path: 'ess/:section', perm: 'hris.ess.use', element: <EssSectionPage base="/ess" /> },
+  // EP-03 Recruitment, EP-05 Performance Review (hr_talent.tsx).
+  ...TALENT_ROUTES,
 ];
 
 export const HR_OPS_TILES: OpsTile[] = [['badge', 'Employee Self Service', '/ops/ess', 'hris.ess.use']];
