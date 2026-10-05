@@ -643,20 +643,31 @@ func buildTerms(in []PaymentTermInput, defaults []PaymentTermRule, total decimal
 }
 
 // discountLimit is the discount the user may give without approval: the
-// highest Sales Policies role limit of the user, else the general limit.
-func discountLimit(ctx context.Context, q dbtx.Querier, property uuid.UUID, pol SalesPolicy, user *uuid.UUID) decimal.Decimal {
+// highest limit of the user's roles in the manual discount limits of the
+// Pricing Policies (PO decision 4b), else the legacy role limits of the
+// Sales Policies, else the general limit (maxDiscountPercent).
+func (m *Module) discountLimit(ctx context.Context, q dbtx.Querier, property uuid.UUID, pol SalesPolicy, user *uuid.UUID) (decimal.Decimal, error) {
 	limit := dec(pol.MaxDiscountPercent)
-	if len(pol.RoleDiscountLimits) == 0 || user == nil {
-		return limit
+	if user == nil {
+		return limit, nil
 	}
 	rows, err := q.Query(ctx, `SELECT DISTINCT r.code FROM platform.role_assignments ra JOIN platform.roles r ON r.id = ra.role_id
 		WHERE ra.user_id = $1 AND (ra.property_id IS NULL OR ra.property_id = $2)`, *user, property)
 	if err != nil {
-		return limit
+		return limit, err
 	}
 	codes, err := pgx.CollectRows(rows, pgx.RowTo[string])
 	if err != nil {
-		return limit
+		return limit, err
+	}
+	if m.RoleDiscountLimit != nil {
+		d, found, err := m.RoleDiscountLimit(ctx, q, property, codes)
+		if err != nil {
+			return limit, err
+		}
+		if found {
+			return d, nil
+		}
 	}
 	var best *decimal.Decimal
 	for _, c := range codes {
@@ -668,9 +679,9 @@ func discountLimit(ctx context.Context, q dbtx.Querier, property uuid.UUID, pol 
 		}
 	}
 	if best != nil {
-		return *best
+		return *best, nil
 	}
-	return limit
+	return limit, nil
 }
 
 func approvalStatusFor(pct, limit decimal.Decimal, approved *decimal.Decimal) string {
@@ -845,7 +856,10 @@ func (m *Module) CreateQuotation(ctx context.Context, tx pgx.Tx, property uuid.U
 	if err != nil {
 		return QuotationDetail{}, err
 	}
-	limit := discountLimit(ctx, tx, property, pol, actor(ctx))
+	limit, err := m.discountLimit(ctx, tx, property, pol, actor(ctx))
+	if err != nil {
+		return QuotationDetail{}, err
+	}
 	approvalStatus := approvalStatusFor(calc.discountPct, limit, nil)
 	number, err := yearlyNumber(ctx, tx, property, "QUO", today.Year())
 	if err != nil {
@@ -1202,7 +1216,11 @@ func (m *Module) UpdateQuotation(ctx context.Context, tx pgx.Tx, property, qid u
 	if s := approvedPercent(ctx, tx, qid); s != nil {
 		approved = s
 	}
-	approvalStatus := approvalStatusFor(calc.discountPct, discountLimit(ctx, tx, property, pol, actor(ctx)), approved)
+	limit, err := m.discountLimit(ctx, tx, property, pol, actor(ctx))
+	if err != nil {
+		return QuotationDetail{}, err
+	}
+	approvalStatus := approvalStatusFor(calc.discountPct, limit, approved)
 	var hdrPct *string
 	if calc.headerPct != nil {
 		s := calc.headerPct.String()

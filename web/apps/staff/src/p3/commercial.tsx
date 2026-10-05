@@ -7,6 +7,7 @@ import {
   useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
+import { DiscountLimitsPage } from './discount_limits';
 import type { AreaRoute, OpsRoute, OpsTile } from './types';
 
 // Promotions & Packages (PRD P3 EP-10–11) — Back Office screens, ops workstations.
@@ -722,6 +723,7 @@ export const COMMERCIAL_P3_ROUTES: AreaRoute[] = [
   { path: 'commercial/promotions', perm: 'commercial.promotion.view', element: <PromotionsPage /> },
   { path: 'commercial/pricing/discounts', perm: 'commercial.promotion.view', element: <DiscountsPage /> },
   { path: 'commercial/pricing/promo-codes', perm: 'commercial.promo_code.view', element: <PromoCodesPage /> },
+  { path: 'commercial/pricing/discount-limits', perm: 'commercial.pricing.view', element: <DiscountLimitsPage /> },
   { path: 'commercial/packages', perm: 'commercial.package.view', element: <PackagesPage /> },
   { path: 'commercial/package-bookings', perm: 'commercial.package_booking.view', element: <PackageBookingsPage /> },
 ];

@@ -17,7 +17,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
 
-	"oneclub/internal/crm/sales"
 	"oneclub/internal/inventory"
 )
 
@@ -261,7 +260,11 @@ func TestP4FixStockDiscountTiers(t *testing.T) {
 		}
 	}
 	limits, _ := def["manualDiscountLimits"].(map[string]any)
-	want := sales.DefaultRoleDiscountLimits()
+	// PRD P3 §16 #5 tiers (one table for the POS and the quotations, PO decision 4b)
+	want := map[string]string{"sales_executive": "5", "banquet_sales": "5", "cashier": "5", "pos_staff": "5", "marketing_staff": "5",
+		"crm_admin": "10", "membership_admin": "10", "golf_admin": "10",
+		"banquet_manager": "20", "event_manager": "20", "outlet_manager": "20", "membership_manager": "20", "golf_manager": "20",
+		"sport_club_manager": "20", "club_manager": "20", "resort_manager": "20", "general_manager": "100"}
 	if len(limits) != len(want) {
 		t.Fatalf("default POS tiers %v, want %v", limits, want)
 	}

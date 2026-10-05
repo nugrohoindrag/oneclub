@@ -217,7 +217,17 @@ func init() {
 		Description: "Approval before activation, selection between promotions, stacking ceiling, offline tolerance and promo code check limit",
 		Default:     DefaultPromotionPolicy})
 	rules.RegisterPolicy(rules.PolicyDef{Code: PolicyPricing, Category: "Pricing Policies", Name: "Peak periods & manual discount limits",
-		Description: "Peak seasons and hours (Peak / Off-Peak Rate), holidays as peak and the manual discount limit per role", Default: DefaultPricingPolicy})
+		Description: "Peak seasons and hours (Peak / Off-Peak Rate), holidays as peak and the manual discount limit per role (POS: supervisor " +
+			"override above it; quotations: discount approval above it)", Default: DefaultPricingPolicy,
+		Validate: func(raw json.RawMessage) []errs.FieldError {
+			var p struct {
+				ManualDiscountLimits map[string]string `json:"manualDiscountLimits"`
+			}
+			if json.Unmarshal(raw, &p) != nil {
+				return nil // the type check reports it
+			}
+			return ValidateDiscountLimits("value.manualDiscountLimits", p.ManualDiscountLimits)
+		}})
 	if !slices.Contains(rules.PolicyCategories, "Promotion Policies") {
 		rules.PolicyCategories = append(rules.PolicyCategories, "Promotion Policies")
 	}
@@ -252,12 +262,22 @@ func LoadPricingPolicy(ctx context.Context, q dbtx.Querier, property uuid.UUID) 
 // the given roles: the highest limit of the roles configured in the Pricing
 // Policies, def when none of the roles is configured.
 func ManualDiscountLimit(ctx context.Context, q dbtx.Querier, property uuid.UUID, roles []string, def decimal.Decimal) (decimal.Decimal, error) {
-	pol, _, err := LoadPricingPolicy(ctx, q, property)
-	if err != nil || len(pol.ManualDiscountLimits) == 0 {
+	limit, found, err := RoleDiscountLimit(ctx, q, property, roles)
+	if err != nil || !found {
 		return def, err
 	}
-	found := false
-	limit := decimal.Zero
+	return limit, nil
+}
+
+// RoleDiscountLimit is the highest manual discount limit (percent) of the
+// given roles in the Pricing Policies in force (PO decision 4b: one table
+// for the POS and the quotations); found is false when none of the roles
+// is listed.
+func RoleDiscountLimit(ctx context.Context, q dbtx.Querier, property uuid.UUID, roles []string) (limit decimal.Decimal, found bool, err error) {
+	pol, _, err := LoadPricingPolicy(ctx, q, property)
+	if err != nil {
+		return decimal.Zero, false, err
+	}
 	for _, r := range roles {
 		if v, ok := pol.ManualDiscountLimits[r]; ok {
 			d, err := decimal.NewFromString(v)
@@ -269,11 +289,32 @@ func ManualDiscountLimit(ctx context.Context, q dbtx.Querier, property uuid.UUID
 			}
 		}
 	}
-	if !found {
-		return def, nil
-	}
-	return limit, nil
+	return limit, found, nil
 }
+
+// ValidateDiscountLimits checks a role → percent map of a policy version:
+// role codes, and decimals from 0 to 100.
+func ValidateDiscountLimits(field string, limits map[string]string) []errs.FieldError {
+	var out []errs.FieldError
+	roles := make([]string, 0, len(limits))
+	for r := range limits {
+		roles = append(roles, r)
+	}
+	slices.Sort(roles)
+	for _, r := range roles {
+		if !roleCode.MatchString(r) {
+			out = append(out, errs.Field(field+"."+r, "invalid", "a role code (lower case letters, digits and _)"))
+			continue
+		}
+		d, err := decimal.NewFromString(strings.TrimSpace(limits[r]))
+		if err != nil || d.IsNegative() || d.GreaterThan(decimal.NewFromInt(100)) {
+			out = append(out, errs.Field(field+"."+r, "out_of_range", "a percentage from 0 to 100"))
+		}
+	}
+	return out
+}
+
+var roleCode = regexp.MustCompile(`^[a-z][a-z0-9_]{0,63}$`)
 
 // ── validation ────────────────────────────────────────────────────────────
 

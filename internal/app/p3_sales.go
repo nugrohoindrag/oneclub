@@ -72,7 +72,8 @@ func p3SalesTemplates() []provision.Template { return sales.Templates() }
 func (a *App) buildP3Sales(reg *route.Registry, cfg *config.Config, db *dbtx.DB, files *storage.Files) {
 	m := &sales.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Notify: a.Notification, Price: quotePrice,
 		WebsiteURL: func() string { return cfg.WebsiteURL }, StaffURL: func() string { return cfg.PublicBaseURL },
-		Integrations: a.Integrations, OTPKey: []byte(cfg.AppSecret), Logo: brandingLogo(files), BanquetTerms: banquetQuotationTerms}
+		Integrations: a.Integrations, OTPKey: []byte(cfg.AppSecret), Logo: brandingLogo(files), BanquetTerms: banquetQuotationTerms,
+		RoleDiscountLimit: commercial.RoleDiscountLimit}
 	m.Register(reg, a.Engine)
 	a.Approvals.RegisterDocumentType(sales.DiscountDocumentType, m.DiscountDecision)
 	a.Approvals.RegisterDocumentType(sales.StatementDocumentType, m.StatementDecision)

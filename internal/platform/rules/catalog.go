@@ -33,6 +33,9 @@ type PolicyDef struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Default     any    `json:"default"`
+	// Validate checks a new version beyond its type (ranges, codes); nil =
+	// the type check only.
+	Validate func(raw json.RawMessage) []errs.FieldError `json:"-"`
 }
 
 var (
@@ -103,6 +106,8 @@ func validatePolicy(code, category string, raw json.RawMessage) []errs.FieldErro
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(v); err != nil {
 		out = append(out, errs.Field("value", "invalid", strings.TrimPrefix(err.Error(), "json: ")))
+	} else if d.Validate != nil {
+		out = append(out, d.Validate(raw)...)
 	}
 	return out
 }

@@ -182,6 +182,7 @@ var Trees = map[string][]Item{
 				s("commercial-tax-service", "Tax & Service", "/settings/tax-service", "commercial.tax_service.view"),
 				s("discounts", "Discounts", "/commercial/pricing/discounts", "commercial.promotion.view"),
 				s("promo-codes", "Promo Codes", "/commercial/pricing/promo-codes", "commercial.promo_code.view"),
+				s("discount-limits", "Discount Limits", "/commercial/pricing/discount-limits", "commercial.pricing.view"), // PO decision 4b
 			),
 			s("promotions", "Promotions", "/commercial/promotions", "commercial.promotion.view"),
 			s("packages", "Packages", "/commercial/packages", "commercial.package.view",
@@ -336,6 +337,8 @@ var Trees = map[string][]Item{
 			s("feature-configuration", "Feature Configuration", "/settings/feature-configuration", "platform.feature_flag.view"),
 			s("business-rules", "Business Rules", "/settings/business-rules", "platform.business_rule.view"),
 			{Key: "pricing-rules-settings", Label: "Pricing Rules", Path: "/commercial/pricing/rules", Module: "commercial", Permission: "commercial.pricing.view"},
+			{Key: "discount-limits-settings", Label: "Discount Limits", Path: "/commercial/pricing/discount-limits", Module: "commercial",
+				Permission: "commercial.pricing.view"}, // PO decision 4b
 			s("club-policies", "Club Policies", "/settings/club-policies", "platform.club_policy.view"),
 			s("notifications", "Notifications", "/settings/notifications", "platform.notification_template.view"),
 			s("integrations", "Integrations", "/settings/integrations", "platform.integration.view"),

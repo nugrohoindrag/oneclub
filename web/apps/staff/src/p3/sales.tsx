@@ -675,7 +675,7 @@ function QuotationForm({ onClose, onDone, preset, quotation }: { onClose: () => 
           options={[{ value: 'nett', label: 'Nett (tax & service included)' }, { value: 'plus_plus', label: '++ (tax & service added)' }]} />
         <TextField label="Valid until" type="date" value={h.validUntil} onChange={setHead('validUntil')} help="Default: Sales Policies validity" />
         <TextField label="Discount on total (%)" type="number" value={h.discountPercent} onChange={setHead('discountPercent')}
-          help="Above the Sales Policies limit the discount needs approval" error={fe.discountPercent} />
+          help="Above the discount limit of your role (Commercial → Pricing → Discount Limits) the discount needs approval" error={fe.discountPercent} />
       </div>
       <h3>Lines</h3>
       {lines.map((l, i) => (
@@ -1115,7 +1115,7 @@ export function SalesSettingsPage() {
   const tab = params.get('tab') ?? SALES_MASTER[0].value;
   return (
     <div className="oc-stack">
-      <PageHeader title="Sales Settings" help="Pipelines and stages per business line, sales teams for round-robin assignment, targets and commission schemes. Lead SLA, discount limits and default commission rates are in Settings → Club Policies → Sales Policies."
+      <PageHeader title="Sales Settings" help="Pipelines and stages per business line, sales teams for round-robin assignment, targets and commission schemes. Lead SLA and default commission rates are in Settings → Club Policies → Sales Policies; discount limits per role in Commercial → Pricing → Discount Limits."
         actions={can('crm.pipeline.create') ? <ActionButton label="Add default pipelines" path="/api/v1/crm/pipelines:seed-defaults" invalidate={CRM} /> : undefined} />
       <Tabs tabs={SALES_MASTER} value={tab} onChange={(v) => setParams({ tab: v })} />
       <AutoResourcePage key={tab} resourceKey={tab} />

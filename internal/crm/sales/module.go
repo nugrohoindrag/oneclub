@@ -92,6 +92,10 @@ type Module struct {
 	// the default terms of wedding / banquet / MICE / event quotations
 	// (FR-QUO-08); internal/app wires it (crm cannot import banquet).
 	BanquetTerms func(ctx context.Context, q dbtx.Querier, property uuid.UUID) (string, error)
+	// RoleDiscountLimit returns the highest manual discount limit (%) of the
+	// roles in the Pricing Policies (found = a role is listed); internal/app
+	// wires commercial (PO decision 4b: one table for POS and quotations).
+	RoleDiscountLimit func(ctx context.Context, q dbtx.Querier, property uuid.UUID, roles []string) (decimal.Decimal, bool, error)
 }
 
 // Document types of the approval engine.
@@ -131,7 +135,7 @@ type SalesPolicy struct {
 	QuotationValidityDays int               `json:"quotationValidityDays"`
 	OptionDays            int               `json:"optionDays" doc:"Option date of a tentative venue hold = today + N days"`
 	MaxDiscountPercent    string            `json:"maxDiscountPercent" doc:"A quotation discount above this needs approval"`
-	RoleDiscountLimits    map[string]string `json:"roleDiscountLimits" doc:"Role code → own discount limit (%) — the highest limit of the sender applies"`
+	RoleDiscountLimits    map[string]string `json:"roleDiscountLimits" doc:"Legacy: role code → own discount limit (%) for roles not listed in the manual discount limits of the Pricing Policies (which apply first, PO decision 4b); empty by default"`
 	PricingMode           string            `json:"pricingMode" doc:"nett | plus_plus for manually priced lines"`
 	TaxCodes              []string          `json:"taxCodes" doc:"Tax & service rule codes applied to manually priced lines (empty: prices are final)"`
 	DefaultPaymentTerms   []PaymentTermRule `json:"defaultPaymentTerms"`
@@ -152,18 +156,6 @@ type SalesPolicy struct {
 
 func intp(n int) *int { return &n }
 
-// DefaultRoleDiscountLimits are the discount limits per role of PRD P3 §16
-// #5: staff (sales, cashier) 5%, supervisors / admins 10%, outlet and sales
-// managers 20%; above 20% (or complimentary) the General Manager approves,
-// so the General Manager's own quotations need no approval. Roles not
-// listed keep the general limit (MaxDiscountPercent).
-func DefaultRoleDiscountLimits() map[string]string {
-	return map[string]string{"sales_executive": "5", "banquet_sales": "5", "cashier": "5", "pos_staff": "5", "marketing_staff": "5",
-		"crm_admin": "10", "membership_admin": "10", "golf_admin": "10",
-		"banquet_manager": "20", "event_manager": "20", "outlet_manager": "20", "membership_manager": "20", "golf_manager": "20",
-		"sport_club_manager": "20", "club_manager": "20", "resort_manager": "20", "general_manager": "100"}
-}
-
 // NewDefaultPolicy returns the Sales Policies defaults (PRD P3 §16 #3, #4,
 // #5 and the EP-03 AC). A fresh value is built on every call: decoding a
 // configured policy into shared maps or slices would change the defaults
@@ -172,7 +164,7 @@ func NewDefaultPolicy() SalesPolicy {
 	return SalesPolicy{
 		AssignmentMode: "round_robin", FixedAssignees: map[string]string{}, FirstResponseMinutes: 60, LineResponseMinutes: map[string]int{},
 		SLAReminderMinutes: 15, BusinessHoursStart: "08:00", BusinessHoursEnd: "20:00", AfterHoursDueTime: "09:00",
-		QuotationValidityDays: 14, OptionDays: 7, MaxDiscountPercent: "10", RoleDiscountLimits: DefaultRoleDiscountLimits(), PricingMode: "plus_plus",
+		QuotationValidityDays: 14, OptionDays: 7, MaxDiscountPercent: "10", RoleDiscountLimits: map[string]string{}, PricingMode: "plus_plus",
 		TaxCodes: []string{},
 		DefaultPaymentTerms: []PaymentTermRule{{Label: "Down Payment 30%", Percent: "30", DueDays: intp(7)},
 			{Label: "Final Payment", Percent: "70", DaysBeforeEvent: intp(7)}},
