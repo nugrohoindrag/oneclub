@@ -162,20 +162,55 @@ P1–P2 financial events reused by P4 (K8): `billing.payment_settled`, `billing.
   "lines": [{ "itemId": "uuid", "quantity": "-1.5", "unitCost": "0", "totalCost": "0", "consignment": false }] }
 ```
 Quantities are signed (in > 0, out < 0) in base UOM; cost uses the valuation method of the item (average or FIFO).
+Additive fields (inventory): `warehouseCode`, `counterWarehouseId` (the other side of a transfer), `outletId`, `reason`,
+`reversalOf` (a reversal repeats the original type with the opposite sign), and per line `itemCode`, `batchId`. A stock opname
+variance posts `movementType: opname`; waste `waste`; a shipped − received transfer difference an `adjustment` of the transit
+warehouse with `reason: transfer_discrepancy`. Consignment lines (`consignment: true`) carry no cost.
 
 ### `inventory.reorder_needed` — consumed by procurement (automatic Purchase Requisition)
 `{ warehouseId, items: [{ itemId, onHand, reorderPoint, parLevel, suggestedQuantity, uomId, preferredSupplierId? }] }`
+Additive (inventory): `source: reorder | requisition`, `businessDate` (reorder job: one event per warehouse and day, never
+duplicated), `requisitionId` / `requisitionNumber` (a store requisition the store cannot supply), per item `itemCode`, `onOrder`.
+Goods receipts of the warehouse close the open requests ("on order").
 
 ### `inventory.asset_depreciated`
 `{ runId, period: "2026-10", lines: [{ assetId, assetCode, category, amount }], total, currency }`
+Additive (inventory): `number`, `periodEnd`.
+
+### `inventory.asset_disposed` (additive, inventory) — for accounting (disposal journal)
+`{ assetId, assetCode, name, assetClass, category, disposedOn, acquisitionCost, accumulatedDepreciation, bookValue, proceeds, currency, reason }`
+Published when the disposal is approved (approval document type `asset_disposal`).
 
 ### `inventory.consignment_sold`
 `{ supplierId, itemId, quantity, unitCost, totalCost, currency, sourceType, sourceId }`
+Additive (inventory): `movementId`, `salesAmount`, `commissionAmount` (club commission of the item), `businessDate`;
+`totalCost` is the amount payable to the supplier (sales − commission). Monthly settlements:
+`POST /api/v1/inventory/consignment-settlements`.
+
+### Consumed by inventory (EP-06, FR-PRD-05)
+| Event | Use |
+|---|---|
+| `commercial.sale_completed` (K7) | consumption of the outlet warehouse (`inventory.warehouses.outlet_id`) per recipe / retail item 1:1 / combo + modifiers; idempotent per order |
+| `commercial.package_consumed`, `banquet.event_completed` (K6) | consumption of `consumption[]` (base UOM) at the outlet warehouse, else the configured package / banquet warehouse |
+| `golf.round_finished` | service BOM `golf.round[.<holes>]` × checked-in players (`reporting.golf_rounds`; an optional `players` count is accepted when the flight has none) at the Golf Ops warehouse |
+| `banquet.beo_issued`, `banquet.beo_revised` (K1) | draft production orders for the semi-finished items of the menu recipes × pax (revision replaces the drafts) |
+| `procurement.goods_received`, `procurement.purchase_returned` | receipt / return_out at the base unit cost |
+| `procurement.invoice_price_variance` (proposed, additive) | FR-VAL-06 / FR-VAL-03: revaluation of a receipt whose invoiced (or landed) base cost differs |
+Unknown items / warehouses become `inventory.posting_exceptions` (never block the outbox). Late events dated in a closed
+accounting period post on the current business day.
 
 ### `procurement.goods_received` — consumed by inventory (stock receipt into `warehouseId`) and accounting (GRNI)
 `{ goodsReceiptId, number, purchaseOrderId, poNumber, supplierId, warehouseId, receivedDate, currency, total,
    lines: [{ itemId, quantity, uomId, baseQuantity, unitCost, baseUnitCost, totalCost, taxCode?, batchNo?, expiryDate?, serialNos?: [] }] }`
 (`quantity`/`unitCost` in the purchase UOM, `baseQuantity`/`baseUnitCost` in the item's base UOM; inventory posts the base figures)
+
+### `procurement.invoice_price_variance` (proposed by inventory, additive) — published by 3-way matching when the invoiced base cost of received goods differs (also landed cost allocated after the receipt)
+`{ vendorInvoiceId, number, goodsReceiptId, warehouseId, lines: [{ itemId, invoicedBaseUnitCost }] }`
+Inventory revalues the received quantity still in stock (value-only `adjustment` with `sourceType: revaluation`, once per invoice ×
+receipt) and publishes `inventory.revaluation_posted`
+`{ vendorInvoiceId, number, goodsReceiptId, warehouseId, movementId?, consumedTo: cogs|price_variance, currency,
+   lines: [{ itemId, receivedQuantity, inStockQuantity, consumedQuantity, receivedUnitCost, invoicedUnitCost, stockAmount, consumedAmount }] }`
+(the consumed part is for accounting: COGS or price variance per Inventory Configuration).
 
 ### `procurement.purchase_returned` — consumed by inventory (stock out) and accounting
 `{ purchaseReturnId, number, goodsReceiptId, supplierId, warehouseId, currency, total, lines: [{ itemId, baseQuantity, baseUnitCost, totalCost, batchNo? }] }`
@@ -207,8 +242,10 @@ Published by `cms` (EP-24) when content goes live / comes down (also by the sche
 | Contract | Provider | Shape |
 |---|---|---|
 | K5 public data for CMS blocks | commercial, banquet, golf/tournament, golf, stay | `GET /api/v1/public/promotions`, `/public/packages`, `/public/packages/{code}`, `/public/events`, `/public/events/{id}`, `/public/tournaments`, `/public/tournaments/{id}`, `/public/tournaments/{id}/leaderboard`, `/public/rates/{line}`, `/public/hall-of-fame` |
-| K9 stock availability | inventory | view `reporting.stock_availability (property_id, warehouse_id, item_id, product_id, on_hand, available, below_reorder)` |
 | K5 consumer | cms | CMS data blocks store only `{source, filter, limit}`; `GET /api/v1/public/cms/pages/{slug}` returns per block `data: {source, owner, endpoint, query, url}` and the website reads the owner's endpoint above (a 404 / missing endpoint renders an empty block). Golf rates: `/api/v1/public/golf/rates?property=<code>`; other lines `/api/v1/public/rates/{line}?propertyId=` |
 | e-Faktur transport (FR-INT-P4-02) | platform/integration | `(*integration.Service).TaxInvoices(ctx) (integration.TaxInvoiceService, code, error)`: `SubmitInvoice`, `InvoiceStatus`, `CancelInvoice`, `UploadBatch(TaxInvoiceBatch{BatchRef, Period, Format: coretax_xml\|efaktur_csv, Filename, Content, InvoiceCount})`, `BatchStatus`; `ErrNotConfigured` → manual upload of the export file |
+| K9 stock availability | inventory | view `reporting.stock_availability (property_id, warehouse_id, item_id, product_id, on_hand, available, below_reorder)`; additive column `outlet_id` |
 | K10 period status | accounting | root function `accounting.PeriodStatus(ctx, q, property, date) (string, error)` and `accounting.period_closed` |
+| K10 in inventory | internal/app | `inventory.Stock.SetPeriodGuard(accounting.PeriodStatus)` (nil = every period open): documents dated in a closed period are refused, automatic postings move to today |
+| Procurement → inventory reads | inventory | root functions `inventory.ProcurementItemByID`, `inventory.ProcurementConvert`, `inventory.ProcurementToBase` (internal/inventory/procurement_api.go) |
 | Recipe explosion (K1/K6) | inventory | root function `inventory.ExplodeRecipe(ctx, q, recipeID, units) ([]inventory.Requirement, error)` |

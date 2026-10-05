@@ -297,6 +297,8 @@ func TestP2GolfRound(t *testing.T) {
 		return dec(s)
 	}
 	half := fee.Div(decimal.NewFromInt(2))
+	// The round_finished event may still be held by the background dispatcher.
+	waitFor(t, 10*time.Second, "caddy fee shares", func() bool { dispatch(t); return !share(c1).IsZero() })
 	if !share(c1).Equal(half) || !share(c3).Equal(half) {
 		t.Fatalf("caddy fee split of %s: c1=%s c3=%s", fee, share(c1), share(c3))
 	}

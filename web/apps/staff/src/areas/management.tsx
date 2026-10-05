@@ -2,7 +2,7 @@ import { useRoutes } from 'react-router';
 import { ComingSoonPage, NotFoundPage, NotificationsPage, ProfilePage, TopNavLayout } from '@oneclub/shell';
 import { ExecutiveOverviewPage } from '../pages';
 import { BookingPerformancePage, GolfPerformancePage, MembershipPerformancePage } from '../p1/business';
-import { P2_MANAGEMENT_ROUTES } from '../p2';
+import { KPIDashboardPage, P2_MANAGEMENT_ROUTES } from '../p2';
 
 /** Management Dashboard area (`/management`): KPI dashboards with top pill navigation. */
 const routes = [
@@ -14,6 +14,7 @@ const routes = [
       { path: 'membership', element: <MembershipPerformancePage /> },
       { path: 'booking', element: <BookingPerformancePage /> },
       ...P2_MANAGEMENT_ROUTES,
+      { path: 'inventory-performance', element: <KPIDashboardPage code="inventory-performance" /> },
       { path: 'financial', element: <ComingSoonPage title="Financial Performance" phase="P4" /> },
       { path: 'profile', element: <ProfilePage /> },
       { path: 'notifications', element: <NotificationsPage /> },

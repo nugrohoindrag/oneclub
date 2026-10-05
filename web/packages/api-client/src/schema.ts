@@ -9700,6 +9700,391 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/inventory/adjustments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock Adjustments */
+        get: operations["getInventoryAdjustments"];
+        put?: never;
+        /** Create Stock Adjustment with reason */
+        post: operations["postInventoryAdjustments"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/adjustments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock Adjustment with lines */
+        get: operations["getInventoryAdjustmentsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/adjustments/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a draft or pending adjustment */
+        post: operations["postInventoryAdjustmentsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/adjustments/{id}:submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit: posted, through approval above the threshold */
+        post: operations["postInventoryAdjustmentsByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/asset-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Asset Categories */
+        get: operations["getInventoryAssetCategories"];
+        put?: never;
+        /** Add Asset Category */
+        post: operations["postInventoryAssetCategories"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/asset-categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Asset Category */
+        get: operations["getInventoryAssetCategoriesById"];
+        put?: never;
+        post?: never;
+        /** Delete Asset Category (only when unused; otherwise set Inactive) */
+        delete: operations["deleteInventoryAssetCategoriesById"];
+        options?: never;
+        head?: never;
+        /** Edit Asset Category */
+        patch: operations["patchInventoryAssetCategoriesById"];
+        trace?: never;
+    };
+    "/api/v1/inventory/asset-categories:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Asset Categories (CSV/XLSX) */
+        get: operations["getInventoryAssetCategoriesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Assets & Equipment */
+        get: operations["getInventoryAssets"];
+        put?: never;
+        /** Add Asset */
+        post: operations["postInventoryAssets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/assets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Asset */
+        get: operations["getInventoryAssetsById"];
+        put?: never;
+        post?: never;
+        /** Delete Asset (only when unused; otherwise set Inactive) */
+        delete: operations["deleteInventoryAssetsById"];
+        options?: never;
+        head?: never;
+        /** Edit Asset */
+        patch: operations["patchInventoryAssetsById"];
+        trace?: never;
+    };
+    "/api/v1/inventory/assets/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Usage, maintenance, spare part and depreciation history */
+        get: operations["getInventoryAssetsByIdHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/assets/{id}:checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rental equipment out */
+        post: operations["postInventoryAssetsByIdCheckout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/assets/{id}:dispose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dispose / write off (approval) */
+        post: operations["postInventoryAssetsByIdDispose"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/assets/{id}:record-usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record operating hours */
+        post: operations["postInventoryAssetsByIdRecordUsage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/assets/{id}:return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rental equipment back */
+        post: operations["postInventoryAssetsByIdReturn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/assets:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Assets & Equipment (CSV/XLSX) */
+        get: operations["getInventoryAssetsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/barcodes/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scan: item, UOM and stock of an item or carton barcode */
+        get: operations["getInventoryBarcodesByCode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Categories */
+        get: operations["getInventoryCategories"];
+        put?: never;
+        /** Add Item Category */
+        post: operations["postInventoryCategories"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Item Category */
+        get: operations["getInventoryCategoriesById"];
+        put?: never;
+        post?: never;
+        /** Delete Item Category (only when unused; otherwise set Inactive) */
+        delete: operations["deleteInventoryCategoriesById"];
+        options?: never;
+        head?: never;
+        /** Edit Item Category */
+        patch: operations["patchInventoryCategoriesById"];
+        trace?: never;
+    };
+    "/api/v1/inventory/categories:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Categories (CSV/XLSX) */
+        get: operations["getInventoryCategoriesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/consignment-movements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Receive or return consignment stock (no value) */
+        post: operations["postInventoryConsignmentMovements"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/consignment-settlements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Monthly consignment settlement per supplier (sales, club commission, payable) */
+        get: operations["getInventoryConsignmentSettlements"];
+        put?: never;
+        /** Issue the monthly settlement of a supplier (AP basis) */
+        post: operations["postInventoryConsignmentSettlements"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/consignment-stock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consignment stock per supplier (supplier-owned) */
+        get: operations["getInventoryConsignmentStock"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/inventory/consumption": {
         parameters: {
             query?: never;
@@ -9717,6 +10102,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/inventory/consumption-variance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Theoretical vs Actual consumption per outlet warehouse */
+        get: operations["getInventoryConsumptionVariance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/depreciation-runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Monthly depreciation runs */
+        get: operations["getInventoryDepreciationRuns"];
+        put?: never;
+        /** Post the depreciation of a month (inventory.asset_depreciated) */
+        post: operations["postInventoryDepreciationRuns"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/depreciation-runs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Depreciation run with lines */
+        get: operations["getInventoryDepreciationRunsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/expiry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Batches in stock expiring within N days (expired included) */
+        get: operations["getInventoryExpiry"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/inventory/food-cost": {
         parameters: {
             query?: never;
@@ -9726,6 +10180,77 @@ export interface paths {
         };
         /** Theoretical Food Cost / COGS per menu item or outlet */
         get: operations["getInventoryFoodCost"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/issues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue Stock to a department / cost center with reason (FR-STK-03) */
+        post: operations["postInventoryIssues"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/item-barcodes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Item Barcodes */
+        get: operations["getInventoryItemBarcodes"];
+        put?: never;
+        /** Add Item Barcode */
+        post: operations["postInventoryItemBarcodes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/item-barcodes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Item Barcode */
+        get: operations["getInventoryItemBarcodesById"];
+        put?: never;
+        post?: never;
+        /** Delete Item Barcode (only when unused; otherwise set Inactive) */
+        delete: operations["deleteInventoryItemBarcodesById"];
+        options?: never;
+        head?: never;
+        /** Edit Item Barcode */
+        patch: operations["patchInventoryItemBarcodesById"];
+        trace?: never;
+    };
+    "/api/v1/inventory/item-barcodes:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Item Barcodes (CSV/XLSX) */
+        get: operations["getInventoryItemBarcodesExport"];
         put?: never;
         post?: never;
         delete?: never;
@@ -9788,6 +10313,217 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/inventory/locations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Stock Locations */
+        get: operations["getInventoryLocations"];
+        put?: never;
+        /** Add Stock Location */
+        post: operations["postInventoryLocations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/locations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Stock Location */
+        get: operations["getInventoryLocationsById"];
+        put?: never;
+        post?: never;
+        /** Delete Stock Location (only when unused; otherwise set Inactive) */
+        delete: operations["deleteInventoryLocationsById"];
+        options?: never;
+        head?: never;
+        /** Edit Stock Location */
+        patch: operations["patchInventoryLocationsById"];
+        trace?: never;
+    };
+    "/api/v1/inventory/locations:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Stock Locations (CSV/XLSX) */
+        get: operations["getInventoryLocationsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/maintenance-due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Maintenance schedules with their due state */
+        get: operations["getInventoryMaintenanceDue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/maintenance-records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Maintenance work orders */
+        get: operations["getInventoryMaintenanceRecords"];
+        put?: never;
+        /** Open a maintenance work order */
+        post: operations["postInventoryMaintenanceRecords"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/maintenance-records/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Maintenance work order */
+        get: operations["getInventoryMaintenanceRecordsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/maintenance-records/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a work order */
+        post: operations["postInventoryMaintenanceRecordsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/maintenance-records/{id}:complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete with costs; spare parts are issued from the Engineering store */
+        post: operations["postInventoryMaintenanceRecordsByIdComplete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/maintenance-records/{id}:start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start: the asset is in maintenance */
+        post: operations["postInventoryMaintenanceRecordsByIdStart"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/maintenance-schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Maintenance Schedules */
+        get: operations["getInventoryMaintenanceSchedules"];
+        put?: never;
+        /** Add Maintenance Schedule */
+        post: operations["postInventoryMaintenanceSchedules"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/maintenance-schedules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Maintenance Schedule */
+        get: operations["getInventoryMaintenanceSchedulesById"];
+        put?: never;
+        post?: never;
+        /** Delete Maintenance Schedule (only when unused; otherwise set Inactive) */
+        delete: operations["deleteInventoryMaintenanceSchedulesById"];
+        options?: never;
+        head?: never;
+        /** Edit Maintenance Schedule */
+        patch: operations["patchInventoryMaintenanceSchedulesById"];
+        trace?: never;
+    };
+    "/api/v1/inventory/maintenance-schedules:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Maintenance Schedules (CSV/XLSX) */
+        get: operations["getInventoryMaintenanceSchedulesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/inventory/modifier-impacts": {
         parameters: {
             query?: never;
@@ -9836,6 +10572,197 @@ export interface paths {
         get: operations["getInventoryModifierImpactsExport"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/opening-stock:import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import opening stock per warehouse with value (preview / commit) */
+        post: operations["postInventoryOpeningStockImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/par-stocks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Par Stock */
+        get: operations["getInventoryParStocks"];
+        put?: never;
+        /** Add Par Stock */
+        post: operations["postInventoryParStocks"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/par-stocks/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Par Stock */
+        get: operations["getInventoryParStocksById"];
+        put?: never;
+        post?: never;
+        /** Delete Par Stock (only when unused; otherwise set Inactive) */
+        delete: operations["deleteInventoryParStocksById"];
+        options?: never;
+        head?: never;
+        /** Edit Par Stock */
+        patch: operations["patchInventoryParStocksById"];
+        trace?: never;
+    };
+    "/api/v1/inventory/par-stocks:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Par Stock (CSV/XLSX) */
+        get: operations["getInventoryParStocksExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/pick-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** FEFO pick suggestion (first expired, first out) */
+        get: operations["getInventoryPickSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/posting-exceptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Automatic postings that need attention */
+        get: operations["getInventoryPostingExceptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/posting-exceptions/{id}:resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve a posting exception */
+        post: operations["postInventoryPostingExceptionsByIdResolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/production-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Production Orders (semi-finished items) */
+        get: operations["getInventoryProductionOrders"];
+        put?: never;
+        /** Create Production Order */
+        post: operations["postInventoryProductionOrders"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/production-orders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Production Order with ingredients */
+        get: operations["getInventoryProductionOrdersById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/production-orders/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a draft production order */
+        post: operations["postInventoryProductionOrdersByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/production-orders/{id}:complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete: ingredients out, output in with actual yield at ingredient cost */
+        post: operations["postInventoryProductionOrdersByIdComplete"];
         delete?: never;
         options?: never;
         head?: never;
@@ -9967,6 +10894,576 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/inventory/reorder-points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Reorder Points */
+        get: operations["getInventoryReorderPoints"];
+        put?: never;
+        /** Add Reorder Point */
+        post: operations["postInventoryReorderPoints"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/reorder-points/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Reorder Point */
+        get: operations["getInventoryReorderPointsById"];
+        put?: never;
+        post?: never;
+        /** Delete Reorder Point (only when unused; otherwise set Inactive) */
+        delete: operations["deleteInventoryReorderPointsById"];
+        options?: never;
+        head?: never;
+        /** Edit Reorder Point */
+        patch: operations["patchInventoryReorderPointsById"];
+        trace?: never;
+    };
+    "/api/v1/inventory/reorder-points:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Reorder Points (CSV/XLSX) */
+        get: operations["getInventoryReorderPointsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/replenishment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Replenishment suggestions (below reorder point / par) */
+        get: operations["getInventoryReplenishment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/replenishment:run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run replenishment now: automatic PR (once per day) and outlet requisitions */
+        post: operations["postInventoryReplenishmentRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/requisitions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Store Requisitions (incl. issues and spare part requests) */
+        get: operations["getInventoryRequisitions"];
+        put?: never;
+        /** Create Store Requisition (outlet / kitchen → store) */
+        post: operations["postInventoryRequisitions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/requisitions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Store Requisition with lines and fulfilments */
+        get: operations["getInventoryRequisitionsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/requisitions/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel (a partially issued requisition is closed) */
+        post: operations["postInventoryRequisitionsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/requisitions/{id}:fulfill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue (part of) an approved requisition */
+        post: operations["postInventoryRequisitionsByIdFulfill"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/requisitions/{id}:request-purchase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request a Purchase Requisition for what the store cannot supply (inventory.reorder_needed) */
+        post: operations["postInventoryRequisitionsByIdRequestPurchase"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/requisitions/{id}:submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit (approval per Inventory Policies) */
+        post: operations["postInventoryRequisitionsByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/slow-moving": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Items in stock without outbound movement for N days */
+        get: operations["getInventorySlowMoving"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/spare-part-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Spare Part Request for an asset (Golf Staff, FR-OPS-P4-03) */
+        post: operations["postInventorySparePartRequests"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/stock-balances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock Balance per warehouse × item (× batch) with value */
+        get: operations["getInventoryStockBalances"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/stock-card": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock card of an item in a warehouse (balance = Σ movements) */
+        get: operations["getInventoryStockCard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/stock-movements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock Movement ledger (append-only) */
+        get: operations["getInventoryStockMovements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/stock-movements/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock movement with lines */
+        get: operations["getInventoryStockMovementsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/stock-movements/{id}:reverse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reverse a consumption, issue or waste at the same cost (refund restock, FR-CNS-02) */
+        post: operations["postInventoryStockMovementsByIdReverse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/stock-opnames": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock Opnames */
+        get: operations["getInventoryStockOpnames"];
+        put?: never;
+        /** Start Stock Opname (snapshot; freeze or cut-off) */
+        post: operations["postInventoryStockOpnames"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/stock-opnames/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock Opname with its count sheet (blind while counting) */
+        get: operations["getInventoryStockOpnamesById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/stock-opnames/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel an open stock opname */
+        post: operations["postInventoryStockOpnamesByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/stock-opnames/{id}:count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record counts (barcode; offline sync with Idempotency-Key) */
+        post: operations["postInventoryStockOpnamesByIdCount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/stock-opnames/{id}:post": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post the variance (approval above tolerance) */
+        post: operations["postInventoryStockOpnamesByIdPost"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/stock-opnames/{id}:recount": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recount lines above tolerance (back to In Progress) */
+        post: operations["postInventoryStockOpnamesByIdRecount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/stock-opnames/{id}:submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close the count: variance per line (Counted) */
+        post: operations["postInventoryStockOpnamesByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/supplier-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Supplier Items */
+        get: operations["getInventorySupplierItems"];
+        put?: never;
+        /** Add Supplier Item */
+        post: operations["postInventorySupplierItems"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/supplier-items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Supplier Item */
+        get: operations["getInventorySupplierItemsById"];
+        put?: never;
+        post?: never;
+        /** Delete Supplier Item (only when unused; otherwise set Inactive) */
+        delete: operations["deleteInventorySupplierItemsById"];
+        options?: never;
+        head?: never;
+        /** Edit Supplier Item */
+        patch: operations["patchInventorySupplierItemsById"];
+        trace?: never;
+    };
+    "/api/v1/inventory/supplier-items:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Supplier Items (CSV/XLSX) */
+        get: operations["getInventorySupplierItemsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/transfers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock Transfers */
+        get: operations["getInventoryTransfers"];
+        put?: never;
+        /** Create Stock Transfer */
+        post: operations["postInventoryTransfers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/transfers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock Transfer with lines */
+        get: operations["getInventoryTransfersById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/transfers/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a draft transfer */
+        post: operations["postInventoryTransfersByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/transfers/{id}:receive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Receive; shipped − received differences are recorded */
+        post: operations["postInventoryTransfersByIdReceive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/transfers/{id}:ship": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ship (In Transit) */
+        post: operations["postInventoryTransfersByIdShip"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/inventory/uom-conversions": {
         parameters: {
             query?: never;
@@ -10067,6 +11564,112 @@ export interface paths {
         };
         /** Export UOM (CSV/XLSX) */
         get: operations["getInventoryUomsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/valuation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stock Valuation as of a date (= GL inventory account) */
+        get: operations["getInventoryValuation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/warehouses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Warehouses */
+        get: operations["getInventoryWarehouses"];
+        put?: never;
+        /** Add Warehouse */
+        post: operations["postInventoryWarehouses"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/warehouses/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Warehouse */
+        get: operations["getInventoryWarehousesById"];
+        put?: never;
+        post?: never;
+        /** Delete Warehouse (only when unused; otherwise set Inactive) */
+        delete: operations["deleteInventoryWarehousesById"];
+        options?: never;
+        head?: never;
+        /** Edit Warehouse */
+        patch: operations["patchInventoryWarehousesById"];
+        trace?: never;
+    };
+    "/api/v1/inventory/warehouses:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Warehouses (CSV/XLSX) */
+        get: operations["getInventoryWarehousesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/waste": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Waste / Spoilage records */
+        get: operations["getInventoryWaste"];
+        put?: never;
+        /** Record Waste / Spoilage with reason */
+        post: operations["postInventoryWaste"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/inventory/waste/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Waste record with lines */
+        get: operations["getInventoryWasteById"];
         put?: never;
         post?: never;
         delete?: never;
@@ -16646,6 +18249,50 @@ export interface components {
              */
             promotionId?: string | null;
         };
+        AssetDepreciationLine: {
+            accumulatedAfter: string;
+            amount: string;
+            assetCode: string;
+            /** Format: uuid */
+            assetId: string;
+            assetName: string;
+            bookValueAfter: string;
+            category: string;
+            period: string;
+            /** Format: uuid */
+            runId: string;
+        };
+        AssetDepreciationRun: {
+            assets: number;
+            currency: string;
+            /** Format: uuid */
+            id: string;
+            lines?: components["schemas"]["AssetDepreciationLine"][];
+            number: string;
+            period: string;
+            /** Format: date-time */
+            postedAt: string;
+            /** @enum {string} */
+            status: "posted";
+            total: string;
+        };
+        AssetDisposeInput: {
+            /** @description YYYY-MM-DD (default today) */
+            disposedOn?: string;
+            /** @description Sale proceeds (0 = write-off) */
+            proceeds?: string;
+            reason: string;
+        };
+        AssetHistory: {
+            asset: components["schemas"]["AssetSummary"];
+            depreciation: components["schemas"]["AssetDepreciationLine"][];
+            /** @description Hours out of the linked P2 golf cart */
+            golfCartHours: string;
+            maintenance: components["schemas"]["AssetMaintenanceRecord"][];
+            schedules: components["schemas"]["AssetMaintenanceDue"][];
+            spareParts: components["schemas"]["StockMovementLine"][];
+            usages: components["schemas"]["AssetUsage"][];
+        };
         AssetInfo: {
             assetType: string;
             code: string;
@@ -16653,6 +18300,128 @@ export interface components {
             /** Format: uuid */
             holeId?: string | null;
             name: string;
+        };
+        AssetMaintenanceCompleteInput: {
+            laborCost?: string;
+            notes?: string;
+            /** @description Spare parts used: issued from stock to the asset */
+            spareParts?: components["schemas"]["StockLineInput"][];
+            vendorCost?: string;
+            /**
+             * Format: uuid
+             * @description Store issuing the spare parts (default Inventory Configuration spare part warehouse)
+             */
+            warehouseId?: string | null;
+        };
+        AssetMaintenanceDue: {
+            assetCode: string;
+            /** Format: uuid */
+            assetId: string;
+            assetName: string;
+            due: boolean;
+            hoursSince: string;
+            /** Format: uuid */
+            id: string;
+            intervalHours?: string | null;
+            name: string;
+            nextDueOn?: string | null;
+            triggerType: string;
+        };
+        AssetMaintenanceInput: {
+            /** Format: uuid */
+            assetId: string;
+            description: string;
+            /** @enum {string} */
+            maintenanceType?: "preventive" | "corrective" | "inspection";
+            notes?: string;
+            /** Format: uuid */
+            scheduleId?: string | null;
+            /** @description YYYY-MM-DD */
+            scheduledOn?: string;
+        };
+        AssetMaintenanceRecord: {
+            assetCode: string;
+            /** Format: uuid */
+            assetId: string;
+            assetName: string;
+            /** Format: date-time */
+            completedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            description: string;
+            /** Format: uuid */
+            id: string;
+            laborCost: string;
+            /** @enum {string} */
+            maintenanceType: "preventive" | "corrective" | "inspection";
+            notes?: string | null;
+            number: string;
+            partsCost: string;
+            /** Format: uuid */
+            requisitionId?: string | null;
+            /** Format: uuid */
+            scheduleId?: string | null;
+            scheduledOn?: string | null;
+            /** Format: date-time */
+            startedAt?: string | null;
+            /** @enum {string} */
+            status: "open" | "in_progress" | "completed" | "cancelled";
+            totalCost: string;
+            usageHoursAt?: string | null;
+            vendorCost: string;
+        };
+        AssetRentalInput: {
+            /** @description Customer / member / booking reference */
+            customerRef?: string;
+            notes?: string;
+            reference?: string;
+        };
+        AssetSummary: {
+            accumulatedDepreciation: string;
+            acquisitionCost: string;
+            assetClass: string;
+            bookValue: string;
+            category: string;
+            /** Format: uuid */
+            categoryId: string;
+            code: string;
+            /** Format: uuid */
+            disposalApprovalId?: string | null;
+            disposalReason?: string | null;
+            disposedOn?: string | null;
+            /** Format: uuid */
+            golfCartRef?: string | null;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            rentable: boolean;
+            /** @enum {string} */
+            rentalStatus: "available" | "out";
+            /** @enum {string} */
+            status: "active" | "maintenance" | "out_of_service" | "disposed";
+            usageHours: string;
+        };
+        AssetUsage: {
+            customerRef?: string | null;
+            /** Format: date-time */
+            endedAt?: string | null;
+            hours?: string | null;
+            /** Format: uuid */
+            id: string;
+            notes?: string | null;
+            reference?: string | null;
+            /** Format: date-time */
+            startedAt: string;
+            /** @enum {string} */
+            usageType: "rental" | "operation";
+        };
+        AssetUsageInput: {
+            /** @description Operating hours */
+            hours: string;
+            notes?: string;
+            reference?: string;
+            /** @description RFC 3339 (default now − hours) */
+            startedAt?: string;
         };
         AssignBayInput: {
             /** Format: uuid */
@@ -16828,6 +18597,25 @@ export interface components {
             status: string;
             typeName: string;
             unit: string;
+        };
+        BarcodeLookup: {
+            balances: components["schemas"]["StockBalanceRow"][];
+            barcode: string;
+            /** @description Stock units per scanned unit */
+            baseFactor: string;
+            baseUom: string;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            /** @description batch, serial, expiry */
+            tracking: string[];
+            uom: string;
+            /**
+             * Format: uuid
+             * @description UOM of the barcode (a carton barcode counts cartons)
+             */
+            uomId: string;
         };
         Behavior: {
             facts: Record<string, never>;
@@ -20347,6 +22135,15 @@ export interface components {
             notes?: string;
             outcome?: string;
         };
+        CompleteProductionInput: {
+            /** @description Actual yield in the output stock UOM (default planned) */
+            actualQuantity?: string;
+            /** @description Batch of the output (default the order number when the item is batch-tracked) */
+            batchNo?: string;
+            expiryDate?: string;
+            /** @description Actual consumption per ingredient (default planned) */
+            inputs?: components["schemas"]["ProductionActualLine"][];
+        };
         Component: {
             amount?: string;
             code: string;
@@ -20407,6 +22204,84 @@ export interface components {
             marketing?: boolean | null;
             profiling?: boolean | null;
         };
+        ConsignmentMovementInput: {
+            /**
+             * @description receipt: the supplier delivers; return: stock goes back to the supplier
+             * @enum {string}
+             */
+            direction: "receipt" | "return";
+            lines: components["schemas"]["StockLineInput"][];
+            notes?: string;
+            /** @description Delivery note / return note */
+            reference?: string;
+            /** Format: uuid */
+            supplierId: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
+        ConsignmentSettlement: {
+            commissionAmount: string;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            /** Format: uuid */
+            id: string;
+            notes?: string | null;
+            number: string;
+            payableAmount: string;
+            period: string;
+            quantity: string;
+            salesAmount: string;
+            /** @enum {string} */
+            status: "issued";
+            /** Format: uuid */
+            supplierId: string;
+            supplierName?: string | null;
+        };
+        ConsignmentSettlementInput: {
+            notes?: string;
+            /** @description YYYY-MM */
+            period: string;
+            /** Format: uuid */
+            supplierId: string;
+        };
+        ConsignmentSettlementLine: {
+            commissionAmount: string;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            payableAmount: string;
+            quantity: string;
+            salesAmount: string;
+        };
+        ConsignmentSettlementPreview: {
+            commissionAmount: string;
+            lines: components["schemas"]["ConsignmentSettlementLine"][];
+            payableAmount: string;
+            period: string;
+            quantity: string;
+            salesAmount: string;
+            /** Format: uuid */
+            settlementId?: string | null;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName?: string | null;
+        };
+        ConsignmentStock: {
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            onHand: string;
+            /** Format: uuid */
+            supplierId: string;
+            supplierName?: string | null;
+            uom: string;
+            warehouse: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
         ConsumeInput: {
             /** Format: uuid */
             bookingComponentId: string;
@@ -20457,6 +22332,34 @@ export interface components {
             service: string;
             tax: string;
             total: string;
+        };
+        ConsumptionVarianceRow: {
+            /** @description Opening + received − transferred out − closing */
+            actual: string;
+            actualCost: string;
+            closing: string;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            opening: string;
+            /** Format: uuid */
+            outletId?: string | null;
+            /** @description Receipts, transfers in and production in */
+            received: string;
+            /** @description Recipe consumption of the sales (P2 ledger) */
+            theoretical: string;
+            /** @description At standard cost */
+            theoreticalCost: string;
+            /** @description Transfers out and returns to suppliers */
+            transferredOut: string;
+            uom: string;
+            variance: string;
+            variancePercent?: string | null;
+            varianceValue: string;
+            warehouseCode: string;
+            /** Format: uuid */
+            warehouseId: string;
         };
         ContactInput: {
             guest: components["schemas"]["PublicGuest"];
@@ -21925,6 +23828,10 @@ export interface components {
             /** @enum {string} */
             status: "held" | "applied" | "refunded";
         };
+        DepreciationRunInput: {
+            /** @description YYYY-MM */
+            period: string;
+        };
         Device: {
             /** Format: date-time */
             createdAt: string;
@@ -22499,6 +24406,23 @@ export interface components {
              */
             sourceId: string;
         };
+        ExpiringBatch: {
+            /** Format: uuid */
+            batchId: string;
+            batchNo: string;
+            daysLeft: number;
+            expiryDate: string;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            quantity: string;
+            uom: string;
+            value: string;
+            warehouseCode: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
         Export: {
             /** Format: date-time */
             completedAt?: string | null;
@@ -22753,6 +24677,14 @@ export interface components {
             contextType: "round" | "stay" | "class" | "fnb" | "sport" | "meeting" | "other";
             /** Format: uuid */
             customerId: string;
+        };
+        FefoPickLine: {
+            available: string;
+            /** Format: uuid */
+            batchId: string;
+            batchNo: string;
+            expiryDate?: string | null;
+            pick: string;
         };
         Field: {
             help?: string;
@@ -24058,9 +25990,355 @@ export interface components {
             occurredAt?: string | null;
             subject: string;
         };
+        InventoryAsset: {
+            /** @description Accumulated Depreciation */
+            accumulatedDepreciation?: string | null;
+            /** @description Acquisition Cost */
+            acquisitionCost?: string | null;
+            /**
+             * Format: date
+             * @description Acquisition Date
+             */
+            acquisitionDate?: string | null;
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Book Value */
+            bookValue?: string | null;
+            /** @description Brand */
+            brand?: string | null;
+            /**
+             * Format: uuid
+             * @description Asset Category
+             */
+            categoryId: string;
+            /** @description Asset Code */
+            code: string;
+            /** @description Cost Center */
+            costCenter?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: uuid
+             * @description Department
+             */
+            departmentId?: string | null;
+            /**
+             * @description Depreciation Method (empty = category)
+             * @enum {string|null}
+             */
+            depreciationMethod?: "straight_line" | "declining_balance" | null;
+            /**
+             * Format: date
+             * @description Depreciation Start
+             */
+            depreciationStart?: string | null;
+            /** @description Disposal Reason */
+            disposalReason?: string | null;
+            /**
+             * Format: date
+             * @description Disposed On
+             */
+            disposedOn?: string | null;
+            /**
+             * Format: uuid
+             * @description Golf Cart (P2 fleet)
+             */
+            golfCartRef?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Model */
+            model?: string | null;
+            /** @description Name */
+            name: string;
+            /** @description Notes */
+            notes?: string | null;
+            /** @description Accumulated Depreciation at Migration */
+            openingAccumulated?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Rental Equipment */
+            rentable?: boolean | null;
+            /**
+             * @description Rental Status
+             * @enum {string|null}
+             */
+            rentalStatus?: "available" | "out" | null;
+            /** @description Residual Value */
+            residualValue?: string | null;
+            /** @description Serial No. */
+            serialNo?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "maintenance" | "out_of_service" | "disposed" | null;
+            /**
+             * Format: uuid
+             * @description Supplier
+             */
+            supplierId?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Usage Hours */
+            usageHours?: string | null;
+            /**
+             * Format: int64
+             * @description Useful Life (months; empty = category)
+             */
+            usefulLifeMonths?: number | null;
+            /**
+             * Format: uuid
+             * @description Location
+             */
+            warehouseId?: string | null;
+            /**
+             * Format: date
+             * @description Warranty Until
+             */
+            warrantyUntil?: string | null;
+        };
+        InventoryAssetCategory: {
+            /** @description Accumulated Depreciation Account */
+            accumulatedAccount?: string | null;
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Fixed Asset Account */
+            assetAccount?: string | null;
+            /**
+             * @description Asset Class
+             * @enum {string|null}
+             */
+            assetClass?: "golf_cart" | "gym_equipment" | "rental_equipment" | "banquet_equipment" | "maintenance_equipment" | "it_equipment" | "vehicle" | "furniture" | "other" | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Declining Balance Rate (% per year) */
+            decliningRatePercent?: string | null;
+            /**
+             * @description Depreciation Method
+             * @enum {string|null}
+             */
+            depreciationMethod?: "straight_line" | "declining_balance" | null;
+            /** @description Depreciation Expense Account */
+            expenseAccount?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Residual Value (%) */
+            residualPercent?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: int64
+             * @description Useful Life (months)
+             */
+            usefulLifeMonths?: number | null;
+        };
+        InventoryAssetCategoryInput: {
+            /** @description Accumulated Depreciation Account */
+            accumulatedAccount?: string | null;
+            /** @description Fixed Asset Account */
+            assetAccount?: string | null;
+            /**
+             * @description Asset Class
+             * @enum {string|null}
+             */
+            assetClass?: "golf_cart" | "gym_equipment" | "rental_equipment" | "banquet_equipment" | "maintenance_equipment" | "it_equipment" | "vehicle" | "furniture" | "other" | null;
+            /** @description Code */
+            code?: string;
+            /** @description Declining Balance Rate (% per year) */
+            decliningRatePercent?: string | null;
+            /**
+             * @description Depreciation Method
+             * @enum {string|null}
+             */
+            depreciationMethod?: "straight_line" | "declining_balance" | null;
+            /** @description Depreciation Expense Account */
+            expenseAccount?: string | null;
+            /** @description Name */
+            name?: string;
+            /** @description Residual Value (%) */
+            residualPercent?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: int64
+             * @description Useful Life (months)
+             */
+            usefulLifeMonths?: number | null;
+        };
+        InventoryAssetInput: {
+            /** @description Acquisition Cost */
+            acquisitionCost?: string | null;
+            /**
+             * Format: date
+             * @description Acquisition Date
+             */
+            acquisitionDate?: string | null;
+            /** @description Brand */
+            brand?: string | null;
+            /**
+             * Format: uuid
+             * @description Asset Category
+             */
+            categoryId?: string;
+            /** @description Asset Code */
+            code?: string;
+            /** @description Cost Center */
+            costCenter?: string | null;
+            /**
+             * Format: uuid
+             * @description Department
+             */
+            departmentId?: string | null;
+            /**
+             * @description Depreciation Method (empty = category)
+             * @enum {string|null}
+             */
+            depreciationMethod?: "straight_line" | "declining_balance" | null;
+            /**
+             * Format: date
+             * @description Depreciation Start
+             */
+            depreciationStart?: string | null;
+            /**
+             * Format: uuid
+             * @description Golf Cart (P2 fleet)
+             */
+            golfCartRef?: string | null;
+            /** @description Model */
+            model?: string | null;
+            /** @description Name */
+            name?: string;
+            /** @description Notes */
+            notes?: string | null;
+            /** @description Accumulated Depreciation at Migration */
+            openingAccumulated?: string | null;
+            /** @description Rental Equipment */
+            rentable?: boolean | null;
+            /** @description Residual Value */
+            residualValue?: string | null;
+            /** @description Serial No. */
+            serialNo?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "maintenance" | "out_of_service" | "disposed" | null;
+            /**
+             * Format: uuid
+             * @description Supplier
+             */
+            supplierId?: string | null;
+            /**
+             * Format: int64
+             * @description Useful Life (months; empty = category)
+             */
+            usefulLifeMonths?: number | null;
+            /**
+             * Format: uuid
+             * @description Location
+             */
+            warehouseId?: string | null;
+            /**
+             * Format: date
+             * @description Warranty Until
+             */
+            warrantyUntil?: string | null;
+        };
+        InventoryCategory: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** @description COGS Account */
+            cogsAccount?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Expense Account (issues) */
+            expenseAccount?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Inventory Account */
+            inventoryAccount?: string | null;
+            /** @description Name */
+            name: string;
+            /** @description Stock Opname Tolerance (%) */
+            opnameTolerancePercent?: string | null;
+            /**
+             * Format: uuid
+             * @description Parent Category
+             */
+            parentId?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * @description Valuation Method
+             * @enum {string|null}
+             */
+            valuationMethod?: "moving_average" | "fifo" | null;
+            /** @description Stock Variance Account */
+            varianceAccount?: string | null;
+            /** @description Waste Account */
+            wasteAccount?: string | null;
+        };
+        InventoryCategoryInput: {
+            /** @description Code */
+            code?: string;
+            /** @description COGS Account */
+            cogsAccount?: string | null;
+            /** @description Expense Account (issues) */
+            expenseAccount?: string | null;
+            /** @description Inventory Account */
+            inventoryAccount?: string | null;
+            /** @description Name */
+            name?: string;
+            /** @description Stock Opname Tolerance (%) */
+            opnameTolerancePercent?: string | null;
+            /**
+             * Format: uuid
+             * @description Parent Category
+             */
+            parentId?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * @description Valuation Method
+             * @enum {string|null}
+             */
+            valuationMethod?: "moving_average" | "fifo" | null;
+            /** @description Stock Variance Account */
+            varianceAccount?: string | null;
+            /** @description Waste Account */
+            wasteAccount?: string | null;
+        };
         InventoryItem: {
             /** Format: date-time */
             archivedAt?: string | null;
+            /** @description Barcode */
+            barcode?: string | null;
             /**
              * Format: uuid
              * @description Stock UOM
@@ -24068,8 +26346,22 @@ export interface components {
             baseUomId: string;
             /** @description Category */
             category?: string | null;
+            /**
+             * Format: uuid
+             * @description Item Category
+             */
+            categoryId?: string | null;
             /** @description Code */
             code: string;
+            /** @description Consignment (supplier-owned) */
+            consignment?: boolean | null;
+            /** @description Club Commission (%) */
+            consignmentCommissionPercent?: string | null;
+            /**
+             * Format: uuid
+             * @description Consignment Supplier
+             */
+            consignmentSupplierId?: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: uuid */
@@ -24078,9 +26370,21 @@ export interface components {
              * @description Item Type
              * @enum {string|null}
              */
-            itemType?: "raw" | "semi_finished" | "packaging" | "consumable" | null;
+            itemType?: "raw" | "semi_finished" | "finished" | "packaging" | "consumable" | "retail" | "spare_part" | "asset" | "service" | "non_stock" | null;
             /** @description Name */
             name: string;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Preferred Supplier
+             */
+            preferredSupplierId?: string | null;
+            /**
+             * Format: uuid
+             * @description Retail Product (sold 1:1)
+             */
+            productId?: string | null;
             /** Format: uuid */
             propertyId?: string;
             /**
@@ -24088,8 +26392,540 @@ export interface components {
              * @description Purchase UOM
              */
             purchaseUomId?: string | null;
+            /**
+             * Format: int64
+             * @description Shelf Life (days)
+             */
+            shelfLifeDays?: number | null;
             /** @description Standard Cost per Stock UOM */
             standardCost?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * @description Storage Condition
+             * @enum {string|null}
+             */
+            storageCondition?: "ambient" | "dry" | "chilled" | "frozen" | "hazardous" | null;
+            /** @description Track Batch */
+            trackBatch?: boolean | null;
+            /** @description Track Expiry */
+            trackExpiry?: boolean | null;
+            /** @description Track Serial Number */
+            trackSerial?: boolean | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: uuid
+             * @description Usage UOM
+             */
+            usageUomId?: string | null;
+            /**
+             * @description Valuation Method (empty = category)
+             * @enum {string|null}
+             */
+            valuationMethod?: "moving_average" | "fifo" | null;
+        };
+        InventoryItemBarcode: {
+            /** @description Barcode */
+            barcode: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Item
+             */
+            itemId: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: uuid
+             * @description UOM of the barcode (empty = stock UOM)
+             */
+            uomId?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        InventoryItemBarcodeInput: {
+            /** @description Barcode */
+            barcode?: string;
+            /**
+             * Format: uuid
+             * @description Item
+             */
+            itemId?: string;
+            /**
+             * Format: uuid
+             * @description UOM of the barcode (empty = stock UOM)
+             */
+            uomId?: string | null;
+        };
+        InventoryItemInput: {
+            /** @description Barcode */
+            barcode?: string | null;
+            /**
+             * Format: uuid
+             * @description Stock UOM
+             */
+            baseUomId?: string;
+            /** @description Category */
+            category?: string | null;
+            /**
+             * Format: uuid
+             * @description Item Category
+             */
+            categoryId?: string | null;
+            /** @description Code */
+            code?: string;
+            /** @description Consignment (supplier-owned) */
+            consignment?: boolean | null;
+            /** @description Club Commission (%) */
+            consignmentCommissionPercent?: string | null;
+            /**
+             * Format: uuid
+             * @description Consignment Supplier
+             */
+            consignmentSupplierId?: string | null;
+            /**
+             * @description Item Type
+             * @enum {string|null}
+             */
+            itemType?: "raw" | "semi_finished" | "finished" | "packaging" | "consumable" | "retail" | "spare_part" | "asset" | "service" | "non_stock" | null;
+            /** @description Name */
+            name?: string;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Preferred Supplier
+             */
+            preferredSupplierId?: string | null;
+            /**
+             * Format: uuid
+             * @description Retail Product (sold 1:1)
+             */
+            productId?: string | null;
+            /**
+             * Format: uuid
+             * @description Purchase UOM
+             */
+            purchaseUomId?: string | null;
+            /**
+             * Format: int64
+             * @description Shelf Life (days)
+             */
+            shelfLifeDays?: number | null;
+            /** @description Standard Cost per Stock UOM */
+            standardCost?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * @description Storage Condition
+             * @enum {string|null}
+             */
+            storageCondition?: "ambient" | "dry" | "chilled" | "frozen" | "hazardous" | null;
+            /** @description Track Batch */
+            trackBatch?: boolean | null;
+            /** @description Track Expiry */
+            trackExpiry?: boolean | null;
+            /** @description Track Serial Number */
+            trackSerial?: boolean | null;
+            /**
+             * Format: uuid
+             * @description Usage UOM
+             */
+            usageUomId?: string | null;
+            /**
+             * @description Valuation Method (empty = category)
+             * @enum {string|null}
+             */
+            valuationMethod?: "moving_average" | "fifo" | null;
+        };
+        InventoryMaintenanceSchedule: {
+            /**
+             * Format: uuid
+             * @description Asset
+             */
+            assetId: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int64
+             * @description Every (days)
+             */
+            intervalDays?: number | null;
+            /** @description Every (usage hours) */
+            intervalHours?: string | null;
+            /** @description Usage Hours at Last Service */
+            lastDoneHours?: string | null;
+            /**
+             * Format: date
+             * @description Last Done
+             */
+            lastDoneOn?: string | null;
+            /** @description Name */
+            name: string;
+            /**
+             * Format: date
+             * @description Next Due
+             */
+            nextDueOn?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Remind (days before)
+             */
+            reminderDaysBefore?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * @description Based On
+             * @enum {string|null}
+             */
+            triggerType?: "time" | "usage_hours" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        InventoryMaintenanceScheduleInput: {
+            /**
+             * Format: uuid
+             * @description Asset
+             */
+            assetId?: string;
+            /**
+             * Format: int64
+             * @description Every (days)
+             */
+            intervalDays?: number | null;
+            /** @description Every (usage hours) */
+            intervalHours?: string | null;
+            /** @description Usage Hours at Last Service */
+            lastDoneHours?: string | null;
+            /**
+             * Format: date
+             * @description Last Done
+             */
+            lastDoneOn?: string | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: date
+             * @description Next Due
+             */
+            nextDueOn?: string | null;
+            /**
+             * Format: int64
+             * @description Remind (days before)
+             */
+            reminderDaysBefore?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * @description Based On
+             * @enum {string|null}
+             */
+            triggerType?: "time" | "usage_hours" | null;
+        };
+        InventoryParStock: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Item
+             */
+            itemId: string;
+            /** @description Minimum Stock */
+            minStock?: string | null;
+            /** @description Par Level (stock UOM) */
+            parLevel: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: uuid
+             * @description Default Stock Location
+             */
+            stockLocationId?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: uuid
+             * @description Warehouse
+             */
+            warehouseId: string;
+        };
+        InventoryParStockInput: {
+            /**
+             * Format: uuid
+             * @description Item
+             */
+            itemId?: string;
+            /** @description Minimum Stock */
+            minStock?: string | null;
+            /** @description Par Level (stock UOM) */
+            parLevel?: string;
+            /**
+             * Format: uuid
+             * @description Default Stock Location
+             */
+            stockLocationId?: string | null;
+            /**
+             * Format: uuid
+             * @description Warehouse
+             */
+            warehouseId?: string;
+        };
+        InventoryPostingException: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            eventId?: string | null;
+            eventType: string;
+            /** Format: uuid */
+            id: string;
+            itemCode?: string | null;
+            /** Format: uuid */
+            itemId?: string | null;
+            quantity?: string | null;
+            reason: string;
+            resolution?: string | null;
+            /** Format: date-time */
+            resolvedAt?: string | null;
+            /** Format: uuid */
+            sourceId?: string | null;
+            sourceType: string;
+            /** @enum {string} */
+            status: "open" | "resolved";
+            /** Format: uuid */
+            warehouseId?: string | null;
+        };
+        InventoryReorderPoint: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Item
+             */
+            itemId: string;
+            /**
+             * Format: int64
+             * @description Lead Time (days)
+             */
+            leadTimeDays?: number | null;
+            /**
+             * Format: uuid
+             * @description Preferred Supplier
+             */
+            preferredSupplierId?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Reorder Point (stock UOM) */
+            reorderPoint: string;
+            /** @description Fixed Order Quantity (empty = par − stock − on order) */
+            reorderQuantity?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: uuid
+             * @description Warehouse
+             */
+            warehouseId: string;
+        };
+        InventoryReorderPointInput: {
+            /**
+             * Format: uuid
+             * @description Item
+             */
+            itemId?: string;
+            /**
+             * Format: int64
+             * @description Lead Time (days)
+             */
+            leadTimeDays?: number | null;
+            /**
+             * Format: uuid
+             * @description Preferred Supplier
+             */
+            preferredSupplierId?: string | null;
+            /** @description Reorder Point (stock UOM) */
+            reorderPoint?: string;
+            /** @description Fixed Order Quantity (empty = par − stock − on order) */
+            reorderQuantity?: string | null;
+            /**
+             * Format: uuid
+             * @description Warehouse
+             */
+            warehouseId?: string;
+        };
+        InventoryStockLocation: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Location Type
+             * @enum {string|null}
+             */
+            locationType?: "bin" | "shelf" | "cold_room" | "freezer" | "quarantine" | "staging" | null;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: uuid
+             * @description Warehouse
+             */
+            warehouseId: string;
+        };
+        InventoryStockLocationInput: {
+            /** @description Code */
+            code?: string;
+            /**
+             * @description Location Type
+             * @enum {string|null}
+             */
+            locationType?: "bin" | "shelf" | "cold_room" | "freezer" | "quarantine" | "staging" | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: uuid
+             * @description Warehouse
+             */
+            warehouseId?: string;
+        };
+        InventorySupplierItem: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Item
+             */
+            itemId: string;
+            /** @description Last Price per Stock UOM */
+            lastPrice?: string | null;
+            /**
+             * Format: int64
+             * @description Lead Time (days)
+             */
+            leadTimeDays?: number | null;
+            /** @description Preferred Supplier */
+            preferred?: boolean | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: uuid
+             * @description Purchase UOM
+             */
+            purchaseUomId?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier
+             */
+            supplierId: string;
+            /** @description Supplier Item Code */
+            supplierItemCode?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        InventorySupplierItemInput: {
+            /**
+             * Format: uuid
+             * @description Item
+             */
+            itemId?: string;
+            /** @description Last Price per Stock UOM */
+            lastPrice?: string | null;
+            /**
+             * Format: int64
+             * @description Lead Time (days)
+             */
+            leadTimeDays?: number | null;
+            /** @description Preferred Supplier */
+            preferred?: boolean | null;
+            /**
+             * Format: uuid
+             * @description Purchase UOM
+             */
+            purchaseUomId?: string | null;
+            /**
+             * Format: uuid
+             * @description Supplier
+             */
+            supplierId?: string;
+            /** @description Supplier Item Code */
+            supplierItemCode?: string | null;
+        };
+        InventoryWarehouse: {
+            /** @description Allow Negative Stock (flagged for review) */
+            allowNegative?: boolean | null;
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** @description Cost Center */
+            costCenter?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Stock Holders (user ids) */
+            keeperUserIds?: string[] | null;
+            /**
+             * @description Location Type
+             * @enum {string|null}
+             */
+            locationType?: "store" | "kitchen" | "outlet" | "transit" | "quarantine" | null;
+            /** @description Name */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Outlet (POS sales consume here)
+             */
+            outletId?: string | null;
+            /**
+             * Format: uuid
+             * @description Replenished From (store)
+             */
+            parentId?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
             /**
              * @description Status
              * @enum {string|null}
@@ -24098,30 +26934,32 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
-        InventoryItemInput: {
-            /**
-             * Format: uuid
-             * @description Stock UOM
-             */
-            baseUomId?: string;
-            /** @description Category */
-            category?: string | null;
+        InventoryWarehouseInput: {
+            /** @description Allow Negative Stock (flagged for review) */
+            allowNegative?: boolean | null;
             /** @description Code */
             code?: string;
+            /** @description Cost Center */
+            costCenter?: string | null;
+            /** @description Stock Holders (user ids) */
+            keeperUserIds?: string[] | null;
             /**
-             * @description Item Type
+             * @description Location Type
              * @enum {string|null}
              */
-            itemType?: "raw" | "semi_finished" | "packaging" | "consumable" | null;
+            locationType?: "store" | "kitchen" | "outlet" | "transit" | "quarantine" | null;
             /** @description Name */
             name?: string;
             /**
              * Format: uuid
-             * @description Purchase UOM
+             * @description Outlet (POS sales consume here)
              */
-            purchaseUomId?: string | null;
-            /** @description Standard Cost per Stock UOM */
-            standardCost?: string | null;
+            outletId?: string | null;
+            /**
+             * Format: uuid
+             * @description Replenished From (store)
+             */
+            parentId?: string | null;
             /**
              * @description Status
              * @enum {string|null}
@@ -26274,6 +29112,64 @@ export interface components {
             /** @enum {string} */
             station: "front_desk" | "sport_reception" | "banquet" | "golf" | "stay_desk" | "other";
         };
+        OpeningStockError: {
+            code: string;
+            field?: string;
+            message: string;
+            /** @description 1-based line (header = 1) */
+            row: number;
+        };
+        OpeningStockInput: {
+            /** @description Cut-over date YYYY-MM-DD (default today) */
+            businessDate?: string;
+            /** @description Header: warehouseCode,itemCode,quantity,unitCost[,uom,batchNo,expiryDate,serialNos] (serial numbers separated by |) */
+            csv: string;
+            filename?: string;
+            /** @enum {string} */
+            mode: "preview" | "commit";
+        };
+        OpeningStockResult: {
+            errors: components["schemas"]["OpeningStockError"][];
+            /** @enum {string} */
+            mode: "preview" | "commit";
+            /** @enum {string} */
+            status: "valid" | "completed" | "failed";
+            totalRows: number;
+            /** @description Must equal the value of the cut-over stock opname */
+            totalValue: string;
+            warehouses: components["schemas"]["OpeningStockWarehouse"][];
+        };
+        OpeningStockWarehouse: {
+            /** @description Posted opening balance adjustment (commit) */
+            adjustment?: string | null;
+            lines: number;
+            value: string;
+            warehouseCode: string;
+        };
+        OpnameCountInput: {
+            lines: components["schemas"]["OpnameCountLine"][];
+        };
+        OpnameCountLine: {
+            /** @description Scanned item or carton barcode */
+            barcode?: string;
+            batchNo?: string;
+            /** Format: uuid */
+            itemId?: string | null;
+            /**
+             * @description set (default) replaces the count; add accumulates scans
+             * @enum {string}
+             */
+            mode?: "set" | "add";
+            notes?: string;
+            /** @description Counted quantity in uomId / the barcode's UOM / the stock UOM */
+            quantity: string;
+            /** Format: uuid */
+            uomId?: string | null;
+        };
+        OpnameRecountInput: {
+            /** @description Default: every line above tolerance */
+            lineIds?: string[];
+        };
         Opportunity: {
             /** Format: uuid */
             corporateAccountId?: string | null;
@@ -27804,6 +30700,10 @@ export interface components {
             lat: number;
             lng: number;
         };
+        PostingExceptionResolveInput: {
+            /** @description What was done (e.g. adjustment SAJ-…, outlet mapped) */
+            resolution: string;
+        };
         PostponeInput: {
             /** @description YYYY-MM-DD */
             dueDate: string;
@@ -28279,6 +31179,74 @@ export interface components {
             productType: string;
             /** Format: uuid */
             variantId?: string | null;
+        };
+        ProductionActualLine: {
+            /** Format: uuid */
+            itemId: string;
+            /** @description Stock UOM */
+            quantity: string;
+        };
+        ProductionInputRow: {
+            actualQuantity?: string | null;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            plannedQuantity: string;
+            totalCost: string;
+            uom: string;
+        };
+        ProductionOrder: {
+            actualQuantity?: string | null;
+            /** Format: uuid */
+            batchId?: string | null;
+            /** Format: date-time */
+            completedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            inputCost: string;
+            inputs: components["schemas"]["ProductionInputRow"][];
+            notes?: string | null;
+            number: string;
+            outputItem: string;
+            /** Format: uuid */
+            outputItemId: string;
+            outputUnitCost: string;
+            plannedQuantity: string;
+            /** Format: uuid */
+            recipeId: string;
+            recipeName: string;
+            scheduledFor?: string | null;
+            /** Format: uuid */
+            sourceId?: string | null;
+            sourceRef?: string | null;
+            /** @description banquet_event: scheduled from a BEO (FR-PRD-05) */
+            sourceType?: string | null;
+            /** @enum {string} */
+            status: "draft" | "completed" | "cancelled";
+            uom: string;
+            warehouse: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
+        ProductionOrderInput: {
+            notes?: string;
+            /** @description Output quantity in the output item's stock UOM */
+            plannedQuantity: string;
+            /**
+             * Format: uuid
+             * @description Sub-recipe with an output item
+             */
+            recipeId: string;
+            /** @description YYYY-MM-DD */
+            scheduledFor?: string;
+            /**
+             * Format: uuid
+             * @description Kitchen producing it
+             */
+            warehouseId: string;
         };
         Profile: {
             address?: string | null;
@@ -29944,6 +32912,43 @@ export interface components {
             caddyId: string;
             reason: string;
         };
+        ReplenishmentResult: {
+            businessDate: string;
+            /** @description Requested from procurement now (inventory.reorder_needed) */
+            purchase: components["schemas"]["ReplenishmentSuggestion"][];
+            /** @description Draft store requisitions created for sub-stores */
+            requisitions: string[];
+            /** @description Suggestions already requested today */
+            skipped: number;
+        };
+        ReplenishmentSuggestion: {
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            /**
+             * @description purchase: PR to procurement; requisition: store requisition to the replenishing store
+             * @enum {string}
+             */
+            kind: "purchase" | "requisition";
+            minStock: string;
+            onHand: string;
+            /** @description Open purchase requests and transfers in transit */
+            onOrder: string;
+            parLevel: string;
+            /** Format: uuid */
+            preferredSupplierId?: string | null;
+            reorderPoint: string;
+            suggestedQuantity: string;
+            /** Format: uuid */
+            supplyWarehouseId?: string | null;
+            uom: string;
+            /** Format: uuid */
+            uomId: string;
+            warehouseCode: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
         ReportInfo: {
             code: string;
             columns: components["schemas"]["Column"][];
@@ -30006,6 +33011,22 @@ export interface components {
             /** @enum {string} */
             status: "waiting" | "pending" | "approved" | "rejected" | "skipped" | "cancelled";
             stepNo: number;
+        };
+        RequisitionFulfillInput: {
+            /** @description Cancel what is not issued now and close the requisition */
+            closeRemaining?: boolean;
+            /** @description Empty: every remaining quantity */
+            lines?: components["schemas"]["RequisitionFulfillLine"][];
+            notes?: string;
+        };
+        RequisitionFulfillLine: {
+            /** @description Empty: first-expired-first-out */
+            batchNo?: string;
+            /** Format: uuid */
+            lineId: string;
+            /** @description Stock UOM */
+            quantity: string;
+            serialNos?: string[];
         };
         RescheduleInput: {
             lines: components["schemas"]["LineChange"][];
@@ -31585,6 +34606,20 @@ export interface components {
             status: "available" | "reserved" | "full" | "blocked";
             used: number;
         };
+        SlowMovingRow: {
+            daysIdle?: number | null;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            lastOutbound?: string | null;
+            quantity: string;
+            uom: string;
+            value: string;
+            warehouseCode: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
         SnapshotView: {
             channel?: string | null;
             chargeType: string;
@@ -31617,6 +34652,20 @@ export interface components {
             taxService: Record<string, never>;
             timeBandCode?: string | null;
             total: string;
+        };
+        SparePartRequestInput: {
+            /** Format: uuid */
+            assetId: string;
+            lines: components["schemas"]["StockLineInput"][];
+            /** Format: uuid */
+            maintenanceRecordId?: string | null;
+            neededBy?: string;
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Default: the spare part warehouse (Engineering)
+             */
+            warehouseId?: string | null;
         };
         SplitBill: {
             /** Format: uuid */
@@ -31999,9 +35048,508 @@ export interface components {
             stay: components["schemas"]["Stay"];
             total: string;
         };
+        StockAdjustment: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            businessDate?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            lines: components["schemas"]["StockAdjustmentLine"][];
+            /** Format: uuid */
+            movementId?: string | null;
+            movementNumber?: string | null;
+            notes?: string | null;
+            number: string;
+            /** Format: date-time */
+            postedAt?: string | null;
+            reason: string;
+            rejectionReason?: string | null;
+            /** @enum {string} */
+            status: "draft" | "pending_approval" | "posted" | "rejected" | "cancelled";
+            /** Format: date-time */
+            submittedAt?: string | null;
+            totalValue: string;
+            warehouse: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
+        StockAdjustmentInput: {
+            /** @description YYYY-MM-DD (default today; not in a closed period) */
+            businessDate?: string;
+            /** @description Signed quantities: + found / − lost */
+            lines: components["schemas"]["StockLineInput"][];
+            notes?: string;
+            /** @enum {string} */
+            reason: "damage" | "expired" | "theft" | "count_correction" | "found" | "opening_balance" | "other";
+            submit?: boolean;
+            /** Format: uuid */
+            warehouseId: string;
+        };
+        StockAdjustmentLine: {
+            batchNo?: string | null;
+            expiryDate?: string | null;
+            /** Format: uuid */
+            id: string;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            lineNo: number;
+            notes?: string | null;
+            quantity: string;
+            serialNos: string[];
+            unitCost?: string | null;
+            uom: string;
+        };
+        StockBalanceRow: {
+            barcode?: string | null;
+            /** Format: uuid */
+            batchId?: string | null;
+            batchNo?: string | null;
+            belowReorder: boolean;
+            category?: string | null;
+            consignment: boolean;
+            expiryDate?: string | null;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            /** Format: date-time */
+            lastMovementAt?: string | null;
+            locationType: string;
+            minStock?: string | null;
+            /** @description Stock units per purchase unit */
+            packFactor?: string | null;
+            /** @description Quantity in purchase units and the rest, e.g. 4 CTN + 4 BTL */
+            packQuantity: string;
+            parLevel?: string | null;
+            purchaseUom?: string | null;
+            quantity: string;
+            reorderPoint?: string | null;
+            /** @description Value ÷ quantity (moving average / FIFO layers) */
+            unitCost: string;
+            /** @description Stock UOM */
+            uom: string;
+            value: string;
+            warehouseCode: string;
+            /** Format: uuid */
+            warehouseId: string;
+            warehouseName: string;
+        };
+        StockCard: {
+            closingQuantity: string;
+            closingValue: string;
+            from: string;
+            inQuantity: string;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            lines: components["schemas"]["StockCardLine"][];
+            /** @description Current balance (stock_balances) */
+            onHand: string;
+            openingQuantity: string;
+            openingValue: string;
+            outQuantity: string;
+            to: string;
+            uom: string;
+            warehouseCode: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
+        StockCardLine: {
+            balanceAfter: string;
+            batchNo?: string | null;
+            businessDate: string;
+            /** Format: uuid */
+            movementId: string;
+            movementType: string;
+            number: string;
+            /** Format: date-time */
+            postedAt: string;
+            quantity: string;
+            reason?: string | null;
+            /** Format: uuid */
+            reversalOf?: string | null;
+            sourceType: string;
+            totalCost: string;
+            unitCost: string;
+            valueAfter: string;
+        };
+        StockIssueInput: {
+            /** Format: uuid */
+            assetId?: string | null;
+            costCenter?: string;
+            /** Format: uuid */
+            departmentId?: string | null;
+            lines: components["schemas"]["StockLineInput"][];
+            notes?: string;
+            /** @enum {string} */
+            origin?: "manual" | "ops";
+            reason: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
+        StockLineInput: {
+            batchNo?: string;
+            /** @description YYYY-MM-DD of an incoming batch */
+            expiryDate?: string;
+            /** Format: uuid */
+            itemId: string;
+            notes?: string;
+            /** @description Decimal in uomId or the item's stock UOM (adjustments: signed) */
+            quantity: string;
+            serialNos?: string[];
+            /** @description Incoming stock: cost per stock UOM (empty = current cost) */
+            unitCost?: string;
+            /** Format: uuid */
+            uomId?: string | null;
+        };
+        StockMovement: {
+            /** Format: uuid */
+            assetId?: string | null;
+            businessDate: string;
+            costCenter?: string | null;
+            /** Format: uuid */
+            counterWarehouseId?: string | null;
+            currency: string;
+            /** Format: uuid */
+            departmentId?: string | null;
+            /** @description Negative stock posted by automatic consumption, to be reviewed */
+            flagged: boolean;
+            /** Format: uuid */
+            id: string;
+            lines?: components["schemas"]["StockMovementLine"][];
+            /** @enum {string} */
+            movementType: "receipt" | "issue" | "transfer_out" | "transfer_in" | "adjustment" | "opname" | "waste" | "production_in" | "production_out" | "consumption" | "return_out";
+            notes?: string | null;
+            number: string;
+            /** Format: uuid */
+            outletId?: string | null;
+            /** Format: date-time */
+            postedAt: string;
+            /** Format: uuid */
+            postedBy?: string | null;
+            reason?: string | null;
+            /** Format: uuid */
+            reversalOf?: string | null;
+            /** Format: uuid */
+            reversedBy?: string | null;
+            /** Format: uuid */
+            sourceId?: string | null;
+            sourceType: string;
+            /** Format: uuid */
+            supplierId?: string | null;
+            totalCost: string;
+            warehouseCode: string;
+            /** Format: uuid */
+            warehouseId: string;
+            warehouseName: string;
+        };
+        StockMovementLine: {
+            balanceAfter: string;
+            /** Format: uuid */
+            batchId?: string | null;
+            batchNo?: string | null;
+            consignment: boolean;
+            expiryDate?: string | null;
+            /** Format: uuid */
+            id: string;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            lineNo: number;
+            negative: boolean;
+            quantity: string;
+            serialNos: string[];
+            totalCost: string;
+            unitCost: string;
+            uom: string;
+            valueAfter: string;
+        };
+        StockOpname: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            blind: boolean;
+            /** Format: uuid */
+            categoryId?: string | null;
+            /** Format: date-time */
+            countedAt?: string | null;
+            countedLines: number;
+            /** Format: date-time */
+            createdAt: string;
+            freeze: boolean;
+            /** Format: uuid */
+            id: string;
+            lineCount: number;
+            lines?: components["schemas"]["StockOpnameLine"][];
+            /** Format: uuid */
+            movementId?: string | null;
+            movementNumber?: string | null;
+            notes?: string | null;
+            number: string;
+            overTolerance: number;
+            /** Format: date-time */
+            postedAt?: string | null;
+            /** Format: date-time */
+            snapshotAt: string;
+            /** @enum {string} */
+            status: "in_progress" | "counted" | "pending_approval" | "posted" | "cancelled";
+            /** Format: uuid */
+            stockLocationId?: string | null;
+            systemValue: string;
+            tolerancePercent: string;
+            varianceValue: string;
+            warehouse: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
+        StockOpnameInput: {
+            /** @description Counters do not see system quantities (default Inventory Policies) */
+            blind?: boolean | null;
+            /**
+             * Format: uuid
+             * @description Count one category (with its sub-categories)
+             */
+            categoryId?: string | null;
+            /** @description Block manual movements while counting (default Inventory Policies; otherwise cut-off) */
+            freeze?: boolean | null;
+            /** @description Spot check of these items only */
+            itemIds?: string[];
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Count the items stored at one stock location (par stock location)
+             */
+            stockLocationId?: string | null;
+            /** Format: uuid */
+            warehouseId: string;
+        };
+        StockOpnameLine: {
+            barcode?: string | null;
+            /** Format: uuid */
+            batchId?: string | null;
+            batchNo?: string | null;
+            /** Format: date-time */
+            countedAt?: string | null;
+            countedQuantity?: string | null;
+            /** @description Snapshot + movements until the count (cut-off) */
+            expectedQuantity?: string | null;
+            expiryDate?: string | null;
+            /** Format: uuid */
+            id: string;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            notes?: string | null;
+            overTolerance: boolean;
+            recounts: number;
+            /** @description Hidden while a blind count is in progress */
+            systemQuantity?: string | null;
+            tolerancePercent: string;
+            unitCost: string;
+            uom: string;
+            varianceQuantity?: string | null;
+            varianceValue?: string | null;
+        };
+        StockReasonInput: {
+            reason?: string;
+        };
+        StockTransfer: {
+            /** Format: date-time */
+            createdAt: string;
+            discrepancyValue: string;
+            fromWarehouse: string;
+            /** Format: uuid */
+            fromWarehouseId: string;
+            /** Format: uuid */
+            id: string;
+            lines: components["schemas"]["StockTransferLine"][];
+            notes?: string | null;
+            number: string;
+            /** Format: date-time */
+            receivedAt?: string | null;
+            /** Format: date-time */
+            shippedAt?: string | null;
+            shippedValue: string;
+            /** @enum {string} */
+            status: "draft" | "in_transit" | "received" | "cancelled";
+            toWarehouse: string;
+            /** Format: uuid */
+            toWarehouseId: string;
+            /** Format: uuid */
+            transitWarehouseId?: string | null;
+        };
+        StockTransferInput: {
+            /** Format: uuid */
+            fromWarehouseId: string;
+            lines: components["schemas"]["StockLineInput"][];
+            notes?: string;
+            /** @description Ship right away (In Transit) */
+            ship?: boolean;
+            /** Format: uuid */
+            toWarehouseId: string;
+        };
+        StockTransferLine: {
+            /** Format: uuid */
+            batchId?: string | null;
+            batchNo?: string | null;
+            discrepancyReason?: string | null;
+            /** Format: uuid */
+            id: string;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            lineNo: number;
+            quantity: string;
+            receivedQuantity: string;
+            serialNos: string[];
+            shippedQuantity: string;
+            shippedValue: string;
+            uom: string;
+        };
+        StockValuation: {
+            asOf: string;
+            /** @enum {string} */
+            groupBy: "item" | "category" | "warehouse";
+            rows: components["schemas"]["StockValuationRow"][];
+            total: string;
+        };
+        StockValuationRow: {
+            code: string;
+            /** @description Category (item rows) or location type (warehouse rows) */
+            group?: string | null;
+            /** Format: uuid */
+            key: string;
+            name: string;
+            quantity?: string | null;
+            unitCost?: string | null;
+            uom?: string | null;
+            value: string;
+        };
+        StoreRequisition: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            assetCode?: string | null;
+            /** Format: uuid */
+            assetId?: string | null;
+            /** Format: date-time */
+            closedAt?: string | null;
+            costCenter?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            departmentId?: string | null;
+            estimatedValue: string;
+            /** Format: uuid */
+            id: string;
+            issues: components["schemas"]["StoreRequisitionIssue"][];
+            lines: components["schemas"]["StoreRequisitionLine"][];
+            /** Format: uuid */
+            maintenanceRecordId?: string | null;
+            neededBy?: string | null;
+            notes?: string | null;
+            number: string;
+            /** @enum {string} */
+            origin: "manual" | "ops" | "replenishment" | "maintenance";
+            /** Format: date-time */
+            purchaseRequestedAt?: string | null;
+            reason?: string | null;
+            rejectionReason?: string | null;
+            /** @enum {string} */
+            requestType: "store" | "department" | "spare_part" | "issue";
+            /** Format: uuid */
+            requestedBy?: string | null;
+            requestedByName?: string | null;
+            requestingWarehouse?: string | null;
+            /** Format: uuid */
+            requestingWarehouseId?: string | null;
+            sourceWarehouse: string;
+            /** Format: uuid */
+            sourceWarehouseId: string;
+            /** @enum {string} */
+            status: "draft" | "submitted" | "approved" | "rejected" | "partially_issued" | "issued" | "closed" | "cancelled";
+            /** Format: date-time */
+            submittedAt?: string | null;
+        };
+        StoreRequisitionInput: {
+            /** Format: uuid */
+            assetId?: string | null;
+            costCenter?: string;
+            /** Format: uuid */
+            departmentId?: string | null;
+            lines: components["schemas"]["StockLineInput"][];
+            /** Format: uuid */
+            maintenanceRecordId?: string | null;
+            /** @description YYYY-MM-DD */
+            neededBy?: string;
+            notes?: string;
+            /**
+             * @description ops: entered at a workstation (Kitchen / Outlet / Warehouse)
+             * @enum {string}
+             */
+            origin?: "manual" | "ops";
+            reason?: string;
+            /**
+             * @description store: replenish a sub-store (requestingWarehouseId); department: issue to a cost center; spare_part: parts for an asset
+             * @enum {string}
+             */
+            requestType?: "store" | "department" | "spare_part";
+            /** Format: uuid */
+            requestingWarehouseId?: string | null;
+            /**
+             * Format: uuid
+             * @description Store that issues (default: the store that replenishes the requesting warehouse)
+             */
+            sourceWarehouseId?: string | null;
+            /** @description Submit right away (approval per Inventory Policies) */
+            submit?: boolean;
+        };
+        StoreRequisitionIssue: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            issuedAt: string;
+            /** Format: uuid */
+            issuedBy?: string | null;
+            /** @description Stock movement numbers */
+            movements: string[];
+            totalCost: string;
+        };
+        StoreRequisitionLine: {
+            availableAtSource: string;
+            baseQuantity: string;
+            cancelledQuantity: string;
+            enteredUom?: string | null;
+            /** Format: uuid */
+            id: string;
+            issuedQuantity: string;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            lineNo: number;
+            notes?: string | null;
+            /** @description As entered */
+            quantity: string;
+            remainingQuantity: string;
+            /** @description Stock UOM */
+            uom: string;
+        };
         SubmitInput: {
             /** @description Marker / fellow player confirming the card */
             attestedBy?: string;
+        };
+        SubmitOpnameInput: {
+            /** @description Lines not counted are counted as zero */
+            zeroUncounted?: boolean;
         };
         Summary: {
             /** @description Charges − payments; positive = still to pay */
@@ -32607,6 +36155,18 @@ export interface components {
             customerId: string;
             reason?: string;
         };
+        TransferReceiveInput: {
+            /** @description Empty: everything shipped is received */
+            lines?: components["schemas"]["TransferReceiveLine"][];
+            notes?: string;
+        };
+        TransferReceiveLine: {
+            /** Format: uuid */
+            lineId: string;
+            /** @description Reason of a shipped–received difference */
+            reason?: string;
+            receivedQuantity: string;
+        };
         TransferResult: {
             followUps: number;
             leads: number;
@@ -33171,6 +36731,37 @@ export interface components {
              * @description Validity (months)
              */
             validityMonths?: number | null;
+        };
+        WasteRecord: {
+            businessDate: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            lines: components["schemas"]["StockMovementLine"][];
+            /** Format: uuid */
+            movementId?: string | null;
+            movementNumber?: string | null;
+            notes?: string | null;
+            number: string;
+            reason: string;
+            /** Format: uuid */
+            recordedBy?: string | null;
+            recordedByName?: string | null;
+            totalCost: string;
+            warehouse: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
+        WasteRecordInput: {
+            businessDate?: string;
+            /** @description Positive quantities wasted */
+            lines: components["schemas"]["StockLineInput"][];
+            notes?: string;
+            /** @enum {string} */
+            reason: "expired" | "damaged" | "spoiled" | "wrong_preparation" | "overproduction" | "breakage" | "other";
+            /** Format: uuid */
+            warehouseId: string;
         };
         WebhookAck: {
             eventId: string;
@@ -77036,6 +80627,1863 @@ export interface operations {
             };
         };
     };
+    getInventoryAdjustments: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                reason?: string;
+                /** @description comma separated statuses */
+                "filter[status]"?: string;
+                warehouseId?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StockAdjustment"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryAdjustments: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockAdjustmentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockAdjustment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryAdjustmentsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockAdjustment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryAdjustmentsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockReasonInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockAdjustment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryAdjustmentsByIdSubmit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockAdjustment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryAssetCategories: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[assetClass]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InventoryAssetCategory"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryAssetCategories: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryAssetCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryAssetCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryAssetCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryAssetCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteInventoryAssetCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchInventoryAssetCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryAssetCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryAssetCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryAssetCategoriesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[assetClass]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryAssets: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[categoryId]"?: string;
+                "filter[warehouseId]"?: string;
+                "filter[rentable]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InventoryAsset"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryAssets: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryAssetInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryAsset"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryAssetsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryAsset"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteInventoryAssetsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchInventoryAssetsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryAssetInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryAsset"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryAssetsByIdHistory: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetHistory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryAssetsByIdCheckout: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetRentalInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetSummary"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryAssetsByIdDispose: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetDisposeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetSummary"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryAssetsByIdRecordUsage: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetUsageInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetSummary"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryAssetsByIdReturn: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetRentalInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetSummary"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryAssetsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[categoryId]"?: string;
+                "filter[warehouseId]"?: string;
+                "filter[rentable]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryBarcodesByCode: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BarcodeLookup"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryCategories: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[parentId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InventoryCategory"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryCategories: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteInventoryCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchInventoryCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryCategoriesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[parentId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryConsignmentMovements: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsignmentMovementInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockMovement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryConsignmentSettlements: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description YYYY-MM (default this month) */
+                period?: string;
+                supplierId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConsignmentSettlementPreview"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryConsignmentSettlements: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsignmentSettlementInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsignmentSettlement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryConsignmentStock: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                supplierId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConsignmentStock"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getInventoryConsumption: {
         parameters: {
             query?: {
@@ -77064,6 +82512,293 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["Consumption"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryConsumptionVariance: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+                warehouseId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConsumptionVarianceRow"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryDepreciationRuns: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AssetDepreciationRun"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryDepreciationRuns: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DepreciationRunInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDepreciationRun"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryDepreciationRunsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetDepreciationRun"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryExpiry: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                days?: number;
+                warehouseId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ExpiringBatch"][];
                         nextCursor?: string;
                     };
                 };
@@ -77159,6 +82894,398 @@ export interface operations {
             };
         };
     };
+    postInventoryIssues: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockIssueInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreRequisition"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryItemBarcodes: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[itemId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InventoryItemBarcode"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryItemBarcodes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryItemBarcodeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryItemBarcode"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryItemBarcodesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryItemBarcode"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteInventoryItemBarcodesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchInventoryItemBarcodesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryItemBarcodeInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryItemBarcode"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryItemBarcodesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[itemId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getInventoryItems: {
         parameters: {
             query?: {
@@ -77173,6 +83300,9 @@ export interface operations {
                 sort?: string;
                 "filter[category]"?: string;
                 "filter[itemType]"?: string;
+                "filter[categoryId]"?: string;
+                "filter[productId]"?: string;
+                "filter[consignment]"?: string;
                 "filter[status]"?: string;
             };
             header: {
@@ -77450,6 +83580,1083 @@ export interface operations {
                 sort?: string;
                 "filter[category]"?: string;
                 "filter[itemType]"?: string;
+                "filter[categoryId]"?: string;
+                "filter[productId]"?: string;
+                "filter[consignment]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryLocations: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[warehouseId]"?: string;
+                "filter[locationType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InventoryStockLocation"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryLocations: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryStockLocationInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryStockLocation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryLocationsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryStockLocation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteInventoryLocationsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchInventoryLocationsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryStockLocationInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryStockLocation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryLocationsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[warehouseId]"?: string;
+                "filter[locationType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryMaintenanceDue: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                assetId?: string;
+                days?: number;
+                dueOnly?: boolean;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AssetMaintenanceDue"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryMaintenanceRecords: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                assetId?: string;
+                /** @description comma separated statuses */
+                "filter[status]"?: string;
+                warehouseId?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AssetMaintenanceRecord"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryMaintenanceRecords: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetMaintenanceInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetMaintenanceRecord"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryMaintenanceRecordsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetMaintenanceRecord"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryMaintenanceRecordsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockReasonInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetMaintenanceRecord"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryMaintenanceRecordsByIdComplete: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssetMaintenanceCompleteInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetMaintenanceRecord"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryMaintenanceRecordsByIdStart: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetMaintenanceRecord"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryMaintenanceSchedules: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[assetId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InventoryMaintenanceSchedule"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryMaintenanceSchedules: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryMaintenanceScheduleInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryMaintenanceSchedule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryMaintenanceSchedulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryMaintenanceSchedule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteInventoryMaintenanceSchedulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchInventoryMaintenanceSchedulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryMaintenanceScheduleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryMaintenanceSchedule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryMaintenanceSchedulesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[assetId]"?: string;
                 "filter[status]"?: string;
             };
             header: {
@@ -77804,6 +85011,858 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryOpeningStockImport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpeningStockInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpeningStockResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryParStocks: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[itemId]"?: string;
+                "filter[warehouseId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InventoryParStock"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryParStocks: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryParStockInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryParStock"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryParStocksById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryParStock"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteInventoryParStocksById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchInventoryParStocksById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryParStockInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryParStock"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryParStocksExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[itemId]"?: string;
+                "filter[warehouseId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryPickSuggestions: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                warehouseId: string;
+                itemId: string;
+                quantity: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["FefoPickLine"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryPostingExceptions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InventoryPostingException"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryPostingExceptionsByIdResolve: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PostingExceptionResolveInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryPostingException"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryProductionOrders: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+                /** @description comma separated statuses */
+                "filter[status]"?: string;
+                warehouseId?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ProductionOrder"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryProductionOrders: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProductionOrderInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductionOrder"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryProductionOrdersById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductionOrder"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryProductionOrdersByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockReasonInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductionOrder"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryProductionOrdersByIdComplete: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompleteProductionInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductionOrder"];
                 };
             };
             /** @description Not authenticated */
@@ -78563,6 +86622,2371 @@ export interface operations {
             };
         };
     };
+    getInventoryReorderPoints: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[itemId]"?: string;
+                "filter[warehouseId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InventoryReorderPoint"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryReorderPoints: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryReorderPointInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryReorderPoint"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryReorderPointsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryReorderPoint"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteInventoryReorderPointsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchInventoryReorderPointsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryReorderPointInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryReorderPoint"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryReorderPointsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[itemId]"?: string;
+                "filter[warehouseId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryReplenishment: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                warehouseId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ReplenishmentSuggestion"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryReplenishmentRun: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReplenishmentResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryRequisitions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[requestType]"?: "store" | "department" | "spare_part" | "issue";
+                assetId?: string;
+                /** @description comma separated statuses */
+                "filter[status]"?: string;
+                warehouseId?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StoreRequisition"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryRequisitions: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StoreRequisitionInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreRequisition"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryRequisitionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreRequisition"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryRequisitionsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockReasonInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreRequisition"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryRequisitionsByIdFulfill: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RequisitionFulfillInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreRequisition"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryRequisitionsByIdRequestPurchase: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreRequisition"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryRequisitionsByIdSubmit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreRequisition"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventorySlowMoving: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                days?: number;
+                warehouseId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SlowMovingRow"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventorySparePartRequests: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SparePartRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StoreRequisition"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryStockBalances: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                warehouseId?: string;
+                itemId?: string;
+                categoryId?: string;
+                q?: string;
+                belowReorder?: boolean;
+                byBatch?: boolean;
+                includeZero?: boolean;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StockBalanceRow"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryStockCard: {
+        parameters: {
+            query: {
+                itemId: string;
+                warehouseId: string;
+                from?: string;
+                to?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockCard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryStockMovements: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                warehouseId?: string;
+                itemId?: string;
+                "filter[movementType]"?: string;
+                "filter[sourceType]"?: string;
+                sourceId?: string;
+                from?: string;
+                to?: string;
+                flagged?: boolean;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StockMovement"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryStockMovementsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockMovement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryStockMovementsByIdReverse: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockReasonInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockMovement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryStockOpnames: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description comma separated statuses */
+                "filter[status]"?: string;
+                warehouseId?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StockOpname"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryStockOpnames: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockOpnameInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOpname"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryStockOpnamesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOpname"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryStockOpnamesByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockReasonInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOpname"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryStockOpnamesByIdCount: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpnameCountInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOpname"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryStockOpnamesByIdPost: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOpname"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryStockOpnamesByIdRecount: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpnameRecountInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOpname"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryStockOpnamesByIdSubmit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitOpnameInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOpname"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventorySupplierItems: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[itemId]"?: string;
+                "filter[supplierId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InventorySupplierItem"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventorySupplierItems: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventorySupplierItemInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventorySupplierItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventorySupplierItemsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventorySupplierItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteInventorySupplierItemsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchInventorySupplierItemsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventorySupplierItemInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventorySupplierItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventorySupplierItemsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[itemId]"?: string;
+                "filter[supplierId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryTransfers: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description comma separated statuses */
+                "filter[status]"?: string;
+                warehouseId?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["StockTransfer"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryTransfers: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockTransferInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockTransfer"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryTransfersById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockTransfer"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryTransfersByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockReasonInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockTransfer"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryTransfersByIdReceive: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransferReceiveInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockTransfer"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryTransfersByIdShip: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockTransfer"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getInventoryUomConversions: {
         parameters: {
             query?: {
@@ -79206,6 +89630,575 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryValuation: {
+        parameters: {
+            query?: {
+                asOf?: string;
+                groupBy?: "item" | "category" | "warehouse";
+                warehouseId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockValuation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryWarehouses: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[parentId]"?: string;
+                "filter[locationType]"?: string;
+                "filter[outletId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["InventoryWarehouse"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryWarehouses: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryWarehouseInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryWarehouse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryWarehousesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryWarehouse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteInventoryWarehousesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchInventoryWarehousesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InventoryWarehouseInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryWarehouse"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryWarehousesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[parentId]"?: string;
+                "filter[locationType]"?: string;
+                "filter[outletId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryWaste: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                reason?: string;
+                from?: string;
+                to?: string;
+                /** @description comma separated statuses */
+                "filter[status]"?: string;
+                warehouseId?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WasteRecord"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postInventoryWaste: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WasteRecordInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WasteRecord"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getInventoryWasteById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WasteRecord"];
                 };
             };
             /** @description Not authenticated */
