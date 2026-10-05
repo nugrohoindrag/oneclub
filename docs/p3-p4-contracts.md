@@ -141,6 +141,18 @@ Confirmed (back office / quotation at once; website and member app when paid).
 `{ bookingId, number, packageId, packageCode, status: cancelled|expired, reason, fee }` — unused components are released by commercial
 (reservations cancelled, tee time seats freed, unused vouchers voided); business lines drop their details of the booking.
 
+Package fulfilment in the business lines (decoded by name, wired in `internal/app/p3_commercial.go` / `p3_banquet.go`; PRD P3
+FR-PKG-04/06/08, §9.2):
+| Consumer | `commercial.package_booked` | `commercial.package_cancelled` |
+|---|---|---|
+| `golf` | One golf booking per tee time of each `tee_time` component (players on the seats confirmed for the component, the customer first, nominees TBA, `paymentMode = prepaid`, no folio — the package folio holds the green fee); `golf.bookings.package_booking_id / package_component_id`; idempotent per component and tee time. Golf-side cancel / reschedule are refused (`package_booking`) | Not-played bookings and players cancelled (checked-in players stay) |
+| `stay` | One stay per stay unit (bungalow, VIP suite, meeting room) of each `reservation` component, on the component's reservation, with an incidentals folio and `roomPosting = package`; idempotent per component and unit. Stay-side cancel refused | Stays not checked in cancelled |
+| `banquet` | Definite event per `banquet` component (above) | Open events of the booking cancelled without forfeiture, or back to Tentative with an option date when Banquet Policies `packageCancellation = tentative` |
+
+Consumption in the lines (FR-PKG-06): `golf.player_checked_in` (additive fields `packageBookingId?`, `packageComponentId?`, `code`) uses one
+place of the tee time component per golfer (idempotency key `golf-player-<playerId>`); the stay check-in checks the component's reservation
+in, so `reservation.checked_in` consumes the stay component.
+
 ### Consumed by `commercial` (packages)
 | Event | Effect |
 |---|---|
@@ -171,6 +183,19 @@ code), `billing.payment_settled` (folio `sourceType = banquet_event`: Definite o
 `commercial.package_booked` (each `componentType = banquet` component becomes one Definite event, idempotent per
 `bookingComponentId`; `allocationRef` may carry the venue's resource id; the package booking keeps the money). Payment schedules
 and folios of events use `sourceType = banquet_event` with `sourceId` = event id (registration folios: participant id).
+
+Consumed by `crm/sales` (FR-BQT-14, `internal/app/p3_sales.go`): `banquet.event_confirmed` adds a system note to the opportunity of the
+event's quotation (`reporting.banquet_events.quotation_number`; else to the customer), once per event (`external_ref`
+`banquet.event_confirmed:<eventId>`); `banquet.event_cancelled` of an event whose quotation was accepted adds a note and closes the
+opportunity as Lost with reason `cancelled` (`crm.opportunity_lost` additive field `wasWon`); refunds of the cancellation claw the
+commission back through `billing.refund_processed` as before.
+
+### `banquet.golf_block_requested`, `banquet.golf_block_released` (additive, banquet — FR-EVT-03)
+`{ golfBlockId, eventId, eventNumber, title, courseId, playingRouteId?, startsAt, endsAt, notes?, reason }` — the golf block of an event
+(`POST /api/v1/banquet/events/{id}/golf-blocks`) is requested once the event is Definite (at once when it already is) and released when
+the block is released, the event is cancelled or leaves Definite. Consumed by `golf`: an ordinary course block with reason
+`private_event` and `source_type = banquet.event_golf_block`, `source_id = golfBlockId` (one active block per golf block) closes the tee
+times of the window; the release lifts it.
 
 ### `banquet.beo_issued`, `banquet.beo_revised` (K1 — procurement requirement)
 ```json
@@ -209,6 +234,12 @@ whose `eventId` matches). Billing folios of source `tournament` have `sourceId` 
 | `billing.invoice_written_off` | `{ invoiceId, number, accountId, amount, currency, reason }` |
 | `billing.payment_schedule_due` | `{ scheduleId, lineId, label, dueDate, amount, outstanding }` |
 | `billing.business_day_closed` | `DailyRevenue`: `{ businessDate, status, frozen, revenue: [{ businessLine, revenueComponent, liability, net, service, tax, total }], charges, net, service, tax, payments: [{ methodType, purpose, count, amount }], paymentTotal, refunds, shiftTotal, liabilities: { name: amount }, invoicesIssued, invoiceTotal, generatedAt }` |
+
+Night audit actions (FR-EOD-03, §9.5): `billing.Service.RegisterNightAuditAction` plugs automatic, idempotent steps into the night
+audit; they run once the checks found no blocking exception, their findings (`severity = info`) are stored with the run and the
+checks run again before the day is frozen. `stay` posts the bungalow room charge of the night for in-house stays booked under Stay
+Policies `roomChargePosting = nightly` (`stay.night_postings`, once per night; the nights left at check-out) and marks Reserved stays
+that did not arrive as No-show when `autoNoShow` (package stays excluded).
 
 P1–P2 financial events reused by P4 (K8): `billing.payment_settled`, `billing.refund_processed`, `billing.folio_closed`,
 `commercial.sale_completed` (K7), `commercial.voucher_sold`, `commercial.voucher_redeemed`, `commercial.voucher_expired`,
