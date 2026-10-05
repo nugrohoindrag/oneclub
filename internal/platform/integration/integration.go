@@ -482,6 +482,7 @@ type logMailer struct{ log CallLogger }
 func (m logMailer) SendEmail(ctx context.Context, e Email) error {
 	slog.InfoContext(ctx, "email (log mailer)", "to", e.To, "subject", e.Subject)
 	m.log(ctx, Call{Operation: "send_email", Request: map[string]any{"to": e.To, "subject": e.Subject, "text": e.Text}})
+	recordSandbox(SandboxMessage{Integration: "log-mailer", Channel: "email", To: e.To, Subject: e.Subject, Text: e.Text})
 	return nil
 }
 

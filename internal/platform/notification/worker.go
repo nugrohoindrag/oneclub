@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -73,13 +75,20 @@ func (w *Worker) Work(ctx context.Context, job *river.Job[DeliverArgs]) error {
 	if status == "sent" {
 		return nil // idempotent on retry after a crash post-send
 	}
+	if secretsErased(payload) {
+		// A retry after the final attempt: the one-time code is gone, so the
+		// message cannot be sent again (the customer requests a new code).
+		return river.JobCancel(errors.New("the secret values of this delivery were erased after its final attempt; request a new code"))
+	}
 	// One-time codes and other secret template variables never reach the
-	// integration call log (they stay in the delivery only).
+	// integration call log, and they are erased from the delivery once it
+	// reached its final status (sent, failed, skipped).
 	for k, v := range payload {
 		if mask.IsSecretKey(k) {
 			ctx = integration.WithRedactions(ctx, fmt.Sprint(v))
 		}
 	}
+	erasedPayload, erasedSubject, erasedBody := eraseSecrets(payload, subject, body)
 
 	var sendErr error
 	switch channel {
@@ -101,7 +110,8 @@ func (w *Worker) Work(ctx context.Context, job *river.Job[DeliverArgs]) error {
 		m, err := s.Integrations.Messaging(ctx)
 		if errors.Is(err, integration.ErrNotConfigured) {
 			_, uerr := s.DB.Primary.Exec(ctx, `UPDATE platform.notification_deliveries SET status = 'skipped', attempts = attempts + 1,
-				last_error = 'WhatsApp is not configured (BSP pending)' WHERE id = $1`, job.Args.DeliveryID)
+				last_error = 'WhatsApp is not configured (BSP pending)', payload = $2, subject = $3, body = $4 WHERE id = $1`,
+				job.Args.DeliveryID, erasedPayload, erasedSubject, erasedBody)
 			return uerr
 		}
 		if err != nil {
@@ -129,14 +139,65 @@ func (w *Worker) Work(ctx context.Context, job *river.Job[DeliverArgs]) error {
 		if final {
 			newStatus = "failed"
 		}
+		if !final {
+			_, _ = s.DB.Primary.Exec(ctx, `UPDATE platform.notification_deliveries SET status = $2, attempts = $3, last_error = $4 WHERE id = $1`,
+				job.Args.DeliveryID, newStatus, job.Attempt, sendErr.Error())
+			return sendErr
+		}
 		_, _ = s.DB.Primary.Exec(ctx, `UPDATE platform.notification_deliveries SET status = $2, attempts = $3, last_error = $4,
-			failed_at = CASE WHEN $2 = 'failed' THEN now() ELSE failed_at END WHERE id = $1`,
-			job.Args.DeliveryID, newStatus, job.Attempt, sendErr.Error())
+			failed_at = now(), payload = $5, subject = $6, body = $7 WHERE id = $1`,
+			job.Args.DeliveryID, newStatus, job.Attempt, sendErr.Error(), erasedPayload, erasedSubject, erasedBody)
 		return sendErr
 	}
-	_, err = s.DB.Primary.Exec(ctx, `UPDATE platform.notification_deliveries SET status = 'sent', attempts = $2, sent_at = now(), last_error = NULL WHERE id = $1`,
-		job.Args.DeliveryID, job.Attempt)
+	_, err = s.DB.Primary.Exec(ctx, `UPDATE platform.notification_deliveries SET status = 'sent', attempts = $2, sent_at = now(), last_error = NULL,
+		payload = $3, subject = $4, body = $5 WHERE id = $1`,
+		job.Args.DeliveryID, job.Attempt, erasedPayload, erasedSubject, erasedBody)
 	return err
+}
+
+// minSecretLen is the shortest secret value replaced inside the rendered
+// subject and body (shorter values would hit unrelated text; one-time codes
+// have 6 digits).
+const minSecretLen = 4
+
+// eraseSecrets returns the payload with every secret template variable
+// (mask.IsSecretKey, e.g. otpCode) replaced by mask.Redacted, and the
+// subject and body with those values replaced (PO decision 4f: one-time
+// codes are not kept once the delivery is sent or definitively failed).
+func eraseSecrets(payload map[string]any, subject, body string) (map[string]any, string, string) {
+	if len(payload) == 0 {
+		return payload, subject, body
+	}
+	out := make(map[string]any, len(payload))
+	var vals []string
+	for k, v := range payload {
+		if mask.IsSecretKey(k) && v != nil && fmt.Sprint(v) != "" {
+			if sv := fmt.Sprint(v); sv != mask.Redacted && len(sv) >= minSecretLen {
+				vals = append(vals, sv)
+			}
+			out[k] = mask.Redacted
+			continue
+		}
+		out[k] = v
+	}
+	// Longest first, so a value containing another one is replaced whole.
+	slices.SortFunc(vals, func(a, b string) int { return len(b) - len(a) })
+	for _, v := range vals {
+		subject = strings.ReplaceAll(subject, v, mask.Redacted)
+		body = strings.ReplaceAll(body, v, mask.Redacted)
+	}
+	return out, subject, body
+}
+
+// secretsErased reports whether the secret variables of a payload were
+// already erased.
+func secretsErased(payload map[string]any) bool {
+	for k, v := range payload {
+		if mask.IsSecretKey(k) && v == mask.Redacted {
+			return true
+		}
+	}
+	return false
 }
 
 // OnDeliveryStatus records WhatsApp delivery statuses reported by the BSP

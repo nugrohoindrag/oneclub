@@ -162,6 +162,12 @@ func (s *Service) queue(ctx context.Context, tx pgx.Tx, m notify.Message, r reci
 	if r.ID != uuid.Nil {
 		uid = &r.ID
 	}
+	payload := map[string]any{}
+	for k, v := range data {
+		payload[k] = fmt.Sprint(v)
+	}
+	// Deliveries that are final at once keep no secret (one-time codes).
+	_, finalSubject, finalBody := eraseSecrets(payload, subject, body)
 	switch ch {
 	case notify.ChannelInApp:
 		if _, err := tx.Exec(ctx, `INSERT INTO platform.notifications (id, user_id, event_code, category, title, body, link)
@@ -170,7 +176,7 @@ func (s *Service) queue(ctx context.Context, tx pgx.Tx, m notify.Message, r reci
 		}
 		_, err := tx.Exec(ctx, `INSERT INTO platform.notification_deliveries (id, user_id, event_code, category, channel, locale, recipient,
 			subject, body, status, attempts, sent_at) VALUES ($1,$2,$3,$4,'in_app',$5,$6,$7,$8,'sent',1,now())`,
-			did, uid, m.Event, m.Category, r.Locale, r.Name, subject, body)
+			did, uid, m.Event, m.Category, r.Locale, r.Name, finalSubject, finalBody)
 		return err
 	case notify.ChannelEmail, notify.ChannelWhatsApp:
 		to := r.Email
@@ -178,14 +184,10 @@ func (s *Service) queue(ctx context.Context, tx pgx.Tx, m notify.Message, r reci
 			if r.Phone == nil || *r.Phone == "" {
 				_, err := tx.Exec(ctx, `INSERT INTO platform.notification_deliveries (id, user_id, event_code, category, channel, locale,
 					recipient, subject, body, status, last_error) VALUES ($1,$2,$3,$4,'whatsapp',$5,'-',$6,$7,'skipped','recipient has no phone number')`,
-					did, uid, m.Event, m.Category, r.Locale, subject, body)
+					did, uid, m.Event, m.Category, r.Locale, finalSubject, finalBody)
 				return err
 			}
 			to = *r.Phone
-		}
-		payload := map[string]any{}
-		for k, v := range data {
-			payload[k] = fmt.Sprint(v)
 		}
 		if _, err := tx.Exec(ctx, `INSERT INTO platform.notification_deliveries (id, user_id, event_code, category, channel, locale,
 			recipient, subject, body, status, payload) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,'pending',$10)`,

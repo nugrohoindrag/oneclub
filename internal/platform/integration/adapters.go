@@ -214,6 +214,9 @@ func (m *mockMessaging) SendMessage(ctx context.Context, msg OutboundMessage) (M
 		}
 		return out, 200, nil
 	})
+	if err == nil {
+		recordSandbox(SandboxMessage{Integration: m.env.Code, Channel: "whatsapp", To: msg.To, Template: msg.Template, Text: msg.Text, Named: msg.Named})
+	}
 	return out, err
 }
 
@@ -247,6 +250,14 @@ func num(v any) int {
 }
 
 func (m *mockEmail) SendEmail(ctx context.Context, e Email) error {
+	err := m.send(ctx, e)
+	if err == nil {
+		recordSandbox(SandboxMessage{Integration: m.env.Code, Channel: "email", To: e.To, Subject: e.Subject, Text: e.Text})
+	}
+	return err
+}
+
+func (m *mockEmail) send(ctx context.Context, e Email) error {
 	return timed(m.env, ctx, "send_email", map[string]any{"email": e.To, "subject": e.Subject, "text": e.Text}, func() (any, int, error) {
 		if v, _ := m.env.Settings["alwaysFail"].(bool); v {
 			return nil, 451, errors.New("simulated permanent SMTP failure")

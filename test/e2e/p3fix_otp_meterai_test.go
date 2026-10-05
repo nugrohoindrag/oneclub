@@ -3,24 +3,55 @@ package e2e
 import (
 	"bytes"
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
+
+	"oneclub/internal/platform/integration"
 )
 
 // slsOtpCode is the latest acceptance code sent for a quotation number. Only
-// a hash is stored with the quotation, so the code is read back from the
-// recorded (sandbox) notification delivery.
+// a hash is stored with the quotation and the delivery erases the code once
+// sent (PO decision 4f), so the code is read from the message the sandbox
+// adapter (mock WhatsApp, mock / log e-mail) sent in this process.
 func slsOtpCode(t *testing.T, number string) string {
 	t.Helper()
-	var code string
-	sysQueryRow(t, inst, `SELECT coalesce(payload->>'otpCode', '') FROM platform.notification_deliveries WHERE event_code = 'crm.quotation_otp'
-		AND payload->>'number' = $1 ORDER BY created_at DESC LIMIT 1`, []any{number}, &code)
+	var did, status, stored, body string
+	sysQueryRow(t, inst, `SELECT id::text FROM platform.notification_deliveries WHERE event_code = 'crm.quotation_otp'
+		AND payload->>'number' = $1 ORDER BY created_at DESC LIMIT 1`, []any{number}, &did)
+	waitFor(t, 30*time.Second, "acceptance code of "+number+" sent", func() bool {
+		var pending int
+		sysQueryRow(t, inst, `SELECT count(*) FROM platform.notification_deliveries WHERE event_code = 'crm.quotation_otp'
+			AND payload->>'number' = $1 AND status = 'pending'`, []any{number}, &pending)
+		return pending == 0
+	})
+	sysQueryRow(t, inst, `SELECT status, coalesce(payload->>'otpCode', ''), body FROM platform.notification_deliveries WHERE id = $1`,
+		[]any{did}, &status, &stored, &body)
+	msgs := integration.SandboxMessages(func(m integration.SandboxMessage) bool {
+		return (m.Template == "crm.quotation_otp" && m.Named["number"] == number) ||
+			(m.Channel == "email" && strings.Contains(m.Subject, number) && otpInText.MatchString(m.Text))
+	})
+	if status != "sent" || len(msgs) == 0 {
+		t.Fatalf("acceptance code of %s: delivery %s, %d sandbox messages", number, status, len(msgs))
+	}
+	last := msgs[len(msgs)-1]
+	code := last.Named["otpCode"]
+	if code == "" {
+		if m := otpInText.FindStringSubmatch(last.Text); m != nil {
+			code = m[1]
+		}
+	}
 	if len(code) != 6 {
-		t.Fatalf("acceptance code of %s: %q", number, code)
+		t.Fatalf("acceptance code of %s: %q (%s)", number, code, last.Text)
+	}
+	if stored != "[REDACTED]" || strings.Contains(body, code) || !strings.Contains(body, "[REDACTED]") {
+		t.Fatalf("the sent delivery keeps no code: payload %q, body %q", stored, body)
 	}
 	return code
 }
+
+var otpInText = regexp.MustCompile(`(\d{6}) (?:is your code|adalah kode)`)
 
 // slsAcceptPublic accepts a quotation on its public link with a one-time
 // code (Sales Policies requireAcceptanceOtp, PRD P3 §16 #18).
