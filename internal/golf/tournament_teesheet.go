@@ -36,6 +36,13 @@ type TournamentBlockInput struct {
 // TournamentBlock creates a course block with reason tournament (same
 // effect as Block Course Availability in the Back Office).
 func (m *Module) TournamentBlock(ctx context.Context, tx pgx.Tx, property uuid.UUID, in TournamentBlockInput) (Block, error) {
+	return m.courseBlock(ctx, tx, property, in, "tournament", "", nil)
+}
+
+// courseBlock creates a course block for another module (reason
+// tournament or private_event; source = the requesting record).
+func (m *Module) courseBlock(ctx context.Context, tx pgx.Tx, property uuid.UUID, in TournamentBlockInput, reason, sourceType string,
+	sourceID *uuid.UUID) (Block, error) {
 	if !in.EndsAt.After(in.StartsAt) {
 		return Block{}, errs.Validation("invalid_period", "end must be after start", errs.Field("endsAt", "invalid", "after start"))
 	}
@@ -47,9 +54,9 @@ func (m *Module) TournamentBlock(ctx context.Context, tx pgx.Tx, property uuid.U
 		return Block{}, err
 	}
 	bid := id.New()
-	if _, err := tx.Exec(ctx, `INSERT INTO golf.course_blocks (id, property_id, course_id, playing_route_id, starts_at, ends_at, reason, notes, created_by, updated_by)
-		VALUES ($1,$2,$3,$4,$5,$6,'tournament',$7,$8,$8)`, bid, property, in.CourseID, in.PlayingRouteID, in.StartsAt, in.EndsAt, nullStr(in.Notes),
-		id.Ptr(actor(ctx))); err != nil {
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.course_blocks (id, property_id, course_id, playing_route_id, starts_at, ends_at, reason, notes, created_by, updated_by,
+		source_type, source_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$9,$10,$11)`, bid, property, in.CourseID, in.PlayingRouteID, in.StartsAt, in.EndsAt, reason,
+		nullStr(in.Notes), id.Ptr(actor(ctx)), nullStr(sourceType), sourceID); err != nil {
 		return Block{}, err
 	}
 	if _, err := tx.Exec(ctx, `UPDATE golf.tee_times SET status = 'blocked', block_id = $1 WHERE course_id = $2 AND start_at >= $3 AND start_at < $4
@@ -72,7 +79,7 @@ func (m *Module) TournamentBlock(ctx context.Context, tx pgx.Tx, property uuid.U
 			link = m.Cfg.PublicBaseURL + "/golf/bookings"
 		}
 		if err := m.Notify.Send(ctx, tx, notify.Message{Event: "golf.bookings_affected", Category: "general", UserIDs: users, PropertyID: &property,
-			Link: link, Data: map[string]any{"count": len(out.AffectedBookings), "reason": "tournament", "course": courseName,
+			Link: link, Data: map[string]any{"count": len(out.AffectedBookings), "reason": reason, "course": courseName,
 				"period": in.StartsAt.In(loc).Format("02 Jan 15:04") + " – " + in.EndsAt.In(loc).Format("15:04"), "link": link}}); err != nil {
 			return out, err
 		}
@@ -81,13 +88,19 @@ func (m *Module) TournamentBlock(ctx context.Context, tx pgx.Tx, property uuid.U
 		return out, err
 	}
 	return out, audit.Record(ctx, tx, audit.Entry{Module: "golf", Action: audit.ActionCreate, EntityType: "golf.course_block", EntityID: bid.String(),
-		EntityLabel: courseName + " tournament", PropertyID: &property, After: map[string]any{"startsAt": in.StartsAt, "endsAt": in.EndsAt,
-			"reason": "tournament", "notes": strings.TrimSpace(in.Notes), "blockedSlots": out.BlockedSlots, "affectedBookings": len(out.AffectedBookings)}})
+		EntityLabel: courseName + " " + strings.ReplaceAll(reason, "_", " "), PropertyID: &property, After: map[string]any{"startsAt": in.StartsAt,
+			"endsAt": in.EndsAt, "reason": reason, "notes": strings.TrimSpace(in.Notes), "blockedSlots": out.BlockedSlots,
+			"affectedBookings": len(out.AffectedBookings), "sourceType": sourceType, "sourceId": sourceID}})
 }
 
 // TournamentUnblock cancels a tournament course block (round moved or
 // tournament cancelled); the slots re-open unless another block covers them.
 func (m *Module) TournamentUnblock(ctx context.Context, tx pgx.Tx, property, blockID uuid.UUID) error {
+	return m.liftBlock(ctx, tx, property, blockID, "tournament")
+}
+
+// liftBlock cancels a course block created for another module.
+func (m *Module) liftBlock(ctx context.Context, tx pgx.Tx, property, blockID uuid.UUID, reason string) error {
 	var course uuid.UUID
 	var starts time.Time
 	err := tx.QueryRow(ctx, `UPDATE golf.course_blocks SET status = 'cancelled', updated_by = $3 WHERE id = $1 AND property_id = $2 AND status = 'active'
@@ -110,5 +123,5 @@ func (m *Module) TournamentUnblock(ctx context.Context, tx pgx.Tx, property, blo
 		return err
 	}
 	return audit.Record(ctx, tx, audit.Entry{Module: "golf", Action: audit.ActionStatusChange, EntityType: "golf.course_block", EntityID: blockID.String(),
-		PropertyID: &property, After: map[string]any{"status": "cancelled", "reason": "tournament"}})
+		PropertyID: &property, After: map[string]any{"status": "cancelled", "reason": reason}})
 }

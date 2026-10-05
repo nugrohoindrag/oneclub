@@ -87,6 +87,9 @@ func (m *Module) backToTentative(ctx context.Context, tx pgx.Tx, eid uuid.UUID, 
 		eid, opt); err != nil {
 		return err
 	}
+	if err := m.releaseGolfBlocks(ctx, tx, e, "pending", reason); err != nil { // no longer Definite: the tee times open again
+		return err
+	}
 	_, err = m.setStatus(ctx, tx, e, StatusTentative, "package_cancelled", reason, `, option_date = $4`, opt)
 	return err
 }

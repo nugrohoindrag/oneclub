@@ -10,7 +10,7 @@ CREATE UNIQUE INDEX bookings_package_component ON golf.bookings (package_compone
 CREATE INDEX bookings_package ON golf.bookings (package_booking_id) WHERE package_booking_id IS NOT NULL;
 
 ALTER TABLE golf.course_blocks ADD COLUMN source_type text, ADD COLUMN source_id uuid;
-CREATE UNIQUE INDEX course_blocks_source ON golf.course_blocks (source_type, source_id) WHERE source_id IS NOT NULL;
+CREATE UNIQUE INDEX course_blocks_source ON golf.course_blocks (source_type, source_id) WHERE source_id IS NOT NULL AND status = 'active';
 
 SELECT platform.grant_app('golf');
 

@@ -298,3 +298,74 @@ func TestP3FixFulfilmentCRMBanquetSync(t *testing.T) {
 		t.Fatalf("cancellation recorded on the opportunity: %d", cancelled)
 	}
 }
+
+// PRD P3 FR-EVT-03: an event that uses the golf course blocks the tee
+// times of its golf block once it is Definite (golf course block, reason
+// private event, once however often the request is delivered); releasing
+// the block or cancelling the event opens them again.
+func TestP3FixFulfilmentEventGolfBlock(t *testing.T) {
+	sa := superAdmin(t, inst)
+	sfx := fmt.Sprint(time.Now().UnixNano() % 1e6)
+	loc := clubLoc(inst)
+	gc := setupGolfCourse(t, sa, "EB"+sfx[:4])
+	day := pcWeekdays(50, 1)[0]
+	d, _ := time.ParseInLocation("2006-01-02", day, loc)
+	at := func(hh, mm int) time.Time { return time.Date(d.Year(), d.Month(), d.Day(), hh, mm, 0, 0, loc) }
+	teeTimes(t, sa, gc.Course, day)
+	blocked := func() (in, out int) {
+		for _, s := range teeTimes(t, sa, gc.Course, day) {
+			st, _ := time.Parse(time.RFC3339, str(s["startAt"]))
+			inside := !st.Before(at(6, 30)) && st.Before(at(7, 30))
+			if s["status"] == "blocked" {
+				if inside {
+					in++
+				} else {
+					out++
+				}
+			}
+		}
+		return in, out
+	}
+	typ := bqType(t, sa, "EG"+sfx, "social")
+	cust := idOf(sa.Must(201, "POST", "/api/v1/crm/customers", map[string]any{"code": "PFG" + sfx, "name": "PT Golf Outing " + sfx, "phone": "+62826" + sfx}))
+	eid := idOf(sa.Must(201, "POST", "/api/v1/banquet/events", map[string]any{"title": "Corporate Golf Outing " + sfx, "eventTypeId": typ,
+		"customerId": cust, "start": rfc(at(6, 0)), "end": rfc(at(13, 0)), "expectedPax": 40}))
+	sa.Must(422, "POST", "/api/v1/banquet/events/"+eid+"/golf-blocks", map[string]any{"courseId": uuid.NewString()})
+	gb := sa.Must(201, "POST", "/api/v1/banquet/events/"+eid+"/golf-blocks", map[string]any{"courseId": gc.Course, "start": rfc(at(6, 30)),
+		"end": rfc(at(7, 30)), "notes": "Shotgun outing"}).JSON()
+	if gb["status"] != "pending" {
+		t.Fatalf("golf block of a tentative event: %v", gb)
+	}
+	pcDispatch(t, "nothing blocked before Definite", func() bool { in, _ := blocked(); return in == 0 })
+	sa.Must(200, "POST", "/api/v1/banquet/events/"+eid+":make-definite", map[string]any{"reason": "Contract signed"})
+	pcDispatch(t, "tee times of the event blocked", func() bool { in, out := blocked(); return in > 0 && out == 0 })
+	if l := sa.Must(200, "GET", "/api/v1/banquet/events/"+eid+"/golf-blocks", nil).Items(); len(l) != 1 || l[0]["status"] != "requested" {
+		t.Fatalf("golf blocks of the event: %v", l)
+	}
+	courseBlocks := func(src string) int {
+		var n int
+		sysQueryRow(t, inst, `SELECT count(*) FROM golf.course_blocks WHERE source_id = $1 AND status = 'active' AND reason = 'private_event'`,
+			[]any{mustUUID(src)}, &n)
+		return n
+	}
+	pfOutbox(t, "banquet.golf_block_requested", "golfBlockId", str(gb["id"]), func(tx pgx.Tx, payload []byte) error {
+		return inst.App.Golf.OnEventGolfBlock(dbtx.System(t.Context()), tx, outboxEvent("banquet.golf_block_requested", payload, inst.Main))
+	})
+	if n := courseBlocks(str(gb["id"])); n != 1 {
+		t.Fatalf("one course block per golf block: %d", n)
+	}
+	// released by hand: the tee times open again
+	if r := sa.Must(200, "POST", "/api/v1/banquet/event-golf-blocks/"+str(gb["id"])+":release", map[string]any{"reason": "outing moved"}).JSON(); r["status"] != "released" {
+		t.Fatalf("released golf block: %v", r)
+	}
+	pcDispatch(t, "tee times open again", func() bool { in, _ := blocked(); return in == 0 })
+	// a block added to the Definite event is requested at once; the cancellation releases it
+	gb2 := sa.Must(201, "POST", "/api/v1/banquet/events/"+eid+"/golf-blocks", map[string]any{"courseId": gc.Course, "playingRouteId": gc.RouteAB,
+		"start": rfc(at(6, 30)), "end": rfc(at(7, 30))}).JSON()
+	if gb2["status"] != "requested" {
+		t.Fatalf("golf block of a definite event: %v", gb2)
+	}
+	pcDispatch(t, "tee times blocked again", func() bool { in, _ := blocked(); return in > 0 })
+	sa.Must(200, "POST", "/api/v1/banquet/events/"+eid+":cancel", map[string]any{"reason": "outing cancelled"})
+	pcDispatch(t, "event cancelled: tee times open", func() bool { in, _ := blocked(); return in == 0 && courseBlocks(str(gb2["id"])) == 0 })
+}

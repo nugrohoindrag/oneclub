@@ -1189,6 +1189,9 @@ func (m *Module) makeDefinite(ctx context.Context, tx pgx.Tx, eid uuid.UUID, rea
 	if _, err := m.Events.Publish(ctx, tx, EventConfirmed, "banquet.event", &after.ID, &after.PropertyID, statusPayload(ctx, tx, after)); err != nil {
 		return after, err
 	}
+	if err := m.requestGolfBlocks(ctx, tx, after); err != nil { // FR-EVT-03
+		return after, err
+	}
 	loc := calendar.Location(ctx, tx)
 	return after, m.notifyCustomer(ctx, tx, after, "banquet.event_confirmed", map[string]any{"date": after.Start.In(loc).Format("02 Jan 2006 15:04")})
 }
@@ -1404,6 +1407,9 @@ func (m *Module) CancelEvent(ctx context.Context, tx pgx.Tx, eid uuid.UUID, in E
 		return out, err
 	}
 	if _, err := tx.Exec(ctx, `UPDATE banquet.production_items SET status = 'cancelled' WHERE event_id = $1 AND status <> 'served'`, eid); err != nil {
+		return out, err
+	}
+	if err := m.releaseGolfBlocks(ctx, tx, e, "released", "event cancelled"); err != nil { // FR-EVT-03
 		return out, err
 	}
 	after, err := m.setStatus(ctx, tx, e, StatusCancelled, "cancel", in.Reason, `, cancelled_at = now(), cancel_reason = $4, cancellation_fee = $5::numeric,

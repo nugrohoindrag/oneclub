@@ -46,6 +46,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.registerImport(reg)
 	m.registerPublic(reg)
 	m.registerMember(reg)
+	m.registerGolfBlocks(reg)
 }
 
 // owned checks that a row of a banquet table belongs to the property of

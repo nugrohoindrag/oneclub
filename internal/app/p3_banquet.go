@@ -100,6 +100,9 @@ func (a *App) subscribeP3Banquet() {
 	a.Bus.Subscribe(banquet.QuotationExpired, "banquet.quotation_release_expired", m.OnQuotationClosed)
 	a.Bus.Subscribe(banquet.PackageBooked, "banquet.package_event", m.OnPackageBooked)
 	a.Bus.Subscribe(banquet.PackageCancelled, "banquet.package_cancelled", m.OnPackageCancelled)
+	// A Definite event that uses the golf course blocks its tee times (FR-EVT-03).
+	a.Bus.Subscribe(banquet.EventGolfBlockRequested, "golf.event_block_requested", a.Golf.OnEventGolfBlock)
+	a.Bus.Subscribe(banquet.EventGolfBlockReleased, "golf.event_block_released", a.Golf.OnEventGolfBlock)
 	a.Bus.Subscribe(billing.EventPaymentSettled, "banquet.payment_settled", m.OnPaymentSettled)
 	a.Bus.Subscribe(billing.EventInvoicePaid, "banquet.invoice_paid", m.OnInvoicePaid)
 	a.Bus.Subscribe(billing.EventScheduleDue, "banquet.payment_due", m.OnScheduleDue)
