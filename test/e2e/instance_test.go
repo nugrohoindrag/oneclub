@@ -53,6 +53,19 @@ func TestInstanceIsolation(t *testing.T) {
 	}
 }
 
+// The public website books into the instance's first property, which the
+// bootstrap lists first — the property the CMS site resolves to as well, not
+// the alphabetically first one (demo: "Modern Driving Range" sorts before MAIN).
+func TestBootstrapListsTheFirstPropertyFirst(t *testing.T) {
+	props, _ := anon(t, inst).Must(200, "GET", "/api/v1/public/bootstrap", nil).JSON()["properties"].([]any)
+	if len(props) < 2 {
+		t.Fatalf("bootstrap lists %d properties, want the demo's two", len(props))
+	}
+	if code := props[0].(map[string]any)["code"]; code != "MAIN" {
+		t.Fatalf("bootstrap lists %v first, want MAIN", code)
+	}
+}
+
 func mustParse(t testing.TB, s string) *url.URL {
 	u, err := url.Parse(s)
 	if err != nil {

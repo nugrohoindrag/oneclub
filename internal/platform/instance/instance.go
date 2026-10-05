@@ -912,7 +912,9 @@ func (s *Service) bootstrap(w http.ResponseWriter, r *http.Request) {
 	}
 	b.Properties = []PublicProperty{}
 	if err := s.DB.WithReadTx(dbtx.System(ctx), func(tx pgx.Tx) error {
-		rows, err := tx.Query(ctx, `SELECT id, code, name FROM platform.properties WHERE status = 'active' AND archived_at IS NULL ORDER BY name`)
+		// The instance's first property comes first: the website books into it,
+		// like the CMS site resolves to it (not the alphabetically first one).
+		rows, err := tx.Query(ctx, `SELECT id, code, name FROM platform.properties WHERE status = 'active' AND archived_at IS NULL ORDER BY created_at, id`)
 		if err != nil {
 			return err
 		}
