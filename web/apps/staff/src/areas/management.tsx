@@ -1,5 +1,5 @@
 import { useRoutes } from 'react-router';
-import { ComingSoonPage, NotFoundPage, NotificationsPage, ProfilePage, TopNavLayout } from '@oneclub/shell';
+import { NotFoundPage, NotificationsPage, ProfilePage, TopNavLayout } from '@oneclub/shell';
 import { ExecutiveOverviewPage } from '../pages';
 import { BookingPerformancePage, GolfPerformancePage, MembershipPerformancePage } from '../p1/business';
 import { KPIDashboardPage, P2_MANAGEMENT_ROUTES } from '../p2';
@@ -17,7 +17,7 @@ const routes = [
       { path: 'inventory-performance', element: <KPIDashboardPage code="inventory-performance" /> },
       { path: 'banquet-performance', element: <KPIDashboardPage code="banquet-performance" /> },
       { path: 'procurement-performance', element: <KPIDashboardPage code="procurement-performance" /> },
-      { path: 'financial', element: <ComingSoonPage title="Financial Performance" phase="P4" /> },
+      { path: 'financial', element: <KPIDashboardPage code="financial-performance" /> },
       { path: 'profile', element: <ProfilePage /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: '*', element: <NotFoundPage /> },

@@ -49,3 +49,29 @@ func ensureOpenPeriod(ctx context.Context, q dbtx.Querier, property uuid.UUID, d
 	}
 	return nil
 }
+
+// ExportGuard reports whether the Accounting Export of a property is
+// stopped: Accounting signed the transition off and posts the books itself
+// (PRD P4 FR-TRS-04). Exports made before stay downloadable.
+type ExportGuard func(ctx context.Context, q dbtx.Querier, property uuid.UUID) (stopped bool, err error)
+
+var exportGuard ExportGuard
+
+// RegisterExportGuard plugs the accounting cut-over into the export.
+func (s *Service) RegisterExportGuard(fn ExportGuard) {
+	periodMu.Lock()
+	defer periodMu.Unlock()
+	exportGuard = fn
+}
+
+// exportStopped reports whether the export of a property has stopped;
+// without a guard it never stops.
+func exportStopped(ctx context.Context, q dbtx.Querier, property uuid.UUID) (bool, error) {
+	periodMu.RLock()
+	fn := exportGuard
+	periodMu.RUnlock()
+	if fn == nil {
+		return false, nil
+	}
+	return fn(ctx, q, property)
+}

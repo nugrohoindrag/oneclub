@@ -337,3 +337,33 @@ Published by `cms` (EP-24) when content goes live / comes down (also by the sche
 | Loyalty liability (FR-LOY-08) | crm/loyalty | `billing.RegisterLiability("loyalty_points", …)` (day summary / night audit / export `liability_balance`) and export section `crm.loyalty` (`loyalty` rows: earned, redeemed, expired, adjusted, reversed valued at the redemption value) |
 | Customer 360 sections (FR-C360-01) | each area | `a.CRM.Sections["banquet" \| "tournament" \| …] = fn` in the area's wiring; CRM engagement wires `loyalty`, `campaignResponse`, `complaints`, `sales` |
 | Recipe explosion (K1/K6) | inventory | root function `inventory.ExplodeRecipe(ctx, q, recipeID, units) ([]inventory.Requirement, error)` |
+
+## Accounting notes (P4 EP-16–23, additive)
+
+- Accounting consumes by name (one outbox subscriber `accounting.post:<event>` per type, idempotent per `event_id` and per
+  source document — a document is posted once whatever event or sweep reaches it): billing (`business_day_closed`,
+  `payment_settled`, `folio_closed`, `refund_processed`, `invoice_issued`, `invoice_paid`, `invoice_voided`,
+  `credit_note_issued`, `invoice_written_off`), commercial (`voucher_sold`, `voucher_redeemed`, `voucher_expired`,
+  `promotion_applied`, `package_booked`, `package_consumed`, `sale_completed`, `shift_closed`), membership
+  (`annual_fee_due`, `fee_paid`), `sportclub.instructor_fee_approved`, golf (`caddy_settlement_approved`,
+  `round_finished`), `crm.loyalty_points_changed`, inventory (`movement_posted`, `asset_depreciated`, `consignment_sold`,
+  `revaluation_posted`), procurement (`goods_received`, `purchase_returned`, `vendor_invoice_approved`,
+  `debit_note_issued`). Payloads it cannot post go to the suspense account and the Posting Exception queue
+  (`accounting.posting_exception`); nothing is dropped.
+- `inventory.movement_posted` with `sourceType: revaluation` is not posted (the value comes with
+  `inventory.revaluation_posted`: `stockAmount` Dr inventory, `consumedAmount` Dr COGS or price variance per
+  `consumedTo`, both Cr GRNI). Receipts of goods receipts, returns of purchase returns and consignment movements are
+  posted from the procurement / consignment documents, not from the movement.
+- Payload additions: `accounting.period_closed` / `period_reopened` also carry `startDate`, `endDate`; status
+  `soft_closed` is published by the soft close. `accounting.journal_posted` also carries `journalType`.
+  `accounting.vendor_payment_made` also carries `amount` and `method`; `allocations` list vendor invoices only.
+- Further accounting events: `accounting.payment_run_executed { runId, number, paymentDate, total, currency, payments,
+  journalId }`, `accounting.tax_invoice_uploaded { taxInvoiceId, sourceType, sourceId, sourceNumber, fakturNumber,
+  taxPeriod, dpp, ppn, integration }`, `accounting.posting_exception { exceptionId, eventId, eventType, reason, message,
+  amount }`.
+- K10: `accounting.PeriodStatus` returns `open`, `soft_closed` or `closed` (`open` before the property has a book).
+  Billing registers it through `billing.Service.RegisterPeriodGuard` (soft-closed counts as closed for corrections);
+  inventory and procurement take the same function through their `SetPeriodGuard`.
+- FR-TRS-04: billing's daily Accounting Export stops per property once the accounting transition is signed off
+  (`billing.Service.RegisterExportGuard(accounting.ExportStopped)`; a manual export then answers 409 `export_stopped`,
+  earlier exports stay downloadable).
