@@ -258,3 +258,77 @@ HR Admin, GM, Property Admin); HR Performance KPIs `time_to_hire`, `open_positio
 **Public API.** `GET /api/v1/public/careers?propertyId=`, `GET /api/v1/public/careers/{id}`,
 `POST /api/v1/public/careers/applications` (consent required, talent pool consent optional, CV base64 up to the
 Recruitment Configuration limit, honeypot `website`, 10 / minute per IP).
+
+## Time & Attendance (`hris`, EP-06/07/08, ESS sections, EP-25/26/27/28 parts) — notes for payroll, BI and the other areas
+
+**Packages.** `internal/hris/hrtime` implements schedules, attendance, devices / kiosk, leave, permission and overtime (HTTP,
+jobs, demo); the public part lives in the `hris` root: `p5_time.go` (events, payloads, statuses, ESS sections),
+`p5_time_calc.go` (pure engine: `EvaluateDay`, `DayKindOf`, `OvertimePolicy.Tiers / CountableOvertime / PayableHours`,
+`MultipliedOf`, `AnnualGrant`, `LeavePolicy.CarryOver / CarryOverExpiryDate`, `DistanceMeters`) and `p5_time_payroll.go`
+(payroll contract below). Policies are Core HR's: Attendance Configuration, Attendance Policy, Leave Policy, Overtime
+Policy (versioned; requests store the policy version). Holidays: `hris.holidays` (public holiday / collective leave /
+company holiday) plus the P1 Day Calendar public holidays.
+
+**Payroll contract (EP-09 reads EP-07/08)** — all take the caller's querier (RLS applies); local dates `from`–`to` inclusive:
+
+| Function | Returns |
+|---|---|
+| `hris.FinalizeAttendance(ctx, tx, property, from, to)` | Closes every attendance day of the period up to yesterday (Absent for shifts without clock-in, Missing Clock-out, approved leave → On Leave). Call before calculating; the daily job (00:20) does it for yesterday. |
+| `hris.TimeSummaries(ctx, q, property, from, to, employeeIDs)` | `[]TimeSummary` per employee employed in the period (empty ids = all): `scheduledDays`, `presentDays` (present + late + early leave), `lateDays` / `lateMinutes`, `earlyLeaveDays` / `earlyLeaveMinutes`, `absentDays`, `paidLeaveDays`, **`unpaidLeaveDays`**, `offDays`, `holidayDays`, `workedHours`, `unpaidPermissionHours`, `openDays` (not closed yet), `exceptions` (missing clock-in/out, clock-ins waiting for review, corrections waiting), and `overtime` (below). `TimeSummary.AttendanceFactor(paidLeaveCounts)` = present ÷ scheduled (service charge §16 #5). |
+| `hris.ApprovedOvertime(ctx, q, property, from, to, ids)` | `map[employee]OvertimeSummary`: `approvedHours`, **`payableHours`** (approved hours capped by the clocked overtime of the day, rounded down to the policy unit, minimum / daily limit applied — FR-OVT-02), `multipliedHours` (Σ payable hours × factor), **`tiers`** `[{factor:"1.5", hours:"1"}, {factor:"2", hours:"2"}]` merged per factor, and `lines` per request (`dayKind` workday / rest_day / shortest_day). Pay = `OvertimePolicy.HourlyWage(contract.FixedWage())` (1/173) × multiplied hours — payroll computes it; time & attendance stores no amounts. |
+| `hris.UnpaidLeaveDays(ctx, q, property, from, to, ids)` | `map[employee]decimal` of approved unpaid leave days. |
+| `hris.LockTimePeriod(ctx, q, property, from, to, reference, by)` / `hris.ReleaseTimeLock(ctx, q, property, lockID, by, note)` / `hris.TimeLocked(ctx, q, property, day)` | Lock the attendance, leave, permission and overtime of a payroll period (changes are refused with `409 period_locked`); the caller audits. HR / Finance also lock from HRIS → Attendance (`POST /api/v1/hris/time-locks`). |
+
+`GET /api/v1/hris/time-summary?from&to[&employeeId]` serves `TimeSummaries` (permission `hris.time_lock.view`).
+
+**Events published** (outbox; aggregates `hris.schedule`, `hris.attendance_event`, `hris.leave_request`, `hris.overtime_request`):
+
+```jsonc
+// hris.schedule_published — a Shift Schedule is published (version 1) and again for every change after publishing (republished: true)
+{ "scheduleId": "uuid", "propertyId": "uuid", "orgUnitId": "uuid", "orgUnitCode": "FNB", "orgUnitName": "Food & Beverage", "name": "…",
+  "periodStart": "2026-10-12", "periodEnd": "2026-10-18", "version": 1, "republished": false, "shifts": 42,
+  "employeeIds": ["uuid"], "scheduledHours": "294" }
+// hris.attendance_recorded — every accepted clock-in / out (ESS GPS, kiosk QR / PIN, device, HR, correction); a resubmitted offline event is published once
+{ "eventId": "uuid", "propertyId": "uuid", "employeeId": "uuid", "employeeNo": "EMP-00021", "workDate": "2026-10-05", "direction": "in|out",
+  "occurredAt": "2026-10-05T00:58:00Z", "method": "mobile_gps|kiosk_qr|kiosk_pin|fingerprint|face_recognition|manual|correction",
+  "source": "ess|kiosk|device|hr|correction", "deviceId": "uuid|null", "offline": false, "flags": ["out_of_area"],
+  "reviewStatus": "not_required|pending|accepted|rejected",
+  "day": { "status": "scheduled|present|late|early_leave|absent|on_leave|off|holiday", "firstIn": "…|null", "lastOut": "…|null",
+           "workedMinutes": 0, "lateMinutes": 0, "earlyLeaveMinutes": 0, "overtimeMinutes": 0 } }
+// hris.leave_approved — leave approved (the balance is reduced at that moment)
+{ "leaveRequestId": "uuid", "number": "LV-2026-00012", "propertyId": "uuid", "employeeId": "uuid", "employeeNo": "…", "fullName": "…",
+  "leaveType": "ANNUAL", "leaveTypeName": "Annual Leave", "paid": true, "startDate": "2026-10-20", "endDate": "2026-10-21", "halfDay": "am|pm|null",
+  "days": "2", "balanceYear": 2026, "remainingBalance": "8", "policyVersion": 0 }
+// hris.overtime_approved — overtime approved; payableHours follows the attendance afterwards (read TimeSummaries for payroll)
+{ "overtimeRequestId": "uuid", "number": "OT-2026-00007", "propertyId": "uuid", "employeeId": "uuid", "employeeNo": "…", "workDate": "2026-10-05",
+  "hours": "3", "payableHours": "3", "dayKind": "workday", "workWeekDays": 5, "tiers": [{ "factor": "1.5", "hours": "1" }, { "factor": "2", "hours": "2" }],
+  "multipliedHours": "5.5", "policyVersion": 0 }
+```
+
+**Consumed:** `hris.employee_terminated` → `hris.attendance_device_removal` (the leaver's attendance PIN is cleared and
+the device user is removed from the real biometric devices through the bridge agent, §16 #10).
+
+**Approvals.** Manager levels of the policy (Leave Policy `approvalLevels`: supervisor, department_head, hr; overtime,
+permission, shift swap, attendance correction: supervisor) run in HRIS (ESS → Approvals for department heads with
+`hris.team.approve`, Back Office for HR with the approve permission); afterwards the approval engine applies the workflow
+of the document types `hris.leave_request`, `hris.permission_request`, `hris.overtime_request`, `hris.shift_swap`,
+`hris.attendance_correction` (attributes days / hours / leaveType / dayKind / orgUnit; none configured = approved at once).
+
+**Devices (FR-INT-P5-01).** Bridge agent profile `attendance_terminal`: commands `sync_users {users: [{deviceUserNo, name}],
+remove: [deviceUserNo]}` and `delete_users {deviceUserNos}`; the agent pushes `POST /api/v1/bridge/hris/attendance-events`
+(bearer agent token) `{deviceSerial|deviceCode, events: [{eventId, deviceUserNo, occurredAt, method: face_recognition|fingerprint, direction?}]}`
+→ per event accepted / duplicate / rejected. No biometric template is ever sent or stored. Vendor `mock` is the trial
+adapter (`:simulate`). Offline sync actions of the ops shell: `hris.kiosk_clock`, `hris.ess_clock` (platform sync).
+
+**ESS sections** (registered in `hris`): schedule 20, clock 25, attendance 30, leave 40, overtime 50; manager: approvals 102,
+team-schedule 104, team-attendance 106. Staff App screens in `web/apps/staff/src/p5/hr_time.tsx` (`registerEssSection`).
+
+**BI.** Reports `hris.attendance`, `hris.late_absence`, `hris.overtime`, `hris.leave_balance`, `hris.shift_coverage`
+(`RegisterP5Report`) and KPIs `attendance_rate`, `overtime_hours` (executive), `late_rate`, `absenteeism` (`RegisterHRKPI`)
+on `reporting.hr_attendance_days`, `hr_overtime`, `hr_leave_balances`, `hr_leave_requests`, `hr_shift_assignments`,
+`hr_staffing_requirements` (reporting/00022). **Report-role hardening:** `hris.harden_report_role_time()` (attendance PIN
+hash, consent files and GPS positions) — to be called by `hris.harden_report_role()` once the per-area pattern is merged.
+
+**Import (EP-28 FR-MIG-P5-02).** `oneclub import hris -property MAIN --leave-balances F` or
+`POST /api/v1/hris/leave-balances:import` (columns `employeeNo, leaveType, year, entitled, carriedOver, carryOverExpiresOn, used, note`; upsert per
+employee / type / year, dry run).

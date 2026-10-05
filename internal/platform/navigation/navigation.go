@@ -274,10 +274,10 @@ var Trees = map[string][]Item{
 			s("hris-training", "Training & Certification", "/hris/training", "hris.certification.view"),
 			// PRD P5 EP-05 (performance review cycles, calibration).
 			s("hris-performance", "Performance Review", "/hris/performance", "hris.review_cycle.view"),
-			soon("hris-attendance", "Attendance", "/hris/attendance"),
-			soon("hris-schedules", "Schedules", "/hris/schedules"),
-			soon("hris-leave", "Leave & Permission", "/hris/leave"),
-			soon("hris-overtime", "Overtime", "/hris/overtime"),
+			s("hris-attendance", "Attendance", "/hris/attendance", "hris.attendance.view"),  // PRD P5 EP-07
+			s("hris-schedules", "Schedules", "/hris/schedules", "hris.schedule.view"),       // PRD P5 EP-06
+			s("hris-leave", "Leave & Permission", "/hris/leave", "hris.leave_request.view"), // PRD P5 EP-08
+			s("hris-overtime", "Overtime", "/hris/overtime", "hris.overtime_request.view"),  // PRD P5 EP-08
 			soon("hris-payroll", "Payroll", "/hris/payroll"),
 			soon("hris-benefits", "Benefits", "/hris/benefits"),
 			soon("hris-service-charge", "Service Charge", "/hris/service-charge"),
@@ -525,17 +525,22 @@ var Trees = map[string][]Item{
 		// sections on (comingSoon: false).
 		{Key: "ess", Label: "Employee Self Service", Path: "/ops/ess", Icon: "badge", Module: "hris", Permission: "hris.ess.use", Children: []Item{
 			s("ess-profile", "Profile", "/ops/ess/profile", "hris.ess.use"),
-			soon("ess-schedule", "My Schedule", "/ops/ess/schedule"),
-			soon("ess-clock", "Clock In / Out", "/ops/ess/clock"),
-			soon("ess-attendance", "Attendance History", "/ops/ess/attendance"),
-			soon("ess-leave", "Leave & Permission", "/ops/ess/leave"),
-			soon("ess-overtime", "Overtime", "/ops/ess/overtime"),
+			s("ess-schedule", "My Schedule", "/ops/ess/schedule", "hris.ess.use"),
+			s("ess-clock", "Clock In / Out", "/ops/ess/clock", "hris.ess.use"),
+			s("ess-attendance", "Attendance History", "/ops/ess/attendance", "hris.ess.use"),
+			s("ess-leave", "Leave & Permission", "/ops/ess/leave", "hris.ess.use"),
+			s("ess-overtime", "Overtime", "/ops/ess/overtime", "hris.ess.use"),
 			soon("ess-payslip", "Payslip", "/ops/ess/payslip"),
 			s("ess-documents", "My Documents", "/ops/ess/documents", "hris.ess.use"),
 			s("ess-training", "My Training", "/ops/ess/training", "hris.ess.use"),
 			s("ess-team", "Team", "/ops/ess/team", "hris.team.view"),
-			soon("ess-approvals", "Approvals", "/ops/ess/approvals"),
+			s("ess-approvals", "Approvals", "/ops/ess/approvals", "hris.team.approve"),
+			s("ess-team-schedule", "Team Schedule", "/ops/ess/team-schedule", "hris.team.view"),
+			s("ess-team-attendance", "Team Attendance", "/ops/ess/team-attendance", "hris.team.view"),
 		}},
+		// Attendance Kiosk (PRD P5 §7.2, §7.6, FR-ATT-02): clock-in with QR / PIN on a registered device.
+		{Key: "attendance-kiosk", Label: "Attendance Kiosk", Path: "/ops/attendance-kiosk", Icon: "qr_code_scanner", Module: "hris",
+			Permission: "hris.attendance.kiosk"},
 		{Key: "sync", Label: "Sync Queue", Path: "/ops/sync", Icon: "sync", Permission: catalog.ShellOps},
 		{Key: "notifications", Label: "Notifications", Path: "/ops/notifications", Icon: "notifications", Permission: catalog.ShellOps},
 	},

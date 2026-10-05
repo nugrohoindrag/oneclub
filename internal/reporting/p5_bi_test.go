@@ -142,7 +142,7 @@ func TestExpandTargets(t *testing.T) {
 		[]KPITargetAnnual{{KPIKey: "golf_revenue", Amount: "12"}}); err == nil {
 		t.Fatal("duplicate month accepted")
 	}
-	if _, err := expandTargets(nil, []KPITargetAnnual{{KPIKey: "attendance_rate", Amount: "1"}}); err == nil {
+	if _, err := expandTargets(nil, []KPITargetAnnual{{KPIKey: "payroll_cost", Amount: "1"}}); err == nil {
 		t.Fatal("placeholder KPI accepted")
 	}
 }
