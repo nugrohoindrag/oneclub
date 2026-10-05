@@ -6355,6 +6355,108 @@ export interface paths {
         patch: operations["patchCrmCampaignsById"];
         trace?: never;
     };
+    "/api/v1/crm/campaigns/{id}/detail": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Campaign with its P3 fields */
+        get: operations["getCrmCampaignsByIdDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/campaigns/{id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview the personalised message and the audience */
+        get: operations["getCrmCampaignsByIdPreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/campaigns/{id}/recipients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Recipients with delivery, read, click and conversion */
+        get: operations["getCrmCampaignsByIdRecipients"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/campaigns/{id}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Campaign performance (sent, delivered, read, clicked, converted) */
+        get: operations["getCrmCampaignsByIdStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/campaigns/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a campaign not sent yet */
+        post: operations["postCrmCampaignsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/campaigns/{id}:schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schedule a campaign (approval above the Campaign Policies threshold) */
+        post: operations["postCrmCampaignsByIdSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/campaigns/{id}:send": {
         parameters: {
             query?: never;
@@ -6616,6 +6718,23 @@ export interface paths {
         patch: operations["patchCrmCorporateAccountsById"];
         trace?: never;
     };
+    "/api/v1/crm/corporate-accounts/{id}/360": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Corporate 360 */
+        get: operations["getCrmCorporateAccountsById360"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/corporate-accounts:export": {
         parameters: {
             query?: never;
@@ -6858,6 +6977,41 @@ export interface paths {
         };
         /** Behaviour profile (only with profiling consent) */
         get: operations["getCrmCustomersByIdBehavior"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/customers/{id}/communication-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Opt-in per channel and suppression */
+        get: operations["getCrmCustomersByIdCommunicationPreferences"];
+        put?: never;
+        /** Record the customer's opt-in / opt-out per channel */
+        post: operations["postCrmCustomersByIdCommunicationPreferences"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/customers/{id}/consent-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consent history (UU PDP evidence) */
+        get: operations["getCrmCustomersByIdConsentHistory"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7123,6 +7277,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/feedback/{id}:open-ticket": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open a complaint ticket from a feedback */
+        post: operations["postCrmFeedbackByIdOpenTicket"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/follow-ups": {
         parameters: {
             query?: never;
@@ -7238,6 +7409,23 @@ export interface paths {
         };
         /** Export Guests (CSV/XLSX) */
         get: operations["getCrmGuestsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/leaderboards/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Leaderboards: rounds (Most Rounds) or activity (Most Active Member) */
+        get: operations["getCrmLeaderboardsByKind"];
         put?: never;
         post?: never;
         delete?: never;
@@ -7412,6 +7600,458 @@ export interface paths {
         put?: never;
         /** Transfer leads, opportunities and follow-ups between sales */
         post: operations["postCrmLeadsTransfer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Loyalty accounts */
+        get: operations["getCrmLoyaltyAccounts"];
+        put?: never;
+        /** Enrol a customer in loyalty (opt-in) */
+        post: operations["postCrmLoyaltyAccounts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Loyalty account with recent points history */
+        get: operations["getCrmLoyaltyAccountsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/accounts/{id}/ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Points Ledger of an account */
+        get: operations["getCrmLoyaltyAccountsByIdLedger"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/accounts/{id}:adjust": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adjust Points (approval, reason required) */
+        post: operations["postCrmLoyaltyAccountsByIdAdjust"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/accounts/{id}:redeem": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Redeem Points as payment on a folio (front desk) */
+        post: operations["postCrmLoyaltyAccountsByIdRedeem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/accounts/{id}:redeem-reward": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange points for a reward */
+        post: operations["postCrmLoyaltyAccountsByIdRedeemReward"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/accounts/{id}:set-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate, deactivate (opt-out) or suspend an account */
+        post: operations["postCrmLoyaltyAccountsByIdSetStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/accounts/{id}:set-tier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set the tier manually (optionally locked) */
+        post: operations["postCrmLoyaltyAccountsByIdSetTier"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/adjustments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Points adjustments and their approval status */
+        get: operations["getCrmLoyaltyAdjustments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/earning-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Earning Rules */
+        get: operations["getCrmLoyaltyEarningRules"];
+        put?: never;
+        /** Add Earning Rule */
+        post: operations["postCrmLoyaltyEarningRules"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/earning-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Earning Rule */
+        get: operations["getCrmLoyaltyEarningRulesById"];
+        put?: never;
+        post?: never;
+        /** Delete Earning Rule (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCrmLoyaltyEarningRulesById"];
+        options?: never;
+        head?: never;
+        /** Edit Earning Rule */
+        patch: operations["patchCrmLoyaltyEarningRulesById"];
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/earning-rules:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Earning Rules (CSV/XLSX) */
+        get: operations["getCrmLoyaltyEarningRulesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/liability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Loyalty liability (outstanding points × redemption value) */
+        get: operations["getCrmLoyaltyLiability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/opening-balances:import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import loyalty opening balances (migration, CSV) */
+        post: operations["postCrmLoyaltyOpeningBalancesImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/redemptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reward redemptions (fulfilment queue) */
+        get: operations["getCrmLoyaltyRedemptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/redemptions/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a pending reward (points given back) */
+        post: operations["postCrmLoyaltyRedemptionsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/redemptions/{id}:complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a reward as handed over */
+        post: operations["postCrmLoyaltyRedemptionsByIdComplete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/rewards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Rewards */
+        get: operations["getCrmLoyaltyRewards"];
+        put?: never;
+        /** Add Reward */
+        post: operations["postCrmLoyaltyRewards"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/rewards/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Reward */
+        get: operations["getCrmLoyaltyRewardsById"];
+        put?: never;
+        post?: never;
+        /** Delete Reward (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCrmLoyaltyRewardsById"];
+        options?: never;
+        head?: never;
+        /** Edit Reward */
+        patch: operations["patchCrmLoyaltyRewardsById"];
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/rewards:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Rewards (CSV/XLSX) */
+        get: operations["getCrmLoyaltyRewardsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/tiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Loyalty Tiers */
+        get: operations["getCrmLoyaltyTiers"];
+        put?: never;
+        /** Add Loyalty Tier */
+        post: operations["postCrmLoyaltyTiers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/tiers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Loyalty Tier */
+        get: operations["getCrmLoyaltyTiersById"];
+        put?: never;
+        post?: never;
+        /** Delete Loyalty Tier (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCrmLoyaltyTiersById"];
+        options?: never;
+        head?: never;
+        /** Edit Loyalty Tier */
+        patch: operations["patchCrmLoyaltyTiersById"];
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/tiers:evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run the tier evaluation now */
+        post: operations["postCrmLoyaltyTiersEvaluate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/loyalty/tiers:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Loyalty Tiers (CSV/XLSX) */
+        get: operations["getCrmLoyaltyTiersExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/nps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** NPS per business line and month with the latest comments */
+        get: operations["getCrmNps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/nps-responses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record an NPS answer given to staff */
+        post: operations["postCrmNpsResponses"];
         delete?: never;
         options?: never;
         head?: never;
@@ -7853,6 +8493,94 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/reminder-log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reminders sent (or skipped) */
+        get: operations["getCrmReminderLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/reminder-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Reminder Rules */
+        get: operations["getCrmReminderRules"];
+        put?: never;
+        /** Add Reminder Rule */
+        post: operations["postCrmReminderRules"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/reminder-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Reminder Rule */
+        get: operations["getCrmReminderRulesById"];
+        put?: never;
+        post?: never;
+        /** Delete Reminder Rule (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCrmReminderRulesById"];
+        options?: never;
+        head?: never;
+        /** Edit Reminder Rule */
+        patch: operations["patchCrmReminderRulesById"];
+        trace?: never;
+    };
+    "/api/v1/crm/reminder-rules/{id}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Customers a reminder rule reaches today */
+        get: operations["getCrmReminderRulesByIdPreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/reminder-rules:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Reminder Rules (CSV/XLSX) */
+        get: operations["getCrmReminderRulesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/sales-forecast": {
         parameters: {
             query?: never;
@@ -8137,6 +8865,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/segments/{id}/members:add": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add customers to a static segment */
+        post: operations["postCrmSegmentsByIdMembersAdd"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/segments/{id}/members:remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove customers from a static segment */
+        post: operations["postCrmSegmentsByIdMembersRemove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/segments/{id}:compute": {
         parameters: {
             query?: never;
@@ -8154,6 +8916,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/segments/{id}:refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Refresh a segment with the P3 dimensions */
+        post: operations["postCrmSegmentsByIdRefresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/segments:export": {
         parameters: {
             query?: never;
@@ -8165,6 +8944,319 @@ export interface paths {
         get: operations["getCrmSegmentsExport"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/suppressions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Suppression List */
+        get: operations["getCrmSuppressions"];
+        put?: never;
+        /** Add Suppression */
+        post: operations["postCrmSuppressions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/suppressions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Suppression */
+        get: operations["getCrmSuppressionsById"];
+        put?: never;
+        post?: never;
+        /** Delete Suppression (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCrmSuppressionsById"];
+        options?: never;
+        head?: never;
+        /** Edit Suppression */
+        patch: operations["patchCrmSuppressionsById"];
+        trace?: never;
+    };
+    "/api/v1/crm/suppressions:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Suppression List (CSV/XLSX) */
+        get: operations["getCrmSuppressionsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/ticket-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Complaint Categories */
+        get: operations["getCrmTicketCategories"];
+        put?: never;
+        /** Add Complaint Category */
+        post: operations["postCrmTicketCategories"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/ticket-categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Complaint Category */
+        get: operations["getCrmTicketCategoriesById"];
+        put?: never;
+        post?: never;
+        /** Delete Complaint Category (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCrmTicketCategoriesById"];
+        options?: never;
+        head?: never;
+        /** Edit Complaint Category */
+        patch: operations["patchCrmTicketCategoriesById"];
+        trace?: never;
+    };
+    "/api/v1/crm/ticket-categories:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Complaint Categories (CSV/XLSX) */
+        get: operations["getCrmTicketCategoriesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Complaint tickets */
+        get: operations["getCrmTickets"];
+        put?: never;
+        /** Open a complaint ticket */
+        post: operations["postCrmTickets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/tickets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ticket with its history and compensations */
+        get: operations["getCrmTicketsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/tickets/{id}:assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Route a ticket to a department / user */
+        post: operations["postCrmTicketsByIdAssign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/tickets/{id}:close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close a resolved ticket */
+        post: operations["postCrmTicketsByIdClose"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/tickets/{id}:comment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reply to the customer or add an internal note */
+        post: operations["postCrmTicketsByIdComment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/tickets/{id}:compensate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Propose a compensation (approval) */
+        post: operations["postCrmTicketsByIdCompensate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/tickets/{id}:escalate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Escalate a ticket (line manager → General Manager) */
+        post: operations["postCrmTicketsByIdEscalate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/tickets/{id}:reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reopen a resolved / closed ticket (new SLA timers) */
+        post: operations["postCrmTicketsByIdReopen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/tickets/{id}:resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve a ticket (the customer is informed) */
+        post: operations["postCrmTicketsByIdResolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/top-spenders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Top Spender ranking (internal only) */
+        get: operations["getCrmTopSpenders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/top-spenders:add-to-segment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add top spenders to a static segment (VIP invitation list) */
+        post: operations["postCrmTopSpendersAddToSegment"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/top-spenders:tier-note": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Note for the loyalty tier of a top spender */
+        post: operations["postCrmTopSpendersTierNote"];
         delete?: never;
         options?: never;
         head?: never;
@@ -13196,6 +14288,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/communication-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My communication preferences (opt-in per channel) */
+        get: operations["getMemberCommunicationPreferences"];
+        put?: never;
+        /** Change my communication preferences */
+        post: operations["postMemberCommunicationPreferences"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/consent": {
         parameters: {
             query?: never;
@@ -13343,6 +14453,23 @@ export interface paths {
         put?: never;
         /** Pay my folio online (QRIS, VA, card) */
         post: operations["postMemberFoliosByIdPayOnline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/folios/{id}:pay-with-points": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pay my folio with points */
+        post: operations["postMemberFoliosByIdPayWithPoints"];
         delete?: never;
         options?: never;
         head?: never;
@@ -13690,6 +14817,125 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/loyalty": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Points and Tier */
+        get: operations["getMemberLoyalty"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/loyalty/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Points History */
+        get: operations["getMemberLoyaltyHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/loyalty/redemptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My reward redemptions */
+        get: operations["getMemberLoyaltyRedemptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/loyalty/rewards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rewards I can redeem */
+        get: operations["getMemberLoyaltyRewards"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/loyalty/rewards/{id}:redeem": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Redeem a reward with my points */
+        post: operations["postMemberLoyaltyRewardsByIdRedeem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/loyalty/tiers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tiers and their benefits */
+        get: operations["getMemberLoyaltyTiers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/loyalty:join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Join the loyalty programme (opt-in) */
+        post: operations["postMemberLoyaltyJoin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/member-charges": {
         parameters: {
             query?: never;
@@ -13838,6 +15084,23 @@ export interface paths {
         get: operations["getMemberMyEvents"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/nps": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** How likely am I to recommend the club (NPS) */
+        post: operations["postMemberNps"];
         delete?: never;
         options?: never;
         head?: never;
@@ -14251,6 +15514,109 @@ export interface paths {
         put?: never;
         /** Book Bungalow, VIP Suite or Meeting Room */
         post: operations["postMemberStays"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/support/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send feedback (Support) */
+        post: operations["postMemberSupportFeedback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/ticket-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Complaint categories */
+        get: operations["getMemberTicketCategories"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My complaints and their status */
+        get: operations["getMemberTickets"];
+        put?: never;
+        /** Send a complaint */
+        post: operations["postMemberTickets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/tickets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My complaint with the conversation */
+        get: operations["getMemberTicketsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/tickets/{id}:reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reopen my resolved complaint (within the reopen window) */
+        post: operations["postMemberTicketsByIdReopen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/tickets/{id}:reply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reply on my complaint */
+        post: operations["postMemberTicketsByIdReply"];
         delete?: never;
         options?: never;
         head?: never;
@@ -16885,6 +18251,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/campaign-links/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tracked campaign link (redirects to the target) */
+        get: operations["getPublicCampaignLinksByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/class-enrollments": {
         parameters: {
             query?: never;
@@ -17168,6 +18551,23 @@ export interface paths {
         get: operations["getPublicCmsSitemapXml"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/complaints": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a complaint from the website */
+        post: operations["postPublicComplaints"];
         delete?: never;
         options?: never;
         head?: never;
@@ -17747,6 +19147,24 @@ export interface paths {
         put?: never;
         /** Book Bungalow / Meeting Room, or request a VIP Suite (non-member; additional services; online deposit) */
         post: operations["postPublicStays"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/unsubscribe/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Unsubscribe page of a campaign message */
+        get: operations["getPublicUnsubscribeByToken"];
+        put?: never;
+        /** Stop marketing messages on this channel (or all channels) */
+        post: operations["postPublicUnsubscribeByToken"];
         delete?: never;
         options?: never;
         head?: never;
@@ -22501,8 +23919,17 @@ export interface components {
             resource: components["schemas"]["ReservationResource"];
         };
         Campaign: {
+            /**
+             * Format: uuid
+             * @description Approval Request
+             */
+            approvalRequestId?: string | null;
             /** Format: date-time */
             archivedAt?: string | null;
+            /** @description Message ({{.name}}, {{.promoCode}}, {{.link}}) */
+            body?: string | null;
+            /** @description Cancel Reason */
+            cancelReason?: string | null;
             /**
              * @description Channel
              * @enum {string|null}
@@ -22518,8 +23945,25 @@ export interface components {
             id: string;
             /** @description Name */
             name: string;
+            /** @description Promo Code (Commercial) */
+            promoCode?: string | null;
+            /**
+             * @description Promo Code Mode
+             * @enum {string|null}
+             */
+            promoMode?: "none" | "shared" | "unique" | null;
             /** Format: uuid */
             propertyId?: string;
+            /**
+             * Format: int64
+             * @description Recipients
+             */
+            recipientCount?: number | null;
+            /**
+             * Format: date-time
+             * @description Scheduled At
+             */
+            scheduledAt?: string | null;
             /**
              * Format: uuid
              * @description Segment
@@ -22544,13 +23988,56 @@ export interface components {
              * @description Status
              * @enum {string|null}
              */
-            status?: "draft" | "sent" | "cancelled" | null;
+            status?: "draft" | "pending" | "scheduled" | "sent" | "cancelled" | null;
+            /** @description Subject */
+            subject?: string | null;
+            /** @description Link (tracked) */
+            targetUrl?: string | null;
             /** @description Notification Template */
             templateEvent: string;
             /** Format: date-time */
             updatedAt: string;
+            /** @description Voucher per Recipient (Commercial voucher type code) */
+            voucherTypeRef?: string | null;
+        };
+        CampaignCancelInput: {
+            reason: string;
+        };
+        CampaignDetail: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            body?: string | null;
+            cancelReason?: string | null;
+            /** @enum {string} */
+            channel: "email" | "whatsapp" | "in_app";
+            code: string;
+            data: Record<string, never>;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            promoCode?: string | null;
+            /** @enum {string} */
+            promoMode: "none" | "shared" | "unique";
+            recipientCount: number;
+            /** Format: date-time */
+            scheduledAt?: string | null;
+            /** Format: uuid */
+            segmentId: string;
+            segmentName: string;
+            /** Format: date-time */
+            sentAt?: string | null;
+            sentCount: number;
+            skippedCount: number;
+            /** @enum {string} */
+            status: "draft" | "pending" | "scheduled" | "sent" | "cancelled";
+            subject?: string | null;
+            targetUrl?: string | null;
+            templateEvent: string;
+            voucherTypeRef?: string | null;
         };
         CampaignInput: {
+            /** @description Message ({{.name}}, {{.promoCode}}, {{.link}}) */
+            body?: string | null;
             /**
              * @description Channel
              * @enum {string|null}
@@ -22562,13 +24049,67 @@ export interface components {
             data?: Record<string, never> | null;
             /** @description Name */
             name?: string;
+            /** @description Promo Code (Commercial) */
+            promoCode?: string | null;
+            /**
+             * @description Promo Code Mode
+             * @enum {string|null}
+             */
+            promoMode?: "none" | "shared" | "unique" | null;
             /**
              * Format: uuid
              * @description Segment
              */
             segmentId?: string;
+            /** @description Subject */
+            subject?: string | null;
+            /** @description Link (tracked) */
+            targetUrl?: string | null;
             /** @description Notification Template */
             templateEvent?: string;
+            /** @description Voucher per Recipient (Commercial voucher type code) */
+            voucherTypeRef?: string | null;
+        };
+        CampaignPreview: {
+            body: string;
+            channel: string;
+            /** @description Sample recipient */
+            customer: string;
+            /** @description Would receive the message now */
+            eligible: number;
+            /** @description Members of the segment */
+            recipients: number;
+            /** @description By reason: no consent, suppressed, no contact, frequency cap */
+            skipped: {
+                [key: string]: number;
+            };
+            subject: string;
+            template: string;
+        };
+        CampaignRecipient: {
+            channel: string;
+            clickCount: number;
+            /** Format: date-time */
+            clickedAt?: string | null;
+            /** Format: date-time */
+            convertedAt?: string | null;
+            /** Format: uuid */
+            customerId: string;
+            customerName: string;
+            /** Format: date-time */
+            deliveredAt?: string | null;
+            deliveryStatus?: string | null;
+            /** Format: uuid */
+            id: string;
+            promoCode?: string | null;
+            /** Format: date-time */
+            readAt?: string | null;
+            /** Format: date-time */
+            sentAt?: string | null;
+            /** @enum {string} */
+            status: "queued" | "sent" | "failed" | "skipped_no_consent" | "skipped_suppressed" | "skipped_frequency_cap" | "skipped_no_contact";
+            /** Format: date-time */
+            unsubscribedAt?: string | null;
         };
         CampaignResult: {
             /** Format: uuid */
@@ -22576,6 +24117,36 @@ export interface components {
             sent: number;
             /** @description No marketing consent or no contact */
             skipped: number;
+        };
+        CampaignScheduleInput: {
+            /**
+             * Format: date-time
+             * @description Default: now (sent by the next dispatch run)
+             */
+            sendAt?: string | null;
+        };
+        CampaignStats: {
+            /** Format: uuid */
+            campaignId: string;
+            /** @description Clicked ÷ sent */
+            clickRate: string;
+            clicked: number;
+            /** @description Converted ÷ sent */
+            conversionRate: string;
+            /** @description Payment or promo code use within the conversion window */
+            converted: number;
+            /** @description Delivered to the device (BSP status) */
+            delivered: number;
+            queued: number;
+            /** @description Read (BSP status) or in-app opened */
+            read: number;
+            recipients: number;
+            sent: number;
+            skipped: {
+                [key: string]: number;
+            };
+            status: string;
+            unsubscribed: number;
         };
         CancelInput: {
             reason: string;
@@ -22787,6 +24358,19 @@ export interface components {
         ChannelBooking: {
             booking: components["schemas"]["PackageBooking"];
             checkout?: components["schemas"]["Checkout"] | null;
+        };
+        ChannelPreference: {
+            /** @enum {string} */
+            channel: "email" | "whatsapp" | "in_app";
+            /** @description false: derived from the marketing opt-in (e-mail, in-app) */
+            explicit: boolean;
+            /** @description Effective consent */
+            optedIn: boolean;
+            source?: string | null;
+            /** @description The address is on the suppression list */
+            suppressed: boolean;
+            /** Format: date-time */
+            updatedAt?: string | null;
         };
         ChargeInput: {
             /**
@@ -24979,6 +26563,157 @@ export interface components {
             userId: string;
             userName?: string | null;
         };
+        CommunicationPreferences: {
+            channels: components["schemas"]["ChannelPreference"][];
+            /** Format: uuid */
+            customerId: string;
+            /** @description P1 marketing consent (master switch) */
+            marketingOptIn: boolean;
+        };
+        CommunicationPreferencesInput: {
+            email?: boolean | null;
+            inApp?: boolean | null;
+            whatsapp?: boolean | null;
+        };
+        ComplaintCategory: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /**
+             * @description Business Line
+             * @enum {string|null}
+             */
+            businessLine?: "golf" | "sportclub" | "stay" | "pos" | "membership" | "banquet" | "other" | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * @description Default Priority
+             * @enum {string|null}
+             */
+            defaultPriority?: "low" | "medium" | "high" | "urgent" | null;
+            /**
+             * Format: uuid
+             * @description Department
+             */
+            departmentId?: string | null;
+            /**
+             * Format: int64
+             * @description First Response SLA (minutes, default: policy)
+             */
+            firstResponseMinutes?: number | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Resolution SLA (minutes, default: policy)
+             */
+            resolutionMinutes?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ComplaintCategoryInput: {
+            /**
+             * @description Business Line
+             * @enum {string|null}
+             */
+            businessLine?: "golf" | "sportclub" | "stay" | "pos" | "membership" | "banquet" | "other" | null;
+            /** @description Code */
+            code?: string;
+            /**
+             * @description Default Priority
+             * @enum {string|null}
+             */
+            defaultPriority?: "low" | "medium" | "high" | "urgent" | null;
+            /**
+             * Format: uuid
+             * @description Department
+             */
+            departmentId?: string | null;
+            /**
+             * Format: int64
+             * @description First Response SLA (minutes, default: policy)
+             */
+            firstResponseMinutes?: number | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: int64
+             * @description Resolution SLA (minutes, default: policy)
+             */
+            resolutionMinutes?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        ComplaintTicket: {
+            /** Format: uuid */
+            assignedTo?: string | null;
+            assigneeName?: string | null;
+            attachmentFileIds: string[];
+            businessLine: string;
+            /** Format: uuid */
+            categoryId?: string | null;
+            categoryName?: string | null;
+            /** @enum {string} */
+            channel: "staff" | "member_app" | "website" | "feedback" | "whatsapp" | "email" | "phone";
+            /** Format: date-time */
+            closedAt?: string | null;
+            contactEmail?: string | null;
+            contactName?: string | null;
+            contactPhone?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            /** Format: uuid */
+            departmentId?: string | null;
+            departmentName?: string | null;
+            description: string;
+            /** Format: date-time */
+            escalatedAt?: string | null;
+            /** @description 0 none, 1 line manager, 2 General Manager */
+            escalationLevel: number;
+            /** Format: uuid */
+            feedbackId?: string | null;
+            /** Format: date-time */
+            firstRespondedAt?: string | null;
+            firstResponseBreached: boolean;
+            /** Format: date-time */
+            firstResponseDueAt: string;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** @description An open SLA timer has passed */
+            overdue: boolean;
+            /** @enum {string} */
+            priority: "low" | "medium" | "high" | "urgent";
+            reopenedCount: number;
+            resolution?: string | null;
+            resolutionBreached: boolean;
+            /** Format: date-time */
+            resolutionDueAt: string;
+            /** Format: date-time */
+            resolvedAt?: string | null;
+            slaPolicyVersion: number;
+            /** @enum {string} */
+            status: "open" | "in_progress" | "escalated" | "resolved" | "closed";
+            subject: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
         CompleteInput: {
             notes?: string;
             outcome?: string;
@@ -25047,6 +26782,15 @@ export interface components {
         ConfirmInput: {
             /** @description Confirm without the deposit required by policy (permission reservation.reservation.override) */
             force?: boolean;
+        };
+        ConsentEvent: {
+            channel: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            optedIn: boolean;
+            source: string;
         };
         ConsentInput: {
             marketing?: boolean | null;
@@ -25261,6 +27005,42 @@ export interface components {
             lead: components["schemas"]["Lead"];
             opportunity?: components["schemas"]["Opportunity"] | null;
         };
+        Corporate360: {
+            account: components["schemas"]["Corporate360Account"];
+            billing: components["schemas"]["CorporateBilling"];
+            /** Format: date-time */
+            generatedAt: string;
+            golfActivity: components["schemas"]["CorporateGolf"];
+            /** @description Open invoices */
+            invoices: components["schemas"]["CorporateInvoice"][];
+            nominees: components["schemas"]["Corporate360Nominee"][];
+            /** @description Contributed by other modules (banquet events, quotations …) */
+            sections: Record<string, never>;
+            spend: components["schemas"]["CorporateSpend"];
+            /** @description Complaints of the nominees */
+            tickets: components["schemas"]["ComplaintTicket"][];
+        };
+        Corporate360Account: {
+            code: string;
+            contactName?: string | null;
+            email?: string | null;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            npwp?: string | null;
+            phone?: string | null;
+            status: string;
+        };
+        Corporate360Nominee: {
+            code: string;
+            /** Format: uuid */
+            customerId: string;
+            name: string;
+            /** @description Golf rounds in the last 90 days */
+            rounds90: number;
+            status: string;
+            title?: string | null;
+        };
         CorporateAccount: {
             /** @description Address */
             address?: string | null;
@@ -25327,6 +27107,27 @@ export interface components {
              */
             status?: "active" | "inactive" | null;
         };
+        CorporateBilling: {
+            /** @description Invoiced in the last 12 months */
+            invoiced12m: string;
+            openInvoices: number;
+            outstanding: string;
+            overdue: string;
+        };
+        CorporateGolf: {
+            players: number;
+            rounds90: number;
+        };
+        CorporateInvoice: {
+            dueDate?: string | null;
+            /** Format: uuid */
+            id: string;
+            issueDate?: string | null;
+            number?: string | null;
+            outstanding: string;
+            status: string;
+            total: string;
+        };
         CorporateNominee: {
             /**
              * Format: uuid
@@ -25392,6 +27193,9 @@ export interface components {
             status?: "active" | "inactive" | null;
             /** @description Title */
             title?: string | null;
+        };
+        CorporateSpend: {
+            last12Months: string;
         };
         CorrectionInput: {
             entries: components["schemas"]["ScoreEntry"][];
@@ -26008,7 +27812,7 @@ export interface components {
             handicapIndex?: number | null;
             interactions: components["schemas"]["Interaction"][];
             memberships: components["schemas"]["OverviewMembership"][];
-            /** @description Banquet, Campaign and Loyalty arrive in P3 */
+            /** @description Banquet, Campaign and Loyalty arrive in P3 ("live" once their section is wired) */
             placeholders: {
                 [key: string]: string;
             };
@@ -26328,8 +28132,18 @@ export interface components {
             name: string;
             /** Format: uuid */
             propertyId?: string;
+            /**
+             * Format: date-time
+             * @description Refreshed At
+             */
+            refreshedAt?: string | null;
             /** @description Rules */
             rules?: Record<string, never> | null;
+            /**
+             * @description Segment Type
+             * @enum {string|null}
+             */
+            segmentType?: "dynamic" | "static" | null;
             /**
              * @description Status
              * @enum {string|null}
@@ -26345,6 +28159,11 @@ export interface components {
             name?: string;
             /** @description Rules */
             rules?: Record<string, never> | null;
+            /**
+             * @description Segment Type
+             * @enum {string|null}
+             */
+            segmentType?: "dynamic" | "static" | null;
             /**
              * @description Status
              * @enum {string|null}
@@ -26892,6 +28711,140 @@ export interface components {
             description: string;
             /** @enum {string|null} */
             method?: "cash" | "non_cash" | null;
+        };
+        EarningRule: {
+            /**
+             * @description Activity
+             * @enum {string|null}
+             */
+            activity?: "round_finished" | "referral" | "event_attended" | null;
+            /** @description Net Spend per Point (default: Loyalty Policies) */
+            amountPerPoint?: string | null;
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /**
+             * @description Business Line
+             * @enum {string|null}
+             */
+            businessLine?: "golf" | "sportclub" | "stay" | "pos" | "membership" | "voucher" | "banquet" | "package" | "other" | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Multiplier (0 = no points) */
+            multiplier?: string | null;
+            /** @description Name */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Outlet
+             */
+            outletId?: string | null;
+            /**
+             * Format: int64
+             * @description Activity Points
+             */
+            points?: number | null;
+            /**
+             * Format: int64
+             * @description Priority (lower first on a tie)
+             */
+            priority?: number | null;
+            /**
+             * Format: uuid
+             * @description Product
+             */
+            productId?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Revenue Component */
+            revenueComponent?: string | null;
+            /**
+             * @description Rule Type
+             * @enum {string|null}
+             */
+            ruleType?: "spend" | "activity" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: date
+             * @description Valid From
+             */
+            validFrom?: string | null;
+            /**
+             * Format: date
+             * @description Valid To
+             */
+            validTo?: string | null;
+        };
+        EarningRuleInput: {
+            /**
+             * @description Activity
+             * @enum {string|null}
+             */
+            activity?: "round_finished" | "referral" | "event_attended" | null;
+            /** @description Net Spend per Point (default: Loyalty Policies) */
+            amountPerPoint?: string | null;
+            /**
+             * @description Business Line
+             * @enum {string|null}
+             */
+            businessLine?: "golf" | "sportclub" | "stay" | "pos" | "membership" | "voucher" | "banquet" | "package" | "other" | null;
+            /** @description Code */
+            code?: string;
+            /** @description Multiplier (0 = no points) */
+            multiplier?: string | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: uuid
+             * @description Outlet
+             */
+            outletId?: string | null;
+            /**
+             * Format: int64
+             * @description Activity Points
+             */
+            points?: number | null;
+            /**
+             * Format: int64
+             * @description Priority (lower first on a tie)
+             */
+            priority?: number | null;
+            /**
+             * Format: uuid
+             * @description Product
+             */
+            productId?: string | null;
+            /** @description Revenue Component */
+            revenueComponent?: string | null;
+            /**
+             * @description Rule Type
+             * @enum {string|null}
+             */
+            ruleType?: "spend" | "activity" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: date
+             * @description Valid From
+             */
+            validFrom?: string | null;
+            /**
+             * Format: date
+             * @description Valid To
+             */
+            validTo?: string | null;
         };
         Earnings: {
             assignments: components["schemas"]["CaddyAssignment"][];
@@ -28224,6 +30177,14 @@ export interface components {
             contextType: "round" | "stay" | "class" | "fnb" | "sport" | "meeting" | "other";
             /** Format: uuid */
             customerId: string;
+        };
+        FeedbackTicketInput: {
+            /** Format: uuid */
+            assignedTo?: string | null;
+            /** Format: uuid */
+            categoryId?: string | null;
+            /** @enum {string} */
+            priority?: "low" | "medium" | "high" | "urgent";
         };
         FefoPickLine: {
             available: string;
@@ -31065,6 +33026,22 @@ export interface components {
             /** Format: uuid */
             referrerCustomerId?: string | null;
         };
+        Leaderboard: {
+            from: string;
+            items: components["schemas"]["LeaderboardEntry"][];
+            /** @enum {string} */
+            kind: "rounds" | "activity";
+            to: string;
+        };
+        LeaderboardEntry: {
+            code: string;
+            /** Format: uuid */
+            customerId: string;
+            name: string;
+            rank: number;
+            /** @description Rounds or active days */
+            value: number;
+        };
         LedgerEntry: {
             actorName?: string | null;
             amount: string;
@@ -31589,6 +33566,399 @@ export interface components {
             /** @enum {string} */
             reason: "price" | "date_unavailable" | "competitor" | "cancelled" | "budget" | "no_response" | "other";
         };
+        LoyaltyAccount: {
+            balance: number;
+            /** @description Balance × redemption value */
+            balanceValue: string;
+            /** Format: date-time */
+            createdAt: string;
+            customerCode: string;
+            /** Format: uuid */
+            customerId: string;
+            customerName: string;
+            /** @enum {string} */
+            enrolledVia: "staff" | "member_app" | "auto" | "migration";
+            /** @description Points expiring within the notice window */
+            expiringPoints: number;
+            /** Format: uuid */
+            id: string;
+            lifetimePoints: number;
+            /** @description Date the next points expire */
+            nextExpiry?: string;
+            number: string;
+            /** Format: date-time */
+            optedInAt: string;
+            /** Format: uuid */
+            propertyId: string;
+            /** @description Value of one point */
+            redemptionValue: string;
+            /** @enum {string} */
+            status: "active" | "inactive" | "suspended";
+            statusReason?: string | null;
+            tierCode?: string | null;
+            /** Format: date-time */
+            tierEvaluatedAt?: string | null;
+            /** Format: uuid */
+            tierId?: string | null;
+            tierLocked: boolean;
+            tierMultiplier: string;
+            tierName?: string | null;
+        };
+        LoyaltyAccountDetail: {
+            balance: number;
+            /** @description Balance × redemption value */
+            balanceValue: string;
+            /** Format: date-time */
+            createdAt: string;
+            customerCode: string;
+            /** Format: uuid */
+            customerId: string;
+            customerName: string;
+            /** @enum {string} */
+            enrolledVia: "staff" | "member_app" | "auto" | "migration";
+            /** @description Points expiring within the notice window */
+            expiringPoints: number;
+            /** Format: uuid */
+            id: string;
+            ledger: components["schemas"]["LoyaltyEntry"][];
+            lifetimePoints: number;
+            /** @description Date the next points expire */
+            nextExpiry?: string;
+            number: string;
+            /** Format: date-time */
+            optedInAt: string;
+            /** Format: uuid */
+            propertyId: string;
+            /** @description Value of one point */
+            redemptionValue: string;
+            /** @enum {string} */
+            status: "active" | "inactive" | "suspended";
+            statusReason?: string | null;
+            tierCode?: string | null;
+            /** Format: date-time */
+            tierEvaluatedAt?: string | null;
+            /** Format: uuid */
+            tierId?: string | null;
+            tierLocked: boolean;
+            tierMultiplier: string;
+            tierName?: string | null;
+            /** @description Notes for the tier (e.g. from the Top Spender list) */
+            tierNotes: components["schemas"]["LoyaltyTierNote"][];
+        };
+        LoyaltyAccountStatusInput: {
+            reason: string;
+            /** @enum {string} */
+            status: "active" | "inactive" | "suspended";
+        };
+        LoyaltyAdjustInput: {
+            /** @description Signed: positive adds, negative deducts */
+            points: number;
+            reason: string;
+        };
+        LoyaltyAdjustment: {
+            /** Format: uuid */
+            accountId: string;
+            accountNumber: string;
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            customerName: string;
+            /** Format: date-time */
+            decidedAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            ledgerId?: string | null;
+            number: string;
+            points: number;
+            reason: string;
+            /** Format: uuid */
+            sourceId?: string | null;
+            /** @enum {string} */
+            sourceType: "manual" | "ticket";
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected" | "cancelled";
+        };
+        LoyaltyEnrolInput: {
+            /** Format: uuid */
+            customerId: string;
+            /**
+             * Format: uuid
+             * @description Default: the entry tier (lowest rank without thresholds)
+             */
+            tierId?: string | null;
+        };
+        LoyaltyEntry: {
+            /** Format: uuid */
+            accountId: string;
+            /** @description Eligible spend (earned) or tender value (redeemed) */
+            amount?: string | null;
+            balanceAfter: number;
+            description: string;
+            expiresOn?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "earned" | "redeemed" | "expired" | "adjusted" | "reversed";
+            /** Format: date-time */
+            occurredAt: string;
+            /** @description Signed: positive adds to the balance */
+            points: number;
+            /** Format: uuid */
+            reversesId?: string | null;
+            /** Format: uuid */
+            sourceId?: string | null;
+            sourceRef?: string | null;
+            sourceType: string;
+        };
+        LoyaltyFolioPayment: {
+            amount: string;
+            number: string;
+            /** Format: uuid */
+            paymentId: string;
+            status: string;
+            tenderRef: Record<string, never>;
+        };
+        LoyaltyImportInput: {
+            /** @description Header: customerCode,points[,expiresOn][,tierCode][,reference] — one lot per customer and reference */
+            csv: string;
+            filename?: string;
+            /**
+             * @description preview validates without saving
+             * @enum {string}
+             */
+            mode: "preview" | "commit";
+        };
+        LoyaltyImportResult: {
+            errors: components["schemas"]["LoyaltyImportRowError"][];
+            imported: number;
+            mode: string;
+            points: number;
+            /** @description Already imported */
+            skipped: number;
+            totalRows: number;
+        };
+        LoyaltyImportRowError: {
+            code: string;
+            field?: string;
+            message: string;
+            /** @description 1-based line (header = 1) */
+            row: number;
+        };
+        LoyaltyLiability: {
+            /** @description Accounts with a positive balance */
+            accounts: number;
+            /** Format: date-time */
+            at: string;
+            currency: string;
+            /** @description Points × redemption value */
+            liability: string;
+            /** @description Outstanding points */
+            points: number;
+            redemptionValue: string;
+        };
+        LoyaltyRedeemInput: {
+            /** @description Amount to pay with points (default: the folio balance) */
+            amount?: string;
+            /** Format: uuid */
+            folioId: string;
+            /** @description Default: as many as the folio balance needs */
+            points?: number;
+        };
+        LoyaltyRedeemResult: {
+            account: components["schemas"]["LoyaltyAccount"];
+            payment: components["schemas"]["LoyaltyFolioPayment"];
+        };
+        LoyaltyReward: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Description */
+            description?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Minimum Tier
+             */
+            minTierId?: string | null;
+            /** @description Name */
+            name: string;
+            /**
+             * Format: int64
+             * @description Points
+             */
+            pointsCost: number;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Reward Type
+             * @enum {string|null}
+             */
+            rewardType?: "voucher" | "merchandise" | "service" | "other" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: int64
+             * @description Stock (empty = unlimited)
+             */
+            stock?: number | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: date
+             * @description Valid From
+             */
+            validFrom?: string | null;
+            /**
+             * Format: date
+             * @description Valid To
+             */
+            validTo?: string | null;
+            /** @description Voucher Type (Commercial code) */
+            voucherTypeRef?: string | null;
+        };
+        LoyaltyRewardInput: {
+            /** @description Code */
+            code?: string;
+            /** @description Description */
+            description?: string | null;
+            /**
+             * Format: uuid
+             * @description Minimum Tier
+             */
+            minTierId?: string | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: int64
+             * @description Points
+             */
+            pointsCost?: number;
+            /**
+             * @description Reward Type
+             * @enum {string|null}
+             */
+            rewardType?: "voucher" | "merchandise" | "service" | "other" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: int64
+             * @description Stock (empty = unlimited)
+             */
+            stock?: number | null;
+            /**
+             * Format: date
+             * @description Valid From
+             */
+            validFrom?: string | null;
+            /**
+             * Format: date
+             * @description Valid To
+             */
+            validTo?: string | null;
+            /** @description Voucher Type (Commercial code) */
+            voucherTypeRef?: string | null;
+        };
+        LoyaltySetTierInput: {
+            /** @description Keep this tier at the periodic evaluation */
+            lock?: boolean;
+            reason: string;
+            /**
+             * Format: uuid
+             * @description null removes the tier
+             */
+            tierId?: string | null;
+        };
+        LoyaltyTier: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Benefits */
+            benefits?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int64
+             * @description Minimum Points (period)
+             */
+            minPoints?: number | null;
+            /** @description Minimum Spend (period) */
+            minSpend?: string | null;
+            /** @description Points Multiplier */
+            multiplier?: string | null;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Rank
+             */
+            rank?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        LoyaltyTierEvaluation: {
+            changed: number;
+        };
+        LoyaltyTierInput: {
+            /** @description Benefits */
+            benefits?: string | null;
+            /** @description Code */
+            code?: string;
+            /**
+             * Format: int64
+             * @description Minimum Points (period)
+             */
+            minPoints?: number | null;
+            /** @description Minimum Spend (period) */
+            minSpend?: string | null;
+            /** @description Points Multiplier */
+            multiplier?: string | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: int64
+             * @description Rank
+             */
+            rank?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        LoyaltyTierNote: {
+            /** Format: date-time */
+            createdAt: string;
+            createdByName?: string | null;
+            /** Format: uuid */
+            id: string;
+            note: string;
+            source: string;
+            /** Format: uuid */
+            suggestedTierId?: string | null;
+            suggestedTierName?: string | null;
+        };
         MFASetupResponse: {
             otpauthUrl: string;
             /** @description data: URL of a QR code image */
@@ -31804,6 +34174,15 @@ export interface components {
              */
             payMethod?: "qris" | "virtual_account" | "card";
         };
+        MemberFeedbackInput: {
+            comment?: string;
+            /** @enum {string} */
+            contextType?: "round" | "stay" | "class" | "fnb" | "sport" | "meeting" | "other";
+            /** @description 0–10 */
+            nps?: number | null;
+            /** @description 1–5 */
+            rating: number;
+        };
         MemberInput: {
             /** @description Attributes */
             attributes?: Record<string, never> | null;
@@ -31867,6 +34246,15 @@ export interface components {
             renewals: components["schemas"]["RenewalView"][];
             standing: components["schemas"]["Info"];
             status: string;
+        };
+        MemberTicketInput: {
+            attachmentFileIds?: string[];
+            /** @enum {string} */
+            businessLine?: "golf" | "sportclub" | "stay" | "pos" | "membership" | "banquet" | "other";
+            /** Format: uuid */
+            categoryId?: string | null;
+            description: string;
+            subject: string;
         };
         Membership: {
             /** Format: uuid */
@@ -32570,6 +34958,44 @@ export interface components {
             playTo: string;
             players?: number;
         };
+        MyLoyalty: {
+            account?: components["schemas"]["LoyaltyAccount"] | null;
+            /** @description Net spend per point */
+            amountPerPoint: string;
+            enrolled: boolean;
+            nextTier?: components["schemas"]["MyLoyaltyTier"] | null;
+            /** @description Points still needed for the next tier (evaluation window) */
+            pointsToNext: number;
+            redemptionValue: string;
+        };
+        MyLoyaltyReward: {
+            /** @description The member has enough points and the tier */
+            affordable: boolean;
+            code: string;
+            description?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            minTierId?: string | null;
+            minTierName?: string | null;
+            name: string;
+            pointsCost: number;
+            rewardType: string;
+            stock?: number | null;
+            validTo?: string | null;
+        };
+        MyLoyaltyTier: {
+            benefits?: string | null;
+            code: string;
+            current: boolean;
+            /** Format: uuid */
+            id: string;
+            minPoints: number;
+            minSpend: string;
+            multiplier: string;
+            name: string;
+            rank: number;
+        };
         MyMembership: {
             benefits: string[];
             card?: components["schemas"]["Card"] | null;
@@ -32600,6 +35026,10 @@ export interface components {
             name: string;
             outletType: string;
         };
+        MyPointsPaymentInput: {
+            amount?: string;
+            points?: number;
+        };
         MyPreferences: {
             /** @description Including the member's own health preferences */
             preferences: components["schemas"]["CrmPreference"][];
@@ -32629,6 +35059,9 @@ export interface components {
             payment?: components["schemas"]["Payment"] | null;
             /** Format: uuid */
             renewalId: string;
+        };
+        MyRewardInput: {
+            quantity?: number;
         };
         MySessionInput: {
             /** Format: uuid */
@@ -32698,6 +35131,51 @@ export interface components {
             memberCharge?: boolean;
             /** Format: uuid */
             voucherTypeId: string;
+        };
+        NPSComment: {
+            businessLine: string;
+            comment: string;
+            /** Format: date-time */
+            createdAt: string;
+            customerName?: string | null;
+            score: number;
+            /** @enum {string} */
+            source: "survey" | "relationship";
+        };
+        NPSInput: {
+            /** @enum {string} */
+            businessLine?: "golf" | "sportclub" | "stay" | "pos" | "membership" | "banquet" | "other";
+            comment?: string;
+            /** @description 0–10: how likely are you to recommend the club? */
+            score: number;
+        };
+        NPSReport: {
+            byLine: components["schemas"]["NPSScore"][];
+            comments: components["schemas"]["NPSComment"][];
+            from: string;
+            overall: components["schemas"]["NPSScore"];
+            to: string;
+            /** @description Per month (label YYYY-MM) */
+            trend: components["schemas"]["NPSScore"][];
+        };
+        NPSResponse: {
+            businessLine: string;
+            channel: string;
+            comment?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            score: number;
+        };
+        NPSScore: {
+            detractors: number;
+            label: string;
+            /** @description % promoters − % detractors (−100 … 100) */
+            nps: string;
+            passives: number;
+            promoters: number;
+            responses: number;
         };
         Night: {
             available: number;
@@ -35385,6 +37863,19 @@ export interface components {
             /** Format: uuid */
             propertyId: string;
         };
+        PublicComplaintInput: {
+            /** @enum {string} */
+            businessLine?: "golf" | "sportclub" | "stay" | "pos" | "membership" | "banquet" | "other";
+            description: string;
+            guest: components["schemas"]["PublicGuest"];
+            /** Format: uuid */
+            propertyId: string;
+            subject: string;
+        };
+        PublicComplaintReceipt: {
+            number: string;
+            status: string;
+        };
         PublicContact: {
             email: string;
             name: string;
@@ -36583,6 +39074,13 @@ export interface components {
             recognizedRevenue: string;
             voucher: components["schemas"]["Voucher"];
         };
+        RedeemRewardInput: {
+            note?: string;
+            /** @description Default 1 */
+            quantity?: number;
+            /** Format: uuid */
+            rewardId: string;
+        };
         Redemption: {
             businessLine: string;
             channel: string;
@@ -36651,6 +39149,115 @@ export interface components {
         RejectedPromotion: {
             code: string;
             reason: string;
+        };
+        ReminderLog: {
+            channel: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            customerId: string;
+            customerName: string;
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            occurrence: string;
+            ruleCode: string;
+            /** Format: uuid */
+            ruleId: string;
+            /** @enum {string} */
+            status: "sent" | "skipped_no_consent" | "skipped_suppressed" | "skipped_no_contact";
+        };
+        ReminderPreview: {
+            customers: components["schemas"]["ReminderTarget"][];
+            date: string;
+            kind: string;
+            rule: string;
+        };
+        ReminderRule: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Message ({{.name}}, {{.promoCode}}, {{.date}}) */
+            body?: string | null;
+            /**
+             * @description Channel
+             * @enum {string|null}
+             */
+            channel?: "email" | "whatsapp" | "in_app" | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: int64
+             * @description Days (birthday / renewal: before; follow-up: after the last visit)
+             */
+            daysOffset?: number | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Reminder
+             * @enum {string}
+             */
+            kind: "birthday" | "renewal" | "follow_up";
+            /** @description Name */
+            name: string;
+            /** @description Promo Code (Commercial) */
+            promoCode?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Subject */
+            subject?: string | null;
+            /** @description Notification Template */
+            templateEvent?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ReminderRuleInput: {
+            /** @description Message ({{.name}}, {{.promoCode}}, {{.date}}) */
+            body?: string | null;
+            /**
+             * @description Channel
+             * @enum {string|null}
+             */
+            channel?: "email" | "whatsapp" | "in_app" | null;
+            /** @description Code */
+            code?: string;
+            /**
+             * Format: int64
+             * @description Days (birthday / renewal: before; follow-up: after the last visit)
+             */
+            daysOffset?: number | null;
+            /**
+             * @description Reminder
+             * @enum {string}
+             */
+            kind?: "birthday" | "renewal" | "follow_up";
+            /** @description Name */
+            name?: string;
+            /** @description Promo Code (Commercial) */
+            promoCode?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Subject */
+            subject?: string | null;
+            /** @description Notification Template */
+            templateEvent?: string | null;
+        };
+        ReminderTarget: {
+            /** Format: uuid */
+            customerId: string;
+            name: string;
+            occurrence: string;
+            /** @enum {string} */
+            status: "queued" | "skipped_no_consent" | "skipped_suppressed" | "skipped_no_contact" | "already_sent";
         };
         RemovePromotionInput: {
             /** Format: uuid */
@@ -37240,6 +39847,45 @@ export interface components {
             service: string;
             tax: string;
             total: string;
+        };
+        RewardRedemption: {
+            /** Format: uuid */
+            accountId: string;
+            accountNumber: string;
+            cancelReason?: string | null;
+            /** Format: date-time */
+            cancelledAt?: string | null;
+            /** @enum {string} */
+            channel: "staff" | "member_app";
+            /** Format: date-time */
+            completedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            customerId: string;
+            customerName: string;
+            /** @description Code handed to the customer (voucher rewards) */
+            fulfilmentCode?: string | null;
+            /** Format: uuid */
+            id: string;
+            note?: string | null;
+            number: string;
+            points: number;
+            quantity: number;
+            rewardCode: string;
+            /** Format: uuid */
+            rewardId: string;
+            rewardName: string;
+            rewardType: string;
+            /** @enum {string} */
+            status: "pending" | "completed" | "cancelled";
+        };
+        RewardRedemptionAction: {
+            /** @description e.g. the Commercial voucher code issued for the reward */
+            fulfilmentCode?: string;
+            note?: string;
+            /** @description Required to cancel */
+            reason?: string;
         };
         Role: {
             assignedUsers: number;
@@ -38115,6 +40761,25 @@ export interface components {
             name: string;
             phone?: string | null;
         };
+        SegmentMembersInput: {
+            customerIds: string[];
+        };
+        SegmentMembersResult: {
+            changed: number;
+            memberCount: number;
+            /** Format: uuid */
+            segmentId: string;
+        };
+        SegmentRefresh: {
+            memberCount: number;
+            /** @description Members matching the P2 rules before the P3 dimensions */
+            p2Matches: number;
+            /** Format: date-time */
+            refreshedAt: string;
+            /** Format: uuid */
+            segmentId: string;
+            segmentType: string;
+        };
         SegmentResult: {
             /** Format: date-time */
             computedAt: string;
@@ -38669,6 +41334,15 @@ export interface components {
             start: string;
             /** @enum {string} */
             status: "scheduled" | "completed" | "cancelled";
+        };
+        StaffNPSInput: {
+            /** @enum {string} */
+            businessLine?: "golf" | "sportclub" | "stay" | "pos" | "membership" | "banquet" | "other";
+            comment?: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** @description 0–10: how likely are you to recommend the club? */
+            score: number;
         };
         StageMove: {
             /** Format: date-time */
@@ -39471,6 +42145,56 @@ export interface components {
              */
             status?: "active" | "inactive" | null;
         };
+        Suppression: {
+            /** @description E-mail / Phone */
+            address: string;
+            /**
+             * @description Channel
+             * @enum {string}
+             */
+            channel: "email" | "whatsapp";
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: uuid
+             * @description Customer
+             */
+            customerId?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Reason */
+            reason?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SuppressionInput: {
+            /** @description E-mail / Phone */
+            address?: string;
+            /**
+             * @description Channel
+             * @enum {string}
+             */
+            channel?: "email" | "whatsapp";
+            /**
+             * Format: uuid
+             * @description Customer
+             */
+            customerId?: string | null;
+            /** @description Reason */
+            reason?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
         SyncItem: {
             action: string;
             /** Format: date-time */
@@ -39910,6 +42634,168 @@ export interface components {
             status: "received" | "preparing" | "ready" | "out_for_delivery" | "served" | "cancelled";
             tableNo?: string | null;
         };
+        TicketAssignInput: {
+            /** Format: uuid */
+            assignedTo?: string | null;
+            /** Format: uuid */
+            departmentId?: string | null;
+        };
+        TicketCategoryOption: {
+            businessLine?: string | null;
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        TicketCommentInput: {
+            body: string;
+            /** @description Internal note (not sent to the customer) */
+            internal?: boolean;
+        };
+        TicketCompensation: {
+            amount?: string | null;
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt?: string | null;
+            description: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            ledgerId?: string | null;
+            number: string;
+            points?: number | null;
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected" | "cancelled";
+            /** Format: uuid */
+            ticketId: string;
+            /** @enum {string} */
+            type: "points" | "voucher" | "refund" | "other";
+        };
+        TicketCompensationInput: {
+            /** @description Value of a voucher / refund (issued in Commercial / Billing once approved) */
+            amount?: string;
+            description: string;
+            /** @description Loyalty points (type points) */
+            points?: number;
+            /** @enum {string} */
+            type: "points" | "voucher" | "refund" | "other";
+        };
+        TicketCreated: {
+            /** @description false: the feedback already had a ticket */
+            created: boolean;
+            ticket: components["schemas"]["ComplaintTicket"];
+        };
+        TicketDetail: {
+            /** Format: uuid */
+            assignedTo?: string | null;
+            assigneeName?: string | null;
+            attachmentFileIds: string[];
+            businessLine: string;
+            /** Format: uuid */
+            categoryId?: string | null;
+            categoryName?: string | null;
+            /** @enum {string} */
+            channel: "staff" | "member_app" | "website" | "feedback" | "whatsapp" | "email" | "phone";
+            /** Format: date-time */
+            closedAt?: string | null;
+            compensations: components["schemas"]["TicketCompensation"][];
+            contactEmail?: string | null;
+            contactName?: string | null;
+            contactPhone?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            /** Format: uuid */
+            departmentId?: string | null;
+            departmentName?: string | null;
+            description: string;
+            /** Format: date-time */
+            escalatedAt?: string | null;
+            /** @description 0 none, 1 line manager, 2 General Manager */
+            escalationLevel: number;
+            events: components["schemas"]["TicketEvent"][];
+            /** Format: uuid */
+            feedbackId?: string | null;
+            /** Format: date-time */
+            firstRespondedAt?: string | null;
+            firstResponseBreached: boolean;
+            /** Format: date-time */
+            firstResponseDueAt: string;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** @description An open SLA timer has passed */
+            overdue: boolean;
+            /** @enum {string} */
+            priority: "low" | "medium" | "high" | "urgent";
+            reopenedCount: number;
+            resolution?: string | null;
+            resolutionBreached: boolean;
+            /** Format: date-time */
+            resolutionDueAt: string;
+            /** Format: date-time */
+            resolvedAt?: string | null;
+            slaPolicyVersion: number;
+            /** @enum {string} */
+            status: "open" | "in_progress" | "escalated" | "resolved" | "closed";
+            subject: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        TicketEvent: {
+            actorName?: string | null;
+            /** @enum {string} */
+            actorType: "staff" | "customer" | "system";
+            body?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            details: Record<string, never>;
+            fromStatus?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Internal note, not shown to the customer */
+            internal: boolean;
+            /** @enum {string} */
+            kind: "created" | "comment" | "customer_reply" | "status" | "assigned" | "escalated" | "compensation" | "reopened";
+            toStatus?: string | null;
+        };
+        TicketInput: {
+            /** Format: uuid */
+            assignedTo?: string | null;
+            /** @description Uploaded files (platform files) */
+            attachmentFileIds?: string[];
+            /**
+             * @description Default: from the category, else other
+             * @enum {string}
+             */
+            businessLine?: "golf" | "sportclub" | "stay" | "pos" | "membership" | "banquet" | "other";
+            /** Format: uuid */
+            categoryId?: string | null;
+            /**
+             * @description How the complaint came in (default staff)
+             * @enum {string}
+             */
+            channel?: "staff" | "whatsapp" | "email" | "phone";
+            contactEmail?: string;
+            /** @description Contact of a complainant without a customer profile */
+            contactName?: string;
+            contactPhone?: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** Format: uuid */
+            departmentId?: string | null;
+            description: string;
+            /**
+             * @description Default: from the category, else medium
+             * @enum {string}
+             */
+            priority?: "low" | "medium" | "high" | "urgent";
+            subject: string;
+        };
         TicketItem: {
             modifiers: Record<string, never>[];
             name: string;
@@ -39917,9 +42803,35 @@ export interface components {
             quantity: string;
             status: string;
         };
+        TicketReasonInput: {
+            reason: string;
+        };
+        TicketReplyInput: {
+            body: string;
+        };
+        TicketResolveInput: {
+            resolution: string;
+        };
         TicketStateInput: {
             /** @enum {string} */
             state: "preparing" | "ready" | "out_for_delivery" | "served" | "cancelled";
+        };
+        TierNoteInput: {
+            /** Format: uuid */
+            customerId: string;
+            note: string;
+            /**
+             * Format: uuid
+             * @description Tier to consider at the next evaluation
+             */
+            suggestedTierId?: string | null;
+        };
+        TierNoteResult: {
+            /** Format: uuid */
+            customerId: string;
+            /** Format: uuid */
+            id: string;
+            note: string;
         };
         TimeBand: {
             /** Format: date-time */
@@ -40003,6 +42915,78 @@ export interface components {
             participants: components["schemas"]["EventParticipantStats"];
             schedule: components["schemas"]["RundownItem"][];
             venues: components["schemas"]["VenueHold"][];
+        };
+        TopSpender: {
+            banquet: string;
+            bungalow: string;
+            /** @description Net charges of the period */
+            charges: string;
+            code: string;
+            corporate: boolean;
+            /** @description Credit notes */
+            credits: string;
+            /** Format: uuid */
+            customerId: string;
+            customerType: string;
+            /** @description Points / voucher payments excluded by the Top Spender policy */
+            excluded: string;
+            fnb: string;
+            golf: string;
+            member: boolean;
+            name: string;
+            other: string;
+            /** @description Rank in the previous month's snapshot (monthly periods) */
+            previousRank?: number | null;
+            rank: number;
+            refunds: string;
+            /** @description Charges − refunds − credit notes − excluded */
+            spend: string;
+            sport: string;
+            /** @description Days with charges */
+            visits: number;
+        };
+        TopSpenderFilters: {
+            businessLine?: string;
+            memberType?: string;
+            outletId?: string;
+            period?: string;
+            segmentId?: string;
+        };
+        TopSpenderRanking: {
+            filters: components["schemas"]["TopSpenderFilters"];
+            from: string;
+            items: components["schemas"]["TopSpender"][];
+            to: string;
+            /** @description Spend of the listed customers */
+            total: string;
+        };
+        TopSpenderSegmentInput: {
+            businessLine?: string;
+            /** @description Default: the top N of the filters below */
+            customerIds?: string[];
+            from?: string;
+            /** @enum {string} */
+            memberType?: "member" | "non_member" | "corporate";
+            /** @enum {string} */
+            period?: "month" | "quarter" | "year";
+            /** @description Or create a new static segment with this code */
+            segmentCode?: string;
+            /**
+             * Format: uuid
+             * @description An existing static segment
+             */
+            segmentId?: string | null;
+            segmentName?: string;
+            to?: string;
+            /** @description Top N (default 10) */
+            top?: number;
+        };
+        TopSpenderSegmentResult: {
+            added: number;
+            memberCount: number;
+            segmentCode: string;
+            /** Format: uuid */
+            segmentId: string;
         };
         TransferInput: {
             /** Format: uuid */
@@ -40123,6 +43107,18 @@ export interface components {
         };
         UnreadCount: {
             unread: number;
+        };
+        UnsubscribeInfo: {
+            /** @description Masked */
+            address: string;
+            campaign: string;
+            channel: string;
+            /** @enum {string} */
+            status: "subscribed" | "unsubscribed";
+        };
+        UnsubscribeInput: {
+            /** @description Stop every marketing channel, not only this one */
+            allChannels?: boolean;
         };
         UpdateIntegrationRequest: {
             /** @description Keys present replace stored values; empty string removes a key */
@@ -69254,6 +72250,338 @@ export interface operations {
             };
         };
     };
+    getCrmCampaignsByIdDetail: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmCampaignsByIdPreview: {
+        parameters: {
+            query?: {
+                /** @description Sample recipient */
+                customerId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignPreview"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmCampaignsByIdRecipients: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CampaignRecipient"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmCampaignsByIdStats: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignStats"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmCampaignsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignCancelInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmCampaignsByIdSchedule: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CampaignScheduleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CampaignDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postCrmCampaignsByIdSend: {
         parameters: {
             query?: never;
@@ -70405,6 +73733,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CorporateAccount"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmCorporateAccountsById360: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Corporate360"];
                 };
             };
             /** @description Not authenticated */
@@ -71904,6 +75284,174 @@ export interface operations {
             };
         };
     };
+    getCrmCustomersByIdCommunicationPreferences: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunicationPreferences"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmCustomersByIdCommunicationPreferences: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommunicationPreferencesInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunicationPreferences"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmCustomersByIdConsentHistory: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConsentEvent"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCrmCustomersByIdContext: {
         parameters: {
             query?: never;
@@ -72874,6 +76422,62 @@ export interface operations {
             };
         };
     };
+    postCrmFeedbackByIdOpenTicket: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FeedbackTicketInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketCreated"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCrmFollowUps: {
         parameters: {
             query?: {
@@ -73466,6 +77070,63 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLeaderboardsByKind: {
+        parameters: {
+            query?: {
+                period?: "month" | "quarter" | "year";
+                from?: string;
+                to?: string;
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                kind: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Leaderboard"];
                 };
             };
             /** @description Not authenticated */
@@ -74137,6 +77798,2029 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TransferResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyAccounts: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+                "filter[status]"?: string;
+                "filter[tierId]"?: string;
+                "filter[customerId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoyaltyAccount"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyAccounts: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltyEnrolInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyAccount"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyAccountsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyAccountDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyAccountsByIdLedger: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[kind]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoyaltyEntry"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyAccountsByIdAdjust: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltyAdjustInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyAdjustment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyAccountsByIdRedeem: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltyRedeemInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyRedeemResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyAccountsByIdRedeemReward: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RedeemRewardInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RewardRedemption"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyAccountsByIdSetStatus: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltyAccountStatusInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyAccount"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyAccountsByIdSetTier: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltySetTierInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyAccount"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyAdjustments: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+                "filter[accountId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoyaltyAdjustment"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyEarningRules: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[ruleType]"?: string;
+                "filter[businessLine]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EarningRule"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyEarningRules: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EarningRuleInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EarningRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyEarningRulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EarningRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCrmLoyaltyEarningRulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmLoyaltyEarningRulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EarningRuleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EarningRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyEarningRulesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[ruleType]"?: string;
+                "filter[businessLine]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyLiability: {
+        parameters: {
+            query?: {
+                /** @description RFC 3339; default now */
+                at?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyLiability"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyOpeningBalancesImport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltyImportInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyImportResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyRedemptions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+                "filter[accountId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RewardRedemption"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyRedemptionsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RewardRedemptionAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RewardRedemption"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyRedemptionsByIdComplete: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RewardRedemptionAction"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RewardRedemption"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyRewards: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[rewardType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoyaltyReward"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyRewards: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltyRewardInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyReward"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyRewardsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyReward"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCrmLoyaltyRewardsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmLoyaltyRewardsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltyRewardInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyReward"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyRewardsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[rewardType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyTiers: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoyaltyTier"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyTiers: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltyTierInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyTier"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyTiersById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyTier"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCrmLoyaltyTiersById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmLoyaltyTiersById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoyaltyTierInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyTier"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmLoyaltyTiersEvaluate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyTierEvaluation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmLoyaltyTiersExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmNps: {
+        parameters: {
+            query?: {
+                /** @description YYYY-MM-DD (default: 90 days ago) */
+                from?: string;
+                to?: string;
+                businessLine?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NPSReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmNpsResponses: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffNPSInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NPSResponse"];
                 };
             };
             /** @description Not authenticated */
@@ -76126,6 +81810,456 @@ export interface operations {
             };
         };
     };
+    getCrmReminderLog: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[ruleId]"?: string;
+                "filter[customerId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ReminderLog"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmReminderRules: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[kind]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ReminderRule"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmReminderRules: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderRuleInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmReminderRulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCrmReminderRulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmReminderRulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderRuleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmReminderRulesByIdPreview: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderPreview"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmReminderRulesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[kind]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCrmSalesForecast: {
         parameters: {
             query?: {
@@ -77337,6 +83471,7 @@ export interface operations {
                 /** @description Field name, prefix with - for descending */
                 sort?: string;
                 "filter[status]"?: string;
+                "filter[segmentType]"?: string;
             };
             header: {
                 /** @description Active property chosen in the property switcher. */
@@ -77714,6 +83849,118 @@ export interface operations {
             };
         };
     };
+    postCrmSegmentsByIdMembersAdd: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SegmentMembersInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SegmentMembersResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmSegmentsByIdMembersRemove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SegmentMembersInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SegmentMembersResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postCrmSegmentsByIdCompute: {
         parameters: {
             query?: never;
@@ -77766,6 +84013,58 @@ export interface operations {
             };
         };
     };
+    postCrmSegmentsByIdRefresh: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SegmentRefresh"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCrmSegmentsExport: {
         parameters: {
             query?: {
@@ -77775,6 +84074,347 @@ export interface operations {
                 includeArchived?: boolean;
                 /** @description Field name, prefix with - for descending */
                 sort?: string;
+                "filter[status]"?: string;
+                "filter[segmentType]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSuppressions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[channel]"?: string;
+                "filter[customerId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Suppression"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmSuppressions: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuppressionInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Suppression"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSuppressionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Suppression"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCrmSuppressionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmSuppressionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuppressionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Suppression"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmSuppressionsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[channel]"?: string;
+                "filter[customerId]"?: string;
                 "filter[status]"?: string;
             };
             header: {
@@ -77793,6 +84433,1078 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmTicketCategories: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[businessLine]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ComplaintCategory"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmTicketCategories: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ComplaintCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmTicketCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCrmTicketCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCrmTicketCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ComplaintCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmTicketCategoriesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[businessLine]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmTickets: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+                "filter[priority]"?: string;
+                "filter[businessLine]"?: string;
+                "filter[customerId]"?: string;
+                /** @description true: assigned to me */
+                mine?: string;
+                /** @description true: not resolved / closed */
+                open?: string;
+                /** @description true: an SLA timer has passed */
+                overdue?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ComplaintTicket"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmTickets: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintTicket"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmTicketsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmTicketsByIdAssign: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketAssignInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintTicket"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmTicketsByIdClose: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintTicket"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmTicketsByIdComment: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketCommentInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmTicketsByIdCompensate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketCompensationInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketCompensation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmTicketsByIdEscalate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintTicket"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmTicketsByIdReopen: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintTicket"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmTicketsByIdResolve: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketResolveInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintTicket"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmTopSpenders: {
+        parameters: {
+            query?: {
+                period?: "month" | "quarter" | "year";
+                from?: string;
+                to?: string;
+                limit?: number;
+                businessLine?: string;
+                memberType?: "member" | "non_member" | "corporate";
+                outletId?: string;
+                segmentId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopSpenderRanking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmTopSpendersAddToSegment: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TopSpenderSegmentInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TopSpenderSegmentResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCrmTopSpendersTierNote: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TierNoteInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TierNoteResult"];
                 };
             };
             /** @description Not authenticated */
@@ -101288,6 +109000,104 @@ export interface operations {
             };
         };
     };
+    getMemberCommunicationPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunicationPreferences"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberCommunicationPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommunicationPreferencesInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CommunicationPreferences"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postMemberConsent: {
         parameters: {
             query?: never;
@@ -101726,6 +109536,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Payment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberFoliosByIdPayWithPoints: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MyPointsPaymentInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoyaltyRedeemResult"];
                 };
             };
             /** @description Not authenticated */
@@ -102862,6 +110728,374 @@ export interface operations {
             };
         };
     };
+    getMemberLoyalty: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyLoyalty"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberLoyaltyHistory: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[kind]"?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoyaltyEntry"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberLoyaltyRedemptions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RewardRedemption"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberLoyaltyRewards: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MyLoyaltyReward"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberLoyaltyRewardsByIdRedeem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MyRewardInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RewardRedemption"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberLoyaltyTiers: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MyLoyaltyTier"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberLoyaltyJoin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyLoyalty"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getMemberMemberCharges: {
         parameters: {
             query?: {
@@ -103355,6 +111589,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MyEvents"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberNps: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["NPSInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NPSResponse"];
                 };
             };
             /** @description Not authenticated */
@@ -104877,6 +113162,373 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StayResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberSupportFeedback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberFeedbackInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Feedback"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberTicketCategories: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TicketCategoryOption"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberTickets: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ComplaintTicket"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberTickets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberTicketInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintTicket"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberTicketsById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberTicketsByIdReopen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ComplaintTicket"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberTicketsByIdReply: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketReplyInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketDetail"];
                 };
             };
             /** @description Not authenticated */
@@ -115953,6 +124605,37 @@ export interface operations {
             };
         };
     };
+    getPublicCampaignLinksByToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/html": string;
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postPublicClassEnrollments: {
         parameters: {
             query?: never;
@@ -116553,6 +125236,39 @@ export interface operations {
                 };
                 content: {
                     "application/xml": string;
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicComplaints: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicComplaintInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicComplaintReceipt"];
                 };
             };
             /** @description Problem Details (RFC 9457) */
@@ -117773,6 +126489,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicStayResult"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicUnsubscribeByToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnsubscribeInfo"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicUnsubscribeByToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnsubscribeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnsubscribeInfo"];
                 };
             };
             /** @description Problem Details (RFC 9457) */

@@ -133,7 +133,11 @@ var Trees = map[string][]Item{
 			),
 			s("quotations", "Quotations", "/crm/quotations", "crm.quotation.view"),
 			s("corporate-accounts", "Corporate Accounts", "/crm/corporate-accounts", "crm.corporate_account.view"),
-			s("crm-engagement", "Feedback & Campaigns", "/crm/engagement", "crm.feedback.view"),
+			s("campaigns", "Campaigns", "/crm/campaigns", "crm.campaign.view"),
+			s("loyalty", "Loyalty", "/crm/loyalty", "crm.loyalty_account.view"),
+			s("top-spender", "Top Spender", "/crm/top-spender", "crm.top_spender.view"),
+			s("feedback", "Feedback", "/crm/feedback", "crm.feedback.view"),
+			s("complaints", "Complaints", "/crm/complaints", "crm.ticket.view"),
 			s("follow-ups", "Follow-ups", "/crm/follow-ups", "crm.follow_up.view"),
 			s("crm-reports", "CRM Reports", "/reports?module=crm", "reporting.report.view"),
 		),
@@ -309,8 +313,21 @@ var Trees = map[string][]Item{
 			s("my-member-charges", "Member Charges", "/transactions/member-charges", catalog.ShellMemberPortal),
 			s("my-invoices", "Invoices", "/transactions/invoices", catalog.ShellMemberPortal),
 		}},
+		{Key: "loyalty", Label: "Loyalty", Path: "/loyalty", Icon: "loyalty", Module: "crm", Permission: catalog.ShellMemberPortal, Children: []Item{
+			s("my-points", "My Points", "/loyalty", catalog.ShellMemberPortal),
+			s("loyalty-tier", "Tier", "/loyalty/tier", catalog.ShellMemberPortal),
+			s("loyalty-rewards", "Rewards", "/loyalty/rewards", catalog.ShellMemberPortal),
+			s("points-history", "Points History", "/loyalty/history", catalog.ShellMemberPortal),
+		}},
 		{Key: "preferences", Label: "Preferences", Path: "/preferences", Icon: "tune", Module: "crm", Permission: catalog.ShellMemberPortal},
-		{Key: "profile", Label: "Profile", Path: "/profile", Icon: "person", Permission: catalog.ShellMemberPortal},
+		{Key: "profile", Label: "Profile", Path: "/profile", Icon: "person", Permission: catalog.ShellMemberPortal, Children: []Item{
+			s("my-profile", "Profile", "/profile", catalog.ShellMemberPortal),
+			s("communication-preferences", "Communication Preferences", "/profile/communication-preferences", catalog.ShellMemberPortal),
+		}},
+		{Key: "support", Label: "Support", Path: "/support", Icon: "support_agent", Module: "crm", Permission: catalog.ShellMemberPortal, Children: []Item{
+			s("support-feedback", "Feedback", "/support/feedback", catalog.ShellMemberPortal),
+			s("support-complaints", "Complaints", "/support/complaints", catalog.ShellMemberPortal),
+		}},
 	},
 	"ops": {
 		{Key: "home", Label: "Home", Path: "/ops", Icon: "home", Permission: catalog.ShellOps},
@@ -341,6 +358,7 @@ var Trees = map[string][]Item{
 			s("fd-folios", "Folios", "/ops/front-desk/folios", "billing.folio.view"),
 			s("fd-customer-folios", "Customer Folios", "/ops/front-desk/customer-folios", "billing.customer_folio.view"),
 			s("fd-cashier", "Cashier", "/ops/front-desk/cashier", "billing.cashier_shift.operate"),
+			s("fd-redeem-points", "Redeem Points", "/ops/front-desk/redeem-points", "crm.loyalty_account.redeem"),
 		}},
 		{Key: "stay-front-desk", Label: "Stay Front Desk", Path: "/ops/stay-desk", Icon: "hotel", Module: "stay", Permission: "stay.stay.view"},
 		{Key: "golf-staff", Label: "Golf Staff", Path: "/ops/golf-staff", Icon: "golf_course", Module: "golf", Permission: "golf.bag.manage", Children: []Item{

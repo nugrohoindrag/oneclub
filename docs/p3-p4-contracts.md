@@ -58,6 +58,49 @@ Sent again after a revision (new quotationId, same number): the hold follows the
 
 ### `crm.loyalty_points_changed`
 `{ accountId, customerId, kind: earned|redeemed|expired|adjusted|reversed, points, balance, sourceType, sourceId }`
+Added (crm/loyalty): `entryId` (ledger entry), `value` (signed points × redemption value of the Loyalty Policies, decimal string), `currency`.
+One event per ledger entry; redeemed points also reach Billing as the `loyalty_points` tender of the folio payment
+(`billing.payment_settled` with `methodType: loyalty_points`, `tender_ref.entryId`).
+
+### `crm.tier_changed`
+`{ accountId, customerId, fromTierId?, toTierId?, tier, reason }` — loyalty tier upgrade / downgrade (FR-LOY-07).
+
+### `crm.campaign_sent` — consumed by `commercial` (personal promo codes / vouchers of a campaign, FR-CMP-05)
+```json
+{ "campaignId": "uuid", "code": "WA-BDAY", "name": "Birthday month", "channel": "email | whatsapp | in_app",
+  "promoMode": "none | shared | unique", "promoCode": "BDAY|null", "voucherTypeRef": "text|null",
+  "batch": 2, "final": false,
+  "recipients": [{ "recipientId": "uuid", "customerId": "uuid", "promoCode": "BDAY-7KQ2MX|null" }],
+  "sent": 600, "skipped": 1400 }
+```
+Published once per dispatch batch (≤ batch size of the Campaign Policies) in the transaction that queues the messages; `sent` /
+`skipped` only on the final batch (`final: true`). With `promoMode: unique` every recipient carries a personal code
+`<promoCode>-XXXXXX`: Commercial registers it as a single-use code of the promotion `promoCode` for that customer (idempotent per
+`recipientId`). With `voucherTypeRef` Commercial issues one voucher of that type per recipient. CRM marks a recipient converted on
+`commercial.promotion_applied` with its code, or on a `billing.payment_settled` of the customer within the conversion window.
+
+### `crm.ticket_created`, `crm.ticket_escalated`, `crm.ticket_resolved`
+`crm.ticket_created`: `{ ticketId, number, customerId?, businessLine, priority, channel }`;
+`crm.ticket_escalated`: `{ ticketId, number, level: 1|2, role, reason, priority, businessLine }`;
+`crm.ticket_resolved`: `{ ticketId, number, customerId?, resolutionBreached, firstResponseBreached }`.
+
+### `crm.ticket_compensation_approved` — for `commercial` (voucher) and `billing` (refund)
+`{ compensationId, number, ticketId, ticketNumber, customerId?, type: points|voucher|refund|other, amount?, points?, description }`
+Points are posted by CRM itself; a voucher / refund compensation is issued by its owner from this event (idempotent per `compensationId`).
+
+### Consumed by CRM engagement & loyalty (decoded by name, wired in `internal/app/p3_engagement.go`)
+| Event | Use |
+|---|---|
+| `billing.payment_settled` | Loyalty earning (idempotent per payment; not for `loyalty_points` / `folio_transfer`), campaign conversion |
+| `billing.refund_processed` | Reverses earned points proportionally; gives back points of a refunded `loyalty_points` payment |
+| `golf.round_finished` | Activity points (`round_finished` earning rules) for the players of the flight |
+| `crm.opportunity_won` | Member referral reward to `referrerCustomerId` (`referral` earning rules), once per opportunity |
+| `commercial.promotion_applied` | Campaign conversion of the recipient whose personal / shared code was used |
+| `banquet.event_confirmed` | Interaction "Event confirmed" in the Customer 360 and segmentation tag `wedding` / `event_host` |
+| `banquet.event_guest_checked_in` *(proposal)* `{ eventId, registrationId?, customerId?, number }` | Activity points (`event_attended`) when Event Operations checks a registered guest in |
+| `golf.tournament_registration_confirmed` `{ tournamentId, customerId? }` | Segmentation tag `tournament_participant` |
+| `golf.tournament_results_published` | Tags `tournament_participant`, `tournament_champion` of the champions |
+| `crm.quotation_accepted` | Segmentation tag `deal_<line>` (e.g. `deal_wedding`) |
 
 ### `commercial.promotion_applied` (K3 — discount by component)
 `{ promotionId, code, sourceType: pos_order|folio|package_booking, sourceId, customerId?, businessLine, discount, currency }`
@@ -259,4 +302,7 @@ Published by `cms` (EP-24) when content goes live / comes down (also by the sche
 | K10 period status | accounting | root function `accounting.PeriodStatus(ctx, q, property, date) (string, error)` and `accounting.period_closed` |
 | K10 in inventory | internal/app | `inventory.Stock.SetPeriodGuard(accounting.PeriodStatus)` (nil = every period open): documents dated in a closed period are refused, automatic postings move to today |
 | Procurement → inventory reads | inventory | root functions `inventory.ProcurementItemByID`, `inventory.ProcurementConvert`, `inventory.ProcurementToBase` (internal/inventory/procurement_api.go) |
+| Loyalty tender (FR-LOY-05) | crm/loyalty via `internal/app` | `billing.RegisterTender("loyalty_points", …)`: `TenderPaymentInput{MethodType: "loyalty_points", Tender: {accountId? \| customerId?, points?}}` on any folio (POS `tenders[]`, front desk, Member App); default account = the folio's customer; amount = whole points × redemption value |
+| Loyalty liability (FR-LOY-08) | crm/loyalty | `billing.RegisterLiability("loyalty_points", …)` (day summary / night audit / export `liability_balance`) and export section `crm.loyalty` (`loyalty` rows: earned, redeemed, expired, adjusted, reversed valued at the redemption value) |
+| Customer 360 sections (FR-C360-01) | each area | `a.CRM.Sections["banquet" \| "tournament" \| …] = fn` in the area's wiring; CRM engagement wires `loyalty`, `campaignResponse`, `complaints`, `sales` |
 | Recipe explosion (K1/K6) | inventory | root function `inventory.ExplodeRecipe(ctx, q, recipeID, units) ([]inventory.Requirement, error)` |
