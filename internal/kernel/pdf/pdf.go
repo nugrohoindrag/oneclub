@@ -18,8 +18,9 @@ const (
 
 // Doc is a PDF under construction.
 type Doc struct {
-	pages []*bytes.Buffer
-	cur   *bytes.Buffer
+	pages  []*bytes.Buffer
+	cur    *bytes.Buffer
+	images []pdfImage
 	// Y is the current baseline used by Line helpers (top-down cursor).
 	Y float64
 }
@@ -139,8 +140,17 @@ func (d *Doc) Bytes() []byte {
 		fmt.Fprintf(&out, "%d 0 obj\n%s\nendobj\n", len(offsets), body)
 	}
 	out.WriteString("%PDF-1.4\n%\xe2\xe3\xcf\xd3\n")
-	// 1 catalog, 2 pages, 3 font regular, 4 font bold, then page/content pairs.
+	// 1 catalog, 2 pages, 3 font regular, 4 font bold, then page/content
+	// pairs, then the images.
 	n := len(d.pages)
+	xobj := ""
+	if len(d.images) > 0 {
+		refs := make([]string, len(d.images))
+		for i := range d.images {
+			refs[i] = fmt.Sprintf("/Im%d %d 0 R", i, 5+n*2+i)
+		}
+		xobj = " /XObject << " + strings.Join(refs, " ") + " >>"
+	}
 	kids := make([]string, n)
 	for i := range d.pages {
 		kids[i] = fmt.Sprintf("%d 0 R", 5+i*2)
@@ -150,9 +160,13 @@ func (d *Doc) Bytes() []byte {
 	obj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>")
 	obj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>")
 	for i, p := range d.pages {
-		obj(fmt.Sprintf("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %.2f %.2f] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents %d 0 R >>",
-			PageWidth, PageHeight, 6+i*2))
+		obj(fmt.Sprintf("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %.2f %.2f] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>%s >> /Contents %d 0 R >>",
+			PageWidth, PageHeight, xobj, 6+i*2))
 		obj(fmt.Sprintf("<< /Length %d >>\nstream\n%sendstream", p.Len(), p.String()))
+	}
+	for _, im := range d.images {
+		obj(fmt.Sprintf("<< /Type /XObject /Subtype /Image /Width %d /Height %d /ColorSpace %s /BitsPerComponent 8 /Filter %s /Length %d >>\nstream\n%s\nendstream",
+			im.w, im.h, im.colorSpace, im.filter, len(im.data), im.data))
 	}
 	xref := out.Len()
 	fmt.Fprintf(&out, "xref\n0 %d\n0000000000 65535 f \n", len(offsets)+1)
