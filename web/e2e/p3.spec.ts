@@ -35,8 +35,9 @@ test('POS: the cashier picks the customer and pays part of the bill with loyalty
   await page.getByRole('button', { name: new RegExp(`Kopi Poin ${stamp}`) }).click();
 
   await page.getByLabel('Find customer').fill(`Pelanggan Poin ${stamp}`);
-  await expect(page.getByLabel('Customer', { exact: true }).locator('option', { hasText: `Pelanggan Poin ${stamp}` })).toHaveCount(1);
-  await page.getByLabel('Customer', { exact: true }).selectOption({ label: `Pelanggan Poin ${stamp} (E2E-LP-${stamp})` });
+  const pick = page.getByRole('combobox', { name: 'Customer', exact: true }); // the order row is also labelled "Customer"
+  await expect(pick.locator('option', { hasText: `Pelanggan Poin ${stamp}` })).toHaveCount(1);
+  await pick.selectOption({ label: `Pelanggan Poin ${stamp} (E2E-LP-${stamp})` });
   await expect(page.getByText('500 points')).toBeVisible();
   await page.getByLabel('Payment', { exact: true }).selectOption({ label: 'Redeem Points' });
   await page.getByLabel('Points', { exact: true }).fill('200');
@@ -48,6 +49,7 @@ test('POS: the cashier picks the customer and pays part of the bill with loyalty
   expect(ledger.items).toHaveLength(1);
   expect(ledger.items[0].points).toBe(-200);
   await context.close();
+  await admin.context().close();
 });
 
 test('Kitchen Display: kitchen staff switch to the BEO production of the day', async ({ page }) => {
@@ -66,7 +68,8 @@ test('Website: inquiry with an unticked marketing consent, corporate golf and th
   await page.goto(`${WEB}/en/wedding-banquet`);
   const consent = page.getByRole('checkbox', { name: /Send me news and offers/ });
   await expect(consent).not.toBeChecked(); // explicit opt-in (UU PDP)
-  await page.getByLabel('Event', { exact: true }).selectOption('corporate_golf');
+  // a select inside its label: the label text also holds the options, so find it by role
+  await page.getByRole('combobox', { name: /^Event/ }).selectOption('corporate_golf');
   await page.getByLabel(/^Company/).fill(`PT E2E Golf ${stamp}`);
   await page.getByLabel('Message', { exact: true }).fill('Corporate golf day for 40 clients');
   await page.getByLabel('Name', { exact: true }).fill(`E2E Inquiry ${stamp}`);
@@ -87,6 +90,7 @@ test('Website: inquiry with an unticked marketing consent, corporate golf and th
   await page.goto(`${WEB}/en/contact`);
   await expect(page.getByRole('checkbox', { name: /Send me news and offers/ })).not.toBeChecked();
   await expect(page.getByLabel('Topic').locator('option')).toContainText(['corporate golf', 'tournament']);
+  await admin.context().close();
 });
 
 test('Member App: the member pays the down payment of a payment schedule online', async ({ browser, page }) => {
@@ -106,4 +110,5 @@ test('Member App: the member pays the down payment of a payment schedule online'
   await page.getByRole('button', { name: `Pay DP ${stamp}` }).click();
   await expect(page.getByRole('heading', { name: 'Online payment' })).toBeVisible();
   await expect(page.locator('.oc-metric', { hasText: /Rp\s?3[.,]000[.,]000/ })).toBeVisible();
+  await admin.context().close();
 });

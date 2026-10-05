@@ -63,9 +63,10 @@ test('Website: Sport Club page, structured rates and the contact form', async ({
   await page.goto(`${WEB}/en/sport-club`);
   await expect(page.getByRole('heading', { name: 'Sport Club', level: 1 })).toBeVisible();
   await page.goto(`${WEB}/en/contact`);
-  await page.getByLabel('Name').fill('Playwright Visitor');
-  await page.getByLabel('E-mail').fill('visitor@playwright.test');
-  await page.getByLabel('Message').fill('Do you have a family package?');
+  // exact: the Topic select's label also holds its options ("tournament" contains "name")
+  await page.getByLabel('Name', { exact: true }).fill('Playwright Visitor');
+  await page.getByLabel('E-mail', { exact: true }).fill('visitor@playwright.test');
+  await page.getByLabel('Message', { exact: true }).fill('Do you have a family package?');
   await page.getByRole('button', { name: 'Send' }).click();
   await expect(page.getByText(/we will get back to you/)).toBeVisible();
 });

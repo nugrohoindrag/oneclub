@@ -42,8 +42,9 @@ test('General Manager lands on Management and switches to the Back Office; 403 l
   expect(await menuLabels(page)).toContain('Executive Overview');
   await switchArea(page, 'Back Office');
   await expect(page).toHaveURL(`${DASHBOARD}/`);
+  // the menu of the new area loads after the switch: read it once it is there
+  await expect.poll(() => menuLabels(page)).toEqual(expect.arrayContaining(['Dashboard', 'Approvals', 'Golf', 'Membership', 'Booking', 'Reports']));
   const labels = await menuLabels(page);
-  for (const l of ['Dashboard', 'Approvals', 'Golf', 'Membership', 'Booking', 'Reports']) expect(labels).toContain(l);
   expect(labels).not.toContain('Users');
   // FR-SH-04: 403 with links to the areas the user may open
   await page.goto(`${DASHBOARD}/settings/users`);
