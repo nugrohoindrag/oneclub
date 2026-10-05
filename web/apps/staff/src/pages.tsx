@@ -116,6 +116,7 @@ export function ReportRunPage() {
       <PageHeader title={r?.report.name ?? 'Report'} help={r?.report.description} actions={<>
         <button className="oc-btn oc-btn-outline" onClick={() => exp.mutate({ reportCode: code, format: 'csv', params: applied }, { onSuccess: () => toast('Export started — you will be notified when it is ready') })}>Export CSV</button>
         <button className="oc-btn oc-btn-outline" onClick={() => exp.mutate({ reportCode: code, format: 'xlsx', params: applied }, { onSuccess: () => toast('Export started — you will be notified when it is ready') })}>Export XLSX</button>
+        <button className="oc-btn oc-btn-outline" onClick={() => exp.mutate({ reportCode: code, format: 'pdf', params: applied }, { onSuccess: () => toast('Export started — you will be notified when it is ready') })}>Export PDF</button>
       </>} />
       <ErrorAlert error={res.error ?? exp.error} />
       {r && (
