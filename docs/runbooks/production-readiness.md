@@ -58,6 +58,25 @@ k6 scripts in `test/load/`, run on Staging with production-like data:
 Correctness under contention is also proved by the automated test `TestP1ParallelHoldsAndExpiry` (200 parallel holds on
 the last seat → exactly one hold).
 
+### Release 3 — Commercial & Business Expansion (PRD P3 FR-REL-P3-01, §12)
+
+Run on Staging with a production-size copy before each P3 wave goes live (R3.1–R3.4, §16 #20); record the k6
+summary (p95 / p99, errors, the custom counters) in the *Result* column and attach the HTML report to the go-live
+checklist.
+
+| Scenario | Script | Target | Result |
+|---|---|---|---|
+| Tournament registration when it opens: desk + website registrations on one field | `tournament-registration.js` | no 5xx, p95 < 1.5 s, registered = field size, registered + waitlisted = accepted requests (never over the field) | |
+| Campaign to 10.000 recipients (approval, throttled batches) | `campaign-10k.js` | every opted-in recipient has a delivery status; no dispatch minute above the Campaign Policies batch size (BSP limit) | |
+| Promotions at the POS peak (online + offline sync, promo codes) | `promotion-pos-peak.js` | apply promotion p95 < 800 ms, evaluation p95 < 300 ms, no 5xx; offline totals that differ are flagged, never lost | |
+| Night audit on a month of volume while cashiers keep posting | `night-audit.js` | close < 60 s, Daily Revenue = Σ charges of the day, cashier p95 < 800 ms | |
+| POS peak and simultaneous voucher redemption (P2 regression) | `pos-peak.js`, `voucher-redeem.js` | as in Release 2 | |
+
+Correctness under contention is also covered by the Go acceptance tests: tournament field never exceeded
+(`TestP3TournamentClub`), one redemption per idempotency key and the daily redemption limit (`TestP3EngagementLoyalty`,
+`TestP3FixMoneyLoyalty`), promotion budgets and code limits (`TestP3CommercialPromotions`), venue holds without double
+booking (`TestP3BanquetVenueHolds`).
+
 ## 5. End-to-end tests (FR-REL-05)
 
 - Go acceptance tests on real PostgreSQL: `test/e2e/p1_*_test.go` (golf day, booking changes, rate card, website booking
@@ -68,6 +87,17 @@ the last seat → exactly one hold).
 
 External penetration test scope: website `web` (Book Golf, manage-booking link), Member Portal `member` (OTP login,
 bookings), payment webhook `/api/v1/webhooks/{integration}`. Release only with **no open High finding**.
+
+Release 3 adds these public and member endpoints to the scope (FR-REL-P3-04):
+
+| Area | Endpoints | Focus |
+|---|---|---|
+| Public quotation link | `GET /api/v1/public/quotations/{token}`, `POST …/{token}:accept`, `POST …/{token}:reject` | token entropy and expiry, revised / expired versions not acceptable, accept once, IP & time recorded, rate limit (OTP and e-Meterai deferred, §16 #18) |
+| Public forms | `POST /api/v1/public/inquiries`, `/public/contact`, `/public/complaints`, `GET/POST /public/feedback/{token}`, `GET/POST /public/unsubscribe/{token}`, `GET /public/campaign-links/{token}` | CAPTCHA / rate limit, no enumeration of customers, consent recorded, masked contact data, open-redirect check of tracked links |
+| Promotions & packages | `POST /api/v1/public/promo-codes:check`, `GET /public/promotions`, `GET /public/packages`, `POST /public/package-bookings` | code-check rate limit (Promotion Policies), personal codes not usable by others, hold expiry |
+| Events & tournaments | `POST /api/v1/public/events/{id}/registrations`, `GET /public/event-tickets/{code}`, `POST /public/tournaments/{id}/registrations`, `GET/POST /public/tournament-registrations/{token}…` | capacity / field under concurrency, ticket and withdrawal tokens, leaderboard shows consented names only |
+| Invoice & member payments | `GET /api/v1/public/invoices/{token}`, `POST /public/invoices/{token}:pay`, `POST /api/v1/member/invoices/{id}:pay-online`, `POST /member/folios/{id}:pay-with-points`, `POST /member/loyalty/rewards/{id}:redeem` | IDOR (another customer's invoice / folio / account), amount tampering, idempotency keys, daily points limit, gateway webhook replay |
+| Imports (staff) | `POST /api/v1/billing/invoices:import`, `/crm/leads:import`, `/golf/tournaments:import`, `/banquet/events:import` | permission per import, file size, formula injection in exported spreadsheets |
 
 Self-check before the external test:
 
@@ -104,9 +134,10 @@ Two to four weeks after go-live:
 | 2 | HA option A in place, failover drill recorded | §2 | OneClub ops | |
 | 3 | Restore drill (PITR) recorded | §2, `restore-drill.sh` | OneClub ops | |
 | 4 | Uptime probe and healthwatch alerts tested | §3 | OneClub ops | |
-| 5 | Load tests passed | §4 | Engineering | |
+| 5 | Load tests passed (Release 3: the P3 scenarios of §4) | §4 | Engineering | |
 | 6 | E2E (Go + Playwright) green on the release build | §5 | Engineering | |
-| 7 | Pen test: no open High | §6 | Security vendor | |
+| 7 | Pen test: no open High (Release 3: the P3 endpoints of §6) | §6 | Security vendor | |
 | 8 | Migration reconciled 100% and signed (Exit #5) | `cutover-runbook.md` | Club + OneClub | |
+| 8a | Release 3 migrations reconciled and signed: banquet, corporate AR, tournaments, leads | `banquet-migration-p3.md`, `corporate-ar-migration-p3.md`, `tournament-migration-p3.md`, `leads-migration-p3.md` | Club + OneClub | |
 | 9 | Parallel run without open critical finding (Exit #6) | `cutover-runbook.md` §2 | Club | |
 | 10 | Staff trained per interface (Starter, Caddy Master, Front Desk, Golf Staff, Back Office) | training log | Club | |

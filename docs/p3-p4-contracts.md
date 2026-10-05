@@ -80,7 +80,9 @@ One event per ledger entry; redeemed points also reach Billing as the `loyalty_p
 Published once per dispatch batch (≤ batch size of the Campaign Policies) in the transaction that queues the messages; `sent` /
 `skipped` only on the final batch (`final: true`). With `promoMode: unique` every recipient carries a personal code
 `<promoCode>-XXXXXX`: Commercial registers it as a single-use code of the promotion `promoCode` for that customer (idempotent per
-`recipientId`). With `voucherTypeRef` Commercial issues one voucher of that type per recipient. CRM marks a recipient converted on
+`recipientId`). With `voucherTypeRef` Commercial issues one voucher of that type per recipient (subscriber
+`commercial.campaign_vouchers`: source `crm.campaign` / `campaignId`, idempotent per campaign and customer, the customer is notified
+with `voucher.issued`; an unknown or inactive type is logged and skipped). CRM marks a recipient converted on
 `commercial.promotion_applied` with its code, or on a `billing.payment_settled` of the customer within the conversion window.
 
 ### `crm.ticket_created`, `crm.ticket_escalated`, `crm.ticket_resolved`
@@ -91,6 +93,16 @@ Published once per dispatch batch (≤ batch size of the Campaign Policies) in t
 ### `crm.ticket_compensation_approved` — for `commercial` (voucher) and `billing` (refund)
 `{ compensationId, number, ticketId, ticketNumber, customerId?, type: points|voucher|refund|other, amount?, points?, description }`
 Points are posted by CRM itself; a voucher / refund compensation is issued by its owner from this event (idempotent per `compensationId`).
+Implemented (P3 gap fix): `commercial` (voucher module, subscriber `commercial.compensation_voucher`) issues a value voucher of type
+`COMPENSATION` (created on first use: value voucher, 12 months) of `amount` to `customerId`, source `crm.ticket_compensation` /
+`compensationId`; `billing` (subscriber `billing.compensation_refund`) refunds `amount` to the original method of the customer's latest
+completed payment that can carry it — reason `Complaint compensation <number> · ticket <ticketNumber>`, no second Refund Policy approval —
+or, without such a payment, records an audit entry `compensation_refund_pending` for a manual refund. Both are idempotent per compensation.
+
+### Loyalty voucher rewards (hook, not an event)
+A reward of type `voucher` with a `voucherTypeRef` issues real Commercial vouchers through the `loyalty.Module.IssueVoucher` hook wired by
+`internal/app` (crm cannot import commercial): one voucher per quantity, source `crm.reward_redemption` / redemption id, idempotent; the
+redemption is completed at once with the voucher codes as fulfilment code. Rewards without a voucher type keep the `RW-` fulfilment code.
 
 ### Consumed by CRM engagement & loyalty (decoded by name, wired in `internal/app/p3_engagement.go`)
 | Event | Use |
