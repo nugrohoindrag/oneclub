@@ -559,6 +559,12 @@ func (m *Module) changeTier(ctx context.Context, tx pgx.Tx, a *LoyaltyAccount, t
 // EvaluateTiers runs the periodic tier evaluation of a property (with
 // downgrades when the Loyalty Policies allow them).
 func (m *Module) EvaluateTiers(ctx context.Context, tx pgx.Tx, property uuid.UUID) (int, error) {
+	// PRD P5 tier programme: the periodic run upgrades and ends grace periods
+	// (downgrades only after the grace of the annual evaluation).
+	if on, err := TierProgramOn(ctx, tx, property); err != nil || on {
+		run, err := m.RunTierEvaluation(ctx, tx, property, LoyaltyTierEvaluationInput{Kind: EvalPeriodic})
+		return run.Upgraded + run.Downgraded, err
+	}
 	pol, _, err := LoadPolicy(ctx, tx, property)
 	if err != nil {
 		return 0, err

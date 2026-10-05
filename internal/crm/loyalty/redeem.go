@@ -406,6 +406,10 @@ func (m *Module) RedeemReward(ctx context.Context, tx pgx.Tx, property, aid uuid
 	if err := checkRedeem(ctx, tx, a, pol, points); err != nil {
 		return RewardRedemption{}, err
 	}
+	// PRD P5 FR-LOY-P5-04 Reward Eligibility rules (tier, segment, activity, limit per customer).
+	if err := CheckRewardEligibility(ctx, tx, a, in.RewardID, in.Quantity); err != nil {
+		return RewardRedemption{}, err
+	}
 	if w.Stock != nil {
 		if _, err := tx.Exec(ctx, `UPDATE crm.loyalty_rewards SET stock = stock - $2 WHERE id = $1`, in.RewardID, in.Quantity); err != nil {
 			return RewardRedemption{}, err
