@@ -433,3 +433,87 @@ Statement and the instructor Honor Statement.
 `hr_commission_payouts` in reporting/00028): `hris.service_charge_distribution`, `hris.caddy_payout`,
 `hris.instructor_payout`, `hris.commission_payout` (HR Manager, Finance Manager, GM). Report-role hardening:
 `hris.harden_report_role_payouts()` (partner tax ids and bank accounts).
+
+## Payroll (`hris/payroll`, EP-09, EP-10, EP-15, payroll parts of EP-16/24/26/27/28/29)
+
+**Packages.** `internal/hris/payroll` (imports the hris root only); root additions `internal/hris/p5_payroll.go` (events,
+payloads, run statuses / types, `StatutoryRates`, ESS section `payslip` order 60, never cached offline) and
+`internal/hris/p5_payroll_calc.go` (pure engine `hris.Calculate(PayInput) PayResult`: proration, overtime 1/173,
+unpaid leave / absence / unpaid permission, BPJS with caps, PPh 21 TER on the month's gross and the annual Article 17
+calculation in the last tax period of the year or of the employment, final tax on severance PP 68/2009, net rounding —
+worked examples in `p5_payroll_calc_test.go`). Wiring: `internal/app/p5_payroll.go` (`payrollCore*` functions; the
+payouts area adds its own lines there). Accounting: `internal/accounting/p5_payroll_post.go`.
+
+**Runs.** `/api/v1/hris/payroll-runs` (+ `:calculate`, `:approve`, `:post`, `:mark-paid`, `:cancel`,
+`:sign-off-parallel-run`, `/payslips`, `/comparison`, `/journal`, `/bank-file?layout=`, `/parallel-run`). Types `regular`
+(one per property and period), `thr`, `bonus`, `adjustment` (`correctsPeriod`: retro differences of an approved period),
+`final_settlement` (leavers: leave encashment, severance + service award, PKWT compensation). Draft → Calculated
+(recalculation allowed; a closed period's attendance is locked with `hris.LockTimePeriod`) → Submitted (approval
+document type `hris.payroll_run`, attributes `net`, `gross`, `headcount`, `runType`, `periodCode`; no workflow ⇒
+approved at once) → Approved (immutable; period locked) → Posted → Paid. Every run stores its policy versions
+(`hris.payroll_configuration`, `hris.overtime_policy`, `hris.hr_configuration`, `hris.payroll_processing`) and the
+statutory rate set (FR-POL-P5-07).
+
+**Payroll inputs (consumer).** A regular run calls `hris.CollectPayrollInputs` at calculation; lines become payslip lines
+(source `input:<code>`, kind earning → taxable, non_taxable → non-taxable earning, deduction → after-tax) and
+`hris.MarkPayrollInputsConsumed(…, runID, lines)` runs in the transaction that posts the run (with `hris.payroll_posted`).
+Line `componentCode` should be a pay component (`SERVICE_CHARGE` category service_charge, `COMMISSION` category commission);
+an unknown code is paid as an "other" earning.
+
+**Statutory rates.** `/api/v1/hris/statutory-rates` (+ `:activate` by a second person, `:verify` tax consultant,
+`:deactivate`): instance-wide versioned sets; the active set with the latest `effectiveFrom` ≤ period end applies, else the
+Payroll Configuration. Initial set `ID-2024` is `unverified` ("to be verified by the tax consultant", FR-TAX-HR-05).
+Salary structures `/api/v1/hris/salary-structures` (grade / position / employee, versions, `:activate` by a second person,
+`:revise`, `:deactivate`, `GET …/resolved?employeeId&date`); contract base salary and allowances win over structures.
+New policy `hris.payroll_processing` (Payroll Configuration category: absence deduction, BPJS exclusions, final settlement,
+lock, payslip notification, bank file layouts `generic_csv` and `bca_payroll`).
+
+**Events published** (outbox, aggregate `hris.payroll_run`; money as decimal strings):
+
+```jsonc
+// hris.payroll_calculated — every (re)calculation
+{ "runId": "uuid", "number": "PAY-2026-00012", "propertyId": "uuid", "runType": "regular", "periodCode": "2026-07",
+  "periodStart": "2026-07-01", "periodEnd": "2026-07-31", "paymentDate": "2026-07-25", "calculation": 1,
+  "totals": { "headcount": 4, "gross": "…", "taxableGross": "…", "bpjsEmployee": "…", "bpjsEmployer": "…", "pph21": "…",
+              "otherDeductions": "…", "net": "…", "employerCost": "…", "employeesWarning": 0 },
+  "policyRefs": [{ "code": "hris.payroll_configuration", "version": 0 }] }
+// hris.payroll_posted — contract H5: the payroll journal (accounting books it dated postingDate = period end)
+{ …same header…, "postingDate": "2026-07-31", "currency": "IDR", "totals": {…},
+  "journalLines": [{ "part": "earning|employer_contribution|bpjs_employee|pph21|deduction", "componentCode": "BASIC",
+    "componentName": "Basic Salary", "category": "basic|allowance|overtime|service_charge|commission|bonus|thr|severance|leave_encashment|absence|…",
+    "programme": "kesehatan|jht|jp|jkk|jkm", "orgUnitId": "uuid|null", "orgUnitCode": "FNB", "costCenter": "CC-FNB",
+    "amount": "10000000", "debitRole": "salary_expense", "creditRole": "salaries_payable", "description": "…" }] }
+// hris.payroll_paid — net pay transferred
+{ "runId": "uuid", "number": "…", "propertyId": "uuid", "runType": "regular", "periodCode": "2026-07", "paidOn": "2026-07-25",
+  "reference": "TRF-…", "bankAccountCode": "", "currency": "IDR", "net": "…", "employees": 4,
+  "journalLines": [{ "part": "net_pay", "amount": "…", "debitRole": "salaries_payable", "creditRole": "bank" }] }
+```
+
+Earnings and employer contributions carry the department / cost center; pre-tax deductions (unpaid leave, absence)
+are `earning` lines with a negative amount. Σ earning − bpjs_employee − pph21 − deduction = net pay.
+
+**Accounting (consumer, additive).** `hris.payroll_posted` / `hris.payroll_paid` → `accounting.post:*` subscribers (registered through the
+`extraHandlers` / `extraRuleSpecs` hooks of accounting) with default rules `DEF-PAYROLL-EARN|SVC|COMM|SEV|BPJS-ER|BPJS-EE|PPH21|DEDUCT|PAID`
+and template accounts 1145 Employee Receivables, 2134 PPh 21 Payable, 2176 Salaries Payable, 2175 BPJS Payable, 6111 Employee
+Benefits – BPJS, 6112 Severance (roles `employee_receivable`, `pph21_payable`, `salaries_payable`, `bpjs_payable`, `salary_expense`,
+`employee_benefit_expense`, `severance_expense`); a chart loaded before payroll gets them at the first payroll posting. Payroll
+input components already expensed or accrued clear their liability instead of an expense: SERVICE_CHARGE (category
+service_charge) debits `service_charge_distribution_payable` (2126, credited when a distribution is approved) and COMMISSION
+debits `commission_payable` (2173, accrued at `crm.commission_approved`).
+
+**Payslips & ESS.** `GET /api/v1/hris/payslips/{id}` (+ `/pdf`), `GET /api/v1/ess/payslips` (+ `/{id}`, `/{id}/pdf`): own
+payslips of posted runs only, NPWP / account masked, `Cache-Control: private, no-store`; notification
+`hris.payslip_published` (in-app, e-mail, WhatsApp) at posting. Other templates: `hris.payroll_run_decided`,
+`hris.payroll_run_approved`, `hris.payroll_adjustment_decided`.
+
+**Other routes.** Pay components (resource, `:load-defaults`), employee loans (resource), adjustments
+(`/payroll-adjustments`, `:cancel`, `:from-reviews` — bonus months × fixed wage of the completed reviews of a cycle;
+approval document type `hris.payroll_adjustment`), exports `/payroll-exports/e-bupot|bpjs-kesehatan|bpjs-ketenagakerjaan|1721-a1`
+(CSV, audited), `/payroll-imports` (kind `ytd` | `legacy`), `/payroll-ytd`, `/payroll-profiles` (Benefits).
+CLI: `oneclub import hris -property MAIN --payroll-ytd F | --legacy-payroll F --period YYYY-MM [--dry-run]`.
+
+**BI.** Reports `hris.payroll_summary`, `hris.payroll_cost`, `hris.payroll_headcount_cost`, `hris.overtime_cost`,
+`hris.withholding_tax` (PPh 21 Report), `hris.bpjs`, `hris.payroll_annual`, `hris.payroll_parallel_run` (RegisterP5Report:
+HR Manager, HR Admin, Finance Manager, GM) on `reporting.hr_payroll_runs|slips|lines|legacy|parallel` (reporting/00027);
+KPIs `payroll_cost` (executive), `payroll_cost_per_head`, `overtime_cost` (permission `hris.payroll_run.view`).
+**Report-role hardening:** `hris.harden_report_role_payroll()` (identity numbers and bank accounts of payslip snapshots).

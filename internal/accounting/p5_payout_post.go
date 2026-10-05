@@ -36,14 +36,24 @@ const (
 
 func init() {
 	// accounts of the club & hospitality template (added when the chart is
-	// loaded again: Accounting → Setup → Load template is idempotent)
-	Template = append(Template,
+	// loaded again: Accounting → Setup → Load template is idempotent); the
+	// payroll area (p5_payroll_post.go) adds 2126 too, so a code is added once
+	have := map[string]bool{}
+	for _, t := range Template {
+		have[t.Code] = true
+	}
+	for _, t := range []tplAccount{
 		a("2126", "2100", "Service Charge Distribution Payable", "Utang Distribusi Service Charge", "liability", "accrued", "operating"),
 		a("2127", "2100", "Service Charge Reserve (Breakage & Loss)", "Cadangan Service Charge (Breakage & Loss)", "liability", "accrued", "operating"),
 		a("2135", "2100", "PPh 21 Payable – Non-employees", "Utang PPh 21 Bukan Pegawai", "liability", "tax", "operating"),
 		a("2136", "2100", "BPJS Ketenagakerjaan BPU Payable", "Utang Iuran BPJS Ketenagakerjaan BPU", "liability", "accrued", "operating"),
 		a("2174", "2100", "Partner Payouts Payable", "Utang Payout Mitra (Caddy & Instruktur)", "liability", "payable", "operating"),
-	)
+	} {
+		if !have[t.Code] {
+			have[t.Code] = true
+			Template = append(Template, t)
+		}
+	}
 	for role, code := range map[string]string{"service_charge_distribution_payable": "2126", "service_charge_reserve": "2127",
 		"pph21_partner_payable": "2135", "bpu_payable": "2136", "partner_payout_payable": "2174"} {
 		if DefaultAccounts[role] == "" {

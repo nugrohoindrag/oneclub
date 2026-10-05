@@ -142,7 +142,7 @@ func TestExpandTargets(t *testing.T) {
 		[]KPITargetAnnual{{KPIKey: "golf_revenue", Amount: "12"}}); err == nil {
 		t.Fatal("duplicate month accepted")
 	}
-	if _, err := expandTargets(nil, []KPITargetAnnual{{KPIKey: "payroll_cost", Amount: "1"}}); err == nil {
+	if _, err := expandTargets(nil, []KPITargetAnnual{{KPIKey: "turnover", Amount: "1"}}); err == nil {
 		t.Fatal("placeholder KPI accepted")
 	}
 }
@@ -181,15 +181,15 @@ func TestHRKPIRegistry(t *testing.T) {
 		t.Fatalf("headcount default: %+v", head)
 	}
 	for _, k := range before {
-		if k.Key == "payroll_cost" && k.SQL != "" {
-			t.Fatal("payroll cost must be coming soon until the payroll area registers it")
+		if k.Key == "turnover" && k.SQL != "" {
+			t.Fatal("turnover must be coming soon until an HR area registers it")
 		}
 	}
-	RegisterHRKPI(HRKPI{Key: "payroll_cost", Label: "Payroll Cost", Unit: "idr", Kind: KindFlow, SQL: "SELECT '1'", Executive: true})
+	RegisterHRKPI(HRKPI{Key: "turnover", Label: "Turnover", Unit: "ratio", Kind: KindRate, SQL: "SELECT '1'", Executive: true})
 	RegisterHRKPI(HRKPI{Key: "zz_test_kpi", Label: "Test", Unit: "count", SQL: "SELECT '2'"})
 	t.Cleanup(func() {
 		regMu.Lock()
-		delete(hrKPIRegistry, "payroll_cost")
+		delete(hrKPIRegistry, "turnover")
 		delete(hrKPIRegistry, "zz_test_kpi")
 		regMu.Unlock()
 	})
@@ -199,9 +199,9 @@ func TestHRKPIRegistry(t *testing.T) {
 	}
 	var pc HRKPI
 	for i, k := range after {
-		if k.Key == "payroll_cost" {
+		if k.Key == "turnover" {
 			pc = k
-			if after[i+1].Key != "caddy_attendance" {
+			if after[i+1].Key != "certification_compliance" {
 				t.Fatalf("a replaced KPI keeps its position: %v", after[i+1].Key)
 			}
 		}
@@ -212,7 +212,7 @@ func TestHRKPIRegistry(t *testing.T) {
 	if after[len(after)-1].Key != "zz_test_kpi" {
 		t.Fatalf("new KPIs come last: %s", after[len(after)-1].Key)
 	}
-	if _, ok := executiveKPI("payroll_cost"); !ok {
+	if _, ok := executiveKPI("turnover"); !ok {
 		t.Fatal("executive HR KPI not in the executive catalogue")
 	}
 }

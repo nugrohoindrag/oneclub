@@ -274,12 +274,12 @@ var Trees = map[string][]Item{
 			s("hris-training", "Training & Certification", "/hris/training", "hris.certification.view"),
 			// PRD P5 EP-05 (performance review cycles, calibration).
 			s("hris-performance", "Performance Review", "/hris/performance", "hris.review_cycle.view"),
-			s("hris-attendance", "Attendance", "/hris/attendance", "hris.attendance.view"),  // PRD P5 EP-07
-			s("hris-schedules", "Schedules", "/hris/schedules", "hris.schedule.view"),       // PRD P5 EP-06
-			s("hris-leave", "Leave & Permission", "/hris/leave", "hris.leave_request.view"), // PRD P5 EP-08
-			s("hris-overtime", "Overtime", "/hris/overtime", "hris.overtime_request.view"),  // PRD P5 EP-08
-			soon("hris-payroll", "Payroll", "/hris/payroll"),
-			soon("hris-benefits", "Benefits", "/hris/benefits"),
+			s("hris-attendance", "Attendance", "/hris/attendance", "hris.attendance.view"),                 // PRD P5 EP-07
+			s("hris-schedules", "Schedules", "/hris/schedules", "hris.schedule.view"),                      // PRD P5 EP-06
+			s("hris-leave", "Leave & Permission", "/hris/leave", "hris.leave_request.view"),                // PRD P5 EP-08
+			s("hris-overtime", "Overtime", "/hris/overtime", "hris.overtime_request.view"),                 // PRD P5 EP-08
+			s("hris-payroll", "Payroll", "/hris/payroll", "hris.payroll_run.view"),                         // PRD P5 EP-09/10/15
+			s("hris-benefits", "Benefits", "/hris/benefits", "hris.payroll_profile.view"),                  // PRD P5 EP-10 (PTKP, BPJS)
 			s("hris-service-charge", "Service Charge", "/hris/service-charge", "hris.service_charge.view"), // PRD P5 EP-11
 			s("hris-commissions", "Commissions", "/hris/commissions", "hris.commission_payout.view"),       // PRD P5 EP-12
 			s("hris-caddy", "Caddy", "/hris/caddy", "hris.payout_run.view"),                                // PRD P5 EP-13
@@ -532,9 +532,9 @@ var Trees = map[string][]Item{
 			s("ess-attendance", "Attendance History", "/ops/ess/attendance", "hris.ess.use"),
 			s("ess-leave", "Leave & Permission", "/ops/ess/leave", "hris.ess.use"),
 			s("ess-overtime", "Overtime", "/ops/ess/overtime", "hris.ess.use"),
+			s("ess-payslip", "Payslip", "/ops/ess/payslip", "hris.ess.use"),
 			s("ess-service-charge", "Service Charge", "/ops/ess/service-charge", "hris.ess.use"), // PRD P5 EP-11
 			s("ess-commissions", "Commission & Bonus", "/ops/ess/commissions", "hris.ess.use"),   // PRD P5 EP-12
-			soon("ess-payslip", "Payslip", "/ops/ess/payslip"),
 			s("ess-documents", "My Documents", "/ops/ess/documents", "hris.ess.use"),
 			s("ess-training", "My Training", "/ops/ess/training", "hris.ess.use"),
 			s("ess-team", "Team", "/ops/ess/team", "hris.team.view"),

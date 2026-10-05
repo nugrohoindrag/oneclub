@@ -47,6 +47,8 @@ var postingCoverage = map[string][]string{
 	"procurement.purchase_returned":       {"TestP4AccountingAutomaticPosting"},
 	"procurement.vendor_invoice_approved": {"TestP4AccountingAutomaticPosting"},
 	"procurement.debit_note_issued":       {"TestP4AccountingAutomaticPosting"},
+	"hris.payroll_posted":                 {"TestP5PayrollFullRun"}, // PRD P5 EP-15: journal = run totals
+	"hris.payroll_paid":                   {"TestP5PayrollFullRun"},
 }
 
 // TestPostingCoverage: every consumed event has a handler and at least one
