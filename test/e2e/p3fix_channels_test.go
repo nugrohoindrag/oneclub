@@ -331,7 +331,7 @@ func TestP3FixChannelsSchedulePayOnline(t *testing.T) {
 	qc := customer(t, sa, "SPQ"+sfx, "Golf Day Host "+sfx, map[string]any{"email": "host" + sfx + "@pay.test"})
 	q := sx.Must(201, "POST", "/api/v1/crm/quotations", map[string]any{"customerId": qc, "title": "Golf day " + sfx, "line": "golf", "pricingMode": "nett",
 		"paymentTerms": []map[string]any{{"label": "Down Payment 50%", "percent": "50", "dueDays": 3}, {"label": "Final Payment", "percent": "50", "dueDays": 10}},
-		"lines": []map[string]any{{"itemType": "service", "description": "Green fee", "quantity": "20", "unitPrice": "1000000"}}}, "Idempotency-Key", newKey()).JSON()
+		"lines":        []map[string]any{{"itemType": "service", "description": "Green fee", "quantity": "20", "unitPrice": "1000000"}}}, "Idempotency-Key", newKey()).JSON()
 	tok := slsToken(t, sx.Must(200, "POST", "/api/v1/crm/quotations/"+str(q["id"])+":send", map[string]any{}).JSON())
 	pub.Must(404, "GET", "/api/v1/public/quotations/"+tok+"/payment-schedule", nil) // not accepted yet
 	pub.Must(200, "POST", "/api/v1/public/quotations/"+tok+":accept", map[string]any{"name": "Golf Day Host", "termsAccepted": true})
