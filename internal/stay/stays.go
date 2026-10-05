@@ -64,13 +64,15 @@ type Stay struct {
 	FolioID         *uuid.UUID       `json:"folioId" db:"folio_id"`
 	Channel         string           `json:"channel" db:"channel"`
 	CreatedAt       time.Time        `json:"createdAt" db:"created_at"`
+	PackageBooking  *uuid.UUID       `json:"packageBookingId" db:"package_booking_id" doc:"Commercial package booking this stay fulfils (PRD P3 FR-PKG-04)"`
+	RoomPosting     string           `json:"roomPosting" db:"room_posting" enum:"at_booking,nightly,package" doc:"How the room is charged: at booking, per night by the night audit, or in the package"`
 }
 
 const staySelect = `SELECT s.id, s.property_id, s.stay_no, s.kind, s.reservation_id, r.code AS reservation_code, s.customer_id, c.name AS customer_name,
 	s.guest_name, s.guest_phone, s.corporate_name, s.unit_id,
 	coalesce(b.name, v.name, mr.name, '') AS unit_name, s.unit_type_id, s.unit_assigned, s.start_at, s.end_at, s.actual_end_at, s.adults, s.children,
 	s.pax, s.layout, s.rate_plan, s.package_code, s.special_requests, s.event_schedule, s.catering, s.id_type, s.id_number_masked, s.status,
-	s.checked_in_at, s.checked_out_at, s.folio_id, s.channel, s.created_at
+	s.checked_in_at, s.checked_out_at, s.folio_id, s.channel, s.created_at, s.package_booking_id, s.room_posting
 	FROM stay.stays s JOIN reporting.reservations r ON r.reservation_id = s.reservation_id LEFT JOIN reporting.customer_directory c ON c.id = s.customer_id
 	LEFT JOIN stay.bungalows b ON b.id = s.unit_id LEFT JOIN stay.vip_suites v ON v.id = s.unit_id LEFT JOIN stay.meeting_rooms mr ON mr.id = s.unit_id`
 
@@ -903,6 +905,9 @@ func (m *Module) Cancel(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Cancel
 	}
 	if s.Status != "reserved" && s.Status != "requested" {
 		return StayResult{}, errs.Conflict("invalid_status", "only Reserved stays can be cancelled")
+	}
+	if s.PackageBooking != nil {
+		return StayResult{}, errPackageStay()
 	}
 	if _, err := m.Res.Cancel(ctx, tx, s.ReservationID, in.Reason, in.WaiveFee); err != nil {
 		return StayResult{}, err

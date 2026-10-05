@@ -200,12 +200,15 @@ type Booking struct {
 	Payment            *billing.Payment `json:"payment" doc:"Latest pending online payment (checkout)"`
 	ManageToken        string           `json:"manageToken,omitempty" doc:"Returned once to website guests (manage link)"`
 	CreatedAt          time.Time        `json:"createdAt"`
+	PackageBookingID   *uuid.UUID       `json:"packageBookingId" doc:"Commercial package booking this tee time fulfils (PRD P3 FR-PKG-04)"`
+	PackageComponentID *uuid.UUID       `json:"packageComponentId"`
 }
 
 const bookingCols = `b.id, b.code, b.booking_type, b.channel, b.status, b.course_id, c.name, b.tee_time_id, b.play_date, b.start_at, b.playing_route_id,
 	b.player_count, b.customer_id, b.guest_id, b.member_id, b.corporate_account_id, b.contact_name, b.contact_phone, b.contact_email, b.hold_expires_at,
 	b.payment_mode, b.payment_due_at, b.deposit_amount::text, b.folio_id, b.policy_versions, b.qr_token, b.reschedule_count, b.cart_request,
-	b.caddy_request, b.notes, b.confirmed_at, b.checked_in_at, b.completed_at, b.cancelled_at, b.cancel_reason, b.no_show_at, b.created_at
+	b.caddy_request, b.notes, b.confirmed_at, b.checked_in_at, b.completed_at, b.cancelled_at, b.cancel_reason, b.no_show_at, b.created_at,
+	b.package_booking_id, b.package_component_id
 	FROM golf.bookings b JOIN golf.courses c ON c.id = b.course_id`
 
 func scanBooking(row pgx.Row) (Booking, error) {
@@ -214,7 +217,8 @@ func scanBooking(row pgx.Row) (Booking, error) {
 	err := row.Scan(&b.ID, &b.Code, &b.BookingType, &b.Channel, &b.Status, &b.CourseID, &b.CourseName, &b.TeeTimeID, &day, &b.StartAt, &b.PlayingRouteID,
 		&b.PlayerCount, &b.CustomerID, &b.GuestID, &b.MemberID, &b.CorporateAccountID, &b.ContactName, &b.ContactPhone, &b.ContactEmail, &b.HoldExpiresAt,
 		&b.PaymentMode, &b.PaymentDueAt, &b.DepositAmount, &b.FolioID, &b.PolicyVersions, &b.QRToken, &b.RescheduleCount, &b.CartRequest,
-		&b.CaddyRequest, &b.Notes, &b.ConfirmedAt, &b.CheckedInAt, &b.CompletedAt, &b.CancelledAt, &b.CancelReason, &b.NoShowAt, &b.CreatedAt)
+		&b.CaddyRequest, &b.Notes, &b.ConfirmedAt, &b.CheckedInAt, &b.CompletedAt, &b.CancelledAt, &b.CancelReason, &b.NoShowAt, &b.CreatedAt,
+		&b.PackageBookingID, &b.PackageComponentID)
 	b.PlayDate = day.Format("2006-01-02")
 	return b, err
 }

@@ -19,6 +19,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/shopspring/decimal"
 
 	"oneclub/internal/billing"
 	"oneclub/internal/commercial"
@@ -98,6 +99,47 @@ func (a *App) subscribeP3Commercial() {
 		}
 		return m.ConsumeAllocation(reqctx.WithProperty(dbtx.System(ctx), *e.PropertyID), tx, p.VoucherID, "voucher "+p.Code)
 	})
+	// Golf and Stay & Venue fulfil the tee time and stay components (golf
+	// bookings with players, stays on the Stay Front Desk) and cancel them
+	// with the package (FR-PKG-04/08, §9.2); each golfer checked in uses one
+	// place of the tee time component (FR-PKG-06). The stay check-in checks
+	// the reservation in, consumed above.
+	a.Bus.Subscribe(commercial.EventPackageBooked, "golf.package_bookings", a.Golf.OnPackageBooked)
+	a.Bus.Subscribe(commercial.EventPackageCancelled, "golf.package_cancelled", a.Golf.OnPackageCancelled)
+	a.Bus.Subscribe(commercial.EventPackageBooked, "stay.package_stays", a.Stay.OnPackageBooked)
+	a.Bus.Subscribe(commercial.EventPackageCancelled, "stay.package_cancelled", a.Stay.OnPackageCancelled)
+	a.Bus.Subscribe(golf.EventPlayerCheckedIn, "commercial.package_golfer_checked_in", a.consumePackageGolfer)
+}
+
+// consumePackageGolfer uses one place of the tee time component of a
+// package golf booking when a player checks in (idempotent per player).
+func (a *App) consumePackageGolfer(ctx context.Context, tx pgx.Tx, e outbox.Event) error {
+	var p struct {
+		PlayerID           uuid.UUID  `json:"playerId"`
+		Code               string     `json:"code"`
+		PackageComponentID *uuid.UUID `json:"packageComponentId"`
+	}
+	if err := e.Decode(&p); err != nil || p.PackageComponentID == nil || e.PropertyID == nil {
+		return nil //nolint:nilerr // foreign payload or not a package booking
+	}
+	ctx = reqctx.WithProperty(dbtx.System(ctx), *e.PropertyID)
+	var bid uuid.UUID
+	var status, bstatus, left string
+	err := tx.QueryRow(ctx, `SELECT c.booking_id, c.status, b.status, (c.quantity - c.consumed_quantity)::text FROM commercial.package_booking_components c
+		JOIN commercial.package_bookings b ON b.id = c.booking_id WHERE c.id = $1`, *p.PackageComponentID).Scan(&bid, &status, &bstatus, &left)
+	if dbtx.IsNoRows(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	rest, _ := decimal.NewFromString(left)
+	if status != "unused" || bstatus != "confirmed" || !rest.IsPositive() {
+		return nil
+	}
+	_, err = a.Promo.Module.Consume(ctx, tx, bid, commercial.ConsumeInput{BookingComponentID: *p.PackageComponentID,
+		Quantity: decimal.Min(rest, decimal.NewFromInt(1)).String(), Reference: "golf check-in " + p.Code}, "golf-player-"+p.PlayerID.String())
+	return err
 }
 
 // demoP3Commercial seeds demo data for the area on the MAIN property

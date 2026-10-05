@@ -85,6 +85,9 @@ func (m *Module) Cancel(ctx context.Context, tx pgx.Tx, property, bid uuid.UUID,
 	if strings.TrimSpace(req.Reason) == "" {
 		return out, errs.Validation("reason_required", "a reason is required", errs.Field("reason", "required", "reason"))
 	}
+	if b.PackageBookingID != nil {
+		return out, errPackageBooking()
+	}
 	switch b.Status {
 	case "draft":
 		if err := m.ReleaseHold(ctx, tx, property, bid, req.Reason); err != nil {
@@ -250,6 +253,9 @@ func (m *Module) Reschedule(ctx context.Context, tx pgx.Tx, property, bid uuid.U
 	}
 	if b.Status != "confirmed" && b.Status != "pending" {
 		return b, errs.Conflict("cannot_reschedule", "only pending or confirmed bookings can be rescheduled")
+	}
+	if b.PackageBookingID != nil {
+		return b, errPackageBooking()
 	}
 	if len(b.Flights) != 1 {
 		return b, errs.Conflict("group_reschedule", "group bookings are rescheduled per flight by the reservation team")

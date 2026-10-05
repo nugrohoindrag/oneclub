@@ -261,7 +261,8 @@ func (m *Module) CheckIn(ctx context.Context, tx pgx.Tx, property uuid.UUID, req
 		out.CheckedIn = append(out.CheckedIn, tid)
 		flights[p.FlightID] = true
 		if _, err := m.Events.Publish(ctx, tx, EventPlayerCheckedIn, "golf.booking_player", &tid, &property, map[string]any{"bookingId": b.ID,
-			"playerId": tid, "flightId": p.FlightID, "method": method}); err != nil {
+			"playerId": tid, "flightId": p.FlightID, "method": method, "packageBookingId": b.PackageBookingID,
+			"packageComponentId": b.PackageComponentID, "code": b.Code}); err != nil {
 			return out, err
 		}
 	}
