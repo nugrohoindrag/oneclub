@@ -24,7 +24,7 @@ const EVENT_TYPES = opts(['wedding', 'meeting', 'conference', 'gathering', 'birt
 const ACTIVITY_TYPES = opts(['call', 'whatsapp', 'email', 'meeting', 'site_visit', 'food_tasting', 'note', 'task'], { whatsapp: 'WhatsApp' });
 const DISQUALIFY = opts(['not_interested', 'budget', 'date_unavailable', 'duplicate', 'spam', 'no_response', 'competitor', 'other']);
 const LOST = opts(['price', 'date_unavailable', 'competitor', 'cancelled', 'budget', 'no_response', 'other']);
-const ITEM_TYPES = opts(['banquet_package', 'venue', 'product', 'service', 'package', 'other']);
+const ITEM_TYPES = opts(['banquet_package', 'banquet_menu', 'venue', 'product', 'service', 'package', 'other']);
 const num = (v: string) => (v === '' ? undefined : Number(v));
 const opt = (v: string) => (v === '' ? undefined : v);
 const toLocalInput = (d: Date) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);

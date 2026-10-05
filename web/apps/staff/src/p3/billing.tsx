@@ -6,6 +6,7 @@ import {
   Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, useToast,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
+import { ImportCorporateAR } from './ar_import';
 
 // Billing & Payment P3 (PRD P3 EP-17/18, Naming Convention §18): Invoices,
 // Corporate Billing, Payment Schedules, Customer Folios, Cashier and Night
@@ -25,13 +26,17 @@ export function InvoicesPage() {
   const [params, setParams] = useSearchParams();
   const { can } = useAuth();
   const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
   const open = params.get('id');
   return (
     <>
       <ListPage title="Invoices" help="Invoices of folios, customer folios, the corporate city ledger and payment schedules (FR-BIL-P3-04)."
         path="/api/v1/billing/invoices"
         statuses={['draft', 'issued', 'partially_paid', 'paid', 'overdue', 'void'].map((s) => ({ value: s, label: label(s) }))}
-        actions={can('billing.invoice.create') ? <button className="oc-btn oc-btn-primary" onClick={() => setCreating(true)}>Generate Invoice</button> : undefined}
+        actions={<>
+          {can('billing.invoice.import') && <button className="oc-btn oc-btn-neutral" onClick={() => setImporting(true)}>Import Corporate AR</button>}
+          {can('billing.invoice.create') && <button className="oc-btn oc-btn-primary" onClick={() => setCreating(true)}>Generate Invoice</button>}
+        </>}
         onRowClick={(r) => setParams({ id: r.id })}
         columns={[{ key: 'number', header: 'Invoice', render: (r) => String(r.number ?? 'Draft') }, { key: 'billToName', header: 'Bill To' },
           { key: 'kind', header: 'Kind', render: (r) => label(r.kind) }, { key: 'issueDate', header: 'Issued', render: (r) => (r.issueDate ? formatDate(String(r.issueDate)) : '—') },
@@ -39,6 +44,7 @@ export function InvoicesPage() {
           { key: 'total', header: 'Total', align: 'right', render: (r) => money(r.total) }, { key: 'outstanding', header: 'Outstanding', align: 'right', render: (r) => money(r.outstanding) },
           { key: 'status', header: 'Status', render: pill('status') }]} />
       {creating && <GenerateInvoice onClose={() => setCreating(false)} onDone={(id) => { setCreating(false); setParams({ id }); }} />}
+      {importing && <ImportCorporateAR onClose={() => setImporting(false)} />}
       {open && <InvoiceDrawer id={open} onClose={() => setParams({})} />}
     </>
   );
