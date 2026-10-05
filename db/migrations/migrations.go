@@ -27,6 +27,7 @@ var Order = []string{
 	"banquet",
 	"procurement",
 	"accounting",
+	"hris",
 	"cms",
 	"reporting",
 }

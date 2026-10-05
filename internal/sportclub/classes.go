@@ -82,6 +82,11 @@ func (m *Module) GenerateSessions(ctx context.Context, tx pgx.Tx, scheduleID uui
 	if s.Facility == nil {
 		s.Facility = p.FacilityID
 	}
+	// PRD P5 FR-TRC-03: no classes for an instructor without a valid
+	// mandatory certification.
+	if err := checkInstructorCertification(ctx, tx, s.Property, s.Instructor, s.From, s.To); err != nil {
+		return 0, err
+	}
 	capacity := p.Capacity
 	if s.Capacity != nil {
 		capacity = *s.Capacity

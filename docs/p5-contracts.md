@@ -71,3 +71,87 @@ tournament was finalized, an event added / reweighted / removed), on activation,
 gap, service windows, allotment / blackout / time blocks, inventory check of large bookings, payment template of the package type);
 the P3 tournament registration takes the P5 registration category (quota per member / guest / sponsor invitation) and the category /
 early-bird fees, and the waitlist promotion skips players whose category is full (`golf.tournament_category_full`).
+
+## Core HR & ESS (`hris`, EP-01/02/04/16/24/28) — notes for the other P5 areas
+
+**Packages.** `internal/hris` (root) is the public API other P5 areas (time, payroll, payouts, BI) import; it has no
+HTTP. `internal/hris/corehr` implements Core HR and ESS (HTTP, jobs, import, demo); other `hris` sub-packages import
+the root only. Business-line modules (golf, sportclub, …) never import `hris`: internal/app wires hooks.
+
+**Data ownership (expand → migrate → contract).** `hris.org_units` and `hris.employees` are the master; they keep the
+ids of `platform.departments` / `platform.employees`, which stay as a facade kept in sync both ways by triggers
+(`hris/00002_core_hr.sql`, guarded by `pg_trigger_depth()`). P0 code and the BI view `reporting.bi_employees` (reads
+`platform.employees`) keep working unchanged. A later `hris` migration that adds sensitive columns must end with
+`SELECT hris.harden_report_role();` (revokes NIK, NPWP, salary, bank and data-change columns from the report role;
+reporting views are `security_invoker`).
+
+**Lookups** (`lookup.go`, all take a `dbtx.Querier`, RLS applies): `EmployeeByID`, `EmployeeByUser` (nil when the user
+has no profile), `EmployeeByNo`, `Employees(EmployeeFilter{…})`, `Employee.EmployedOn(day)`, `Supervisor` (position
+line, else org-unit head), `Team(managerID)` (recursive), `IsManagerOf`, `OrgUnits` / `OrgUnitByCode`, `Grades`,
+`ContractAt(employee, day)` + `Contract.FixedWage()` (base + fixed allowances), `WarningLevel(employee, day)` (active
+SP level), `PayrollProfileOf` (PTKP, NPWP, BPJS numbers, bank account — payroll only). `EmployeeSelect` is the shared
+SELECT for custom queries.
+
+**HR policies** (`policies.go`, `rules.RegisterPolicy`, versioned with effective date, edited under Settings):
+`hris.hr_configuration`, `hris.payroll_configuration`, `hris.attendance_configuration`, `hris.leave_policy`,
+`hris.overtime_policy`, `hris.attendance_policy`, `hris.service_charge_policy` (`hris.PolicyCodes`, H6). Defaults
+(`New*`) follow §16 #3/#5 (PKWT ≤ 5 years, probation 3 months PKWTT only, 12 days leave after 12 months, overtime
+multipliers of PP 35/2021, service charge 95/5, PPh 21 TER / Pasal 17, BPJS rates, THR, severance). Load with
+`hris.LoadX(ctx, q, property, hris.PolicyTime(day))` — `PolicyTime` gives "now" for today (a version made today
+applies at once) and the end of the day otherwise. Calculators (`calc.go`): `OvertimePolicy.Pay/Multiplied/Steps`,
+`PayrollConfiguration.THRAmount/SeverancePay/TERRate`, `ProgressiveTax`, `Contribution`,
+`HRConfiguration.PKWTCompensation`, `ServiceMonths`.
+
+**Certifications (H7).** `CheckEmployee(ctx, q, employeeID, role, day)`, `CheckPartner(ctx, q, property,
+HolderCaddy|HolderInstructor, partnerID, role, day)` and `PartnersWithGaps(...)` return the mandatory types of a
+workforce role (`WorkforceRoles`) and the gaps; `CertificationCheck.Err(name)` is the 409 refusal. The mode is
+`HRConfiguration.certificationEnforcement` (`expired` default / `required` / `off`). internal/app wires
+`golf.SetCaddyCertificationCheck` (Caddy Queue shows uncertified caddies as not available; assignment refused with
+`caddy_not_certified`) and `sportclub.SetInstructorCertificationCheck` (session generation refused) only when `hris`
+is enabled; without the hook nothing is checked.
+
+**ESS registry (EP-16, §16 #6).** Server: `hris.RegisterESSSection(hris.ESSSection{Key, Label, LabelID, Icon, Path:
+"/ops/ess/<key>", Permission (default hris.ess.use), Module, Manager, Order, Offline})` from your package's `init`.
+`GET /api/v1/ess/me` returns the profile and the sections the user may open (module enabled + permission; manager
+sections only for team leads). Core sections: profile 10, documents 70, training 80, team 100; time/payroll take
+the orders in between (e.g. schedule 20, attendance 30, leave 40, overtime 50, payslips 60). Staff App:
+`registerEssSection(key, view)` exported by `web/apps/staff/src/p5/hr.tsx` maps the key to its screen (routes
+`/ops/ess/:section` and Back Office `/ess/:section` already exist). Permissions: `hris.ess.use` (all staff roles),
+`hris.team.view`, `hris.team.approve` (department heads approving team leave / overtime / swaps). Role
+`department_head` is new; `employee_self_service` now also grants `hris.ess.use`.
+
+**Events published** (outbox; aggregates `hris.employee`, `hris.contract`, `hris.certification`):
+
+```jsonc
+// hris.employee_hired — when an employee is created
+{ "employeeId": "uuid", "employeeNo": "EMP-00041", "fullName": "…", "propertyId": "uuid", "orgUnitId": "uuid|null",
+  "positionId": "uuid|null", "gradeId": "uuid|null", "employmentStatus": "probation|contract|permanent",
+  "workerCategory": "regular|daily|intern", "joinDate": "2026-10-05" }
+// hris.employee_terminated (H7) — on the effective date (daily job, or at once when the date is today or past)
+{ "employeeId": "uuid", "employeeNo": "…", "fullName": "…", "propertyId": "uuid", "userId": "uuid|null",
+  "effectiveDate": "2026-10-31", "terminationType": "resigned|terminated|contract_ended|retired|deceased",
+  "employmentStatus": "resigned|terminated", "reason": "…", "supervisorId": "uuid|null", "supervisorUserId": "uuid|null" }
+// hris.contract_expiring — at each reminder day of the HR Configuration (H-30, H-7)
+{ "contractId": "uuid", "number": "…", "employeeId": "uuid", "employeeNo": "…", "fullName": "…", "propertyId": "uuid",
+  "contractType": "pkwt|pkwtt", "endDate": "2026-11-04", "daysRemaining": 30 }
+// hris.certification_expired (H7) — daily job (00:05), once per certificate past expiry without a valid renewal
+{ "certificationId": "uuid", "certificationTypeId": "uuid", "certificationTypeCode": "CADDY", "certificationTypeName": "…",
+  "propertyId": "uuid", "holderKind": "employee|caddy|instructor", "employeeId": "uuid|null", "partnerId": "uuid|null",
+  "holderName": "…", "expiresOn": "2026-10-04", "mandatoryFor": ["caddy"] }
+```
+
+Consumers wired in internal/app (`p5_hr.go`): `hris.employee_terminated` → `iam.DeactivateEmployeeUser` (user
+Inactive, sessions revoked) and `approval.Engine.ReassignUser` (pending approval steps move to the supervisor's
+user). Employee logins are created with `iam.ProvisionEmployeeUser` (HR action "Create login").
+
+**Reports & KPIs.** `reporting/00020_p5_hr_core.sql` adds `reporting.hr_employees`, `hr_contracts`,
+`hr_certifications`, `hr_training`, `hr_certification_requirements`. Reports `hris.headcount`, `hris.turnover`,
+`hris.contract_expiry`, `hris.certification_expiry`, `hris.training` (`reporting.HRCoreReports()`) and KPI definitions
+`headcount`, `turnover`, `certification_compliance` (`reporting.HRCoreKPIs`) are shaped for the BI registry. On this
+branch they are appended to the report list with permissions from `reporting.HRCoreContribution()`; after merging
+with BI (f416980) `p5_hr.go` init switches to `RegisterP5Report` / `RegisterHRKPI` and drops `HRCoreContribution()`
+(otherwise duplicate permissions).
+
+**Import (EP-28).** `oneclub import hris -property MAIN --employees F --contracts F --certifications F [--dry-run]`
+or `POST /api/v1/hris/imports` (same CSV columns, `corehr.ImportColumns`). Repeatable: employees are upserted by
+employee number; contracts and certifications skip duplicates.

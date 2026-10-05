@@ -85,7 +85,7 @@ var Modules = []Module{
 	{Code: "inventory", Name: "Inventory", Layer: "Back Office", SortOrder: 90, Default: true},
 	{Code: "procurement", Name: "Procurement", Layer: "Back Office", SortOrder: 100, Default: true},
 	{Code: "accounting", Name: "Accounting", Layer: "Back Office", SortOrder: 110, Default: true},
-	{Code: "hris", Name: "HRIS", Layer: "Back Office", SortOrder: 120},
+	{Code: "hris", Name: "HRIS", Layer: "Back Office", SortOrder: 120, Default: true},
 	{Code: "reporting", Name: "Reports", Layer: "Foundation", SortOrder: 130, Default: true},
 	{Code: "cms", Name: "CMS", Layer: "Public Channel", SortOrder: 140, Default: true},
 }
@@ -313,7 +313,10 @@ var RoleTemplates = []RoleTemplate{
 	// HR
 	{Code: "hr_admin", Name: "HR Admin", Category: "HR", Scope: "property", Permissions: cat(bo, ma("hris"), []string{"platform.employee.view", "platform.department.view"})},
 	{Code: "hr_manager", Name: "HR Manager", Category: "HR", Scope: "property", Permissions: cat(bo, ma("hris", "reporting"), []string{"platform.employee.view", "platform.department.view", "reporting.report.view"})},
-	{Code: "employee_self_service", Name: "Employee (self-service)", Category: "HR", Scope: "property", Permissions: cat(bo)},
+	// PRD P5 EP-16 / §16 #6: Employee Self Service is the personal-login area of the ops shell; department heads lead their
+	// team there (the HRIS permissions come from the hris contribution).
+	{Code: "employee_self_service", Name: "Employee (self-service)", Category: "HR", Scope: "property", Permissions: cat(ops, ma("hris"))},
+	{Code: "department_head", Name: "Department Head", Category: "HR", Scope: "property", Permissions: cat(ops, ma("hris"))},
 	// Member & Guest Portal
 	{Code: "member", Name: "Member", Category: "Portal", Scope: "property", Permissions: []string{ShellMemberPortal}},
 	{Code: "guest", Name: "Guest", Category: "Portal", Scope: "property", Permissions: []string{ShellMemberPortal}},

@@ -823,7 +823,28 @@ func CaddyBoard(ctx context.Context, q dbtx.Querier, property uuid.UUID, day tim
 		}
 		out = append(out, e)
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	rows.Close()
+	// PRD P5 FR-TRC-03: caddies without a valid mandatory certification are
+	// not offered for assignment.
+	var avail []uuid.UUID
+	for _, e := range out {
+		if e.Status == "available" {
+			avail = append(avail, e.CaddyID)
+		}
+	}
+	gaps, err := uncertifiedCaddies(ctx, q, property, avail, day)
+	if err != nil {
+		return nil, err
+	}
+	for i := range out {
+		if _, bad := gaps[out[i].CaddyID]; bad {
+			out[i].Status = "not_available"
+		}
+	}
+	return out, nil
 }
 
 // AttendanceEntry records a caddy's attendance.
@@ -1168,6 +1189,13 @@ func (m *Module) AssignCaddies(ctx context.Context, tx pgx.Tx, property uuid.UUI
 		}
 		if cstatus != "active" || att == nil || *att != "present" {
 			return nil, errs.Conflict("caddy_not_available", "the caddy is not present today (Caddy Availability)")
+		}
+		gaps, err := uncertifiedCaddies(ctx, tx, property, []uuid.UUID{in.CaddyID}, fi.day)
+		if err != nil {
+			return nil, err
+		}
+		if msg, bad := gaps[in.CaddyID]; bad {
+			return nil, errs.Conflict("caddy_not_certified", msg)
 		}
 		fee := componentAmount(ctx, tx, snaps, "caddy_fee")
 		aid := id.New()

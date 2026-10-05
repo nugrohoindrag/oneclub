@@ -43,7 +43,7 @@ func live(module, label, icon, path string) Item {
 	return Item{Key: module, Label: label, Path: path, Icon: icon, Module: module, Permission: catalog.ModuleAccess(module)}
 }
 
-func m(module, label, icon, path, phase string) Item {
+func m(module, label, icon, path, phase string) Item { //nolint:unused // Coming Soon modules of later phases
 	return Item{Key: module, Label: label, Path: path, Icon: icon, Module: module, Permission: catalog.ModuleAccess(module), ComingSoon: true, Phase: phase}
 }
 
@@ -51,6 +51,12 @@ func m(module, label, icon, path, phase string) Item {
 // menus (PRD P1 §6.1).
 func mod(module, label, icon, path string, children ...Item) Item {
 	return Item{Key: module, Label: label, Path: path, Icon: icon, Module: module, Permission: catalog.ModuleAccess(module), Children: children}
+}
+
+// soon is a menu of a module that arrives later in the phase (shown as
+// Coming Soon to holders of the module access).
+func soon(key, label, path string) Item {
+	return Item{Key: key, Label: label, Path: path, Permission: catalog.ModuleAccess("hris"), ComingSoon: true, Phase: "P5"}
 }
 
 func s(key, label, path, perm string, children ...Item) Item {
@@ -249,7 +255,29 @@ var Trees = map[string][]Item{
 			s("financial-reports", "Financial Reports", "/accounting/reports", "accounting.report.view"),
 			s("accounting-transition", "Accounting Transition", "/accounting/setup", "accounting.setup.view"),
 		),
-		m("hris", "HRIS", "badge", "/hris", "P5"),
+		// HRIS (PRD P5 §7.1, Naming Convention §22). Core HR is live; the menus
+		// of the later P5 areas stay Coming Soon until those areas switch them
+		// on (comingSoon: false).
+		mod("hris", "HRIS", "badge", "/hris/employees",
+			s("hris-employees", "Employees", "/hris/employees", "hris.employee.view"),
+			s("hris-organization", "Organization", "/hris/organization", "hris.org_unit.view"),
+			soon("hris-recruitment", "Recruitment", "/hris/recruitment"),
+			s("hris-training", "Training & Certification", "/hris/training", "hris.certification.view"),
+			soon("hris-attendance", "Attendance", "/hris/attendance"),
+			soon("hris-schedules", "Schedules", "/hris/schedules"),
+			soon("hris-leave", "Leave & Permission", "/hris/leave"),
+			soon("hris-overtime", "Overtime", "/hris/overtime"),
+			soon("hris-payroll", "Payroll", "/hris/payroll"),
+			soon("hris-benefits", "Benefits", "/hris/benefits"),
+			soon("hris-service-charge", "Service Charge", "/hris/service-charge"),
+			soon("hris-commissions", "Commissions", "/hris/commissions"),
+			soon("hris-caddy", "Caddy", "/hris/caddy"),
+			soon("hris-instructors", "Instructors", "/hris/instructors"),
+			soon("hris-reports", "HR Reports", "/reports?module=hris"),
+		),
+		// Employee Self Service for office staff (PRD P5 EP-16; the ops shell
+		// has the same area at /ops/ess).
+		{Key: "self-service", Label: "Employee Self Service", Path: "/ess", Icon: "person_pin", Module: "hris", Permission: "hris.ess.use"},
 		// Landing Page & CMS (PRD P4 EP-24, Naming Convention §26 CMS menu).
 		mod("cms", "CMS", "web", "/cms/pages",
 			s("cms-pages", "Pages", "/cms/pages", "cms.page.view"),
@@ -304,6 +332,14 @@ var Trees = map[string][]Item{
 			{Key: "payment-methods", Label: "Payment Methods", Path: "/settings/payment-methods", Module: "billing", Permission: "billing.payment_method.view"},
 			{Key: "tax-service", Label: "Tax & Service", Path: "/settings/tax-service", Module: "commercial", Permission: "commercial.tax_service.view"},
 			{Key: "accounting-configuration", Label: "Accounting Configuration", Path: "/accounting/setup", Module: "accounting", Permission: "accounting.setup.view"},
+			// PRD P5 §7.1 / §7.6: HR Configuration, Payroll Configuration and Attendance Configuration; HR Policies in Club Policies.
+			{Key: "hr-configuration", Label: "HR Configuration", Path: "/settings/club-policies?category=HR%20Configuration", Module: "hris",
+				Permission: "platform.club_policy.view"},
+			{Key: "payroll-configuration", Label: "Payroll Configuration", Path: "/settings/club-policies?category=Payroll%20Configuration", Module: "hris",
+				Permission: "platform.club_policy.view"},
+			{Key: "attendance-configuration", Label: "Attendance Configuration", Path: "/settings/club-policies?category=Attendance%20Configuration",
+				Module: "hris", Permission: "platform.club_policy.view"},
+			{Key: "hr-policies", Label: "HR Policies", Path: "/settings/club-policies?category=HR%20Policies", Module: "hris", Permission: "platform.club_policy.view"},
 			s("approval-workflows", "Approval Workflows", "/settings/approval-workflows", "platform.approval_workflow.view"),
 			{Key: "audit-logs", Label: "Audit Logs", Path: "/settings/audit-logs", Module: "audit", Permission: "audit.log.view"},
 			s("localization", "Localization", "/settings/localization", "platform.localization.update"),
@@ -469,6 +505,21 @@ var Trees = map[string][]Item{
 				s("event-check-in", "Event Check-in", "/ops/events/check-in", "banquet.participant.check_in"),
 			}},
 		{Key: "banquet-production", Label: "Banquet Production", Path: "/ops/banquet-production", Icon: "skillet", Module: "banquet", Permission: "banquet.production.view"},
+		// Employee Self Service (PRD P5 §7.2, EP-16, §16 #6): personal login of employees; the time and payroll areas switch their
+		// sections on (comingSoon: false).
+		{Key: "ess", Label: "Employee Self Service", Path: "/ops/ess", Icon: "badge", Module: "hris", Permission: "hris.ess.use", Children: []Item{
+			s("ess-profile", "Profile", "/ops/ess/profile", "hris.ess.use"),
+			soon("ess-schedule", "My Schedule", "/ops/ess/schedule"),
+			soon("ess-clock", "Clock In / Out", "/ops/ess/clock"),
+			soon("ess-attendance", "Attendance History", "/ops/ess/attendance"),
+			soon("ess-leave", "Leave & Permission", "/ops/ess/leave"),
+			soon("ess-overtime", "Overtime", "/ops/ess/overtime"),
+			soon("ess-payslip", "Payslip", "/ops/ess/payslip"),
+			s("ess-documents", "My Documents", "/ops/ess/documents", "hris.ess.use"),
+			s("ess-training", "My Training", "/ops/ess/training", "hris.ess.use"),
+			s("ess-team", "Team", "/ops/ess/team", "hris.team.view"),
+			soon("ess-approvals", "Approvals", "/ops/ess/approvals"),
+		}},
 		{Key: "sync", Label: "Sync Queue", Path: "/ops/sync", Icon: "sync", Permission: catalog.ShellOps},
 		{Key: "notifications", Label: "Notifications", Path: "/ops/notifications", Icon: "notifications", Permission: catalog.ShellOps},
 	},

@@ -6,6 +6,7 @@
 //	oneclub instance create|drop     provision a dedicated customer instance
 //	oneclub seed-demo                demo data for dev/staging
 //	oneclub import rhapsody <step>   Rhapsody migration: stage|validate|load|reconcile (EP-18)
+//	oneclub import hris [--employees F] [--contracts F] [--certifications F]   HR migration (PRD P5 EP-28)
 //	oneclub openapi [-o file]        write the OpenAPI document
 //	oneclub healthcheck              container health check
 //	oneclub version
@@ -361,6 +362,9 @@ func runHealthcheck() error {
 // runImport runs one step of the Rhapsody migration (PRD P1 EP-18; runbook
 // docs/migration/cutover-runbook.md). Every step is repeatable.
 func runImport(args []string) error {
+	if len(args) > 0 && args[0] == "hris" {
+		return runImportHRIS(args[1:])
+	}
 	if len(args) < 2 || args[0] != "rhapsody" {
 		return errors.New("usage: oneclub import rhapsody <stage|validate|load|reconcile> -property CODE [-dir DIR] [-totals FILE] [-out DIR]")
 	}
