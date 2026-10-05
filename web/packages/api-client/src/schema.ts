@@ -6807,6 +6807,114 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/commercial/package-capacities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Package Capacity */
+        get: operations["getCommercialPackageCapacities"];
+        put?: never;
+        /** Add Package Capacity */
+        post: operations["postCommercialPackageCapacities"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-capacities/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Package Capacity */
+        get: operations["getCommercialPackageCapacitiesById"];
+        put?: never;
+        post?: never;
+        /** Delete Package Capacity (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCommercialPackageCapacitiesById"];
+        options?: never;
+        head?: never;
+        /** Edit Package Capacity */
+        patch: operations["patchCommercialPackageCapacitiesById"];
+        trace?: never;
+    };
+    "/api/v1/commercial/package-capacities:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Package Capacity (CSV/XLSX) */
+        get: operations["getCommercialPackageCapacitiesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-component-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Package Component Rules */
+        get: operations["getCommercialPackageComponentRules"];
+        put?: never;
+        /** Add Package Component Rule */
+        post: operations["postCommercialPackageComponentRules"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-component-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Package Component Rule */
+        get: operations["getCommercialPackageComponentRulesById"];
+        put?: never;
+        post?: never;
+        /** Delete Package Component Rule (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCommercialPackageComponentRulesById"];
+        options?: never;
+        head?: never;
+        /** Edit Package Component Rule */
+        patch: operations["patchCommercialPackageComponentRulesById"];
+        trace?: never;
+    };
+    "/api/v1/commercial/package-component-rules:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Package Component Rules (CSV/XLSX) */
+        get: operations["getCommercialPackageComponentRulesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/commercial/package-components": {
         parameters: {
             query?: never;
@@ -6855,6 +6963,148 @@ export interface paths {
         get: operations["getCommercialPackageComponentsExport"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-cost-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Package Cost Rules */
+        get: operations["getCommercialPackageCostRules"];
+        put?: never;
+        /** Add Package Cost Rule */
+        post: operations["postCommercialPackageCostRules"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-cost-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Package Cost Rule */
+        get: operations["getCommercialPackageCostRulesById"];
+        put?: never;
+        post?: never;
+        /** Delete Package Cost Rule (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCommercialPackageCostRulesById"];
+        options?: never;
+        head?: never;
+        /** Edit Package Cost Rule */
+        patch: operations["patchCommercialPackageCostRulesById"];
+        trace?: never;
+    };
+    "/api/v1/commercial/package-cost-rules:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Package Cost Rules (CSV/XLSX) */
+        get: operations["getCommercialPackageCostRulesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-payment-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Package Payment Templates */
+        get: operations["getCommercialPackagePaymentTemplates"];
+        put?: never;
+        /** Add Package Payment Template */
+        post: operations["postCommercialPackagePaymentTemplates"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-payment-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Package Payment Template */
+        get: operations["getCommercialPackagePaymentTemplatesById"];
+        put?: never;
+        post?: never;
+        /** Delete Package Payment Template (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCommercialPackagePaymentTemplatesById"];
+        options?: never;
+        head?: never;
+        /** Edit Package Payment Template */
+        patch: operations["patchCommercialPackagePaymentTemplatesById"];
+        trace?: never;
+    };
+    "/api/v1/commercial/package-payment-templates:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Package Payment Templates (CSV/XLSX) */
+        get: operations["getCommercialPackagePaymentTemplatesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-profitability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Package Profitability: allocated revenue vs COGS (BOM), caddy fee, room cost, commission per package and period */
+        get: operations["getCommercialPackageProfitability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/package-profitability:recalculate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recalculate package costs of a period (after cost rules or item costs changed) */
+        post: operations["postCommercialPackageProfitabilityRecalculate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6961,6 +7211,57 @@ export interface paths {
         };
         /** Package Availability: sale rules, quota and every component */
         get: operations["getCommercialPackagesByIdAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/packages/{id}/capacity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Package Capacity: allotments, blackouts, daily quota and component time blocks per date */
+        get: operations["getCommercialPackagesByIdCapacity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/packages/{id}/component-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Component rules of a package: choice groups, sequence & gap, service window */
+        get: operations["getCommercialPackagesByIdComponentRules"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/packages/{id}/inventory-requirement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inventory requirement (BOM, P4) of a package quota before it is sold */
+        get: operations["getCommercialPackagesByIdInventoryRequirement"];
         put?: never;
         post?: never;
         delete?: never;
@@ -12108,6 +12409,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/federation/handicaps:import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enter official (PGI) handicap indexes in bulk */
+        post: operations["postGolfFederationHandicapsImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/flights": {
         parameters: {
             query?: never;
@@ -13694,6 +14012,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/series-points-tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Points Tables */
+        get: operations["getGolfSeriesPointsTables"];
+        put?: never;
+        /** Add Points Table */
+        post: operations["postGolfSeriesPointsTables"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/series-points-tables/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Points Table */
+        get: operations["getGolfSeriesPointsTablesById"];
+        put?: never;
+        post?: never;
+        /** Delete Points Table (only when unused; otherwise set Inactive) */
+        delete: operations["deleteGolfSeriesPointsTablesById"];
+        options?: never;
+        head?: never;
+        /** Edit Points Table */
+        patch: operations["patchGolfSeriesPointsTablesById"];
+        trace?: never;
+    };
+    "/api/v1/golf/series-points-tables:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Points Tables (CSV/XLSX) */
+        get: operations["getGolfSeriesPointsTablesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/starter-queue": {
         parameters: {
             query?: never;
@@ -13807,6 +14179,60 @@ export interface paths {
         put?: never;
         /** Tee-Off (Round Start) */
         post: operations["postGolfStarterQueueByFlightIdTeeOff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/team-formats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Team Formats */
+        get: operations["getGolfTeamFormats"];
+        put?: never;
+        /** Add Team Format */
+        post: operations["postGolfTeamFormats"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/team-formats/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Team Format */
+        get: operations["getGolfTeamFormatsById"];
+        put?: never;
+        post?: never;
+        /** Delete Team Format (only when unused; otherwise set Inactive) */
+        delete: operations["deleteGolfTeamFormatsById"];
+        options?: never;
+        head?: never;
+        /** Edit Team Format */
+        patch: operations["patchGolfTeamFormatsById"];
+        trace?: never;
+    };
+    "/api/v1/golf/team-formats:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Team Formats (CSV/XLSX) */
+        get: operations["getGolfTeamFormatsExport"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -13989,6 +14415,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/tournament-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tournament History: archive of completed and imported tournaments */
+        get: operations["getGolfTournamentHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-history/champions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Champion history: tournament winners and Order of Merit champions */
+        get: operations["getGolfTournamentHistoryChampions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-history/player": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** History of one player: results, statistics, Order of Merit */
+        get: operations["getGolfTournamentHistoryPlayer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-history/players": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Player statistics across tournaments */
+        get: operations["getGolfTournamentHistoryPlayers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/tournament-screen": {
         parameters: {
             query?: never;
@@ -14000,6 +14494,179 @@ export interface paths {
         get: operations["getGolfTournamentScreen"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tournament Series (Order of Merit seasons) */
+        get: operations["getGolfTournamentSeries"];
+        put?: never;
+        /** Create a Tournament Series (draft) */
+        post: operations["postGolfTournamentSeries"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-series/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tournament Series with events and points table */
+        get: operations["getGolfTournamentSeriesById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change a series (an active series is recalculated) */
+        patch: operations["patchGolfTournamentSeriesById"];
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-series/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a tournament to the series */
+        post: operations["postGolfTournamentSeriesByIdEvents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-series/{id}/events/{eventId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove an event from the series */
+        delete: operations["deleteGolfTournamentSeriesByIdEventsByEventId"];
+        options?: never;
+        head?: never;
+        /** Change an event of the series (sequence, weight, final) */
+        patch: operations["patchGolfTournamentSeriesByIdEventsByEventId"];
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-series/{id}/order-of-merit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Order of Merit: standings (best N events, minimum events) */
+        get: operations["getGolfTournamentSeriesByIdOrderOfMerit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-series/{id}:activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate: the points table is frozen and completed events are counted */
+        post: operations["postGolfTournamentSeriesByIdActivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-series/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a series */
+        post: operations["postGolfTournamentSeriesByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-series/{id}:complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete the season: final standings, champion, Hall of Fame */
+        post: operations["postGolfTournamentSeriesByIdComplete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-series/{id}:recalculate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recalculate the points of every event */
+        post: operations["postGolfTournamentSeriesByIdRecalculate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournament-series:import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import historical Order of Merit standings (CSV; preview or commit) */
+        post: operations["postGolfTournamentSeriesImport"];
         delete?: never;
         options?: never;
         head?: never;
@@ -14092,6 +14759,40 @@ export interface paths {
         head?: never;
         /** Update a division */
         patch: operations["patchGolfTournamentsByIdDivisionsBySid"];
+        trace?: never;
+    };
+    "/api/v1/golf/tournaments/{id}/federation-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Federation result report (PGI layout) with its submissions */
+        get: operations["getGolfTournamentsByIdFederationReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournaments/{id}/federation-report:submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the result report sent to the federation */
+        post: operations["postGolfTournamentsByIdFederationReportSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/golf/tournaments/{id}/fees": {
@@ -14346,6 +15047,24 @@ export interface paths {
         put?: never;
         /** Record the prize hand-over */
         post: operations["postGolfTournamentsByIdPrizesBySidHandOver"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournaments/{id}/registration-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Registration categories (member, guest, sponsor invitation) with quotas and early-bird fees */
+        get: operations["getGolfTournamentsByIdRegistrationCategories"];
+        /** Set category quotas, fee categories and early-bird fees */
+        put: operations["putGolfTournamentsByIdRegistrationCategories"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -14656,6 +15375,127 @@ export interface paths {
         get: operations["getGolfTournamentsByIdStartSheetPdf"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournaments/{id}/team-leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Team leaderboard (team handicap, best ball, countback) */
+        get: operations["getGolfTournamentsByIdTeamLeaderboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournaments/{id}/team-results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Final team results */
+        get: operations["getGolfTournamentsByIdTeamResults"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournaments/{id}/team-scores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enter the team strokes of a one-ball format (on every member's card) */
+        post: operations["postGolfTournamentsByIdTeamScores"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournaments/{id}/team-setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Team format and teams of a tournament (team handicaps) */
+        get: operations["getGolfTournamentsByIdTeamSetup"];
+        /** Set the team format (Scramble, Four-ball, Foursomes, Texas Scramble) */
+        put: operations["putGolfTournamentsByIdTeamSetup"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournaments/{id}/teams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a team (players draw together) */
+        post: operations["postGolfTournamentsByIdTeams"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/tournaments/{id}/teams/{teamId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a team (players stay registered) */
+        delete: operations["deleteGolfTournamentsByIdTeamsByTeamId"];
+        options?: never;
+        head?: never;
+        /** Change a team: name, members, captain */
+        patch: operations["patchGolfTournamentsByIdTeamsByTeamId"];
+        trace?: never;
+    };
+    "/api/v1/golf/tournaments/{id}/teams:auto": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Form teams from the players without a team (balanced by handicap) */
+        post: operations["postGolfTournamentsByIdTeamsAuto"];
         delete?: never;
         options?: never;
         head?: never;
@@ -17365,6 +18205,57 @@ export interface paths {
         };
         /** Round History, Score History, Statistics & Handicap */
         get: operations["getMemberGolfStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/tournament-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My tournament history: results, statistics, Order of Merit */
+        get: operations["getMemberGolfTournamentHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/tournament-series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Order of Merit seasons with my standing */
+        get: operations["getMemberGolfTournamentSeries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/tournament-series/{id}/order-of-merit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Order of Merit (others without consent masked) */
+        get: operations["getMemberGolfTournamentSeriesByIdOrderOfMerit"];
         put?: never;
         post?: never;
         delete?: never;
@@ -23315,6 +24206,40 @@ export interface paths {
         put?: never;
         /** Withdraw from the secure link (Tournament Policies) */
         post: operations["postPublicTournamentRegistrationsByTokenWithdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/tournament-series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public Order of Merit seasons (website) */
+        get: operations["getPublicTournamentSeries"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/tournament-series/{id}/order-of-merit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Public Order of Merit (names only with the player's consent) */
+        get: operations["getPublicTournamentSeriesByIdOrderOfMerit"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -36367,6 +37292,73 @@ export interface components {
             /** @enum {string|null} */
             valueType?: "boolean" | "string" | "number" | "json" | null;
         };
+        FederationHandicapEntry: {
+            /** Format: uuid */
+            customerId?: string | null;
+            /** @description PGI membership number */
+            federationNumber?: string;
+            handicapIndex: string;
+            /** @description Member or card number instead of customerId */
+            memberNo?: string;
+        };
+        FederationHandicapImportInput: {
+            entries: components["schemas"]["FederationHandicapEntry"][];
+            /** @description Default PGI */
+            federation?: string;
+        };
+        FederationHandicapImportResult: {
+            errors: components["schemas"]["TournamentHistoryImportError"][];
+            failed: number;
+            imported: number;
+        };
+        FederationReport: {
+            code: string;
+            courseName: string;
+            endDate: string;
+            federation: string;
+            format: string;
+            lines: components["schemas"]["FederationReportLine"][];
+            name: string;
+            startDate: string;
+            submissions: components["schemas"]["FederationSubmission"][];
+            /** Format: uuid */
+            tournamentId: string;
+        };
+        FederationReportLine: {
+            /** Format: uuid */
+            customerId?: string | null;
+            handicapIndex?: string | null;
+            /** @description federation = PGI index */
+            handicapSource?: string | null;
+            memberNo?: string | null;
+            playerName: string;
+            position: string;
+            /** @description Gross per round */
+            rounds: number[];
+            total?: number | null;
+        };
+        FederationSubmission: {
+            federation: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            method: "manual_upload" | "api";
+            reference?: string | null;
+            rows: number;
+            /** @enum {string} */
+            status: "exported" | "submitted" | "failed";
+            /** Format: date-time */
+            submittedAt: string;
+        };
+        FederationSubmitInput: {
+            /**
+             * @description manual_upload: the exported file was uploaded on the federation portal
+             * @enum {string}
+             */
+            method: "manual_upload" | "api";
+            /** @description Federation receipt / upload reference */
+            reference?: string;
+        };
         Fee: {
             amount: string;
             /** Format: date-time */
@@ -40856,6 +41848,22 @@ export interface components {
             tournamentType: string;
             waitlistEnabled: boolean;
         };
+        MemberTournamentSeries: {
+            champion?: string | null;
+            code: string;
+            countedEvents: number;
+            events: number;
+            /** Format: uuid */
+            id: string;
+            myEvents?: number | null;
+            myPoints?: string | null;
+            myPosition?: string | null;
+            name: string;
+            public: boolean;
+            season: number;
+            /** @enum {string} */
+            status: "active" | "completed";
+        };
         Membership: {
             /** Format: uuid */
             corporateAccountId?: string | null;
@@ -41727,6 +42735,11 @@ export interface components {
              */
             unitId?: string | null;
         };
+        MyTournamentHistory: {
+            results: components["schemas"]["TournamentPlayerResult"][];
+            series: components["schemas"]["TournamentPlayerSeries"][];
+            stats: components["schemas"]["TournamentPlayerStats"];
+        };
         MyTournamentRegistration: {
             balance: string;
             canWithdraw: boolean;
@@ -42379,6 +43392,47 @@ export interface components {
             /** Format: uuid */
             variantId?: string | null;
         };
+        OrderOfMerit: {
+            bestOf?: number | null;
+            champion?: string | null;
+            code: string;
+            events: components["schemas"]["TournamentSeriesEvent"][];
+            /** @description Completed season: frozen standings */
+            final: boolean;
+            minEvents: number;
+            name: string;
+            season: number;
+            /** Format: uuid */
+            seriesId: string;
+            standings: components["schemas"]["OrderOfMeritEntry"][];
+            status: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        OrderOfMeritEntry: {
+            bestPosition?: number | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            eventPoints: components["schemas"]["OrderOfMeritEventPoints"][];
+            events: number;
+            /** @description Member App: my line */
+            me?: boolean;
+            playerName: string;
+            points: string;
+            positionLabel: string;
+            rank?: number | null;
+            top3: number;
+            wins: number;
+        };
+        OrderOfMeritEventPoints: {
+            points: string;
+            positionLabel: string;
+            /** Format: uuid */
+            seriesEventId: string;
+            teamName?: string | null;
+            /** Format: uuid */
+            tournamentId: string;
+        };
         OrderPromotionResult: {
             order: components["schemas"]["Order"];
             rejected: components["schemas"]["RejectedPromotion"][];
@@ -42773,6 +43827,155 @@ export interface components {
             /** @description Components whose allocation was released */
             released: number;
         };
+        PackageCapacityCalendar: {
+            code: string;
+            days: components["schemas"]["PackageCapacityDay"][];
+            name: string;
+            /** Format: uuid */
+            packageId: string;
+        };
+        PackageCapacityDay: {
+            available: boolean;
+            bookings: number;
+            capacities: components["schemas"]["PackageCapacityUse"][];
+            components: components["schemas"]["PackageComponentCapacity"][];
+            dailyQuota?: number | null;
+            date: string;
+            /** @description An allotment reaches the Package Policies large quota: see the inventory requirement */
+            largeQuota: boolean;
+            pax: number;
+            reason?: string;
+        };
+        PackageCapacityRule: {
+            /**
+             * @description Counted In
+             * @enum {string|null}
+             */
+            basis?: "bookings" | "pax" | "units" | null;
+            /**
+             * Format: int64
+             * @description Time Block (minutes)
+             */
+            blockMinutes?: number | null;
+            /**
+             * @description Capacity Type
+             * @enum {string}
+             */
+            capacityType: "blackout" | "allotment" | "time_block";
+            /**
+             * Format: uuid
+             * @description Component (empty = the package)
+             */
+            componentId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: date
+             * @description From
+             */
+            dateFrom: string;
+            /**
+             * Format: date
+             * @description Until (empty = open)
+             */
+            dateTo?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Package
+             */
+            packageId: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Quota (allotment / per time block)
+             */
+            quota?: number | null;
+            /** @description Reason */
+            reason?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Weekdays (empty = every day) */
+            weekdays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
+            /** @description Window Until */
+            windowEnd?: string | null;
+            /** @description Window From */
+            windowStart?: string | null;
+        };
+        PackageCapacityRuleInput: {
+            /**
+             * @description Counted In
+             * @enum {string|null}
+             */
+            basis?: "bookings" | "pax" | "units" | null;
+            /**
+             * Format: int64
+             * @description Time Block (minutes)
+             */
+            blockMinutes?: number | null;
+            /**
+             * @description Capacity Type
+             * @enum {string}
+             */
+            capacityType?: "blackout" | "allotment" | "time_block";
+            /**
+             * Format: uuid
+             * @description Component (empty = the package)
+             */
+            componentId?: string | null;
+            /**
+             * Format: date
+             * @description From
+             */
+            dateFrom?: string;
+            /**
+             * Format: date
+             * @description Until (empty = open)
+             */
+            dateTo?: string | null;
+            /**
+             * Format: uuid
+             * @description Package
+             */
+            packageId?: string;
+            /**
+             * Format: int64
+             * @description Quota (allotment / per time block)
+             */
+            quota?: number | null;
+            /** @description Reason */
+            reason?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Weekdays (empty = every day) */
+            weekdays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
+            /** @description Window Until */
+            windowEnd?: string | null;
+            /** @description Window From */
+            windowStart?: string | null;
+        };
+        PackageCapacityUse: {
+            /** @enum {string} */
+            basis: "bookings" | "pax" | "units";
+            /** Format: uuid */
+            capacityId: string;
+            /** @enum {string} */
+            capacityType: "blackout" | "allotment" | "time_block";
+            left?: string | null;
+            quota?: number | null;
+            reason?: string | null;
+            used: string;
+        };
         PackageComponent: {
             /** @description Add-on Price */
             addonPrice?: string | null;
@@ -42862,6 +44065,19 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        PackageComponentCapacity: {
+            available: boolean;
+            /** @description Units booked on the service date */
+            booked: string;
+            capacities: components["schemas"]["PackageCapacityUse"][];
+            choiceGroup?: string | null;
+            /** Format: uuid */
+            componentId: string;
+            componentType: string;
+            name: string;
+            serviceDate: string;
+            timeBlocks: components["schemas"]["PackageTimeBlock"][];
+        };
         PackageComponentInput: {
             /** @description Add-on Price */
             addonPrice?: string | null;
@@ -42943,6 +44159,115 @@ export interface components {
             /** @description Start Time (empty = package start) */
             startTime?: string | null;
         };
+        PackageComponentRule: {
+            /**
+             * Format: uuid
+             * @description Starts After Component
+             */
+            afterComponentId?: string | null;
+            /** @description Choice Group (customer picks among the components of the group) */
+            choiceGroup?: string | null;
+            /**
+             * Format: int64
+             * @description Components to Pick in the Group
+             */
+            choicePick?: number | null;
+            /**
+             * Format: uuid
+             * @description Component
+             */
+            componentId: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int64
+             * @description Maximum Gap (minutes)
+             */
+            maxGapMinutes?: number | null;
+            /**
+             * Format: int64
+             * @description Minimum Gap (minutes)
+             */
+            minGapMinutes?: number | null;
+            /** @description Notes */
+            notes?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description Served Until */
+            windowEnd?: string | null;
+            /** @description Served From */
+            windowStart?: string | null;
+        };
+        PackageComponentRuleInput: {
+            /**
+             * Format: uuid
+             * @description Starts After Component
+             */
+            afterComponentId?: string | null;
+            /** @description Choice Group (customer picks among the components of the group) */
+            choiceGroup?: string | null;
+            /**
+             * Format: int64
+             * @description Components to Pick in the Group
+             */
+            choicePick?: number | null;
+            /**
+             * Format: uuid
+             * @description Component
+             */
+            componentId?: string;
+            /**
+             * Format: int64
+             * @description Maximum Gap (minutes)
+             */
+            maxGapMinutes?: number | null;
+            /**
+             * Format: int64
+             * @description Minimum Gap (minutes)
+             */
+            minGapMinutes?: number | null;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Served Until */
+            windowEnd?: string | null;
+            /** @description Served From */
+            windowStart?: string | null;
+        };
+        PackageComponentRuleView: {
+            afterComponent?: string | null;
+            /** Format: uuid */
+            afterComponentId?: string | null;
+            choiceGroup?: string | null;
+            choicePick: number;
+            /** Format: uuid */
+            componentId: string;
+            componentName: string;
+            componentOptional: boolean;
+            componentType: string;
+            /** Format: uuid */
+            id: string;
+            maxGapMinutes?: number | null;
+            minGapMinutes: number;
+            seq: number;
+            /** @enum {string} */
+            status: "active" | "inactive";
+            windowEnd?: string | null;
+            windowStart?: string | null;
+        };
         PackageConsumption: {
             /** Format: uuid */
             bookingComponentId: string;
@@ -42958,9 +44283,122 @@ export interface components {
             quantity: string;
             revenue: components["schemas"]["ConsumptionRevenue"];
         };
+        PackageCostRule: {
+            /** @description Amount (or percent of revenue) */
+            amount: string;
+            /**
+             * @description Basis
+             * @enum {string|null}
+             */
+            basis?: "per_unit" | "per_booking" | "per_pax" | "percent_of_revenue" | null;
+            /**
+             * Format: uuid
+             * @description Component (empty = per booking)
+             */
+            componentId?: string | null;
+            /**
+             * @description Cost Type
+             * @enum {string}
+             */
+            costType: "other" | "caddy_fee" | "room_cost" | "commission" | "labour" | "cogs";
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Description */
+            description?: string | null;
+            /**
+             * Format: date
+             * @description Effective From (service date)
+             */
+            effectiveFrom?: string | null;
+            /**
+             * Format: date
+             * @description Effective To
+             */
+            effectiveTo?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Package
+             */
+            packageId: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PackageCostRuleInput: {
+            /** @description Amount (or percent of revenue) */
+            amount?: string;
+            /**
+             * @description Basis
+             * @enum {string|null}
+             */
+            basis?: "per_unit" | "per_booking" | "per_pax" | "percent_of_revenue" | null;
+            /**
+             * Format: uuid
+             * @description Component (empty = per booking)
+             */
+            componentId?: string | null;
+            /**
+             * @description Cost Type
+             * @enum {string}
+             */
+            costType?: "other" | "caddy_fee" | "room_cost" | "commission" | "labour" | "cogs";
+            /** @description Description */
+            description?: string | null;
+            /**
+             * Format: date
+             * @description Effective From (service date)
+             */
+            effectiveFrom?: string | null;
+            /**
+             * Format: date
+             * @description Effective To
+             */
+            effectiveTo?: string | null;
+            /**
+             * Format: uuid
+             * @description Package
+             */
+            packageId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
         PackageDetail: {
             availability: components["schemas"]["DayAvailability"][];
             package: components["schemas"]["PackageOffer"];
+        };
+        PackageInventoryLine: {
+            cost: string;
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            onHand: string;
+            required: string;
+            short: boolean;
+            unitCost: string;
+            uom: string;
+        };
+        PackageInventoryRequirement: {
+            bookings: number;
+            items: components["schemas"]["PackageInventoryLine"][];
+            /** @description At least the Package Policies large quota (pax) */
+            largeQuota: boolean;
+            /** Format: uuid */
+            packageId: string;
+            pax: number;
+            shortages: number;
+            totalCost: string;
         };
         PackageOffer: {
             addons: components["schemas"]["OfferAddon"][];
@@ -42985,6 +44423,91 @@ export interface components {
             validFrom?: string | null;
             validTo?: string | null;
             version: number;
+        };
+        PackagePaymentTemplate: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Due Amounts (label, kind, percent, days, from booking | before_start) */
+            lines?: Record<string, never>[] | null;
+            /** @description Applies From Package Price */
+            minAmount?: string | null;
+            /** @description Name */
+            name: string;
+            /**
+             * @description Package Type
+             * @enum {string}
+             */
+            packageType: "golf_day" | "golf_lunch" | "stay_golf" | "corporate" | "wedding" | "family" | "other";
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        PackagePaymentTemplateInput: {
+            /** @description Code */
+            code?: string;
+            /** @description Due Amounts (label, kind, percent, days, from booking | before_start) */
+            lines?: Record<string, never>[] | null;
+            /** @description Applies From Package Price */
+            minAmount?: string | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * @description Package Type
+             * @enum {string}
+             */
+            packageType?: "golf_day" | "golf_lunch" | "stay_golf" | "corporate" | "wedding" | "family" | "other";
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        PackageProfitability: {
+            from: string;
+            /** @enum {string} */
+            groupBy: "package" | "month" | "component";
+            rows: components["schemas"]["PackageProfitabilityRow"][];
+            to: string;
+            total: components["schemas"]["PackageProfitabilityRow"];
+        };
+        PackageProfitabilityRow: {
+            bookings: number;
+            caddyFee: string;
+            /** @description BOM cost (P4): actual when consumed, estimated otherwise */
+            cogs: string;
+            commission: string;
+            /** @description When grouped by component */
+            component?: string | null;
+            margin: string;
+            marginPercent?: string | null;
+            /** @description Labour and other direct costs */
+            otherCost: string;
+            packageCode: string;
+            /** Format: uuid */
+            packageId: string;
+            packageName: string;
+            packageType: string;
+            /** @description Held for third parties (liability), not club revenue */
+            passThrough: string;
+            pax: number;
+            /** @description YYYY-MM when grouped by month */
+            period?: string | null;
+            /** @description Allocated net revenue (liabilities apart) */
+            revenue: string;
+            roomCost: string;
+            totalCost: string;
         };
         PackageRate: {
             /**
@@ -43127,6 +44650,14 @@ export interface components {
             validFrom?: string | null;
             validTo?: string | null;
             version: number;
+        };
+        PackageTimeBlock: {
+            capacity: number;
+            /** @description HH:MM */
+            from: string;
+            left: string;
+            to: string;
+            used: string;
         };
         PackageVersion: {
             /** Format: date-time */
@@ -44452,6 +45983,17 @@ export interface components {
             marketingOptIn?: boolean | null;
             phone?: string | null;
         };
+        ProfitabilityRecalcInput: {
+            /** @description Start dates from (YYYY-MM-DD) */
+            from: string;
+            /** Format: uuid */
+            packageId?: string | null;
+            /** @description Start dates until (YYYY-MM-DD) */
+            to: string;
+        };
+        ProfitabilityRecalcResult: {
+            bookings: number;
+        };
         PromoCode: {
             /**
              * Format: uuid
@@ -45320,6 +46862,17 @@ export interface components {
             /** @description Show my name on the public leaderboard and the Hall of Fame */
             publicConsent?: boolean;
             shirtSize?: string;
+        };
+        PublicTournamentSeries: {
+            champion?: string | null;
+            code: string;
+            countedEvents: number;
+            events: number;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            season: number;
+            status: string;
         };
         PublicType: {
             annualFee: string;
@@ -48709,6 +50262,73 @@ export interface components {
              */
             userId?: string | null;
         };
+        SeriesPointsSnapshot: {
+            code: string;
+            name: string;
+            participationPoints: number;
+            /** @description Points of positions 1, 2, 3 … */
+            points: number[];
+            /** @enum {string} */
+            tieRule: "split" | "full";
+        };
+        SeriesPointsTable: {
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Description */
+            description?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Name */
+            name: string;
+            /**
+             * Format: int64
+             * @description Participation Points (beyond the table, missed cut)
+             */
+            participationPoints?: number | null;
+            /** @description Points of positions 1, 2, 3 … */
+            points: number[];
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * @description Ties
+             * @enum {string|null}
+             */
+            tieRule?: "split" | "full" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        SeriesPointsTableInput: {
+            /** @description Code */
+            code?: string;
+            /** @description Description */
+            description?: string | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: int64
+             * @description Participation Points (beyond the table, missed cut)
+             */
+            participationPoints?: number | null;
+            /** @description Points of positions 1, 2, 3 … */
+            points?: number[];
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * @description Ties
+             * @enum {string|null}
+             */
+            tieRule?: "split" | "full" | null;
+        };
         ServiceChargePool: {
             /** Format: date-time */
             approvedAt?: string | null;
@@ -50662,6 +52282,96 @@ export interface components {
              */
             status?: "active" | "inactive" | null;
         };
+        TeamFormat: {
+            /** @description Handicap Allowance % (lowest handicap first; empty = WHS recommendation) */
+            allowances?: number[] | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Description */
+            description?: string | null;
+            /**
+             * @description Format
+             * @enum {string}
+             */
+            formatType: "scramble" | "four_ball" | "foursomes" | "texas_scramble";
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int64
+             * @description Minimum Drives per Player (Texas Scramble)
+             */
+            minDrives?: number | null;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Best Scores per Hole (Four-ball)
+             */
+            scoresPerHole?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: int64
+             * @description Players per Team
+             */
+            teamSize?: number | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        TeamFormatInput: {
+            /** @description Handicap Allowance % (lowest handicap first; empty = WHS recommendation) */
+            allowances?: number[] | null;
+            /** @description Code */
+            code?: string;
+            /** @description Description */
+            description?: string | null;
+            /**
+             * @description Format
+             * @enum {string}
+             */
+            formatType?: "scramble" | "four_ball" | "foursomes" | "texas_scramble";
+            /**
+             * Format: int64
+             * @description Minimum Drives per Player (Texas Scramble)
+             */
+            minDrives?: number | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: int64
+             * @description Best Scores per Hole (Four-ball)
+             */
+            scoresPerHole?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: int64
+             * @description Players per Team
+             */
+            teamSize?: number | null;
+        };
+        TeamFormatSpec: {
+            /** @description % of the course handicap, lowest handicap first (best ball: the allowance of every player) */
+            allowances: number[];
+            code: string;
+            /** @enum {string} */
+            formatType: "scramble" | "four_ball" | "foursomes" | "texas_scramble";
+            minDrives?: number | null;
+            name: string;
+            /** @description Best ball: best N scores of a hole count */
+            scoresPerHole: number;
+            teamSize: number;
+        };
         TeeSet: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -51411,9 +53121,30 @@ export interface components {
             waitlistEnabled: boolean;
             waitlisted: number;
         };
+        TournamentAdvancedRegistration: {
+            categories: components["schemas"]["TournamentCategoryUse"][];
+            /** @description Registrations with the early-bird fee */
+            earlyBirds: number;
+            fees: components["schemas"]["TournamentFeeEarlyBird"][];
+            fieldSize: number;
+            registered: number;
+            /** Format: uuid */
+            tournamentId: string;
+        };
+        TournamentAdvancedRegistrationInput: {
+            fees?: components["schemas"]["TournamentFeeEarlyBirdInput"][];
+            quotas: components["schemas"]["TournamentCategoryQuotaInput"][];
+        };
         TournamentAttestInput: {
             /** @description Marker who signed the card */
             attestedBy: string;
+        };
+        TournamentAutoTeamsInput: {
+            /**
+             * @description balanced (default): handicap snake draft so team handicaps are even
+             * @enum {string}
+             */
+            method?: "balanced" | "registration_order";
         };
         TournamentAwardInput: {
             /** Format: uuid */
@@ -51441,6 +53172,20 @@ export interface components {
             /** Format: uuid */
             registrationId: string;
         };
+        TournamentCategoryQuotaInput: {
+            /** @enum {string} */
+            category: "member" | "guest" | "sponsor_invitation";
+            quota?: number | null;
+        };
+        TournamentCategoryUse: {
+            /** @enum {string} */
+            category: "member" | "guest" | "sponsor_invitation";
+            left?: number | null;
+            /** @description Null = no quota (field size only) */
+            quota?: number | null;
+            registered: number;
+            waitlisted: number;
+        };
         TournamentChampion: {
             /** @enum {string} */
             category: "gross" | "net" | "stableford";
@@ -51449,6 +53194,21 @@ export interface components {
             division: string;
             playerName: string;
             score?: number | null;
+        };
+        TournamentChampionLine: {
+            category: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            division?: string | null;
+            /** @description Tournament or Order of Merit */
+            event: string;
+            /** Format: uuid */
+            eventId: string;
+            /** @enum {string} */
+            kind: "tournament" | "order_of_merit";
+            playerName: string;
+            score?: string | null;
+            year: number;
         };
         TournamentCheckout: {
             amount: string;
@@ -51645,6 +53405,35 @@ export interface components {
             /** @description Tax & Service rules included in the amount */
             taxCodes: string[];
         };
+        TournamentFeeEarlyBird: {
+            amount: string;
+            /** @enum {string|null} */
+            category?: "member" | "guest" | "sponsor_invitation" | null;
+            component: string;
+            earlyBirdAmount?: string | null;
+            /** @description Registrations today get the early-bird amount */
+            earlyBirdOpen: boolean;
+            earlyBirdUntil?: string | null;
+            /** Format: uuid */
+            feeId: string;
+            name: string;
+            /** Format: uuid */
+            packageId?: string | null;
+            playerType: string;
+        };
+        TournamentFeeEarlyBirdInput: {
+            /**
+             * @description Null = every category
+             * @enum {string|null}
+             */
+            category?: "member" | "guest" | "sponsor_invitation" | null;
+            /** @description Null = no early-bird */
+            earlyBirdAmount?: string | null;
+            /** @description Last registration date of the early-bird amount (YYYY-MM-DD) */
+            earlyBirdUntil?: string | null;
+            /** Format: uuid */
+            feeId: string;
+        };
         TournamentFeeInput: {
             /** @description Nett amount (tax & service inclusive); required on create */
             amount?: string | null;
@@ -51733,6 +53522,14 @@ export interface components {
             /** @description Default: the recipient */
             handedOverTo?: string;
         };
+        TournamentHistoryChampion: {
+            /** @enum {string} */
+            category: "gross" | "net" | "stableford";
+            /** Format: uuid */
+            customerId?: string | null;
+            playerName: string;
+            score?: number | null;
+        };
         TournamentHistoryImportError: {
             code: string;
             field?: string;
@@ -51761,6 +53558,22 @@ export interface components {
             totalRows: number;
             /** @description Tournaments created */
             tournaments: number;
+        };
+        TournamentHistoryItem: {
+            champions: components["schemas"]["TournamentHistoryChampion"][];
+            code: string;
+            endDate: string;
+            format: string;
+            name: string;
+            players: number;
+            series: string[];
+            /** @enum {string} */
+            source: "oneclub" | "import";
+            startDate: string;
+            teamFormat?: string | null;
+            /** Format: uuid */
+            tournamentId: string;
+            tournamentType: string;
         };
         TournamentInput: {
             /** @description Default: generated (TRN-YYYYMMDD-NNNN) */
@@ -52010,6 +53823,53 @@ export interface components {
             /** @enum {string} */
             methodType: "cash" | "card" | "bank_transfer" | "qris" | "virtual_account" | "member_account";
             reference?: string;
+        };
+        TournamentPlayerHistory: {
+            results: components["schemas"]["TournamentPlayerResult"][];
+            series: components["schemas"]["TournamentPlayerSeries"][];
+            stats: components["schemas"]["TournamentPlayerStats"];
+        };
+        TournamentPlayerResult: {
+            category: string;
+            code: string;
+            division?: string | null;
+            endDate: string;
+            name: string;
+            position?: number | null;
+            positionLabel: string;
+            score?: number | null;
+            source: string;
+            teamName?: string | null;
+            toPar?: number | null;
+            /** Format: uuid */
+            tournamentId: string;
+            tournamentType: string;
+        };
+        TournamentPlayerSeries: {
+            events: number;
+            final: boolean;
+            points: string;
+            positionLabel: string;
+            season: number;
+            /** Format: uuid */
+            seriesId: string;
+            seriesName: string;
+        };
+        TournamentPlayerStats: {
+            averageGross?: string | null;
+            bestGross?: number | null;
+            bestStableford?: number | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            events: number;
+            firstPlayed: string;
+            lastPlayed: string;
+            /** @description Customer id, else n:<name> (imported history) */
+            playerKey: string;
+            playerName: string;
+            top10: number;
+            top3: number;
+            wins: number;
         };
         TournamentPolicy: {
             /** @description Course block before the first start of a round */
@@ -52526,6 +54386,162 @@ export interface components {
             rotateSeconds: number;
             rows: number;
         };
+        TournamentSeries: {
+            /** Format: date-time */
+            activatedAt?: string | null;
+            /** @description Best N events count (null = all) */
+            bestOf?: number | null;
+            /**
+             * @description Results counted: primary = each event's primary category
+             * @enum {string}
+             */
+            category: "primary" | "gross" | "net" | "stableford";
+            /** Format: uuid */
+            championCustomerId?: string | null;
+            championName?: string | null;
+            code: string;
+            /** Format: date-time */
+            completedAt?: string | null;
+            countedEvents: number;
+            description?: string | null;
+            events: number;
+            /** Format: uuid */
+            id: string;
+            /** @description Events needed to be ranked */
+            minEvents: number;
+            name: string;
+            /** Format: uuid */
+            pointsTableId?: string | null;
+            pointsTableName?: string | null;
+            /** @description Order of Merit on the website (names with consent) */
+            public: boolean;
+            season: number;
+            /** @enum {string} */
+            source: "oneclub" | "import";
+            /** @enum {string} */
+            status: "draft" | "active" | "completed" | "cancelled";
+        };
+        TournamentSeriesDetail: {
+            /** Format: date-time */
+            activatedAt?: string | null;
+            /** @description Best N events count (null = all) */
+            bestOf?: number | null;
+            /**
+             * @description Results counted: primary = each event's primary category
+             * @enum {string}
+             */
+            category: "primary" | "gross" | "net" | "stableford";
+            /** Format: uuid */
+            championCustomerId?: string | null;
+            championName?: string | null;
+            code: string;
+            /** Format: date-time */
+            completedAt?: string | null;
+            countedEvents: number;
+            description?: string | null;
+            eventList: components["schemas"]["TournamentSeriesEvent"][];
+            events: number;
+            /** Format: uuid */
+            id: string;
+            /** @description Events needed to be ranked */
+            minEvents: number;
+            name: string;
+            pointsTable?: components["schemas"]["SeriesPointsSnapshot"] | null;
+            /** Format: uuid */
+            pointsTableId?: string | null;
+            pointsTableName?: string | null;
+            /** @description Order of Merit on the website (names with consent) */
+            public: boolean;
+            season: number;
+            /** @enum {string} */
+            source: "oneclub" | "import";
+            /** @enum {string} */
+            status: "draft" | "active" | "completed" | "cancelled";
+        };
+        TournamentSeriesEvent: {
+            /** Format: date-time */
+            countedAt?: string | null;
+            format: string;
+            /** Format: uuid */
+            id: string;
+            isFinal: boolean;
+            /** @description Players with points */
+            players: number;
+            sequence: number;
+            startDate: string;
+            /** @enum {string} */
+            status: "scheduled" | "counted";
+            teamFormat?: string | null;
+            tournamentCode: string;
+            /** Format: uuid */
+            tournamentId: string;
+            tournamentName: string;
+            tournamentStatus: string;
+            weight: string;
+        };
+        TournamentSeriesEventInput: {
+            isFinal?: boolean | null;
+            /** @description Default: after the last event */
+            sequence?: number | null;
+            /** Format: uuid */
+            tournamentId: string;
+            /** @description Points multiplier (default 1; the final 2) */
+            weight?: string | null;
+        };
+        TournamentSeriesEventPatch: {
+            isFinal?: boolean | null;
+            sequence?: number | null;
+            weight?: string | null;
+        };
+        TournamentSeriesImportInput: {
+            /** @description Header row with seriesCode, seriesName, season, rank, playerName, memberNo, customerCode, points, events, wins, publicConsent */
+            csv: string;
+            /** @enum {string} */
+            mode: "preview" | "commit";
+        };
+        TournamentSeriesImportResult: {
+            errors: components["schemas"]["TournamentHistoryImportError"][];
+            failed: number;
+            mode: string;
+            /** @description Series created */
+            series: number;
+            standings: number;
+            totalRows: number;
+        };
+        TournamentSeriesInput: {
+            bestOf?: number | null;
+            /** @enum {string} */
+            category?: "primary" | "gross" | "net" | "stableford";
+            /** @description Default: from the name and season */
+            code?: string;
+            description?: string;
+            minEvents?: number;
+            name: string;
+            /** Format: uuid */
+            pointsTableId?: string | null;
+            public?: boolean;
+            season: number;
+        };
+        TournamentSeriesPatch: {
+            /** @description 0 = every event counts */
+            bestOf?: number | null;
+            /** @enum {string|null} */
+            category?: "primary" | "gross" | "net" | "stableford" | null;
+            description?: string | null;
+            minEvents?: number | null;
+            name?: string | null;
+            /**
+             * Format: uuid
+             * @description An active series takes a new snapshot and recalculates
+             */
+            pointsTableId?: string | null;
+            public?: boolean | null;
+        };
+        TournamentSeriesRecalcResult: {
+            /** @description Player points written */
+            points: number;
+            series: components["schemas"]["TournamentSeriesDetail"];
+        };
         TournamentSponsor: {
             /** @description Sponsorship (nett) */
             amount: string;
@@ -52648,6 +54664,128 @@ export interface components {
             reason: string;
             /** @enum {string} */
             status: "dq" | "wd" | "nr" | "reinstate";
+        };
+        TournamentTeam: {
+            /** Format: uuid */
+            captainRegistrationId?: string | null;
+            code: string;
+            /** Format: uuid */
+            id: string;
+            members: components["schemas"]["TournamentTeamMember"][];
+            name: string;
+            /** @description One ball: the team handicap of the current round */
+            teamHandicap?: number | null;
+        };
+        TournamentTeamBoard: {
+            /** @enum {string} */
+            category: "gross" | "net" | "stableford";
+            entries: components["schemas"]["TournamentTeamEntry"][];
+        };
+        TournamentTeamEntry: {
+            players: string[];
+            points?: number | null;
+            position?: number | null;
+            positionLabel: string;
+            rounds: components["schemas"]["TournamentTeamRound"][];
+            score?: number | null;
+            /** @enum {string} */
+            status: "not_started" | "playing" | "finished" | "out";
+            teamCode: string;
+            teamHandicap?: number | null;
+            /** Format: uuid */
+            teamId: string;
+            teamName: string;
+            thru: string;
+            tied: boolean;
+            toPar?: number | null;
+        };
+        TournamentTeamInput: {
+            /**
+             * Format: uuid
+             * @description Default: the first member (one-ball team card)
+             */
+            captainRegistrationId?: string | null;
+            /** @description Default: Team <code> */
+            name?: string | null;
+            /** @description Members (replaces the members on update) */
+            registrationIds?: string[];
+        };
+        TournamentTeamLeaderboard: {
+            boards: components["schemas"]["TournamentTeamBoard"][];
+            code: string;
+            format: components["schemas"]["TeamFormatSpec"];
+            name: string;
+            status: string;
+            /** Format: uuid */
+            tournamentId: string;
+        };
+        TournamentTeamMember: {
+            /** @description Of the current round (after the draw is published) */
+            courseHandicap?: number | null;
+            /** Format: uuid */
+            customerId: string;
+            handicapIndex?: string | null;
+            number: string;
+            playerName: string;
+            /** @description Best ball: the member's playing handicap */
+            playingHandicap?: number | null;
+            position: number;
+            /** Format: uuid */
+            registrationId: string;
+            status: string;
+        };
+        TournamentTeamResult: {
+            /** @enum {string} */
+            category: "gross" | "net" | "stableford";
+            members: Record<string, never>;
+            position?: number | null;
+            positionLabel: string;
+            score?: number | null;
+            teamHandicap?: number | null;
+            /** Format: uuid */
+            teamId: string;
+            teamName: string;
+            tied: boolean;
+            toPar?: number | null;
+        };
+        TournamentTeamRound: {
+            gross?: number | null;
+            net?: number | null;
+            points?: number | null;
+            round: number;
+            thru: number;
+            toPar: number;
+        };
+        TournamentTeamScoreInput: {
+            deviceId?: string;
+            entries: components["schemas"]["ScoreEntry"][];
+            /** @description Default: the current round */
+            round?: number;
+            /** Format: uuid */
+            teamId: string;
+        };
+        TournamentTeamScoreResult: {
+            /** @description The members' cards carrying the team strokes */
+            scorecards: components["schemas"]["TournamentScorecard"][];
+            /** Format: uuid */
+            teamId: string;
+        };
+        TournamentTeamSetup: {
+            format?: components["schemas"]["TeamFormatSpec"] | null;
+            /** Format: uuid */
+            teamFormatId?: string | null;
+            teams: components["schemas"]["TournamentTeam"][];
+            /** Format: uuid */
+            tournamentId: string;
+            /** @description Registered players without a team */
+            unassigned: number;
+        };
+        TournamentTeamSetupInput: {
+            /**
+             * Format: uuid
+             * @description Null removes the team format (teams are deleted)
+             */
+            teamFormatId?: string | null;
         };
         TournamentWithdrawResult: {
             /** Format: uuid */
@@ -83398,6 +85536,686 @@ export interface operations {
             };
         };
     };
+    getCommercialPackageCapacities: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[packageId]"?: string;
+                "filter[componentId]"?: string;
+                "filter[capacityType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PackageCapacityRule"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPackageCapacities: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageCapacityRuleInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageCapacityRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageCapacitiesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageCapacityRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCommercialPackageCapacitiesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCommercialPackageCapacitiesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageCapacityRuleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageCapacityRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageCapacitiesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[packageId]"?: string;
+                "filter[componentId]"?: string;
+                "filter[capacityType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageComponentRules: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[componentId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PackageComponentRule"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPackageComponentRules: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageComponentRuleInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageComponentRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageComponentRulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageComponentRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCommercialPackageComponentRulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCommercialPackageComponentRulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageComponentRuleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageComponentRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageComponentRulesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[componentId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCommercialPackageComponents: {
         parameters: {
             query?: {
@@ -83705,6 +86523,797 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageCostRules: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[packageId]"?: string;
+                "filter[componentId]"?: string;
+                "filter[costType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PackageCostRule"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPackageCostRules: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageCostRuleInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageCostRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageCostRulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageCostRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCommercialPackageCostRulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCommercialPackageCostRulesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackageCostRuleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageCostRule"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageCostRulesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[packageId]"?: string;
+                "filter[componentId]"?: string;
+                "filter[costType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackagePaymentTemplates: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[packageType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PackagePaymentTemplate"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPackagePaymentTemplates: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackagePaymentTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackagePaymentTemplate"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackagePaymentTemplatesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackagePaymentTemplate"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCommercialPackagePaymentTemplatesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCommercialPackagePaymentTemplatesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PackagePaymentTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackagePaymentTemplate"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackagePaymentTemplatesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[packageType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackageProfitability: {
+        parameters: {
+            query?: {
+                /** @description Start dates from (default: first day of the month) */
+                from?: string;
+                /** @description Start dates until (default: today) */
+                to?: string;
+                packageId?: string;
+                groupBy?: "package" | "month" | "component";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageProfitability"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialPackageProfitabilityRecalculate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfitabilityRecalcInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfitabilityRecalcResult"];
                 };
             };
             /** @description Not authenticated */
@@ -84389,6 +87998,181 @@ export interface operations {
                         items: components["schemas"]["DayAvailability"][];
                         nextCursor?: string;
                     };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackagesByIdCapacity: {
+        parameters: {
+            query?: {
+                /** @description First date (default today) */
+                date?: string;
+                /** @description 1–62 */
+                days?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageCapacityCalendar"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackagesByIdComponentRules: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PackageComponentRuleView"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialPackagesByIdInventoryRequirement: {
+        parameters: {
+            query?: {
+                /** @description Start date: the allotment of the date is the default number of bookings */
+                date?: string;
+                pax?: number;
+                nights?: number;
+                bookings?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PackageInventoryRequirement"];
                 };
             };
             /** @description Not authenticated */
@@ -108068,6 +111852,60 @@ export interface operations {
             };
         };
     };
+    postGolfFederationHandicapsImport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FederationHandicapImportInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FederationHandicapImportResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfFlights: {
         parameters: {
             query?: {
@@ -115348,6 +119186,342 @@ export interface operations {
             };
         };
     };
+    getGolfSeriesPointsTables: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SeriesPointsTable"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfSeriesPointsTables: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeriesPointsTableInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesPointsTable"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfSeriesPointsTablesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesPointsTable"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteGolfSeriesPointsTablesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchGolfSeriesPointsTablesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SeriesPointsTableInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeriesPointsTable"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfSeriesPointsTablesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfStarterQueue: {
         parameters: {
             query: {
@@ -115706,6 +119880,344 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StarterQueue"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTeamFormats: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[formatType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TeamFormat"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfTeamFormats: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamFormatInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamFormat"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTeamFormatsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamFormat"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteGolfTeamFormatsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchGolfTeamFormatsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeamFormatInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeamFormat"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTeamFormatsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[formatType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
                 };
             };
             /** @description Not authenticated */
@@ -116639,6 +121151,239 @@ export interface operations {
             };
         };
     };
+    getGolfTournamentHistory: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+                type?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TournamentHistoryItem"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTournamentHistoryChampions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TournamentChampionLine"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTournamentHistoryPlayer: {
+        parameters: {
+            query?: {
+                customerId?: string;
+                name?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentPlayerHistory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTournamentHistoryPlayers: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TournamentPlayerStats"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfTournamentScreen: {
         parameters: {
             query?: {
@@ -116660,6 +121405,710 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TournamentScreenFeed"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTournamentSeries: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+                season?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TournamentSeries"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfTournamentSeries: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentSeriesInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentSeriesDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTournamentSeriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentSeriesDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchGolfTournamentSeriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentSeriesPatch"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentSeriesDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfTournamentSeriesByIdEvents: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentSeriesEventInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentSeriesEvent"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteGolfTournamentSeriesByIdEventsByEventId: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchGolfTournamentSeriesByIdEventsByEventId: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                eventId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentSeriesEventPatch"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentSeriesEvent"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTournamentSeriesByIdOrderOfMerit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderOfMerit"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfTournamentSeriesByIdActivate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentSeriesDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfTournamentSeriesByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentSeriesDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfTournamentSeriesByIdComplete: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderOfMerit"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfTournamentSeriesByIdRecalculate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentSeriesRecalcResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfTournamentSeriesImport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentSeriesImportInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentSeriesImportResult"];
                 };
             };
             /** @description Not authenticated */
@@ -117105,6 +122554,114 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TournamentDivision"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTournamentsByIdFederationReport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FederationReport"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfTournamentsByIdFederationReportSubmit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FederationSubmitInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FederationSubmission"];
                 };
             };
             /** @description Not authenticated */
@@ -118096,6 +123653,114 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TournamentPrize"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTournamentsByIdRegistrationCategories: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentAdvancedRegistration"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putGolfTournamentsByIdRegistrationCategories: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentAdvancedRegistrationInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentAdvancedRegistration"];
                 };
             };
             /** @description Not authenticated */
@@ -119331,6 +124996,502 @@ export interface operations {
                 };
                 content: {
                     "application/pdf": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTournamentsByIdTeamLeaderboard: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentTeamLeaderboard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTournamentsByIdTeamResults: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TournamentTeamResult"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfTournamentsByIdTeamScores: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentTeamScoreInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentTeamScoreResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfTournamentsByIdTeamSetup: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentTeamSetup"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putGolfTournamentsByIdTeamSetup: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentTeamSetupInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentTeamSetup"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfTournamentsByIdTeams: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentTeamInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentTeam"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteGolfTournamentsByIdTeamsByTeamId: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                teamId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchGolfTournamentsByIdTeamsByTeamId: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                teamId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentTeamInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentTeam"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfTournamentsByIdTeamsAuto: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TournamentAutoTeamsInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TournamentTeamSetup"];
                 };
             };
             /** @description Not authenticated */
@@ -131317,6 +137478,157 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoundStats"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberGolfTournamentHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyTournamentHistory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberGolfTournamentSeries: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MemberTournamentSeries"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberGolfTournamentSeriesByIdOrderOfMerit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderOfMerit"];
                 };
             };
             /** @description Not authenticated */
@@ -153680,6 +159992,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicTournamentRegistration"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicTournamentSeries: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                propertyId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PublicTournamentSeries"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicTournamentSeriesByIdOrderOfMerit: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderOfMerit"];
                 };
             };
             /** @description Problem Details (RFC 9457) */
