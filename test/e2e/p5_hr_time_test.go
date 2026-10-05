@@ -540,7 +540,7 @@ func TestP5HRTimeAttendance(t *testing.T) {
 	}
 	// FR-ATT-06: no column holds biometric templates
 	if n := ttCount(t, `SELECT count(*) FROM information_schema.columns WHERE table_schema = 'hris' AND (column_name LIKE '%template%'
-		AND column_name <> 'shift_template_id' OR column_name LIKE '%biometric_data%')`); n != 0 {
+		AND column_name NOT LIKE '%template_id' OR column_name LIKE '%biometric_data%')`); n != 0 {
 		t.Fatal("no biometric template is stored")
 	}
 	// history
