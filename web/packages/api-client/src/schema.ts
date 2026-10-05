@@ -1482,6 +1482,1345 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/cms/articles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** News Articles with status, live flag and translation status per language */
+        get: operations["getCmsArticles"];
+        put?: never;
+        /** Add a news article (settings + first version, Draft) */
+        post: operations["postCmsArticles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/articles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View a news article with its latest version (ETag = version) */
+        get: operations["getCmsArticlesById"];
+        put?: never;
+        post?: never;
+        /** Delete (never published) or archive (published: taken off the website) */
+        delete: operations["deleteCmsArticlesById"];
+        options?: never;
+        head?: never;
+        /** Edit the settings (template, parent, placement, period …) */
+        patch: operations["patchCmsArticlesById"];
+        trace?: never;
+    };
+    "/api/v1/cms/articles/{id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save the content as a new version (translations, blocks; If-Match or baseVersion for concurrency) */
+        put: operations["putCmsArticlesByIdContent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/articles/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Version history (every save is a version) */
+        get: operations["getCmsArticlesByIdVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/articles/{id}/versions/{no}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View a version */
+        get: operations["getCmsArticlesByIdVersionsByNo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/articles/{id}:preview-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a signed, expiring preview link of a version */
+        post: operations["postCmsArticlesByIdPreviewLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/articles/{id}:publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish the approved version now, or at publishAt (Scheduled) */
+        post: operations["postCmsArticlesByIdPublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/articles/{id}:restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore an earlier version as a new draft version */
+        post: operations["postCmsArticlesByIdRestore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/articles/{id}:rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Roll back: republish a version that was live before */
+        post: operations["postCmsArticlesByIdRollback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/articles/{id}:schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schedule the go-live of the approved version and / or the take-down */
+        post: operations["postCmsArticlesByIdSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/articles/{id}:submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit the latest version for review (approval: Website Content Publication) */
+        post: operations["postCmsArticlesByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/articles/{id}:unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unpublish (take off the website) or cancel a scheduled go-live */
+        post: operations["postCmsArticlesByIdUnpublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/articles/{id}:withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw the review (requester) */
+        post: operations["postCmsArticlesByIdWithdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/banners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Banners with status, live flag and translation status per language */
+        get: operations["getCmsBanners"];
+        put?: never;
+        /** Add a banner (settings + first version, Draft) */
+        post: operations["postCmsBanners"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/banners/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View a banner with its latest version (ETag = version) */
+        get: operations["getCmsBannersById"];
+        put?: never;
+        post?: never;
+        /** Delete (never published) or archive (published: taken off the website) */
+        delete: operations["deleteCmsBannersById"];
+        options?: never;
+        head?: never;
+        /** Edit the settings (template, parent, placement, period …) */
+        patch: operations["patchCmsBannersById"];
+        trace?: never;
+    };
+    "/api/v1/cms/banners/{id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save the content as a new version (translations, blocks; If-Match or baseVersion for concurrency) */
+        put: operations["putCmsBannersByIdContent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/banners/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Version history (every save is a version) */
+        get: operations["getCmsBannersByIdVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/banners/{id}/versions/{no}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View a version */
+        get: operations["getCmsBannersByIdVersionsByNo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/banners/{id}:preview-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a signed, expiring preview link of a version */
+        post: operations["postCmsBannersByIdPreviewLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/banners/{id}:publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish the approved version now, or at publishAt (Scheduled) */
+        post: operations["postCmsBannersByIdPublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/banners/{id}:restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore an earlier version as a new draft version */
+        post: operations["postCmsBannersByIdRestore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/banners/{id}:rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Roll back: republish a version that was live before */
+        post: operations["postCmsBannersByIdRollback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/banners/{id}:schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schedule the go-live of the approved version and / or the take-down */
+        post: operations["postCmsBannersByIdSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/banners/{id}:submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit the latest version for review (approval: Website Content Publication) */
+        post: operations["postCmsBannersByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/banners/{id}:unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unpublish (take off the website) or cancel a scheduled go-live */
+        post: operations["postCmsBannersByIdUnpublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/banners/{id}:withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw the review (requester) */
+        post: operations["postCmsBannersByIdWithdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List News Categories */
+        get: operations["getCmsCategories"];
+        put?: never;
+        /** Add News Category */
+        post: operations["postCmsCategories"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View News Category */
+        get: operations["getCmsCategoriesById"];
+        put?: never;
+        post?: never;
+        /** Delete News Category (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCmsCategoriesById"];
+        options?: never;
+        head?: never;
+        /** Edit News Category */
+        patch: operations["patchCmsCategoriesById"];
+        trace?: never;
+    };
+    "/api/v1/cms/categories:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export News Categories (CSV/XLSX) */
+        get: operations["getCmsCategoriesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Contact Information */
+        get: operations["getCmsContacts"];
+        put?: never;
+        /** Add Contact Information */
+        post: operations["postCmsContacts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/contacts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Contact Information */
+        get: operations["getCmsContactsById"];
+        put?: never;
+        post?: never;
+        /** Delete Contact Information (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCmsContactsById"];
+        options?: never;
+        head?: never;
+        /** Edit Contact Information */
+        patch: operations["patchCmsContactsById"];
+        trace?: never;
+    };
+    "/api/v1/cms/contacts:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Contact Information (CSV/XLSX) */
+        get: operations["getCmsContactsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/course-guides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Course Guide */
+        get: operations["getCmsCourseGuides"];
+        put?: never;
+        /** Add Course Guide Hole */
+        post: operations["postCmsCourseGuides"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/course-guides/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Course Guide Hole */
+        get: operations["getCmsCourseGuidesById"];
+        put?: never;
+        post?: never;
+        /** Delete Course Guide Hole (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCmsCourseGuidesById"];
+        options?: never;
+        head?: never;
+        /** Edit Course Guide Hole */
+        patch: operations["patchCmsCourseGuidesById"];
+        trace?: never;
+    };
+    "/api/v1/cms/course-guides:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Course Guide (CSV/XLSX) */
+        get: operations["getCmsCourseGuidesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/data-sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Structured data a data block can show (Pricing, Packages, Promotions, Events …, contract K5) and the content using each */
+        get: operations["getCmsDataSources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/data-sources:validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check a data block (source, filter, limit) and show the public API the website will read */
+        post: operations["postCmsDataSourcesValidate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/galleries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gallery Albums with status, live flag and translation status per language */
+        get: operations["getCmsGalleries"];
+        put?: never;
+        /** Add a gallery album (settings + first version, Draft) */
+        post: operations["postCmsGalleries"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/galleries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View a gallery album with its latest version (ETag = version) */
+        get: operations["getCmsGalleriesById"];
+        put?: never;
+        post?: never;
+        /** Delete (never published) or archive (published: taken off the website) */
+        delete: operations["deleteCmsGalleriesById"];
+        options?: never;
+        head?: never;
+        /** Edit the settings (template, parent, placement, period …) */
+        patch: operations["patchCmsGalleriesById"];
+        trace?: never;
+    };
+    "/api/v1/cms/galleries/{id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save the content as a new version (translations, blocks; If-Match or baseVersion for concurrency) */
+        put: operations["putCmsGalleriesByIdContent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/galleries/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Version history (every save is a version) */
+        get: operations["getCmsGalleriesByIdVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/galleries/{id}/versions/{no}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View a version */
+        get: operations["getCmsGalleriesByIdVersionsByNo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/galleries/{id}:preview-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a signed, expiring preview link of a version */
+        post: operations["postCmsGalleriesByIdPreviewLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/galleries/{id}:publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish the approved version now, or at publishAt (Scheduled) */
+        post: operations["postCmsGalleriesByIdPublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/galleries/{id}:restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore an earlier version as a new draft version */
+        post: operations["postCmsGalleriesByIdRestore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/galleries/{id}:rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Roll back: republish a version that was live before */
+        post: operations["postCmsGalleriesByIdRollback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/galleries/{id}:schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schedule the go-live of the approved version and / or the take-down */
+        post: operations["postCmsGalleriesByIdSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/galleries/{id}:submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit the latest version for review (approval: Website Content Publication) */
+        post: operations["postCmsGalleriesByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/galleries/{id}:unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unpublish (take off the website) or cancel a scheduled go-live */
+        post: operations["postCmsGalleriesByIdUnpublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/galleries/{id}:withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw the review (requester) */
+        post: operations["postCmsGalleriesByIdWithdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import website content (EP-29: pages, news, redirects of the old website) as draft versions; dryRun validates only */
+        post: operations["postCmsImports"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/languages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Languages: website languages (Content Policies) and translation status counts */
+        get: operations["getCmsLanguages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/media": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Images library */
+        get: operations["getCmsMedia"];
+        put?: never;
+        /** Upload an image (multipart: file, alt / alt.<lang>, caption / caption.<lang>, tags, folder); web sizes are generated */
+        post: operations["postCmsMedia"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/media/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View an image */
+        get: operations["getCmsMediaById"];
+        put?: never;
+        post?: never;
+        /** Remove an unused image */
+        delete: operations["deleteCmsMediaById"];
+        options?: never;
+        head?: never;
+        /** Edit alt text, caption, tags and folder */
+        patch: operations["patchCmsMediaById"];
+        trace?: never;
+    };
+    "/api/v1/cms/menus": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Navigation Menus */
+        get: operations["getCmsMenus"];
+        put?: never;
+        /** Add Navigation Menu */
+        post: operations["postCmsMenus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/menus/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Navigation Menu */
+        get: operations["getCmsMenusById"];
+        put?: never;
+        post?: never;
+        /** Delete Navigation Menu (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCmsMenusById"];
+        options?: never;
+        head?: never;
+        /** Edit Navigation Menu */
+        patch: operations["patchCmsMenusById"];
+        trace?: never;
+    };
+    "/api/v1/cms/menus:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Navigation Menus (CSV/XLSX) */
+        get: operations["getCmsMenusExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pages with status, live flag and translation status per language */
+        get: operations["getCmsPages"];
+        put?: never;
+        /** Add a page (settings + first version, Draft) */
+        post: operations["postCmsPages"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/pages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View a page with its latest version (ETag = version) */
+        get: operations["getCmsPagesById"];
+        put?: never;
+        post?: never;
+        /** Delete (never published) or archive (published: taken off the website) */
+        delete: operations["deleteCmsPagesById"];
+        options?: never;
+        head?: never;
+        /** Edit the settings (template, parent, placement, period …) */
+        patch: operations["patchCmsPagesById"];
+        trace?: never;
+    };
+    "/api/v1/cms/pages/{id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save the content as a new version (translations, blocks; If-Match or baseVersion for concurrency) */
+        put: operations["putCmsPagesByIdContent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/pages/{id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Version history (every save is a version) */
+        get: operations["getCmsPagesByIdVersions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/pages/{id}/versions/{no}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View a version */
+        get: operations["getCmsPagesByIdVersionsByNo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/pages/{id}:preview-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a signed, expiring preview link of a version */
+        post: operations["postCmsPagesByIdPreviewLink"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/pages/{id}:publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish the approved version now, or at publishAt (Scheduled) */
+        post: operations["postCmsPagesByIdPublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/pages/{id}:restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore an earlier version as a new draft version */
+        post: operations["postCmsPagesByIdRestore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/pages/{id}:rollback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Roll back: republish a version that was live before */
+        post: operations["postCmsPagesByIdRollback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/pages/{id}:schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schedule the go-live of the approved version and / or the take-down */
+        post: operations["postCmsPagesByIdSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/pages/{id}:submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit the latest version for review (approval: Website Content Publication) */
+        post: operations["postCmsPagesByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/pages/{id}:unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unpublish (take off the website) or cancel a scheduled go-live */
+        post: operations["postCmsPagesByIdUnpublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/pages/{id}:withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw the review (requester) */
+        post: operations["postCmsPagesByIdWithdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/publishing-log": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Publishing log (saved, submitted, approved, published …) */
+        get: operations["getCmsPublishingLog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/redirects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Redirects */
+        get: operations["getCmsRedirects"];
+        put?: never;
+        /** Add Redirect */
+        post: operations["postCmsRedirects"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/redirects/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Redirect */
+        get: operations["getCmsRedirectsById"];
+        put?: never;
+        post?: never;
+        /** Delete Redirect (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCmsRedirectsById"];
+        options?: never;
+        head?: never;
+        /** Edit Redirect */
+        patch: operations["patchCmsRedirectsById"];
+        trace?: never;
+    };
+    "/api/v1/cms/redirects:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Redirects (CSV/XLSX) */
+        get: operations["getCmsRedirectsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scheduled go-lives and take-downs (next 60 days and overdue) */
+        get: operations["getCmsSchedule"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/site:revalidate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Purge the website cache: bump the revision and ask the website to revalidate every page */
+        post: operations["postCmsSiteRevalidate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/cms/translation-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Translation status per content item and language */
+        get: operations["getCmsTranslationStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/commercial/customers/{id}/favorites": {
         parameters: {
             query?: never;
@@ -10852,6 +12191,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/hardware-profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Device profiles of the bridge agent (locker, turnstile, ball dispenser, golf cart GPS): commands, payload and results */
+        get: operations["getPlatformHardwareProfiles"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/imports": {
         parameters: {
             query?: never;
@@ -10976,6 +12332,40 @@ export interface paths {
         head?: never;
         /** Edit integration (credentials stored encrypted) */
         patch: operations["patchPlatformIntegrationsById"];
+        trace?: never;
+    };
+    "/api/v1/platform/integrations/{id}/settlement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gateway settlement per payment method (count, gross, fees, net; settled / pending / failed) for the reconciliation */
+        get: operations["getPlatformIntegrationsByIdSettlement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/integrations/{id}:check-email-domain": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check the sender domain of an e-mail integration: SPF (provider included), DKIM per selector and DMARC */
+        post: operations["postPlatformIntegrationsByIdCheckEmailDomain"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/platform/integrations/{id}:rotate-webhook-secret": {
@@ -11285,6 +12675,23 @@ export interface paths {
         head?: never;
         /** Edit organization profile */
         patch: operations["patchPlatformOrganization"];
+        trace?: never;
+    };
+    "/api/v1/platform/payment-routes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payment routing: the integration serving each payment method at each property (settings methods / properties / priority) */
+        get: operations["getPlatformPaymentRoutes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/platform/permissions": {
@@ -11826,6 +13233,278 @@ export interface paths {
         put?: never;
         /** Register for a class (non-member) */
         post: operations["postPublicClassEnrollments"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/banners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Banners of a placement (and page) in their display period */
+        get: operations["getPublicCmsBanners"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Contact Information (address, phones, WhatsApp, e-mail, map, opening hours) */
+        get: operations["getPublicCmsContact"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/course-guide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Course Guide texts per hole (complete /public/golf/info) */
+        get: operations["getPublicCmsCourseGuide"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/gallery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gallery albums */
+        get: operations["getPublicCmsGallery"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/gallery/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gallery album with its images */
+        get: operations["getPublicCmsGalleryBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/navigation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Navigation menus (header, footer …) in a language */
+        get: operations["getPublicCmsNavigation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/news": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** News list (category, tag, featured) */
+        get: operations["getPublicCmsNews"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/news/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** News article */
+        get: operations["getPublicCmsNewsBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Published pages with their path per language (routing, static generation) */
+        get: operations["getPublicCmsPages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/pages/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Published page by slug or key (blocks, SEO, data block endpoints; ETag) */
+        get: operations["getPublicCmsPagesBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/preview/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview a version through a signed, expiring link (never cached, noindex) */
+        get: operations["getPublicCmsPreviewByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/redirects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active redirects (old URL → new URL) */
+        get: operations["getPublicCmsRedirects"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/robots": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** robots.txt data (indexing, disallowed paths, sitemap) */
+        get: operations["getPublicCmsRobots"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/site": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Website languages and revision (cache key) */
+        get: operations["getPublicCmsSite"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/sitemap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sitemap data (pages, news, albums, structured pages; hreflang) */
+        get: operations["getPublicCmsSitemap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/cms/sitemap.xml": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** sitemap.xml */
+        get: operations["getPublicCmsSitemapXml"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -16028,6 +17707,1192 @@ export interface components {
             countedCash: string;
             note?: string;
         };
+        CmsAlternate: {
+            href: string;
+            language: string;
+        };
+        CmsBlock: {
+            /** @description Language-neutral settings (data block: source, filter, limit, layout) */
+            config?: Record<string, never>;
+            /** @description Texts per language */
+            content?: {
+                [key: string]: Record<string, never>;
+            };
+            hidden?: boolean;
+            id?: string;
+            /** @enum {string} */
+            type: "rich_text" | "image" | "gallery" | "video" | "cta" | "faq" | "contact_form" | "map" | "data" | "banner_slot";
+        };
+        CmsCategory: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Name per language ({"en": "Tournament"}) */
+            labels?: Record<string, never> | null;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CmsCategoryInput: {
+            /** @description Code */
+            code?: string;
+            /** @description Name per language ({"en": "Tournament"}) */
+            labels?: Record<string, never> | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        CmsContact: {
+            /** @description Address */
+            address?: string | null;
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: email
+             * @description E-mail
+             */
+            email?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Primary contact */
+            isPrimary?: boolean | null;
+            /** @description Latitude */
+            latitude?: string | null;
+            /** @description Longitude */
+            longitude?: string | null;
+            /** @description Map link */
+            mapUrl?: string | null;
+            /** @description Name */
+            name: string;
+            /** @description Opening hours ([{day, open, close, closed}]) */
+            openingHours?: Record<string, never>[] | null;
+            /** @description Phone numbers */
+            phones?: string[] | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Social media links ({instagram: url, …}) */
+            socialLinks?: Record<string, never> | null;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Translations ({en: {name, address, note}}) */
+            translations?: Record<string, never> | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description WhatsApp number */
+            whatsapp?: string | null;
+        };
+        CmsContactInput: {
+            /** @description Address */
+            address?: string | null;
+            /** @description Code */
+            code?: string;
+            /**
+             * Format: email
+             * @description E-mail
+             */
+            email?: string | null;
+            /** @description Primary contact */
+            isPrimary?: boolean | null;
+            /** @description Latitude */
+            latitude?: string | null;
+            /** @description Longitude */
+            longitude?: string | null;
+            /** @description Map link */
+            mapUrl?: string | null;
+            /** @description Name */
+            name?: string;
+            /** @description Opening hours ([{day, open, close, closed}]) */
+            openingHours?: Record<string, never>[] | null;
+            /** @description Phone numbers */
+            phones?: string[] | null;
+            /** @description Social media links ({instagram: url, …}) */
+            socialLinks?: Record<string, never> | null;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Translations ({en: {name, address, note}}) */
+            translations?: Record<string, never> | null;
+            /** @description WhatsApp number */
+            whatsapp?: string | null;
+        };
+        CmsContent: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            approvedVersion?: number | null;
+            /** Format: date-time */
+            archivedAt?: string | null;
+            authorName?: string | null;
+            /** Format: uuid */
+            categoryId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            displayDate?: string | null;
+            featured: boolean;
+            /** Format: date-time */
+            firstPublishedAt?: string | null;
+            hasUnpublishedChanges: boolean;
+            /** Format: uuid */
+            id: string;
+            key?: string | null;
+            /** @enum {string} */
+            kind: "page" | "article" | "banner" | "gallery";
+            latestVersion: number;
+            link?: components["schemas"]["CmsLink"] | null;
+            /** @description The published version is on the website */
+            live: boolean;
+            pageIds: string[];
+            /** Format: uuid */
+            parentId?: string | null;
+            placement?: string | null;
+            /** Format: uuid */
+            propertyId: string;
+            /** Format: date-time */
+            publishAt?: string | null;
+            /** Format: date-time */
+            publishedAt?: string | null;
+            publishedVersion?: number | null;
+            reviewVersion?: number | null;
+            showInSitemap: boolean;
+            sortOrder: number;
+            /** @enum {string} */
+            status: "draft" | "in_review" | "scheduled" | "published" | "unpublished";
+            statusBeforeReview?: string | null;
+            tags: string[];
+            template?: string | null;
+            title: string;
+            translations: {
+                [key: string]: components["schemas"]["CmsTranslationState"];
+            };
+            /** Format: date-time */
+            unpublishAt?: string | null;
+            /** Format: date-time */
+            unpublishedAt?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CmsContentDetail: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            approvedVersion?: number | null;
+            /** Format: date-time */
+            archivedAt?: string | null;
+            authorName?: string | null;
+            /** Format: uuid */
+            categoryId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            displayDate?: string | null;
+            document: components["schemas"]["CmsDocument"];
+            featured: boolean;
+            /** Format: date-time */
+            firstPublishedAt?: string | null;
+            hasUnpublishedChanges: boolean;
+            /** Format: uuid */
+            id: string;
+            key?: string | null;
+            /** @enum {string} */
+            kind: "page" | "article" | "banner" | "gallery";
+            latestVersion: number;
+            link?: components["schemas"]["CmsLink"] | null;
+            /** @description The published version is on the website */
+            live: boolean;
+            pageIds: string[];
+            /** Format: uuid */
+            parentId?: string | null;
+            placement?: string | null;
+            /** Format: uuid */
+            propertyId: string;
+            /** Format: date-time */
+            publishAt?: string | null;
+            /** Format: date-time */
+            publishedAt?: string | null;
+            publishedVersion?: number | null;
+            reviewVersion?: number | null;
+            showInSitemap: boolean;
+            sortOrder: number;
+            /** @enum {string} */
+            status: "draft" | "in_review" | "scheduled" | "published" | "unpublished";
+            statusBeforeReview?: string | null;
+            tags: string[];
+            template?: string | null;
+            title: string;
+            translations: {
+                [key: string]: components["schemas"]["CmsTranslationState"];
+            };
+            /** Format: date-time */
+            unpublishAt?: string | null;
+            /** Format: date-time */
+            unpublishedAt?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+            version: components["schemas"]["CmsVersion"];
+        };
+        CmsContentInput: {
+            /** @description News author */
+            authorName?: string | null;
+            blocks?: components["schemas"]["CmsBlock"][];
+            /**
+             * Format: uuid
+             * @description News category
+             */
+            categoryId?: string | null;
+            /** @description Settings to clear: key, template, parentId, categoryId, authorName, displayDate, placement, pageIds, link, tags, publishAt, unpublishAt */
+            clear?: string[];
+            /** @description News publish date shown on the website (YYYY-MM-DD; default: first publication) */
+            displayDate?: string | null;
+            featured?: boolean | null;
+            /** @description Gallery album images */
+            items?: components["schemas"]["CmsGalleryItem"][];
+            /** @description Page key (home, golf, …) or banner code; unique per type */
+            key?: string | null;
+            link?: components["schemas"]["CmsLink"] | null;
+            /** @description Version note */
+            note?: string;
+            /** @description Banner target pages (empty: every page showing the placement) */
+            pageIds?: string[];
+            /**
+             * Format: uuid
+             * @description Parent page (hierarchy, breadcrumbs)
+             */
+            parentId?: string | null;
+            /** @description Banner placement */
+            placement?: string | null;
+            /**
+             * Format: date-time
+             * @description Go live at (after approval); banners: start of the display period
+             */
+            publishAt?: string | null;
+            showInSitemap?: boolean | null;
+            sortOrder?: number | null;
+            /** @description News tags */
+            tags?: string[];
+            /** @description Page template */
+            template?: string | null;
+            translations: {
+                [key: string]: components["schemas"]["CmsTranslation"];
+            };
+            /**
+             * Format: date-time
+             * @description Take down at; banners: end of the display period
+             */
+            unpublishAt?: string | null;
+        };
+        CmsContentSave: {
+            /** @description Optimistic concurrency: the version the editor started from (or If-Match) */
+            baseVersion?: number | null;
+            blocks?: components["schemas"]["CmsBlock"][];
+            /** @description Gallery album images */
+            items?: components["schemas"]["CmsGalleryItem"][];
+            note?: string;
+            translations: {
+                [key: string]: components["schemas"]["CmsTranslation"];
+            };
+        };
+        CmsCourseGuideHole: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Course (code) */
+            courseCode: string;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: int64
+             * @description Hole
+             */
+            holeNumber: number;
+            /** Format: uuid */
+            id: string;
+            /** @description Images (media library ids) */
+            mediaIds?: string[] | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Title (default language) */
+            title?: string | null;
+            /** @description Text per language ({id: {title, description, tips}}) */
+            translations?: Record<string, never> | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CmsCourseGuideHoleInput: {
+            /** @description Course (code) */
+            courseCode?: string;
+            /**
+             * Format: int64
+             * @description Hole
+             */
+            holeNumber?: number;
+            /** @description Images (media library ids) */
+            mediaIds?: string[] | null;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Title (default language) */
+            title?: string | null;
+            /** @description Text per language ({id: {title, description, tips}}) */
+            translations?: Record<string, never> | null;
+        };
+        CmsCrumb: {
+            path: string;
+            title: string;
+        };
+        CmsDataBlockCheck: {
+            filter?: Record<string, never>;
+            layout?: string;
+            limit?: number | null;
+            source: string;
+        };
+        CmsDataFilter: {
+            enum?: string[];
+            key: string;
+            label: string;
+            /** @description Part of the endpoint path rather than the query string */
+            pathParam: boolean;
+            required: boolean;
+            /** @enum {string} */
+            type: "string" | "enum" | "date" | "uuid" | "int" | "bool";
+        };
+        CmsDataRef: {
+            /** @description Resolved public API path */
+            endpoint: string;
+            limit: number;
+            owner: string;
+            query: {
+                [key: string]: string;
+            };
+            source: string;
+            /** @description Endpoint with query string */
+            url: string;
+        };
+        CmsDataSourceUsage: {
+            /** @description CMS menu (Naming Convention §26) showing where this data is used */
+            cmsMenu?: string;
+            description: string;
+            /** @description Public API the website reads (path parameters in braces) */
+            endpoint: string;
+            filters: components["schemas"]["CmsDataFilter"][];
+            key: string;
+            label: string;
+            maxLimit: number;
+            /** @description Module that owns the data */
+            owner: string;
+            usedBy: components["schemas"]["CmsUsage"][];
+        };
+        CmsDocument: {
+            blocks?: components["schemas"]["CmsBlock"][];
+            /** @description Gallery album images */
+            items?: components["schemas"]["CmsGalleryItem"][];
+            translations: {
+                [key: string]: components["schemas"]["CmsTranslation"];
+            };
+        };
+        CmsGalleryItem: {
+            /** @description Caption per language */
+            caption?: {
+                [key: string]: string;
+            };
+            /** Format: uuid */
+            mediaId: string;
+        };
+        CmsImportError: {
+            index: number;
+            kind: string;
+            message: string;
+            ref: string;
+        };
+        CmsImportItem: {
+            /** @description News author */
+            authorName?: string | null;
+            blocks?: components["schemas"]["CmsBlock"][];
+            /** @description News category code (alternative to categoryId) */
+            categoryCode?: string;
+            /**
+             * Format: uuid
+             * @description News category
+             */
+            categoryId?: string | null;
+            /** @description Settings to clear: key, template, parentId, categoryId, authorName, displayDate, placement, pageIds, link, tags, publishAt, unpublishAt */
+            clear?: string[];
+            /** @description News publish date shown on the website (YYYY-MM-DD; default: first publication) */
+            displayDate?: string | null;
+            featured?: boolean | null;
+            /** @description Gallery album images */
+            items?: components["schemas"]["CmsGalleryItem"][];
+            /** @description Page key (home, golf, …) or banner code; unique per type */
+            key?: string | null;
+            link?: components["schemas"]["CmsLink"] | null;
+            /** @description Banner target pages (empty: every page showing the placement) */
+            pageIds?: string[];
+            /**
+             * Format: uuid
+             * @description Parent page (hierarchy, breadcrumbs)
+             */
+            parentId?: string | null;
+            /** @description Banner placement */
+            placement?: string | null;
+            /**
+             * Format: date-time
+             * @description Go live at (after approval); banners: start of the display period
+             */
+            publishAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Original publication date of a news article (shown as its date)
+             */
+            publishedAt?: string | null;
+            showInSitemap?: boolean | null;
+            sortOrder?: number | null;
+            /** @description News tags */
+            tags?: string[];
+            /** @description Page template */
+            template?: string | null;
+            translations: {
+                [key: string]: components["schemas"]["CmsTranslation"];
+            };
+            /**
+             * Format: date-time
+             * @description Take down at; banners: end of the display period
+             */
+            unpublishAt?: string | null;
+        };
+        CmsImportRedirect: {
+            from: string;
+            statusCode?: number;
+            to: string;
+        };
+        CmsImportRequest: {
+            articles?: components["schemas"]["CmsImportItem"][];
+            dryRun?: boolean;
+            pages?: components["schemas"]["CmsImportItem"][];
+            redirects?: components["schemas"]["CmsImportRedirect"][];
+        };
+        CmsImportResult: {
+            created: number;
+            dryRun: boolean;
+            errors: components["schemas"]["CmsImportError"][];
+            redirects: number;
+            updated: number;
+        };
+        CmsLanguage: {
+            code: string;
+            default: boolean;
+            name: string;
+        };
+        CmsLanguageState: {
+            code: string;
+            complete: number;
+            default: boolean;
+            incomplete: number;
+            missing: number;
+            name: string;
+            outdated: number;
+            /** @description Must be complete before a review */
+            required: boolean;
+        };
+        CmsLanguages: {
+            defaultLanguage: string;
+            fallbackToDefault: boolean;
+            languages: components["schemas"]["CmsLanguageState"][];
+            /** @description Edited in Settings → Club Policies → Content Policies */
+            policyCode: string;
+            requireApproval: boolean;
+        };
+        CmsLink: {
+            newTab?: boolean;
+            /** Format: uuid */
+            pageId?: string | null;
+            /** @description Structured website route (book_golf, membership, …) */
+            routeKey?: string;
+            /** @enum {string} */
+            type: "page" | "url" | "route";
+            url?: string;
+        };
+        CmsMedia: {
+            /** @description Alternative text per language */
+            alt: {
+                [key: string]: string;
+            };
+            caption: {
+                [key: string]: string;
+            };
+            checksum: string;
+            contentType: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            fileId: string;
+            filename: string;
+            folder?: string | null;
+            height?: number | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            propertyId: string;
+            sizeBytes: number;
+            tags: string[];
+            /** Format: date-time */
+            updatedAt: string;
+            url: string;
+            variants: components["schemas"]["CmsMediaVariant"][];
+            width?: number | null;
+        };
+        CmsMediaUpdate: {
+            alt?: {
+                [key: string]: string;
+            };
+            caption?: {
+                [key: string]: string;
+            };
+            folder?: string | null;
+            tags?: string[];
+        };
+        CmsMediaVariant: {
+            contentType: string;
+            /** Format: uuid */
+            fileId: string;
+            height: number;
+            /** @enum {string} */
+            name: "small" | "medium" | "large";
+            sizeBytes: number;
+            url: string;
+            width: number;
+        };
+        CmsMenu: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Items (tree: label per language, page / url / route link, children) */
+            items?: Record<string, never>[] | null;
+            /**
+             * @description Location
+             * @enum {string|null}
+             */
+            location?: "header" | "footer" | "mobile" | "sidebar" | "legal" | null;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CmsMenuInput: {
+            /** @description Code */
+            code?: string;
+            /** @description Items (tree: label per language, page / url / route link, children) */
+            items?: Record<string, never>[] | null;
+            /**
+             * @description Location
+             * @enum {string|null}
+             */
+            location?: "header" | "footer" | "mobile" | "sidebar" | "legal" | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        CmsOpeningHours: {
+            close?: string;
+            closed?: boolean;
+            day: string;
+            note?: string;
+            open?: string;
+        };
+        CmsPreviewInput: {
+            /** @description Validity (default and maximum: Content Policies) */
+            hours?: number;
+            language?: string;
+            /** @description Default: the latest version */
+            versionNo?: number | null;
+        };
+        CmsPreviewLink: {
+            /** @description Public API returning the rendered version */
+            apiPath: string;
+            /** Format: date-time */
+            expiresAt: string;
+            language: string;
+            token: string;
+            /** @description Website preview URL */
+            url: string;
+            versionNo: number;
+        };
+        CmsPublicBanner: {
+            buttonLabel?: string;
+            /** Format: date-time */
+            endsAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            image?: components["schemas"]["CmsPublicMedia"] | null;
+            key?: string | null;
+            language: string;
+            link?: components["schemas"]["CmsPublicLink"] | null;
+            placement: string;
+            sortOrder: number;
+            /** Format: date-time */
+            startsAt?: string | null;
+            subtitle?: string;
+            title: string;
+        };
+        CmsPublicBanners: {
+            items: components["schemas"]["CmsPublicBanner"][];
+            language: string;
+            revision: number;
+        };
+        CmsPublicBlock: {
+            config: Record<string, never>;
+            /** @description Texts of the served language (default language for missing texts) */
+            content: Record<string, never>;
+            data?: components["schemas"]["CmsDataRef"] | null;
+            embedUrl?: string;
+            form?: components["schemas"]["CmsPublicForm"] | null;
+            id: string;
+            link?: components["schemas"]["CmsPublicLink"] | null;
+            map?: Record<string, never>;
+            media?: components["schemas"]["CmsPublicMedia"][];
+            type: string;
+        };
+        CmsPublicCategory: {
+            code: string;
+            label: string;
+        };
+        CmsPublicContact: {
+            address?: string;
+            code: string;
+            email?: string;
+            latitude?: string | null;
+            longitude?: string | null;
+            mapUrl?: string;
+            name: string;
+            note?: string;
+            openingHours: components["schemas"]["CmsOpeningHours"][];
+            phones: string[];
+            primary: boolean;
+            socialLinks: {
+                [key: string]: string;
+            };
+            whatsapp?: string;
+            whatsappUrl?: string;
+        };
+        CmsPublicContacts: {
+            contacts: components["schemas"]["CmsPublicContact"][];
+            language: string;
+            revision: number;
+        };
+        CmsPublicContent: {
+            authorName?: string | null;
+            blocks: components["schemas"]["CmsPublicBlock"][];
+            breadcrumbs: components["schemas"]["CmsCrumb"][];
+            category?: components["schemas"]["CmsPublicCategory"] | null;
+            /** @description News publish date */
+            date?: string | null;
+            /** @description The requested translation is missing; the default language is served */
+            fallback: boolean;
+            /** Format: uuid */
+            id: string;
+            image?: components["schemas"]["CmsPublicMedia"] | null;
+            items?: components["schemas"]["CmsPublicItem"][];
+            key?: string | null;
+            kind: string;
+            /** @description Language served */
+            language: string;
+            path: string;
+            preview: boolean;
+            /** Format: date-time */
+            publishedAt?: string | null;
+            requestedLanguage: string;
+            revision: number;
+            seo: components["schemas"]["CmsPublicSEO"];
+            slug: string;
+            /** @description Basic schema.org JSON-LD */
+            structuredData: Record<string, never>;
+            summary?: string;
+            tags?: string[];
+            template?: string | null;
+            title: string;
+            versionNo: number;
+        };
+        CmsPublicCourseGuide: {
+            /** @description Golf course data endpoint (owner: golf) */
+            golfInfo: string;
+            holes: components["schemas"]["CmsPublicHole"][];
+            language: string;
+            revision: number;
+        };
+        CmsPublicForm: {
+            action: string;
+            fields: string[];
+            line?: string;
+            method: string;
+            topic?: string;
+        };
+        CmsPublicHole: {
+            courseCode: string;
+            /** @description Sanitised HTML */
+            description?: string;
+            holeNumber: number;
+            media: components["schemas"]["CmsPublicMedia"][];
+            /** @description Sanitised HTML */
+            tips?: string;
+            title: string;
+        };
+        CmsPublicItem: {
+            caption?: string;
+            media: components["schemas"]["CmsPublicMedia"];
+        };
+        CmsPublicLink: {
+            external: boolean;
+            href: string;
+            newTab: boolean;
+        };
+        CmsPublicList: {
+            categories?: components["schemas"]["CmsPublicCategory"][];
+            items: components["schemas"]["CmsPublicSummary"][];
+            language: string;
+            nextCursor?: string;
+            revision: number;
+        };
+        CmsPublicMedia: {
+            alt: string;
+            caption?: string;
+            height?: number | null;
+            /** Format: uuid */
+            id: string;
+            url: string;
+            variants: components["schemas"]["CmsMediaVariant"][];
+            width?: number | null;
+        };
+        CmsPublicMenu: {
+            code: string;
+            items: components["schemas"]["CmsPublicNavItem"][];
+            location: string;
+            name: string;
+        };
+        CmsPublicNavItem: {
+            children: components["schemas"]["CmsPublicNavItem"][];
+            external: boolean;
+            href: string;
+            id: string;
+            label: string;
+            newTab: boolean;
+            routeKey?: string;
+            type: string;
+        };
+        CmsPublicNavigation: {
+            language: string;
+            menus: components["schemas"]["CmsPublicMenu"][];
+            revision: number;
+        };
+        CmsPublicRedirect: {
+            from: string;
+            statusCode: number;
+            to: string;
+        };
+        CmsPublicRedirects: {
+            items: components["schemas"]["CmsPublicRedirect"][];
+            revision: number;
+        };
+        CmsPublicSEO: {
+            alternates: components["schemas"]["CmsAlternate"][];
+            canonical: string;
+            description: string;
+            noindex: boolean;
+            ogImage?: string;
+            title: string;
+        };
+        CmsPublicSite: {
+            /** Format: date-time */
+            changedAt: string;
+            defaultLanguage: string;
+            fallbackToDefault: boolean;
+            languages: components["schemas"]["CmsLanguage"][];
+            name: string;
+            propertyCode: string;
+            /** Format: uuid */
+            propertyId: string;
+            /** @description Changes with every publication; revalidate cached pages when it changes */
+            revision: number;
+            websiteUrl: string;
+        };
+        CmsPublicSummary: {
+            category?: components["schemas"]["CmsPublicCategory"] | null;
+            date?: string | null;
+            featured: boolean;
+            /** Format: uuid */
+            id: string;
+            image?: components["schemas"]["CmsPublicMedia"] | null;
+            imageCount?: number;
+            key?: string | null;
+            kind: string;
+            language: string;
+            /** Format: uuid */
+            parentId?: string | null;
+            path: string;
+            /** @description Path per language */
+            paths: {
+                [key: string]: string;
+            };
+            /** Format: date-time */
+            publishedAt?: string | null;
+            slug: string;
+            summary?: string;
+            tags?: string[];
+            template?: string | null;
+            title: string;
+        };
+        CmsPublishEvent: {
+            action: string;
+            actorName?: string | null;
+            /** Format: date-time */
+            at: string;
+            /** Format: uuid */
+            contentId: string;
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            note?: string | null;
+            title: string;
+            versionNo?: number | null;
+        };
+        CmsPublishInput: {
+            note?: string;
+            /**
+             * Format: date-time
+             * @description Go live later (status Scheduled)
+             */
+            publishAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Take down automatically
+             */
+            unpublishAt?: string | null;
+        };
+        CmsReasonInput: {
+            reason?: string;
+        };
+        CmsRedirect: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Old URL (path) */
+            fromPath: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Note */
+            note?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Source
+             * @enum {string|null}
+             */
+            source?: "manual" | "auto" | "import" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: int64
+             * @description Redirect Type
+             * @enum {integer|null}
+             */
+            statusCode?: 301 | 302 | 307 | 308 | null;
+            /** @description New URL (path or https:// address) */
+            toPath: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CmsRedirectInput: {
+            /** @description Old URL (path) */
+            fromPath?: string;
+            /** @description Note */
+            note?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * Format: int64
+             * @description Redirect Type
+             * @enum {integer|null}
+             */
+            statusCode?: 301 | 302 | 307 | 308 | null;
+            /** @description New URL (path or https:// address) */
+            toPath?: string;
+        };
+        CmsRevision: {
+            revision: number;
+        };
+        CmsRobots: {
+            allowIndexing: boolean;
+            disallow: string[];
+            sitemap: string;
+            /** @description robots.txt content */
+            text: string;
+        };
+        CmsSEO: {
+            /** @description Absolute URL or /path; default: the page URL */
+            canonicalUrl?: string;
+            metaDescription?: string;
+            metaTitle?: string;
+            noindex?: boolean;
+            /**
+             * Format: uuid
+             * @description Open Graph image (media library)
+             */
+            ogImageId?: string | null;
+        };
+        CmsScheduleEntry: {
+            /** @enum {string} */
+            action: "publish" | "unpublish";
+            /** Format: date-time */
+            at: string;
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            overdue: boolean;
+            title: string;
+            version?: number | null;
+        };
+        CmsScheduleInput: {
+            /** Format: date-time */
+            publishAt?: string | null;
+            /** Format: date-time */
+            unpublishAt?: string | null;
+        };
+        CmsSettings: {
+            /** @description News author */
+            authorName?: string | null;
+            /**
+             * Format: uuid
+             * @description News category
+             */
+            categoryId?: string | null;
+            /** @description Settings to clear: key, template, parentId, categoryId, authorName, displayDate, placement, pageIds, link, tags, publishAt, unpublishAt */
+            clear?: string[];
+            /** @description News publish date shown on the website (YYYY-MM-DD; default: first publication) */
+            displayDate?: string | null;
+            featured?: boolean | null;
+            /** @description Page key (home, golf, …) or banner code; unique per type */
+            key?: string | null;
+            link?: components["schemas"]["CmsLink"] | null;
+            /** @description Banner target pages (empty: every page showing the placement) */
+            pageIds?: string[];
+            /**
+             * Format: uuid
+             * @description Parent page (hierarchy, breadcrumbs)
+             */
+            parentId?: string | null;
+            /** @description Banner placement */
+            placement?: string | null;
+            /**
+             * Format: date-time
+             * @description Go live at (after approval); banners: start of the display period
+             */
+            publishAt?: string | null;
+            showInSitemap?: boolean | null;
+            sortOrder?: number | null;
+            /** @description News tags */
+            tags?: string[];
+            /** @description Page template */
+            template?: string | null;
+            /**
+             * Format: date-time
+             * @description Take down at; banners: end of the display period
+             */
+            unpublishAt?: string | null;
+        };
+        CmsSitemap: {
+            entries: components["schemas"]["CmsSitemapEntry"][];
+            revision: number;
+        };
+        CmsSitemapEntry: {
+            alternates: components["schemas"]["CmsAlternate"][];
+            changefreq: string;
+            language: string;
+            /** Format: date-time */
+            lastmod: string;
+            loc: string;
+            path: string;
+            priority: string;
+        };
+        CmsSubmitInput: {
+            note?: string;
+        };
+        CmsTranslation: {
+            /** @description Alternative text of the image (default: the media library alt text) */
+            alt?: string;
+            /** @description Banner button label */
+            buttonLabel?: string;
+            /**
+             * Format: uuid
+             * @description Banner image, news featured image or album cover for this language
+             */
+            mediaId?: string | null;
+            seo?: components["schemas"]["CmsSEO"] | null;
+            /** @description URL slug per language (pages, news, albums); generated from the title when empty */
+            slug?: string;
+            /** @description Page summary, news excerpt, banner subtitle or album description */
+            summary?: string;
+            title: string;
+        };
+        CmsTranslationRow: {
+            /** Format: uuid */
+            id: string;
+            key?: string | null;
+            kind: string;
+            live: boolean;
+            status: string;
+            title: string;
+            translations: {
+                [key: string]: components["schemas"]["CmsTranslationState"];
+            };
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CmsTranslationState: {
+            /** @description Website path of this language */
+            path?: string;
+            slug?: string;
+            /** @enum {string} */
+            status: "missing" | "incomplete" | "complete" | "outdated";
+            title?: string;
+        };
+        CmsUsage: {
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            live: boolean;
+            status: string;
+            title: string;
+        };
+        CmsVersion: {
+            /** Format: date-time */
+            approvedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            createdByName?: string | null;
+            /** @description Version in which each language last changed */
+            languageRevisions: {
+                [key: string]: number;
+            };
+            note?: string | null;
+            /**
+             * Format: date-time
+             * @description First time this version went live
+             */
+            publishedAt?: string | null;
+            restoredFrom?: number | null;
+            /** @enum {string|null} */
+            reviewStatus?: "in_review" | "approved" | "rejected" | "withdrawn" | null;
+            /** @enum {string} */
+            source: "create" | "edit" | "restore" | "rollback" | "import";
+            versionNo: number;
+        };
+        CmsVersionDetail: {
+            /** Format: date-time */
+            approvedAt?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            createdByName?: string | null;
+            document: components["schemas"]["CmsDocument"];
+            /** @description Version in which each language last changed */
+            languageRevisions: {
+                [key: string]: number;
+            };
+            note?: string | null;
+            /**
+             * Format: date-time
+             * @description First time this version went live
+             */
+            publishedAt?: string | null;
+            restoredFrom?: number | null;
+            /** @enum {string|null} */
+            reviewStatus?: "in_review" | "approved" | "rejected" | "withdrawn" | null;
+            /** @enum {string} */
+            source: "create" | "edit" | "restore" | "rollback" | "import";
+            versionNo: number;
+        };
+        CmsVersionInput: {
+            reason?: string;
+            versionNo: number;
+        };
         Column: {
             key: string;
             label: string;
@@ -17413,6 +20278,16 @@ export interface components {
             name: string;
             rounds: number;
         };
+        DNSRecordCheck: {
+            message: string;
+            /** @description DNS name queried */
+            name: string;
+            /** @enum {string} */
+            record: "spf" | "dkim" | "dmarc";
+            /** @enum {string} */
+            status: "pass" | "warning" | "missing" | "invalid";
+            value?: string;
+        };
         DailyRevenue: {
             businessDate: string;
             charges: string;
@@ -17927,6 +20802,23 @@ export interface components {
             checkedAt: string;
             checks: components["schemas"]["Check"][];
             eligible: boolean;
+        };
+        EmailDomainCheckInput: {
+            /** @description DKIM selectors (default: settings dkimSelectors, or s1,s2 for SendGrid) */
+            dkimSelectors?: string[];
+            /** @description Sender domain (default: the domain of the from address) */
+            domain?: string;
+            /** @description Mechanism the SPF record must include (default: settings spfInclude) */
+            spfInclude?: string;
+        };
+        EmailDomainReport: {
+            /** Format: date-time */
+            checkedAt: string;
+            checks: components["schemas"]["DNSRecordCheck"][];
+            domain: string;
+            integrationCode: string;
+            /** @description SPF, every DKIM selector and DMARC pass (warnings allowed) */
+            ok: boolean;
         };
         EmailLeadInput: {
             /** @description Sender address */
@@ -18624,6 +21516,41 @@ export interface components {
             value: string;
             weightedValue: string;
         };
+        GatewayPaymentRoute: {
+            /** @description null: no enabled payment integration serves this method */
+            integrationCode?: string | null;
+            /** @enum {string} */
+            method: "qris" | "virtual_account" | "card";
+            propertyCode: string;
+            /** Format: uuid */
+            propertyId: string;
+        };
+        GatewaySettlementDetail: {
+            amount: string;
+            /** @description e.g. QRIS, BCA, MANDIRI, CREDIT_CARD */
+            channel: string;
+            externalId: string;
+            fee: string;
+            /** @enum {string} */
+            method: "qris" | "virtual_account" | "card" | "ewallet" | "other";
+            net: string;
+            /** @description OneClub payment number */
+            reference: string;
+            /** Format: date-time */
+            settledAt?: string | null;
+            /** @enum {string} */
+            status: "settled" | "pending" | "failed";
+        };
+        GatewaySettlementTotal: {
+            count: number;
+            failed: number;
+            fees: string;
+            gross: string;
+            method: string;
+            net: string;
+            pending: number;
+            settled: number;
+        };
         GenerateInput: {
             /** @description YYYY-MM */
             period: string;
@@ -19103,6 +22030,37 @@ export interface components {
         };
         HandoverInput: {
             deviceId: string;
+        };
+        HardwareCommandSpec: {
+            command: string;
+            description: string;
+            params: components["schemas"]["HardwareParam"][];
+            /** @description Fields the agent reports back */
+            result: string[];
+            /** @description Command expires when the agent has not picked it up */
+            ttlSeconds: number;
+        };
+        HardwareParam: {
+            enum?: string[];
+            key: string;
+            /** @description Maximum value (int) or length (string, list) */
+            max?: number;
+            required: boolean;
+            /** @enum {string} */
+            type: "string" | "int" | "bool" | "list";
+        };
+        HardwareProfile: {
+            commands: components["schemas"]["HardwareCommandSpec"][];
+            description: string;
+            kind: string;
+            name: string;
+            /** @enum {string} */
+            status: "available" | "deferred";
+            /** @description Vendor examples (open question #14) */
+            vendors: string;
+        };
+        HardwareProfilesView: {
+            profiles: components["schemas"]["HardwareProfile"][];
         };
         HeartbeatRequest: {
             agentVersion: string;
@@ -22732,11 +25690,24 @@ export interface components {
             /** @description EDC approval / transfer reference */
             reference?: string;
         };
+        PaymentRoutesView: {
+            methods: string[];
+            routes: components["schemas"]["GatewayPaymentRoute"][];
+        };
         PaymentRow: {
             amount: string;
             count: number;
             methodType: string;
             purpose: string;
+        };
+        PaymentSettlementSummary: {
+            currency: string;
+            from: string;
+            integrationCode: string;
+            items?: components["schemas"]["GatewaySettlementDetail"][];
+            methods: components["schemas"]["GatewaySettlementTotal"][];
+            to: string;
+            total: components["schemas"]["GatewaySettlementTotal"];
         };
         PaymentTerm: {
             amount: string;
@@ -33531,6 +36502,5992 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HeartbeatResponse"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsArticles: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search title / key */
+                q?: string;
+                /** @description draft,in_review,scheduled,published,unpublished */
+                "filter[status]"?: string;
+                "filter[live]"?: boolean;
+                includeArchived?: boolean;
+                "filter[categoryId]"?: string;
+                "filter[tag]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsContent"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsArticles: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsContentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsArticlesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCmsArticlesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCmsArticlesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsSettings"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putCmsArticlesByIdContent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsContentSave"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsArticlesByIdVersions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsVersion"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsArticlesByIdVersionsByNo: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                no: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsVersionDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsArticlesByIdPreviewLink: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsPreviewInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPreviewLink"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsArticlesByIdPublish: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsPublishInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsArticlesByIdRestore: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsVersionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsArticlesByIdRollback: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsVersionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsArticlesByIdSchedule: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsScheduleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsArticlesByIdSubmit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsSubmitInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsArticlesByIdUnpublish: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsArticlesByIdWithdraw: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsBanners: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search title / key */
+                q?: string;
+                /** @description draft,in_review,scheduled,published,unpublished */
+                "filter[status]"?: string;
+                "filter[live]"?: boolean;
+                includeArchived?: boolean;
+                "filter[placement]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsContent"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsBanners: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsContentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsBannersById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCmsBannersById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCmsBannersById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsSettings"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putCmsBannersByIdContent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsContentSave"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsBannersByIdVersions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsVersion"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsBannersByIdVersionsByNo: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                no: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsVersionDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsBannersByIdPreviewLink: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsPreviewInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPreviewLink"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsBannersByIdPublish: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsPublishInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsBannersByIdRestore: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsVersionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsBannersByIdRollback: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsVersionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsBannersByIdSchedule: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsScheduleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsBannersByIdSubmit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsSubmitInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsBannersByIdUnpublish: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsBannersByIdWithdraw: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsCategories: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsCategory"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsCategories: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCmsCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCmsCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsCategoriesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsContacts: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsContact"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsContacts: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsContactInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContact"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsContactsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContact"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCmsContactsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCmsContactsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsContactInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContact"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsContactsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsCourseGuides: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[courseCode]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsCourseGuideHole"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsCourseGuides: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsCourseGuideHoleInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsCourseGuideHole"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsCourseGuidesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsCourseGuideHole"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCmsCourseGuidesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCmsCourseGuidesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsCourseGuideHoleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsCourseGuideHole"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsCourseGuidesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[courseCode]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsDataSources: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsDataSourceUsage"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsDataSourcesValidate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsDataBlockCheck"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsDataRef"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsGalleries: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search title / key */
+                q?: string;
+                /** @description draft,in_review,scheduled,published,unpublished */
+                "filter[status]"?: string;
+                "filter[live]"?: boolean;
+                includeArchived?: boolean;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsContent"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsGalleries: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsContentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsGalleriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCmsGalleriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCmsGalleriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsSettings"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putCmsGalleriesByIdContent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsContentSave"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsGalleriesByIdVersions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsVersion"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsGalleriesByIdVersionsByNo: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                no: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsVersionDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsGalleriesByIdPreviewLink: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsPreviewInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPreviewLink"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsGalleriesByIdPublish: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsPublishInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsGalleriesByIdRestore: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsVersionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsGalleriesByIdRollback: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsVersionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsGalleriesByIdSchedule: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsScheduleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsGalleriesByIdSubmit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsSubmitInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsGalleriesByIdUnpublish: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsGalleriesByIdWithdraw: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsImports: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsImportRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsImportResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsLanguages: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsLanguages"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsMedia: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+                "filter[folder]"?: string;
+                "filter[tag]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsMedia"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsMedia: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsMedia"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsMediaById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsMedia"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCmsMediaById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCmsMediaById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsMediaUpdate"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsMedia"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsMenus: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[location]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsMenu"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsMenus: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsMenuInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsMenu"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsMenusById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsMenu"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCmsMenusById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCmsMenusById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsMenuInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsMenu"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsMenusExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[location]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsPages: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search title / key */
+                q?: string;
+                /** @description draft,in_review,scheduled,published,unpublished */
+                "filter[status]"?: string;
+                "filter[live]"?: boolean;
+                includeArchived?: boolean;
+                "filter[template]"?: string;
+                "filter[parentId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsContent"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsPages: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsContentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsPagesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCmsPagesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCmsPagesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsSettings"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putCmsPagesByIdContent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsContentSave"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsPagesByIdVersions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsVersion"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsPagesByIdVersionsByNo: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                no: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsVersionDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsPagesByIdPreviewLink: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsPreviewInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPreviewLink"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsPagesByIdPublish: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsPublishInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsPagesByIdRestore: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsVersionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsPagesByIdRollback: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsVersionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsPagesByIdSchedule: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsScheduleInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsPagesByIdSubmit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsSubmitInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsPagesByIdUnpublish: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsPagesByIdWithdraw: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsReasonInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsContentDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsPublishingLog: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[contentId]"?: string;
+                "filter[action]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsPublishEvent"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsRedirects: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[source]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsRedirect"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsRedirects: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsRedirectInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsRedirect"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsRedirectsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsRedirect"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCmsRedirectsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCmsRedirectsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CmsRedirectInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsRedirect"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsRedirectsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[source]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsSchedule: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsScheduleEntry"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCmsSiteRevalidate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsRevision"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCmsTranslationStatus: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[kind]"?: string;
+                "filter[language]"?: string;
+                /** @description missing,incomplete,complete,outdated */
+                "filter[translation]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CmsTranslationRow"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
                 };
             };
             /** @description Problem Details (RFC 9457) */
@@ -76046,6 +85003,53 @@ export interface operations {
             };
         };
     };
+    getPlatformHardwareProfiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HardwareProfilesView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getPlatformImports: {
         parameters: {
             query?: {
@@ -76596,6 +85600,115 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Integration"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPlatformIntegrationsByIdSettlement: {
+        parameters: {
+            query?: {
+                /** @description YYYY-MM-DD (default: yesterday) */
+                from?: string;
+                /** @description YYYY-MM-DD inclusive (default: from) */
+                to?: string;
+                /** @description Include the transactions */
+                items?: boolean;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentSettlementSummary"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPlatformIntegrationsByIdCheckEmailDomain: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailDomainCheckInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmailDomainReport"];
                 };
             };
             /** @description Not authenticated */
@@ -77700,6 +86813,53 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Organization"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPlatformPaymentRoutes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaymentRoutesView"];
                 };
             };
             /** @description Not authenticated */
@@ -80047,6 +89207,586 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SportclubPublicBooking"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsBanners: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+                /** @description Language (default: the default language; missing translations fall back to it) */
+                lang?: string;
+                placement?: string;
+                /** @description Page key, slug or id */
+                page?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicBanners"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsContact: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+                /** @description Language (default: the default language; missing translations fall back to it) */
+                lang?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicContacts"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsCourseGuide: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+                /** @description Language (default: the default language; missing translations fall back to it) */
+                lang?: string;
+                /** @description Course code */
+                course?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicCourseGuide"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsGallery: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+                /** @description Language (default: the default language; missing translations fall back to it) */
+                lang?: string;
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicList"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsGalleryBySlug: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+                /** @description Language (default: the default language; missing translations fall back to it) */
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicContent"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsNavigation: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+                /** @description Language (default: the default language; missing translations fall back to it) */
+                lang?: string;
+                location?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicNavigation"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsNews: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+                /** @description Language (default: the default language; missing translations fall back to it) */
+                lang?: string;
+                category?: string;
+                tag?: string;
+                featured?: boolean;
+                limit?: number;
+                cursor?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicList"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsNewsBySlug: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+                /** @description Language (default: the default language; missing translations fall back to it) */
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicContent"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsPages: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+                /** @description Language (default: the default language; missing translations fall back to it) */
+                lang?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicList"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsPagesBySlug: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+                /** @description Language (default: the default language; missing translations fall back to it) */
+                lang?: string;
+            };
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicContent"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsPreviewByToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicContent"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsRedirects: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicRedirects"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsRobots: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsRobots"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsSite: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsPublicSite"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsSitemap: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CmsSitemap"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicCmsSitemapXml: {
+        parameters: {
+            query?: {
+                /** @description Property id (default: the main property) */
+                propertyId?: string;
+                /** @description Property code (alternative to propertyId) */
+                property?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/xml": string;
                 };
             };
             /** @description Problem Details (RFC 9457) */

@@ -1,3 +1,7 @@
+import type { Metadata } from 'next';
+import { getPage } from '../../components/cms/api';
+import { Blocks } from '../../components/cms/blocks';
+import { cmsMetadata } from '../../components/cms/content';
 import { copy, getBootstrap, type Lang } from '../lib';
 
 const SECTIONS: [string, string, string | null][] = [
@@ -7,11 +11,17 @@ const SECTIONS: [string, string, string | null][] = [
   ['Events', 'banquet', null],
 ];
 
-/** Home placeholder (PRD EP-12): branding-driven hero, ID/EN. */
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  return cmsMetadata(await getPage('home', lang));
+}
+
+/** Home (PRD EP-12): branding-driven hero, ID/EN, then the blocks of the CMS home page (PRD P4 EP-24). */
 export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
   const { lang } = await params;
   const t = copy[lang as Lang];
   const b = await getBootstrap();
+  const home = await getPage('home', lang);
   const photo = b.branding.loginImageUrl;
   return (
     <>
@@ -26,6 +36,7 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
           <a className="w-btn w-btn-ghost" href={`/${lang}/golf`}>Golf Course</a>
         </div>
       </section>
+      {home && home.blocks.length > 0 && <Blocks blocks={home.blocks} lang={lang} />}
       <div className="w-grid">
         {SECTIONS.filter(([, m]) => b.enabledModules.includes(m)).map(([label, , page]) =>
           page ? (

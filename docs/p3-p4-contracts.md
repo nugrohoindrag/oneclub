@@ -162,11 +162,19 @@ Quantities are signed (in > 0, out < 0) in base UOM; cost uses the valuation met
 ### `accounting.journal_posted`
 `{ journalId, number, journalDate, sourceType, sourceId, total, currency }`
 
+### `cms.page_published`, `cms.article_published`, `cms.banner_published`, `cms.gallery_published` (and `cms.<kind>_unpublished`), `cms.site_changed`
+Published by `cms` (EP-24) when content goes live / comes down (also by the scheduler) and when website master data changes
+(navigation, contact, redirects, images, cache purge). Consumed by `internal/app` → website integration (on-demand revalidation, FR-CMS-10).
+`{ propertyId, revision, paths: ["/id/golf", "/en/golf"], contentId?, kind?, key?, title?, versionNo?, action: published|unpublished|changed }`
+(`paths` empty = the whole site; `revision` is also served by `GET /api/v1/public/cms/site` as the website cache key).
+
 ## Read models and public APIs
 
 | Contract | Provider | Shape |
 |---|---|---|
 | K5 public data for CMS blocks | commercial, banquet, golf/tournament, golf, stay | `GET /api/v1/public/promotions`, `/public/packages`, `/public/packages/{code}`, `/public/events`, `/public/events/{id}`, `/public/tournaments`, `/public/tournaments/{id}`, `/public/tournaments/{id}/leaderboard`, `/public/rates/{line}`, `/public/hall-of-fame` |
 | K9 stock availability | inventory | view `reporting.stock_availability (property_id, warehouse_id, item_id, product_id, on_hand, available, below_reorder)` |
+| K5 consumer | cms | CMS data blocks store only `{source, filter, limit}`; `GET /api/v1/public/cms/pages/{slug}` returns per block `data: {source, owner, endpoint, query, url}` and the website reads the owner's endpoint above (a 404 / missing endpoint renders an empty block). Golf rates: `/api/v1/public/golf/rates?property=<code>`; other lines `/api/v1/public/rates/{line}?propertyId=` |
+| e-Faktur transport (FR-INT-P4-02) | platform/integration | `(*integration.Service).TaxInvoices(ctx) (integration.TaxInvoiceService, code, error)`: `SubmitInvoice`, `InvoiceStatus`, `CancelInvoice`, `UploadBatch(TaxInvoiceBatch{BatchRef, Period, Format: coretax_xml\|efaktur_csv, Filename, Content, InvoiceCount})`, `BatchStatus`; `ErrNotConfigured` → manual upload of the export file |
 | K10 period status | accounting | root function `accounting.PeriodStatus(ctx, q, property, date) (string, error)` and `accounting.period_closed` |
 | Recipe explosion (K1/K6) | inventory | root function `inventory.ExplodeRecipe(ctx, q, recipeID, units) ([]inventory.Requirement, error)` |
