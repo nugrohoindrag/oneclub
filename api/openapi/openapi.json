@@ -4643,7 +4643,8 @@
           "usageType": {
             "enum": [
               "rental",
-              "operation"
+              "operation",
+              "golf_cart"
             ],
             "type": "string"
           }
@@ -42987,6 +42988,11 @@
       },
       "MenuItem": {
         "properties": {
+          "available": {
+            "description": "Available quantity at the outlet (stock-tracked items)",
+            "nullable": true,
+            "type": "string"
+          },
           "category": {
             "nullable": true,
             "type": "string"
@@ -43014,6 +43020,14 @@
           },
           "productType": {
             "type": "string"
+          },
+          "soldOut": {
+            "description": "No available stock at the outlet (POS Policies markSoldOut)",
+            "type": "boolean"
+          },
+          "stockTracked": {
+            "description": "The item is stocked in a warehouse of the outlet (inventory)",
+            "type": "boolean"
           }
         },
         "required": [
@@ -43021,7 +43035,9 @@
           "code",
           "name",
           "productType",
-          "price"
+          "price",
+          "stockTracked",
+          "soldOut"
         ],
         "type": "object"
       },
@@ -49692,7 +49708,8 @@
               "no_posting_exceptions",
               "bank_reconciled",
               "ap_matched",
-              "opname_posted"
+              "opname_posted",
+              "inventory_reconciled"
             ],
             "type": "string"
           },
@@ -78619,6 +78636,19 @@
             "nullable": true,
             "type": "string"
           },
+          "landedCost": {
+            "enum": [
+              "value",
+              "quantity"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "landedGoodsReceiptId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
           "lineNo": {
             "type": "integer"
           },
@@ -78696,6 +78726,20 @@
             "type": "string"
           },
           "itemId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "landedCost": {
+            "description": "Landed cost line allocated to the received goods by value or base quantity (no order line, receipt line or item)",
+            "enum": [
+              "value",
+              "quantity"
+            ],
+            "type": "string"
+          },
+          "landedGoodsReceiptId": {
+            "description": "Goods receipt of the landed cost (default: the receipts of the invoice's other lines)",
             "format": "uuid",
             "nullable": true,
             "type": "string"
@@ -238006,6 +238050,80 @@
         "x-permission": "procurement.debit_note.view"
       }
     },
+    "/api/v1/procurement/delivery-note-files": {
+      "post": {
+        "operationId": "postProcurementDeliveryNoteFiles",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/File"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Upload a delivery note photo or document (multipart: file; JPEG, PNG, WebP or PDF up to 10 MB) for attachmentFileIds of a goods receipt",
+        "tags": [
+          "Goods Receipts"
+        ],
+        "x-audited": true,
+        "x-module": "procurement",
+        "x-permission": "procurement.goods_receipt.create"
+      }
+    },
     "/api/v1/procurement/goods-receipts": {
       "get": {
         "operationId": "getProcurementGoodsReceipts",
@@ -238322,6 +238440,96 @@
           }
         ],
         "summary": "Goods receipt with lines",
+        "tags": [
+          "Goods Receipts"
+        ],
+        "x-module": "procurement",
+        "x-permission": "procurement.goods_receipt.view"
+      }
+    },
+    "/api/v1/procurement/goods-receipts/{id}/attachments/{fileId}": {
+      "get": {
+        "operationId": "getProcurementGoodsReceiptsByIdAttachmentsByFileId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "fileId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Download a delivery note photo / document of a goods receipt",
         "tags": [
           "Goods Receipts"
         ],

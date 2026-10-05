@@ -20907,6 +20907,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/procurement/delivery-note-files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload a delivery note photo or document (multipart: file; JPEG, PNG, WebP or PDF up to 10 MB) for attachmentFileIds of a goods receipt */
+        post: operations["postProcurementDeliveryNoteFiles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/procurement/goods-receipts": {
         parameters: {
             query?: never;
@@ -20934,6 +20951,23 @@ export interface paths {
         };
         /** Goods receipt with lines */
         get: operations["getProcurementGoodsReceiptsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/procurement/goods-receipts/{id}/attachments/{fileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a delivery note photo / document of a goods receipt */
+        get: operations["getProcurementGoodsReceiptsByIdAttachmentsByFileId"];
         put?: never;
         post?: never;
         delete?: never;
@@ -26584,7 +26618,7 @@ export interface components {
             /** Format: date-time */
             startedAt: string;
             /** @enum {string} */
-            usageType: "rental" | "operation";
+            usageType: "rental" | "operation" | "golf_cart";
         };
         AssetUsageInput: {
             /** @description Operating hours */
@@ -40454,6 +40488,8 @@ export interface components {
             selected: number;
         };
         MenuItem: {
+            /** @description Available quantity at the outlet (stock-tracked items) */
+            available?: string | null;
             category?: string | null;
             code: string;
             kitchenStation?: string | null;
@@ -40463,6 +40499,10 @@ export interface components {
             /** Format: uuid */
             productId: string;
             productType: string;
+            /** @description No available stock at the outlet (POS Policies markSoldOut) */
+            soldOut: boolean;
+            /** @description The item is stocked in a warehouse of the outlet (inventory) */
+            stockTracked: boolean;
         };
         MenuSelectionInput: {
             itemIds: string[];
@@ -42597,7 +42637,7 @@ export interface components {
             /** @description Blocks the close (Accounting Policies → period closing checklist) */
             blocking: boolean;
             /** @enum {string} */
-            code: "business_days_closed" | "no_posting_exceptions" | "bank_reconciled" | "ap_matched" | "opname_posted";
+            code: "business_days_closed" | "no_posting_exceptions" | "bank_reconciled" | "ap_matched" | "opname_posted" | "inventory_reconciled";
             detail: string;
             label: string;
             ok: boolean;
@@ -52317,6 +52357,10 @@ export interface components {
             itemCode?: string | null;
             /** Format: uuid */
             itemId?: string | null;
+            /** @enum {string|null} */
+            landedCost?: "value" | "quantity" | null;
+            /** Format: uuid */
+            landedGoodsReceiptId?: string | null;
             lineNo: number;
             lineSubtotal: string;
             lineTotal: string;
@@ -52338,6 +52382,16 @@ export interface components {
             goodsReceiptLineId?: string | null;
             /** Format: uuid */
             itemId?: string | null;
+            /**
+             * @description Landed cost line allocated to the received goods by value or base quantity (no order line, receipt line or item)
+             * @enum {string}
+             */
+            landedCost?: "value" | "quantity";
+            /**
+             * Format: uuid
+             * @description Goods receipt of the landed cost (default: the receipts of the invoice's other lines)
+             */
+            landedGoodsReceiptId?: string | null;
             /** Format: uuid */
             purchaseOrderLineId?: string | null;
             quantity: string;
@@ -144617,6 +144671,56 @@ export interface operations {
             };
         };
     };
+    postProcurementDeliveryNoteFiles: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["File"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getProcurementGoodsReceipts: {
         parameters: {
             query?: {
@@ -144759,6 +144863,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PurchaseGoodsReceipt"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getProcurementGoodsReceiptsByIdAttachmentsByFileId: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
                 };
             };
             /** @description Not authenticated */
