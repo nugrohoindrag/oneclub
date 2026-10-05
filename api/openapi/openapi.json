@@ -20585,6 +20585,10 @@
       },
       "ContactInput": {
         "properties": {
+          "consent": {
+            "description": "Marketing consent (UU PDP): ticked by the visitor, never pre-checked",
+            "type": "boolean"
+          },
           "guest": {
             "$ref": "#/components/schemas/PublicGuest"
           },
@@ -20596,7 +20600,7 @@
             "type": "string"
           },
           "topic": {
-            "description": "e.g. membership, bungalow, meeting, other",
+            "description": "e.g. membership, bungalow, meeting, tournament, corporate golf, other",
             "type": "string"
           }
         },
@@ -54261,6 +54265,117 @@
           "status",
           "amount",
           "methodType"
+        ],
+        "type": "object"
+      },
+      "PublicPaymentSchedule": {
+        "properties": {
+          "currency": {
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/PublicPaymentScheduleLine"
+            },
+            "type": "array"
+          },
+          "nextLineId": {
+            "description": "First line still to pay (the DP first)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paidAmount": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "completed",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "token": {
+            "description": "Payment link token (website /payment/{token})",
+            "type": "string"
+          },
+          "totalAmount": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "number",
+          "title",
+          "currency",
+          "totalAmount",
+          "paidAmount",
+          "status",
+          "lines"
+        ],
+        "type": "object"
+      },
+      "PublicPaymentScheduleLine": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "down_payment",
+              "installment",
+              "final"
+            ],
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "paidAmount": {
+            "type": "string"
+          },
+          "payable": {
+            "description": "Can be paid online now",
+            "type": "boolean"
+          },
+          "seq": {
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "partially_paid",
+              "paid",
+              "overdue",
+              "cancelled"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "seq",
+          "label",
+          "kind",
+          "dueDate",
+          "amount",
+          "paidAmount",
+          "status",
+          "payable"
         ],
         "type": "object"
       },
@@ -216192,6 +216307,96 @@
         "x-permission": "platform.member_portal.access"
       }
     },
+    "/api/v1/member/payment-schedules/{id}/lines/{lineId}:pay-online": {
+      "post": {
+        "operationId": "postMemberPaymentSchedulesByIdLinesByLineIdPayOnline",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "lineId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicPayInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Pay a DP / termin of my payment schedule online (QRIS, VA, card)",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-audited": true,
+        "x-module": "billing",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
     "/api/v1/member/payments": {
       "get": {
         "operationId": "getMemberPayments",
@@ -248771,6 +248976,111 @@
         "x-module": "commercial"
       }
     },
+    "/api/v1/public/payment-schedules/{token}": {
+      "get": {
+        "operationId": "getPublicPaymentSchedulesByToken",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPaymentSchedule"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Payment schedule behind its payment link (DP, termin)",
+        "tags": [
+          "Public Website"
+        ],
+        "x-module": "billing"
+      }
+    },
+    "/api/v1/public/payment-schedules/{token}/lines/{lineId}:pay": {
+      "post": {
+        "operationId": "postPublicPaymentSchedulesByTokenLinesByLineIdPay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "lineId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicPayInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Payment"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Pay a DP / termin from the payment link (gateway checkout)",
+        "tags": [
+          "Public Website"
+        ],
+        "x-audited": true,
+        "x-module": "billing"
+      }
+    },
     "/api/v1/public/procurement/purchase-orders/{token}/pdf": {
       "get": {
         "operationId": "getPublicProcurementPurchaseOrdersByTokenPdf",
@@ -249077,6 +249387,49 @@
           "Public Website"
         ],
         "x-module": "crm"
+      }
+    },
+    "/api/v1/public/quotations/{token}/payment-schedule": {
+      "get": {
+        "operationId": "getPublicQuotationsByTokenPaymentSchedule",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicPaymentSchedule"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Payment schedule of an accepted quotation (DP payment step)",
+        "tags": [
+          "Public Website"
+        ],
+        "x-module": "billing"
       }
     },
     "/api/v1/public/quotations/{token}:accept": {

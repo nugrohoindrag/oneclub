@@ -17817,6 +17817,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/payment-schedules/{id}/lines/{lineId}:pay-online": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pay a DP / termin of my payment schedule online (QRIS, VA, card) */
+        post: operations["postMemberPaymentSchedulesByIdLinesByLineIdPayOnline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/payments": {
         parameters: {
             query?: never;
@@ -22793,6 +22810,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/payment-schedules/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payment schedule behind its payment link (DP, termin) */
+        get: operations["getPublicPaymentSchedulesByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/payment-schedules/{token}/lines/{lineId}:pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pay a DP / termin from the payment link (gateway checkout) */
+        post: operations["postPublicPaymentSchedulesByTokenLinesByLineIdPay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/procurement/purchase-orders/{token}/pdf": {
         parameters: {
             query?: never;
@@ -22887,6 +22938,23 @@ export interface paths {
         };
         /** Quotation behind its secure link */
         get: operations["getPublicQuotationsByToken"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/quotations/{token}/payment-schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payment schedule of an accepted quotation (DP payment step) */
+        get: operations["getPublicQuotationsByTokenPaymentSchedule"];
         put?: never;
         post?: never;
         delete?: never;
@@ -32062,11 +32130,13 @@ export interface components {
             warehouseId: string;
         };
         ContactInput: {
+            /** @description Marketing consent (UU PDP): ticked by the visitor, never pre-checked */
+            consent?: boolean;
             guest: components["schemas"]["PublicGuest"];
             message: string;
             /** Format: uuid */
             propertyId: string;
-            /** @description e.g. membership, bungalow, meeting, other */
+            /** @description e.g. membership, bungalow, meeting, tournament, corporate golf, other */
             topic: string;
         };
         ContactResult: {
@@ -43802,6 +43872,38 @@ export interface components {
             qrString?: string | null;
             status: string;
             vaNumber?: string | null;
+        };
+        PublicPaymentSchedule: {
+            currency: string;
+            lines: components["schemas"]["PublicPaymentScheduleLine"][];
+            /**
+             * Format: uuid
+             * @description First line still to pay (the DP first)
+             */
+            nextLineId?: string | null;
+            number: string;
+            paidAmount: string;
+            /** @enum {string} */
+            status: "active" | "completed" | "cancelled";
+            title: string;
+            /** @description Payment link token (website /payment/{token}) */
+            token: string;
+            totalAmount: string;
+        };
+        PublicPaymentScheduleLine: {
+            amount: string;
+            dueDate: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "down_payment" | "installment" | "final";
+            label: string;
+            paidAmount: string;
+            /** @description Can be paid online now */
+            payable: boolean;
+            seq: number;
+            /** @enum {string} */
+            status: "pending" | "partially_paid" | "paid" | "overdue" | "cancelled";
         };
         PublicPlayer: {
             name: string;
@@ -131311,6 +131413,60 @@ export interface operations {
             };
         };
     };
+    postMemberPaymentSchedulesByIdLinesByLineIdPayOnline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                lineId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicPayInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Payment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getMemberPayments: {
         parameters: {
             query?: {
@@ -150851,6 +151007,73 @@ export interface operations {
             };
         };
     };
+    getPublicPaymentSchedulesByToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicPaymentSchedule"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicPaymentSchedulesByTokenLinesByLineIdPay: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+                lineId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicPayInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Payment"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getPublicProcurementPurchaseOrdersByTokenPdf: {
         parameters: {
             query?: never;
@@ -151038,6 +151261,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicQuotation"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicQuotationsByTokenPaymentSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicPaymentSchedule"];
                 };
             };
             /** @description Problem Details (RFC 9457) */
