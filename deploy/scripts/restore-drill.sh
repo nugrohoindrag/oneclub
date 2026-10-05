@@ -41,7 +41,19 @@ docker exec "$NAME" psql -U postgres -d "$DB" -v ON_ERROR_STOP=1 -tAc "
 	SELECT 'properties', count(*) FROM platform.properties;
 	SELECT 'audit_entries', count(*) FROM audit.audit_log;
 	SELECT 'latest_audit', max(occurred_at) FROM audit.audit_log;
-	SELECT 'migrations_platform', max(version_id) FROM public.goose_platform;"
+	SELECT 'migrations_platform', max(version_id) FROM public.goose_platform;
+	SELECT 'accounting_journals', count(*) FROM accounting.journals;
+	SELECT 'accounting_latest_journal', max(journal_date) FROM accounting.journals;
+	SELECT 'accounting_unbalanced_journals', count(*) FROM (SELECT journal_id FROM accounting.journal_lines
+	  GROUP BY journal_id HAVING sum(debit) <> sum(credit)) u;
+	SELECT 'accounting_tax_invoices', count(*) FROM accounting.tax_invoices;"
+# PRD P4 FR-REL-P4-06: the accounting schema restores with balanced journals.
+UNBALANCED=$(docker exec "$NAME" psql -U postgres -d "$DB" -tAc "SELECT count(*) FROM (SELECT journal_id FROM accounting.journal_lines
+	GROUP BY journal_id HAVING sum(debit) <> sum(credit)) u")
+if [[ "$UNBALANCED" != "0" ]]; then
+	echo "restored accounting schema has $UNBALANCED unbalanced journals" >&2
+	exit 1
+fi
 
 END=$(date +%s)
 DURATION=$((END - START))

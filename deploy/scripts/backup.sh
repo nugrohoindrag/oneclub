@@ -2,7 +2,7 @@
 # Scheduled backups on the DB Host (Technical Doc §7.7). Install as cron:
 #   15 1 * * *   backup.sh full      # daily full backup
 #   15 13 * * *  backup.sh diff      # midday differential
-#   30 2 1 * *   backup.sh monthly   # monthly copy kept 12 months (repo2)
+#   30 2 1 * *   backup.sh monthly   # monthly copy kept 60 months = 5 years (repo2, FR-REL-P4-06)
 # WAL is archived continuously by archive_command (RPO ≤ 5 minutes).
 set -euo pipefail
 TYPE="${1:-full}"
