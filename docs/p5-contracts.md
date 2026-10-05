@@ -363,3 +363,73 @@ transaction that posts the run. A line carries `employeeId`, `componentCode`, `k
 `non_taxable`), `amount`, `sourceType`/`sourceId` (drill-down and the consumed marker) and `irregular` (PPh 21
 irregular income). Sources never write payroll tables; a line consumed by a posted run is not returned again.
 Partner payouts (caddy EP-13, instructor EP-14) are separate payout runs, not payroll inputs.
+
+## Payouts & distributions (`hris/payouts`, EP-11–14, EP-24/26/27 parts)
+
+**Packages.** `internal/hris/payouts` (imports the hris root and the accounting root for the service charge pool, H4);
+root additions `internal/hris/p5_payouts.go` (events, payloads, Partner Payout Policy) and `p5_payouts_calc.go` (pure
+engines with unit tests: `DistributeServiceCharge`, `PayrollConfiguration.PartnerPPh21 / PartnerBPU`,
+`CalculatePartnerPayout`, `CommissionSplit`, `PartnerPeriod`). golf, sport club and CRM are reached through their events
+and the `payouts.Directory` wired by `internal/app/p5_payouts.go` (partner names / logins / employee instructors,
+commission statement breakdown, and the **Paid** status set in golf `caddy_settlements`, sport club `instructor_fees` and
+CRM `sales_commission_statements` once hris paid them — audited as a status change of that module).
+
+**Consumed (decoded by name):** `golf.caddy_settlement_approved` (H1) and `sportclub.instructor_fee_approved` (H2) →
+`hris.payout_sources` (subscriber `hris.payouts:<event>`; a redelivered event is ignored); partner instructors are paid by
+payout runs, employee instructors (sport club `partnership = employee`) with payroll. `crm.commission_approved` (H3) →
+`hris.commission_payouts` (Unmatched when the user has no employee profile; HR matches it).
+
+**Payroll inputs** (`hris.RegisterPayrollInputSource`): `service_charge` (SERVICE_CHARGE earning, approved distribution
+lines, pay period = month after the pool by default), `commission` (COMMISSION earning, irregular + COMMISSION_CLAWBACK
+deduction), `bonus` (BONUS earning, irregular), `instructor_fee` (INSTRUCTOR_FEE earning of employee instructors). Source
+types `hris.service_charge_line`, `hris.commission_payout`, `hris.bonus_line`, `hris.payout_source`. Consuming them marks
+the distribution / bonus programme Paid and the CRM statement / sport club fee Paid (FR-CMS-HR-03).
+**Payroll journal (EP-15, payroll engineer):** the SERVICE_CHARGE component must debit the role
+`service_charge_distribution_payable` (2126) and COMMISSION the existing `commission_payable` (2173, accrued at
+`crm.commission_approved`) instead of an expense; INSTRUCTOR_FEE debits `instructor_fee_payable` (2172).
+
+**Events published** (outbox; aggregates `hris.service_charge_distribution`, `hris.payout_run`; payload structs in
+`internal/hris/p5_payouts.go`):
+
+```jsonc
+// hris.service_charge_distributed — a distribution approved (collected = reserve + distributed + undistributed + rounding)
+{ "distributionId": "uuid", "number": "SCD-2026-00001", "propertyId": "uuid", "year": 2026, "month": 9, "poolId": "uuid",
+  "payPeriod": "2026-10", "collected": "9900000", "reserve": "495000", "distributed": "9404998", "undistributed": "0",
+  "roundingDifference": "2", "roundingAccountCode": "", "employees": 3, "policyVersion": 0 }
+// hris.payout_posted — a caddy / instructor payout run approved
+{ "runId": "uuid", "number": "PYO-2026-00001", "propertyId": "uuid", "kind": "caddy|instructor", "periodStart": "2026-10-01",
+  "periodEnd": "2026-10-15", "payDate": "2026-10-15", "gross": "6400000", "sourceDeductions": "0", "pph21": "160000",
+  "bpu": "70800", "otherDeductions": "25000", "net": "6144200",
+  "lines": [{ "lineId": "uuid", "partnerId": "uuid", "partnerName": "…", "gross": "6400000", "sourceDeductions": "0",
+    "pph21": "160000", "bpu": "70800", "otherDeductions": "25000", "net": "6144200", "paymentMethod": "bank_transfer|cash",
+    "sources": [{ "sourceType": "golf.caddy_settlement", "sourceId": "uuid", "number": "CST-…", "gross": "6400000", "deductions": "0" }] }] }
+// hris.payout_paid — the run paid (bank file transferred / cash)
+{ "runId": "uuid", "number": "PYO-2026-00001", "propertyId": "uuid", "kind": "caddy", "paidOn": "2026-10-15", "reference": "TRF-…",
+  "net": "6144200", "bankAmount": "6144200", "cashAmount": "0" }
+```
+
+**Accounting (H5, additive in `internal/accounting/p5_payout_post.go`; hooks `extraHandlers` / `extraRuleSpecs`):**
+accounts 2126 Service Charge Distribution Payable, 2127 Service Charge Reserve, 2135 PPh 21 Payable – Non-employees,
+2136 BPJS Ketenagakerjaan BPU Payable, 2174 Partner Payouts Payable (existing instances: Accounting → Load template is
+idempotent and adds them, then generate default rules). Rules `DEF-SVC-DIST/RESERVE/ROUNDING` (Dr 2121, lines tagged
+partner type `service_charge_payout` so the next pool ignores them), `DEF-PAYOUT-RUN-{CADDY|INSTR}-{NET|PPH21|BPU|DEDUCT}`
+(Dr caddy fee liability 2171 / instructor fee payable 2172 per partner), `DEF-PAYOUT-RUN-PAID-{BANK|CASH}`.
+
+**Policies.** Service Charge Policy (Core HR) drives the distribution; Payroll Configuration holds the Article 17 rates,
+the non-employee taxable share (50%), the non-NPWP surcharge, BPJS BPU (JKK %, JKM) and the partner schedules
+(caddy semi-monthly 15th / month end, instructors monthly); new **Partner Payout Policy** `hris.partner_payout_policy`
+(HR Policies): per kind PPh 21 method (`per_payment` default, `cumulative_annual`), BPU deduction (once a month), Caddy
+Policies deductions (fixed / percent, per month), minimum net, default payment method, bank file layout. Initial values
+are marked "to be verified by the tax consultant". Runs and distributions store the policy versions used.
+
+**Approval document types:** `hris.service_charge_distribution` (amount, employees), `hris.payout_run` (kind, amount,
+partners), `hris.bonus_programme` (amount, employees, bonusType); none configured ⇒ approved at once.
+
+**ESS / apps.** ESS sections `service-charge` (62) and `commissions` (64); `GET /api/v1/hris/my-payouts` (+`/{lineId}`,
+`/{lineId}/pdf`, permission `hris.payout.own` for roles caddy and instructor_coach) serve the Caddy App Payout History /
+Statement and the instructor Honor Statement.
+
+**Reports** (`internal/reporting/p5_payouts.go`, views `reporting.hr_service_charge_lines`, `hr_payout_lines`,
+`hr_commission_payouts` in reporting/00028): `hris.service_charge_distribution`, `hris.caddy_payout`,
+`hris.instructor_payout`, `hris.commission_payout` (HR Manager, Finance Manager, GM). Report-role hardening:
+`hris.harden_report_role_payouts()` (partner tax ids and bank accounts).

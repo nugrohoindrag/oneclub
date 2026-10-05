@@ -615,8 +615,12 @@ func defaultRuleSpecs() []ruleSpec {
 	add("DEF-GW-SETTLE", "Payment gateway settlement to the bank", "billing.gateway_settlement", nil, "@bank", "@gateway_clearing", 100)
 	add("DEF-GW-FEE", "Payment gateway fees", "billing.gateway_fee", nil, "@bank_charges", "@gateway_clearing", 100)
 	add("DEF-SHIFT-VAR", "Cash over / short of a closed shift", "billing.shift_variance", nil, "@cash", "@cash_over_short", 100)
-	return out
+	return append(out, extraRuleSpecs...)
 }
+
+// extraRuleSpecs are the default rules added by later areas in their own
+// files (e.g. p5_payout_post.go).
+var extraRuleSpecs []ruleSpec
 
 // GenerateDefaultRules creates the default posting rules that do not exist
 // yet (by code); returns the number created.

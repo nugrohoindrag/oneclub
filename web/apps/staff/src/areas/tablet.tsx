@@ -8,6 +8,7 @@ import {
 } from '@oneclub/shell';
 import { ConnectivityChip, SyncPage, read, write } from '../offline';
 import { TabletTournamentCard, TabletTournamentPage } from '../p3/tournament';
+import { PAYOUTS_TABLET_ROUTES } from '../p5/payouts';
 
 /*
  * Caddy Tablet area (`/tablet`, PRD P2 EP-06): My Assignments → Current Round
@@ -46,6 +47,7 @@ function Layout() {
       <nav className="oc-bottom-nav" data-always="true" aria-label="Main">
         <Link to="/tablet"><Icon name="assignment" size={26} />Assignments</Link>
         <Link to="/tablet/earnings"><Icon name="payments" size={26} />Earnings</Link>
+        <PayoutHistoryLink />
         <Link to="/tablet/sync"><Icon name="sync" size={26} />Sync</Link>
         <Link to="/tablet/profile"><Icon name="person" size={26} />Profile</Link>
       </nav>
@@ -300,6 +302,12 @@ function EarningsPage() {
   );
 }
 
+/** Payout History of the caddy payout runs (PRD P5 §7.3, FR-OPS-P5-03); shown when HRIS pays the caddy. */
+function PayoutHistoryLink() {
+  const { can } = useAuth();
+  return can('hris.payout.own') ? <Link to="/tablet/payouts"><Icon name="account_balance_wallet" size={26} />Payouts</Link> : null;
+}
+
 const routes = [
   {
     element: <Layout />,
@@ -308,6 +316,7 @@ const routes = [
       { path: 'round/:id', element: <RoundPage /> },
       { path: 'tournament/:tid/:fid', element: <TabletTournamentPage /> }, // PRD P3 §7.3 tournament scorecard
       { path: 'earnings', element: <EarningsPage /> },
+      ...PAYOUTS_TABLET_ROUTES, // PRD P5 EP-13 Payout History & Statement
       { path: 'sync', element: <SyncPage /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'profile', element: <ProfilePage showPin /> },

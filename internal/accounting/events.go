@@ -30,8 +30,12 @@ var ConsumedEvents = []string{
 	"crm.commission_approved", "inventory.asset_disposed",
 }
 
+// extraHandlers are the subscribers added by later areas in their own
+// files (e.g. p5_payout_post.go), built per module.
+var extraHandlers = map[string]func(m *Module) evHandler{}
+
 func (m *Module) handlers() map[string]evHandler {
-	return map[string]evHandler{
+	h := map[string]evHandler{
 		"billing.business_day_closed":         m.onBusinessDayClosed,
 		"billing.payment_settled":             m.onPaymentSettled,
 		"billing.folio_closed":                m.onFolioClosed,
@@ -66,6 +70,10 @@ func (m *Module) handlers() map[string]evHandler {
 		"crm.commission_approved":             m.onCommissionApproved,
 		"inventory.asset_disposed":            m.onAssetDisposed,
 	}
+	for t, f := range extraHandlers {
+		h[t] = f(m)
+	}
+	return h
 }
 
 // Subscriptions returns one outbox subscriber per consumed event type.

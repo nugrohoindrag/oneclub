@@ -280,10 +280,10 @@ var Trees = map[string][]Item{
 			s("hris-overtime", "Overtime", "/hris/overtime", "hris.overtime_request.view"),  // PRD P5 EP-08
 			soon("hris-payroll", "Payroll", "/hris/payroll"),
 			soon("hris-benefits", "Benefits", "/hris/benefits"),
-			soon("hris-service-charge", "Service Charge", "/hris/service-charge"),
-			soon("hris-commissions", "Commissions", "/hris/commissions"),
-			soon("hris-caddy", "Caddy", "/hris/caddy"),
-			soon("hris-instructors", "Instructors", "/hris/instructors"),
+			s("hris-service-charge", "Service Charge", "/hris/service-charge", "hris.service_charge.view"), // PRD P5 EP-11
+			s("hris-commissions", "Commissions", "/hris/commissions", "hris.commission_payout.view"),       // PRD P5 EP-12
+			s("hris-caddy", "Caddy", "/hris/caddy", "hris.payout_run.view"),                                // PRD P5 EP-13
+			s("hris-instructors", "Instructors", "/hris/instructors", "hris.payout_run.view"),              // PRD P5 EP-14
 			soon("hris-reports", "HR Reports", "/reports?module=hris"),
 		),
 		// Employee Self Service for office staff (PRD P5 EP-16; the ops shell
@@ -498,6 +498,8 @@ var Trees = map[string][]Item{
 		{Key: "driving-range", Label: "Driving Range", Path: "/ops/driving-range", Icon: "sports_golf", Module: "golf", Permission: "golf.range.operate"},
 		{Key: "sport-reception", Label: "Sport Reception", Path: "/ops/sport-reception", Icon: "sports_tennis", Module: "sportclub", Permission: "sportclub.access.validate"},
 		{Key: "instructor", Label: "Instructor", Path: "/ops/instructor", Icon: "school", Module: "sportclub", Permission: "sportclub.class.attendance"},
+		// PRD P5 §7.2, FR-INS-HR-04: Honor Statement of partner instructors (payout runs).
+		{Key: "honor-statement", Label: "Honor Statement", Path: "/ops/instructor/honor", Icon: "request_quote", Module: "hris", Permission: "hris.payout.own"},
 		{Key: "pos", Label: "POS", Path: "/ops/pos", Icon: "point_of_sale", Module: "commercial", Permission: "commercial.order.create"},
 		{Key: "package-use", Label: "Package Use", Path: "/ops/packages", Icon: "card_travel", Module: "commercial", Permission: "commercial.package_booking.consume"},
 		{Key: "warehouse", Label: "Warehouse", Path: "/ops/warehouse", Icon: "warehouse", Module: "inventory", Permission: "inventory.stock_balance.view", Children: []Item{
@@ -530,6 +532,8 @@ var Trees = map[string][]Item{
 			s("ess-attendance", "Attendance History", "/ops/ess/attendance", "hris.ess.use"),
 			s("ess-leave", "Leave & Permission", "/ops/ess/leave", "hris.ess.use"),
 			s("ess-overtime", "Overtime", "/ops/ess/overtime", "hris.ess.use"),
+			s("ess-service-charge", "Service Charge", "/ops/ess/service-charge", "hris.ess.use"), // PRD P5 EP-11
+			s("ess-commissions", "Commission & Bonus", "/ops/ess/commissions", "hris.ess.use"),   // PRD P5 EP-12
 			soon("ess-payslip", "Payslip", "/ops/ess/payslip"),
 			s("ess-documents", "My Documents", "/ops/ess/documents", "hris.ess.use"),
 			s("ess-training", "My Training", "/ops/ess/training", "hris.ess.use"),
@@ -547,6 +551,8 @@ var Trees = map[string][]Item{
 	"caddy": {
 		{Key: "home", Label: "My Assignments", Path: "/tablet", Icon: "assignment", Permission: catalog.ShellCaddy},
 		{Key: "earnings", Label: "Earnings", Path: "/tablet/earnings", Icon: "payments", Permission: catalog.ShellCaddy},
+		// PRD P5 §7.3, FR-OPS-P5-03: Payout History & Statement (caddy payout runs).
+		{Key: "payout-history", Label: "Payout History", Path: "/tablet/payouts", Icon: "account_balance_wallet", Module: "hris", Permission: "hris.payout.own"},
 		{Key: "sync", Label: "Sync Queue", Path: "/tablet/sync", Icon: "sync", Permission: catalog.ShellCaddy},
 		{Key: "profile", Label: "Profile", Path: "/tablet/profile", Icon: "person", Permission: catalog.ShellCaddy},
 	},

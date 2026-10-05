@@ -17,18 +17,25 @@ import (
 )
 
 // p5Payroll holds the services of the area.
-type p5Payroll struct{}
+type p5Payroll struct {
+	Payouts p5Payouts // EP-11–14 payouts & distributions (p5_payouts.go)
+}
 
-func p5PayrollContributions() []catalog.Contribution   { return nil }
-func p5PayrollDocumentTypes() []provision.DocumentType { return nil }
-func p5PayrollTemplates() []provision.Template         { return nil }
+func p5PayrollContributions() []catalog.Contribution   { return p5PayoutsContributions() }
+func p5PayrollDocumentTypes() []provision.DocumentType { return p5PayoutsDocumentTypes() }
+func p5PayrollTemplates() []provision.Template         { return p5PayoutsTemplates() }
 
 // buildP5Payroll wires routes, hooks, approval decisions and jobs.
 func (a *App) buildP5Payroll(reg *route.Registry, cfg *config.Config, db *dbtx.DB, files *storage.Files) {
+	a.buildP5Payouts(reg, cfg, db, files) // EP-11–14 (p5_payouts.go)
 }
 
 // subscribeP5Payroll registers the event subscribers.
-func (a *App) subscribeP5Payroll() {}
+func (a *App) subscribeP5Payroll() {
+	a.subscribeP5Payouts() // EP-11–14 (p5_payouts.go)
+}
 
 // demoP5Payroll seeds the demo data of the area.
-func demoP5Payroll(ctx context.Context, tx pgx.Tx, property uuid.UUID) error { return nil }
+func demoP5Payroll(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
+	return demoP5Payouts(ctx, tx, property) // EP-11–14 (p5_payouts.go)
+}
