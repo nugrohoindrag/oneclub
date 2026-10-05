@@ -155,3 +155,53 @@ with BI (f416980) `p5_hr.go` init switches to `RegisterP5Report` / `RegisterHRKP
 **Import (EP-28).** `oneclub import hris -property MAIN --employees F --contracts F --certifications F [--dry-run]`
 or `POST /api/v1/hris/imports` (same CSV columns, `corehr.ImportColumns`). Repeatable: employees are upserted by
 employee number; contracts and certifications skip duplicates.
+
+## CRM (EP-17 – EP-20)
+
+Money is a decimal string, dates `YYYY-MM-DD`; `propertyId` is on the event envelope.
+
+### `crm.tier_evaluated` — one per account per tier evaluation run (annual, periodic or grace review)
+```json
+{ "evaluationId": "uuid", "evaluationNumber": "TEV-2026-00001", "kind": "annual | periodic | grace_review",
+  "accountId": "uuid", "customerId": "uuid", "fromTierId": "uuid|null", "qualifiedTierId": "uuid|null",
+  "toTierId": "uuid|null", "outcome": "upgraded | retained | grace_started | in_grace | downgraded | locked",
+  "spendBasis": "25000000", "pointsBasis": 1200, "graceUntil": "2027-04-01|null",
+  "windowFrom": "2025-10-05", "windowTo": "2026-10-05" }
+```
+A tier change still publishes the P3 `crm.tier_changed` (unchanged).
+
+### `crm.reward_issued` — automatic or manual reward issue (top spender programme, journey, staff)
+```json
+{ "issueId": "uuid", "number": "RWI-2026-00001", "customerId": "uuid", "rewardId": "uuid", "rewardCode": "GOLD-FNB",
+  "rewardType": "voucher | merchandise | service | other", "quantity": 1,
+  "source": "top_spender | journey | staff", "sourceId": "uuid|null", "sourceRef": "text|null",
+  "period": "2026-10|null", "unitCost": "100000", "totalCost": "100000", "voucherCodes": ["VC-..."] }
+```
+
+### `crm.journey_step_executed` — every executed journey step (also control-group and skipped outcomes; quiet hours defer a message, they do not skip it)
+```json
+{ "journeyId": "uuid", "journeyCode": "JRN-RENEWAL", "enrollmentId": "uuid", "customerId": "uuid",
+  "cohort": "treatment | control", "stepKey": "remind_30", "stepType": "message | wait | condition | voucher | points | reward | sales_task | tag | exit",
+  "outcome": "sent | skipped_no_consent | skipped_suppressed | skipped_no_contact | skipped_frequency_cap | control | waiting | condition_true | condition_false | issued | skipped_budget | failed | created | tagged | exited",
+  "channel": "email | whatsapp | in_app | null", "variant": "A | B | null", "eventId": "uuid", "category": "marketing | transactional" }
+```
+
+### Consumed by CRM journeys
+`membership.activated`, `membership.renewed`, `banquet.event_completed`, `banquet.event_confirmed`, `billing.payment_settled`,
+`golf.booking_confirmed`, `golf.booking_cancelled`, `golf.round_finished`, `crm.tier_changed`, `crm.ticket_resolved`,
+`commercial.package_booked` (subscriber names `crm.journey.<event>`; the customer is read from `customerId` /
+`billingCustomerId` / `memberCustomerId` in the payload). They start event-triggered journeys, count goal conversions and apply exit rules.
+
+### Hook: tier booking window (golf, FR-LOY-P5-02)
+`golf.SetTierBookingWindow(bonus, maxBonus)` is wired by `internal/app` with `loyalty.BookingWindowBonus` (extra days of the
+customer's tier) and `loyalty.MaxBookingWindowBonus` (largest bonus of the property, tee sheet horizon). Golf never imports crm;
+without the hook the windows are unchanged. Applied to Member App holds, staff member bookings and member players.
+
+### Read models (reporting schema, security_invoker)
+`reporting.crm_tier_benefits` (customer → tier benefits: points multiplier, booking window days, F&B discount %, event access,
+priority service — the F&B discount is exposed for POS/commercial to apply), `crm_tier_accounts`, `crm_tier_evaluations`,
+`crm_loyalty_issues`, `crm_reward_redemption_costs`, `crm_journey_events`, `crm_journey_enrollments`, `crm_rfm_scores`, `crm_vip`,
+`crm_sales_owner_commissions`, `crm_banquet_event_customers`. CRM reports (`crm.journey_performance`, `crm.loyalty_tier`,
+`crm.tier_evaluation`, `crm.reward_redemption`, `crm.loyalty_cost`, `crm.nps_analytics`, `crm.complaint_sla`,
+`crm.sales_performance`, `crm.rfm_segment`, `crm.vip_customers`) are in `internal/reporting/p5_crm.go`
+(`P5CRMReports`, `P5CRMContribution`); when merged with the BI registry they should be registered through `RegisterP5Report`.

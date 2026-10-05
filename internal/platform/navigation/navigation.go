@@ -159,11 +159,19 @@ var Trees = map[string][]Item{
 			s("quotations", "Quotations", "/crm/quotations", "crm.quotation.view"),
 			s("corporate-accounts", "Corporate Accounts", "/crm/corporate-accounts", "crm.corporate_account.view"),
 			s("campaigns", "Campaigns", "/crm/campaigns", "crm.campaign.view"),
-			s("loyalty", "Loyalty", "/crm/loyalty", "crm.loyalty_account.view"),
+			s("journeys", "Journeys", "/crm/journeys", "crm.journey.view"), // PRD P5 §7.1 / §7.6
+			s("vip-customers", "VIP Customers", "/crm/vip", "crm.vip.view"),
+			s("loyalty", "Loyalty", "/crm/loyalty", "crm.loyalty_account.view",
+				s("loyalty-accounts", "Loyalty Accounts", "/crm/loyalty", "crm.loyalty_account.view"),
+				s("loyalty-tiers", "Tiers", "/crm/loyalty-tiers", "crm.loyalty_tier.view"),
+				s("loyalty-rewards", "Rewards", "/crm/loyalty-rewards", "crm.loyalty_reward.view"),
+				s("loyalty-eligibility", "Eligibility", "/crm/loyalty-eligibility", "crm.loyalty_reward_rule.view"),
+			),
 			s("top-spender", "Top Spender", "/crm/top-spender", "crm.top_spender.view"),
 			s("feedback", "Feedback", "/crm/feedback", "crm.feedback.view"),
 			s("complaints", "Complaints", "/crm/complaints", "crm.ticket.view"),
 			s("follow-ups", "Follow-ups", "/crm/follow-ups", "crm.follow_up.view"),
+			s("crm-analytics", "CRM Analytics", "/crm/analytics", "crm.analytics.view"), // PRD P5 EP-20
 			s("crm-reports", "CRM Reports", "/reports?module=crm", "reporting.report.view"),
 		),
 		mod("commercial", "Commercial", "storefront", "/commercial/pricing/rate-plans",
@@ -418,6 +426,8 @@ var Trees = map[string][]Item{
 			s("loyalty-tier", "Tier", "/loyalty/tier", catalog.ShellMemberPortal),
 			s("loyalty-rewards", "Rewards", "/loyalty/rewards", catalog.ShellMemberPortal),
 			s("points-history", "Points History", "/loyalty/history", catalog.ShellMemberPortal),
+			s("loyalty-progress", "Tier Progress", "/loyalty/progress", catalog.ShellMemberPortal), // PRD P5 §7.4
+			s("loyalty-offers", "Personal Offers", "/loyalty/offers", catalog.ShellMemberPortal),   // PRD P5 §7.4 (journey offers)
 		}},
 		{Key: "preferences", Label: "Preferences", Path: "/preferences", Icon: "tune", Module: "crm", Permission: catalog.ShellMemberPortal},
 		{Key: "profile", Label: "Profile", Path: "/profile", Icon: "person", Permission: catalog.ShellMemberPortal, Children: []Item{
@@ -469,6 +479,7 @@ var Trees = map[string][]Item{
 			s("fd-customer-folios", "Customer Folios", "/ops/front-desk/customer-folios", "billing.customer_folio.view"),
 			s("fd-cashier", "Cashier", "/ops/front-desk/cashier", "billing.cashier_shift.operate"),
 			s("fd-redeem-points", "Redeem Points", "/ops/front-desk/redeem-points", "crm.loyalty_account.redeem"),
+			s("fd-vip-lookup", "VIP Lookup", "/ops/front-desk/vip", "crm.vip.view"), // PRD P5 FR-SEG-03
 		}},
 		{Key: "stay-front-desk", Label: "Stay Front Desk", Path: "/ops/stay-desk", Icon: "hotel", Module: "stay", Permission: "stay.stay.view"},
 		{Key: "golf-staff", Label: "Golf Staff", Path: "/ops/golf-staff", Icon: "golf_course", Module: "golf", Permission: "golf.bag.manage", Children: []Item{
