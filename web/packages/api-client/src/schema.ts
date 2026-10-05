@@ -276,6 +276,1422 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/banquet/beos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Banquet Event Orders (current versions; history with filter[status]=superseded) */
+        get: operations["getBanquetBeos"];
+        put?: never;
+        /** Create the draft BEO of an event (function sheet generated from the event) */
+        post: operations["postBanquetBeos"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/beos/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** BEO version with changes and distribution status (ETag) */
+        get: operations["getBanquetBeosById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit a draft BEO: instructions per department, notes (If-Match) */
+        patch: operations["patchBanquetBeosById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/beos/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** BEO function sheet (PDF, standard banquet format) */
+        get: operations["getBanquetBeosByIdPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/beos/{id}:acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm reading the current BEO version for a department */
+        post: operations["postBanquetBeosByIdAcknowledge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/beos/{id}:issue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue the BEO: departments notified, Banquet Production built, requirement published (If-Match) */
+        post: operations["postBanquetBeosByIdIssue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/beos/{id}:revise": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revise the issued BEO: next version, changes marked, departments confirm again (If-Match) */
+        post: operations["postBanquetBeosByIdRevise"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/charge-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Extra Charges */
+        get: operations["getBanquetChargeTypes"];
+        put?: never;
+        /** Add Extra Charge */
+        post: operations["postBanquetChargeTypes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/charge-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Extra Charge */
+        get: operations["getBanquetChargeTypesById"];
+        put?: never;
+        post?: never;
+        /** Delete Extra Charge (only when unused; otherwise set Inactive) */
+        delete: operations["deleteBanquetChargeTypesById"];
+        options?: never;
+        head?: never;
+        /** Edit Extra Charge */
+        patch: operations["patchBanquetChargeTypesById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/charge-types:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Extra Charges (CSV/XLSX) */
+        get: operations["getBanquetChargeTypesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/checklist-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Event Checklist across events (overdue tasks first) */
+        get: operations["getBanquetChecklistItems"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/checklist-items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change a checklist task (task, PIC, due date) */
+        patch: operations["patchBanquetChecklistItemsById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/checklist-items/{id}:toggle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a checklist task done or open */
+        post: operations["postBanquetChecklistItemsByIdToggle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/checklist-template-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Checklist Template Tasks */
+        get: operations["getBanquetChecklistTemplateItems"];
+        put?: never;
+        /** Add Checklist Template Task */
+        post: operations["postBanquetChecklistTemplateItems"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/checklist-template-items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Checklist Template Task */
+        get: operations["getBanquetChecklistTemplateItemsById"];
+        put?: never;
+        post?: never;
+        /** Delete Checklist Template Task (only when unused; otherwise set Inactive) */
+        delete: operations["deleteBanquetChecklistTemplateItemsById"];
+        options?: never;
+        head?: never;
+        /** Edit Checklist Template Task */
+        patch: operations["patchBanquetChecklistTemplateItemsById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/checklist-template-items:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Checklist Template Tasks (CSV/XLSX) */
+        get: operations["getBanquetChecklistTemplateItemsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/checklist-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Checklist Templates */
+        get: operations["getBanquetChecklistTemplates"];
+        put?: never;
+        /** Add Checklist Template */
+        post: operations["postBanquetChecklistTemplates"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/checklist-templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Checklist Template */
+        get: operations["getBanquetChecklistTemplatesById"];
+        put?: never;
+        post?: never;
+        /** Delete Checklist Template (only when unused; otherwise set Inactive) */
+        delete: operations["deleteBanquetChecklistTemplatesById"];
+        options?: never;
+        head?: never;
+        /** Edit Checklist Template */
+        patch: operations["patchBanquetChecklistTemplatesById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/checklist-templates:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Checklist Templates (CSV/XLSX) */
+        get: operations["getBanquetChecklistTemplatesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/event-charges/{id}:void": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Void a charge of an event (reason) */
+        post: operations["postBanquetEventChargesByIdVoid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/event-meetings/{id}:record": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the outcome of a meeting (changes forwarded to the next BEO) */
+        post: operations["postBanquetEventMeetingsByIdRecord"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/event-resources/{id}:release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Release a resource of an event */
+        post: operations["postBanquetEventResourcesByIdRelease"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/event-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Event Types */
+        get: operations["getBanquetEventTypes"];
+        put?: never;
+        /** Add Event Type */
+        post: operations["postBanquetEventTypes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/event-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Event Type */
+        get: operations["getBanquetEventTypesById"];
+        put?: never;
+        post?: never;
+        /** Delete Event Type (only when unused; otherwise set Inactive) */
+        delete: operations["deleteBanquetEventTypesById"];
+        options?: never;
+        head?: never;
+        /** Edit Event Type */
+        patch: operations["patchBanquetEventTypesById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/event-types:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Event Types (CSV/XLSX) */
+        get: operations["getBanquetEventTypesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/event-vendors/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a vendor booking (fee charge voided) */
+        post: operations["postBanquetEventVendorsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Events (Events, Banquet, MICE, Weddings; event calendar by period) */
+        get: operations["getBanquetEvents"];
+        put?: never;
+        /** Create Event (inquiry; venue holds and package optional) */
+        post: operations["postBanquetEvents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Event with venues, schedule, menu, resources, vendors, billing and BEO (ETag) */
+        get: operations["getBanquetEventsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update an event (If-Match: version) */
+        patch: operations["patchBanquetEventsById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Event Billing: charges per component, folio, payment schedule, deposits and the final invoice */
+        get: operations["getBanquetEventsByIdBilling"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/charges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post an extra charge (corkage, outdoor add-on, electricity, overtime, F&B, damage …) */
+        post: operations["postBanquetEventsByIdCharges"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/checklist": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Checklist of an event */
+        get: operations["getBanquetEventsByIdChecklist"];
+        put?: never;
+        /** Add a checklist task (PIC, due date) */
+        post: operations["postBanquetEventsByIdChecklist"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/checklist:apply-template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add the tasks of a checklist template */
+        post: operations["postBanquetEventsByIdChecklistApplyTemplate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record an incident note (Event Operations) */
+        post: operations["postBanquetEventsByIdIncidents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/meetings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Schedule a Food Tasting, Technical Meeting or site visit */
+        post: operations["postBanquetEventsByIdMeetings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/menu-selection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Menu Selection of one menu (category quotas; extra choices charged or refused) */
+        put: operations["putBanquetEventsByIdMenuSelection"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/package": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Price the event with a banquet package (minimum pax, inclusions) */
+        post: operations["postBanquetEventsByIdPackage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Participants / Guest Registration of an event */
+        get: operations["getBanquetEventsByIdParticipants"];
+        put?: never;
+        /** Register a guest (capacity and waitlist of Event Policies; QR ticket) */
+        post: operations["postBanquetEventsByIdParticipants"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/participants:import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import a guest list (duplicates skipped) */
+        post: operations["postBanquetEventsByIdParticipantsImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/payment-schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Payment Schedule of the event (DP, terms, final payment; default Banquet Policies) */
+        post: operations["postBanquetEventsByIdPaymentSchedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/procurement-requirement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ingredient requirement of the event from the menu BOM per pax (K1) */
+        get: operations["getBanquetEventsByIdProcurementRequirement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/resources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Book another resource for the event (bungalow, meeting room, equipment …) */
+        post: operations["postBanquetEventsByIdResources"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Event Schedule (run-of-show) */
+        get: operations["getBanquetEventsByIdSchedule"];
+        /** Replace the run-of-show (sessions with venue and person in charge) */
+        put: operations["putBanquetEventsByIdSchedule"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/vendors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Book a vendor (decoration, MC, band, photographer …) */
+        post: operations["postBanquetEventsByIdVendors"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/venues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hold a venue (Tentative until the option date; waitlist when taken) */
+        post: operations["postBanquetEventsByIdVenues"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}/venues/{holdId}:release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Release a venue hold (waitlist moves up) */
+        post: operations["postBanquetEventsByIdVenuesByHoldIdRelease"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel the event (Banquet Policies cancellation tiers: forfeited DP, refund) */
+        post: operations["postBanquetEventsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}:check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Event Check-in by QR ticket code */
+        post: operations["postBanquetEventsByIdCheckIn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}:complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete the event with the final pax (BEO locked, consumption to P4) */
+        post: operations["postBanquetEventsByIdComplete"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}:extend-option": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move the option date of the tentative holds */
+        post: operations["postBanquetEventsByIdExtendOption"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}:final-billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Final Billing: deposits applied, overpayment refunded, balance paid or invoiced */
+        post: operations["postBanquetEventsByIdFinalBilling"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}:guarantee-pax": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set the guaranteed (final) pax: locked at the cut-off, later increases charged */
+        post: operations["postBanquetEventsByIdGuaranteePax"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events/{id}:make-definite": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make the event Definite (down payment received, or override with approval) */
+        post: operations["postBanquetEventsByIdMakeDefinite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/events:import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Import future banquets / events with the DP received (migration wave 3; dry run first) */
+        post: operations["postBanquetEventsImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/menu-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Menu Categories */
+        get: operations["getBanquetMenuCategories"];
+        put?: never;
+        /** Add Menu Category */
+        post: operations["postBanquetMenuCategories"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/menu-categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Menu Category */
+        get: operations["getBanquetMenuCategoriesById"];
+        put?: never;
+        post?: never;
+        /** Delete Menu Category (only when unused; otherwise set Inactive) */
+        delete: operations["deleteBanquetMenuCategoriesById"];
+        options?: never;
+        head?: never;
+        /** Edit Menu Category */
+        patch: operations["patchBanquetMenuCategoriesById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/menu-categories:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Menu Categories (CSV/XLSX) */
+        get: operations["getBanquetMenuCategoriesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/menu-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Menu Items */
+        get: operations["getBanquetMenuItems"];
+        put?: never;
+        /** Add Menu Item */
+        post: operations["postBanquetMenuItems"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/menu-items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Menu Item */
+        get: operations["getBanquetMenuItemsById"];
+        put?: never;
+        post?: never;
+        /** Delete Menu Item (only when unused; otherwise set Inactive) */
+        delete: operations["deleteBanquetMenuItemsById"];
+        options?: never;
+        head?: never;
+        /** Edit Menu Item */
+        patch: operations["patchBanquetMenuItemsById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/menu-items:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Menu Items (CSV/XLSX) */
+        get: operations["getBanquetMenuItemsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/menus": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Banquet Menus */
+        get: operations["getBanquetMenus"];
+        put?: never;
+        /** Add Banquet Menu */
+        post: operations["postBanquetMenus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/menus/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Banquet Menu */
+        get: operations["getBanquetMenusById"];
+        put?: never;
+        post?: never;
+        /** Delete Banquet Menu (only when unused; otherwise set Inactive) */
+        delete: operations["deleteBanquetMenusById"];
+        options?: never;
+        head?: never;
+        /** Edit Banquet Menu */
+        patch: operations["patchBanquetMenusById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/menus:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Banquet Menus (CSV/XLSX) */
+        get: operations["getBanquetMenusExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/migration/reconciliation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Migration reconciliation: total DP = deposit liability, number of future events */
+        get: operations["getBanquetMigrationReconciliation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/packages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Banquet Packages */
+        get: operations["getBanquetPackages"];
+        put?: never;
+        /** Add Banquet Package */
+        post: operations["postBanquetPackages"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/packages/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Banquet Package */
+        get: operations["getBanquetPackagesById"];
+        put?: never;
+        post?: never;
+        /** Delete Banquet Package (only when unused; otherwise set Inactive) */
+        delete: operations["deleteBanquetPackagesById"];
+        options?: never;
+        head?: never;
+        /** Edit Banquet Package */
+        patch: operations["patchBanquetPackagesById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/packages:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Banquet Packages (CSV/XLSX) */
+        get: operations["getBanquetPackagesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/participants/{id}:check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check a guest in (from the list) */
+        post: operations["postBanquetParticipantsByIdCheckIn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/participants/{id}:withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw a registration (refund per Event Policies) */
+        post: operations["postBanquetParticipantsByIdWithdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/production": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Banquet Production (Kitchen): dishes of the issued BEOs per serving time */
+        get: operations["getBanquetProduction"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/production-items/{id}:status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move a dish through production */
+        post: operations["postBanquetProductionItemsByIdStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/today": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Today's Events (Event Operations): venues, run-of-show, latest BEO, checklist */
+        get: operations["getBanquetToday"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/vendors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Event Vendors */
+        get: operations["getBanquetVendors"];
+        put?: never;
+        /** Add Event Vendor */
+        post: operations["postBanquetVendors"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/vendors/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Event Vendor */
+        get: operations["getBanquetVendorsById"];
+        put?: never;
+        post?: never;
+        /** Delete Event Vendor (only when unused; otherwise set Inactive) */
+        delete: operations["deleteBanquetVendorsById"];
+        options?: never;
+        head?: never;
+        /** Edit Event Vendor */
+        patch: operations["patchBanquetVendorsById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/vendors:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Event Vendors (CSV/XLSX) */
+        get: operations["getBanquetVendorsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/venue-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Venues free for a period, pax and layout (setup / teardown buffers) */
+        get: operations["getBanquetVenueAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/venue-calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Venue Calendar: holds (tentative, definite, waitlist) and bookings per venue */
+        get: operations["getBanquetVenueCalendar"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/venue-layouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Venue Layouts */
+        get: operations["getBanquetVenueLayouts"];
+        put?: never;
+        /** Add Venue Layout */
+        post: operations["postBanquetVenueLayouts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/venue-layouts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Venue Layout */
+        get: operations["getBanquetVenueLayoutsById"];
+        put?: never;
+        post?: never;
+        /** Delete Venue Layout (only when unused; otherwise set Inactive) */
+        delete: operations["deleteBanquetVenueLayoutsById"];
+        options?: never;
+        head?: never;
+        /** Edit Venue Layout */
+        patch: operations["patchBanquetVenueLayoutsById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/venue-layouts:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Venue Layouts (CSV/XLSX) */
+        get: operations["getBanquetVenueLayoutsExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/venues": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Venues */
+        get: operations["getBanquetVenues"];
+        put?: never;
+        /** Add Venue */
+        post: operations["postBanquetVenues"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/banquet/venues/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Venue */
+        get: operations["getBanquetVenuesById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit Venue */
+        patch: operations["patchBanquetVenuesById"];
+        trace?: never;
+    };
+    "/api/v1/banquet/venues:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Venues (CSV/XLSX) */
+        get: operations["getBanquetVenuesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/billing/accounting-exports": {
         parameters: {
             query?: never;
@@ -11797,6 +13213,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/event-registrations/{ticketCode}:withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw my registration (Event Policies deadline and refund) */
+        post: operations["postMemberEventRegistrationsByTicketCodeWithdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Upcoming Events with my registration */
+        get: operations["getMemberEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** An event with my registration */
+        get: operations["getMemberEventsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/events/{id}/registrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Register for an event (QR ticket; online payment of the fee) */
+        post: operations["postMemberEventsByIdRegistrations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/feedback": {
         parameters: {
             query?: never;
@@ -12337,6 +13821,23 @@ export interface paths {
         put?: never;
         /** Renew my membership (pay the renewal fee online) */
         post: operations["postMemberMembershipsByIdRenew"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/my-events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Events: tickets and the banquets I booked with their payment schedule */
+        get: operations["getMemberMyEvents"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -15724,6 +17225,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/event-tickets/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Event ticket behind its QR code (status, payment) */
+        get: operations["getPublicEventTicketsByCode"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Events page: open and published events */
+        get: operations["getPublicEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** An open event (Book Event) */
+        get: operations["getPublicEventsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/events/{id}/registrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Book Event: register for an open event (capacity, waitlist, online payment of the fee) */
+        post: operations["postPublicEventsByIdRegistrations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/feedback/{token}": {
         parameters: {
             query?: never;
@@ -16195,6 +17764,23 @@ export interface paths {
         put?: never;
         /** Check a voucher code (website; rate limited) */
         post: operations["postPublicVouchersCheck"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/wedding-banquet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Wedding & Banquet page: packages, venues with capacities and menus (structured data) */
+        get: operations["getPublicWeddingBanquet"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -18537,6 +20123,240 @@ export interface components {
             status: "available" | "reserved" | "full" | "blocked";
             used: number;
         };
+        BEO: {
+            changes: components["schemas"]["BEOChange"][];
+            content: components["schemas"]["BEOContent"];
+            /** Format: date-time */
+            createdAt: string;
+            departments: components["schemas"]["BEODepartment"][];
+            eventDate: string;
+            /** Format: uuid */
+            eventId: string;
+            eventNumber: string;
+            eventTitle: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Instructions per department */
+            instructions: {
+                [key: string]: string;
+            };
+            /** Format: date-time */
+            issuedAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Set when the event is completed (FR-BEO-06)
+             */
+            lockedAt?: string | null;
+            notes?: string | null;
+            number: string;
+            /** Format: uuid */
+            outletId?: string | null;
+            pax: number;
+            requirements: components["schemas"]["BEORequirement"][];
+            /** @description ETag value for If-Match */
+            rev: number;
+            revisionReason?: string | null;
+            /** @enum {string} */
+            status: "draft" | "issued" | "superseded";
+            /** Format: date-time */
+            supersededAt?: string | null;
+            /** Format: uuid */
+            supersedesId?: string | null;
+            version: number;
+        };
+        BEOAckInput: {
+            /** @enum {string} */
+            department: "banquet" | "sales" | "kitchen" | "fnb_service" | "venue" | "engineering" | "front_desk" | "golf" | "finance" | "security" | "housekeeping" | "other";
+        };
+        BEOChange: {
+            /** @enum {string} */
+            change: "added" | "removed" | "changed";
+            from?: string;
+            item: string;
+            section: string;
+            to?: string;
+        };
+        BEOContent: {
+            electricity: components["schemas"]["BEOElectricity"];
+            event: components["schemas"]["BEOEvent"];
+            extras: components["schemas"]["BEOExtra"][];
+            /** @description Package inclusions (vouchers, services) delivered with the event */
+            inclusions: string[];
+            /** @description Changes agreed at food tasting / technical meeting */
+            meetingChanges: string[];
+            menus: components["schemas"]["BEOMenu"][];
+            pax: components["schemas"]["BEOPax"];
+            /** @description Payment schedule with due dates (FR-BQT-08) */
+            payments: components["schemas"]["BEOPayment"][];
+            resources: components["schemas"]["BEOResource"][];
+            schedule: components["schemas"]["BEOSchedule"][];
+            vendors: components["schemas"]["BEOVendor"][];
+            venues: components["schemas"]["BEOVenue"][];
+        };
+        BEODepartment: {
+            /**
+             * Format: date-time
+             * @description Empty: the department has not confirmed this version
+             */
+            acknowledgedAt?: string | null;
+            acknowledgedBy?: string | null;
+            department: string;
+            instructions?: string | null;
+            /** Format: date-time */
+            notifiedAt?: string | null;
+        };
+        BEOElectricity: {
+            includedWatt: number;
+            requiredWatt: number;
+        };
+        BEOEvent: {
+            category: string;
+            contact: string;
+            contactPhone: string;
+            customer: string;
+            /** Format: date-time */
+            end: string;
+            eventType: string;
+            layout: string;
+            number: string;
+            salesOwner: string;
+            specialRequests: string;
+            /** Format: date-time */
+            start: string;
+            status: string;
+            title: string;
+        };
+        BEOExtra: {
+            description: string;
+            kind: string;
+            quantity: string;
+        };
+        BEOInput: {
+            /** Format: uuid */
+            eventId: string;
+            /** @description Per department: kitchen, fnb_service, venue, engineering, front_desk, golf … */
+            instructions?: {
+                [key: string]: string;
+            };
+            /** @description Special notes (allergy, VIP) */
+            notes?: string;
+        };
+        BEOMenu: {
+            items: components["schemas"]["BEOMenuItem"][];
+            menu: string;
+            /** Format: uuid */
+            menuId: string;
+            type: string;
+        };
+        BEOMenuItem: {
+            allergens: string[];
+            category: string;
+            course: string;
+            /** Format: uuid */
+            menuItemId: string;
+            name: string;
+            notes: string;
+            portions: string;
+            /** Format: date-time */
+            serveAt: string;
+            /** @description F&B station (buffet, food stall, kitchen) */
+            station: string;
+        };
+        BEOPatch: {
+            instructions?: {
+                [key: string]: string;
+            };
+            notes?: string | null;
+            /** @description Regenerate the function sheet from the event */
+            refresh?: boolean;
+        };
+        BEOPax: {
+            /** @description Pax the kitchen produces for */
+            basis: number;
+            expected: number;
+            final: number;
+            guaranteed: number;
+        };
+        BEOPayment: {
+            amount: string;
+            dueDate: string;
+            label: string;
+            paid: string;
+            status: string;
+        };
+        BEORequirement: {
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            neededBy?: string;
+            quantity: string;
+            /** Format: uuid */
+            recipeId?: string | null;
+            /** @enum {string} */
+            source: "menu" | "extra";
+            uom: string;
+            /** Format: uuid */
+            uomId: string;
+        };
+        BEOResource: {
+            /** Format: date-time */
+            end: string;
+            quantity: number;
+            resource: string;
+            /** Format: date-time */
+            start: string;
+        };
+        BEORevise: {
+            /** @description Changed instructions (others are kept) */
+            instructions?: {
+                [key: string]: string;
+            };
+            notes?: string | null;
+            reason: string;
+        };
+        BEOSchedule: {
+            department: string;
+            /** Format: date-time */
+            end?: string | null;
+            notes: string;
+            owner: string;
+            seq: number;
+            /** Format: date-time */
+            start: string;
+            title: string;
+            venue: string;
+        };
+        BEOSummary: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            issuedAt?: string | null;
+            number: string;
+            /** @description Departments that have not confirmed this version */
+            pendingDepartments: string[];
+            status: string;
+            version: number;
+        };
+        BEOVendor: {
+            /** Format: date-time */
+            arrivalAt?: string | null;
+            contact: string;
+            service: string;
+            type: string;
+            vendor: string;
+        };
+        BEOVenue: {
+            /** Format: date-time */
+            end: string;
+            function: string;
+            layout: string;
+            pax: number;
+            /** Format: date-time */
+            start: string;
+            status: string;
+            venue: string;
+        };
         BagDrop: {
             bagCount: number;
             bookingCode: string;
@@ -18597,6 +20417,1026 @@ export interface components {
             status: string;
             typeName: string;
             unit: string;
+        };
+        BanquetCancellationTier: {
+            /**
+             * @description down_payment: the DP received; paid: everything received; contract: the contract total
+             * @enum {string}
+             */
+            basis: "down_payment" | "paid" | "contract";
+            forfeitPercent: string;
+            minDaysBefore: number;
+        };
+        BanquetChargeType: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Description */
+            description?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Kind
+             * @enum {string|null}
+             */
+            kind?: "corkage" | "outdoor_venue" | "electricity" | "overtime" | "decoration" | "av_equipment" | "vendor_fee" | "additional_fnb" | "venue_rental" | "damage" | "other" | null;
+            /** @description Name */
+            name: string;
+            /**
+             * @description Price is Nett or ++
+             * @enum {string|null}
+             */
+            pricingMode?: "nett" | "plus_plus" | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Revenue Component (default by kind)
+             * @enum {string|null}
+             */
+            revenueComponent?: "banquet_package" | "banquet_fnb" | "venue_rental" | "corkage" | "outdoor_venue" | "electricity" | "event_fee" | "damage_charge" | "other" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Tax & Service Codes (empty = all in force) */
+            taxCodes?: string[] | null;
+            /**
+             * @description Unit
+             * @enum {string|null}
+             */
+            unit?: "item" | "bottle" | "hour" | "pax" | "kw" | "package" | "day" | null;
+            /** @description Unit Price */
+            unitPrice?: string | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        BanquetChargeTypeInput: {
+            /** @description Code */
+            code?: string;
+            /** @description Description */
+            description?: string | null;
+            /**
+             * @description Kind
+             * @enum {string|null}
+             */
+            kind?: "corkage" | "outdoor_venue" | "electricity" | "overtime" | "decoration" | "av_equipment" | "vendor_fee" | "additional_fnb" | "venue_rental" | "damage" | "other" | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * @description Price is Nett or ++
+             * @enum {string|null}
+             */
+            pricingMode?: "nett" | "plus_plus" | null;
+            /**
+             * @description Revenue Component (default by kind)
+             * @enum {string|null}
+             */
+            revenueComponent?: "banquet_package" | "banquet_fnb" | "venue_rental" | "corkage" | "outdoor_venue" | "electricity" | "event_fee" | "damage_charge" | "other" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Tax & Service Codes (empty = all in force) */
+            taxCodes?: string[] | null;
+            /**
+             * @description Unit
+             * @enum {string|null}
+             */
+            unit?: "item" | "bottle" | "hour" | "pax" | "kw" | "package" | "day" | null;
+            /** @description Unit Price */
+            unitPrice?: string | null;
+        };
+        BanquetChecklistTemplate: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: uuid
+             * @description Event Type (applied automatically)
+             */
+            eventTypeId?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        BanquetChecklistTemplateInput: {
+            /** @description Code */
+            code?: string;
+            /**
+             * Format: uuid
+             * @description Event Type (applied automatically)
+             */
+            eventTypeId?: string | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        BanquetChecklistTemplateItem: {
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: int64
+             * @description Due (days before the event)
+             */
+            daysBefore?: number | null;
+            /**
+             * @description Department
+             * @enum {string|null}
+             */
+            department?: "banquet" | "sales" | "kitchen" | "fnb_service" | "venue" | "engineering" | "front_desk" | "golf" | "finance" | "security" | "housekeeping" | "other" | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /** @description Task */
+            task: string;
+            /**
+             * Format: uuid
+             * @description Template
+             */
+            templateId: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        BanquetChecklistTemplateItemInput: {
+            /**
+             * Format: int64
+             * @description Due (days before the event)
+             */
+            daysBefore?: number | null;
+            /**
+             * @description Department
+             * @enum {string|null}
+             */
+            department?: "banquet" | "sales" | "kitchen" | "fnb_service" | "venue" | "engineering" | "front_desk" | "golf" | "finance" | "security" | "housekeeping" | "other" | null;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /** @description Task */
+            task?: string;
+            /**
+             * Format: uuid
+             * @description Template
+             */
+            templateId?: string;
+        };
+        BanquetEvent: {
+            banquetFlow: boolean;
+            cancelReason?: string | null;
+            cancellationFee?: string | null;
+            /** Format: date-time */
+            cancelledAt?: string | null;
+            capacity?: number | null;
+            /** @enum {string} */
+            category: "wedding" | "banquet" | "mice" | "social" | "sport" | "tournament" | "other";
+            /** @description Pax covered by the posted package charges */
+            chargedPax: number;
+            /** Format: date-time */
+            completedAt?: string | null;
+            contactEmail?: string | null;
+            contactName?: string | null;
+            contactPhone?: string | null;
+            contractTotal: string;
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            corporateName?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            /** Format: date-time */
+            definiteAt?: string | null;
+            definiteReason?: string | null;
+            description?: string | null;
+            /** Format: date-time */
+            end: string;
+            eventTypeCode: string;
+            /** Format: uuid */
+            eventTypeId: string;
+            eventTypeName: string;
+            expectedPax: number;
+            /** Format: date-time */
+            finalBilledAt?: string | null;
+            /** Format: uuid */
+            finalInvoiceId?: string | null;
+            finalPax?: number | null;
+            /** Format: uuid */
+            folioId?: string | null;
+            guaranteedPax?: number | null;
+            /** Format: uuid */
+            id: string;
+            layout?: string | null;
+            /** Format: uuid */
+            leadId?: string | null;
+            membersOnly: boolean;
+            notes?: string | null;
+            number: string;
+            /** Format: uuid */
+            opportunityId?: string | null;
+            /**
+             * Format: date-time
+             * @description Tentative holds expire at the option date
+             */
+            optionDate?: string | null;
+            /** Format: uuid */
+            packageId?: string | null;
+            packageName?: string | null;
+            /** @description Guaranteed (final) pax cut-off, YYYY-MM-DD */
+            paxDeadline?: string | null;
+            powerWatt: number;
+            /** Format: uuid */
+            propertyId: string;
+            public: boolean;
+            /** Format: uuid */
+            quotationId?: string | null;
+            quotationNumber?: string | null;
+            /** Format: date-time */
+            registrationClosesAt?: string | null;
+            registrationFee: string;
+            registrationOpen: boolean;
+            /** Format: uuid */
+            salesOwnerId?: string | null;
+            salesOwnerName?: string | null;
+            /** Format: uuid */
+            scheduleId?: string | null;
+            /** Format: date-time */
+            settledAt?: string | null;
+            /** @enum {string} */
+            source: "back_office" | "quotation" | "website" | "member_app" | "import";
+            specialRequests?: string | null;
+            /** Format: date-time */
+            start: string;
+            /** @enum {string} */
+            status: "inquiry" | "tentative" | "definite" | "completed" | "cancelled";
+            title: string;
+            /** Format: uuid */
+            tournamentId?: string | null;
+            version: number;
+        };
+        BanquetEventType: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Banquet flow (quotation, BEO) */
+            banquetFlow?: boolean | null;
+            /**
+             * @description Category
+             * @enum {string|null}
+             */
+            category?: "wedding" | "banquet" | "mice" | "social" | "sport" | "tournament" | "other" | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Description */
+            description?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        BanquetEventTypeInput: {
+            /** @description Banquet flow (quotation, BEO) */
+            banquetFlow?: boolean | null;
+            /**
+             * @description Category
+             * @enum {string|null}
+             */
+            category?: "wedding" | "banquet" | "mice" | "social" | "sport" | "tournament" | "other" | null;
+            /** @description Code */
+            code?: string;
+            /** @description Description */
+            description?: string | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        BanquetMenu: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Description */
+            description?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Menu Type
+             * @enum {string|null}
+             */
+            menuType?: "buffet" | "set_menu" | "cocktail" | "coffee_break" | "food_stall" | "kids" | "beverage" | "other" | null;
+            /** @description Name */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Kitchen / Outlet
+             */
+            outletId?: string | null;
+            /** @description Price per Pax (when added to a package) */
+            pricePerPax?: string | null;
+            /**
+             * @description Price is Nett or ++
+             * @enum {string|null}
+             */
+            pricingMode?: "nett" | "plus_plus" | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Show on the website */
+            public?: boolean | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Tax & Service Codes (empty = all in force) */
+            taxCodes?: string[] | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        BanquetMenuCategory: {
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Price per pax of an extra choice (empty = not allowed) */
+            extraChoicePrice?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Menu
+             */
+            menuId: string;
+            /** @description Category */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Choices included
+             */
+            quota?: number | null;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        BanquetMenuCategoryInput: {
+            /** @description Price per pax of an extra choice (empty = not allowed) */
+            extraChoicePrice?: string | null;
+            /**
+             * Format: uuid
+             * @description Menu
+             */
+            menuId?: string;
+            /** @description Category */
+            name?: string;
+            /**
+             * Format: int64
+             * @description Choices included
+             */
+            quota?: number | null;
+            /**
+             * Format: int64
+             * @description Sort Order
+             */
+            sortOrder?: number | null;
+        };
+        BanquetMenuInput: {
+            /** @description Code */
+            code?: string;
+            /** @description Description */
+            description?: string | null;
+            /**
+             * @description Menu Type
+             * @enum {string|null}
+             */
+            menuType?: "buffet" | "set_menu" | "cocktail" | "coffee_break" | "food_stall" | "kids" | "beverage" | "other" | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: uuid
+             * @description Kitchen / Outlet
+             */
+            outletId?: string | null;
+            /** @description Price per Pax (when added to a package) */
+            pricePerPax?: string | null;
+            /**
+             * @description Price is Nett or ++
+             * @enum {string|null}
+             */
+            pricingMode?: "nett" | "plus_plus" | null;
+            /** @description Show on the website */
+            public?: boolean | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Tax & Service Codes (empty = all in force) */
+            taxCodes?: string[] | null;
+        };
+        BanquetMenuItem: {
+            /** @description Allergens */
+            allergens?: string[] | null;
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /**
+             * Format: uuid
+             * @description Category
+             */
+            categoryId?: string | null;
+            /** @description Course */
+            course?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Description */
+            description?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Menu
+             */
+            menuId: string;
+            /** @description Name */
+            name: string;
+            /** @description Portions per Pax */
+            portionPerPax?: string | null;
+            /**
+             * Format: uuid
+             * @description Product
+             */
+            productId?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: uuid
+             * @description Recipe (BOM)
+             */
+            recipeId?: string | null;
+            /**
+             * Format: int64
+             * @description Served (minutes after start)
+             */
+            serveOffsetMinutes?: number | null;
+            /** @description Station (buffet, food stall, kitchen) */
+            station?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        BanquetMenuItemInput: {
+            /** @description Allergens */
+            allergens?: string[] | null;
+            /**
+             * Format: uuid
+             * @description Category
+             */
+            categoryId?: string | null;
+            /** @description Course */
+            course?: string | null;
+            /** @description Description */
+            description?: string | null;
+            /**
+             * Format: uuid
+             * @description Menu
+             */
+            menuId?: string;
+            /** @description Name */
+            name?: string;
+            /** @description Portions per Pax */
+            portionPerPax?: string | null;
+            /**
+             * Format: uuid
+             * @description Product
+             */
+            productId?: string | null;
+            /**
+             * Format: uuid
+             * @description Recipe (BOM)
+             */
+            recipeId?: string | null;
+            /**
+             * Format: int64
+             * @description Served (minutes after start)
+             */
+            serveOffsetMinutes?: number | null;
+            /** @description Station (buffet, food stall, kitchen) */
+            station?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        BanquetMigrationReconciliation: {
+            asOf: string;
+            /** @description Migrated DP = deposit liability */
+            balanced: boolean;
+            /** @description Contract value of the imported events */
+            contractTotal: string;
+            /** @description Held deposits on the folios of the imported events */
+            depositLiability: string;
+            /** @description Live (inquiry, tentative, definite) events from today */
+            futureEvents: number;
+            importedEvents: number;
+            importedFutureEvents: number;
+            /** @description Total DP declared in the banquet book */
+            migratedDownPayment: string;
+            /** @description Contract value − deposits of the imported events */
+            outstandingBalance: string;
+            /** @description Held deposits on every banquet event folio */
+            totalDepositHeld: string;
+        };
+        BanquetPackage: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /**
+             * @description Category
+             * @enum {string|null}
+             */
+            category?: "wedding" | "banquet" | "mice" | "birthday" | "social" | "corporate" | "other" | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Description */
+            description?: string | null;
+            /**
+             * Format: int64
+             * @description Venue Hours
+             */
+            durationHours?: number | null;
+            /**
+             * Format: int64
+             * @description Electricity Included (watt)
+             */
+            electricityWatt?: number | null;
+            /**
+             * @description Additional Pax Price is Nett or ++
+             * @enum {string|null}
+             */
+            extraPaxMode?: "nett" | "plus_plus" | null;
+            /** @description Additional Pax Price */
+            extraPaxPrice?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int64
+             * @description Pax included in the package price
+             */
+            includedPax?: number | null;
+            /** @description Inclusions (bungalow night, golf cart, F&B voucher, food tasting …) */
+            inclusions?: Record<string, never>[] | null;
+            /**
+             * Format: uuid
+             * @description Menu
+             */
+            menuId?: string | null;
+            /**
+             * Format: int64
+             * @description Minimum Pax (charged at least)
+             */
+            minPax?: number | null;
+            /** @description Name */
+            name: string;
+            /** @description Price (per pax, per pax per day or package) */
+            price: string;
+            /**
+             * @description Pricing Method
+             * @enum {string|null}
+             */
+            pricingMethod?: "per_pax" | "per_pax_per_day" | "fixed" | null;
+            /**
+             * @description Price is Nett or ++
+             * @enum {string|null}
+             */
+            pricingMode?: "nett" | "plus_plus" | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Show on the website */
+            public?: boolean | null;
+            /**
+             * @description Revenue Component
+             * @enum {string|null}
+             */
+            revenueComponent?: "banquet_package" | "banquet_fnb" | "venue_rental" | "corkage" | "outdoor_venue" | "electricity" | "event_fee" | "damage_charge" | "other" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Tax & Service Codes (empty = all in force) */
+            taxCodes?: string[] | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        BanquetPackageInput: {
+            /**
+             * @description Category
+             * @enum {string|null}
+             */
+            category?: "wedding" | "banquet" | "mice" | "birthday" | "social" | "corporate" | "other" | null;
+            /** @description Code */
+            code?: string;
+            /** @description Description */
+            description?: string | null;
+            /**
+             * Format: int64
+             * @description Venue Hours
+             */
+            durationHours?: number | null;
+            /**
+             * Format: int64
+             * @description Electricity Included (watt)
+             */
+            electricityWatt?: number | null;
+            /**
+             * @description Additional Pax Price is Nett or ++
+             * @enum {string|null}
+             */
+            extraPaxMode?: "nett" | "plus_plus" | null;
+            /** @description Additional Pax Price */
+            extraPaxPrice?: string | null;
+            /**
+             * Format: int64
+             * @description Pax included in the package price
+             */
+            includedPax?: number | null;
+            /** @description Inclusions (bungalow night, golf cart, F&B voucher, food tasting …) */
+            inclusions?: Record<string, never>[] | null;
+            /**
+             * Format: uuid
+             * @description Menu
+             */
+            menuId?: string | null;
+            /**
+             * Format: int64
+             * @description Minimum Pax (charged at least)
+             */
+            minPax?: number | null;
+            /** @description Name */
+            name?: string;
+            /** @description Price (per pax, per pax per day or package) */
+            price?: string;
+            /**
+             * @description Pricing Method
+             * @enum {string|null}
+             */
+            pricingMethod?: "per_pax" | "per_pax_per_day" | "fixed" | null;
+            /**
+             * @description Price is Nett or ++
+             * @enum {string|null}
+             */
+            pricingMode?: "nett" | "plus_plus" | null;
+            /** @description Show on the website */
+            public?: boolean | null;
+            /**
+             * @description Revenue Component
+             * @enum {string|null}
+             */
+            revenueComponent?: "banquet_package" | "banquet_fnb" | "venue_rental" | "corkage" | "outdoor_venue" | "electricity" | "event_fee" | "damage_charge" | "other" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** @description Tax & Service Codes (empty = all in force) */
+            taxCodes?: string[] | null;
+        };
+        BanquetProductionItem: {
+            /** Format: uuid */
+            beoId: string;
+            beoNumber: string;
+            beoVersion: number;
+            category?: string | null;
+            /** Format: uuid */
+            eventId: string;
+            eventNumber: string;
+            eventTitle: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            menuItemId?: string | null;
+            name: string;
+            /** Format: uuid */
+            outletId?: string | null;
+            outletName?: string | null;
+            /** @description Portions */
+            quantity: string;
+            /** Format: date-time */
+            serveAt: string;
+            station?: string | null;
+            /** @enum {string} */
+            status: "pending" | "in_progress" | "ready" | "served" | "cancelled";
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        BanquetProductionStatus: {
+            /** @enum {string} */
+            status: "pending" | "in_progress" | "ready" | "served";
+        };
+        BanquetReasonInput: {
+            reason?: string;
+        };
+        BanquetVendor: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** @description Contact */
+            contactName?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: email
+             * @description E-mail
+             */
+            email?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Name */
+            name: string;
+            /** @description Notes */
+            notes?: string | null;
+            /** @description Partner vendor (outside food allowed) */
+            partner?: boolean | null;
+            /** @description Phone */
+            phone?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * @description Vendor Type
+             * @enum {string|null}
+             */
+            vendorType?: "decoration" | "mc" | "band" | "photographer" | "videographer" | "florist" | "wedding_organizer" | "catering" | "av" | "makeup" | "other" | null;
+        };
+        BanquetVendorInput: {
+            /** @description Code */
+            code?: string;
+            /** @description Contact */
+            contactName?: string | null;
+            /**
+             * Format: email
+             * @description E-mail
+             */
+            email?: string | null;
+            /** @description Name */
+            name?: string;
+            /** @description Notes */
+            notes?: string | null;
+            /** @description Partner vendor (outside food allowed) */
+            partner?: boolean | null;
+            /** @description Phone */
+            phone?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * @description Vendor Type
+             * @enum {string|null}
+             */
+            vendorType?: "decoration" | "mc" | "band" | "photographer" | "videographer" | "florist" | "wedding_organizer" | "catering" | "av" | "makeup" | "other" | null;
+        };
+        BanquetVenue: {
+            /** @description Venue Add-on Price (outdoor) */
+            addonPrice?: string | null;
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Description */
+            description?: string | null;
+            /**
+             * Format: int64
+             * @description Electricity Included (watt)
+             */
+            electricityWatt?: number | null;
+            /** @description Facilities */
+            facilities?: string[] | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int64
+             * @description Maximum Capacity (pax)
+             */
+            maxCapacity?: number | null;
+            /**
+             * Format: int64
+             * @description Minimum Pax
+             */
+            minPax?: number | null;
+            /** @description Name */
+            name: string;
+            /**
+             * Format: uuid
+             * @description Part of (combined venue)
+             */
+            parentVenueId?: string | null;
+            /**
+             * Format: uuid
+             * @description Site
+             */
+            platformVenueId?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Show on the website */
+            public?: boolean | null;
+            /** @description Venue Rental Price */
+            rentalPrice?: string | null;
+            /**
+             * Format: uuid
+             * @description Bookable Resource
+             */
+            resourceId?: string | null;
+            /** @description Size (m²) */
+            sizeSqm?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * @description Venue Type
+             * @enum {string|null}
+             */
+            venueType?: "ballroom" | "function_room" | "outdoor" | "meeting_room" | "vip_suite" | "other" | null;
+        };
+        BanquetVenueAvailability: {
+            addonPrice: string;
+            /** @description No hold or booking overlaps the period (with setup / teardown buffers) */
+            available: boolean;
+            /** @description For the layout when given, else the maximum */
+            capacity?: number | null;
+            code: string;
+            /** @description Pax within the capacity and above the minimum */
+            fits: boolean;
+            minPax: number;
+            name: string;
+            /** Format: uuid */
+            venueId: string;
+            venueType: string;
+            /** @description Waitlisted holds on the period */
+            waitlist: number;
+        };
+        BanquetVenueInput: {
+            /** @description Venue Add-on Price (outdoor) */
+            addonPrice?: string | null;
+            /** @description Code */
+            code?: string;
+            /** @description Description */
+            description?: string | null;
+            /**
+             * Format: int64
+             * @description Electricity Included (watt)
+             */
+            electricityWatt?: number | null;
+            /** @description Facilities */
+            facilities?: string[] | null;
+            /**
+             * Format: int64
+             * @description Maximum Capacity (pax)
+             */
+            maxCapacity?: number | null;
+            /**
+             * Format: int64
+             * @description Minimum Pax
+             */
+            minPax?: number | null;
+            /** @description Name */
+            name?: string;
+            /**
+             * Format: uuid
+             * @description Part of (combined venue)
+             */
+            parentVenueId?: string | null;
+            /**
+             * Format: uuid
+             * @description Site
+             */
+            platformVenueId?: string | null;
+            /** @description Show on the website */
+            public?: boolean | null;
+            /** @description Venue Rental Price */
+            rentalPrice?: string | null;
+            /** @description Size (m²) */
+            sizeSqm?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /**
+             * @description Venue Type
+             * @enum {string|null}
+             */
+            venueType?: "ballroom" | "function_room" | "outdoor" | "meeting_room" | "vip_suite" | "other" | null;
+        };
+        BanquetVenueLayout: {
+            /**
+             * Format: int64
+             * @description Capacity (pax)
+             */
+            capacity: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Layout
+             * @enum {string}
+             */
+            layout: "round_table" | "classroom" | "u_shape" | "theater" | "boardroom" | "standing" | "banquet" | "cocktail";
+            /** Format: uuid */
+            propertyId?: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /**
+             * Format: uuid
+             * @description Venue
+             */
+            venueId: string;
+        };
+        BanquetVenueLayoutInput: {
+            /**
+             * Format: int64
+             * @description Capacity (pax)
+             */
+            capacity?: number;
+            /**
+             * @description Layout
+             * @enum {string}
+             */
+            layout?: "round_table" | "classroom" | "u_shape" | "theater" | "boardroom" | "standing" | "banquet" | "cocktail";
+            /**
+             * Format: uuid
+             * @description Venue
+             */
+            venueId?: string;
         };
         BarcodeLookup: {
             balances: components["schemas"]["StockBalanceRow"][];
@@ -20018,6 +22858,14 @@ export interface components {
             item: string;
             note?: string;
             pass: boolean;
+        };
+        ChecklistTemplateApply: {
+            /** Format: uuid */
+            templateId: string;
+        };
+        ChecklistToggleInput: {
+            done: boolean;
+            notes?: string;
         };
         Checkout: {
             amountDue: string;
@@ -23705,6 +26553,21 @@ export interface components {
             entryType: string;
             liabilityType: string;
         };
+        DefiniteInput: {
+            /** @description Definite before the down payment: needs the Definite without Deposit approval */
+            override?: boolean;
+            reason?: string;
+        };
+        DefiniteResult: {
+            /**
+             * Format: uuid
+             * @description Set when an approval was requested
+             */
+            approvalRequestId?: string | null;
+            /** @enum {string} */
+            approvalStatus?: "pending" | "approved";
+            event: components["schemas"]["EventDetail"];
+        };
         Delegation: {
             active: boolean;
             delegateName: string;
@@ -24374,6 +27237,685 @@ export interface components {
             /** @description Subtotal − discount */
             total: string;
         };
+        EventBilling: {
+            /** @description Charges − received */
+            balance: string;
+            byComponent: components["schemas"]["EventComponentTotal"][];
+            charges: components["schemas"]["EventCharge"][];
+            contractTotal: string;
+            currency: string;
+            deposits: components["schemas"]["Deposit"][];
+            downPaymentReceived: boolean;
+            downPaymentRequired: string;
+            /** Format: uuid */
+            eventId: string;
+            /** Format: date-time */
+            finalBilledAt?: string | null;
+            finalInvoice?: components["schemas"]["InvoiceDetail"] | null;
+            folio?: components["schemas"]["Summary"] | null;
+            /** Format: uuid */
+            folioId?: string | null;
+            folioStatus?: string | null;
+            number: string;
+            /** @description Payments and deposits received */
+            received: string;
+            schedule?: components["schemas"]["Schedule"] | null;
+            /** Format: date-time */
+            settledAt?: string | null;
+            status: string;
+        };
+        EventBillingSnapshot: {
+            balance: string;
+            contractTotal: string;
+            downPaymentReceived: boolean;
+            downPaymentRequired: string;
+            /** Format: uuid */
+            folioId?: string | null;
+            received: string;
+            /** Format: uuid */
+            scheduleId?: string | null;
+        };
+        EventCancelInput: {
+            reason: string;
+            /** @description Keep nothing (needs banquet.billing.manage) */
+            waiveFee?: boolean;
+        };
+        EventCancelResult: {
+            event: components["schemas"]["EventDetail"];
+            /** @description Forfeited deposit / cancellation fee kept by the club */
+            fee: string;
+            policy: components["schemas"]["PolicyRef"];
+            refunded: string;
+            tier: components["schemas"]["BanquetCancellationTier"];
+        };
+        EventCharge: {
+            /** Format: uuid */
+            chargeTypeId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            description: string;
+            /** Format: uuid */
+            eventId: string;
+            /** Format: uuid */
+            folioLineId?: string | null;
+            /** Format: uuid */
+            id: string;
+            kind?: string | null;
+            net: string;
+            /** @enum {string} */
+            pricingMode: "nett" | "plus_plus";
+            /** Format: uuid */
+            productId?: string | null;
+            quantity: string;
+            /** Format: uuid */
+            refId?: string | null;
+            revenueComponent: string;
+            service: string;
+            /** Format: uuid */
+            snapshotId?: string | null;
+            /** @enum {string} */
+            source: "package" | "extra_pax" | "menu" | "venue_addon" | "extra" | "vendor" | "resource" | "quotation" | "adjustment";
+            /** @enum {string} */
+            status: "posted" | "voided";
+            tax: string;
+            total: string;
+            unitPrice: string;
+            voidReason?: string | null;
+        };
+        EventChargeInput: {
+            /** Format: uuid */
+            chargeTypeId?: string | null;
+            description?: string;
+            /** @enum {string} */
+            kind?: "corkage" | "outdoor_venue" | "electricity" | "overtime" | "decoration" | "av_equipment" | "vendor_fee" | "additional_fnb" | "venue_rental" | "damage" | "other";
+            /** @description Corkage for outside food (partner vendors only) */
+            outsideFood?: boolean;
+            /**
+             * Format: uuid
+             * @description Additional F&B product (its recipe joins the requirement, K1)
+             */
+            productId?: string | null;
+            /** @description Default 1; electricity: kW above the included quota */
+            quantity?: string;
+            /** @description Default: the extra charge price or the Banquet Policies fee */
+            unitPrice?: string;
+            /**
+             * Format: uuid
+             * @description Corkage of outside food: the partner vendor
+             */
+            vendorId?: string | null;
+        };
+        EventChargeVoid: {
+            reason: string;
+        };
+        EventCheckInInput: {
+            /** @description Ticket code (QR) */
+            code?: string;
+            payment?: components["schemas"]["EventPaymentInput"] | null;
+        };
+        EventCheckInResult: {
+            alreadyCheckedIn: boolean;
+            participant: components["schemas"]["EventParticipant"];
+        };
+        EventChecklistInput: {
+            /** @enum {string} */
+            department?: "banquet" | "sales" | "kitchen" | "fnb_service" | "venue" | "engineering" | "front_desk" | "golf" | "finance" | "security" | "housekeeping" | "other";
+            /** @description YYYY-MM-DD */
+            dueDate?: string;
+            notes?: string;
+            ownerName?: string;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            task?: string;
+        };
+        EventChecklistItem: {
+            department: string;
+            /** Format: date-time */
+            doneAt?: string | null;
+            doneBy?: string | null;
+            dueDate?: string | null;
+            /** Format: uuid */
+            eventId: string;
+            /** Format: uuid */
+            id: string;
+            notes?: string | null;
+            overdue: boolean;
+            ownerName?: string | null;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            /** @enum {string} */
+            status: "open" | "done";
+            task: string;
+            /** Format: uuid */
+            templateItemId?: string | null;
+        };
+        EventChecklistProgress: {
+            done: number;
+            overdue: number;
+            total: number;
+        };
+        EventChecklistRow: {
+            department: string;
+            /** Format: date-time */
+            doneAt?: string | null;
+            doneBy?: string | null;
+            dueDate?: string | null;
+            /** Format: uuid */
+            eventId: string;
+            eventNumber: string;
+            /** Format: date-time */
+            eventStart: string;
+            eventTitle: string;
+            /** Format: uuid */
+            id: string;
+            notes?: string | null;
+            overdue: boolean;
+            ownerName?: string | null;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            /** @enum {string} */
+            status: "open" | "done";
+            task: string;
+            /** Format: uuid */
+            templateItemId?: string | null;
+        };
+        EventCompleteInput: {
+            /** @description Actual pax served; above the charged pax the difference is charged */
+            finalPax: number;
+            notes?: string;
+        };
+        EventComponentTotal: {
+            net: string;
+            revenueComponent: string;
+            service: string;
+            tax: string;
+            total: string;
+        };
+        EventDetail: {
+            banquetFlow: boolean;
+            beo?: components["schemas"]["BEOSummary"] | null;
+            billing: components["schemas"]["EventBillingSnapshot"];
+            cancelReason?: string | null;
+            cancellationFee?: string | null;
+            /** Format: date-time */
+            cancelledAt?: string | null;
+            capacity?: number | null;
+            /** @enum {string} */
+            category: "wedding" | "banquet" | "mice" | "social" | "sport" | "tournament" | "other";
+            /** @description Pax covered by the posted package charges */
+            chargedPax: number;
+            checklist: components["schemas"]["EventChecklistProgress"];
+            /** Format: date-time */
+            completedAt?: string | null;
+            contactEmail?: string | null;
+            contactName?: string | null;
+            contactPhone?: string | null;
+            contractTotal: string;
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            corporateName?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            currency: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            /** Format: date-time */
+            definiteAt?: string | null;
+            definiteReason?: string | null;
+            description?: string | null;
+            /** Format: date-time */
+            end: string;
+            eventTypeCode: string;
+            /** Format: uuid */
+            eventTypeId: string;
+            eventTypeName: string;
+            expectedPax: number;
+            /** Format: date-time */
+            finalBilledAt?: string | null;
+            /** Format: uuid */
+            finalInvoiceId?: string | null;
+            finalPax?: number | null;
+            /** Format: uuid */
+            folioId?: string | null;
+            guaranteedPax?: number | null;
+            /** Format: uuid */
+            id: string;
+            incidents: components["schemas"]["EventIncident"][];
+            /** @description Package inclusions (FR-BQT-06) */
+            inclusions: components["schemas"]["EventInclusion"][];
+            layout?: string | null;
+            /** Format: uuid */
+            leadId?: string | null;
+            meetings: components["schemas"]["EventMeeting"][];
+            membersOnly: boolean;
+            menus: components["schemas"]["EventMenuSelection"][];
+            notes?: string | null;
+            number: string;
+            /** Format: uuid */
+            opportunityId?: string | null;
+            /**
+             * Format: date-time
+             * @description Tentative holds expire at the option date
+             */
+            optionDate?: string | null;
+            /** Format: uuid */
+            packageId?: string | null;
+            packageName?: string | null;
+            participants: components["schemas"]["EventParticipantStats"];
+            /** @description Guaranteed (final) pax cut-off, YYYY-MM-DD */
+            paxDeadline?: string | null;
+            powerWatt: number;
+            /** Format: uuid */
+            propertyId: string;
+            public: boolean;
+            /** Format: uuid */
+            quotationId?: string | null;
+            quotationNumber?: string | null;
+            /** Format: date-time */
+            registrationClosesAt?: string | null;
+            registrationFee: string;
+            registrationOpen: boolean;
+            resources: components["schemas"]["EventResource"][];
+            /** Format: uuid */
+            salesOwnerId?: string | null;
+            salesOwnerName?: string | null;
+            schedule: components["schemas"]["RundownItem"][];
+            /** Format: uuid */
+            scheduleId?: string | null;
+            /** Format: date-time */
+            settledAt?: string | null;
+            /** @enum {string} */
+            source: "back_office" | "quotation" | "website" | "member_app" | "import";
+            specialRequests?: string | null;
+            /** Format: date-time */
+            start: string;
+            /** @enum {string} */
+            status: "inquiry" | "tentative" | "definite" | "completed" | "cancelled";
+            title: string;
+            /** Format: uuid */
+            tournamentId?: string | null;
+            vendors: components["schemas"]["EventVendor"][];
+            venues: components["schemas"]["VenueHold"][];
+            version: number;
+        };
+        EventFinalBill: {
+            billing: components["schemas"]["EventBilling"];
+            charges: string;
+            depositsApplied: string;
+            /** @description Balance left after deposits, before the invoice / payment */
+            due: string;
+            folioClosed: boolean;
+            payment?: components["schemas"]["Payment"] | null;
+            refunded: string;
+        };
+        EventFinalBillInput: {
+            /** @description Issue the final invoice (always for company events) */
+            invoice?: boolean;
+            payment?: components["schemas"]["EventPaymentInput"] | null;
+            /** @description Invoice terms (default Credit Policies for companies) */
+            termsDays?: number | null;
+        };
+        EventGuestInput: {
+            email?: string;
+            name: string;
+            phone?: string;
+        };
+        EventIncident: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            eventId: string;
+            /** Format: uuid */
+            id: string;
+            note: string;
+            reporter?: string | null;
+            /** @enum {string} */
+            severity: "low" | "medium" | "high";
+        };
+        EventIncidentInput: {
+            note: string;
+            /** @enum {string} */
+            severity?: "low" | "medium" | "high";
+        };
+        EventInclusion: {
+            hours: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "resource" | "voucher" | "service";
+            label: string;
+            nights: number;
+            note?: string | null;
+            /** Format: uuid */
+            packageId: string;
+            quantity: number;
+            resourceType?: string | null;
+            seq: number;
+            /** @enum {string} */
+            status: "pending" | "held" | "issued" | "unavailable" | "cancelled";
+            voucherCodes: string[];
+            voucherTypeCode?: string | null;
+        };
+        EventInput: {
+            /** @description Registration capacity (seats) */
+            capacity?: number | null;
+            contactEmail?: string;
+            contactName?: string;
+            contactPhone?: string;
+            /**
+             * Format: uuid
+             * @description Company event: billed to the corporate account
+             */
+            corporateAccountId?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            description?: string;
+            /** Format: date-time */
+            end: string;
+            /** Format: uuid */
+            eventTypeId: string;
+            expectedPax: number;
+            guest?: components["schemas"]["EventGuestInput"] | null;
+            /** @enum {string} */
+            layout?: "round_table" | "classroom" | "u_shape" | "theater" | "boardroom" | "standing" | "banquet" | "cocktail";
+            membersOnly?: boolean;
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Banquet package priced for the expected pax
+             */
+            packageId?: string | null;
+            /** @description Electricity needed (watt) */
+            powerWatt?: number;
+            /** @description Listed on the website and in the Member App */
+            public?: boolean;
+            registrationFee?: string;
+            registrationOpen?: boolean;
+            /**
+             * Format: uuid
+             * @description Default: the creating user
+             */
+            salesOwnerId?: string | null;
+            specialRequests?: string;
+            /** Format: date-time */
+            start: string;
+            title: string;
+            /**
+             * Format: uuid
+             * @description Golf tournament of the event
+             */
+            tournamentId?: string | null;
+            venues?: components["schemas"]["VenueHoldInput"][];
+        };
+        EventMeeting: {
+            attendees: string[];
+            /** @description Changes carried into the next BEO */
+            changes: string[];
+            /** Format: uuid */
+            eventId: string;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "food_tasting" | "technical_meeting" | "site_visit";
+            location?: string | null;
+            outcome?: string | null;
+            /** Format: date-time */
+            recordedAt?: string | null;
+            /** Format: date-time */
+            scheduledAt: string;
+            /** @enum {string} */
+            status: "scheduled" | "done" | "cancelled";
+        };
+        EventMeetingInput: {
+            attendees?: string[];
+            /** @enum {string} */
+            kind: "food_tasting" | "technical_meeting" | "site_visit";
+            location?: string;
+            /** Format: date-time */
+            scheduledAt: string;
+        };
+        EventMeetingRecord: {
+            /** @description Agreed changes (menu, setup …) forwarded to the BEO */
+            changes?: string[];
+            outcome?: string;
+            /**
+             * @description Default done
+             * @enum {string}
+             */
+            status?: "done" | "cancelled";
+        };
+        EventMenuSelection: {
+            categories: components["schemas"]["MenuCategoryChoice"][];
+            items: components["schemas"]["SelectedMenuItem"][];
+            /** Format: uuid */
+            menuId: string;
+            menuName: string;
+            menuType: string;
+        };
+        EventPackageInput: {
+            /** @description Per pax per day packages: default the event days */
+            days?: number;
+            /** Format: uuid */
+            packageId: string;
+            /** @description Default: guaranteed, else expected pax */
+            pax?: number;
+        };
+        EventParticipant: {
+            /** Format: date-time */
+            checkedInAt?: string | null;
+            company?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            dietaryNotes?: string | null;
+            email?: string | null;
+            /** Format: uuid */
+            eventId: string;
+            eventNumber: string;
+            /** Format: date-time */
+            eventStart: string;
+            eventTitle: string;
+            fee: string;
+            /** Format: uuid */
+            folioId?: string | null;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            partySize: number;
+            /** @enum {string} */
+            paymentStatus: "none" | "unpaid" | "paid" | "refunded";
+            phone?: string | null;
+            /** Format: date-time */
+            promotedAt?: string | null;
+            /** Format: date-time */
+            registeredAt: string;
+            /** @enum {string} */
+            source: "staff" | "import" | "website" | "member_app";
+            /** @enum {string} */
+            status: "registered" | "waitlisted" | "withdrawn" | "checked_in";
+            tableNo?: string | null;
+            /** @description QR content for the check-in */
+            ticketCode: string;
+            vip: boolean;
+            waitlistRank?: number | null;
+            /** Format: date-time */
+            withdrawnAt?: string | null;
+        };
+        EventParticipantInput: {
+            company?: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            dietaryNotes?: string;
+            email?: string;
+            name?: string;
+            /** @description Seats; default 1 */
+            partySize?: number;
+            payment?: components["schemas"]["EventPaymentInput"] | null;
+            phone?: string;
+            tableNo?: string;
+            vip?: boolean;
+        };
+        EventParticipantStats: {
+            capacity?: number | null;
+            checkedIn: number;
+            registered: number;
+            /** @description Seats taken (registered + checked in) */
+            seats: number;
+            waitlisted: number;
+            withdrawn: number;
+        };
+        EventPatch: {
+            capacity?: number | null;
+            contactEmail?: string | null;
+            contactName?: string | null;
+            contactPhone?: string | null;
+            description?: string | null;
+            expectedPax?: number | null;
+            layout?: string | null;
+            membersOnly?: boolean | null;
+            notes?: string | null;
+            powerWatt?: number | null;
+            public?: boolean | null;
+            /** Format: date-time */
+            registrationClosesAt?: string | null;
+            registrationFee?: string | null;
+            registrationOpen?: boolean | null;
+            /** Format: uuid */
+            salesOwnerId?: string | null;
+            specialRequests?: string | null;
+            title?: string | null;
+            /** Format: uuid */
+            tournamentId?: string | null;
+        };
+        EventPaymentInput: {
+            /** @description Default: the balance */
+            amount?: string;
+            /** @enum {string} */
+            methodType: "cash" | "bank_transfer" | "card" | "qris" | "virtual_account";
+            reference?: string;
+        };
+        EventProcurementRequirement: {
+            /**
+             * Format: uuid
+             * @description The issued BEO the list comes from (empty: computed from the current menu)
+             */
+            beoId?: string | null;
+            beoNumber?: string | null;
+            eventDate: string;
+            /** Format: uuid */
+            eventId: string;
+            eventNumber: string;
+            /** Format: uuid */
+            outletId?: string | null;
+            pax: number;
+            requirements: components["schemas"]["BEORequirement"][];
+            version?: number | null;
+        };
+        EventResource: {
+            description?: string | null;
+            /** Format: date-time */
+            end: string;
+            /** Format: uuid */
+            eventId: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Held for a package inclusion (no charge)
+             */
+            inclusionId?: string | null;
+            quantity: number;
+            reservationCode?: string | null;
+            /** Format: uuid */
+            reservationId?: string | null;
+            /** Format: uuid */
+            resourceId: string;
+            resourceName: string;
+            resourceType: string;
+            /** Format: date-time */
+            start: string;
+            /** @enum {string} */
+            status: "held" | "confirmed" | "released" | "completed";
+        };
+        EventResourceInput: {
+            /** @description Charge to the event folio (not included in the package) */
+            amount?: string;
+            description?: string;
+            /**
+             * Format: date-time
+             * @description Default: the event end
+             */
+            end?: string | null;
+            quantity?: number;
+            /**
+             * Format: uuid
+             * @description Reservation resource: bungalow, meeting room, golf cart, equipment …
+             */
+            resourceId: string;
+            /** @description Billing revenue component of the charge (default other) */
+            revenueComponent?: string;
+            /**
+             * Format: date-time
+             * @description Default: the event start
+             */
+            start?: string | null;
+        };
+        EventScheduleRequest: {
+            /** @description Default: Banquet Policies — DP, second term, final payment H-7 */
+            lines?: components["schemas"]["ScheduleLineInput"][];
+        };
+        EventTicket: {
+            checkout?: components["schemas"]["Checkout"] | null;
+            /** Format: uuid */
+            eventId: string;
+            /** Format: date-time */
+            eventStart: string;
+            eventTitle: string;
+            fee: string;
+            name: string;
+            partySize: number;
+            /** @enum {string} */
+            paymentStatus: "none" | "unpaid" | "paid" | "refunded";
+            /** @enum {string} */
+            status: "registered" | "waitlisted" | "withdrawn" | "checked_in";
+            /** @description QR content for the check-in */
+            ticketCode: string;
+            waitlistRank?: number | null;
+        };
+        EventVendor: {
+            /** Format: date-time */
+            arrivalAt?: string | null;
+            /** Format: uuid */
+            chargeId?: string | null;
+            chargeToCustomer: boolean;
+            contactName?: string | null;
+            /** Format: uuid */
+            eventId: string;
+            fee: string;
+            /** Format: uuid */
+            id: string;
+            notes?: string | null;
+            partner: boolean;
+            phone?: string | null;
+            service: string;
+            /** @enum {string} */
+            status: "confirmed" | "cancelled";
+            /** Format: uuid */
+            vendorId: string;
+            vendorName: string;
+            vendorType: string;
+        };
+        EventVendorInput: {
+            /** Format: date-time */
+            arrivalAt?: string | null;
+            /** @description Post the vendor fee to the event folio */
+            chargeToCustomer?: boolean;
+            fee?: string;
+            notes?: string;
+            service: string;
+            /** Format: uuid */
+            vendorId: string;
+        };
         ExperienceConsentInput: {
             /** @enum {string} */
             consent: "granted" | "withdrawn";
@@ -24459,6 +28001,11 @@ export interface components {
             /** Format: date-time */
             expiresAt: string;
             reason: string;
+        };
+        ExtendOptionInput: {
+            /** Format: date-time */
+            optionDate: string;
+            reason?: string;
         };
         Facility: {
             /** Format: date-time */
@@ -25055,6 +28602,10 @@ export interface components {
             generatedAt: string;
             widgets: components["schemas"]["Widget"][];
         };
+        GuaranteedPaxInput: {
+            pax: number;
+            reason?: string;
+        };
         Guest: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -25128,6 +28679,16 @@ export interface components {
              * @enum {string|null}
              */
             status?: "active" | "inactive" | null;
+        };
+        GuestListImport: {
+            participants: components["schemas"]["EventParticipantInput"][];
+        };
+        GuestListImportResult: {
+            items: components["schemas"]["EventParticipant"][];
+            registered: number;
+            /** @description Rows not imported with the reason */
+            skipped: string[];
+            waitlisted: number;
         };
         HIO: {
             /** Format: date-time */
@@ -25550,6 +29111,25 @@ export interface components {
             /** Format: date-time */
             startedAt: string;
             targetMinutes: number;
+        };
+        HostedEvent: {
+            beoStatus?: string | null;
+            contractTotal: string;
+            currency: string;
+            /** Format: date-time */
+            end: string;
+            /** Format: uuid */
+            folioId?: string | null;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            pax: number;
+            schedule?: components["schemas"]["Schedule"] | null;
+            /** Format: date-time */
+            start: string;
+            status: string;
+            title: string;
+            venues: string[];
         };
         ImportEntity: {
             codeField: string;
@@ -27145,6 +30725,10 @@ export interface components {
             total: string;
             unitPrice: string;
         };
+        IssueBEOInput: {
+            /** @description Recorded with the version (required for a revision) */
+            reason?: string;
+        };
         IssueCardRequest: {
             /** @description Physical card number; generated when empty */
             cardNumber?: string;
@@ -27501,6 +31085,63 @@ export interface components {
             voucherCode: string;
             /** Format: uuid */
             voucherId: string;
+        };
+        LegacyEventResult: {
+            balance: string;
+            downPayment: string;
+            /** Format: uuid */
+            eventId?: string | null;
+            eventNumber?: string;
+            eventStatus?: string;
+            legacyRef: string;
+            message?: string;
+            row: number;
+            /** @enum {string} */
+            status: "imported" | "existing" | "error";
+        };
+        LegacyEventRow: {
+            /** @description YYYY-MM-DD (default Banquet Policies final payment H-N) */
+            balanceDueDate?: string;
+            /** @description Contract value incl. tax & service */
+            contractTotal: string;
+            corporateAccountCode?: string;
+            customerEmail?: string;
+            customerName: string;
+            customerPhone?: string;
+            /** @description YYYY-MM-DD */
+            date: string;
+            /** @description DP already received before the go-live */
+            downPayment?: string;
+            /** @description YYYY-MM-DD the DP was received */
+            downPaymentDate?: string;
+            /** @description HH:MM (default start + package hours) */
+            endTime?: string;
+            /** @description Event type code (WEDDING, MEETING, BIRTHDAY …); default by the package category */
+            eventType?: string;
+            layout?: string;
+            /** @description Reference in the banquet book (idempotency key) */
+            legacyRef: string;
+            /** @description Menu agreed so far (free text) */
+            menu?: string;
+            notes?: string;
+            packageCode?: string;
+            pax: number;
+            /** @description HH:MM (default Banquet Policies start time) */
+            startTime?: string;
+            title: string;
+            venueCode?: string;
+        };
+        LegacyEventsImport: {
+            /** @description Validate and preview without saving */
+            dryRun?: boolean;
+            rows: components["schemas"]["LegacyEventRow"][];
+        };
+        LegacyEventsResult: {
+            dryRun: boolean;
+            errors: number;
+            existing: number;
+            imported: number;
+            rows: components["schemas"]["LegacyEventResult"][];
         };
         Letter: {
             /** Format: uuid */
@@ -28129,6 +31770,40 @@ export interface components {
             promoCodes?: string[];
             startDate: string;
         };
+        MemberEvent: {
+            capacity?: number | null;
+            category: string;
+            currency: string;
+            description?: string | null;
+            /** Format: date-time */
+            end: string;
+            eventType: string;
+            /** @description Registration fee per seat */
+            fee: string;
+            /** Format: uuid */
+            id: string;
+            membersOnly: boolean;
+            myTicket?: components["schemas"]["EventTicket"] | null;
+            number: string;
+            /** Format: date-time */
+            registrationClosesAt?: string | null;
+            registrationOpen: boolean;
+            /** @description Empty: no capacity limit */
+            seatsLeft?: number | null;
+            /** Format: date-time */
+            start: string;
+            title: string;
+            venues: string[];
+        };
+        MemberEventRegistration: {
+            dietaryNotes?: string;
+            partySize?: number;
+            /**
+             * @description Paid events: opens the online payment
+             * @enum {string}
+             */
+            payMethod?: "qris" | "virtual_account" | "card";
+        };
         MemberInput: {
             /** @description Attributes */
             attributes?: Record<string, never> | null;
@@ -28562,6 +32237,15 @@ export interface components {
             /** @enum {string} */
             shell: "backoffice" | "management" | "member" | "ops" | "platform-admin";
         };
+        MenuCategoryChoice: {
+            /** Format: uuid */
+            categoryId: string;
+            /** @description Choices above the quota (charged per pax) */
+            extra: number;
+            name: string;
+            quota: number;
+            selected: number;
+        };
         MenuItem: {
             category?: string | null;
             code: string;
@@ -28572,6 +32256,12 @@ export interface components {
             /** Format: uuid */
             productId: string;
             productType: string;
+        };
+        MenuSelectionInput: {
+            itemIds: string[];
+            /** Format: uuid */
+            menuId: string;
+            notes?: string;
         };
         MergeInput: {
             folioIds: string[];
@@ -28836,6 +32526,10 @@ export interface components {
             id: string;
             published: boolean;
             title: string;
+        };
+        MyEvents: {
+            hosted: components["schemas"]["HostedEvent"][];
+            tickets: components["schemas"]["EventTicket"][];
         };
         MyFavoriteInput: {
             favorite: boolean;
@@ -31572,6 +35266,58 @@ export interface components {
             applicationNo: string;
             status: string;
         };
+        PublicBanquetMenu: {
+            code: string;
+            description?: string | null;
+            /** Format: uuid */
+            id: string;
+            items: string[];
+            menuType: string;
+            name: string;
+            pricePerPax: string;
+            pricingMode: string;
+        };
+        PublicBanquetPackage: {
+            category: string;
+            code: string;
+            description?: string | null;
+            durationHours: number;
+            /** Format: uuid */
+            id: string;
+            includedPax: number;
+            inclusions: string[];
+            minPax: number;
+            name: string;
+            price: string;
+            /** @enum {string} */
+            pricingMethod: "per_pax" | "per_pax_per_day" | "fixed";
+            /** @enum {string} */
+            pricingMode: "nett" | "plus_plus";
+        };
+        PublicBanquetPage: {
+            currency: string;
+            menus: components["schemas"]["PublicBanquetMenu"][];
+            packages: components["schemas"]["PublicBanquetPackage"][];
+            venues: components["schemas"]["PublicBanquetVenue"][];
+        };
+        PublicBanquetVenue: {
+            addonPrice: string;
+            code: string;
+            description?: string | null;
+            facilities: string[];
+            /** Format: uuid */
+            id: string;
+            layouts: components["schemas"]["PublicBanquetVenueLayout"][];
+            maxCapacity?: number | null;
+            minPax: number;
+            name: string;
+            sizeSqm?: string | null;
+            venueType: string;
+        };
+        PublicBanquetVenueLayout: {
+            capacity: number;
+            layout: string;
+        };
         PublicBooking: {
             canCancel: boolean;
             code: string;
@@ -31695,6 +35441,43 @@ export interface components {
             teeSet?: string | null;
             title: string;
             year?: number | null;
+        };
+        PublicEvent: {
+            capacity?: number | null;
+            category: string;
+            currency: string;
+            description?: string | null;
+            /** Format: date-time */
+            end: string;
+            eventType: string;
+            /** @description Registration fee per seat */
+            fee: string;
+            /** Format: uuid */
+            id: string;
+            membersOnly: boolean;
+            number: string;
+            /** Format: date-time */
+            registrationClosesAt?: string | null;
+            registrationOpen: boolean;
+            /** @description Empty: no capacity limit */
+            seatsLeft?: number | null;
+            /** Format: date-time */
+            start: string;
+            title: string;
+            venues: string[];
+        };
+        PublicEventRegistration: {
+            company?: string;
+            dietaryNotes?: string;
+            guest: components["schemas"]["PublicGuest"];
+            partySize?: number;
+            /**
+             * @description Paid events: opens the online payment
+             * @enum {string}
+             */
+            payMethod?: "qris" | "virtual_account" | "card";
+            /** Format: uuid */
+            propertyId: string;
         };
         PublicFacility: {
             facilityType?: string | null;
@@ -32859,6 +36642,9 @@ export interface components {
             paymentId: string;
             reason: string;
         };
+        RegistrationWithdrawInput: {
+            reason?: string;
+        };
         RejectInput: {
             reason: string;
         };
@@ -33713,6 +37499,45 @@ export interface components {
             propertyId?: string | null;
             value: Record<string, never>;
         };
+        RundownInput: {
+            items: components["schemas"]["RundownItemInput"][];
+        };
+        RundownItem: {
+            department?: string | null;
+            /** Format: date-time */
+            end?: string | null;
+            /** Format: uuid */
+            id: string;
+            notes?: string | null;
+            ownerName?: string | null;
+            /** Format: uuid */
+            ownerUserId?: string | null;
+            seq: number;
+            /** Format: date-time */
+            start: string;
+            title: string;
+            /** Format: uuid */
+            venueId?: string | null;
+            venueName?: string | null;
+        };
+        RundownItemInput: {
+            /** @enum {string} */
+            department?: "banquet" | "sales" | "kitchen" | "fnb_service" | "venue" | "engineering" | "front_desk" | "golf" | "finance" | "security" | "housekeeping" | "other";
+            /** Format: date-time */
+            end?: string | null;
+            notes?: string;
+            ownerName?: string;
+            /**
+             * Format: uuid
+             * @description Person in charge
+             */
+            ownerUserId?: string | null;
+            /** Format: date-time */
+            start: string;
+            title: string;
+            /** Format: uuid */
+            venueId?: string | null;
+        };
         SalePayment: {
             /** @description Default: the sale total */
             amount?: string;
@@ -34296,6 +38121,26 @@ export interface components {
             memberCount: number;
             /** Format: uuid */
             segmentId: string;
+        };
+        SelectedMenuItem: {
+            allergens: string[];
+            category?: string | null;
+            /** Format: uuid */
+            categoryId?: string | null;
+            course?: string | null;
+            /** Format: uuid */
+            menuId: string;
+            /** Format: uuid */
+            menuItemId: string;
+            name: string;
+            notes?: string | null;
+            portionPerPax: string;
+            /** Format: uuid */
+            productId?: string | null;
+            /** Format: uuid */
+            recipeId?: string | null;
+            serveOffsetMinutes: number;
+            station?: string | null;
         };
         SellInput: {
             /** @enum {string} */
@@ -36150,6 +39995,15 @@ export interface components {
             /** Format: uuid */
             playerId?: string | null;
         };
+        TodayEvent: {
+            beo?: components["schemas"]["BEOSummary"] | null;
+            checklist: components["schemas"]["EventChecklistProgress"];
+            event: components["schemas"]["BanquetEvent"];
+            incidents: number;
+            participants: components["schemas"]["EventParticipantStats"];
+            schedule: components["schemas"]["RundownItem"][];
+            venues: components["schemas"]["VenueHold"][];
+        };
         TransferInput: {
             /** Format: uuid */
             customerId: string;
@@ -36501,6 +40355,87 @@ export interface components {
             /** Format: date-time */
             start: string;
             status: string;
+        };
+        VenueCalendarEntry: {
+            /** Format: date-time */
+            end: string;
+            /** Format: uuid */
+            eventId: string;
+            eventNumber: string;
+            eventStatus: string;
+            function?: string | null;
+            /** Format: uuid */
+            holdId: string;
+            /** @enum {string} */
+            holdStatus: "tentative" | "definite" | "waitlisted" | "completed";
+            /** Format: date-time */
+            start: string;
+            title: string;
+            waitlistRank?: number | null;
+        };
+        VenueCalendarRow: {
+            /** @description Reservation Engine allocations of the venue resource (Booking Calendar) */
+            bookings: components["schemas"]["CalendarEntry"][];
+            code: string;
+            events: components["schemas"]["VenueCalendarEntry"][];
+            name: string;
+            /** Format: uuid */
+            parentVenueId?: string | null;
+            /** Format: uuid */
+            venueId: string;
+            venueType: string;
+        };
+        VenueHold: {
+            /** Format: date-time */
+            end: string;
+            /** Format: uuid */
+            eventId: string;
+            functionName?: string | null;
+            /** Format: uuid */
+            id: string;
+            layout?: string | null;
+            /** Format: date-time */
+            optionDate?: string | null;
+            pax?: number | null;
+            /** Format: date-time */
+            promotedAt?: string | null;
+            releaseReason?: string | null;
+            /** Format: date-time */
+            releasedAt?: string | null;
+            reservationCode?: string | null;
+            /** Format: uuid */
+            reservationId?: string | null;
+            /** Format: date-time */
+            start: string;
+            /** @enum {string} */
+            status: "tentative" | "definite" | "waitlisted" | "released" | "expired" | "cancelled" | "completed";
+            venueCode: string;
+            /** Format: uuid */
+            venueId: string;
+            venueName: string;
+            waitlistRank?: number | null;
+        };
+        VenueHoldInput: {
+            /**
+             * Format: date-time
+             * @description Default: the event end
+             */
+            end?: string | null;
+            /** @description Function / session, e.g. Akad, Reception */
+            functionName?: string;
+            /** @enum {string} */
+            layout?: "round_table" | "classroom" | "u_shape" | "theater" | "boardroom" | "standing" | "banquet" | "cocktail";
+            /** @description Default: the expected pax of the event */
+            pax?: number;
+            /**
+             * Format: date-time
+             * @description Default: the event start
+             */
+            start?: string | null;
+            /** Format: uuid */
+            venueId: string;
+            /** @description Join the waitlist when another event holds the venue (second hold) */
+            waitlist?: boolean;
         };
         VenueInput: {
             /** @description Code */
@@ -37468,6 +41403,6807 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetBeos: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+                /** @description draft, issued, superseded */
+                "filter[status]"?: string;
+                "filter[eventId]"?: string;
+                from?: string;
+                to?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BEO"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetBeos: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BEOInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BEO"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetBeosById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BEO"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetBeosById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BEOPatch"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BEO"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetBeosByIdPdf: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetBeosByIdAcknowledge: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BEOAckInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BEO"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetBeosByIdIssue: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IssueBEOInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BEO"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetBeosByIdRevise: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BEORevise"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BEO"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetChargeTypes: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[kind]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetChargeType"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetChargeTypes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetChargeTypeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetChargeType"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetChargeTypesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetChargeType"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteBanquetChargeTypesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetChargeTypesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetChargeTypeInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetChargeType"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetChargeTypesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[kind]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetChecklistItems: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description open, done */
+                "filter[status]"?: string;
+                "filter[department]"?: string;
+                "filter[eventId]"?: string;
+                /** @description true: only overdue tasks */
+                overdue?: string;
+                /** @description true: only my tasks */
+                mine?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EventChecklistRow"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetChecklistItemsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventChecklistInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventChecklistItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetChecklistItemsByIdToggle: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistToggleInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventChecklistItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetChecklistTemplateItems: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[templateId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetChecklistTemplateItem"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetChecklistTemplateItems: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetChecklistTemplateItemInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetChecklistTemplateItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetChecklistTemplateItemsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetChecklistTemplateItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteBanquetChecklistTemplateItemsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetChecklistTemplateItemsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetChecklistTemplateItemInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetChecklistTemplateItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetChecklistTemplateItemsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[templateId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetChecklistTemplates: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[eventTypeId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetChecklistTemplate"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetChecklistTemplates: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetChecklistTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetChecklistTemplate"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetChecklistTemplatesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetChecklistTemplate"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteBanquetChecklistTemplatesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetChecklistTemplatesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetChecklistTemplateInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetChecklistTemplate"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetChecklistTemplatesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[eventTypeId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventChargesByIdVoid: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventChargeVoid"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventCharge"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventMeetingsByIdRecord: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventMeetingRecord"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMeeting"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventResourcesByIdRelease: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetReasonInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventResource"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetEventTypes: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[category]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetEventType"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventTypes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetEventTypeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetEventType"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetEventTypesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetEventType"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteBanquetEventTypesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetEventTypesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetEventTypeInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetEventType"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetEventTypesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[category]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventVendorsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetReasonInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventVendor"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetEvents: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+                /** @description Comma separated: inquiry, tentative, definite, completed, cancelled */
+                "filter[status]"?: string;
+                /** @description wedding, banquet, mice, social, sport, tournament, other (comma separated) */
+                "filter[category]"?: string;
+                "filter[eventTypeId]"?: string;
+                "filter[ownerUserId]"?: string;
+                /** @description YYYY-MM-DD (default: a year back) */
+                from?: string;
+                /** @description YYYY-MM-DD (default: two years ahead) */
+                to?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetEvent"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEvents: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetEventsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetEventsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventPatch"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetEventsByIdBilling: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventBilling"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdCharges: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventChargeInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventCharge"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetEventsByIdChecklist: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EventChecklistItem"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdChecklist: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventChecklistInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventChecklistItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdChecklistApplyTemplate: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChecklistTemplateApply"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EventChecklistItem"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdIncidents: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventIncidentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventIncident"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdMeetings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventMeetingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventMeeting"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putBanquetEventsByIdMenuSelection: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MenuSelectionInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdPackage: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventPackageInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetEventsByIdParticipants: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Name, company or ticket code */
+                q?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EventParticipant"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdParticipants: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventParticipantInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventParticipant"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdParticipantsImport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuestListImport"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestListImportResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdPaymentSchedule: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventScheduleRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventBilling"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetEventsByIdProcurementRequirement: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventProcurementRequirement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdResources: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventResourceInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventResource"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetEventsByIdSchedule: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RundownItem"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putBanquetEventsByIdSchedule: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RundownInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RundownItem"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdVendors: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventVendorInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventVendor"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdVenues: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VenueHoldInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VenueHold"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdVenuesByHoldIdRelease: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                holdId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetReasonInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventCancelInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventCancelResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdCheckIn: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventCheckInInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventCheckInResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdComplete: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventCompleteInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdExtendOption: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExtendOptionInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdFinalBilling: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventFinalBillInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventFinalBill"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdGuaranteePax: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GuaranteedPaxInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsByIdMakeDefinite: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DefiniteInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DefiniteResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetEventsImport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LegacyEventsImport"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LegacyEventsResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetMenuCategories: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[menuId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetMenuCategory"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetMenuCategories: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetMenuCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetMenuCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetMenuCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetMenuCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteBanquetMenuCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetMenuCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetMenuCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetMenuCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetMenuCategoriesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[menuId]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetMenuItems: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[menuId]"?: string;
+                "filter[categoryId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetMenuItem"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetMenuItems: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetMenuItemInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetMenuItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetMenuItemsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetMenuItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteBanquetMenuItemsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetMenuItemsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetMenuItemInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetMenuItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetMenuItemsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[menuId]"?: string;
+                "filter[categoryId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetMenus: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[menuType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetMenu"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetMenus: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetMenuInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetMenu"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetMenusById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetMenu"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteBanquetMenusById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetMenusById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetMenuInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetMenu"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetMenusExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[menuType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetMigrationReconciliation: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetMigrationReconciliation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetPackages: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[category]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetPackage"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetPackages: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetPackageInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetPackage"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetPackagesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetPackage"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteBanquetPackagesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetPackagesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetPackageInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetPackage"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetPackagesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[category]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetParticipantsByIdCheckIn: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventCheckInInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventCheckInResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetParticipantsByIdWithdraw: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistrationWithdrawInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventParticipant"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetProduction: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description YYYY-MM-DD (default today) */
+                date?: string;
+                "filter[outletId]"?: string;
+                "filter[status]"?: string;
+                "filter[station]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetProductionItem"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetProductionItemsByIdStatus: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetProductionStatus"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetProductionItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetToday: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description YYYY-MM-DD (default today) */
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TodayEvent"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetVendors: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[vendorType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetVendor"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetVendors: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetVendorInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetVendor"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetVendorsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetVendor"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteBanquetVendorsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetVendorsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetVendorInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetVendor"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetVendorsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[vendorType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetVenueAvailability: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description RFC 3339 */
+                start: string;
+                end: string;
+                pax?: number;
+                layout?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetVenueAvailability"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetVenueCalendar: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                from?: string;
+                to?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["VenueCalendarRow"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetVenueLayouts: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[venueId]"?: string;
+                "filter[layout]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetVenueLayout"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetVenueLayouts: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetVenueLayoutInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetVenueLayout"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetVenueLayoutsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetVenueLayout"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteBanquetVenueLayoutsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetVenueLayoutsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetVenueLayoutInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetVenueLayout"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetVenueLayoutsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[venueId]"?: string;
+                "filter[layout]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetVenues: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[venueType]"?: string;
+                "filter[parentVenueId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BanquetVenue"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBanquetVenues: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetVenueInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetVenue"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetVenuesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetVenue"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBanquetVenuesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BanquetVenueInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BanquetVenue"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBanquetVenuesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[venueType]"?: string;
+                "filter[parentVenueId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
             };
             /** @description Problem Details (RFC 9457) */
             default: {
@@ -90603,6 +101339,216 @@ export interface operations {
             };
         };
     };
+    postMemberEventRegistrationsByTicketCodeWithdraw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticketCode: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistrationWithdrawInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventTicket"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberEvents: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MemberEvent"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberEventsById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberEvent"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberEventsByIdRegistrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MemberEventRegistration"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventTicket"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postMemberFeedback: {
         parameters: {
             query?: never;
@@ -92362,6 +103308,53 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MyRenewal"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberMyEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyEvents"];
                 };
             };
             /** @description Not authenticated */
@@ -105672,6 +116665,144 @@ export interface operations {
             };
         };
     };
+    getPublicEventTicketsByCode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventTicket"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicEvents: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                propertyId: string;
+                category?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PublicEvent"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicEventsById: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicEvent"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicEventsByIdRegistrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicEventRegistration"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventTicket"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getPublicFeedbackByToken: {
         parameters: {
             query?: never;
@@ -106675,6 +117806,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Balance"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicWeddingBanquet: {
+        parameters: {
+            query: {
+                propertyId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicBanquetPage"];
                 };
             };
             /** @description Problem Details (RFC 9457) */

@@ -15,6 +15,7 @@ const routes = [
       { path: 'booking', element: <BookingPerformancePage /> },
       ...P2_MANAGEMENT_ROUTES,
       { path: 'inventory-performance', element: <KPIDashboardPage code="inventory-performance" /> },
+      { path: 'banquet-performance', element: <KPIDashboardPage code="banquet-performance" /> },
       { path: 'financial', element: <ComingSoonPage title="Financial Performance" phase="P4" /> },
       { path: 'profile', element: <ProfilePage /> },
       { path: 'notifications', element: <NotificationsPage /> },

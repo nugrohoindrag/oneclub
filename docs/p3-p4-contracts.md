@@ -117,6 +117,17 @@ Idempotent per campaign and customer. CRM matches conversions on `commercial.pro
 
 ### `banquet.event_confirmed`, `banquet.event_cancelled`
 `{ eventId, number, eventType, title, customerId, startDate, endDate, pax, status }`
+(`banquet.event_confirmed` is the "Definite" event of PRD P3 §11, published when the DP is received or the override is approved.)
+
+Banquet consumes (decoded by name): `crm.quotation_sent` (tentative hold until the end of `optionDate` on the venue whose
+`venueResourceId` is a `banquet_venue` resource; a revision moves it), `crm.quotation_rejected` / `crm.quotation_expired`
+(the event carrying the hold is cancelled), `crm.quotation_accepted` (lines `wedding | banquet | mice | event`: event with the
+quoted lines as charges and `paymentTerms` as the payment schedule, once per quotation number; `packageRef` = banquet package
+code), `billing.payment_settled` (folio `sourceType = banquet_event`: Definite on the DP, paid registrations),
+`billing.invoice_paid` (final invoice settled), `billing.payment_schedule_due` (sales owner reminder) and
+`commercial.package_booked` (each `componentType = banquet` component becomes one Definite event, idempotent per
+`bookingComponentId`; `allocationRef` may carry the venue's resource id; the package booking keeps the money). Payment schedules
+and folios of events use `sourceType = banquet_event` with `sourceId` = event id (registration folios: participant id).
 
 ### `banquet.beo_issued`, `banquet.beo_revised` (K1 — procurement requirement)
 ```json
