@@ -403,7 +403,9 @@ func TestP3SalesQuotationToCommission(t *testing.T) {
 	qin["lines"] = []map[string]any{{"itemType": "service", "description": "Green fee weekday", "quantity": "44", "unitPrice": "1250000"},
 		{"itemType": "venue", "itemRef": venue, "description": "Meeting room awarding", "quantity": "1", "unitPrice": "10000000"}}
 	q2 = sx.Must(200, "PUT", "/api/v1/crm/quotations/"+q2id, qin).JSON()
-	if q2["approvalStatus"] != "not_required" || !bilDec(q2["total"]).Equal(decimal.NewFromInt(58_500_000)) {
+	// 10% is above a Sales Executive's own 5% limit (PRD P3 §16 #5) but
+	// within the 15% the GM approved on version 1.
+	if q2["approvalStatus"] != "approved" || !bilDec(q2["total"]).Equal(decimal.NewFromInt(58_500_000)) {
 		t.Fatalf("edited v2: %v", q2)
 	}
 	if v := pub.Must(200, "GET", "/api/v1/public/quotations/"+tok1, nil).JSON(); v["status"] != "revised" {
