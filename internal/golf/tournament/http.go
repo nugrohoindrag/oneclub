@@ -796,7 +796,7 @@ func (m *Module) registerMember(reg *route.Registry) {
 				return TournamentLeaderboard{}, err
 			}
 			q := r.URL.Query()
-			return m.MemberLeaderboard(ctx, tx, c.PropertyID, tid, q.Get("category"), q.Get("division"))
+			return m.MemberLeaderboard(ctx, tx, c.PropertyID, tid, c.ID, q.Get("category"), q.Get("division"))
 		})})
 	me(route.Route{Method: http.MethodGet, Path: "/api/v1/member/golf/tournaments/{id}/results", Summary: "Final results and awards",
 		Response: TournamentResults{}, Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (TournamentResults, error) {

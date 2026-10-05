@@ -187,8 +187,9 @@ func (m *Module) PublicLeaderboard(ctx context.Context, q dbtx.Querier, property
 }
 
 // MemberLeaderboard is the leaderboard in the Member App (players of the
-// club; once the tournament started).
-func (m *Module) MemberLeaderboard(ctx context.Context, q dbtx.Querier, property, tid uuid.UUID, category, division string) (TournamentLeaderboard, error) {
+// club; once the tournament started). Players without public consent are
+// shown by initials, except the signed-in member (FR-TRN-08, UU PDP).
+func (m *Module) MemberLeaderboard(ctx context.Context, q dbtx.Querier, property, tid, viewer uuid.UUID, category, division string) (TournamentLeaderboard, error) {
 	t, err := tournamentAt(ctx, q, property, tid)
 	if err != nil {
 		return TournamentLeaderboard{}, err
@@ -196,7 +197,24 @@ func (m *Module) MemberLeaderboard(ctx context.Context, q dbtx.Querier, property
 	if t.Status != "in_progress" && t.Status != "completed" {
 		return TournamentLeaderboard{}, errs.Conflict("not_started", "the leaderboard opens when the tournament starts")
 	}
-	return m.compute(ctx, q, property, t, computeOptions{category: category, division: division})
+	lb, err := m.compute(ctx, q, property, t, computeOptions{category: category, division: division})
+	if err != nil {
+		return lb, err
+	}
+	maskExcept(&lb, viewer)
+	return lb, nil
+}
+
+// maskExcept masks every player of the leaderboard (initials without
+// consent, no registration ids) except the viewer's own line.
+func maskExcept(lb *TournamentLeaderboard, viewer uuid.UUID) {
+	for b := range lb.Boards {
+		for i := range lb.Boards[b].Entries {
+			if e := &lb.Boards[b].Entries[i]; viewer == uuid.Nil || e.customerID != viewer {
+				mask(e)
+			}
+		}
+	}
 }
 
 // PublicStartSheet is the published start sheet for players (no caddies).
@@ -240,7 +258,8 @@ func (m *Module) Screen(ctx context.Context, q dbtx.Querier, property uuid.UUID,
 		return out, err
 	}
 	for _, t := range list {
-		lb, err := m.compute(ctx, q, property, t, computeOptions{limit: pol.LeaderboardScreenRows})
+		// the clubhouse screen is public: masked like the website (FR-TRN-08)
+		lb, err := m.compute(ctx, q, property, t, computeOptions{public: true, limit: pol.LeaderboardScreenRows})
 		if err != nil {
 			return out, err
 		}

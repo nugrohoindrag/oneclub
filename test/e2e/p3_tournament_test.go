@@ -582,6 +582,48 @@ func TestP3TournamentClub(t *testing.T) {
 	if ml := mc.Must(200, "GET", "/api/v1/member/golf/tournaments/"+tid+"/leaderboard", nil).JSON(); len(asMaps(ml["boards"])) == 0 {
 		t.Fatalf("member leaderboard: %v", ml)
 	}
+	// FR-TRN-08 / UU PDP: the Leaderboard Screen is masked like the website;
+	// the Member App masks everybody without consent except the member.
+	unconsented := func(name string) bool { // Back Office players: odd numbers registered without public consent
+		var n int
+		_, err := fmt.Sscanf(name, "Pemain %d", &n)
+		return err == nil && n%2 == 1
+	}
+	screenMasked := 0
+	for _, l := range asMaps(scr["leaderboards"]) {
+		for _, b := range asMaps(l["boards"]) {
+			for _, e := range asMaps(b["entries"]) {
+				if e["registrationId"] != nil || unconsented(str(e["playerName"])) {
+					t.Fatalf("leaderboard screen shows a player without consent / ids: %v", e)
+				}
+				if strings.HasPrefix(str(e["playerName"]), "Player ") {
+					screenMasked++
+				}
+			}
+		}
+	}
+	if screenMasked == 0 {
+		t.Fatal("players without consent must be masked on the Leaderboard Screen")
+	}
+	own, memberMasked := 0, 0
+	for _, b := range asMaps(mc.Must(200, "GET", "/api/v1/member/golf/tournaments/"+tid+"/leaderboard", nil).JSON()["boards"]) {
+		for _, e := range asMaps(b["entries"]) {
+			switch {
+			case e["registrationId"] == memberReg:
+				own++
+				if strings.HasPrefix(str(e["playerName"]), "Player ") {
+					t.Fatalf("the member sees their own name: %v", e)
+				}
+			case e["registrationId"] != nil || unconsented(str(e["playerName"])):
+				t.Fatalf("member leaderboard shows another player without consent / ids: %v", e)
+			case strings.HasPrefix(str(e["playerName"]), "Player "):
+				memberMasked++
+			}
+		}
+	}
+	if own == 0 || memberMasked == 0 {
+		t.Fatalf("member leaderboard: own lines %d, masked lines %d", own, memberMasked)
+	}
 
 	// Special awards and the sponsorship invoice (FR-TRN-09/10).
 	gm.Must(200, "POST", trnBase+"/"+tid+"/prizes/"+pNTP+":award", map[string]any{"registrationId": regs[7], "resultText": "1.35 m"})
