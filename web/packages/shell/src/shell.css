@@ -339,7 +339,6 @@ a { color: inherit; }
 .oc-nav a.active { background: var(--oc-tint); color: var(--md-sys-color-primary); font-weight: 600; }
 .oc-nav-sub { display: flex; flex-direction: column; gap: 2px; margin-left: var(--md-sys-spacing-6); }
 .oc-nav-sub a { min-height: 34px; font-size: var(--md-sys-typescale-meta-size); }
-.oc-nav-sub > .oc-nav-section { padding: var(--md-sys-spacing-3) 0 2px var(--md-sys-spacing-3); }
 .oc-nav-soon { margin-left: auto; font-size: 10px; padding: 1px 6px; border-radius: var(--radius-pill); background: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface-variant); }
 .oc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .oc-header {

@@ -78,7 +78,7 @@ export const MODULE_PAGES: { path: string; title: string; phase: string; feature
   { path: 'inventory', title: 'Inventory', phase: 'P4', features: ['Stock Balance', 'Receiving', 'Issuing', 'Transfer', 'Stock Opname'] },
   { path: 'procurement', title: 'Procurement', phase: 'P4', features: ['Purchase Requisitions', 'Purchase Orders', 'Goods Receipt', 'Suppliers'] },
   { path: 'accounting', title: 'Accounting', phase: 'P2', features: ['General Accounting', 'Accounts Receivable', 'Accounts Payable', 'Cash & Bank', 'Financial Reports'] },
-  { path: 'hris', title: 'HRIS', phase: 'P5', features: ['Employees', 'Attendance', 'Payroll'] },
+  { path: 'hris', title: 'Human Resources', phase: 'P5', features: ['Employees', 'Attendance', 'Payroll'] },
 ];
 
 export function ModulePage({ path }: { path: string }) {

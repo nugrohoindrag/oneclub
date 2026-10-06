@@ -143,7 +143,7 @@ function PayrollTab({ id }: { id: string }) {
 function LoansTab({ id }: { id: string }) {
   const l = useGet<Page<R>>(`${HR}/loans?employeeId=${id}`);
   return (
-    <Card title="Loans & cash advances" icon="savings" actions={<Open to="/hris/payroll?tab=loans">Manage</Open>}>
+    <Card title="Loans & cash advances" icon="savings" actions={<Open to="/hris/loans">Manage</Open>}>
       <DataTable rows={l.data?.items} loading={l.isLoading} error={l.error} empty={<Empty title="No loan or cash advance" />} columns={[
         { key: 'number', header: 'Number', render: (r) => val(r.number ?? r.reference) }, { key: 'loanType', header: 'Type', render: (r) => label(r.loanType) },
         { key: 'principal', header: 'Principal', align: 'right', render: (r) => money(r.principal) },

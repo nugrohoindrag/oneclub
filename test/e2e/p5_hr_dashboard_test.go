@@ -72,3 +72,49 @@ func TestP5HRDashboard(t *testing.T) {
 	}
 	tm.a.Must(403, "GET", hrBase+"/dashboard", nil)
 }
+
+// The Back Office of the HR Manager: Dashboard, Approvals, the Human
+// Resources domain (HR Dashboard and one group per HR workspace), Employee
+// Self Service, Reports and Settings with the HR configuration and migration.
+func TestP5HRBackOfficeMenu(t *testing.T) {
+	hr := login(t, inst, "hr@demo.oneclub.id", demoPassword)
+	items := hr.Must(200, "GET", "/api/v1/platform/navigation?shell=backoffice", nil).JSON()["items"].([]any)
+	byKey := map[string]map[string]any{}
+	var top []string
+	for _, x := range items {
+		m := x.(map[string]any)
+		top = append(top, str(m["key"]))
+		byKey[str(m["key"])] = m
+	}
+	if got := strings.Join(top, ","); got != "dashboard,approvals,hris,self-service,reports,settings" {
+		t.Fatalf("top menu: %s", got)
+	}
+	children := func(m map[string]any) (keys []string, sub map[string]map[string]any) {
+		sub = map[string]map[string]any{}
+		for _, x := range m["children"].([]any) {
+			c := x.(map[string]any)
+			keys = append(keys, str(c["key"]))
+			sub[str(c["key"])] = c
+		}
+		return keys, sub
+	}
+	hrKeys, groups := children(byKey["hris"])
+	if byKey["hris"]["label"] != "Human Resources" ||
+		strings.Join(hrKeys, ",") != "hris-dashboard,hris-people,hris-org,hris-time,hris-pay,hris-talent,hris-services" {
+		t.Fatalf("Human Resources: %v %v", byKey["hris"]["label"], hrKeys)
+	}
+	services, _ := children(groups["hris-services"])
+	if groups["hris-services"]["path"] != "/hris/loans" ||
+		strings.Join(services, ",") != "hris-loans,hris-reimbursements,hris-benefit-plans,hris-profile-changes" {
+		t.Fatalf("Employee Services: %v %v", groups["hris-services"]["path"], services)
+	}
+	settings, _ := children(byKey["settings"])
+	for _, k := range []string{"hr-configuration", "payroll-configuration", "attendance-configuration", "hr-policies", "approval-workflows",
+		"hris-migration", "hris-migration-reconciliation"} {
+		if !strings.Contains(","+strings.Join(settings, ",")+",", ","+k+",") {
+			t.Fatalf("Settings misses %s: %v", k, settings)
+		}
+	}
+	hr.Must(200, "GET", "/api/v1/hris/loans", nil)
+	hr.Must(200, "GET", "/api/v1/platform/club-policies", nil)
+}

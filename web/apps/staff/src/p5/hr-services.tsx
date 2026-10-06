@@ -9,6 +9,7 @@ import {
 import { KV, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute } from '../p3/types';
 import { registerEssSection, useUrlTab } from './hr';
+import { LoansWorkspace } from './hr-loans';
 
 // HRIS improvement phase C (spec §24 Employee Services): Reimbursement — claims with receipts from ESS or HR, approval (Approvals inbox,
 // comments and attachments), sent to Finance and paid (journal to the category's expense account) — and Benefits — plans with eligibility
@@ -191,6 +192,18 @@ export function ReimbursementPage() {
   );
 }
 
+// ── Loans & Advances ──────────────────────────────────────────────────────
+
+/** Human Resources → Employee Services → Loans & Advances (HRIS phase B, spec §29). */
+export function LoansPage() {
+  return (
+    <div className="oc-stack">
+      <PageHeader title="Loans & Advances" help="Loans and cash advances of employees: request (HR or Employee Self Service), approval, paid by Finance, repaid through payroll installments or directly." />
+      <LoansWorkspace />
+    </div>
+  );
+}
+
 // ── Benefits ──────────────────────────────────────────────────────────────
 
 function Enrollments() {
@@ -328,6 +341,7 @@ registerEssSection('reimbursements', ({ base }) => <EssReimbursements base={base
 registerEssSection('benefits', ({ base }) => <EssBenefits base={base} />);
 
 export const HR_SERVICES_ROUTES: AreaRoute[] = [
+  { path: 'hris/loans', perm: 'hris.employee_loan.view', element: <LoansPage /> },
   { path: 'hris/reimbursements', perm: 'hris.reimbursement.view', element: <ReimbursementPage /> },
   { path: 'hris/benefit-plans', perm: 'hris.benefit_enrollment.view', element: <BenefitPlansPage /> },
 ];

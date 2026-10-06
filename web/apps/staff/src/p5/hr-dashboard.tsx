@@ -44,8 +44,8 @@ const QUEUES: Record<string, { label: string; icon: string; path: (d: Dashboard)
     path: (d) => (d.payroll ? `/hris/payroll/runs/${d.payroll.runId}` : '/hris/payroll') },
   // HRIS phase B: posting to Finance, loans and cash advances, lifecycle statuses
   payroll_posting_failed: { label: 'Payroll posting to Finance failed', icon: 'report', tone: 'error', path: () => '/hris/payroll?tab=runs' },
-  loan_requests: { label: 'Loan / cash advance requests', icon: 'account_balance_wallet', tone: 'pending', path: () => '/hris/payroll?tab=loans' },
-  loans_to_pay: { label: 'Approved loans to pay', icon: 'payments', tone: 'pending', path: () => '/hris/payroll?tab=loans' },
+  loan_requests: { label: 'Loan / cash advance requests', icon: 'account_balance_wallet', tone: 'pending', path: () => '/hris/loans' },
+  loans_to_pay: { label: 'Approved loans to pay', icon: 'payments', tone: 'pending', path: () => '/hris/loans' },
   employees_draft: { label: 'Draft employees to activate', icon: 'person_add', tone: 'pending', path: () => '/hris/employees?status=draft' },
   employees_suspended: { label: 'Suspended employees', icon: 'person_off', tone: 'pending', path: () => '/hris/employees' },
   // HRIS phase C
@@ -178,7 +178,7 @@ function PayrollCard({ d }: { d: Dashboard }) {
   const [tone, l] = p ? RUN[p.status] ?? ['draft', p.status] : ['draft', ''];
   return (
     <Card title="Payroll" icon="payments" actions={<Link className="oc-btn oc-btn-sm oc-btn-outline" to={p ? `/hris/payroll/runs/${p.runId}` : '/hris/payroll'}>Open Payroll</Link>}>
-      {!p ? <Empty title="No payroll run yet" help="Create the run of the period in HRIS → Payroll." icon="payments" /> : (
+      {!p ? <Empty title="No payroll run yet" help="Create the run of the period in Human Resources → Payroll." icon="payments" /> : (
         <>
           <div className="oc-row" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
             <div><div className="oc-small oc-muted">{p.number} · period {p.periodCode}</div><div className="oc-stat-value">{money(p.net)}</div></div>
@@ -204,8 +204,7 @@ export function HRDashboardPage() {
   const count = (key: string) => x?.attention.find((a) => a.key === key)?.count ?? 0;
   return (
     <div className="oc-stack">
-      <PageHeader title="HR Dashboard" help={x ? `Today ${formatDate(x.date)} · what needs HR's attention, the attendance of the day and the open queues` : undefined}
-        actions={<Link className="oc-btn oc-btn-neutral" to="/hris/employees"><Icon name="badge" size={18} /> Employees</Link>} />
+      <PageHeader title="HR Dashboard" help={x ? `Today ${formatDate(x.date)} · what needs HR's attention, the attendance of the day and the open queues` : undefined} />
       <ErrorAlert error={d.error} />
       {!x && !d.error && <Skeleton rows={8} />}
       {x && (

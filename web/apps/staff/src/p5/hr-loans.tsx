@@ -114,7 +114,7 @@ const FILTERS: Option[] = [
   { value: 'active', label: 'Repaying' }, { value: 'settled', label: 'Settled' }, { value: 'rejected', label: 'Rejected' }, { value: 'cancelled', label: 'Cancelled' },
 ];
 
-/** HRIS → Payroll → Loans & Advances: the queue of requests, payments and balances. */
+/** Human Resources → Employee Services → Loans & Advances: the queue of requests, payments and balances. */
 export function LoansWorkspace({ employeeId }: { employeeId?: string }) {
   const { can } = useAuth();
   const [status, setStatus] = useState('');

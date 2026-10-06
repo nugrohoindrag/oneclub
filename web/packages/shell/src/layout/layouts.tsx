@@ -81,6 +81,27 @@ function SubLink({ item, siblings }: { item: NavItem; siblings: NavItem[] }) {
 }
 
 /**
+ * Group of a module menu (Human Resources → Time & Attendance, Golf →
+ * Tournaments): opens its items while its page or one of them is current;
+ * the page itself is lit only when it is not also one of its items.
+ */
+function SubGroup({ item }: { item: NavItem }) {
+  const loc = useLocation();
+  const items = item.children ?? [];
+  const own = !items.some((c) => c.path === item.path);
+  const open = under(item.path, loc.pathname) || items.some((c) => under(c.path, loc.pathname));
+  const active = own && loc.pathname === item.path;
+  return (
+    <>
+      <Link to={item.path} className={active ? 'active' : open ? 'oc-nav-parent' : undefined} aria-expanded={open} aria-current={active ? 'page' : undefined}>
+        {item.label}
+      </Link>
+      {open && <div className="oc-nav-sub">{items.map((g) => <SubLink key={g.key} item={g} siblings={items} />)}</div>}
+    </>
+  );
+}
+
+/**
  * Score of a menu path against the current URL: same path, every query
  * parameter of the item present with the same value; more parameters and an
  * exact path win. -1 = no match.
@@ -146,34 +167,35 @@ function SectionedNav({ items }: { items: NavItem[] }) {
   );
 }
 
+/** Whether the current path is a menu path (its query aside) or below it. */
+function under(path: string, pathname: string): boolean {
+  const p = path.split('?')[0];
+  return pathname === p || (p !== '/' && pathname.startsWith(p + '/'));
+}
+
+/**
+ * Module of the sidebar: it stays open (and lit) on every page of its first
+ * path segment (Human Resources on /hris/…, Golf on /golf/…); a group of
+ * its menu opens while one of its items is the current page.
+ */
 function SideItem({ item }: { item: NavItem }) {
   const loc = useLocation();
   const { t } = useTranslation();
   const root = useArea()?.path ?? '/';
-  const open = loc.pathname === item.path || loc.pathname.startsWith(item.path + '/');
+  const segment = item.children?.length ? '/' + (item.path.split('/')[1] ?? '') : item.path;
+  const open = under(item.path, loc.pathname) || (segment !== '/' && under(segment, loc.pathname));
   return (
     <>
-      <NavLink to={item.path} end={item.path === root} title={item.label}>
+      <NavLink to={item.path} end={item.path === root} title={item.label} className={({ isActive }) => (isActive || (open && item.path !== root) ? 'active' : '')}>
         <Icon name={item.icon ?? 'chevron_right'} size={20} />
         <span className="oc-nav-label">{item.label}</span>
         {item.comingSoon && <span className="oc-nav-soon oc-nav-label" title={t('common.comingSoon', { phase: item.phase })}>{item.phase}</span>}
       </NavLink>
       {item.children && open && item.path !== root && (
         <div className="oc-nav-sub">
-          {item.children.map((c) => (c.section ? (
-            // A section of a module menu (HRIS): a heading over its links.
-            <React.Fragment key={c.key}>
-              <div className="oc-nav-caption oc-nav-section oc-nav-label">{c.label}</div>
-              {(c.children ?? []).map((g) => <SubLink key={g.key} item={g} siblings={c.children!} />)}
-            </React.Fragment>
-          ) : (
-            <React.Fragment key={c.key}>
-              <SubLink item={c} siblings={item.children!} />
-              {c.children && (loc.pathname.startsWith(c.path)) && (
-                <div className="oc-nav-sub">{c.children.map((g) => <SubLink key={g.key} item={g} siblings={c.children!} />)}</div>
-              )}
-            </React.Fragment>
-          )))}
+          {item.children.map((c) => (c.children?.length
+            ? <SubGroup key={c.key} item={c} />
+            : <SubLink key={c.key} item={c} siblings={item.children!} />))}
         </div>
       )}
     </>

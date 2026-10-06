@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { download, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
 import {
@@ -9,12 +9,11 @@ import {
 import { ActionButton, KV, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
 import { registerEssSection, useUrlTab } from './hr';
-import { LoansWorkspace } from './hr-loans';
 import { PAYOUTS_OPS_ROUTES, PAYOUTS_OPS_TILES, PAYOUTS_ROUTES } from './payouts';
 
 // PRD P5 — payroll (EP-09 Payroll Engine, EP-10 PPh 21 & BPJS, EP-15 Payroll Accounting, Payment & Payslip): HRIS → Payroll (runs with
 // calculate → approve → post → bank file → paid, payslips, comparison with the previous period, journal, parallel run; adjustments and
-// bonuses, loans, salary structures, pay components, statutory rates, statutory exports and migration imports), HRIS → Benefits (PTKP,
+// bonuses, salary structures, pay components, statutory rates, statutory exports and migration imports), HRIS → Benefits (PTKP,
 // TER category, BPJS and bank readiness) and the Employee Self Service section Payslip (own payslips, PDF; never cached offline).
 // The payouts area (service charge, commissions, caddy & instructor payouts) adds its own file and routes next to these.
 
@@ -106,20 +105,21 @@ function Dl({ label: text, path, file, icon = 'download' }: { label: string; pat
 // ── HRIS → Payroll ────────────────────────────────────────────────────────
 
 const PAYROLL_TABS: Option[] = [
-  { value: 'runs', label: 'Payroll Runs' }, { value: 'adjustments', label: 'Adjustments & Bonuses' }, { value: 'loans', label: 'Loans & Advances' },
+  { value: 'runs', label: 'Payroll Runs' }, { value: 'adjustments', label: 'Adjustments & Bonuses' },
   { value: 'structures', label: 'Salary Structures' }, { value: 'components', label: 'Pay Components' }, { value: 'rates', label: 'Statutory Rates' },
   { value: 'exports', label: 'Exports & Imports' },
 ];
 
 export function PayrollPage() {
   const [tab, setTab] = useUrlTab('runs');
+  // Loans & Advances moved to Employee Services; older notification links keep working.
+  if (tab === 'loans') return <Navigate to="/hris/loans" replace />;
   return (
     <div className="oc-stack">
       <PageHeader title="Payroll" help="Monthly payroll of the property: calculate from salary structures, contracts, attendance, approved overtime, unpaid leave, service charge and commissions; PPh 21 (TER, annual in December) and BPJS; approval by Finance & HR, payroll journal, bank file, payment and payslips in Employee Self Service." />
       <Tabs tabs={PAYROLL_TABS} value={tab} onChange={setTab} />
       {tab === 'runs' && <RunList />}
       {tab === 'adjustments' && <AdjustmentList />}
-      {tab === 'loans' && <LoansWorkspace />}
       {tab === 'structures' && <StructureList />}
       {tab === 'components' && <Components />}
       {tab === 'rates' && <RateList />}

@@ -650,7 +650,7 @@ function LeaveForm({ path, employees, types, onClose }: { path: string; employee
       <TextField label="Last day" type="date" value={f.endDate ?? ''} onChange={(v) => setF({ ...f, endDate: v })} />
       <SelectField label="Half day" value={f.halfDay ?? ''} onChange={(v) => setF({ ...f, halfDay: v })} options={[{ value: 'am', label: 'Morning off' }, { value: 'pm', label: 'Afternoon off' }]} placeholder="Full days" />
       <TextArea label="Reason" value={f.reason ?? ''} onChange={(v) => setF({ ...f, reason: v })} span />
-      {t?.requiresDocument === true && <p className="oc-span oc-alert oc-alert-warning">{String(t.name)} needs a supporting document: attach it in HRIS → Employees → Documents and send the request from HR.</p>}
+      {t?.requiresDocument === true && <p className="oc-span oc-alert oc-alert-warning">{String(t.name)} needs a supporting document: attach it in Human Resources → Employees → Documents and send the request from HR.</p>}
     </FormModal>
   );
 }
@@ -901,7 +901,7 @@ export function KioskPage() {
     }
   };
   if (info.isLoading) return <Skeleton rows={6} />;
-  if (info.error) return <Empty title="Not an Attendance Kiosk" help="Register this tablet in Settings → Devices and link it in HRIS → Attendance → Devices (kind Kiosk), then sign in with your PIN." icon="qr_code_scanner" />;
+  if (info.error) return <Empty title="Not an Attendance Kiosk" help="Register this tablet in Settings → Devices and link it in Human Resources → Time & Attendance → Attendance → Devices (kind Kiosk), then sign in with your PIN." icon="qr_code_scanner" />;
   const k = info.data as R;
   const ev = (last?.event as R | undefined) ?? undefined;
   return (

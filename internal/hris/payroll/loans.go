@@ -310,12 +310,12 @@ func (m *Module) LoanDecision(ctx context.Context, tx pgx.Tx, d approval.Decisio
 	data := map[string]any{"number": number, "loanType": map[string]string{"loan": "loan", "cash_advance": "cash advance"}[typ], "amount": principal,
 		"decision": next, "reason": d.Reason}
 	if creator != nil {
-		if err := m.notifyUsers(ctx, tx, d.PropertyID, []uuid.UUID{*creator}, NotifyLoanDecided, "/hris/payroll?tab=loans", data); err != nil {
+		if err := m.notifyUsers(ctx, tx, d.PropertyID, []uuid.UUID{*creator}, NotifyLoanDecided, "/hris/loans", data); err != nil {
 			return err
 		}
 	}
 	if next == "approved" {
-		return m.notifyUsers(ctx, tx, d.PropertyID, holders(ctx, tx, d.PropertyID, PermLoanPay), NotifyLoanToPay, "/hris/payroll?tab=loans", data)
+		return m.notifyUsers(ctx, tx, d.PropertyID, holders(ctx, tx, d.PropertyID, PermLoanPay), NotifyLoanToPay, "/hris/loans", data)
 	}
 	return nil
 }

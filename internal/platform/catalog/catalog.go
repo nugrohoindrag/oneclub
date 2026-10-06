@@ -319,7 +319,8 @@ var RoleTemplates = []RoleTemplate{
 	{Code: "accountant", Name: "Accountant", Category: "Finance", Scope: "property", Permissions: cat(bo, ma("accounting", "billing", "reporting"), []string{"reporting.report.view", "audit.log.view"})},
 	// HR
 	{Code: "hr_admin", Name: "HR Admin", Category: "HR", Scope: "property", Permissions: cat(bo, ma("hris"), []string{"platform.employee.view", "platform.department.view"})},
-	{Code: "hr_manager", Name: "HR Manager", Category: "HR", Scope: "property", Permissions: cat(bo, ma("hris", "reporting"), []string{"platform.employee.view", "platform.department.view", "reporting.report.view"})},
+	{Code: "hr_manager", Name: "HR Manager", Category: "HR", Scope: "property", Permissions: cat(bo, ma("hris", "reporting"), []string{"platform.employee.view", "platform.department.view", "reporting.report.view",
+		"platform.club_policy.view", "platform.approval_workflow.view"})}, // Settings: HR configuration, HR policies, approval workflows
 	// PRD P5 EP-16 / §16 #6: Employee Self Service is the personal-login area of the ops shell; department heads lead their
 	// team there (the HRIS permissions come from the hris contribution).
 	{Code: "employee_self_service", Name: "Employee (self-service)", Category: "HR", Scope: "property", Permissions: cat(ops, ma("hris"))},
