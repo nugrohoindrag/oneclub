@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
-import { formatMoney } from '@oneclub/i18n';
+import { currentLocale, formatMoney } from '@oneclub/i18n';
 import {
   ConfirmDialog, DataTable, ErrorAlert, FilterPills, PageHeader, SearchBox, SelectField, TextField, useAuth, useDebounced, usePagedList, useToast,
   type Column, type Option,
@@ -18,6 +18,14 @@ export function today(): string {
 export function money(v: unknown, currency = 'IDR') {
   if (v === null || v === undefined || v === '') return '—';
   return formatMoney(String(v), currency);
+}
+
+/** IDR in short form for headline figures (Rp 9,98 M / IDR 9.98B). */
+export function moneyShort(v: unknown) {
+  if (v === null || v === undefined || v === '') return '—';
+  return new Intl.NumberFormat(currentLocale() === 'en' ? 'en-US' : 'id-ID', {
+    style: 'currency', currency: 'IDR', notation: 'compact', maximumFractionDigits: 2,
+  }).format(Number(v));
 }
 
 /** Course + date selection kept in the URL (?courseId=&date=). */

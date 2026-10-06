@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { download, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
-import { formatDate } from '@oneclub/i18n';
+import { formatDate, formatNumber } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
-  TextField, useAuth, useToast, type Option,
+  AutoResourcePage, Card, Checkbox, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SearchBox, SelectField, Skeleton, StatTile, StatusPill,
+  TextArea, TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
@@ -172,53 +172,98 @@ function RunList() {
   );
 }
 
-const RUN_DETAIL_TABS: Option[] = [
-  { value: 'payslips', label: 'Payslips' }, { value: 'comparison', label: 'Comparison' }, { value: 'journal', label: 'Journal' },
-  { value: 'parallel', label: 'Parallel Run' },
+// The life of a run, shown as steps on its page (cancelled runs show a pill instead).
+const RUN_STEPS: [string, string][] = [
+  ['draft', 'Draft'], ['calculated', 'Calculated'], ['submitted', 'Under review'], ['approved', 'Approved'], ['posted', 'Posted to Finance'],
+  ['paid', 'Paid'],
 ];
 
+function RunSteps({ status }: { status: string }) {
+  const at = RUN_STEPS.findIndex(([s]) => s === status);
+  return (
+    <ol className="oc-steps" aria-label="Payroll run progress">
+      {RUN_STEPS.map(([s, text], i) => (
+        <li key={s} data-state={i < at ? 'done' : i === at ? 'current' : 'todo'} aria-current={i === at ? 'step' : undefined}>
+          <span className="oc-steps-dot">{i < at ? <Icon name="check" size={14} /> : i + 1}</span>
+          <span>{text}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+/**
+ * Payroll run page: what the run is, where it stands and the next action
+ * at the top; totals as tiles; payslips, exceptions, comparison, journal,
+ * parallel run and the run details in tabs.
+ */
 export function PayrollRunPage() {
   const { id = '' } = useParams();
   const { can } = useAuth();
   const base = `${HR}/payroll-runs/${id}`;
   const run = useGet<R>(base);
-  const [tab, setTab] = useState('payslips');
+  const st = String(run.data?.status ?? '');
+  const checked = ['draft', 'calculated'].includes(st) && Number(run.data?.calculationCount) > 0;
+  const exceptions = useGet<Page<R>>(checked ? `${base}/exceptions` : null);
+  const [tab, setTab] = useUrlTab('payslips');
   const [paying, setPaying] = useState(false);
   const [layout, setLayout] = useState('generic_csv');
   const [pay, setPay] = useState<Record<string, string>>({ paidOn: today() });
   if (run.isLoading) return <Skeleton rows={8} />;
   if (run.error || !run.data) return <ErrorAlert error={run.error} />;
   const r = run.data;
-  const st = String(r.status);
+  const issues = exceptions.data?.items ?? [];
+  const blocking = issues.filter((x) => x.severity === 'error').length;
+  const tabs: Option[] = [
+    { value: 'payslips', label: `Payslips · ${String(r.headcount ?? 0)}` },
+    ...(issues.length ? [{ value: 'exceptions', label: `Exceptions · ${issues.length}` }] : []),
+    { value: 'comparison', label: 'Comparison' }, { value: 'journal', label: 'Journal' }, { value: 'parallel', label: 'Parallel Run' },
+    { value: 'details', label: 'Details' },
+  ];
+  const current = tabs.some((t) => t.value === tab) ? tab : 'payslips';
+  const deductions = Number(r.bpjsEmployee ?? 0) + Number(r.pph21 ?? 0) + Number(r.otherDeductions ?? 0);
+  const manage = can('hris.payroll_run.manage');
   return (
     <div className="oc-stack">
-      <div className="oc-row" style={{ gap: 8 }}>
+      <div className="oc-row" style={{ gap: 8, alignItems: 'flex-start' }}>
         <Link className="oc-btn oc-btn-text" to="/hris/payroll" aria-label="Back to Payroll"><Icon name="arrow_back" size={22} /></Link>
-        <PageHeader title={`${String(r.number)} · ${String(r.name)}`} help={`${label(r.runType)} run of ${String(r.periodCode)} (${date(r.periodStart)} – ${date(r.periodEnd)})`} />
+        <PageHeader title={`${String(r.number)} · ${String(r.name)}`}
+          help={`${label(r.runType)} run · ${date(r.periodStart)} – ${date(r.periodEnd)} · payment ${date(r.paymentDate)}`}
+          actions={<>
+            {manage && ['draft', 'calculated', 'submitted'].includes(st) && <Act label="Cancel run" path={`${base}:cancel`} note="required" kind="text" />}
+            {manage && (st === 'draft' || st === 'calculated') && (
+              <Act label={st === 'draft' ? 'Calculate' : 'Recalculate'} path={`${base}:calculate`} kind={st === 'draft' ? 'ink' : 'neutral'} />
+            )}
+            {can('hris.payroll_run.approve') && st === 'calculated' && <Act label="Submit for approval" path={`${base}:approve`} note="optional" kind="ink" />}
+            {can('hris.payroll_run.post') && st === 'approved' && <Act label="Post" path={`${base}:post`} kind="ink" />}
+            {can('hris.payroll_run.pay') && st === 'posted' && (
+              <button className="oc-btn oc-btn-ink" onClick={() => setPaying(true)}><Icon name="payments" size={18} /> Mark paid</button>
+            )}
+          </>} />
       </div>
-      <div className="oc-row-wrap">
-        <StatusPill status={st} label={RUN_LABELS[st] ?? label(st)} />
-        <span className="oc-spacer" />
-        {can('hris.payroll_run.manage') && (st === 'draft' || st === 'calculated') && <Act label={st === 'draft' ? 'Calculate' : 'Recalculate'} path={`${base}:calculate`} kind="ink" />}
-        {can('hris.payroll_run.approve') && st === 'calculated' && <Act label="Submit for approval" path={`${base}:approve`} note="optional" kind="ink" />}
-        {can('hris.payroll_run.post') && st === 'approved' && <Act label="Post" path={`${base}:post`} kind="ink" />}
-        {can('hris.payroll_run.pay') && st === 'posted' && <button className="oc-btn oc-btn-ink" onClick={() => setPaying(true)}><Icon name="payments" size={18} /> Mark paid</button>}
-        {can('hris.payroll_run.manage') && ['draft', 'calculated', 'submitted'].includes(st) && <Act label="Cancel run" path={`${base}:cancel`} note="required" kind="text" />}
-      </div>
+      {st === 'cancelled' ? <StatusPill status={st} label="Cancelled" /> : <RunSteps status={st} />}
       {r.statutoryVerified === false && (
         <div className="oc-alert oc-alert-warning" role="status">The statutory rates {String(r.statutoryRateCode)} are still to be verified by the tax consultant (FR-TAX-HR-05).</div>
       )}
-      <Card title="Totals" icon="calculate">
-        <KV items={[
-          ['Employees', `${String(r.headcount)}${Number(r.warnings) ? ` (${String(r.warnings)} with warnings)` : ''}`], ['Gross', money(r.gross)],
-          ['BPJS employee', money(r.bpjsEmployee)], ['PPh 21', money(r.pph21)], ['Other deductions', money(r.otherDeductions)], ['Net pay', money(r.net)],
-          ['BPJS employer', money(r.bpjsEmployer)], ['Employer cost', money(r.employerCost)], ['Payment date', date(r.paymentDate)],
-          ['Attendance lock', val(r.timeLockStatus)], ['Statutory rates', val(r.statutoryRateCode)],
-          ['Policies', ((r.policyRefs as R[] | undefined) ?? []).map((p) => `${String(p.code)} v${String(p.version)}`).join(', ') || '—'],
-          ['Paid', r.paidOn ? `${date(r.paidOn)} · ${val(r.paymentReference)}` : '—'], ['Decision', val(r.decisionNote)],
-        ]} />
-      </Card>
-      {['draft', 'calculated'].includes(st) && Number(r.calculationCount) > 0 && <RunExceptions runId={id} canFix={can('hris.payroll_run.manage')} />}
+      {issues.length > 0 && current !== 'exceptions' && (
+        <div className={`oc-alert ${blocking ? 'oc-alert-error' : 'oc-alert-warning'} oc-row-wrap`} role={blocking ? 'alert' : 'status'}>
+          <span style={{ flex: 1 }}>
+            {blocking
+              ? `${blocking} blocking exception(s): fix them and recalculate before submitting the run for approval.`
+              : `${new Set(issues.map((x) => String(x.employeeId))).size} employee(s) with warnings: review them before submitting the run.`}
+          </span>
+          <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setTab('exceptions')}>Review exceptions</button>
+        </div>
+      )}
+      <div className="oc-stat-grid">
+        <StatTile label="Employees" icon="groups" value={formatNumber(Number(r.headcount ?? 0))}
+          status={Number(r.warnings) ? <StatusPill status="warning" label={`${String(r.warnings)} with warnings`} /> : undefined} />
+        <StatTile label="Gross pay" icon="payments" value={money(r.gross)} />
+        <StatTile label="Deductions" icon="money_off" value={money(deductions)}
+          title={`BPJS employee ${money(r.bpjsEmployee)} · PPh 21 ${money(r.pph21)} · other ${money(r.otherDeductions)}`} />
+        <StatTile label="Net pay" icon="account_balance_wallet" value={money(r.net)} />
+        <StatTile label="Employer cost" icon="domain" value={money(r.employerCost)} title={`Gross + BPJS employer ${money(r.bpjsEmployer)}`} />
+      </div>
       {['approved', 'posted', 'paid'].includes(st) && <FinancePosting run={r} />}
       {can('hris.payroll_run.pay') && ['approved', 'posted', 'paid'].includes(st) && (
         <div className="oc-row-wrap">
@@ -226,11 +271,23 @@ export function PayrollRunPage() {
           <Dl label="Bank file" path={`${base}/bank-file?layout=${layout}`} file={`${String(r.number)}-${layout}.${layout === 'generic_csv' ? 'csv' : 'txt'}`} />
         </div>
       )}
-      <Tabs tabs={RUN_DETAIL_TABS} value={tab} onChange={setTab} />
-      {tab === 'payslips' && <RunPayslips runId={id} />}
-      {tab === 'comparison' && <Comparison runId={id} />}
-      {tab === 'journal' && <Journal runId={id} />}
-      {tab === 'parallel' && <Parallel runId={id} run={r} />}
+      <Tabs tabs={tabs} value={current} onChange={setTab} />
+      {current === 'payslips' && <RunPayslips runId={id} />}
+      {current === 'exceptions' && <RunExceptions runId={id} items={issues} canFix={manage} />}
+      {current === 'comparison' && <Comparison runId={id} />}
+      {current === 'journal' && <Journal runId={id} />}
+      {current === 'parallel' && <Parallel runId={id} run={r} />}
+      {current === 'details' && (
+        <Card title="Run details" icon="info">
+          <KV items={[
+            ['Period', `${String(r.periodCode)} (${date(r.periodStart)} – ${date(r.periodEnd)})`], ['Payment date', date(r.paymentDate)],
+            ['BPJS employee', money(r.bpjsEmployee)], ['PPh 21', money(r.pph21)], ['Other deductions', money(r.otherDeductions)],
+            ['BPJS employer', money(r.bpjsEmployer)], ['Attendance lock', val(r.timeLockStatus)], ['Statutory rates', val(r.statutoryRateCode)],
+            ['Policies', ((r.policyRefs as R[] | undefined) ?? []).map((p) => `${String(p.code)} v${String(p.version)}`).join(', ') || '—'],
+            ['Paid', r.paidOn ? `${date(r.paidOn)} · ${val(r.paymentReference)}` : '—'], ['Decision', val(r.decisionNote)],
+          ]} />
+        </Card>
+      )}
       {paying && (
         <FormModal title="Mark Paid" path={`${base}:mark-paid`} onClose={() => setPaying(false)} submit="Confirm payment"
           body={() => clean({ paidOn: pay.paidOn, reference: pay.reference, bankAccountCode: pay.bankAccountCode })}>
@@ -242,9 +299,6 @@ export function PayrollRunPage() {
     </div>
   );
 }
-
-// Status of a run in the words of the HR workspace (the stored status is unchanged).
-const RUN_LABELS: Record<string, string> = { submitted: 'Under review', posted: 'Posted to Finance' };
 
 /**
  * Integration with Finance & Accounting of a posted run: the status the run
@@ -315,13 +369,17 @@ function SlipLines({ slip }: { slip: R }) {
 
 function RunPayslips({ runId }: { runId: string }) {
   const [q, setQ] = useState('');
+  const [check, setCheck] = useState('');
   const [open, setOpen] = useState('');
   const list = useGet<Page<R>>(`${HR}/payroll-runs/${runId}/payslips${q ? `?q=${encodeURIComponent(q)}` : ''}`);
   const slip = useGet<R>(open ? `${HR}/payslips/${open}` : null);
   return (
     <div className="oc-stack">
-      <TextField label="Search employee" value={q} onChange={setQ} />
-      <DataTable rows={list.data?.items} loading={list.isLoading} error={list.error} onRowClick={(r) => setOpen(r.id)} columns={[
+      <div className="oc-row-wrap">
+        <SearchBox value={q} onChange={setQ} placeholder="Search employee name or number" />
+        <FilterPills options={[{ value: '', label: 'All' }, { value: 'warning', label: 'With warnings' }]} value={check} onChange={setCheck} />
+      </div>
+      <DataTable rows={check ? list.data?.items.filter((r) => r.status === check) : list.data?.items} loading={list.isLoading} error={list.error} onRowClick={(r) => setOpen(r.id)} columns={[
         { key: 'employeeNo', header: 'No.' }, { key: 'fullName', header: 'Employee' }, { key: 'orgUnitName', header: 'Department', render: (r) => val(r.orgUnitName) },
         { key: 'gross', header: 'Gross', align: 'right', render: num('gross') }, { key: 'bpjsEmployee', header: 'BPJS', align: 'right', render: num('bpjsEmployee') },
         { key: 'pph21', header: 'PPh 21', align: 'right', render: num('pph21') }, { key: 'net', header: 'Net', align: 'right', render: num('net') },
@@ -752,30 +810,56 @@ const EXCEPTION_FIX: Record<string, { text: string; to: (x: R, run: string) => s
   employee_suspended: { text: 'Employee', to: (x) => `/hris/employees/${String(x.employeeId)}` },
 };
 
-/** View → Fix → Revalidate: the exceptions of the last calculation; errors block the submission. */
-function RunExceptions({ runId, canFix }: { runId: string; canFix: boolean }) {
+/**
+ * Exceptions of a calculated run, one row per employee: what is wrong
+ * (blocking first) and where to fix it, each place once.
+ */
+function RunExceptions({ runId, items, canFix }: { runId: string; items: R[]; canFix: boolean }) {
   const [sev, setSev] = useState('');
-  const list = useGet<Page<R>>(`${HR}/payroll-runs/${runId}/exceptions`);
-  const all = list.data?.items ?? [];
-  const errors = all.filter((x) => x.severity === 'error').length;
-  const rows = all.filter((x) => !sev || x.severity === sev).map((x, i) => ({ ...x, id: `${String(x.slipId)}-${String(x.code)}-${i}` } as R));
-  if (!list.isLoading && !list.error && all.length === 0) return null;
+  const byEmployee = new Map<string, R[]>();
+  for (const x of items) {
+    if (sev && x.severity !== sev) continue;
+    const k = String(x.employeeId ?? x.slipId);
+    byEmployee.set(k, [...(byEmployee.get(k) ?? []), x]);
+  }
+  const rows = [...byEmployee.entries()].map(([k, list]) => ({
+    id: k, employeeName: list[0].employeeName, employeeNo: list[0].employeeNo, blocking: list.some((x) => x.severity === 'error'),
+    list: [...list].sort((a, b) => (a.severity === 'error' ? 0 : 1) - (b.severity === 'error' ? 0 : 1)),
+  } as R)).sort((a, b) => Number(b.blocking) - Number(a.blocking));
+  const errors = items.filter((x) => x.severity === 'error').length;
   return (
-    <Card title="Exceptions" icon="rule" actions={<>
-      <StatusPill status={errors ? 'error' : 'pending'} label={errors ? `${errors} blocking` : `${all.length} warning(s)`} />
-      {canFix && <Act label="Revalidate" path={`${HR}/payroll-runs/${runId}:calculate`} kind="neutral" />}
-    </>}>
+    <div className="oc-stack">
+      <div className="oc-row-wrap">
+        <FilterPills options={[{ value: '', label: 'All' }, { value: 'error', label: `Blocking · ${errors}` }, { value: 'warning', label: `Warnings · ${items.length - errors}` }]}
+          value={sev} onChange={setSev} />
+        <span className="oc-spacer" />
+        {canFix && <Act label="Revalidate" path={`${HR}/payroll-runs/${runId}:calculate`} kind="neutral" />}
+      </div>
       {errors > 0 && <div className="oc-alert oc-alert-error" role="alert">Fix the blocking exceptions and revalidate (recalculate) before submitting the run for approval.</div>}
-      <FilterPills options={[{ value: '', label: 'All' }, { value: 'error', label: 'Blocking' }, { value: 'warning', label: 'Warnings' }]} value={sev} onChange={setSev} />
-      <DataTable rows={rows} loading={list.isLoading} error={list.error} columns={[
-        { key: 'severity', header: 'Severity', render: (x) => <StatusPill status={x.severity === 'error' ? 'error' : 'pending'} label={x.severity === 'error' ? 'Blocking' : 'Warning'} /> },
-        { key: 'employeeName', header: 'Employee', render: (x) => `${String(x.employeeName)} (${String(x.employeeNo)})` },
-        { key: 'code', header: 'Exception', render: (x) => label(x.code) },
-        { key: 'message', header: 'Detail' },
+      <DataTable rows={rows} columns={[
+        { key: 'employeeName', header: 'Employee', render: (x) => (
+          <div><div>{String(x.employeeName)}</div><div className="oc-small oc-muted">{String(x.employeeNo)}</div></div>
+        ) },
+        { key: 'list', header: 'Issues', render: (x) => (
+          <div className="oc-stack" style={{ gap: 6 }}>
+            {(x.list as R[]).map((e) => (
+              <div key={String(e.code)} className="oc-row" style={{ gap: 8, alignItems: 'baseline' }}>
+                <StatusPill status={e.severity === 'error' ? 'error' : 'pending'} label={e.severity === 'error' ? 'Blocking' : 'Warning'} />
+                <span><strong>{label(e.code)}</strong> <span className="oc-muted">· {String(e.message)}</span></span>
+              </div>
+            ))}
+          </div>
+        ) },
       ]} actions={(x) => {
-        const fix = EXCEPTION_FIX[String(x.code)];
-        return fix ? <Link className="oc-btn oc-btn-text oc-btn-sm" to={fix.to(x, runId)}>Fix: {fix.text}</Link> : null;
+        const fixes = new Map<string, Set<string>>();
+        for (const e of x.list as R[]) {
+          const fix = EXCEPTION_FIX[String(e.code)];
+          if (!fix) continue;
+          const to = fix.to(e, runId);
+          fixes.set(to, (fixes.get(to) ?? new Set<string>()).add(fix.text.toLowerCase()));
+        }
+        return [...fixes].map(([to, texts]) => <Link key={to} className="oc-btn oc-btn-neutral oc-btn-sm" to={to}>Open {[...texts].join(' & ')}</Link>);
       }} />
-    </Card>
+    </div>
   );
 }

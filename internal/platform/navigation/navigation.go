@@ -288,7 +288,7 @@ var Trees = map[string][]Item{
 				s("hris-partner-attendance", "Partner Clock-in", "/hris/partner-attendance", "hris.partner_attendance.view"),
 			),
 			s("hris-pay", "Payroll", "/hris/payroll", "",
-				s("hris-payroll", "Payroll", "/hris/payroll", "hris.payroll_run.view"),                         // PRD P5 EP-09/10/15
+				s("hris-payroll", "Payroll Runs", "/hris/payroll", "hris.payroll_run.view"),                    // PRD P5 EP-09/10/15
 				s("hris-benefits", "Tax & BPJS", "/hris/benefits", "hris.payroll_profile.view"),                // PRD P5 EP-10 (PTKP, BPJS)
 				s("hris-service-charge", "Service Charge", "/hris/service-charge", "hris.service_charge.view"), // PRD P5 EP-11
 				s("hris-commissions", "Commissions", "/hris/commissions", "hris.commission_payout.view"),       // PRD P5 EP-12

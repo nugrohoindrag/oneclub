@@ -3,7 +3,7 @@ import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router';
 import { useGet } from '@oneclub/api-client';
 import { useTranslation } from '@oneclub/i18n';
 import { useAuth, useBootstrap, type Shell } from '../context';
-import { Icon, Skeleton } from '../components/ui';
+import { Icon, RowActionsStyle, Skeleton } from '../components/ui';
 import { HeaderActions } from './header';
 import { useArea } from '../areas';
 import { logoOf } from '../theme';
@@ -68,15 +68,21 @@ export function RequirePermission({ perm, children }: { perm: string | string[];
 
 /**
  * Sub-menu link. NavLink ignores the query string, so `/reports?module=golf`
- * and `/reports` would all be active on /reports: an item with a query is
- * active on that exact URL, one without only when no sibling's query matches.
+ * and `/reports` would all be active on /reports: the sibling that matches
+ * the URL best is active — an item with a query on that exact URL, then the
+ * same path, then the longest path the page sits below (a run of Payroll
+ * Runs, an employee of Employees).
  */
 function SubLink({ item, siblings }: { item: NavItem; siblings: NavItem[] }) {
   const loc = useLocation();
   const here = loc.pathname + loc.search;
-  const active = item.path.includes('?')
-    ? here === item.path
-    : loc.pathname === item.path && !siblings.some((s) => s.path.includes('?') && s.path === here);
+  const score = (s: NavItem) => {
+    if (s.path.includes('?')) return here === s.path ? 3000 : -1;
+    if (loc.pathname === s.path) return 2000;
+    return under(s.path, loc.pathname) ? s.path.length : -1;
+  };
+  const best = siblings.reduce<NavItem | null>((b, s) => (score(s) > (b ? score(b) : -1) ? s : b), null);
+  const active = best?.key === item.key;
   return <Link to={item.path} className={active ? 'active' : undefined} aria-current={active ? 'page' : undefined}>{item.label}</Link>;
 }
 
@@ -246,7 +252,8 @@ export function SidebarLayout({ shell = 'backoffice' }: { shell?: Shell }) {
           <HeaderActions />
         </header>
         <main className="oc-content" id="main">
-          <Outlet />
+          {/* office tables: row actions in a ⋮ menu */}
+          <RowActionsStyle.Provider value="menu"><Outlet /></RowActionsStyle.Provider>
         </main>
       </div>
     </div>

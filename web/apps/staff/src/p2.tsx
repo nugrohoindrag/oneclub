@@ -3,8 +3,9 @@ import { Link, useParams } from 'react-router';
 import { qs, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, DataTable, DateRange, Empty, ErrorAlert, Icon, PageHeader, ResourceIndex, Skeleton, StatTile, StatusPill, TextField, useAuth, useToast,
+  AutoResourcePage, Card, DataTable, Empty, ErrorAlert, Icon, PageHeader, ResourceIndex, Skeleton, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
+import { DomainDashboard } from './p5/bi-dash';
 
 type Row = Record<string, unknown>;
 
@@ -218,34 +219,16 @@ export const DASHBOARDS: [string, string][] = [
   ['booking-performance', 'Booking Performance'], ['commercial-performance', 'Commercial Performance'], ['crm-performance', 'CRM Performance'],
 ];
 
-function kpiValue(k: Schemas['KPI']) {
-  if (k.unit === 'idr') return money(k.value);
-  if (k.unit === 'ratio') return `${(Number(k.value) * 100).toFixed(1)}%`;
-  return formatNumber(Number(k.value));
-}
+/** Domain of the executive overview behind each KPI dashboard code. */
+const DOMAIN_OF: Record<string, string> = {
+  'golf-performance': 'golf', 'sport-club-performance': 'sportclub', 'membership-performance': 'membership', 'booking-performance': 'booking',
+  'commercial-performance': 'commercial', 'crm-performance': 'crm', 'inventory-performance': 'inventory', 'banquet-performance': 'banquet',
+  'procurement-performance': 'procurement', 'financial-performance': 'finance',
+};
 
+/** KPI dashboard of a domain (Back Office /dashboards/…, Management): the dashboard kit with targets and trend. */
 export function KPIDashboardPage({ code }: { code: string }) {
-  const today = new Date();
-  const [from, setFrom] = useState(new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10));
-  const [to, setTo] = useState(today.toISOString().slice(0, 10));
-  const d = useGet<Schemas['PerformanceDashboard']>(`/api/v1/reporting/dashboards/${code}${qs({ from, to })}`);
-  return (
-    <div className="oc-stack">
-      <PageHeader title={d.data?.name ?? DASHBOARDS.find((x) => x[0] === code)?.[1] ?? ''} help={d.data ? `${formatDate(d.data.from)} – ${formatDate(d.data.to)}` : undefined}
-        actions={<DateRange from={from} to={to} onFrom={setFrom} onTo={setTo} />} />
-      <ErrorAlert error={d.error} />
-      {!d.data && <Skeleton rows={6} />}
-      <div className="oc-stat-grid">
-        {d.data?.kpis.map((k) => (
-          <StatTile key={k.key} label={k.label} title={k.definition} value={kpiValue(k)}>
-            {k.breakdown?.map((b) => <div key={b.label} className="oc-row"><span>{b.label.replace(/_/g, ' ')}</span><span className="oc-spacer" />
-              <strong>{k.unit === 'idr' ? money(b.value) : formatNumber(Number(b.value))}</strong></div>)}
-            {k.definition && <div>{k.definition}</div>}
-          </StatTile>
-        ))}
-      </div>
-    </div>
-  );
+  return <DomainDashboard domain={DOMAIN_OF[code] ?? code} title={DASHBOARDS.find((x) => x[0] === code)?.[1]} />;
 }
 
 // ── Customer 360 (FR-CRM-01) ──────────────────────────────────────────────

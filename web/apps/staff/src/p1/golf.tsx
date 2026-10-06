@@ -349,7 +349,7 @@ export function StarterPage() {
       {q.data && <CourseStatusCard courseId={cd.courseId} status={q.data.courseStatus} />}
       <ErrorAlert error={q.error} />
       <Card title={`Queue (${q.data?.active.length ?? 0})`} icon="format_list_numbered">
-        <DataTable rows={q.data?.active} loading={q.isLoading} rowKey={(f) => String(f.flightId)}
+        <DataTable rows={q.data?.active} loading={q.isLoading} rowKey={(f) => String(f.flightId)} inlineActions
           columns={[{ key: 'position', header: '#' }, { key: 'localTime', header: 'Tee Time' }, { key: 'startTee', header: 'Tee' }, { key: 'bookingCode', header: 'Booking' },
             { key: 'players', header: 'Players', render: players }, { key: 'golfCarts', header: 'Golf Carts', render: (f) => ((f.golfCarts as string[]) ?? []).join(', ') },
             { key: 'waitMinutes', header: 'Waiting', render: (f) => `${String(f.waitMinutes)} min` }]}

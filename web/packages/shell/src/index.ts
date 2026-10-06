@@ -16,3 +16,4 @@ export * from './settings/services';
 export * from './settings/system';
 export * from './settings/auto';
 export * from './components/qr';
+export * from './components/dash';

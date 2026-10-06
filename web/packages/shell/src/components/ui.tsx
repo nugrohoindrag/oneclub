@@ -1,5 +1,8 @@
-import React, { useEffect, useId, useRef, useState } from 'react';
+import React, { useContext, useEffect, useId, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router';
 import { Icon } from '@oneclub/ui';
+import { Amount, Delta } from './dash';
 import { ApiError, useGet } from '@oneclub/api-client';
 import { useTranslation, validationMessage } from '@oneclub/i18n';
 
@@ -140,8 +143,6 @@ export function StatTile({ label, value, icon, change, changeLabel, inverse, sta
   inverse?: boolean;
   progress?: number | null; children?: React.ReactNode; onOpen?: () => void; muted?: boolean; title?: string;
 }) {
-  const up = change != null && change >= 0;
-  const good = inverse ? !up : up;
   return (
     <div className="oc-stat" title={title} data-muted={muted || undefined} data-clickable={onOpen ? true : undefined}
       role={onOpen ? 'button' : undefined} tabIndex={onOpen ? 0 : undefined} aria-label={onOpen ? `${label}: open the drill-down` : undefined}
@@ -151,13 +152,10 @@ export function StatTile({ label, value, icon, change, changeLabel, inverse, sta
         {status}
         {icon && <span className="oc-stat-icon"><Icon name={icon} size={18} /></span>}
       </div>
-      <div className="oc-stat-value">{value}</div>
+      <div className="oc-stat-value">{typeof value === 'string' ? <Amount text={value} size="lg" /> : value}</div>
       {change != null && (
         <div className="oc-stat-meta">
-          <span className="oc-delta" data-tone={good ? 'up' : 'down'}>
-            <Icon name={up ? 'trending_up' : 'trending_down'} size={14} /> {up ? '+' : '−'}{Math.abs(change * 100).toFixed(1)}%
-          </span>
-          {changeLabel && <span className="oc-muted">{changeLabel}</span>}
+          <Delta ratio={change} chip="" inverse={inverse} suffix={changeLabel} />
         </div>
       )}
       {progress != null && (
@@ -183,6 +181,18 @@ export function DateRange({ from, to, onFrom, onTo }: { from: string; to: string
       <span className="oc-muted">–</span>
       <input className="oc-input oc-filter" type="date" aria-label="To" value={to} min={from} onChange={(e) => e.target.value && onTo(e.target.value)} />
     </div>
+  );
+}
+
+/** Compact select filter for a list toolbar: no field label, the empty option names the filter ("All departments"). */
+export function SelectFilter({ value, onChange, options, all, label }: {
+  value: string; onChange: (v: string) => void; options: Option[]; all: string; label: string;
+}) {
+  return (
+    <select className="oc-input oc-filter" aria-label={label} value={value} onChange={(e) => onChange(e.target.value)}>
+      <option value="">{all}</option>
+      {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+    </select>
   );
 }
 
@@ -562,9 +572,126 @@ export function ServerPager({ page, from, to, total, totalAtLeast, hasPrev, hasN
   );
 }
 
-export function DataTable<T extends Record<string, unknown>>({ columns, rows, loading, error, onRowClick, actions, actionsHeader, empty, rowKey, pageSize = PAGE_SIZE, server }: {
+/**
+ * How table rows show their actions: office layouts (sidebar) put them in
+ * a ⋮ menu so rows stay clean; touch layouts (POS, starter, tablet) keep
+ * large inline buttons for the operators.
+ */
+export const RowActionsStyle = React.createContext<'inline' | 'menu'>('inline');
+
+/**
+ * Elements of an actions render: fragments and layout wrappers (a div or
+ * span with an oc-row class) flattened, empty slots (false, null) dropped.
+ */
+function actionNodes(node: React.ReactNode): React.ReactNode[] {
+  return React.Children.toArray(node).flatMap((n) => {
+    if (!React.isValidElement(n)) return [n];
+    const props = n.props as { children?: React.ReactNode; className?: string };
+    const wrapper = n.type === React.Fragment || ((n.type === 'div' || n.type === 'span') && /\boc-row(-wrap)?\b/.test(props.className ?? ''));
+    return wrapper ? actionNodes(props.children) : [n];
+  });
+}
+
+const DIALOG = '.oc-modal, .oc-drawer';
+
+/**
+ * The ⋮ menu of a table row. The actions are the row's own buttons and
+ * links, listed as menu items. After one is chosen the menu disappears but
+ * stays mounted while the dialog it opened is shown or its request runs,
+ * so confirmations and reasons keep working.
+ */
+function RowMenu({ items }: { items: React.ReactNode[] }) {
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  const [used, setUsed] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  const before = useRef<Set<Element>>(new Set());
+  const close = () => { setPos(null); setUsed(false); };
+  // Busy: a dialog of the chosen action is open, or a button disabled itself (request running).
+  const busy = () => {
+    const m = menu.current;
+    if (!m) return false;
+    return !!m.querySelector(DIALOG) || [...m.querySelectorAll('button:disabled')].some((b) => !before.current.has(b));
+  };
+  useEffect(() => {
+    if (!pos) return;
+    const outside = (e: Event) => {
+      if (ref.current?.contains(e.target as Node) || menu.current?.contains(e.target as Node) || busy()) return;
+      close();
+    };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !busy()) close(); };
+    const scroll = (e: Event) => { if (!used && !menu.current?.contains(e.target as Node)) close(); };
+    document.addEventListener('mousedown', outside);
+    document.addEventListener('keydown', esc);
+    window.addEventListener('scroll', scroll, true);
+    return () => {
+      document.removeEventListener('mousedown', outside);
+      document.removeEventListener('keydown', esc);
+      window.removeEventListener('scroll', scroll, true);
+    };
+  }, [pos, used]);
+  // After an action: close as soon as nothing of it is left on screen.
+  useEffect(() => {
+    if (!used || !menu.current) return;
+    const check = () => { if (!busy()) close(); };
+    const t = window.setTimeout(check, 0);
+    const watch = new MutationObserver(check);
+    watch.observe(menu.current, { subtree: true, childList: true, attributes: true, attributeFilter: ['disabled'] });
+    return () => { window.clearTimeout(t); watch.disconnect(); };
+  }, [used]);
+  return (
+    <div ref={ref} className="oc-row-menu-anchor">
+      <button type="button" className="oc-btn oc-btn-sm oc-btn-text oc-kebab" aria-label="Row actions" aria-haspopup="menu" aria-expanded={!!pos && !used}
+        onClick={(e) => {
+          const b = e.currentTarget.getBoundingClientRect();
+          setUsed(false);
+          setPos(pos ? null : { top: b.bottom + 4, right: window.innerWidth - b.right });
+        }}><span aria-hidden className="oc-kebab-dots">⋮</span></button>
+      {pos && createPortal(
+        <div ref={menu} className="oc-popover oc-row-menu oc-row-actions" role="menu" data-used={used || undefined}
+          style={{ position: 'fixed', top: pos.top, right: pos.right }}
+          onClickCapture={(e) => {
+            if ((e.target as Element).closest(DIALOG) || used) return;
+            if (!(e.target as Element).closest('button, a')) return;
+            before.current = new Set(menu.current?.querySelectorAll('button:disabled') ?? []);
+            setUsed(true);
+          }}>
+          {items}
+        </div>, document.body,
+      )}
+    </div>
+  );
+}
+
+/** Short plain text (dates, codes, names, amounts) stays on one line; long text wraps. */
+function short(v: React.ReactNode): boolean {
+  if (typeof v === 'string') return v.length <= 28;
+  if (typeof v === 'number') return true;
+  if (React.isValidElement(v)) {
+    const c = (v.props as { children?: React.ReactNode }).children;
+    return typeof c === 'string' ? c.length <= 28 : typeof c === 'number';
+  }
+  return false;
+}
+
+/**
+ * A header with a parenthesis: a short unit stays as a small suffix
+ * ("Age · days"), a longer explanation moves to the tooltip.
+ */
+function headerLabel(h: React.ReactNode): React.ReactNode {
+  if (typeof h !== 'string') return h;
+  const m = /^(.+?)\s*\(([^()]+)\)$/.exec(h);
+  if (!m) return h;
+  return m[2].length <= 6
+    ? <>{m[1]} <span className="oc-th-unit">{m[2]}</span></>
+    : <span title={m[2]} className="oc-th-hint">{m[1]}</span>;
+}
+
+export function DataTable<T extends Record<string, unknown>>({ columns, rows, loading, error, onRowClick, actions, actionsHeader, inlineActions, empty, rowKey, pageSize = PAGE_SIZE, server }: {
   columns: Column<T>[]; rows: T[] | undefined; loading?: boolean; error?: unknown; onRowClick?: (row: T) => void;
   actions?: (row: T) => React.ReactNode; empty?: React.ReactNode; rowKey?: (row: T) => string;
+  /** Keep the row actions as buttons even in office layouts (the row's main operation, e.g. Tee-Off on the starter list). */
+  inlineActions?: boolean;
   /** Title of the actions column (unlabelled by default). */
   actionsHeader?: string;
   /** Rows per page (default 10); 0 shows every row. */
@@ -573,29 +700,44 @@ export function DataTable<T extends Record<string, unknown>>({ columns, rows, lo
   server?: ServerPage;
 }) {
   const pager = usePager(rows, server ? 0 : pageSize);
+  const office = useContext(RowActionsStyle);
+  const style = inlineActions ? 'inline' : office;
   if (error) return <ErrorAlert error={error} />;
   // .oc-datatable is a card on the page canvas and plain inside a card, modal or drawer.
   if (loading) return <div className="oc-datatable"><Skeleton rows={5} /></div>;
   if (!rows || rows.length === 0) return <div className="oc-datatable">{empty ?? <Empty />}{server && <ServerPager {...server} />}</div>;
+  const rowActions = (r: T) => {
+    if (!actions) return null;
+    const node = actions(r);
+    if (style !== 'menu') return node;
+    const items = actionNodes(node);
+    return items.length ? <RowMenu items={items} /> : null;
+  };
   return (
     <div className="oc-datatable">
       <div className="oc-table-wrap">
         <table className="oc-table">
           <thead>
             <tr>
-              {columns.map((c) => <th key={c.key} style={{ width: c.width, textAlign: c.align }}>{c.header}</th>)}
-              {actions && (actionsHeader ? <th>{actionsHeader}</th> : <th aria-label="Actions" />)}
+              {columns.map((c) => <th key={c.key} style={{ width: c.width, textAlign: c.align }}>{headerLabel(c.header)}</th>)}
+              {actions && (actionsHeader && style !== 'menu' ? <th>{actionsHeader}</th> : <th className="oc-th-actions" aria-label="Actions" />)}
+              {onRowClick && <th className="oc-th-go" aria-hidden />}
             </tr>
           </thead>
           <tbody>
             {pager.visible.map((r, i) => (
               <tr key={rowKey ? rowKey(r) : String(r.id ?? i)} data-clickable={!!onRowClick} onClick={onRowClick ? () => onRowClick(r) : undefined}>
-                {columns.map((c) => (
-                  <td key={c.key} className={c.align === 'right' ? 'oc-num' : undefined} style={{ textAlign: c.align }}>
-                    {c.render ? c.render(r) : (r[c.key] as React.ReactNode) ?? <span className="oc-muted">—</span>}
-                  </td>
-                ))}
-                {actions && <td className="oc-actions" onClick={(e) => e.stopPropagation()}>{actions(r)}</td>}
+                {columns.map((c) => {
+                  const v = c.render ? c.render(r) : (r[c.key] as React.ReactNode);
+                  const cls = [c.align === 'right' ? 'oc-num' : '', short(v) ? 'oc-nowrap' : ''].filter(Boolean).join(' ');
+                  return (
+                    <td key={c.key} className={cls || undefined} style={{ textAlign: c.align }}>
+                      {v ?? <span className="oc-muted">—</span>}
+                    </td>
+                  );
+                })}
+                {actions && <td className="oc-actions" onClick={(e) => e.stopPropagation()}>{rowActions(r)}</td>}
+                {onRowClick && <td className="oc-go" aria-hidden><Icon name="chevron_right" size={20} /></td>}
               </tr>
             ))}
           </tbody>
@@ -642,6 +784,55 @@ export function Labeled({ label, children }: { label: string; children: React.Re
     <div>
       <div className="oc-small oc-muted">{label}</div>
       <div style={{ fontWeight: 500 }}>{children ?? '—'}</div>
+    </div>
+  );
+}
+
+export type ActionMenuItem = { label: string; icon: string; onClick?: () => void; to?: string; hidden?: boolean; danger?: boolean; separator?: boolean };
+
+/**
+ * Menu of secondary actions: "•••" on a table row, or a labelled button
+ * ("Actions") on a page header. Opens on <body>, so sticky table cells do
+ * not paint over it; closes on a click outside, Escape or scrolling.
+ */
+export function ActionMenu({ items, label }: { items: ActionMenuItem[]; label?: string }) {
+  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
+  const menu = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!pos) return;
+    const close = (e: Event) => { if (!ref.current?.contains(e.target as Node) && !menu.current?.contains(e.target as Node)) setPos(null); };
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setPos(null);
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', esc);
+    window.addEventListener('scroll', () => setPos(null), { once: true, capture: true });
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', esc); };
+  }, [pos]);
+  const visible = items.filter((i) => !i.hidden);
+  if (visible.length === 0) return null;
+  const toggle = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const b = e.currentTarget.getBoundingClientRect();
+    setPos(pos ? null : { top: b.bottom + 4, right: window.innerWidth - b.right });
+  };
+  return (
+    <div ref={ref} style={{ display: 'inline-block' }}>
+      {label
+        ? <button className="oc-btn oc-btn-neutral" aria-haspopup="menu" aria-expanded={!!pos} onClick={toggle}>{label} <Icon name="expand_more" size={18} /></button>
+        : <button className="oc-btn oc-btn-sm oc-btn-text" aria-label="More actions" aria-haspopup="menu" aria-expanded={!!pos} onClick={toggle}>•••</button>}
+      {pos && createPortal(
+        <div ref={menu} className="oc-popover oc-row-menu" role="menu" style={{ position: 'fixed', top: pos.top, right: pos.right }}>
+          {visible.map((i) => (
+            <React.Fragment key={i.label}>
+              {i.separator && <div className="oc-menu-sep" role="separator" />}
+              <button className="oc-menu-item" role="menuitem" data-danger={i.danger || undefined}
+                onClick={() => { setPos(null); if (i.to) navigate(i.to); else i.onClick?.(); }}>
+                <Icon name={i.icon} size={18} /> {i.label}
+              </button>
+            </React.Fragment>
+          ))}
+        </div>, document.body,
+      )}
     </div>
   );
 }

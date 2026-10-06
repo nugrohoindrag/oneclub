@@ -4,8 +4,8 @@ import { getActiveProperty, request, uuidv7, useGet, useSend, type Page } from '
 import { currentLocale, formatDate, formatDateTime } from '@oneclub/i18n';
 import { cacheGet, cachePut, enqueue, useOnline } from '@oneclub/offline';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, QRCode, SelectField, Skeleton, StatusPill,
-  TextArea, TextField, useAuth, useToast, type Option,
+  AutoResourcePage, Card, Checkbox, DataTable, DateRange, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, QRCode, SelectField, SelectFilter,
+  Skeleton, StatusPill, TextArea, TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { KV, Tabs, today, type R } from '../p1/common';
 import { ScanField } from '../p4/inventory';
@@ -352,7 +352,7 @@ export function AttendancePage() {
 
 const dayColumns = [
   { key: 'workDate', header: 'Date', render: (r: R) => date(r.workDate) },
-  { key: 'employeeName', header: 'Employee', render: (r: R) => <Link to={`/hris/employees/${String(r.employeeId)}`}>{String(r.employeeName)}</Link> },
+  { key: 'employeeName', header: 'Employee', render: (r: R) => <strong>{String(r.employeeName)}</strong> },
   { key: 'orgUnitName', header: 'Department', render: (r: R) => val(r.orgUnitName) },
   { key: 'shiftCode', header: 'Shift', render: (r: R) => (r.scheduledStart ? `${val(r.shiftCode)} ${time(r.scheduledStart)}–${time(r.scheduledEnd)}` : '—') },
   { key: 'firstIn', header: 'In', render: (r: R) => time(r.firstIn) }, { key: 'lastOut', header: 'Out', render: (r: R) => time(r.lastOut) },
@@ -363,7 +363,7 @@ const dayColumns = [
 
 // Exception filters of the attendance days (flag query of attendance-days).
 const DAY_FLAGS: Option[] = [
-  { value: 'any', label: 'Any exception' }, { value: 'missing', label: 'Missing clock-in / out' }, { value: 'out_of_area', label: 'Out of area' },
+  { value: '', label: 'All days' }, { value: 'any', label: 'Any exception' }, { value: 'missing', label: 'Missing clock-in / out' }, { value: 'out_of_area', label: 'Out of area' },
   { value: 'unapproved_overtime', label: 'Overtime without approval' }, { value: 'no_schedule', label: 'Worked without schedule' },
   { value: 'worked_on_leave', label: 'Worked on leave' },
 ];
@@ -381,25 +381,28 @@ function DaysPanel() {
   const [clock, setClock] = useState(false);
   const [recalc, setRecalc] = useState(false);
   const [correct, setCorrect] = useState<R | null>(null);
+  const nav = useNavigate();
   const q = new URLSearchParams(clean(f) as Record<string, string>).toString();
   const l = useGet<Page<R>>(`${HR}/attendance-days?${q}`);
+  const set = (k: string) => (v: string) => setF({ ...f, [k]: v });
+  const open = (r: R) => nav(`/hris/employees/${String(r.employeeId)}?tab=attendance`);
   return (
     <div className="oc-stack">
+      <FilterPills options={DAY_FLAGS} value={f.flag ?? ''} onChange={set('flag')} />
       <div className="oc-row-wrap">
-        <TextField label="From" type="date" value={f.from} onChange={(v) => setF({ ...f, from: v })} />
-        <TextField label="To" type="date" value={f.to} onChange={(v) => setF({ ...f, to: v })} />
-        <SelectField label="Department" value={f.orgUnitId ?? ''} onChange={(v) => setF({ ...f, orgUnitId: v })} options={units} placeholder="All" />
-        <SelectField label="Status" value={f.status ?? ''} onChange={(v) => setF({ ...f, status: v })} options={opts(DAY_STATUSES)} placeholder="All" />
-        <SelectField label="Exception" value={f.flag ?? ''} onChange={(v) => setF({ ...f, flag: v })} options={DAY_FLAGS} placeholder="All days" />
+        <DateRange from={f.from} to={f.to} onFrom={set('from')} onTo={set('to')} />
+        <SelectFilter label="Department" all="All departments" value={f.orgUnitId ?? ''} onChange={set('orgUnitId')} options={units} />
+        <SelectFilter label="Status" all="All statuses" value={f.status ?? ''} onChange={set('status')} options={opts(DAY_STATUSES)} />
         <span className="oc-spacer" />
-        <button className="oc-btn oc-btn-neutral" onClick={() => setRecalc(true)}>Recalculate</button>
-        <button className="oc-btn oc-btn-ink" onClick={() => setClock(true)}>Record clock-in / out</button>
+        <button className="oc-btn oc-btn-text" onClick={() => setRecalc(true)}><Icon name="refresh" size={18} /> Recalculate</button>
+        <button className="oc-btn oc-btn-ink" onClick={() => setClock(true)}><Icon name="add" size={18} /> Record clock-in / out</button>
       </div>
       <DataTable rows={withIds(l.data?.items, (r) => `${String(r.employeeId)}-${String(r.workDate)}`)} loading={l.isLoading} error={l.error} columns={dayColumns}
+        onRowClick={open}
         empty={<Empty title={f.flag ? 'No exception in this period' : 'No attendance in this period'} icon="task_alt" />}
-        actions={(r) => (!r.locked && can('hris.attendance_correction.create') && ((r.flags as string[]) ?? []).length + (r.status === 'absent' ? 1 : 0) > 0 ? (
+        actions={(r) => (!r.locked && can('hris.attendance_correction.create') && ((r.flags as string[]) ?? []).length + (r.status === 'absent' ? 1 : 0) > 0 && (
           <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setCorrect(r)}>Correct</button>
-        ) : null)} />
+        ))} />
       {correct && (
         <CorrectionForm path={`${HR}/attendance-corrections`} employees={employees} onClose={() => setCorrect(null)}
           initial={{ employeeId: String(correct.employeeId), workDate: String(correct.workDate).slice(0, 10) }} />

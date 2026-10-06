@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
-  Card, DataTable, DateFilter, Drawer, ErrorAlert, Icon, Modal, PageHeader, ResourcePage, SearchBox, SelectField, Skeleton, StatTile, StatusPill, TextArea, TextField,
+  Card, DataTable, Drawer, ErrorAlert, Icon, Modal, PageHeader, ResourcePage, SearchBox, SelectField, Skeleton, StatusPill, TextArea, TextField,
   statusCol, useAuth, useDebounced, useToast, type ResourceConfig,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from './common';
@@ -718,66 +718,3 @@ export function ReconciliationPage() {
 
 // ── Management (EP-16) ──────────────────────────────────────────────────────
 
-/** Icon per golf-today widget key (reporting/golf.go). */const GOLF_WIDGET_ICON: Record<string, string> = {  todays_bookings: 'event_available', todays_players: 'groups', current_queue: 'pending_actions', players_on_course: 'golf_course',  pending_check_in: 'how_to_reg', available_caddies: 'person', caddies_on_round: 'sports_golf', golf_carts_ready: 'electric_car',  golf_carts_in_use: 'electric_car', golf_carts_in_maintenance: 'build', avg_check_in_to_tee_off: 'timer',};
-export function GolfPerformancePage() {
-  const [date, setDate] = useState(today());
-  const d = useGet<{ widgets: R[] }>(`/api/v1/reporting/dashboards/golf-today?date=${date}`);
-  return (
-    <div className="oc-stack">
-      <PageHeader title="Golf Performance" help="Live golf operation of the day." actions={<DateFilter value={date} onChange={setDate} />} />
-      <ErrorAlert error={d.error} />
-      <div className="oc-stat-grid">
-        {(d.data?.widgets ?? []).map((w) => (
-          <StatTile key={String(w.key)} label={String(w.label)} icon={GOLF_WIDGET_ICON[String(w.key)]}
-            value={`${formatNumber(Number(w.value ?? 0))}${w.key === 'avg_check_in_to_tee_off' ? ' min' : ''}`} />
-        ))}
-      </div>
-      <ReportLinks module="golf" />
-    </div>
-  );
-}
-
-export function ReportLinks({ module }: { module: string }) {
-  const reports = useGet<Page<R>>('/api/v1/reporting/reports');
-  return (
-    <Card title="Reports" icon="monitoring">
-      <div className="oc-row-wrap">
-        {(reports.data?.items ?? []).filter((r) => r.module === module || (module === 'booking' && r.code === 'golf.bookings')).map((r) => (
-          <Link key={String(r.code)} className="oc-btn oc-btn-neutral oc-btn-sm" to={`/reports/${String(r.code)}`}>{String(r.name)}</Link>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
-export function MembershipPerformancePage() {
-  const active = useGet<{ rows: R[] }>('/api/v1/reporting/reports/membership.active_members');
-  const expiring = useGet<{ rows: R[] }>('/api/v1/reporting/reports/membership.expiring?params[days]=30');
-  return (
-    <div className="oc-stack">
-      <PageHeader title="Membership Performance" />
-      <div className="oc-stat-grid">
-        <StatTile label="Active Members" icon="card_membership" value={active.data ? formatNumber(active.data.rows.length) : '—'} />
-        <StatTile label="Expiring in 30 days" icon="schedule" value={expiring.data ? formatNumber(expiring.data.rows.length) : '—'} />
-      </div>
-      <ReportLinks module="membership" />
-    </div>
-  );
-}
-
-export function BookingPerformancePage() {
-  const [date, setDate] = useState(today());
-  const b = useGet<{ rows: R[] }>(`/api/v1/reporting/reports/golf.bookings?params[from]=${date}&params[to]=${date}`);
-  const rows = b.data?.rows ?? [];
-  const by = (k: string) => rows.reduce<Record<string, number>>((m, r) => ({ ...m, [String(r[k])]: (m[String(r[k])] ?? 0) + 1 }), {});
-  return (
-    <div className="oc-stack">
-      <PageHeader title="Booking Performance" actions={<DateFilter value={date} onChange={setDate} />} />
-      <div className="oc-stat-grid">
-        <StatTile label="Bookings" icon="event_available" value={formatNumber(rows.length)} />
-        {Object.entries(by('channel')).map(([k, n]) => <StatTile key={k} label={k.replace('_', ' ')} value={formatNumber(n)} />)}
-      </div>
-      <ReportLinks module="booking" />
-    </div>
-  );
-}

@@ -1,8 +1,13 @@
+import { useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { qs, useGet, type Schemas } from '@oneclub/api-client';
 import { currentLocale, formatDate } from '@oneclub/i18n';
-import { Card, Empty, ErrorAlert, Icon, PageHeader, Skeleton, StatTile, StatusPill } from '@oneclub/shell';
-import { money } from '../p1/common';
+import {
+  Amount, BarChart, BreakdownList, Card, CircleButton, DASH_COLORS, DASH_OTHER, DashButton, DashCard, DashGrid, DashHead, DashIcon, DashName, DashStatusPill, DashTable, Delta, Empty, ErrorAlert,
+  Gauge, HeatBars, Icon, MiniCard, Note, PageHeader, PillSelect, ProgressRow, PromoCard, ReportCard, SegmentBar, Skeleton, SplitStats, monthOptions,
+  type DashStatus,
+} from '@oneclub/shell';
+import { money, moneyShort as short } from '../p1/common';
 
 // Finance Dashboard of the Back Office (Accountant home, Accounting → Finance
 // Dashboard): financial summary, cash & bank with the cash flow trend and the
@@ -17,18 +22,8 @@ const API = '/api/v1/accounting/dashboard';
 const num = (v?: string | null) => Number(v ?? 0);
 const ratio = (v?: string | null) => (v == null ? null : Number(v));
 
-/** IDR in short form for headline figures (Rp 9,98 M / IDR 9.98B). */
-function short(v?: string | null) {
-  return new Intl.NumberFormat(currentLocale() === 'en' ? 'en-US' : 'id-ID', {
-    style: 'currency', currency: 'IDR', notation: 'compact', maximumFractionDigits: 2,
-  }).format(num(v));
-}
-
 const DUE: Record<string, [string, string]> = {
   overdue: ['rejected', 'Overdue'], due_today: ['pending', 'Due today'], due_soon: ['pending', 'Due soon'], current: ['confirmed', 'Current'],
-};
-const BANK: Record<string, [string, string]> = {
-  reconciled: ['approved', 'Reconciled'], in_progress: ['pending', 'In progress'], attention: ['rejected', 'Needs attention'], never: ['draft', 'Never reconciled'],
 };
 
 function useDashboard() {
@@ -41,86 +36,6 @@ function useDashboard() {
 
 function MonthFilter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return <input className="oc-input oc-filter" type="month" aria-label="Month" value={value} onChange={(e) => onChange(e.target.value)} />;
-}
-
-/** Horizontal bars of one measure (single hue); amounts stay visible as text. */
-function Bars({ rows }: { rows: { key: string; label: string; amount: string; note?: string }[] }) {
-  const max = Math.max(1, ...rows.map((r) => num(r.amount)));
-  return (
-    <div className="oc-fin-bars">
-      {rows.map((r) => (
-        <div key={r.key} className="oc-fin-bar" title={`${r.label}: ${money(r.amount)}`}>
-          <span className="oc-fin-bar-label">{r.label}</span>
-          <span className="oc-fin-bar-track"><span style={{ width: `${(num(r.amount) / max) * 100}%` }} /></span>
-          <span className="oc-fin-bar-value oc-num">{short(r.amount)}{r.note && <span className="oc-muted"> · {r.note}</span>}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/** Cash in / cash out per month (grouped bars, one axis) with the values as a table. */
-function CashFlowChart({ months }: { months: Dashboard['cashFlow'] }) {
-  const max = Math.max(1, ...months.flatMap((m) => [num(m.cashIn), num(m.cashOut)]));
-  const label = (m: string) => new Intl.DateTimeFormat(currentLocale() === 'en' ? 'en-US' : 'id-ID', { month: 'short' }).format(new Date(`${m}-01T00:00:00`));
-  return (
-    <div className="oc-stack" style={{ gap: 12 }}>
-      <div className="oc-row oc-small" aria-hidden="true">
-        <span className="oc-fin-key" style={{ background: 'var(--oc-chart-a)' }} /> Cash in
-        <span className="oc-fin-key" style={{ background: 'var(--oc-chart-b)', marginLeft: 12 }} /> Cash out
-      </div>
-      <div className="oc-fin-cols" role="img" aria-label="Cash in and cash out per month">
-        {months.map((m) => (
-          <div key={m.month} className="oc-fin-col">
-            <div className="oc-fin-col-bars" title={`${label(m.month)} — in ${money(m.cashIn)}, out ${money(m.cashOut)}, net ${money(m.net)}`}>
-              <span style={{ height: `${(num(m.cashIn) / max) * 100}%`, background: 'var(--oc-chart-a)' }} />
-              <span style={{ height: `${(num(m.cashOut) / max) * 100}%`, background: 'var(--oc-chart-b)' }} />
-            </div>
-            <span className="oc-small oc-muted">{label(m.month)}</span>
-          </div>
-        ))}
-      </div>
-      <div className="oc-table-wrap">
-        <table className="oc-table oc-small">
-          <thead><tr><th>Month</th><th style={{ textAlign: 'right' }}>Cash in</th><th style={{ textAlign: 'right' }}>Cash out</th><th style={{ textAlign: 'right' }}>Net cash flow</th></tr></thead>
-          <tbody>
-            {months.map((m) => (
-              <tr key={m.month}>
-                <td>{label(m.month)} {m.month.slice(0, 4)}</td>
-                <td className="oc-num" style={{ textAlign: 'right' }}>{short(m.cashIn)}</td>
-                <td className="oc-num" style={{ textAlign: 'right' }}>{short(m.cashOut)}</td>
-                <td className="oc-num" style={{ textAlign: 'right', fontWeight: 600 }}>{short(m.net)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function OpenItems({ items, party, empty }: { items: OpenItem[]; party: string; empty: string }) {
-  if (items.length === 0) return <Empty title={empty} />;
-  return (
-    <div className="oc-table-wrap">
-      <table className="oc-table oc-small">
-        <thead><tr><th>{party}</th><th>Due date</th><th style={{ textAlign: 'right' }}>Amount</th><th>Status</th></tr></thead>
-        <tbody>
-          {items.map((i) => {
-            const [tone, l] = DUE[i.status] ?? ['draft', i.status];
-            return (
-              <tr key={i.id}>
-                <td><div style={{ fontWeight: 600 }}>{i.party}</div><div className="oc-muted">{i.number}</div></td>
-                <td>{formatDate(i.dueDate)}</td>
-                <td className="oc-num" style={{ textAlign: 'right' }}>{money(i.amount)}</td>
-                <td><StatusPill status={tone} label={l} /></td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
 }
 
 function BudgetTable({ d }: { d: Dashboard }) {
@@ -163,90 +78,139 @@ function NoBook() {
   );
 }
 
-/** Finance Dashboard (Accountant home; Accounting → Finance Dashboard). */
+/** Month pill of the finance cards (every card shows the page's month). */
+function MonthPill({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  return <PillSelect label="Month" value={value} onChange={onChange} options={monthOptions(currentLocale())} />;
+}
+
+const monthLabel = (m: string) => new Intl.DateTimeFormat(currentLocale() === 'en' ? 'en-US' : 'id-ID', { month: 'short' }).format(new Date(`${m}-01T00:00:00`));
+const pct = (v: number | null) => (v == null ? '' : `${Math.abs(v * 100).toFixed(1)}%`);
+const DUE_TONE: Record<string, DashStatus> = { overdue: 'bad', due_today: 'warn', due_soon: 'warn', current: 'good' };
+
+type OpenRow = OpenItem & { kind: 'receivable' | 'payable' };
+
+/** Finance Dashboard (Accountant home; Accounting → Finance Dashboard), on the dashboard kit. */
 export function FinanceDashboardPage() {
   const nav = useNavigate();
   const { d, month, setMonth } = useDashboard();
+  const [q, setQ] = useState('');
   const x = d.data;
   const s = x?.summary;
-  const period = x ? `${formatDate(x.from)} – ${formatDate(x.to)}` : undefined;
+  const m = month || (x?.from.slice(0, 7) ?? '');
+  const pill = <MonthPill value={m} onChange={setMonth} />;
+  if (d.error) return <div className="oc-dash-page"><DashHead title="Finance Dashboard" /><ErrorAlert error={d.error} /></div>;
+  if (!x || !s) return <div className="oc-dash-page"><DashHead title="Finance Dashboard" /><Skeleton rows={8} /></div>;
+  if (!x.bookOpen) return <div className="oc-dash-page"><DashHead title="Finance Dashboard" /><NoBook /></div>;
+  const flows = x.cashFlow;
+  const last = flows[flows.length - 1];
+  const opening = num(s.cashBank) - num(last?.net);
+  const cashChange = last && opening > 0 ? num(last.net) / opening : null;
+  const revenueChange = ratio(s.revenueChange);
+  const expenseChange = ratio(s.expensesChange);
+  // Every category in the list is also a part of the bar: the five largest, the rest as Other.
+  const rest = x.expenses.slice(5).reduce((t, e) => t + num(e.amount), 0);
+  const cats = [...x.expenses.slice(0, 5).map((e, i) => ({ label: e.name, amount: num(e.amount), share: ratio(e.share), color: DASH_COLORS[i] })),
+    ...(rest > 0 ? [{ label: 'Other', amount: rest, share: num(s.expenses) ? rest / num(s.expenses) : null, color: DASH_OTHER }] : [])];
+  const parts = cats.map((c) => ({ label: c.label, value: c.amount, color: c.color }));
+  const [main, ...lines] = x.budget;
+  const overdue = String(x.receivableAging.filter((b) => b.key !== 'current').reduce((t, b) => t + num(b.amount), 0));
+  const unmatched = x.banks.reduce((t, b) => t + b.unmatchedLines, 0);
+  const due = (key: string) => x.payableDue.find((b) => b.key === key)?.amount ?? '0';
+  const open: OpenRow[] = [...x.topReceivables.map((i) => ({ ...i, kind: 'receivable' as const })), ...x.upcomingPayables.map((i) => ({ ...i, kind: 'payable' as const }))]
+    .filter((i) => !q || `${i.party} ${i.number}`.toLowerCase().includes(q.toLowerCase()));
   return (
-    <div className="oc-stack">
-      <PageHeader title="Finance Dashboard" help={period && s ? `${period} · compared with ${formatDate(s.compareFrom)} – ${formatDate(s.compareTo)}` : period}
-        actions={<MonthFilter value={month || (x?.from.slice(0, 7) ?? '')} onChange={setMonth} />} />
-      <ErrorAlert error={d.error} />
-      {!x && !d.error && <Skeleton rows={8} />}
-      {x && !x.bookOpen && <NoBook />}
-      {x && s && x.bookOpen && (
-        <>
-          <div className="oc-stat-grid">
-            <StatTile label="Total Revenue" icon="payments" value={short(s.revenue)} change={ratio(s.revenueChange)} changeLabel="vs previous period"
-              onOpen={() => nav('/accounting/reports')} />
-            <StatTile label="Total Expenses" icon="receipt_long" value={short(s.expenses)} change={ratio(s.expensesChange)} changeLabel="vs previous period" inverse
-              onOpen={() => nav('/accounting/reports')} />
-            <StatTile label="Net Profit" icon="trending_up" value={short(s.netProfit)} change={ratio(s.netProfitChange)} changeLabel="vs previous period"
-              onOpen={() => nav('/accounting/reports')} />
-            <StatTile label="Cash & Bank Balance" icon="account_balance" value={short(s.cashBank)} onOpen={() => nav('/accounting/cash-bank?tab=accounts')} />
-            <StatTile label="Accounts Receivable" icon="request_quote" value={short(s.receivables)} onOpen={() => nav('/accounting/receivables')} />
-            <StatTile label="Accounts Payable" icon="receipt" value={short(s.payables)} onOpen={() => nav('/accounting/payables')} />
+    <div className="oc-dash-page">
+      <DashHead title="Finance Dashboard" sub={`${formatDate(x.from)} – ${formatDate(x.to)} · compared with ${formatDate(s.compareFrom)} – ${formatDate(s.compareTo)}`} />
+      <DashGrid>
+        <DashCard span={5} icon="account_balance_wallet" title="Cash & Bank" controls={pill}>
+          <div className="oc-dash-hero">
+            <div>
+              <span title={money(s.cashBank)}><Amount text={short(s.cashBank)} size="hero" /></span>
+              <Delta ratio={cashChange} text="net cash flow of the month" />
+            </div>
+            <HeatBars values={flows.map((f) => Math.max(0, num(f.cashIn)))} />
           </div>
+          <div className="oc-dash-actions">
+            <DashButton tone="blue" icon="add" to="/accounting/cash-bank?tab=cash">Record receipt</DashButton>
+            <DashButton tone="dark" icon="arrow_upward" to="/accounting/payables?tab=payments">Pay supplier</DashButton>
+            <DashButton tone="grey" icon="arrow_downward" to="/accounting/receivables?tab=collections">Collect</DashButton>
+          </div>
+        </DashCard>
+        <DashCard span={3} icon="arrow_downward" tone="green" title="Revenue" controls={pill}>
+          <div className="oc-dash-figure">
+            <span title={money(s.revenue)}><Amount text={short(s.revenue)} /></span>
+            <Delta ratio={revenueChange} chip="" />
+          </div>
+          {revenueChange != null && (
+            <Note tone={revenueChange >= 0 ? 'good' : 'bad'}>Revenue {revenueChange >= 0 ? 'increased' : 'decreased'} by <b>{pct(revenueChange)}</b> from the previous period.</Note>
+          )}
+          <SplitStats items={[
+            { label: 'Net profit', value: short(s.netProfit), color: 'var(--dash-blue)', to: '/accounting/reports' },
+            { label: 'Receivables', value: short(s.receivables), color: 'var(--dash-lime)', to: '/accounting/receivables' },
+          ]} />
+        </DashCard>
+        <DashCard span={4} className="oc-dash-expense">
+          <div className="oc-dash-inset">
+            <div className="oc-dash-card-head">
+              <DashIcon name="arrow_upward" tone="red" /><h2>Expenses</h2><span className="oc-spacer" />{pill}
+            </div>
+            <span title={money(s.expenses)}><Amount text={short(s.expenses)} /></span>
+            <Delta ratio={expenseChange} chip="" inverse suffix="vs previous period" />
+          </div>
+          {parts.length === 0 ? <p className="oc-dash-sub">No expense in this period.</p> : (
+            <>
+              <SegmentBar parts={parts} legend={false} format={(v) => short(String(v))} />
+              <BreakdownList rows={cats.map((c) => ({ label: c.label, value: short(String(c.amount)), share: c.share, color: c.color, to: '/accounting/reports' }))} />
+            </>
+          )}
+          <SplitStats items={[
+            { label: 'Payables overdue', value: short(due('overdue')), color: 'var(--dash-red)', to: '/accounting/payables?tab=aging' },
+            { label: 'Due this week', value: short(String(num(due('today')) + num(due('week')))), color: 'var(--dash-amber)', to: '/accounting/payables?tab=bills' },
+          ]} />
+        </DashCard>
 
-          <div className="oc-fin-grid">
-            <Card title="Cash & Bank" icon="account_balance" actions={<button className="oc-btn oc-btn-sm oc-btn-outline" onClick={() => nav('/accounting/cash-bank?tab=accounts')}>View accounts</button>}>
-              <div className="oc-stat-value" style={{ marginBottom: 12 }}>{short(s.cashBank)}</div>
-              <div className="oc-stack" style={{ gap: 0 }}>
-                {x.cash.map((c) => (
-                  <div key={c.accountId} className="oc-fin-line">
-                    <span><Icon name={c.kind === 'bank' ? 'account_balance' : 'payments'} size={16} /> {c.name}</span>
-                    <span className="oc-num">{money(c.balance)}</span>
-                  </div>
+        <DashCard span={4} icon="savings" title="Budget" action={<CircleButton icon="tune" label="KPI targets" to="/management/targets" dot={x.budget.some((b) => !b.favorable)} />}>
+          {!main ? (
+            <p className="oc-dash-empty">No approved KPI target plan for {x.from.slice(0, 4)}: set the targets in Management → KPI Targets.</p>
+          ) : (
+            <>
+              <Gauge title={main.label} ratio={num(main.budget) ? num(main.actual) / num(main.budget) : null} caption="Actual" value={short(main.actual)}
+                sub={<>/ {short(main.budget)} {main.favorable && <Icon name="check_circle" size={14} />}</>} />
+              <div className="oc-dash-list">
+                {lines.slice(0, 3).map((b) => (
+                  <ProgressRow key={b.key} label={b.label} ratio={num(b.budget) ? num(b.actual) / num(b.budget) : null} to="/accounting/budget-vs-actual"
+                    hint={`${short(b.actual)} of ${short(b.budget)}`} />
                 ))}
               </div>
-              <h3 className="oc-fin-sub">Bank reconciliation</h3>
-              {x.banks.length === 0 && <div className="oc-small oc-muted">No bank account yet.</div>}
-              {x.banks.map((b) => {
-                const [tone, l] = BANK[b.status] ?? ['draft', b.status];
-                return (
-                  <div key={b.bankAccountId} className="oc-fin-line">
-                    <span>{b.name}<div className="oc-small oc-muted">{b.lastStatementDate ? `Statement ${formatDate(b.lastStatementDate)}` : 'No statement yet'}
-                      {b.unmatchedLines > 0 && ` · ${b.unmatchedLines} unmatched lines`}</div></span>
-                    <StatusPill status={tone} label={l} />
-                  </div>
-                );
-              })}
-            </Card>
-            <Card title="Cash Flow Trend" icon="monitoring">
-              <CashFlowChart months={x.cashFlow} />
-            </Card>
-          </div>
+            </>
+          )}
+        </DashCard>
+        <DashCard span={4} icon="bar_chart" title="Cash Flow" controls={pill}>
+          <BarChart aLabel="Cash in" bLabel="Cash out" axis="Amount (IDR)" format={(v) => short(String(v))}
+            points={flows.map((f, i) => ({ label: monthLabel(f.month), title: `${monthLabel(f.month)} ${f.month.slice(0, 4)}`, a: num(f.cashIn), b: num(f.cashOut),
+              state: i === flows.length - 1 ? 'current' : 'past' }))} />
+        </DashCard>
+        <div className="oc-dash-stack" data-span="4">
+          <PromoCard span={4} badge={unmatched ? `${unmatched} unmatched lines` : 'Bank reconciliation'} title="Reconcile bank statements" cta="Open"
+            to="/accounting/cash-bank?tab=reconciliations" />
+          <MiniCard label="Overdue receivables" value={<span title={money(overdue)}><Amount text={short(overdue)} size="sm" /></span>}
+            to="/accounting/receivables?tab=aging" />
+          <ReportCard label="Track & Print Report" title="Financial Report" to="/accounting/reports" />
+        </div>
 
-          <div className="oc-fin-grid">
-            <Card title="Accounts Receivable" icon="request_quote" actions={<button className="oc-btn oc-btn-sm oc-btn-outline" onClick={() => nav('/accounting/receivables')}>View Receivables</button>}>
-              <div className="oc-stat-value" style={{ marginBottom: 12 }}>{short(s.receivables)}</div>
-              <Bars rows={x.receivableAging.map((b) => ({ key: b.key, label: b.label, amount: b.amount }))} />
-              <h3 className="oc-fin-sub">Top outstanding receivables</h3>
-              <OpenItems items={x.topReceivables} party="Customer" empty="No open receivable" />
-            </Card>
-            <Card title="Accounts Payable" icon="receipt" actions={<button className="oc-btn oc-btn-sm oc-btn-outline" onClick={() => nav('/accounting/payables')}>View Payables</button>}>
-              <div className="oc-stat-value" style={{ marginBottom: 12 }}>{short(s.payables)}</div>
-              <Bars rows={x.payableDue.map((b) => ({ key: b.key, label: b.label, amount: b.amount }))} />
-              <h3 className="oc-fin-sub">Upcoming payments</h3>
-              <OpenItems items={x.upcomingPayables} party="Supplier" empty="No upcoming payment" />
-            </Card>
-          </div>
-
-          <div className="oc-fin-grid">
-            <Card title="Expense Overview" icon="pie_chart">
-              {x.expenses.length === 0 ? <Empty title="No expense in this period" /> : (
-                <Bars rows={x.expenses.map((e, i) => ({ key: e.accountId ?? `other-${i}`, label: e.name, amount: e.amount, note: `${(Number(e.share) * 100).toFixed(1)}%` }))} />
-              )}
-            </Card>
-            <Card title="Budget vs Actual" icon="balance">
-              <BudgetTable d={x} />
-            </Card>
-          </div>
-        </>
-      )}
+        <DashTable<OpenRow> title="Open Items" icon="history" rows={open} rowKey={(r) => `${r.kind}-${r.id}`} search={q} onSearch={setQ}
+          empty="No open receivable or payable."
+          onRow={(r) => nav(r.kind === 'receivable' ? '/accounting/receivables' : '/accounting/payables')}
+          info={(r) => `${r.kind === 'receivable' ? 'Customer invoice' : 'Supplier bill'} ${r.number} · due ${formatDate(r.dueDate)}`}
+          columns={[
+            { key: 'party', header: 'Name', render: (r) => <DashName icon={r.kind === 'receivable' ? 'request_quote' : 'receipt_long'} tone={r.kind === 'receivable' ? 'green' : 'red'}
+              name={r.party} sub={r.number} /> },
+            { key: 'amount', header: 'Amount', render: (r) => <span className="oc-dash-num">{money(r.amount)}</span> },
+            { key: 'kind', header: 'Type', render: (r) => <DashName icon={r.kind === 'receivable' ? 'arrow_downward' : 'arrow_upward'} name={r.kind === 'receivable' ? 'Receivable' : 'Payable'} /> },
+            { key: 'dueDate', header: 'Due date', render: (r) => formatDate(r.dueDate) },
+            { key: 'status', header: 'Status', align: 'center', render: (r) => <DashStatusPill tone={DUE_TONE[r.status] ?? 'neutral'}>{DUE[r.status]?.[1] ?? r.status}</DashStatusPill> },
+          ]} />
+      </DashGrid>
     </div>
   );
 }

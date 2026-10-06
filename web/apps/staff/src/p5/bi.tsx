@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber, formatRelative } from '@oneclub/i18n';
 import {
-  Card, Checkbox, DataTable, DateRange, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, RequirePermission, SelectField, Skeleton, StatTile, StatusPill, TextField,
-  useAuth, useToast, type Column,
+  BarChart, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, RequirePermission, SelectField, Skeleton, StatusPill, TextField, useAuth,
+  useToast,
 } from '@oneclub/shell';
-import { ActionButton, KV, Tabs, money, today, type R } from '../p1/common';
+import { ActionButton, KV, Tabs, money, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
 
 // PRD P5 — Management Dashboard & BI (EP-21) and the HR KPI framework (EP-27): Executive Overview across domains with
@@ -20,15 +20,15 @@ const items = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 const label = (v: unknown) => String(v ?? '').replace(/_/g, ' ');
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-type KPI = {
+export type KPI = {
   key: string; label: string; unit: string; kind: string; direction: string; definition: string; status: string; value?: string | null;
   target?: string | null; targetToDate?: string | null; achievement?: string | null; variance?: string | null; indicator: string;
   previous?: string | null; previousChange?: string | null; lastYear?: string | null; lastYearChange?: string | null; ytd?: string | null;
   ytdTarget?: string | null; breakdown?: { label: string; value: string }[]; dashboard: string; sourceKpi: string; report?: string; drillBy: string[];
   refreshedAt?: string | null;
 };
-type Domain = { code: string; label: string; module: string; dashboardPath: string; kpis: KPI[] };
-type Overview = {
+export type Domain = { code: string; label: string; module: string; dashboardPath: string; kpis: KPI[] };
+export type Overview = {
   propertyId: string; period: string; month: string; from: string; to: string; dataAsOf?: string | null; stale: boolean;
   targetPlan?: { id: string; year: number; version: number; title: string } | null; domains: Domain[]; generatedAt: string;
 };
@@ -43,23 +43,7 @@ export function fmtKPI(v: unknown, unit: string) {
   return formatNumber(n);
 }
 
-function change(v?: string | null) {
-  if (v === null || v === undefined) return null;
-  const n = Number(v) * 100;
-  const up = n >= 0;
-  return <span className="oc-small" style={{ color: up ? 'var(--md-sys-color-primary)' : 'var(--md-sys-color-error)' }}>{up ? '▲' : '▼'} {Math.abs(n).toFixed(1)}%</span>;
-}
-
-const INDICATOR: Record<string, [string, string]> = {
-  on_track: ['On Track', 'approved'], watch: ['Watch', 'pending'], off_track: ['Off Track', 'rejected'], no_target: ['No Target', 'draft'],
-};
-
-function Indicator({ value }: { value: string }) {
-  const [l, tone] = INDICATOR[value] ?? [label(value), value];
-  return <StatusPill status={tone} label={l} />;
-}
-
-function Freshness({ ov, onRefreshed }: { ov: Overview; onRefreshed: () => void }) {
+export function Freshness({ ov, onRefreshed }: { ov: Overview; onRefreshed: () => void }) {
   const { can } = useAuth();
   const toast = useToast();
   const refresh = useSend<Record<string, unknown>, R>('POST', `${API}/analytics:refresh`, BI);
@@ -86,94 +70,6 @@ export const DOMAIN_ICON: Record<string, string> = {
   commercial: 'local_offer', inventory: 'warehouse', procurement: 'request_quote', finance: 'payments', crm: 'support_agent', hr: 'badge',
 };
 
-function KPICard({ k, ov }: { k: KPI; ov: Overview }) {
-  const nav = useNavigate();
-  const soon = k.status === 'coming_soon';
-  const num = (v?: string | null) => (v == null ? null : Number(v));
-  return (
-    <StatTile label={k.label} title={k.definition} muted={soon} value={soon ? '—' : fmtKPI(k.value, k.unit)}
-      change={soon ? null : num(k.previousChange)} changeLabel={ov.period === 'year' ? 'vs last year' : 'vs last month'}
-      status={soon ? <span className="oc-nav-soon">Coming soon</span> : <Indicator value={k.indicator} />}
-      progress={soon ? null : num(k.achievement)}
-      onOpen={soon ? undefined : () => nav(`/management/drilldown${qs({ kpi: k.key, from: ov.from, to: ov.to })}`)}>
-      {k.status === 'not_refreshed' && <div>Not refreshed yet</div>}
-      {!soon && k.target != null && (
-        <div className="oc-row"><span>Target{k.targetToDate !== k.target ? ' to date' : ''}</span><span className="oc-spacer" />
-          <span className="oc-num">{fmtKPI(k.targetToDate ?? k.target, k.unit)}{k.achievement != null && ` · ${(Number(k.achievement) * 100).toFixed(1)}%`}</span></div>
-      )}
-      {!soon && k.previous != null && (
-        <div className="oc-row"><span>{ov.period === 'year' ? 'Last year' : 'Previous month'}</span><span className="oc-spacer" /><span className="oc-num">{fmtKPI(k.previous, k.unit)}</span></div>
-      )}
-      {!soon && ov.period === 'month' && k.lastYear != null && (
-        <div className="oc-row"><span>Same month last year</span><span className="oc-spacer" /><span className="oc-num">{fmtKPI(k.lastYear, k.unit)} {change(k.lastYearChange)}</span></div>
-      )}
-      {!soon && ov.period === 'month' && k.ytd != null && (
-        <div className="oc-row"><span>Year to date</span><span className="oc-spacer" />
-          <span className="oc-num">{fmtKPI(k.ytd, k.unit)}{k.ytdTarget != null && ` / ${fmtKPI(k.ytdTarget, k.unit)}`}</span></div>
-      )}
-      {!soon && items<{ label: string; value: string }>(k.breakdown).slice(0, 4).map((b) => (
-        <div key={b.label} className="oc-row"><span>{label(b.label)}</span><span className="oc-spacer" /><strong>{fmtKPI(b.value, k.unit)}</strong></div>
-      ))}
-    </StatTile>
-  );
-}
-
-function PropertyComparison({ month }: { month: string }) {
-  const d = useGet<R>(`${API}/executive/properties${qs({ month })}`);
-  if (!d.data) return <><ErrorAlert error={d.error} /><Skeleton rows={6} /></>;
-  const props = items<R>(d.data.properties);
-  const rows = items<R>(d.data.kpis).map((k): R => ({ ...k, id: String(k.key) }));
-  const cols: Column<R>[] = [{ key: 'label', header: 'KPI', render: (r) => <span>{String(r.label)} <span className="oc-muted oc-small">{label(r.domain)}</span></span> },
-    ...props.map((p) => ({ key: String(p.id), header: String(p.name), align: 'right' as const, render: (r: R) => {
-      const v = items<R>(r.values).find((x) => x.propertyId === p.id);
-      return <span>{fmtKPI(v?.value, String(r.unit))}{v?.target != null && <span className="oc-muted oc-small"> / {fmtKPI(v.target, String(r.unit))}</span>}</span>;
-    } }))];
-  return <DataTable rows={rows} columns={cols} />;
-}
-
-/** Executive Overview with targets (FR-BI-02/03/08): the Management Dashboard home. */
-export function BIExecutiveOverviewPage() {
-  const [params, setParams] = useSearchParams();
-  const period = params.get('period') ?? 'month';
-  const month = params.get('month') ?? today().slice(0, 7);
-  const view = params.get('view') ?? 'domains';
-  const set = (k: string, v: string) => { const n = new URLSearchParams(params); n.set(k, v); setParams(n, { replace: true }); };
-  const d = useGet<Overview>(`${API}/executive${qs({ period, month })}`);
-  const live = useGet<R>(`${API}/dashboards/executive-overview`);
-  const ov = d.data;
-  return (
-    <div className="oc-stack">
-      <PageHeader title="Executive Overview" help={ov ? `${formatDate(ov.from)} – ${formatDate(ov.to)}${ov.targetPlan ? ` · Target plan ${ov.targetPlan.year} v${ov.targetPlan.version}` : ' · no approved target plan'}` : undefined}
-        actions={<>
-          <Tabs tabs={[{ value: 'month', label: 'Month' }, { value: 'year', label: 'Year to date' }]} value={period} onChange={(v) => set('period', v)} />
-          <input className="oc-input oc-filter" type="month" aria-label="Month" value={month} onChange={(e) => e.target.value && set('month', e.target.value)} />
-        </>} />
-      <ErrorAlert error={d.error} />
-      <div className="oc-row-wrap">
-        <Tabs tabs={[{ value: 'domains', label: 'Domains' }, { value: 'properties', label: 'By property' }, { value: 'today', label: 'Today' }]} value={view}
-          onChange={(v) => set('view', v)} />
-        <span className="oc-spacer" />
-        {ov && <Freshness ov={ov} onRefreshed={() => d.refetch()} />}
-      </div>
-      {view === 'properties' && <Card title="By property"><PropertyComparison month={month} /></Card>}
-      {view === 'today' && (
-        <div className="oc-stat-grid">
-          {items<R>(live.data?.widgets).filter((w) => w.status === 'available').map((w) => (
-            <StatTile key={String(w.key)} label={String(w.label)} value={formatNumber(Number(w.value ?? 0))} />
-          ))}
-        </div>
-      )}
-      {view === 'domains' && !ov && !d.error && <Skeleton rows={8} />}
-      {view === 'domains' && ov?.domains.map((dm) => (
-        <Card key={dm.code} title={dm.label} icon={DOMAIN_ICON[dm.code] ?? 'insights'}
-          actions={<Link className="oc-btn oc-btn-sm oc-btn-outline" to={`${dm.dashboardPath}${qs({ from: ov.from, to: ov.to })}`}>Open dashboard</Link>}>
-          <div className="oc-stat-grid">{dm.kpis.map((k) => <KPICard key={k.key} k={k} ov={ov} />)}</div>
-        </Card>
-      ))}
-    </div>
-  );
-}
-
 // ── drill-down (FR-BI-04) ────────────────────────────────────────────────
 
 const DIM_LABEL: Record<string, string> = { day: 'Day', weekday: 'Weekday', daypart: 'Daypart', business_line: 'Business Line', revenue_component: 'Revenue Component', outlet: 'Outlet', segment: 'Segment', lines: 'Transactions' };
@@ -181,24 +77,19 @@ const DIM_LABEL: Record<string, string> = { day: 'Day', weekday: 'Weekday', dayp
 function Trend({ kpi }: { kpi: string }) {
   const t = useGet<R>(`${API}/executive/trend${qs({ kpi, months: 13 })}`);
   const pts = items<R>(t.data?.points);
-  const max = Math.max(1, ...pts.map((p) => Math.max(Number(p.value ?? 0), Number(p.target ?? 0), Number(p.lastYear ?? 0))));
   if (!pts.length) return null;
+  const unit = String(t.data?.unit);
+  // The second series is the target, or last year where no target was set.
+  const withTarget = pts.some((p) => p.target != null);
+  const month = (p: R) => MONTHS[Number(String(p.month).slice(5, 7)) - 1] ?? String(p.month);
   return (
-    <Card title="Trend — 13 months (bar: actual · line: target · dot: last year)" icon="show_chart">
-      <div role="img" aria-label="Monthly trend of the KPI with target and last year" style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 140 }}>
-        {pts.map((p) => {
-          const h = (v: unknown) => `${(Number(v ?? 0) / max) * 120}px`;
-          return (
-            <div key={String(p.month)} style={{ flex: 1, position: 'relative', height: 140, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center' }}
-              title={`${p.month}: ${fmtKPI(p.value, String(t.data?.unit))}${p.target != null ? ` / target ${fmtKPI(p.target, String(t.data?.unit))}` : ''}`}>
-              {p.target != null && <div style={{ position: 'absolute', bottom: h(p.target), left: 0, right: 0, borderTop: '2px dashed var(--md-sys-color-error)' }} />}
-              {p.lastYear != null && <div style={{ position: 'absolute', bottom: h(p.lastYear), width: 6, height: 6, borderRadius: 3, background: 'var(--md-sys-color-outline)' }} />}
-              <div style={{ width: '70%', height: h(p.value), background: 'var(--md-sys-color-primary)', borderRadius: 4 }} />
-              <div className="oc-small oc-muted">{MONTHS[Number(String(p.month).slice(5, 7)) - 1]}</div>
-            </div>
-          );
-        })}
-      </div>
+    <Card title="Trend — 13 months" icon="show_chart">
+      <BarChart aLabel="Actual" bLabel={withTarget ? 'Target' : 'Last year'} format={(v) => fmtKPI(v, unit)}
+        points={pts.map((p, i) => ({
+          label: month(p), title: `${month(p)} ${String(p.month).slice(0, 4)}`, a: Number(p.value ?? 0),
+          b: (withTarget ? p.target : p.lastYear) == null ? null : Number(withTarget ? p.target : p.lastYear),
+          state: i === pts.length - 1 ? 'current' : 'past',
+        }))} />
     </Card>
   );
 }
@@ -407,32 +298,6 @@ export function BITargetsPage() {
 
 // ── HR Performance (EP-27) ───────────────────────────────────────────────
 
-export function BIHRPerformancePage() {
-  const [from, setFrom] = useState(`${today().slice(0, 8)}01`);
-  const [to, setTo] = useState(today());
-  const d = useGet<R>(`${API}/hr-performance${qs({ from, to })}`);
-  return (
-    <div className="oc-stack">
-      <PageHeader title="HR Performance" help="Headcount, attendance, overtime, payroll cost, caddy attendance & rating, turnover and certification compliance."
-        actions={<DateRange from={from} to={to} onFrom={setFrom} onTo={setTo} />} />
-      <ErrorAlert error={d.error} />
-      {!d.data && <Skeleton rows={6} />}
-      <div className="oc-stat-grid">
-        {items<R>(d.data?.kpis).map((k) => {
-          const soon = k.status === 'coming_soon';
-          return (
-            <StatTile key={String(k.key)} label={String(k.label)} title={String(k.definition)} muted={soon} value={soon ? '—' : fmtKPI(k.value, String(k.unit))}
-              status={soon ? <span className="oc-nav-soon">Coming soon — HRIS</span> : undefined}>
-              {items<R>(k.breakdown).map((b) => <div key={String(b.label)} className="oc-row"><span>{label(b.label)}</span><span className="oc-spacer" /><strong>{fmtKPI(b.value, String(k.unit) === 'ratio' ? 'count' : String(k.unit))}</strong></div>)}
-              <div>{String(k.definition)}</div>
-            </StatTile>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 // ── Scheduled reports (FR-BI-05) ─────────────────────────────────────────
 
 const ROLE_OPTIONS = ['general_manager', 'club_manager', 'resort_manager', 'finance_manager', 'accountant', 'hr_manager', 'golf_manager',
@@ -636,7 +501,6 @@ export const BI_ROUTES: AreaRoute[] = [
 export const BI_MANAGEMENT_ROUTES = [
   { path: 'drilldown', element: <RequirePermission perm="reporting.dashboard.view"><BIDrilldownPage /></RequirePermission> },
   { path: 'targets', element: <RequirePermission perm="reporting.kpi_target.view"><BITargetsPage /></RequirePermission> },
-  { path: 'hr-performance', element: <RequirePermission perm="reporting.hr_performance.view"><BIHRPerformancePage /></RequirePermission> },
 ];
 
 export const BI_OPS_TILES: OpsTile[] = [];

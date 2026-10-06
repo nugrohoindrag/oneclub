@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { download, request, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { currentLocale, formatDate, formatDateTime } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
+  ActionMenu, AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
   TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
@@ -233,27 +233,46 @@ const DETAIL_TABS: Option[] = [
   { value: 'documents', label: 'Documents' }, { value: 'certifications', label: 'Certifications' }, { value: 'bank', label: 'Bank & Contacts' },
 ];
 
+const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('');
+
+/**
+ * Employee Detail: who the employee is and their state in one header
+ * (avatar, name, number, position, status pills, one Actions menu), then
+ * the tabs of the employee's records and transactions.
+ */
 export function EmployeeDetailPage() {
   const { id = '' } = useParams();
   const { can } = useAuth();
   const [tab, setTab] = useUrlTab('profile');
   const tabs = [...DETAIL_TABS, ...EMPLOYEE_WORK_TABS.filter((t) => can(t.perm))];
   const p = useGet<R>(`${HR}/employees/${id}/profile`);
+  const name = String((p.data?.employee as R | undefined)?.fullName ?? 'Employee');
+  useEffect(() => {
+    document.title = name;
+  }, [name]);
   if (p.isLoading) return <Skeleton rows={8} />;
   if (p.error || !p.data) return <ErrorAlert error={p.error} />;
   const d = p.data;
   const e = d.employee as R;
   return (
     <div className="oc-stack">
-      <PageHeader title={`${String(e.fullName)} · ${String(e.employeeNo)}`}
-        help={`${val(e.jobTitle)} — ${val(d.orgUnitName)}${d.gradeCode ? ` · ${String(d.gradeCode)}` : ''}`}
-        actions={<><Link className="oc-btn oc-btn-text" to="/hris/employees">All employees</Link><EmployeeActions d={d} /></>} />
-      <div className="oc-row-wrap">
-        <StatusPill status={String(e.employmentStatus)} label={label(e.employmentStatus)} />
-        {String(d.workStatus ?? 'active') !== 'active' && <WorkStatusPill w={(d.workStatusNote as Record<string, unknown> | null) ?? { workStatus: d.workStatus }} />}
-        {e.terminationStatus === 'scheduled' && <StatusPill status="warning" label={`Leaves ${date(e.terminationDate)}`} />}
-        {(d.certificationGaps as R[]).length > 0 && <StatusPill status="error" label="Certification gap" />}
-        {Number(d.expiringDocuments) > 0 && <StatusPill status="pending" label={`${String(d.expiringDocuments)} documents expiring`} />}
+      <div className="oc-profile-head">
+        <Link className="oc-btn oc-btn-text" to="/hris/employees" aria-label="Back to Employees"><Icon name="arrow_back" size={22} /></Link>
+        <span className="oc-avatar oc-avatar-lg" aria-hidden>{initials(String(e.fullName))}</span>
+        <div className="oc-profile-id">
+          <h1>{String(e.fullName)}</h1>
+          <p className="oc-muted">
+            {String(e.employeeNo)} · {val(d.positionName ?? e.jobTitle)} · {val(d.orgUnitName)}{d.gradeCode ? ` · ${String(d.gradeCode)}` : ''}
+          </p>
+          <div className="oc-row-wrap" style={{ gap: 6 }}>
+            <StatusPill status={String(e.employmentStatus)} label={label(e.employmentStatus)} />
+            {String(d.workStatus ?? 'active') !== 'active' && <WorkStatusPill w={(d.workStatusNote as Record<string, unknown> | null) ?? { workStatus: d.workStatus }} />}
+            {e.terminationStatus === 'scheduled' && <StatusPill status="warning" label={`Leaves ${date(e.terminationDate)}`} />}
+            {(d.certificationGaps as R[]).length > 0 && <StatusPill status="error" label="Certification gap" />}
+            {Number(d.expiringDocuments) > 0 && <StatusPill status="pending" label={`${String(d.expiringDocuments)} documents expiring`} />}
+          </div>
+        </div>
+        <div className="oc-row-wrap"><EmployeeActions d={d} /></div>
       </div>
       <Tabs tabs={tabs} value={tab} onChange={setTab} />
       {tab === 'profile' && <ProfileTab d={d} />}
@@ -267,6 +286,11 @@ export function EmployeeDetailPage() {
   );
 }
 
+/**
+ * Actions on an employee: the one the state calls for stays a button
+ * (Activate a draft, Reinstate, Withdraw Resignation); the others sit in
+ * the Actions menu, Offboard last.
+ */
 function EmployeeActions({ d }: { d: R }) {
   const { can } = useAuth();
   const e = d.employee as R;
@@ -276,22 +300,26 @@ function EmployeeActions({ d }: { d: R }) {
   const suspended = d.workStatus === 'suspended' || (!!e.suspendedFrom && (!e.suspendedUntil || String(e.suspendedUntil) >= today()));
   return (
     <>
-      {e.status === 'draft' && can('hris.employee.create') && <button className="oc-btn oc-btn-ink oc-btn-sm" onClick={() => setOpen('activate')}>Activate (hire)</button>}
-      {active && !suspended && can('hris.employee.suspend') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setOpen('suspend')}>Suspend</button>}
+      {e.status === 'draft' && can('hris.employee.create') && <button className="oc-btn oc-btn-ink" onClick={() => setOpen('activate')}>Activate (hire)</button>}
       {active && suspended && can('hris.employee.suspend') && (
         <ActionButton label="Reinstate" path={`${HR}/employees/${id}:reinstate`} invalidate={INV} reason="optional" />
       )}
-      {active && can('hris.employee.transfer') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setOpen('transfer')}>Transfer</button>}
-      {active && can('hris.employee.transfer') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setOpen('promote')}>Promote</button>}
-      {active && !d.account && can('hris.employee.manage_account') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setOpen('account')}>Create Login</button>}
-      {active && e.terminationStatus !== 'scheduled' && can('hris.employee.terminate') && <button className="oc-btn oc-btn-danger oc-btn-sm" onClick={() => setOpen('terminate')}>Offboard</button>}
       {e.terminationStatus === 'scheduled' && can('hris.employee.terminate') && (
         <ActionButton label="Withdraw Resignation" path={`${HR}/employees/${id}:cancel-termination`} invalidate={INV} reason="required" />
       )}
-      {can('hris.letter.generate') && <LetterButton id={id} />}
+      <ActionMenu label="Actions" items={[
+        { label: 'Transfer', icon: 'swap_horiz', onClick: () => setOpen('transfer'), hidden: !(active && can('hris.employee.transfer')) },
+        { label: 'Promote', icon: 'trending_up', onClick: () => setOpen('promote'), hidden: !(active && can('hris.employee.transfer')) },
+        { label: 'Create login', icon: 'key', onClick: () => setOpen('account'), hidden: !(active && !d.account && can('hris.employee.manage_account')) },
+        { label: 'HR letter…', icon: 'description', onClick: () => setOpen('letter'), hidden: !can('hris.letter.generate') },
+        { label: 'Suspend', icon: 'block', onClick: () => setOpen('suspend'), hidden: !(active && !suspended && can('hris.employee.suspend')), separator: true },
+        { label: 'Offboard', icon: 'logout', danger: true, onClick: () => setOpen('terminate'),
+          hidden: !(active && e.terminationStatus !== 'scheduled' && can('hris.employee.terminate')) },
+      ]} />
       {(open === 'transfer' || open === 'promote') && <ChangeModal id={id} kind={open} onClose={() => setOpen('')} />}
       {open === 'terminate' && <TerminateModal id={id} onClose={() => setOpen('')} />}
       {open === 'account' && <AccountModal id={id} email={String(e.email ?? '')} onClose={() => setOpen('')} />}
+      {open === 'letter' && <LetterModal id={id} onClose={() => setOpen('')} />}
       {open === 'activate' && (
         <FormModal open onClose={() => setOpen('')} title="Activate Employee" path={`${HR}/employees/${id}:activate`} submit="Activate"
           body={() => clean({ joinDate: String(e.joinDate ?? '') })}>
@@ -327,23 +355,23 @@ function SuspendModal({ id, onClose }: { id: string; onClose: () => void }) {
   );
 }
 
-function LetterButton({ id }: { id: string }) {
-  const letters = useOptions(`${HR}/letter-templates?limit=100&filter[status]=active`, (x) => String(x.name));
+/** HR letter of the employee from an active template, as PDF. */
+function LetterModal({ id, onClose }: { id: string; onClose: () => void }) {
+  const tpl = useGet<Page<R>>(`${HR}/letter-templates?limit=100&filter[status]=active`);
   const [code, setCode] = useState('');
   const toast = useToast();
-  const tpl = useGet<Page<R>>(`${HR}/letter-templates?limit=100&filter[status]=active`);
-  const codeOf = (tid: string) => String((tpl.data?.items ?? []).find((x) => x.id === tid)?.code ?? '');
-  if (letters.length === 0) return null;
+  const letters = (tpl.data?.items ?? []).map((x) => ({ value: String(x.code), label: String(x.name) }));
   return (
-    <span className="oc-row" style={{ gap: 4 }}>
-      <select className="oc-select" aria-label="HR letter" value={code} onChange={(e) => setCode(e.target.value)} style={{ height: 32 }}>
-        <option value="">HR letter…</option>
-        {letters.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
-      </select>
-      <button className="oc-btn oc-btn-neutral oc-btn-sm" disabled={!code} onClick={() => {
-        download('GET', `${HR}/employees/${id}/letters/${codeOf(code)}`, undefined, `${codeOf(code)}.pdf`).catch((e: Error) => toast(e.message, 'error'));
-      }}>PDF</button>
-    </span>
+    <Modal open onClose={onClose} title="HR Letter" actions={<>
+      <button className="oc-btn oc-btn-text" onClick={onClose}>Cancel</button>
+      <button className="oc-btn oc-btn-ink" disabled={!code} onClick={() => {
+        download('GET', `${HR}/employees/${id}/letters/${code}`, undefined, `${code}.pdf`).then(onClose, (e: Error) => toast(e.message, 'error'));
+      }}><Icon name="picture_as_pdf" size={18} /> Download PDF</button>
+    </>}>
+      {tpl.isLoading ? <Skeleton rows={2} /> : letters.length === 0
+        ? <Empty title="No active letter template" help="Add letter templates (employment certificate, warning letter…) in the HR letter templates." icon="description" />
+        : <SelectField label="Letter" value={code} onChange={setCode} options={letters} placeholder="Choose a letter" required />}
+    </Modal>
   );
 }
 

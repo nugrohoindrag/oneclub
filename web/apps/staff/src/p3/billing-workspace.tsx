@@ -1,11 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Schemas } from '@oneclub/api-client';
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import {
-  Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, SearchBox, SelectField, Skeleton, StatTile, StatusPill, TextArea, TextField,
-  useAuth, useDebounced, usePagedList, useToast, type StatusTone,
+  ActionMenu, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, SearchBox, SelectField, Skeleton, StatTile, StatusPill, TextArea,
+  TextField, useAuth, useDebounced, usePagedList, useToast, type StatusTone,
 } from '@oneclub/shell';
 import { KV, money, type R } from '../p1/common';
 import { InvoiceStatus } from './billing';
@@ -69,46 +68,6 @@ function Severity({ e }: { e: Exception }) {
   return <StatusPill status={e.severity} tone={e.severity === 'high' ? 'error' : 'warning'} label={e.severity === 'high' ? 'High' : 'Medium'} />;
 }
 
-// ── row menu (•••) ────────────────────────────────────────────────────────
-
-type MenuItem = { label: string; icon: string; onClick?: () => void; to?: string; hidden?: boolean };
-
-function RowMenu({ items }: { items: MenuItem[] }) {
-  const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
-  const ref = useRef<HTMLDivElement>(null);
-  const menu = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (!pos) return;
-    const close = (e: Event) => { if (!ref.current?.contains(e.target as Node) && !menu.current?.contains(e.target as Node)) setPos(null); };
-    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setPos(null);
-    document.addEventListener('mousedown', close);
-    document.addEventListener('keydown', esc);
-    window.addEventListener('scroll', () => setPos(null), { once: true, capture: true });
-    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', esc); };
-  }, [pos]);
-  const visible = items.filter((i) => !i.hidden);
-  return (
-    <div ref={ref} style={{ display: 'inline-block' }}>
-      <button className="oc-btn oc-btn-sm oc-btn-text" aria-label="More actions" aria-haspopup="menu" aria-expanded={!!pos}
-        onClick={(e) => {
-          const b = e.currentTarget.getBoundingClientRect();
-          setPos(pos ? null : { top: b.bottom + 4, right: window.innerWidth - b.right });
-        }}>•••</button>
-      {pos && createPortal(
-        // on <body>: the sticky Action cells of later rows would paint over it
-        <div ref={menu} className="oc-popover oc-row-menu" role="menu" style={{ position: 'fixed', top: pos.top, right: pos.right }}>
-          {visible.map((i) => (
-            <button key={i.label} className="oc-menu-item" role="menuitem" onClick={() => { setPos(null); if (i.to) navigate(i.to); else i.onClick?.(); }}>
-              <Icon name={i.icon} size={18} /> {i.label}
-            </button>
-          ))}
-        </div>, document.body,
-      )}
-    </div>
-  );
-}
-
 // ── workspace ─────────────────────────────────────────────────────────────
 
 type ModalState =
@@ -148,7 +107,7 @@ export function BillingWorkspace() {
   const selected = [...sel.values()];
 
   const rowMenu = (it: Item) => (
-    <RowMenu items={[
+    <ActionMenu items={[
         { label: 'View Folio', icon: 'receipt', onClick: () => setModal({ kind: 'review', item: it, view: 'charges' }) },
         { label: 'View Source Transaction', icon: 'open_in_new', to: sourceUrl(it) ?? undefined, hidden: !sourceUrl(it) },
         { label: 'View Customer', icon: 'person', to: it.customerId ? `/crm/customers/${it.customerId}` : undefined, hidden: !it.customerId },
@@ -245,7 +204,8 @@ export function BillingWorkspace() {
             muted={!!group && group !== g.key}>
             {([['pending_billing', 'Pending Billing', g.pending], ['ready_to_invoice', 'Ready to Invoice', g.ready], ['exception', 'Exceptions', g.exceptions]] as const).map(([s, l, n]) => (
               <button key={s} className="oc-stat-row" aria-pressed={group === g.key && status === s} onClick={() => set({ group: g.key, status: s })}>
-                <span>{l}</span><span className="oc-spacer" /><strong className={s === 'exception' && n ? 'oc-text-error' : undefined}>{n}</strong>
+                <i className="oc-stat-dot" data-status={s} /><span>{l}</span><span className="oc-spacer" />
+                {s === 'exception' && n ? <span className="oc-dash-chip" data-good={false}>{n}</span> : <strong>{n}</strong>}
               </button>
             ))}
           </StatTile>
