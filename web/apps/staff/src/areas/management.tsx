@@ -1,14 +1,14 @@
 import { useRoutes } from 'react-router';
-import { NotFoundPage, NotificationsPage, ProfilePage, TopNavLayout } from '@oneclub/shell';
+import { NotFoundPage, NotificationsPage, ProfilePage, SidebarLayout } from '@oneclub/shell';
 import { ExecutiveOverviewPage } from '../pages';
 import { BookingPerformancePage, GolfPerformancePage, MembershipPerformancePage } from '../p1/business';
 import { KPIDashboardPage, P2_MANAGEMENT_ROUTES } from '../p2';
 import { BI_MANAGEMENT_ROUTES, BIExecutiveOverviewPage } from '../p5/bi';
 
-/** Management Dashboard area (`/management`): KPI dashboards with top pill navigation. */
+/** Management Dashboard area (`/management`): KPI dashboards with sidebar navigation. */
 const routes = [
   {
-    element: <TopNavLayout shell="management" />,
+    element: <SidebarLayout shell="management" />,
     children: [
       // PRD P5 EP-21: the Executive Overview across domains with targets (the P0 live counts stay under its Today tab).
       { index: true, element: <BIExecutiveOverviewPage /> },

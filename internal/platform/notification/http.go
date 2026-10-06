@@ -104,7 +104,7 @@ func (h *HTTP) list(w http.ResponseWriter, r *http.Request) {
 	}
 	var out []Notification
 	err = h.Svc.DB.WithReadTx(ctx, func(tx pgx.Tx) error {
-		args := []any{p.UserID, lp.Limit + 1}
+		args := []any{p.UserID, lp.PageSize + 1}
 		where := "user_id = $1"
 		if lp.Filters["unread"] == "true" {
 			where += " AND read_at IS NULL"
@@ -132,7 +132,7 @@ func (h *HTTP) list(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	httpx.JSON(w, http.StatusOK, httpx.BuildPage(out, lp.Limit, func(n Notification) string { return n.ID.String() }))
+	httpx.JSON(w, http.StatusOK, httpx.BuildPage(out, lp.PageSize, func(n Notification) string { return n.ID.String() }))
 }
 
 func (h *HTTP) unread(w http.ResponseWriter, r *http.Request) {
@@ -304,7 +304,7 @@ func (h *HTTP) deliveries(w http.ResponseWriter, r *http.Request) {
 		if cursor != "" {
 			add("id < ?::uuid", cursor)
 		}
-		args = append(args, lp.Limit+1)
+		args = append(args, lp.PageSize+1)
 		rows, err := tx.Query(ctx, `SELECT id, user_id, event_code, category, channel, locale, recipient, subject, status, attempts,
 			last_error, job_id, created_at, sent_at, failed_at FROM platform.notification_deliveries WHERE `+strings.Join(where, " AND ")+
 			` ORDER BY id DESC LIMIT $`+itoa(len(args)), args...)
@@ -326,7 +326,7 @@ func (h *HTTP) deliveries(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	httpx.JSON(w, http.StatusOK, httpx.BuildPage(out, lp.Limit, func(d Delivery) string { return d.ID.String() }))
+	httpx.JSON(w, http.StatusOK, httpx.BuildPage(out, lp.PageSize, func(d Delivery) string { return d.ID.String() }))
 }
 
 func itoa(n int) string {

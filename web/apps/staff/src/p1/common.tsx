@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatMoney } from '@oneclub/i18n';
 import {
-  ConfirmDialog, DataTable, ErrorAlert, FilterPills, PageHeader, SearchBox, SelectField, TextField, useAuth, useDebounced, useToast,
+  ConfirmDialog, DataTable, ErrorAlert, FilterPills, PageHeader, SearchBox, SelectField, TextField, useAuth, useDebounced, usePagedList, useToast,
   type Column, type Option,
 } from '@oneclub/shell';
 
@@ -55,16 +55,19 @@ export function ListPage({ title, help, path, columns, statuses, actions, rowAct
   const [q, setQ] = useState('');
   const [status, setStatus] = useState('');
   const query = useDebounced(q);
-  const list = useGet<Page<R>>(`${path}${path.includes('?') ? '&' : '?'}${qs({ q: search ? query : '', 'filter[status]': status, limit: 200, ...extraQuery }).slice(1)}`);
+  // One page of 10 rows per request (server paging, httpx/paged.go).
+  const list = usePagedList<R>(`${path}${path.includes('?') ? '&' : '?'}${qs({ q: search ? query : '', 'filter[status]': status, ...extraQuery }).slice(1)}`);
   return (
     <div className="oc-stack">
       <PageHeader title={title} help={help} actions={actions} />
-      <div className="oc-row-wrap">
-        {search && <SearchBox value={q} onChange={setQ} placeholder="Search" />}
-        {statuses && <FilterPills options={[{ value: '', label: 'All' }, ...statuses]} value={status} onChange={setStatus} />}
-        {filters}
-      </div>
-      <DataTable rows={list.data?.items} loading={list.isLoading} error={list.error} columns={columns} actions={rowActions} onRowClick={onRowClick} />
+      {(search || statuses || filters) && (
+        <div className="oc-row-wrap">
+          {search && <SearchBox value={q} onChange={setQ} placeholder="Search" />}
+          {statuses && <FilterPills options={[{ value: '', label: 'All' }, ...statuses]} value={status} onChange={setStatus} />}
+          {filters}
+        </div>
+      )}
+      <DataTable rows={list.rows} loading={list.isLoading} error={list.error} columns={columns} actions={rowActions} onRowClick={onRowClick} server={list.pager} />
     </div>
   );
 }

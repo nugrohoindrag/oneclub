@@ -25,6 +25,7 @@ import (
 	"oneclub/internal/commercial"
 	"oneclub/internal/commercial/voucher"
 	"oneclub/internal/golf"
+	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/config"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
@@ -52,6 +53,28 @@ func p3CommercialDocumentTypes() []provision.DocumentType { return commercial.P3
 
 // p3CommercialTemplates are the notification templates (FR-INT-P3-06).
 func p3CommercialTemplates() []provision.Template { return commercial.P3Templates() }
+
+// commercialTax prices the lines of a manual invoice with the Tax & Service
+// rules (billing.TaxEngine): manual prices are before tax & service.
+type commercialTax struct{}
+
+func (commercialTax) Codes(ctx context.Context, q dbtx.Querier, property uuid.UUID) ([]billing.TaxCode, error) {
+	rules, err := commercial.RulesAt(ctx, q, property, clock.Now())
+	out := make([]billing.TaxCode, 0, len(rules))
+	for _, r := range rules {
+		out = append(out, billing.TaxCode{Code: r.Code, Name: r.Name, Kind: r.Kind, RatePercent: r.Rate.String()})
+	}
+	return out, err
+}
+
+func (commercialTax) OnNet(ctx context.Context, q dbtx.Querier, property uuid.UUID, codes []string, net decimal.Decimal, currency string) (decimal.Decimal, decimal.Decimal, any, error) {
+	rules, err := commercial.RulesAt(ctx, q, property, clock.Now())
+	if err != nil || len(codes) == 0 {
+		return decimal.Zero, decimal.Zero, []commercial.Line{}, err
+	}
+	b := commercial.CalculateMode(commercial.WithCodes(rules, codes), net, currency, clock.Now(), "plus_plus")
+	return commercial.SumKind(b.Lines, "service"), commercial.SumKind(b.Lines, "tax"), b.Lines, nil
+}
 
 // buildP3Commercial wires routes, hooks, approval decisions and jobs.
 func (a *App) buildP3Commercial(reg *route.Registry, cfg *config.Config, db *dbtx.DB, files *storage.Files) {

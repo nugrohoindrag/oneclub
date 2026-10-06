@@ -5,9 +5,19 @@ import { formatDateTime, formatNumber, formatRelative, useTranslation } from '@o
 import {
   Card, ComingSoonPage, DataTable, ErrorAlert, Icon, PageHeader, SelectField, Skeleton, StatusPill, TextField, useAuth, useBootstrap, useToast,
 } from '@oneclub/shell';
+import { FinanceDashboardPage } from './p4/finance-dashboard';
 
 /** Back Office home (dashboard-ui.webp style). */
+/**
+ * Back Office home: finance roles without the Management Dashboard (the
+ * Accountant) open the Finance Dashboard; everyone else the general home.
+ */
 export function DashboardPage() {
+  const { can } = useAuth();
+  return can('accounting.dashboard.view') && !can('reporting.dashboard.view') ? <FinanceDashboardPage /> : <HomeDashboard />;
+}
+
+function HomeDashboard() {
   const { me, can } = useAuth();
   const boot = useBootstrap();
   const inbox = useGet<Page<Schemas['Request']>>('/api/v1/platform/approvals?box=inbox&limit=5');

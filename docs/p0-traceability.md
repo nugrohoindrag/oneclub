@@ -33,7 +33,7 @@ Chrome), unit tests next to the code.
 | FR-ORG-01..06 | `internal/platform/org`, resource engine, property switcher, RLS | `TestOrganizationStructure`, `TestVenueCourseDepartmentEmployee` | ✅ |
 | FR-IAM-01 | Users API + page | `TestUserManagement` | ✅ |
 | FR-IAM-02 | argon2id, opaque revocable session cookie (HttpOnly, SameSite=Lax, Secure in prod) | `TestSessions`, `TestLockoutAndNoEnumeration` | ✅ |
-| FR-IAM-03 | TOTP MFA forced for Platform/Super/Property Admin and finance roles | `TestMFAEnforcedForAdminRoles`, Playwright MFA enrolment | ✅ |
+| FR-IAM-03 | TOTP MFA: **no role requires it any more** (removed at the club's request, 2026-10-06; deviates from the PRD); a user can still enable it for their own account | `TestMFAOptional` | ⚠️ deviation |
 | FR-IAM-04 | Reset e-mail, password policy, lockout after 5 failures (15 min) | `TestPasswordResetFlow`, `TestLockoutAndNoEnumeration` | ✅ |
 | FR-IAM-05/06 | `<module>.<object>.<action>` catalogue; 46 role templates from Product Overview §44 | `TestRolePermissionMatrix` | ✅ |
 | FR-IAM-07/08 | Per-property assignments, instance vs property scope, escalation guard | `TestPropertyAdminBoundaries` | ✅ |

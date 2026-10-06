@@ -154,7 +154,15 @@ func PathUUID(r *http.Request, name string) (uuid.UUID, error) {
 // ListParams are the standard list query parameters:
 // ?cursor=&limit=&q=&filter[status]=active&sort=-createdAt
 type ListParams struct {
-	Limit   int
+	// Limit is how many rows a handler that does not page itself should
+	// read: the page size, widened to offset + page size + 1 for a paged
+	// request (Paged then cuts the response to the page).
+	Limit int
+	// PageSize is the page size the client asked for; handlers that page
+	// themselves (keyset / offset cursors) use it instead of Limit.
+	PageSize int
+	// Offset is the position of a generic cursor issued by Paged.
+	Offset  int
 	Cursor  string
 	Q       string
 	Sort    string
@@ -167,6 +175,13 @@ func ParseList(r *http.Request) ListParams {
 	lp := ListParams{Limit: 50, Cursor: q.Get("cursor"), Q: strings.TrimSpace(q.Get("q")), Sort: q.Get("sort"), Filters: map[string]string{}}
 	if n, err := strconv.Atoi(q.Get("limit")); err == nil && n > 0 {
 		lp.Limit = min(n, 500)
+	}
+	lp.PageSize = lp.Limit
+	if q.Get("limit") != "" {
+		if off, ok := GenericOffset(lp.Cursor); ok {
+			lp.Offset = off
+			lp.Limit = off + lookAhead*lp.PageSize + 1 // read ahead so the pager can tell the total (Paged)
+		}
 	}
 	for k, v := range q {
 		if strings.HasPrefix(k, "filter[") && strings.HasSuffix(k, "]") && len(v) > 0 {

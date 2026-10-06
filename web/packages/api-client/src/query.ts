@@ -18,6 +18,8 @@ export function createQueryClient() {
 export interface Page<T> {
   items: T[];
   nextCursor?: string;
+  /** Server paging (?limit=): the number of rows, known on the last page. */
+  total?: number;
 }
 
 /** GET a path; the active property is part of the cache key. */

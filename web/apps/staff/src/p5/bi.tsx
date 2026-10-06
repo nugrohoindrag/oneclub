@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber, formatRelative } from '@oneclub/i18n';
 import {
-  Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, RequirePermission, SelectField, Skeleton, StatusPill, TextField,
+  Card, Checkbox, DataTable, DateRange, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, RequirePermission, SelectField, Skeleton, StatTile, StatusPill, TextField,
   useAuth, useToast, type Column,
 } from '@oneclub/shell';
 import { ActionButton, KV, Tabs, money, today, type R } from '../p1/common';
@@ -80,35 +80,41 @@ function Freshness({ ov, onRefreshed }: { ov: Overview; onRefreshed: () => void 
   );
 }
 
+/** Icon per Executive Overview domain (Overview.domains[].code). */
+export const DOMAIN_ICON: Record<string, string> = {
+  golf: 'golf_course', sportclub: 'sports_tennis', membership: 'card_membership', booking: 'event_available', banquet: 'celebration',
+  commercial: 'local_offer', inventory: 'warehouse', procurement: 'request_quote', finance: 'payments', crm: 'support_agent', hr: 'badge',
+};
+
 function KPICard({ k, ov }: { k: KPI; ov: Overview }) {
   const nav = useNavigate();
   const soon = k.status === 'coming_soon';
-  const open = () => !soon && nav(`/management/drilldown${qs({ kpi: k.key, from: ov.from, to: ov.to })}`);
+  const num = (v?: string | null) => (v == null ? null : Number(v));
   return (
-    <div className="oc-card" title={k.definition} role={soon ? undefined : 'button'} tabIndex={soon ? undefined : 0} aria-label={`${k.label}: open the drill-down`}
-      onClick={open} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && open()} style={{ cursor: soon ? 'default' : 'pointer', opacity: soon ? 0.6 : 1 }}>
-      <div className="oc-row"><h3 style={{ margin: 0 }}>{k.label}</h3><span className="oc-spacer" />{!soon && <Indicator value={k.indicator} />}</div>
-      <div className="oc-metric">{soon ? '—' : fmtKPI(k.value, k.unit)}</div>
-      {soon && <span className="oc-nav-soon">Coming soon</span>}
-      {k.status === 'not_refreshed' && <div className="oc-small oc-muted">Not refreshed yet</div>}
-      {!soon && (
-        <div className="oc-stack oc-small" style={{ gap: 2, marginTop: 6 }}>
-          {k.target != null && (
-            <div className="oc-row"><span className="oc-muted">Target{k.targetToDate !== k.target ? ' to date' : ''}</span><span className="oc-spacer" />
-              <span>{fmtKPI(k.targetToDate ?? k.target, k.unit)}{k.achievement != null && ` · ${(Number(k.achievement) * 100).toFixed(1)}%`}</span></div>
-          )}
-          {k.previous != null && <div className="oc-row"><span className="oc-muted">{ov.period === 'year' ? 'Last year' : 'Previous month'}</span><span className="oc-spacer" />
-            <span>{fmtKPI(k.previous, k.unit)} {change(k.previousChange)}</span></div>}
-          {ov.period === 'month' && k.lastYear != null && <div className="oc-row"><span className="oc-muted">Same month last year</span><span className="oc-spacer" />
-            <span>{fmtKPI(k.lastYear, k.unit)} {change(k.lastYearChange)}</span></div>}
-          {ov.period === 'month' && k.ytd != null && <div className="oc-row"><span className="oc-muted">Year to date</span><span className="oc-spacer" />
-            <span>{fmtKPI(k.ytd, k.unit)}{k.ytdTarget != null && ` / ${fmtKPI(k.ytdTarget, k.unit)}`}</span></div>}
-          {items<{ label: string; value: string }>(k.breakdown).slice(0, 4).map((b) => (
-            <div key={b.label} className="oc-row"><span>{label(b.label)}</span><span className="oc-spacer" /><strong>{fmtKPI(b.value, k.unit)}</strong></div>
-          ))}
-        </div>
+    <StatTile label={k.label} title={k.definition} muted={soon} value={soon ? '—' : fmtKPI(k.value, k.unit)}
+      change={soon ? null : num(k.previousChange)} changeLabel={ov.period === 'year' ? 'vs last year' : 'vs last month'}
+      status={soon ? <span className="oc-nav-soon">Coming soon</span> : <Indicator value={k.indicator} />}
+      progress={soon ? null : num(k.achievement)}
+      onOpen={soon ? undefined : () => nav(`/management/drilldown${qs({ kpi: k.key, from: ov.from, to: ov.to })}`)}>
+      {k.status === 'not_refreshed' && <div>Not refreshed yet</div>}
+      {!soon && k.target != null && (
+        <div className="oc-row"><span>Target{k.targetToDate !== k.target ? ' to date' : ''}</span><span className="oc-spacer" />
+          <span className="oc-num">{fmtKPI(k.targetToDate ?? k.target, k.unit)}{k.achievement != null && ` · ${(Number(k.achievement) * 100).toFixed(1)}%`}</span></div>
       )}
-    </div>
+      {!soon && k.previous != null && (
+        <div className="oc-row"><span>{ov.period === 'year' ? 'Last year' : 'Previous month'}</span><span className="oc-spacer" /><span className="oc-num">{fmtKPI(k.previous, k.unit)}</span></div>
+      )}
+      {!soon && ov.period === 'month' && k.lastYear != null && (
+        <div className="oc-row"><span>Same month last year</span><span className="oc-spacer" /><span className="oc-num">{fmtKPI(k.lastYear, k.unit)} {change(k.lastYearChange)}</span></div>
+      )}
+      {!soon && ov.period === 'month' && k.ytd != null && (
+        <div className="oc-row"><span>Year to date</span><span className="oc-spacer" />
+          <span className="oc-num">{fmtKPI(k.ytd, k.unit)}{k.ytdTarget != null && ` / ${fmtKPI(k.ytdTarget, k.unit)}`}</span></div>
+      )}
+      {!soon && items<{ label: string; value: string }>(k.breakdown).slice(0, 4).map((b) => (
+        <div key={b.label} className="oc-row"><span>{label(b.label)}</span><span className="oc-spacer" /><strong>{fmtKPI(b.value, k.unit)}</strong></div>
+      ))}
+    </StatTile>
   );
 }
 
@@ -140,24 +146,28 @@ export function BIExecutiveOverviewPage() {
       <PageHeader title="Executive Overview" help={ov ? `${formatDate(ov.from)} – ${formatDate(ov.to)}${ov.targetPlan ? ` · Target plan ${ov.targetPlan.year} v${ov.targetPlan.version}` : ' · no approved target plan'}` : undefined}
         actions={<>
           <Tabs tabs={[{ value: 'month', label: 'Month' }, { value: 'year', label: 'Year to date' }]} value={period} onChange={(v) => set('period', v)} />
-          <div style={{ width: 170 }}><TextField label="Month" type="month" value={month} onChange={(v) => v && set('month', v)} /></div>
+          <input className="oc-input oc-filter" type="month" aria-label="Month" value={month} onChange={(e) => e.target.value && set('month', e.target.value)} />
         </>} />
       <ErrorAlert error={d.error} />
-      {ov && <Freshness ov={ov} onRefreshed={() => d.refetch()} />}
-      <Tabs tabs={[{ value: 'domains', label: 'Domains' }, { value: 'properties', label: 'By property' }, { value: 'today', label: 'Today' }]} value={view}
-        onChange={(v) => set('view', v)} />
-      {view === 'properties' && <PropertyComparison month={month} />}
+      <div className="oc-row-wrap">
+        <Tabs tabs={[{ value: 'domains', label: 'Domains' }, { value: 'properties', label: 'By property' }, { value: 'today', label: 'Today' }]} value={view}
+          onChange={(v) => set('view', v)} />
+        <span className="oc-spacer" />
+        {ov && <Freshness ov={ov} onRefreshed={() => d.refetch()} />}
+      </div>
+      {view === 'properties' && <Card title="By property"><PropertyComparison month={month} /></Card>}
       {view === 'today' && (
-        <div className="oc-grid">
+        <div className="oc-stat-grid">
           {items<R>(live.data?.widgets).filter((w) => w.status === 'available').map((w) => (
-            <div key={String(w.key)} className="oc-card"><h3>{String(w.label)}</h3><div className="oc-metric">{formatNumber(Number(w.value ?? 0))}</div></div>
+            <StatTile key={String(w.key)} label={String(w.label)} value={formatNumber(Number(w.value ?? 0))} />
           ))}
         </div>
       )}
       {view === 'domains' && !ov && !d.error && <Skeleton rows={8} />}
       {view === 'domains' && ov?.domains.map((dm) => (
-        <Card key={dm.code} title={dm.label} icon="insights" actions={<Link className="oc-btn oc-btn-sm oc-btn-text" to={`${dm.dashboardPath}${qs({ from: ov.from, to: ov.to })}`}>Open dashboard</Link>}>
-          <div className="oc-grid">{dm.kpis.map((k) => <KPICard key={k.key} k={k} ov={ov} />)}</div>
+        <Card key={dm.code} title={dm.label} icon={DOMAIN_ICON[dm.code] ?? 'insights'}
+          actions={<Link className="oc-btn oc-btn-sm oc-btn-outline" to={`${dm.dashboardPath}${qs({ from: ov.from, to: ov.to })}`}>Open dashboard</Link>}>
+          <div className="oc-stat-grid">{dm.kpis.map((k) => <KPICard key={k.key} k={k} ov={ov} />)}</div>
         </Card>
       ))}
     </div>
@@ -403,23 +413,21 @@ export function BIHRPerformancePage() {
   const d = useGet<R>(`${API}/hr-performance${qs({ from, to })}`);
   return (
     <div className="oc-stack">
-      <PageHeader title="HR Performance" help="Headcount, attendance, overtime, payroll cost, caddy attendance & rating, turnover and certification compliance." />
-      <div className="oc-row-wrap">
-        <div style={{ width: 170 }}><TextField label="From" type="date" value={from} onChange={setFrom} /></div>
-        <div style={{ width: 170 }}><TextField label="To" type="date" value={to} onChange={setTo} /></div>
-      </div>
+      <PageHeader title="HR Performance" help="Headcount, attendance, overtime, payroll cost, caddy attendance & rating, turnover and certification compliance."
+        actions={<DateRange from={from} to={to} onFrom={setFrom} onTo={setTo} />} />
       <ErrorAlert error={d.error} />
       {!d.data && <Skeleton rows={6} />}
-      <div className="oc-grid">
-        {items<R>(d.data?.kpis).map((k) => (
-          <div key={String(k.key)} className="oc-card" title={String(k.definition)} style={{ opacity: k.status === 'coming_soon' ? 0.6 : 1 }}>
-            <h3>{String(k.label)}</h3>
-            <div className="oc-metric">{k.status === 'coming_soon' ? '—' : fmtKPI(k.value, String(k.unit))}</div>
-            {k.status === 'coming_soon' && <span className="oc-nav-soon">Coming soon — HRIS</span>}
-            {items<R>(k.breakdown).map((b) => <div key={String(b.label)} className="oc-row oc-small"><span>{label(b.label)}</span><span className="oc-spacer" /><strong>{fmtKPI(b.value, String(k.unit) === 'ratio' ? 'count' : String(k.unit))}</strong></div>)}
-            <div className="oc-small oc-muted" style={{ marginTop: 6 }}>{String(k.definition)}</div>
-          </div>
-        ))}
+      <div className="oc-stat-grid">
+        {items<R>(d.data?.kpis).map((k) => {
+          const soon = k.status === 'coming_soon';
+          return (
+            <StatTile key={String(k.key)} label={String(k.label)} title={String(k.definition)} muted={soon} value={soon ? '—' : fmtKPI(k.value, String(k.unit))}
+              status={soon ? <span className="oc-nav-soon">Coming soon — HRIS</span> : undefined}>
+              {items<R>(k.breakdown).map((b) => <div key={String(b.label)} className="oc-row"><span>{label(b.label)}</span><span className="oc-spacer" /><strong>{fmtKPI(b.value, String(k.unit) === 'ratio' ? 'count' : String(k.unit))}</strong></div>)}
+              <div>{String(k.definition)}</div>
+            </StatTile>
+          );
+        })}
       </div>
     </div>
   );

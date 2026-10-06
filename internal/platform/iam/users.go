@@ -165,7 +165,7 @@ func (s *Service) listUsers(w http.ResponseWriter, r *http.Request) {
 		if cursor != "" {
 			add("u.id < ?::uuid", cursor)
 		}
-		args = append(args, lp.Limit+1)
+		args = append(args, lp.PageSize+1)
 		rows, err := tx.Query(ctx, userSelect+" WHERE "+strings.Join(where, " AND ")+" ORDER BY u.id DESC LIMIT $"+itoaN(len(args)), args...)
 		if err != nil {
 			return err
@@ -187,7 +187,7 @@ func (s *Service) listUsers(w http.ResponseWriter, r *http.Request) {
 		respond(w, r, 0, nil, err)
 		return
 	}
-	httpx.JSON(w, http.StatusOK, httpx.BuildPage(out, lp.Limit, func(u User) string { return u.ID.String() }))
+	httpx.JSON(w, http.StatusOK, httpx.BuildPage(out, lp.PageSize, func(u User) string { return u.ID.String() }))
 }
 
 func itoaN(n int) string {

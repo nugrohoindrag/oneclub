@@ -78,11 +78,11 @@ func (m *Module) registerKind(add func(route.Route), k kindSpec) {
 				AND ($10 = '' OR $10 = ANY(c.tags)) AND ($11 = '' OR c.title ILIKE '%' || $11 || '%' OR c.key ILIKE '%' || $11 || '%')
 				ORDER BY CASE WHEN c.kind IN ('page', 'banner') THEN c.sort_order END, c.updated_at DESC, c.id LIMIT $12 OFFSET $13`,
 				handle.Property(ctx), kind, r.URL.Query().Get("includeArchived") == "true", f["status"], f["template"], f["placement"], f["categoryId"],
-				f["live"], f["parentId"], strings.ToLower(f["tag"]), lp.Q, lp.Limit+1, offset))
+				f["live"], f["parentId"], strings.ToLower(f["tag"]), lp.Q, lp.PageSize+1, offset))
 			page := httpx.Page[CmsContent]{Items: list}
-			if len(list) > lp.Limit {
-				page.Items = list[:lp.Limit]
-				page.NextCursor = httpx.EncodeCursor(strconv.Itoa(offset + lp.Limit))
+			if len(list) > lp.PageSize {
+				page.Items = list[:lp.PageSize]
+				page.NextCursor = httpx.EncodeCursor(strconv.Itoa(offset + lp.PageSize))
 			}
 			return page, err
 		})})
@@ -277,11 +277,11 @@ func (m *Module) registerMedia(add func(route.Route)) {
 			list, err := handle.List[CmsMedia](tx.Query(ctx, mediaSelect+` WHERE property_id = $1 AND archived_at IS NULL AND ($2 = '' OR folder = $2)
 				AND ($3 = '' OR $3 = ANY(tags)) AND ($4 = '' OR filename ILIKE '%' || $4 || '%' OR alt::text ILIKE '%' || $4 || '%')
 				ORDER BY created_at DESC, id LIMIT $5 OFFSET $6`, handle.Property(ctx), lp.Filters["folder"], strings.ToLower(lp.Filters["tag"]), lp.Q,
-				lp.Limit+1, offset))
+				lp.PageSize+1, offset))
 			page := httpx.Page[CmsMedia]{Items: withURL(list)}
-			if len(list) > lp.Limit {
-				page.Items = page.Items[:lp.Limit]
-				page.NextCursor = httpx.EncodeCursor(strconv.Itoa(offset + lp.Limit))
+			if len(list) > lp.PageSize {
+				page.Items = page.Items[:lp.PageSize]
+				page.NextCursor = httpx.EncodeCursor(strconv.Itoa(offset + lp.PageSize))
 			}
 			return page, err
 		})})

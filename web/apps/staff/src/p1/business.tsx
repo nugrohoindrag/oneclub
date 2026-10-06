@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
-  Card, DataTable, Drawer, ErrorAlert, Icon, Modal, PageHeader, ResourcePage, SearchBox, SelectField, Skeleton, StatusPill, TextArea, TextField,
+  Card, DataTable, DateFilter, Drawer, ErrorAlert, Icon, Modal, PageHeader, ResourcePage, SearchBox, SelectField, Skeleton, StatTile, StatusPill, TextArea, TextField,
   statusCol, useAuth, useDebounced, useToast, type ResourceConfig,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from './common';
@@ -718,20 +718,18 @@ export function ReconciliationPage() {
 
 // ── Management (EP-16) ──────────────────────────────────────────────────────
 
+/** Icon per golf-today widget key (reporting/golf.go). */const GOLF_WIDGET_ICON: Record<string, string> = {  todays_bookings: 'event_available', todays_players: 'groups', current_queue: 'pending_actions', players_on_course: 'golf_course',  pending_check_in: 'how_to_reg', available_caddies: 'person', caddies_on_round: 'sports_golf', golf_carts_ready: 'electric_car',  golf_carts_in_use: 'electric_car', golf_carts_in_maintenance: 'build', avg_check_in_to_tee_off: 'timer',};
 export function GolfPerformancePage() {
   const [date, setDate] = useState(today());
   const d = useGet<{ widgets: R[] }>(`/api/v1/reporting/dashboards/golf-today?date=${date}`);
   return (
     <div className="oc-stack">
-      <PageHeader title="Golf Performance" help="Live golf operation of the day." />
-      <TextField label="Date" type="date" value={date} onChange={setDate} />
+      <PageHeader title="Golf Performance" help="Live golf operation of the day." actions={<DateFilter value={date} onChange={setDate} />} />
       <ErrorAlert error={d.error} />
-      <div className="oc-grid">
+      <div className="oc-stat-grid">
         {(d.data?.widgets ?? []).map((w) => (
-          <div className="oc-card" key={String(w.key)}>
-            <div className="oc-card-head"><h3>{String(w.label)}</h3></div>
-            <div className="oc-metric">{formatNumber(Number(w.value ?? 0))}{w.key === 'avg_check_in_to_tee_off' ? ' min' : ''}</div>
-          </div>
+          <StatTile key={String(w.key)} label={String(w.label)} icon={GOLF_WIDGET_ICON[String(w.key)]}
+            value={`${formatNumber(Number(w.value ?? 0))}${w.key === 'avg_check_in_to_tee_off' ? ' min' : ''}`} />
         ))}
       </div>
       <ReportLinks module="golf" />
@@ -758,9 +756,9 @@ export function MembershipPerformancePage() {
   return (
     <div className="oc-stack">
       <PageHeader title="Membership Performance" />
-      <div className="oc-grid">
-        <div className="oc-card"><div className="oc-card-head"><h3>Active Members</h3></div><div className="oc-metric">{active.data ? formatNumber(active.data.rows.length) : '—'}</div></div>
-        <div className="oc-card"><div className="oc-card-head"><h3>Expiring in 30 days</h3></div><div className="oc-metric">{expiring.data ? formatNumber(expiring.data.rows.length) : '—'}</div></div>
+      <div className="oc-stat-grid">
+        <StatTile label="Active Members" icon="card_membership" value={active.data ? formatNumber(active.data.rows.length) : '—'} />
+        <StatTile label="Expiring in 30 days" icon="schedule" value={expiring.data ? formatNumber(expiring.data.rows.length) : '—'} />
       </div>
       <ReportLinks module="membership" />
     </div>
@@ -774,11 +772,10 @@ export function BookingPerformancePage() {
   const by = (k: string) => rows.reduce<Record<string, number>>((m, r) => ({ ...m, [String(r[k])]: (m[String(r[k])] ?? 0) + 1 }), {});
   return (
     <div className="oc-stack">
-      <PageHeader title="Booking Performance" />
-      <TextField label="Date" type="date" value={date} onChange={setDate} />
-      <div className="oc-grid">
-        <div className="oc-card"><div className="oc-card-head"><h3>Bookings</h3></div><div className="oc-metric">{formatNumber(rows.length)}</div></div>
-        {Object.entries(by('channel')).map(([k, n]) => <div className="oc-card" key={k}><div className="oc-card-head"><h3>{k.replace('_', ' ')}</h3></div><div className="oc-metric">{formatNumber(n)}</div></div>)}
+      <PageHeader title="Booking Performance" actions={<DateFilter value={date} onChange={setDate} />} />
+      <div className="oc-stat-grid">
+        <StatTile label="Bookings" icon="event_available" value={formatNumber(rows.length)} />
+        {Object.entries(by('channel')).map(([k, n]) => <StatTile key={k} label={k.replace('_', ' ')} value={formatNumber(n)} />)}
       </div>
       <ReportLinks module="booking" />
     </div>

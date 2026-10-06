@@ -30,6 +30,7 @@ type Item struct {
 	Permission string `json:"-"`
 	ComingSoon bool   `json:"comingSoon,omitempty" doc:"Module is enabled but its features arrive in a later phase"`
 	Phase      string `json:"phase,omitempty"`
+	Section    bool   `json:"section,omitempty" doc:"Heading of a group of items (role menus); not a link"`
 	Children   []Item `json:"children,omitempty"`
 }
 
@@ -248,11 +249,14 @@ var Trees = map[string][]Item{
 			s("procurement-reports", "Procurement Reports", "/procurement/reports", "reporting.report.view"),
 		),
 		mod("accounting", "Accounting", "account_balance", "/accounting/general-ledger",
+			s("finance-dashboard", "Finance Dashboard", "/accounting/dashboard", "accounting.dashboard.view"),
 			s("general-ledger", "General Ledger", "/accounting/general-ledger", "accounting.journal.view"),
 			s("accounts-receivable", "Accounts Receivable", "/accounting/receivables", "accounting.receivable.view"),
 			s("accounts-payable", "Accounts Payable", "/accounting/payables", "accounting.payable.view"),
 			s("cash-bank", "Cash & Bank", "/accounting/cash-bank", "accounting.bank_transaction.view"),
-			s("revenue-tax", "Revenue & Tax", "/accounting/revenue-tax", "accounting.revenue.view"),
+			s("revenue-billing", "Revenue & Billing", "/accounting/revenue", "billing.invoice.view"),
+			s("revenue-recognition", "Revenue Recognition", "/accounting/revenue-recognition", "accounting.revenue.view"),
+			s("tax", "Tax", "/accounting/tax", "accounting.tax_invoice.view"),
 			s("financial-periods", "Financial Periods", "/accounting/periods", "accounting.period.view"),
 			s("closing", "Closing", "/accounting/closing", "accounting.posting.view"),
 			s("financial-reports", "Financial Reports", "/accounting/reports", "accounting.report.view"),
@@ -368,19 +372,19 @@ var Trees = map[string][]Item{
 	},
 	"management": {
 		{Key: "executive-overview", Label: "Executive Overview", Path: "/management", Icon: "insights", Module: "reporting", Permission: catalog.ManagementView},
-		{Key: "golf-performance", Label: "Golf Performance", Path: "/management/golf", Module: "golf", Permission: catalog.ManagementView},
-		{Key: "sport-club-performance", Label: "Sport Club Performance", Path: "/management/sport-club-performance", Module: "sportclub", Permission: catalog.ManagementView},
-		{Key: "membership-performance", Label: "Membership Performance", Path: "/management/membership", Module: "membership", Permission: catalog.ManagementView},
-		{Key: "booking-performance", Label: "Booking Performance", Path: "/management/booking", Module: "reservation", Permission: catalog.ManagementView},
-		{Key: "commercial-performance", Label: "Commercial Performance", Path: "/management/commercial-performance", Module: "commercial", Permission: catalog.ManagementView},
-		{Key: "crm-performance", Label: "CRM Performance", Path: "/management/crm-performance", Module: "crm", Permission: catalog.ManagementView},
-		{Key: "inventory-performance", Label: "Inventory Performance", Path: "/management/inventory-performance", Module: "inventory", Permission: catalog.ManagementView},
-		{Key: "banquet-performance", Label: "Banquet Performance", Path: "/management/banquet-performance", Module: "banquet", Permission: catalog.ManagementView},
-		{Key: "procurement-performance", Label: "Procurement Performance", Path: "/management/procurement-performance", Module: "procurement", Permission: catalog.ManagementView},
-		{Key: "financial-performance", Label: "Financial Performance", Path: "/management/financial", Module: "accounting", Permission: catalog.ManagementView},
+		{Key: "golf-performance", Label: "Golf Performance", Path: "/management/golf", Icon: "golf_course", Module: "golf", Permission: catalog.ManagementView},
+		{Key: "sport-club-performance", Label: "Sport Club Performance", Path: "/management/sport-club-performance", Icon: "sports_tennis", Module: "sportclub", Permission: catalog.ManagementView},
+		{Key: "membership-performance", Label: "Membership Performance", Path: "/management/membership", Icon: "card_membership", Module: "membership", Permission: catalog.ManagementView},
+		{Key: "booking-performance", Label: "Booking Performance", Path: "/management/booking", Icon: "event_available", Module: "reservation", Permission: catalog.ManagementView},
+		{Key: "commercial-performance", Label: "Commercial Performance", Path: "/management/commercial-performance", Icon: "local_offer", Module: "commercial", Permission: catalog.ManagementView},
+		{Key: "crm-performance", Label: "CRM Performance", Path: "/management/crm-performance", Icon: "support_agent", Module: "crm", Permission: catalog.ManagementView},
+		{Key: "inventory-performance", Label: "Inventory Performance", Path: "/management/inventory-performance", Icon: "warehouse", Module: "inventory", Permission: catalog.ManagementView},
+		{Key: "banquet-performance", Label: "Banquet Performance", Path: "/management/banquet-performance", Icon: "celebration", Module: "banquet", Permission: catalog.ManagementView},
+		{Key: "procurement-performance", Label: "Procurement Performance", Path: "/management/procurement-performance", Icon: "request_quote", Module: "procurement", Permission: catalog.ManagementView},
+		{Key: "financial-performance", Label: "Financial Performance", Path: "/management/financial", Icon: "payments", Module: "accounting", Permission: catalog.ManagementView},
 		// PRD P5 EP-21 / EP-27: HR Performance and the KPI targets of the Executive Overview.
-		{Key: "hr-performance", Label: "HR Performance", Path: "/management/hr-performance", Module: "reporting", Permission: "reporting.hr_performance.view"},
-		{Key: "kpi-targets", Label: "KPI Targets", Path: "/management/targets", Module: "reporting", Permission: "reporting.kpi_target.view"},
+		{Key: "hr-performance", Label: "HR Performance", Path: "/management/hr-performance", Icon: "badge", Module: "reporting", Permission: "reporting.hr_performance.view"},
+		{Key: "kpi-targets", Label: "KPI Targets", Path: "/management/targets", Icon: "monitoring", Module: "reporting", Permission: "reporting.kpi_target.view"},
 	},
 	"member": {
 		{Key: "home", Label: "Home", Path: "/", Icon: "home", Permission: catalog.ShellMemberPortal},
@@ -585,6 +589,130 @@ type Service struct {
 	Modules ModuleChecker
 }
 
+// RoleTrees replace a shell's menu for a role template whose work sits in
+// one domain: a user whose only role is listed sees this tree instead of the
+// module menus. The permissions are unchanged, so the items still filter by
+// permission and links into another module (payroll run, vendor invoice)
+// still open.
+var RoleTrees = map[string]map[string][]Item{
+	"accountant": {"backoffice": accountantTree},
+}
+
+// soon is a menu of the role tree whose screen does not exist yet.
+func soon(key, label, icon string) Item {
+	return Item{Key: key, Label: label, Path: "/soon/" + key, Icon: icon, ComingSoon: true, Phase: "Soon"}
+}
+
+// si is a role-tree item with an icon.
+func si(key, label, icon, path, perm string) Item {
+	return Item{Key: key, Label: label, Path: path, Icon: icon, Permission: perm}
+}
+
+// group is a role-tree item with sub-items (opens its first one).
+func group(key, label, icon string, items ...Item) Item {
+	path := ""
+	if len(items) > 0 {
+		path = items[0].Path
+	}
+	return Item{Key: key, Label: label, Path: path, Icon: icon, Children: items}
+}
+
+// section groups role-tree items under a heading (always expanded).
+func section(key, label string, items ...Item) Item {
+	return Item{Key: key, Label: label, Section: true, Children: items}
+}
+
+// inModule ties a role-tree item to a module (hidden while it is disabled).
+func inModule(module string, it Item) Item {
+	it.Module = module
+	return it
+}
+
+// accountantTree is the Back Office of the Accountant: finance only.
+var accountantTree = []Item{
+	si("dashboard", "Dashboard", "space_dashboard", "/", "accounting.dashboard.view"),
+	section("transactions", "Transactions",
+		// What must be billed and what was billed (Revenue & Billing), who owes
+		// us (AR), whom we pay (AP), what money we hold (Cash & Bank).
+		group("revenue-billing", "Revenue & Billing", "point_of_sale",
+			inModule("billing", si("billing-queue", "Billing", "pending_actions", "/accounting/revenue?tab=billing", "billing.folio.view")),
+			inModule("billing", si("invoices", "Invoices", "receipt_long", "/accounting/revenue?tab=invoices", "billing.invoice.view")),
+			inModule("billing", si("credit-notes", "Credit / Debit Notes", "receipt", "/accounting/revenue?tab=notes", "billing.invoice.view")),
+			inModule("billing", si("revenue-adjustments", "Revenue Adjustments", "swap_horiz", "/accounting/revenue?tab=adjustments", "billing.invoice.view")),
+			si("revenue-reconciliation", "Revenue Reconciliation", "balance", "/accounting/revenue?tab=reconciliation", "accounting.posting.view"),
+		),
+		group("accounts-receivable", "Accounts Receivable", "request_quote",
+			si("ar-receivables", "Receivables", "request_quote", "/accounting/receivables?tab=receivables", "accounting.receivable.view"),
+			inModule("billing", si("ar-payments", "Payments", "payments", "/accounting/receivables?tab=payments", "billing.payment.view")),
+			si("ar-collections", "Collections", "support_agent", "/accounting/receivables?tab=collections", "accounting.receivable.view"),
+			si("ar-reconciliation", "Reconciliation", "sync", "/accounting/receivables?tab=reconciliation", "accounting.receivable.view"),
+			si("ar-aging", "AR Aging", "hourglass_bottom", "/accounting/receivables?tab=aging", "accounting.receivable.view"),
+			si("ar-statements", "Customer Statements", "description", "/accounting/receivables?tab=statements", "accounting.receivable.view"),
+			si("ar-allowance", "Allowance & Write-off", "money_off", "/accounting/receivables?tab=allowance", "accounting.receivable.view"),
+		),
+		group("accounts-payable", "Accounts Payable", "receipt_long",
+			si("ap-bills", "Bills", "receipt_long", "/accounting/payables?tab=bills", "accounting.payable.view"),
+			si("ap-payments", "Payments", "payments", "/accounting/payables?tab=payments", "accounting.payable.view"),
+			inModule("procurement", si("ap-notes", "Debit/Credit Notes", "receipt", "/accounting/payables?tab=notes", "procurement.debit_note.view")),
+			si("ap-follow-up", "Vendor Follow-up", "support_agent", "/accounting/payables?tab=follow-up", "accounting.payable.view"),
+			si("ap-reconciliation", "Reconciliation", "sync", "/accounting/payables?tab=reconciliation", "accounting.payable.view"),
+			si("ap-aging", "AP Aging", "hourglass_bottom", "/accounting/payables?tab=aging", "accounting.payable.view"),
+			si("ap-statements", "Vendor Statements", "description", "/accounting/payables?tab=statements", "accounting.payable.view"),
+		),
+		group("cash-bank", "Cash & Bank", "account_balance",
+			si("cash-management", "Cash Management", "account_balance_wallet", "/accounting/cash-bank?tab=cash", "accounting.cash.view"),
+			si("bank-accounts", "Bank Accounts", "account_balance", "/accounting/cash-bank?tab=accounts", "accounting.bank_transaction.view"),
+			si("bank-reconciliation", "Bank Reconciliation", "sync", "/accounting/cash-bank?tab=reconciliations", "accounting.bank_transaction.view"),
+		),
+	),
+	section("accounting", "Accounting",
+		si("general-ledger", "General Ledger", "menu_book", "/accounting/general-ledger?tab=ledger", "accounting.ledger.view"),
+		si("chart-of-accounts", "Chart of Accounts", "account_tree", "/accounting/general-ledger?tab=accounts", "accounting.journal.view"),
+		si("journal-entries", "Journal Entries", "edit_note", "/accounting/general-ledger?tab=journals", "accounting.journal.view"),
+		inModule("inventory", si("fixed-assets", "Fixed Assets", "inventory_2", "/inventory/assets", "inventory.asset.view")),
+		si("period-closing", "Period Closing", "event_available", "/accounting/periods", "accounting.period.view"),
+	),
+	section("revenue-tax", "Revenue & Tax",
+		group("revenue-recognition", "Revenue Recognition", "insights",
+			si("revenue-allocation", "Revenue Allocation", "hub", "/accounting/revenue-recognition?tab=allocations", "accounting.revenue.view"),
+			si("deferred-revenue", "Deferred Revenue", "schedule", "/accounting/revenue-recognition?tab=deferred", "accounting.revenue.view"),
+			si("recognition-schedule", "Recognition Schedule", "event_upcoming", "/accounting/revenue-recognition?tab=schedule", "accounting.revenue.view"),
+			si("service-charge", "Service Charge", "payments", "/accounting/revenue-recognition?tab=service-charge", "accounting.revenue.view"),
+		),
+		group("tax", "Tax", "receipt",
+			si("tax-transactions", "Tax Transactions", "receipt", "/accounting/tax?tab=transactions", "accounting.tax_invoice.view"),
+			si("tax-reports", "Tax Reports", "summarize", "/accounting/tax?tab=reports", "accounting.tax_invoice.view"),
+			si("tax-configuration", "Tax Configuration", "tune", "/accounting/tax?tab=configuration", "accounting.tax_invoice.view"),
+		),
+	),
+	section("budget-control", "Budget & Control",
+		soon("budget", "Budget", "savings"),
+		si("budget-vs-actual", "Budget vs Actual", "monitoring", "/accounting/budget-vs-actual", "accounting.dashboard.view"),
+		soon("cost-center", "Cost Center", "hub"),
+	),
+	section("reports", "Reports",
+		si("financial-statements", "Financial Statements", "description", "/accounting/reports", "accounting.report.view"),
+		si("revenue-reports", "Revenue Reports", "bar_chart", "/reports/accounting.revenue_by_business_line", "reporting.accounting_revenue_by_business_line.view"),
+		si("ar-reports", "AR Reports", "request_quote", "/accounting/receivables?tab=aging", "accounting.receivable.view"),
+		si("ap-reports", "AP Reports", "receipt_long", "/accounting/payables?tab=aging", "accounting.payable.view"),
+		si("cash-flow", "Cash Flow", "bar_chart", "/reports/accounting.cash_flow", "reporting.accounting_cash_flow.view"),
+		si("tax-reports-list", "Tax Reports", "summarize", "/reports/accounting.tax_ppn", "reporting.accounting_tax_ppn.view"),
+	),
+	si("approvals", "Approvals", "approval", "/approvals", ""),
+	si("notifications", "Notifications", "notifications", "/notifications", ""),
+	si("settings", "Settings", "settings", "/accounting/setup?tab=configuration", "accounting.setup.view"),
+}
+
+// roleTree returns the role tree of a shell when the principal's only role
+// has one.
+func roleTree(p *authz.Principal, shell string) []Item {
+	codes := p.RoleCodes()
+	if len(codes) != 1 {
+		return nil
+	}
+	return RoleTrees[codes[0]][shell]
+}
+
 // Build filters a shell's tree for the principal at the active property.
 func (sv *Service) Build(ctx context.Context, shell string) (Menu, error) {
 	tree, ok := Trees[shell]
@@ -592,6 +720,9 @@ func (sv *Service) Build(ctx context.Context, shell string) (Menu, error) {
 		return Menu{}, errs.BadRequest("invalid_shell", "unknown shell")
 	}
 	p := authz.From(ctx)
+	if t := roleTree(p, shell); t != nil {
+		tree = t
+	}
 	var at *uuid.UUID
 	if pid, ok := reqctx.Property(ctx); ok {
 		at = &pid

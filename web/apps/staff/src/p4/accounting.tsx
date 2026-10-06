@@ -1,59 +1,24 @@
 import React, { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
-import { formatDate, formatDateTime } from '@oneclub/i18n';
+import { formatDateTime } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Drawer, ErrorAlert, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth,
-  useToast, type Column,
+  AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Modal, PageHeader, SelectField, Skeleton, StatTile, StatusPill, TextArea, TextField, useAuth,
+  useToast,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
+import { BudgetVsActualPage, FinanceDashboardPage, SoonPage } from './finance-dashboard';
+import { ACC, API, AccountSelect, BankSelect, DateRange, addDays, dt, items, label, monthStart, pill, rowsOf, SidebarTabs, useTab, type SidebarTab } from './accounting-common';
+import { CreditNoteModal, PayablesPage, ReceivablesPage } from './ar-ap';
+import { InvoicesPage } from '../p3/billing';
+import { BillingWorkspace, PrepareBillingPage } from '../p3/billing-workspace';
 
 // Accounting (PRD P4 EP-16–23, EP-27 FR-POL-P4-03/04, EP-29): General
 // Ledger, Accounts Receivable, Accounts Payable, Cash & Bank, Revenue & Tax,
 // Financial Periods, Closing (posting exceptions & reconciliations),
 // Financial Reports and the Accounting Transition (book, opening balances,
 // sign-off). Every figure comes from /api/v1/accounting.
-
-const API = '/api/v1/accounting';
-const ACC = [API];
-const pill = (k: string) => (r: R) => <StatusPill status={String(r[k] ?? '')} />;
-const label = (v: unknown) => String(v ?? '').replace(/_/g, ' ');
-const dt = (v: unknown) => (v ? formatDate(String(v)) : '—');
-const items = (v: unknown) => (Array.isArray(v) ? (v as R[]) : []);
-const monthStart = () => `${today().slice(0, 8)}01`;
-const rowsOf = <T,>(d: { items?: T[] } | undefined) => d?.items ?? [];
-
-/** Account picker over the chart of accounts (posting accounts). */
-function AccountSelect({ label: l, value, onChange, required }: { label: string; value: string; onChange: (v: string) => void; required?: boolean }) {
-  const accounts = useGet<Page<R>>(`${API}/accounts?limit=500&filter[isPosting]=true`);
-  return (
-    <SelectField label={l} value={value} onChange={onChange} required={required} placeholder="Choose an account"
-      options={rowsOf(accounts.data).map((a) => ({ value: a.id, label: `${String(a.code)} · ${String(a.name)}` }))} />
-  );
-}
-
-function BankSelect({ label: l, value, onChange, kind }: { label: string; value: string; onChange: (v: string) => void; kind?: string }) {
-  const banks = useGet<Page<R>>(`${API}/bank-accounts?limit=200${kind ? `&filter[kind]=${kind}` : ''}`);
-  return (
-    <SelectField label={l} value={value} onChange={onChange} placeholder="Choose"
-      options={rowsOf(banks.data).map((b) => ({ value: b.id, label: `${String(b.name)} (${label(b.kind)})` }))} />
-  );
-}
-
-function DateRange({ from, to, setFrom, setTo }: { from: string; to: string; setFrom: (v: string) => void; setTo: (v: string) => void }) {
-  return (
-    <>
-      <div style={{ width: 170 }}><TextField label="From" type="date" value={from} onChange={setFrom} /></div>
-      <div style={{ width: 170 }}><TextField label="To" type="date" value={to} onChange={setTo} /></div>
-    </>
-  );
-}
-
-function useTab(def: string): [string, (v: string) => void] {
-  const [params, setParams] = useSearchParams();
-  return [params.get('tab') ?? def, (v) => setParams({ tab: v }, { replace: true })];
-}
 
 // ── Drill-down to source documents (FR-FIN-04) ──────────────────────────
 
@@ -350,157 +315,6 @@ function PostingRulesTab() {
   );
 }
 
-// ── Accounts Receivable (EP-18) ───────────────────────────────────────────
-
-const agingCols = (ap: boolean): Column<R>[] => [
-  { key: ap ? 'supplierName' : 'billToName', header: ap ? 'Supplier' : 'Customer' },
-  ...(ap ? [{ key: 'current', header: 'Not due', align: 'right' as const, render: (r: R) => money(r.current) },
-    { key: 'days1to30', header: '1–30', align: 'right' as const, render: (r: R) => money(r.days1to30) }]
-    : [{ key: 'days0to30', header: '0–30', align: 'right' as const, render: (r: R) => money(r.days0to30) }]),
-  { key: 'days31to60', header: '31–60', align: 'right', render: (r) => money(r.days31to60) },
-  { key: 'days61to90', header: '61–90', align: 'right', render: (r) => money(r.days61to90) },
-  { key: 'over90', header: '> 90', align: 'right', render: (r) => money(r.over90) },
-  { key: 'total', header: 'Total', align: 'right', render: (r) => <strong>{money(r.total)}</strong> },
-];
-
-function AgingTab({ ap }: { ap?: boolean }) {
-  const [asOf, setAsOf] = useState(today());
-  const a = useGet<R>(`${API}/${ap ? 'ap' : 'ar'}-aging?asOf=${asOf}`);
-  const totals = (a.data?.totals ?? {}) as R;
-  return (
-    <div className="oc-stack">
-      <div style={{ width: 170 }}><TextField label="As of" type="date" value={asOf} onChange={setAsOf} /></div>
-      <ErrorAlert error={a.error} />
-      {a.data && !ap && <KV items={[['AR control account', money(a.data.arControl)], ['Total AR aging', money(totals.total)],
-        ['Difference', a.data.difference === '0' ? <StatusPill key="d" status="matched" label="0 (reconciled)" /> : money(a.data.difference)]]} />}
-      <DataTable rows={items(a.data?.rows)} loading={a.isLoading} rowKey={(r) => String(r.supplierId ?? r.accountId ?? r.customerId ?? r.billToName)} columns={agingCols(!!ap)} />
-    </div>
-  );
-}
-
-export function ReceivablesPage() {
-  const { can } = useAuth();
-  const [tab, setTab] = useTab('receivables');
-  const [asOf, setAsOf] = useState(today());
-  const recv = useGet<Page<R>>(tab === 'receivables' ? `${API}/receivables` : null);
-  return (
-    <div className="oc-stack">
-      <PageHeader title="Accounts Receivable" help="AR ledger from billing invoices, payments, credit notes and write-offs; AR aging = open invoices of billing (EP-18)." />
-      <Tabs value={tab} onChange={setTab} tabs={[{ value: 'receivables', label: 'Receivables' }, { value: 'entries', label: 'AR Ledger' },
-        { value: 'aging', label: 'AR Aging' }, { value: 'allowance', label: 'Allowance' }]} />
-      {tab === 'receivables' && <DataTable rows={rowsOf(recv.data)} loading={recv.isLoading} error={recv.error} rowKey={(r) => String(r.billToName) + String(r.accountId)} columns={[
-        { key: 'billToName', header: 'Customer / company' }, { key: 'openInvoices', header: 'Open invoices', align: 'right' },
-        { key: 'invoiced', header: 'Invoiced', align: 'right', render: (r) => money(r.invoiced) }, { key: 'paid', header: 'Paid', align: 'right', render: (r) => money(r.paid) },
-        { key: 'credited', header: 'Credited', align: 'right', render: (r) => money(r.credited) }, { key: 'overdue', header: 'Overdue', align: 'right', render: (r) => money(r.overdue) },
-        { key: 'balance', header: 'Balance', align: 'right', render: (r) => <strong>{money(r.balance)}</strong> }]} />}
-      {tab === 'entries' && <ListPage title="AR Ledger" path={`${API}/ar-entries`} search={false} columns={[{ key: 'entryDate', header: 'Date', render: (r) => dt(r.entryDate) },
-        { key: 'invoiceNumber', header: 'Invoice' }, { key: 'billToName', header: 'Customer' }, { key: 'entryType', header: 'Movement', render: (r) => label(r.entryType) },
-        { key: 'amount', header: 'Amount', align: 'right', render: (r) => money(r.amount) }]} />}
-      {tab === 'aging' && <AgingTab />}
-      {tab === 'allowance' && (
-        <div className="oc-stack">
-          {can('accounting.receivable.manage') && <div className="oc-row-wrap"><div style={{ width: 170 }}><TextField label="As of" type="date" value={asOf} onChange={setAsOf} /></div>
-            <ActionButton label="Run allowance" kind="primary" path={`${API}/allowances`} body={{ asOf }} invalidate={ACC} /></div>}
-          <ListPage title="Allowance runs" help="Provision per ageing bucket (Accounting Policies, FR-AR-05)." path={`${API}/allowances`} search={false} columns={[
-            { key: 'number', header: 'Run' }, { key: 'asOf', header: 'As of', render: (r) => dt(r.asOf) }, { key: 'required', header: 'Required', align: 'right', render: (r) => money(r.required) },
-            { key: 'adjustment', header: 'Adjustment', align: 'right', render: (r) => money(r.adjustment) }, { key: 'status', header: 'Status', render: pill('status') }]} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ── Accounts Payable (EP-19) ──────────────────────────────────────────────
-
-function VendorBillModal({ onClose }: { onClose: () => void }) {
-  const suppliers = useGet<Page<R>>('/api/v1/procurement/suppliers?limit=200');
-  const [f, setF] = useState({ supplierId: '', supplierInvoiceNo: '', invoiceDate: today(), dueDate: '', taxAmount: '', taxInvoiceNo: '', withholdingTaxCode: '' });
-  const [line, setLine] = useState({ accountId: '', description: '', amount: '', costCenter: '' });
-  const send = useSend<Record<string, unknown>, R>('POST', `${API}/vendor-bills`, ACC);
-  const upd = (k: keyof typeof f) => (v: string) => setF({ ...f, [k]: v });
-  return (
-    <Modal open onClose={onClose} title="Service Vendor Bill" wide actions={<><button className="oc-btn oc-btn-neutral" onClick={onClose}>Cancel</button>
-      <button className="oc-btn oc-btn-primary" disabled={send.isPending || !f.supplierId || !line.accountId}
-        onClick={() => send.mutate({ ...Object.fromEntries(Object.entries(f).filter(([, v]) => v !== '')),
-          lines: [{ accountId: line.accountId, description: line.description, amount: line.amount, costCenter: line.costCenter || undefined }] }, { onSuccess: onClose })}>Record</button></>}>
-      <div className="oc-form">
-        <SelectField label="Supplier" value={f.supplierId} onChange={upd('supplierId')} required options={rowsOf(suppliers.data).map((s) => ({ value: s.id, label: String(s.name) }))} />
-        <TextField label="Supplier invoice no." value={f.supplierInvoiceNo} onChange={upd('supplierInvoiceNo')} required />
-        <TextField label="Invoice date" type="date" value={f.invoiceDate} onChange={upd('invoiceDate')} />
-        <TextField label="Due date" type="date" value={f.dueDate} onChange={upd('dueDate')} />
-        <TextField label="PPN input" value={f.taxAmount} onChange={upd('taxAmount')} />
-        <TextField label="Tax invoice no." value={f.taxInvoiceNo} onChange={upd('taxInvoiceNo')} />
-        <SelectField label="Withholding (PPh)" value={f.withholdingTaxCode} onChange={upd('withholdingTaxCode')} placeholder="None"
-          options={[{ value: 'PPH23', label: 'PPh 23' }, { value: 'PPH42', label: 'PPh 4(2)' }]} />
-        <AccountSelect label="Expense account" value={line.accountId} onChange={(v) => setLine({ ...line, accountId: v })} required />
-        <TextField label="Description" value={line.description} onChange={(v) => setLine({ ...line, description: v })} required />
-        <TextField label="Amount (DPP)" value={line.amount} onChange={(v) => setLine({ ...line, amount: v })} required />
-        <TextField label="Cost center" value={line.costCenter} onChange={(v) => setLine({ ...line, costCenter: v })} />
-      </div>
-      <ErrorAlert error={send.error} />
-    </Modal>
-  );
-}
-
-function PaymentRunModal({ onClose }: { onClose: () => void }) {
-  const [paymentDate, setPaymentDate] = useState(today());
-  const [bank, setBank] = useState('');
-  const [method, setMethod] = useState('transfer');
-  const [dueBy, setDueBy] = useState(today());
-  const send = useSend<Record<string, unknown>, R>('POST', `${API}/payment-runs`, ACC);
-  return (
-    <Modal open onClose={onClose} title="New Payment Run" actions={<><button className="oc-btn oc-btn-neutral" onClick={onClose}>Cancel</button>
-      <button className="oc-btn oc-btn-primary" disabled={!bank || send.isPending}
-        onClick={() => send.mutate({ paymentDate, bankAccountId: bank, method, dueBy }, { onSuccess: onClose })}>Create</button></>}>
-      <div className="oc-form">
-        <TextField label="Payment date" type="date" value={paymentDate} onChange={setPaymentDate} />
-        <BankSelect label="Paid from" value={bank} onChange={setBank} />
-        <SelectField label="Method" value={method} onChange={setMethod} options={['transfer', 'cheque', 'cash'].map((m) => ({ value: m, label: label(m) }))} />
-        <TextField label="Payables due by" type="date" value={dueBy} onChange={setDueBy} help="Every open payable due by this date" />
-      </div>
-      <ErrorAlert error={send.error} />
-    </Modal>
-  );
-}
-
-export function PayablesPage() {
-  const { can } = useAuth();
-  const [tab, setTab] = useTab('payables');
-  const [modal, setModal] = useState<'' | 'bill' | 'run'>('');
-  return (
-    <div className="oc-stack">
-      <PageHeader title="Accounts Payable" help="Payables from matched vendor invoices and service bills, payment runs with approval, AP aging (EP-19)."
-        actions={<>{can('accounting.payable.manage') && <button className="oc-btn oc-btn-neutral" onClick={() => setModal('bill')}>Service Bill</button>}
-          {can('accounting.payment_run.create') && <button className="oc-btn oc-btn-primary" onClick={() => setModal('run')}>New Payment Run</button>}</>} />
-      <Tabs value={tab} onChange={setTab} tabs={[{ value: 'payables', label: 'Payables' }, { value: 'runs', label: 'Payment Runs' },
-        { value: 'payments', label: 'Vendor Payments' }, { value: 'aging', label: 'AP Aging' }]} />
-      {tab === 'payables' && <ListPage title="Payables" path={`${API}/payables`} statuses={['open', 'partially_paid', 'paid'].map((s) => ({ value: s, label: label(s) }))}
-        columns={[{ key: 'number', header: 'Document' }, { key: 'supplierName', header: 'Supplier' }, { key: 'itemType', header: 'Kind', render: (r) => label(r.itemType) },
-          { key: 'dueDate', header: 'Due', render: (r) => dt(r.dueDate) }, { key: 'amount', header: 'Amount', align: 'right', render: (r) => money(r.amount) },
-          { key: 'outstanding', header: 'Outstanding', align: 'right', render: (r) => money(r.outstanding) }, { key: 'status', header: 'Status', render: pill('status') }]} />}
-      {tab === 'runs' && <ListPage title="Payment Runs" path={`${API}/payment-runs`} search={false}
-        statuses={['draft', 'pending_approval', 'approved', 'executed', 'cancelled'].map((s) => ({ value: s, label: label(s) }))}
-        columns={[{ key: 'number', header: 'Run' }, { key: 'paymentDate', header: 'Payment date', render: (r) => dt(r.paymentDate) },
-          { key: 'bankAccountName', header: 'Bank' }, { key: 'method', header: 'Method', render: (r) => label(r.method) },
-          { key: 'total', header: 'Total', align: 'right', render: (r) => money(r.total) }, { key: 'status', header: 'Status', render: pill('status') }]}
-        rowActions={(r) => (
-          <div className="oc-row">
-            {r.status === 'draft' && can('accounting.payment_run.create') && <ActionButton label="Submit" path={`${API}/payment-runs/${r.id}:submit`} invalidate={ACC} />}
-            {r.status === 'approved' && can('accounting.payment_run.execute') && <ActionButton label="Execute" kind="primary" path={`${API}/payment-runs/${r.id}:execute`} invalidate={ACC}
-              confirm="Pay the payables of this run and post the payment journal?" />}
-            {['draft', 'pending_approval', 'approved'].includes(String(r.status)) && <ActionButton label="Cancel" path={`${API}/payment-runs/${r.id}:cancel`} invalidate={ACC} reason="required" />}
-            <a className="oc-btn oc-btn-sm oc-btn-text" href={`${API}/payment-runs/${r.id}/bank-file`}>Bank file</a>
-          </div>)} />}
-      {tab === 'payments' && <ListPage title="Vendor Payments" path={`${API}/vendor-payments`} columns={[{ key: 'number', header: 'Payment' }, { key: 'supplierName', header: 'Supplier' },
-        { key: 'paidDate', header: 'Paid', render: (r) => dt(r.paidDate) }, { key: 'method', header: 'Method', render: (r) => label(r.method) },
-        { key: 'amount', header: 'Amount', align: 'right', render: (r) => money(r.amount) }]} />}
-      {tab === 'aging' && <AgingTab ap />}
-      {modal === 'bill' && <VendorBillModal onClose={() => setModal('')} />}
-      {modal === 'run' && <PaymentRunModal onClose={() => setModal('')} />}
-    </div>
-  );
-}
-
 // ── Cash & Bank (EP-20) ───────────────────────────────────────────────────
 
 function ImportStatementModal({ onClose }: { onClose: () => void }) {
@@ -773,26 +587,131 @@ function ServiceChargeTab() {
   );
 }
 
-export function RevenueTaxPage() {
-  const [tab, setTab] = useTab('tax-invoices');
+// ── Revenue & Billing, Revenue Recognition, Tax ───────────────────────────
+// Revenue & Billing answers "what must be billed and what was billed" (billing
+// workspace, invoices, credit notes, adjustments, revenue reconciliation);
+// Revenue Recognition "how revenue is recognised and allocated"; Tax "what
+// is owed and how it is reported". Accounts Receivable takes over once an
+// invoice is issued.
+
+/** Journals of a business day against the Daily Revenue Report (FR-PST-07). */
+function RevenueReconciliationTab() {
+  // Yesterday: the latest business day the night audit has closed and posted.
+  const [date, setDate] = useState(() => addDays(-1));
+  const pr = useGet<R>(`${API}/posting-reconciliation?date=${date}`);
   return (
     <div className="oc-stack">
-      <PageHeader title="Revenue & Tax" help="e-Faktur, PPN report, deferred revenue, revenue allocation, service charge and the tax configuration (EP-21, FR-POL-P4-04)." />
-      <Tabs value={tab} onChange={setTab} tabs={[{ value: 'tax-invoices', label: 'Tax Invoices' }, { value: 'ppn', label: 'PPN Report' }, { value: 'deferred', label: 'Deferred Revenue' },
-        { value: 'allocations', label: 'Revenue Allocations' }, { value: 'service-charge', label: 'Service Charge' }, { value: 'tax-codes', label: 'Tax Configuration' },
-        { value: 'allocation-rules', label: 'Allocation Rules' }]} />
-      {tab === 'tax-invoices' && <TaxInvoicesTab />}
-      {tab === 'ppn' && <PPNTab />}
-      {tab === 'deferred' && <DeferredTab />}
-      {tab === 'allocations' && <ListPage title="Revenue Allocations" path={`${API}/revenue-allocations`} search={false} columns={[
-        { key: 'sourceType', header: 'Source', render: (r) => label(r.sourceType) }, { key: 'reference', header: 'Reference' },
-        { key: 'businessLine', header: 'Line', render: (r) => label(r.businessLine) }, { key: 'total', header: 'Total', align: 'right', render: (r) => money(r.total) },
-        { key: 'discount', header: 'Discount', align: 'right', render: (r) => money(r.discount) }, { key: 'createdAt', header: 'Received', render: (r) => formatDateTime(String(r.createdAt)) }]} />}
-      {tab === 'service-charge' && <ServiceChargeTab />}
-      {tab === 'tax-codes' && <AutoResourcePage resourceKey="accounting.tax_code" />}
-      {tab === 'allocation-rules' && <AutoResourcePage resourceKey="accounting.revenue_allocation_rule" />}
+      <div className="oc-row-wrap"><input className="oc-input oc-filter" type="date" aria-label="Business date" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} /></div>
+      <ErrorAlert error={pr.error} />
+      {pr.data && (
+        <div className="oc-stat-grid">
+          <StatTile label="Daily Revenue Report" icon="summarize" value={money(pr.data.dailyRevenue)} />
+          <StatTile label="Posted to the ledger" icon="menu_book" value={money(pr.data.journal)} />
+          <StatTile label="Result" icon="balance" value={pr.data.ok ? 'Reconciled' : 'Difference'}
+            status={<StatusPill status={pr.data.ok ? 'approved' : 'rejected'} label={pr.data.dayClosed ? 'Day closed' : 'Day open'} />} />
+        </div>
+      )}
+      <DataTable rows={items(pr.data?.rows).map((r, i) => ({ ...r, id: String(i) }) as R)} loading={pr.isLoading} columns={[
+        { key: 'businessLine', header: 'Business line', render: (r) => label(r.businessLine) }, { key: 'revenueComponent', header: 'Component', render: (r) => label(r.revenueComponent) },
+        { key: 'dailyRevenue', header: 'Daily Revenue', align: 'right', render: (r) => money(r.dailyRevenue) }, { key: 'journal', header: 'Journals', align: 'right', render: (r) => money(r.journal) },
+        { key: 'difference', header: 'Difference', align: 'right', render: (r) => (Number(r.difference) === 0 ? <span className="oc-muted">0</span> : <strong style={{ color: 'var(--md-sys-color-error)' }}>{money(r.difference)}</strong>) }]} />
     </div>
   );
+}
+
+// Revenue & Billing: each part is a sidebar item (no tab bar).
+const REV_TABS: SidebarTab[] = [
+  { value: 'billing', label: 'Billing', help: 'Charges from golf, resort, events and F&B to bill: prepare, validate, resolve exceptions and generate invoices. Invoiced records continue in Invoices.' },
+  { value: 'invoices', label: 'Invoices', own: true }, { value: 'notes', label: 'Credit / Debit Notes', own: true },
+  { value: 'adjustments', label: 'Revenue Adjustments', help: 'Refunds of cancelled bookings and services, and revenue moved between accounts by an adjustment journal.' },
+  { value: 'reconciliation', label: 'Revenue Reconciliation', help: 'The journals of a business day against its Daily Revenue Report.' },
+];
+
+/** Revenue & Billing: billing workspace, invoices, credit notes, adjustments and revenue reconciliation. */
+export function RevenueBillingPage() {
+  const { can } = useAuth();
+  const [tab] = useTab('billing');
+  const [credit, setCredit] = useState(false);
+  return (
+    <div className="oc-stack">
+      <SidebarTabs tabs={REV_TABS} tab={tab} />
+      {tab === 'billing' && <BillingWorkspace />}
+      {tab === 'invoices' && <InvoicesPage />}
+      {tab === 'notes' && <ListPage title="Credit / Debit Notes" help="Corrections that reduce an invoice: overbilling, cancelled service, billing adjustment. Customer debit notes are issued as a new invoice."
+        actions={can('billing.invoice.credit') && <button className="oc-btn oc-btn-primary" onClick={() => setCredit(true)}>New Credit Note</button>}
+        path="/api/v1/billing/credit-notes" search={false}
+        columns={[{ key: 'number', header: 'Credit note' }, { key: 'createdAt', header: 'Date', render: (r) => formatDateTime(String(r.createdAt)) },
+          { key: 'reason', header: 'Reason' }, { key: 'amount', header: 'Amount', align: 'right', render: (r) => money(r.amount) },
+          { key: 'invoiceId', header: '', render: (r) => <Link className="oc-btn oc-btn-sm oc-btn-text" to={`/accounting/revenue?tab=invoices&id=${String(r.invoiceId)}`}>Invoice</Link> }]} />}
+      {tab === 'adjustments' && (
+        <>
+          <ListPage title="Refunds" help="Money returned for cancelled bookings and services; the revenue is reversed by the refund."
+            path="/api/v1/billing/refunds" search={false} statuses={['pending', 'approved', 'completed', 'rejected'].map((s) => ({ value: s, label: label(s) }))}
+            columns={[{ key: 'number', header: 'Refund' }, { key: 'createdAt', header: 'Date', render: (r) => formatDateTime(String(r.createdAt)) },
+              { key: 'reason', header: 'Reason', render: (r) => String(r.reason ?? '—') }, { key: 'amount', header: 'Amount', align: 'right', render: (r) => money(r.amount) },
+              { key: 'status', header: 'Status', render: pill('status') }]} />
+          <Card title="Reclassify revenue" icon="swap_horiz">
+            <p className="oc-small oc-muted" style={{ marginTop: 0 }}>Wrong revenue account, pricing or discount correction, service charge correction: post an adjustment journal (approval) that moves the amount between revenue accounts.</p>
+            <div className="oc-row-wrap">
+              <Link className="oc-btn oc-btn-sm oc-btn-outline" to="/accounting/general-ledger?tab=manual">New adjustment journal</Link>
+              <Link className="oc-btn oc-btn-sm oc-btn-text" to="/accounting/revenue-recognition?tab=allocations">Revenue allocations</Link>
+            </div>
+          </Card>
+        </>
+      )}
+      {tab === 'reconciliation' && <RevenueReconciliationTab />}
+      {credit && <CreditNoteModal onClose={() => setCredit(false)} />}
+    </div>
+  );
+}
+
+/** Revenue Recognition: allocation, deferred revenue, recognition schedule and service charge. */
+export function RevenueRecognitionPage() {
+  const [tab] = useTab('allocations');
+  return (
+    <div className="oc-stack">
+      <SidebarTabs tab={tab} tabs={[{ value: 'allocations', label: 'Revenue Allocation', own: true },
+        { value: 'deferred', label: 'Deferred Revenue', help: 'What was deferred (membership, prepaid, vouchers) and recognised per liability.' },
+        { value: 'schedule', label: 'Recognition Schedule', help: 'When deferred revenue is recognised.' },
+        { value: 'service-charge', label: 'Service Charge', help: 'The service charge pool per month, its reserve and distribution.' }]} />
+      {tab === 'allocations' && <ListPage title="Revenue Allocation" help="Packages and promotions split over their revenue components by the allocation rules (Settings)."
+        path={`${API}/revenue-allocations`} search={false} columns={[
+          { key: 'sourceType', header: 'Source', render: (r) => label(r.sourceType) }, { key: 'reference', header: 'Reference' },
+          { key: 'businessLine', header: 'Line', render: (r) => label(r.businessLine) }, { key: 'total', header: 'Total', align: 'right', render: (r) => money(r.total) },
+          { key: 'discount', header: 'Discount', align: 'right', render: (r) => money(r.discount) }, { key: 'createdAt', header: 'Received', render: (r) => formatDateTime(String(r.createdAt)) }]} />}
+      {tab === 'deferred' && <DeferredTab />}
+      {tab === 'schedule' && <Card><Empty title="Recognition schedule per contract is not available yet" icon="event_upcoming"
+        help="Deferred revenue is recognised by the posting rules (membership, prepaid, vouchers); Deferred Revenue shows what was deferred and recognised per liability." /></Card>}
+      {tab === 'service-charge' && <ServiceChargeTab />}
+    </div>
+  );
+}
+
+/** Tax: tax transactions (e-Faktur), tax reports (PPN) and the tax configuration. */
+export function TaxPage() {
+  const [tab] = useTab('transactions');
+  return (
+    <div className="oc-stack">
+      <SidebarTabs tab={tab} tabs={[{ value: 'transactions', label: 'Tax Transactions', help: 'Output and input tax invoices (e-Faktur / Coretax).' },
+        { value: 'reports', label: 'Tax Reports', help: 'The PPN report per tax period.' },
+        { value: 'configuration', label: 'Tax Configuration', help: 'The tax codes used by sales, purchases and POS.' }]} />
+      {tab === 'transactions' && <TaxInvoicesTab />}
+      {tab === 'reports' && <PPNTab />}
+      {tab === 'configuration' && <AutoResourcePage resourceKey="accounting.tax_code" />}
+    </div>
+  );
+}
+
+const REVENUE_TAX_LEGACY: Record<string, string> = {
+  'tax-invoices': '/accounting/tax?tab=transactions', ppn: '/accounting/tax?tab=reports', 'tax-codes': '/accounting/tax?tab=configuration',
+  deferred: '/accounting/revenue-recognition?tab=deferred', allocations: '/accounting/revenue-recognition?tab=allocations',
+  'service-charge': '/accounting/revenue-recognition?tab=service-charge', 'allocation-rules': '/accounting/setup?tab=allocation-rules',
+};
+
+/** The former Revenue & Tax page: its tabs now live in Revenue Recognition, Tax and Settings. */
+export function RevenueTaxPage() {
+  const [tab] = useTab('allocations');
+  return <Navigate to={REVENUE_TAX_LEGACY[tab] ?? '/accounting/revenue-recognition'} replace />;
 }
 
 // ── Financial Periods (FR-ACC-06/07) ──────────────────────────────────────
@@ -1100,7 +1019,9 @@ export function TransitionPage() {
     <div className="oc-stack">
       <PageHeader title="Accounting Transition" help="Chart of accounts template, cut-over date, opening balances from Excel Finance with open items, reconciliation and sign-off (EP-23, EP-29)." />
       <Tabs value={tab} onChange={setTab} tabs={[{ value: 'book', label: 'Book & Sign-off' }, { value: 'opening', label: 'Opening Balances' },
-        { value: 'mappings', label: 'Excel Finance Mapping' }, { value: 'configuration', label: 'Accounting Configuration' }]} />
+        { value: 'mappings', label: 'Excel Finance Mapping' }, { value: 'configuration', label: 'Accounting Configuration' },
+        { value: 'allocation-rules', label: 'Allocation Rules' }]} />
+      {tab === 'allocation-rules' && <AutoResourcePage resourceKey="accounting.revenue_allocation_rule" />}
       <ErrorAlert error={st.error} />
       {tab === 'book' && st.data && (
         <div className="oc-grid-2">
@@ -1155,10 +1076,20 @@ export function TransitionPage() {
 
 /** Back Office routes of the area. */
 export const ACCOUNTING_ROUTES: AreaRoute[] = [
+  { path: 'accounting/dashboard', perm: 'accounting.dashboard.view', element: <FinanceDashboardPage /> },
+  { path: 'accounting/budget-vs-actual', perm: 'accounting.dashboard.view', element: <BudgetVsActualPage /> },
+  { path: 'soon/:key', perm: 'accounting.dashboard.view', element: <SoonPage /> },
   { path: 'accounting', perm: 'accounting.journal.view', element: <GeneralLedgerPage /> },
   { path: 'accounting/general-ledger', perm: 'accounting.journal.view', element: <GeneralLedgerPage /> },
   { path: 'accounting/receivables', perm: 'accounting.receivable.view', element: <ReceivablesPage /> },
+  { path: 'accounting/receivables/reports', perm: 'accounting.receivable.view', element: <Navigate to="/accounting/receivables?tab=aging" replace /> },
+  { path: 'accounting/receivables/adjustments', perm: 'accounting.receivable.view', element: <Navigate to="/accounting/receivables?tab=allowance" replace /> },
   { path: 'accounting/payables', perm: 'accounting.payable.view', element: <PayablesPage /> },
+  { path: 'accounting/payables/reports', perm: 'accounting.payable.view', element: <Navigate to="/accounting/payables?tab=aging" replace /> },
+  { path: 'accounting/revenue', perm: 'billing.invoice.view', element: <RevenueBillingPage /> },
+  { path: 'accounting/revenue/billing/:id', perm: 'billing.folio.view', element: <PrepareBillingPage /> },
+  { path: 'accounting/revenue-recognition', perm: 'accounting.revenue.view', element: <RevenueRecognitionPage /> },
+  { path: 'accounting/tax', perm: 'accounting.tax_invoice.view', element: <TaxPage /> },
   { path: 'accounting/cash-bank', perm: 'accounting.bank_transaction.view', element: <CashBankPage /> },
   { path: 'accounting/revenue-tax', perm: 'accounting.revenue.view', element: <RevenueTaxPage /> },
   { path: 'accounting/periods', perm: 'accounting.period.view', element: <PeriodsPage /> },

@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router';
 import { qs, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, DataTable, Empty, ErrorAlert, Icon, PageHeader, ResourceIndex, Skeleton, StatusPill, TextField, useAuth, useToast,
+  AutoResourcePage, Card, DataTable, DateRange, Empty, ErrorAlert, Icon, PageHeader, ResourceIndex, Skeleton, StatTile, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
 
 type Row = Record<string, unknown>;
@@ -231,26 +231,17 @@ export function KPIDashboardPage({ code }: { code: string }) {
   const d = useGet<Schemas['PerformanceDashboard']>(`/api/v1/reporting/dashboards/${code}${qs({ from, to })}`);
   return (
     <div className="oc-stack">
-      <div className="oc-page-head"><div><h1>{d.data?.name ?? DASHBOARDS.find((x) => x[0] === code)?.[1]}</h1><p>{d.data ? `${formatDate(d.data.from)} – ${formatDate(d.data.to)}` : ''}</p></div>
-        <span className="oc-spacer" />
-        <div style={{ width: 170 }}><TextField label="From" type="date" value={from} onChange={setFrom} /></div>
-        <div style={{ width: 170 }}><TextField label="To" type="date" value={to} onChange={setTo} /></div>
-      </div>
+      <PageHeader title={d.data?.name ?? DASHBOARDS.find((x) => x[0] === code)?.[1] ?? ''} help={d.data ? `${formatDate(d.data.from)} – ${formatDate(d.data.to)}` : undefined}
+        actions={<DateRange from={from} to={to} onFrom={setFrom} onTo={setTo} />} />
       <ErrorAlert error={d.error} />
       {!d.data && <Skeleton rows={6} />}
-      <div className="oc-grid">
-        {d.data?.kpis.map((k, i) => (
-          <div key={k.key} className={`oc-card${i === 0 ? ' oc-card-ink' : ''}`} title={k.definition}>
-            <div className="oc-card-head"><span className="oc-icon-circle"><Icon name="insights" size={20} /></span><h3>{k.label}</h3></div>
-            <div className="oc-metric">{kpiValue(k)}</div>
-            {k.breakdown && k.breakdown.length > 0 && (
-              <div className="oc-stack" style={{ marginTop: 8, gap: 2 }}>
-                {k.breakdown.map((b) => <div key={b.label} className="oc-row oc-small"><span>{b.label.replace(/_/g, ' ')}</span><span className="oc-spacer" />
-                  <strong>{k.unit === 'idr' ? money(b.value) : formatNumber(Number(b.value))}</strong></div>)}
-              </div>
-            )}
-            {k.definition && <div className="oc-small oc-muted" style={{ marginTop: 6 }}>{k.definition}</div>}
-          </div>
+      <div className="oc-stat-grid">
+        {d.data?.kpis.map((k) => (
+          <StatTile key={k.key} label={k.label} title={k.definition} value={kpiValue(k)}>
+            {k.breakdown?.map((b) => <div key={b.label} className="oc-row"><span>{b.label.replace(/_/g, ' ')}</span><span className="oc-spacer" />
+              <strong>{k.unit === 'idr' ? money(b.value) : formatNumber(Number(b.value))}</strong></div>)}
+            {k.definition && <div>{k.definition}</div>}
+          </StatTile>
         ))}
       </div>
     </div>

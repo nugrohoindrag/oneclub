@@ -143,7 +143,7 @@ func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *ht
 	}
 	rows, err := q.Query(ctx, `SELECT b.id, b.code, b.booking_type, b.channel, b.status, b.course_id, c.name, b.play_date, b.start_at, b.player_count, b.contact_name,
 		b.payment_mode, b.folio_id, b.created_at FROM golf.bookings b JOIN golf.courses c ON c.id = b.course_id WHERE `+strings.Join(where, " AND ")+
-		fmt.Sprintf(" ORDER BY %s LIMIT %d OFFSET %d", order, lp.Limit+1, offset), args...)
+		fmt.Sprintf(" ORDER BY %s LIMIT %d OFFSET %d", order, lp.PageSize+1, offset), args...)
 	if err != nil {
 		return httpx.Page[BookingSummary]{}, err
 	}
@@ -172,9 +172,9 @@ func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *ht
 		}
 	}
 	p := httpx.Page[BookingSummary]{Items: out}
-	if len(out) > lp.Limit {
-		p.Items = out[:lp.Limit]
-		p.NextCursor = httpx.EncodeCursor(strconv.Itoa(offset + lp.Limit))
+	if len(out) > lp.PageSize {
+		p.Items = out[:lp.PageSize]
+		p.NextCursor = httpx.EncodeCursor(strconv.Itoa(offset + lp.PageSize))
 	}
 	return p, nil
 }

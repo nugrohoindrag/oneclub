@@ -16,6 +16,8 @@ export interface NavItem {
   module?: string;
   comingSoon?: boolean;
   phase?: string;
+  /** Heading of a group of items (role menus); not a link. */
+  section?: boolean;
   children?: NavItem[];
 }
 
@@ -63,24 +65,105 @@ export function RequirePermission({ perm, children }: { perm: string | string[];
   return perms.some((p) => can(p)) ? <>{children}</> : <ForbiddenPage />;
 }
 
+/**
+ * Sub-menu link. NavLink ignores the query string, so `/reports?module=golf`
+ * and `/reports` would all be active on /reports: an item with a query is
+ * active on that exact URL, one without only when no sibling's query matches.
+ */
+function SubLink({ item, siblings }: { item: NavItem; siblings: NavItem[] }) {
+  const loc = useLocation();
+  const here = loc.pathname + loc.search;
+  const active = item.path.includes('?')
+    ? here === item.path
+    : loc.pathname === item.path && !siblings.some((s) => s.path.includes('?') && s.path === here);
+  return <Link to={item.path} className={active ? 'active' : undefined} aria-current={active ? 'page' : undefined}>{item.label}</Link>;
+}
+
+/**
+ * Score of a menu path against the current URL: same path, every query
+ * parameter of the item present with the same value; more parameters and an
+ * exact path win. -1 = no match.
+ */
+function matchScore(path: string, pathname: string, search: URLSearchParams): number {
+  const [p, q = ''] = path.split('?');
+  const exact = pathname === p;
+  if (!exact && !(p !== '/' && pathname.startsWith(p + '/'))) return -1;
+  const params = [...new URLSearchParams(q)];
+  if (params.some(([k, v]) => search.get(k) !== v)) return -1;
+  return (exact ? 100 : 50) + params.length * 10;
+}
+
+/**
+ * Role menu with section headings (RoleTrees, e.g. the Accountant): every
+ * link has an icon and only the best-matching one is active, so items that
+ * open tabs of one page (?tab=) do not light up together.
+ */
+function SectionedNav({ items }: { items: NavItem[] }) {
+  const loc = useLocation();
+  const { t } = useTranslation();
+  const search = new URLSearchParams(loc.search);
+  // Leaves: plain items, items of a section and the sub-items of a group.
+  const flat = (list: NavItem[]): NavItem[] => list.flatMap((it) => (it.children?.length ? flat(it.children) : [it]));
+  let active = '';
+  let best = -1;
+  for (const it of flat(items)) {
+    const s = matchScore(it.path, loc.pathname, search);
+    if (s > best) [best, active] = [s, it.key];
+  }
+  const link = (it: NavItem, extra?: string) => (
+    <Link key={it.key} to={it.path} title={it.label} className={[it.key === active ? 'active' : '', extra ?? ''].join(' ').trim() || undefined}
+      aria-current={it.key === active ? 'page' : undefined}>
+      <Icon name={it.icon ?? 'chevron_right'} size={20} />
+      <span className="oc-nav-label">{it.label}</span>
+      {it.comingSoon && <span className="oc-nav-soon oc-nav-label" title={t('common.comingSoon', { phase: it.phase })}>{it.phase}</span>}
+    </Link>
+  );
+  // A group opens its sub-items while one of them is the current page.
+  const entry = (it: NavItem) => {
+    if (!it.children?.length) return link(it);
+    const open = it.children.some((c) => c.key === active);
+    return (
+      <React.Fragment key={it.key}>
+        <Link to={it.path} title={it.label} className={open ? 'oc-nav-parent' : undefined} aria-expanded={open}>
+          <Icon name={it.icon ?? 'chevron_right'} size={20} />
+          <span className="oc-nav-label">{it.label}</span>
+          <Icon name={open ? 'expand_less' : 'expand_more'} size={18} className="oc-nav-caret" />
+        </Link>
+        {open && <div className="oc-nav-sub oc-nav-tree">{it.children.map((c) => link(c))}</div>}
+      </React.Fragment>
+    );
+  };
+  return (
+    <>
+      {items.map((it) => (it.section ? (
+        <React.Fragment key={it.key}>
+          <div className="oc-nav-caption oc-nav-section oc-nav-label">{it.label}</div>
+          {(it.children ?? []).map(entry)}
+        </React.Fragment>
+      ) : entry(it)))}
+    </>
+  );
+}
+
 function SideItem({ item }: { item: NavItem }) {
   const loc = useLocation();
   const { t } = useTranslation();
+  const root = useArea()?.path ?? '/';
   const open = loc.pathname === item.path || loc.pathname.startsWith(item.path + '/');
   return (
     <>
-      <NavLink to={item.path} end={item.path === '/'} title={item.label}>
+      <NavLink to={item.path} end={item.path === root} title={item.label}>
         <Icon name={item.icon ?? 'chevron_right'} size={20} />
         <span className="oc-nav-label">{item.label}</span>
         {item.comingSoon && <span className="oc-nav-soon oc-nav-label" title={t('common.comingSoon', { phase: item.phase })}>{item.phase}</span>}
       </NavLink>
-      {item.children && open && item.path !== '/' && (
+      {item.children && open && item.path !== root && (
         <div className="oc-nav-sub">
           {item.children.map((c) => (
             <React.Fragment key={c.key}>
-              <NavLink to={c.path} end>{c.label}</NavLink>
+              <SubLink item={c} siblings={item.children!} />
               {c.children && (loc.pathname.startsWith(c.path)) && (
-                <div className="oc-nav-sub">{c.children.map((g) => <NavLink key={g.key} to={g.path} end>{g.label}</NavLink>)}</div>
+                <div className="oc-nav-sub">{c.children.map((g) => <SubLink key={g.key} item={g} siblings={c.children!} />)}</div>
               )}
             </React.Fragment>
           ))}
@@ -90,7 +173,7 @@ function SideItem({ item }: { item: NavItem }) {
   );
 }
 
-/** Back Office layout: sidebar (68/196 px) + top bar (Technical Doc §6.5). */
+/** Back Office and Management Dashboard layout: sidebar (68/196 px) + top bar (Technical Doc §6.5). */
 export function SidebarLayout({ shell = 'backoffice' }: { shell?: Shell }) {
   const nav = useNavigation(shell);
   const [collapsed, setCollapsed] = useState(() => {
@@ -110,18 +193,23 @@ export function SidebarLayout({ shell = 'backoffice' }: { shell?: Shell }) {
       return !c;
     });
   };
+  const area = useArea();
   return (
-    <div className="oc-app">
+    <div className="oc-app" data-shell={shell}>
       <nav className="oc-sidebar" data-collapsed={collapsed} aria-label="Main">
-        <Brand />
+        <div className="oc-sidebar-top">
+          <Brand />
+          <button className="oc-icon-btn oc-sidebar-toggle" onClick={toggle} aria-label={collapsed ? 'Expand menu' : 'Collapse menu'}>
+            <Icon name={collapsed ? 'left_panel_open' : 'left_panel_close'} size={20} />
+          </button>
+        </div>
+        {area && <div className="oc-nav-caption oc-nav-label">{area.label}</div>}
         <div className="oc-nav">
           {nav.isLoading && <Skeleton rows={8} />}
-          {nav.data?.items.map((it) => <SideItem key={it.key} item={it} />)}
+          {nav.data && (nav.data.items.some((it) => it.section)
+            ? <SectionedNav items={nav.data.items} />
+            : nav.data.items.map((it) => <SideItem key={it.key} item={it} />))}
         </div>
-        <span className="oc-spacer" />
-        <button className="oc-btn oc-btn-text" onClick={toggle} aria-label={collapsed ? 'Expand menu' : 'Collapse menu'}>
-          <Icon name={collapsed ? 'left_panel_open' : 'left_panel_close'} size={20} />
-        </button>
       </nav>
       <div className="oc-main">
         <header className="oc-header">
@@ -136,7 +224,7 @@ export function SidebarLayout({ shell = 'backoffice' }: { shell?: Shell }) {
   );
 }
 
-/** Top pill navigation (Management Dashboard, Member Portal) — dashboard-ui.webp. */
+/** Top pill navigation (Member Portal) — dashboard-ui.webp. */
 export function TopNavLayout({ shell, bottomNav, property = true }: { shell: Shell; bottomNav?: boolean; property?: boolean }) {
   const nav = useNavigation(shell);
   const items = nav.data?.items ?? [];

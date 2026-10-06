@@ -77,7 +77,7 @@ func (a *Admin) list(w http.ResponseWriter, r *http.Request) {
 			states = append(states, rivertype.JobState(strings.TrimSpace(st)))
 		}
 	}
-	params := river.NewJobListParams().States(states...).First(min(lp.Limit, 200)).OrderBy(river.JobListOrderByID, river.SortOrderDesc)
+	params := river.NewJobListParams().States(states...).First(min(lp.PageSize, 200)).OrderBy(river.JobListOrderByID, river.SortOrderDesc)
 	if k := lp.Filters["kind"]; k != "" {
 		params = params.Kinds(strings.Split(k, ",")...)
 	}
@@ -103,7 +103,7 @@ func (a *Admin) list(w http.ResponseWriter, r *http.Request) {
 	for _, j := range res.Jobs {
 		page.Items = append(page.Items, toJob(j))
 	}
-	if res.LastCursor != nil && len(res.Jobs) == min(lp.Limit, 200) {
+	if res.LastCursor != nil && len(res.Jobs) == min(lp.PageSize, 200) {
 		if b, err := res.LastCursor.MarshalText(); err == nil {
 			page.NextCursor = httpx.EncodeCursor(string(b))
 		}

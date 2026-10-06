@@ -20,6 +20,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	"oneclub/internal/kernel/authz"
+	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/httpx"
 	"oneclub/internal/kernel/reqctx"
@@ -1091,4 +1092,26 @@ func (b *BI) registerExecutive(add func(route.Route)) {
 		Handler: replica(b, b.hrPerformance)})
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/reporting/kpi-definitions", Permission: catalog.ManagementView,
 		Summary: "KPI definitions (one definition per KPI)", Response: KPIDefinition{}, List: true, Handler: b.definitions})
+}
+
+// MonthTargets returns the approved targets of a month by KPI key (empty
+// without an approved plan for the year); the Finance Dashboard compares
+// them with the ledger (wired by internal/app).
+func MonthTargets(ctx context.Context, q dbtx.Querier, property uuid.UUID, year, month int) (map[string]decimal.Decimal, error) {
+	rows, err := q.Query(ctx, `SELECT t.kpi_key, t.target::text FROM reporting.kpi_targets t
+		JOIN reporting.kpi_target_plans p ON p.id = t.plan_id
+		WHERE p.property_id = $1 AND p.year = $2 AND p.status = 'approved' AND t.month = $3`, property, year, month)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := map[string]decimal.Decimal{}
+	for rows.Next() {
+		var k, v string
+		if err := rows.Scan(&k, &v); err != nil {
+			return nil, err
+		}
+		out[k], _ = decimal.NewFromString(v)
+	}
+	return out, rows.Err()
 }

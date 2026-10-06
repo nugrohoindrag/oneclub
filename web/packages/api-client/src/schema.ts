@@ -492,6 +492,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounting/collections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Collections worklist: parties with open items, overdue, last follow-up, next follow-up and the person responsible */
+        get: operations["getAccountingCollections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/collections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Collections: open items and follow-up log of a party */
+        get: operations["getAccountingCollectionsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/collections/{id}/follow-ups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Collections: record a follow-up (reminder, call, promise to pay, dispute, note) */
+        post: operations["postAccountingCollectionsByIdFollowUps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Finance Dashboard of a month: summary, cash & bank, receivables, payables, expenses, budget vs actual */
+        get: operations["getAccountingDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/accounting/deferred-revenue": {
         parameters: {
             query?: never;
@@ -1676,6 +1744,57 @@ export interface paths {
         put?: never;
         /** Record a service bill without purchase order (expense, VAT input, withholding tax) to AP */
         post: operations["postAccountingVendorBills"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/vendor-follow-ups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vendor Follow-up worklist: parties with open items, overdue, last follow-up, next follow-up and the person responsible */
+        get: operations["getAccountingVendorFollowUps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/vendor-follow-ups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vendor Follow-up: open items and follow-up log of a party */
+        get: operations["getAccountingVendorFollowUpsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/vendor-follow-ups/{id}/follow-ups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vendor Follow-up: record a follow-up (reminder, call, promise to pay, dispute, note) */
+        post: operations["postAccountingVendorFollowUpsByIdFollowUps"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3474,6 +3593,211 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/billing/billing-owners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Users who can prepare billing (owner of a billing record) */
+        get: operations["getBillingBillingOwners"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Billing workspace: folios to bill per business with status (pending billing, ready to invoice, exception, invoiced, cancelled), exceptions and next action */
+        get: operations["getBillingBillingQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Review / Prepare Billing of a folio: validations, calculation, charges, deposits, adjustments and history */
+        get: operations["getBillingBillingRecordsById"];
+        /** Save Billing: bill-to, payment term, references, notes and documents */
+        put: operations["putBillingBillingRecordsById"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}/adjustments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adjust a charge before invoicing (quantity, price, discount, service charge, tax, revenue allocation) with a reason */
+        post: operations["postBillingBillingRecordsByIdAdjustments"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}/exceptions/{code}:resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve an exception: acknowledge (accountant) or override (Finance Manager) with a reason */
+        post: operations["postBillingBillingRecordsByIdExceptionsByCodeResolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a note to the billing of a folio */
+        post: operations["postBillingBillingRecordsByIdNotes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve high-value billing and its adjustments (Finance Manager; General Manager / Director above the executive threshold) */
+        post: operations["postBillingBillingRecordsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}:mark-ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark Ready to Invoice (every validation must pass) */
+        post: operations["postBillingBillingRecordsByIdMarkReady"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}:split": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Split Billing: move a share of the folio's uninvoiced charges to another company or customer (open folios) */
+        post: operations["postBillingBillingRecordsByIdSplit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records:assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign Owner of the billing of folios */
+        post: operations["postBillingBillingRecordsAssign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records:consolidate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Consolidate: one invoice for several folios of the same payer, each line linked to its folio (Finance Manager) */
+        post: operations["postBillingBillingRecordsConsolidate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records:generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Invoices: one issued invoice per folio without a blocking exception (the others are skipped with the reason) */
+        post: operations["postBillingBillingRecordsGenerate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/billing/business-days": {
         parameters: {
             query?: never;
@@ -4057,6 +4381,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/billing/invoice-files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload a supporting document of an invoice (multipart: file; PDF, JPEG, PNG or WebP up to 10 MB) for attachmentFileIds */
+        post: operations["postBillingInvoiceFiles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/invoice-tax-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tax & Service rules a manual invoice line can carry */
+        get: operations["getBillingInvoiceTaxCodes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/billing/invoices": {
         parameters: {
             query?: never;
@@ -4067,7 +4425,7 @@ export interface paths {
         /** Invoices */
         get: operations["getBillingInvoices"];
         put?: never;
-        /** Generate Invoice from a folio, customer folio, account or schedule line */
+        /** Generate Invoice from a folio, customer folio, account, schedule line or manual lines */
         post: operations["postBillingInvoices"];
         delete?: never;
         options?: never;
@@ -4090,6 +4448,40 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/invoices/{id}/attachments/{fileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a supporting document of an invoice */
+        get: operations["getBillingInvoicesByIdAttachmentsByFileId"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/invoices/{id}/internal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change the internal notes and supporting documents of an invoice */
+        patch: operations["patchBillingInvoicesByIdInternal"];
         trace?: never;
     };
     "/api/v1/billing/invoices/{id}/pdf": {
@@ -4137,6 +4529,23 @@ export interface paths {
         put?: never;
         /** Take a payment for the invoice (venue or payment link) */
         post: operations["postBillingInvoicesByIdPay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/invoices/{id}:remind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a payment reminder for the invoice now (Collections) */
+        post: operations["postBillingInvoicesByIdRemind"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4205,6 +4614,23 @@ export interface paths {
         put?: never;
         /** Import the open corporate invoices of the legacy system (Excel / CSV; preview or commit) with the AR reconciliation */
         post: operations["postBillingInvoicesImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/invoices:preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview the invoice a Generate Invoice request would create (nothing is saved) */
+        post: operations["postBillingInvoicesPreview"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4605,6 +5031,40 @@ export interface paths {
         put?: never;
         /** Process Refund (approval above the Refund Policy limit) */
         post: operations["postBillingRefunds"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/unallocated-payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Completed payments on a customer account with an amount not yet allocated to invoices (AR reconciliation) */
+        get: operations["getBillingUnallocatedPayments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/write-offs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Invoice write-offs (Allowance & Write-off) */
+        get: operations["getBillingWriteOffs"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -34397,6 +34857,11 @@ export interface components {
             rows: components["schemas"]["AgingRow"][];
             totals: components["schemas"]["AgingRow"];
         };
+        AgingBucket: {
+            amount: string;
+            key: string;
+            label: string;
+        };
         AgingRow: {
             /** Format: uuid */
             accountId?: string | null;
@@ -34798,8 +35263,15 @@ export interface components {
             bayId?: string | null;
         };
         AssignInput: {
-            /** Format: uuid */
-            unitId: string;
+            folioIds: string[];
+            /**
+             * Format: uuid
+             * @description null: unassign
+             */
+            ownerId?: string | null;
+        };
+        AssignResult: {
+            assigned: number;
         };
         Assignment: {
             /** Format: date-time */
@@ -35786,6 +36258,23 @@ export interface components {
             /** @description Closing balance of the bank statement on that date */
             statementBalance: string;
             statementDate: string;
+        };
+        BankReconciliationStatus: {
+            /** Format: uuid */
+            bankAccountId: string;
+            bookBalance: string;
+            /** @description Statement date of the latest reconciliation */
+            lastStatementDate?: string | null;
+            /** @enum {string|null} */
+            lastStatus?: "in_progress" | "completed" | null;
+            name: string;
+            /**
+             * @description reconciled: latest completed within 35 days and nothing unmatched
+             * @enum {string}
+             */
+            status: "reconciled" | "in_progress" | "attention" | "never";
+            /** @description Imported statement lines not matched yet */
+            unmatchedLines: number;
         };
         BankResolveLineInput: {
             /**
@@ -36935,7 +37424,320 @@ export interface components {
             npwp?: string;
             phone?: string;
         };
+        BillingAdjustment: {
+            /** @description Change of the amount to invoice */
+            amount: string;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            approvedByName?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            createdByName?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "quantity" | "price" | "discount" | "service_charge" | "tax" | "revenue_allocation";
+            /** Format: uuid */
+            lineId: string;
+            lineLabel: string;
+            newValue: string;
+            previousValue: string;
+            reason: string;
+            reference?: string | null;
+        };
+        BillingAdjustmentInput: {
+            /** @description discount: the discount before tax; service_charge / tax: the new amount of the charge */
+            amount?: string;
+            /** @description revenue_allocation: the new business line */
+            businessLine?: string;
+            /** @enum {string} */
+            kind: "quantity" | "price" | "discount" | "service_charge" | "tax" | "revenue_allocation";
+            /** Format: uuid */
+            lineId: string;
+            /** @description quantity: the new quantity */
+            quantity?: string;
+            reason: string;
+            /** @description Supporting reference (approval memo, complaint, PO …) */
+            reference?: string;
+            /** @description revenue_allocation: the new revenue component */
+            revenueComponent?: string;
+            /** @description price: the new unit price */
+            unitPrice?: string;
+        };
+        BillingBreakdown: {
+            /** @description Deposits / advances held or applied */
+            deposit: string;
+            discount: string;
+            /** @description Net charges before discounts */
+            grossCharges: string;
+            payments: string;
+            serviceCharge: string;
+            tax: string;
+            toInvoice: string;
+            /** @description Already moved to an AR account (earlier invoices, charge to account) */
+            transferred: string;
+        };
+        BillingCheck: {
+            detail?: string;
+            key: string;
+            label: string;
+            ok: boolean;
+        };
+        BillingException: {
+            /** @enum {string} */
+            code: "missing_customer" | "missing_billing_entity" | "missing_billing_address" | "missing_tax_information" | "invalid_tax_configuration" | "pricing_mismatch" | "unresolved_folio" | "duplicate_charge" | "missing_supporting_document" | "invalid_payment_term" | "revenue_allocation_error" | "approval_required";
+            label: string;
+            message: string;
+            /** @enum {string} */
+            resolution: "fix" | "acknowledge" | "override" | "approve";
+            resolved?: components["schemas"]["BillingResolution"] | null;
+            /** @enum {string} */
+            severity: "high" | "medium";
+        };
+        BillingGenerateInput: {
+            folioIds: string[];
+            /** @description Send each invoice to the customer (e-mail / WhatsApp / in-app) once issued */
+            send?: boolean;
+        };
+        BillingGenerateResult: {
+            /** @description Why no invoice was generated */
+            error?: string;
+            /** Format: uuid */
+            folioId: string;
+            /** Format: uuid */
+            invoiceId?: string | null;
+            invoiceNumber?: string | null;
+            number: string;
+            sent: boolean;
+            total?: string;
+        };
+        BillingGenerateResults: {
+            generated: number;
+            results: components["schemas"]["BillingGenerateResult"][];
+            skipped: number;
+        };
+        BillingGroupSummary: {
+            exceptions: number;
+            invoiced: number;
+            key: string;
+            label: string;
+            pending: number;
+            ready: number;
+            readyAmount: string;
+            /** @description To invoice over pending, ready and exception folios */
+            totalBillable: string;
+        };
+        BillingHistoryEntry: {
+            actor?: string | null;
+            amount?: string | null;
+            /** Format: date-time */
+            at: string;
+            kind: string;
+            /**
+             * Format: uuid
+             * @description Invoice of invoice entries
+             */
+            ref?: string | null;
+            summary: string;
+        };
+        BillingItem: {
+            /** Format: date-time */
+            approvedAt?: string | null;
+            /** @description Who the invoice is addressed to; empty when nobody can be billed */
+            billTo: string;
+            /** @enum {string} */
+            billToKind: "company" | "customer" | "none";
+            /** @description Open exceptions that stop invoicing */
+            blocking: number;
+            /** @description No blocking exception: Generate Invoice is allowed */
+            canInvoice: boolean;
+            charges: string;
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            /** @description Deposits / advances held or applied */
+            deposit: string;
+            /**
+             * Format: date-time
+             * @description When the folio became due for billing (closed, marked ready, or opened)
+             */
+            dueSince: string;
+            exceptions: components["schemas"]["BillingException"][];
+            /** Format: uuid */
+            folioId: string;
+            /** @enum {string} */
+            folioStatus: "open" | "closed" | "cancelled";
+            /** @enum {string} */
+            group: "golf" | "resort" | "events" | "membership" | "sport" | "fnb" | "other";
+            holderName: string;
+            /** Format: uuid */
+            invoiceId?: string | null;
+            invoiceNumber?: string | null;
+            /** @enum {string|null} */
+            invoiceStatus?: "draft" | "issued" | "partially_paid" | "paid" | "overdue" | null;
+            markedReady: boolean;
+            number: string;
+            /** @description What the customer still owes on the invoice */
+            outstanding?: string | null;
+            /** Format: uuid */
+            ownerId?: string | null;
+            ownerName?: string | null;
+            /** @description Payments received on the folio and on its invoice (not the transfer to AR) */
+            paid: string;
+            /** @description A billing record exists (Prepare Billing was saved) */
+            prepared: boolean;
+            /** Format: uuid */
+            sourceId?: string | null;
+            sourceRef?: string | null;
+            sourceType: string;
+            /** @enum {string} */
+            status: "pending_billing" | "ready_to_invoice" | "exception" | "invoiced" | "cancelled" | "settled";
+            /** @description Payment term of the invoice (billing record or Credit Policies default) */
+            termsDays: number;
+            /** @description Gross charges less deposits, payments and AR transfers */
+            toInvoice: string;
+        };
+        BillingLine: {
+            businessLine: string;
+            chargeType: string;
+            description: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            invoiceId?: string | null;
+            netAmount: string;
+            /** Format: date-time */
+            postedAt: string;
+            quantity: string;
+            /** Format: uuid */
+            referenceId?: string | null;
+            referenceType?: string | null;
+            revenueComponent: string;
+            serviceAmount: string;
+            taxAmount: string;
+            total: string;
+            unitPrice: string;
+        };
+        BillingNoteInput: {
+            body: string;
+        };
+        BillingOwner: {
+            fullName: string;
+            /** Format: uuid */
+            id: string;
+        };
+        BillingQueue: {
+            /** @description Folios per status over every business (before the status filter) */
+            counts: {
+                [key: string]: number;
+            };
+            groups: components["schemas"]["BillingGroupSummary"][];
+            /** @description One page of the filtered folios */
+            items: components["schemas"]["BillingItem"][];
+            nextCursor?: string;
+            /** @description Folios matching the filters */
+            total: number;
+        };
         BillingReasonRequest: {
+            reason: string;
+        };
+        BillingRecord: {
+            approvedAmount?: string | null;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            approvedByName?: string | null;
+            attachmentFileIds: string[];
+            billToAddress?: string | null;
+            billToEmail?: string | null;
+            billToName?: string | null;
+            billToNpwp?: string | null;
+            billToPhone?: string | null;
+            billingRef?: string | null;
+            contractRef?: string | null;
+            /**
+             * Format: uuid
+             * @description Bill to the company
+             */
+            corporateAccountId?: string | null;
+            /**
+             * Format: uuid
+             * @description Bill to another customer than the folio's
+             */
+            customerId?: string | null;
+            customerPo?: string | null;
+            internalNotes?: string | null;
+            /** @description Printed on the invoice */
+            notes?: string | null;
+            /** Format: date-time */
+            readyAt?: string | null;
+            readyByName?: string | null;
+            /** @description null: Credit Policies default */
+            termsDays?: number | null;
+            version: number;
+        };
+        BillingRecordDetail: {
+            adjustments: components["schemas"]["BillingAdjustment"][];
+            /**
+             * @description Approval level the amount needs
+             * @enum {string}
+             */
+            approval: "" | "manager" | "executive";
+            breakdown: components["schemas"]["BillingBreakdown"];
+            /** @description Invoice date if generated today */
+            businessDate: string;
+            checks: components["schemas"]["BillingCheck"][];
+            currency: string;
+            deposits: components["schemas"]["Deposit"][];
+            history: components["schemas"]["BillingHistoryEntry"][];
+            item: components["schemas"]["BillingItem"];
+            lines: components["schemas"]["BillingLine"][];
+            record: components["schemas"]["BillingRecord"];
+        };
+        BillingRecordInput: {
+            attachmentFileIds?: string[];
+            billToAddress?: string;
+            billToEmail?: string;
+            billToName?: string;
+            billToNpwp?: string;
+            billToPhone?: string;
+            billingRef?: string;
+            contractRef?: string;
+            /**
+             * Format: uuid
+             * @description Bill to the company
+             */
+            corporateAccountId?: string | null;
+            /**
+             * Format: uuid
+             * @description Bill to another customer than the folio's
+             */
+            customerId?: string | null;
+            customerPo?: string;
+            internalNotes?: string;
+            notes?: string;
+            /** @description null: Credit Policies default */
+            termsDays?: number | null;
+        };
+        BillingResolution: {
+            /** Format: date-time */
+            at: string;
+            /** Format: uuid */
+            by: string;
+            byName: string;
+            reason: string;
+        };
+        BillingSplitInput: {
+            /** @description Amount moved to the other party (or percent) */
+            amount?: string;
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            percent?: string;
             reason: string;
         };
         Block: {
@@ -37511,6 +38313,18 @@ export interface components {
             sessionId?: string | null;
             /** @enum {string} */
             source: "sale" | "prepaid" | "complimentary";
+        };
+        BudgetLine: {
+            actual: string;
+            budget: string;
+            /** @description The variance goes the right way for this line */
+            favorable: boolean;
+            key: string;
+            label: string;
+            /** @description Flow line of a month in progress: the budget is the month's target × days elapsed ÷ days of the month */
+            prorated: boolean;
+            /** @description (actual − budget) ÷ budget */
+            variance?: string | null;
         };
         BundleItem: {
             /** Format: uuid */
@@ -38523,6 +39337,22 @@ export interface components {
              */
             golfCartId?: string | null;
             reason: string;
+        };
+        CashBalance: {
+            /** Format: uuid */
+            accountId: string;
+            balance: string;
+            code: string;
+            /** @enum {string} */
+            kind: "cash" | "bank";
+            name: string;
+        };
+        CashFlowMonth: {
+            cashIn: string;
+            cashOut: string;
+            /** @description YYYY-MM */
+            month: string;
+            net: string;
         };
         CashMovementInput: {
             amount: string;
@@ -41287,6 +42117,12 @@ export interface components {
             /** Format: uuid */
             warehouseId: string;
         };
+        ConsolidateInput: {
+            folioIds: string[];
+            send?: boolean;
+            /** @description Default: the first folio's billing, or Credit Policies */
+            termsDays?: number | null;
+        };
         ConsumeInput: {
             /** Format: uuid */
             bookingComponentId: string;
@@ -42310,6 +43146,10 @@ export interface components {
             status: string;
             /** Format: uuid */
             userId?: string | null;
+        };
+        CrmFollowUpInput: {
+            close?: boolean;
+            note: string;
         };
         CrmPreference: {
             category: string;
@@ -46078,6 +46918,14 @@ export interface components {
             target?: string | null;
             value?: string | null;
         };
+        ExpenseShare: {
+            /** Format: uuid */
+            accountId?: string | null;
+            amount: string;
+            name: string;
+            /** @description Ratio of the total expenses */
+            share: string;
+        };
         ExperienceConsentInput: {
             /** @enum {string} */
             consent: "granted" | "withdrawn";
@@ -46505,6 +47353,45 @@ export interface components {
             sizeBytes: number;
             url: string;
         };
+        FinanceDashboard: {
+            banks: components["schemas"]["BankReconciliationStatus"][];
+            /** @description The property has an accounting book (Accounting → Setup) */
+            bookOpen: boolean;
+            /** @description Empty without an approved KPI target plan for the year */
+            budget: components["schemas"]["BudgetLine"][];
+            cash: components["schemas"]["CashBalance"][];
+            /** @description Last six months up to the period */
+            cashFlow: components["schemas"]["CashFlowMonth"][];
+            expenses: components["schemas"]["ExpenseShare"][];
+            from: string;
+            /** @description Overdue, due today, this week, this month, later */
+            payableDue: components["schemas"]["AgingBucket"][];
+            /** @description By days past due */
+            receivableAging: components["schemas"]["AgingBucket"][];
+            summary: components["schemas"]["FinanceSummary"];
+            to: string;
+            topReceivables: components["schemas"]["OpenItem"][];
+            upcomingPayables: components["schemas"]["OpenItem"][];
+        };
+        FinanceSummary: {
+            /** @description Cash and bank balances at the end of the period */
+            cashBank: string;
+            compareFrom: string;
+            compareTo: string;
+            /** @description Cost of sales, operating and other expenses of the period */
+            expenses: string;
+            expensesChange?: string | null;
+            /** @description Revenue − expenses (= net income of the P&L) */
+            netProfit: string;
+            netProfitChange?: string | null;
+            /** @description Open supplier items at the end of the period */
+            payables: string;
+            /** @description Open billing invoices at the end of the period */
+            receivables: string;
+            /** @description Revenue and other income of the period */
+            revenue: string;
+            revenueChange?: string | null;
+        };
         FinancialPeriod: {
             canClose: boolean;
             checklist: components["schemas"]["PeriodChecklistItem"][];
@@ -46651,12 +47538,111 @@ export interface components {
             /** Format: date-time */
             voidedAt?: string | null;
         };
+        FollowUp: {
+            /** @enum {string} */
+            action: "reminder" | "call" | "email" | "meeting" | "promise_to_pay" | "dispute" | "note";
+            /** Format: date-time */
+            createdAt: string;
+            createdByName?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            invoiceId?: string | null;
+            invoiceNumber?: string | null;
+            nextFollowUp?: string | null;
+            notes?: string | null;
+            /** Format: uuid */
+            partyId: string;
+            partyName: string;
+            /** @enum {string} */
+            partyType: "customer" | "supplier";
+            promisedAmount?: string | null;
+            promisedDate?: string | null;
+            /** Format: uuid */
+            responsibleId?: string | null;
+            responsibleName?: string | null;
+        };
         FollowUpCancelInput: {
             reason: string;
         };
         FollowUpInput: {
-            close?: boolean;
-            note: string;
+            /** @enum {string} */
+            action: "reminder" | "call" | "email" | "meeting" | "promise_to_pay" | "dispute" | "note";
+            /**
+             * Format: uuid
+             * @description Invoice or supplier item the follow-up is about
+             */
+            invoiceId?: string | null;
+            invoiceNumber?: string;
+            /** @description YYYY-MM-DD */
+            nextFollowUp?: string;
+            notes?: string;
+            /** @description Name shown in the log (the bill-to or supplier name) */
+            partyName: string;
+            promisedAmount?: string;
+            /** @description promise_to_pay: date the customer promised */
+            promisedDate?: string;
+            /**
+             * Format: uuid
+             * @description Default: the current user
+             */
+            responsibleId?: string | null;
+        };
+        FollowUpOpenItem: {
+            amount: string;
+            daysOverdue: number;
+            dueDate: string;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** @enum {string} */
+            status: "overdue" | "due_today" | "due_soon" | "current";
+        };
+        FollowUpParty: {
+            followUps: components["schemas"]["FollowUp"][];
+            openItems: components["schemas"]["FollowUpOpenItem"][];
+            /** Format: uuid */
+            partyId: string;
+            partyName: string;
+            /** @enum {string} */
+            partyType: "customer" | "supplier";
+        };
+        FollowUpRow: {
+            /** @description Days past due of the oldest overdue item (0 = nothing overdue) */
+            daysOverdue: number;
+            /** @description The next follow-up date is today or past */
+            followUpDue: boolean;
+            lastAction?: string | null;
+            /** Format: date-time */
+            lastActionAt?: string | null;
+            /** Format: date-time */
+            lastReminderAt?: string | null;
+            /** @description Earliest due date of the items not yet due */
+            nextDue?: string | null;
+            nextFollowUp?: string | null;
+            openItems: number;
+            outstanding: string;
+            overdue: string;
+            /** Format: uuid */
+            partyId: string;
+            partyName: string;
+            promisedAmount?: string | null;
+            promisedDate?: string | null;
+            /** Format: uuid */
+            responsibleId?: string | null;
+            responsibleName?: string | null;
+            /** @enum {string} */
+            status: "overdue" | "due_soon" | "current";
+        };
+        FollowUpWorklist: {
+            asOf: string;
+            /** @description Parties whose next follow-up is today or past */
+            dueToday: number;
+            outstanding: string;
+            overdue: string;
+            /** @enum {string} */
+            partyType: "customer" | "supplier";
+            rows: components["schemas"]["FollowUpRow"][];
         };
         FoodCostRow: {
             foodCostPercent?: string | null;
@@ -49132,6 +50118,8 @@ export interface components {
             billToName: string;
             billToNpwp?: string | null;
             billToPhone?: string | null;
+            billingRef?: string | null;
+            contractRef?: string | null;
             /** Format: uuid */
             corporateAccountId?: string | null;
             /** Format: date-time */
@@ -49142,6 +50130,7 @@ export interface components {
             customerFolioId?: string | null;
             /** Format: uuid */
             customerId?: string | null;
+            customerPo?: string | null;
             daysOverdue: number;
             dueDate?: string | null;
             /** Format: uuid */
@@ -49153,6 +50142,7 @@ export interface components {
             issuedAt?: string | null;
             /** @enum {string} */
             kind: "standard" | "deposit" | "final";
+            /** @description Customer notes, printed on the invoice */
             notes?: string | null;
             /** @description Assigned at issue (gap-free per property and year) */
             number?: string | null;
@@ -49166,6 +50156,12 @@ export interface components {
             sentAt?: string | null;
             serviceAmount: string;
             /** @enum {string} */
+            source: "manual" | "folio" | "customer_folio" | "payment_schedule" | "city_ledger";
+            /** @description Folio / customer folio number or payment schedule title */
+            sourceRef?: string | null;
+            /** @description Folio source (golf_booking, banquet_event …) of a folio invoice */
+            sourceType?: string | null;
+            /** @enum {string} */
             status: "draft" | "issued" | "partially_paid" | "paid" | "overdue" | "void";
             subtotal: string;
             taxAmount: string;
@@ -49176,6 +50172,13 @@ export interface components {
             /** Format: date-time */
             voidedAt?: string | null;
             writtenOffAmount: string;
+        };
+        InvoiceAttachment: {
+            contentType: string;
+            /** Format: uuid */
+            fileId: string;
+            filename: string;
+            sizeBytes: number;
         };
         InvoiceDetail: {
             /**
@@ -49189,6 +50192,8 @@ export interface components {
             billToName: string;
             billToNpwp?: string | null;
             billToPhone?: string | null;
+            billingRef?: string | null;
+            contractRef?: string | null;
             /** Format: uuid */
             corporateAccountId?: string | null;
             /** Format: date-time */
@@ -49200,18 +50205,21 @@ export interface components {
             customerFolioId?: string | null;
             /** Format: uuid */
             customerId?: string | null;
+            customerPo?: string | null;
             daysOverdue: number;
             dueDate?: string | null;
             /** Format: uuid */
             folioId?: string | null;
             /** Format: uuid */
             id: string;
+            internal?: components["schemas"]["InvoiceInternal"] | null;
             issueDate?: string | null;
             /** Format: date-time */
             issuedAt?: string | null;
             /** @enum {string} */
             kind: "standard" | "deposit" | "final";
             lines: components["schemas"]["InvoiceLine"][];
+            /** @description Customer notes, printed on the invoice */
             notes?: string | null;
             /** @description Assigned at issue (gap-free per property and year) */
             number?: string | null;
@@ -49226,6 +50234,12 @@ export interface components {
             /** Format: date-time */
             sentAt?: string | null;
             serviceAmount: string;
+            /** @enum {string} */
+            source: "manual" | "folio" | "customer_folio" | "payment_schedule" | "city_ledger";
+            /** @description Folio / customer folio number or payment schedule title */
+            sourceRef?: string | null;
+            /** @description Folio source (golf_booking, banquet_event …) of a folio invoice */
+            sourceType?: string | null;
             /** @enum {string} */
             status: "draft" | "issued" | "partially_paid" | "paid" | "overdue" | "void";
             subtotal: string;
@@ -49259,7 +50273,11 @@ export interface components {
              * @description Account invoice: uninvoiced charges on the AR account
              */
             accountId?: string | null;
+            /** @description Supporting documents uploaded through /api/v1/billing/invoice-files */
+            attachmentFileIds?: string[];
             billTo?: components["schemas"]["BillTo"] | null;
+            billingRef?: string;
+            contractRef?: string;
             /**
              * Format: uuid
              * @description Account invoice of the corporate city ledger, or the payer of a folio invoice
@@ -49272,11 +50290,21 @@ export interface components {
             customerFolioId?: string | null;
             /**
              * Format: uuid
+             * @description Manual invoice: the customer billed (or the guest when a company pays)
+             */
+            customerId?: string | null;
+            customerPo?: string;
+            /**
+             * Format: uuid
              * @description Folio invoice: uninvoiced charges of one folio
              */
             folioId?: string | null;
+            /** @description Consolidated folio invoice: uninvoiced charges of several folios of the same payer */
+            folioIds?: string[];
             /** @description Account invoice period (YYYY-MM-DD) */
             from?: string;
+            /** @description Never printed on the invoice */
+            internalNotes?: string;
             /** @description Issue immediately */
             issue?: boolean;
             /**
@@ -49286,6 +50314,9 @@ export interface components {
             kind?: "standard" | "final";
             /** @description Folio invoice: only these charge lines */
             lineIds?: string[];
+            /** @description Manual invoice: the lines (billing.invoice.manual) */
+            lines?: components["schemas"]["ManualLine"][];
+            /** @description Customer notes, printed on the invoice */
             notes?: string;
             /**
              * Format: uuid
@@ -49296,11 +50327,23 @@ export interface components {
             termsDays?: number | null;
             to?: string;
         };
+        InvoiceInternal: {
+            attachments: components["schemas"]["InvoiceAttachment"][];
+            /** @description Internal notes, never printed */
+            notes?: string | null;
+        };
+        InvoiceInternalInput: {
+            /** @description The full list of supporting documents (replaces it) */
+            attachmentFileIds?: string[];
+            /** @description Internal notes; empty clears */
+            notes?: string | null;
+        };
         InvoiceLine: {
             /** Format: uuid */
             accountEntryId?: string | null;
             businessLine?: string | null;
             description: string;
+            discountAmount: string;
             /** Format: uuid */
             folioLineId?: string | null;
             /** Format: uuid */
@@ -49312,6 +50355,7 @@ export interface components {
             serviceAmount: string;
             taxAmount: string;
             total: string;
+            unit?: string | null;
             unitPrice: string;
         };
         IssueBEOInput: {
@@ -49346,6 +50390,8 @@ export interface components {
             module?: string;
             path: string;
             phase?: string;
+            /** @description Heading of a group of items (role menus); not a link */
+            section?: boolean;
         };
         ItemResult: {
             error?: string;
@@ -52157,6 +53203,25 @@ export interface components {
             /** @enum {string} */
             partnerType?: "supplier" | "customer" | "ar_account" | "employee" | "other";
         };
+        ManualLine: {
+            /** @description Default other; decides the revenue account with the revenue component */
+            businessLine?: string;
+            description: string;
+            /** @description Discount amount of the line */
+            discount?: string;
+            /** @description Or a discount percentage of the line */
+            discountPercent?: string;
+            /** @description Default 1 */
+            quantity?: string;
+            /** @description Default: the business line's (green_fee, fnb, venue_rental …) */
+            revenueComponent?: string;
+            /** @description Tax & Service rules added on top of the net (Settings → Tax & Service) */
+            taxCodes?: string[];
+            /** @description Unit of measure (pax, night, hour …) */
+            unit?: string;
+            /** @description Price before discount, tax and service */
+            unitPrice: string;
+        };
         MarkPaidInput: {
             /** @description Payroll batch / transfer reference */
             reference?: string;
@@ -53767,6 +54832,18 @@ export interface components {
             creditLimit?: string;
             /** Format: uuid */
             customerId: string;
+        };
+        OpenItem: {
+            /** @description Open amount */
+            amount: string;
+            dueDate: string;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** @description Bill-to or supplier */
+            party: string;
+            /** @enum {string} */
+            status: "overdue" | "due_today" | "due_soon" | "current";
         };
         OpenShiftInput: {
             openingFloat?: string;
@@ -64700,6 +65777,10 @@ export interface components {
             /** Format: uuid */
             unitTypeId?: string | null;
         };
+        StayAssignInput: {
+            /** Format: uuid */
+            unitId: string;
+        };
         StayCancelInput: {
             reason: string;
             waiveFee?: boolean;
@@ -65841,6 +66922,13 @@ export interface components {
         TaxBracket: {
             rate: string;
             upTo: string;
+        };
+        TaxCode: {
+            code: string;
+            /** @enum {string} */
+            kind: "tax" | "service";
+            name: string;
+            ratePercent: string;
         };
         TaxInvoiceCancelInput: {
             reason: string;
@@ -68836,6 +69924,21 @@ export interface components {
              */
             status?: "active" | "inactive" | null;
         };
+        UnallocatedPayment: {
+            /** Format: uuid */
+            accountId: string;
+            accountName: string;
+            amount: string;
+            /** Format: uuid */
+            id: string;
+            methodType: string;
+            number: string;
+            /** Format: date-time */
+            paidAt: string;
+            payerName?: string | null;
+            reference?: string | null;
+            unallocated: string;
+        };
         UnreadCount: {
             unread: number;
         };
@@ -70005,6 +71108,23 @@ export interface components {
             /** @description Default: the outstanding amount */
             amount?: string;
             reason: string;
+        };
+        WriteOffItem: {
+            amount: string;
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            billToName: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            invoiceId: string;
+            invoiceNumber?: string | null;
+            number: string;
+            reason: string;
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected" | "cancelled";
         };
         YearEndInput: {
             year: number;
@@ -72197,6 +73317,219 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CashTransaction"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getAccountingCollections: {
+        parameters: {
+            query?: {
+                asOf?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUpWorklist"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getAccountingCollectionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUpParty"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postAccountingCollectionsByIdFollowUps: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FollowUpInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUp"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getAccountingDashboard: {
+        parameters: {
+            query?: {
+                /** @description YYYY-MM (default: this month, to date) */
+                month?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceDashboard"];
                 };
             };
             /** @description Not authenticated */
@@ -76951,6 +78284,166 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["APItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getAccountingVendorFollowUps: {
+        parameters: {
+            query?: {
+                asOf?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUpWorklist"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getAccountingVendorFollowUpsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUpParty"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postAccountingVendorFollowUpsByIdFollowUps: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FollowUpInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUp"];
                 };
             };
             /** @description Not authenticated */
@@ -84845,6 +86338,728 @@ export interface operations {
             };
         };
     };
+    getBillingBillingOwners: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BillingOwner"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBillingBillingQueue: {
+        parameters: {
+            query?: {
+                "filter[status]"?: "pending_billing" | "ready_to_invoice" | "exception" | "invoiced" | "cancelled";
+                "filter[group]"?: "golf" | "resort" | "events" | "membership" | "sport" | "fnb" | "other";
+                /** @description Owner user id, or me */
+                "filter[owner]"?: string;
+                /** @description Folio, customer, bill-to, source or invoice number */
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingQueue"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBillingBillingRecordsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putBillingBillingRecordsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingRecordInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsByIdAdjustments: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingAdjustmentInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsByIdExceptionsByCodeResolve: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsByIdNotes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingNoteInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsByIdMarkReady: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsByIdSplit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingSplitInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SplitResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsAssign: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsConsolidate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsolidateInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingGenerateResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsGenerate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingGenerateInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingGenerateResults"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getBillingBusinessDays: {
         parameters: {
             query?: {
@@ -87010,6 +89225,114 @@ export interface operations {
             };
         };
     };
+    postBillingInvoiceFiles: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["File"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBillingInvoiceTaxCodes: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TaxCode"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getBillingInvoices: {
         parameters: {
             query?: {
@@ -87023,8 +89346,15 @@ export interface operations {
                 "filter[accountId]"?: string;
                 "filter[corporateAccountId]"?: string;
                 "filter[customerId]"?: string;
+                "filter[source]"?: "manual" | "folio" | "customer_folio" | "payment_schedule" | "city_ledger";
+                "filter[payer]"?: "corporate" | "individual";
                 from?: string;
                 to?: string;
+                /** @description Due date from (YYYY-MM-DD) */
+                dueFrom?: string;
+                dueTo?: string;
+                minTotal?: string;
+                maxTotal?: string;
             };
             header: {
                 /** @description Active property chosen in the property switcher. */
@@ -87145,6 +89475,115 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBillingInvoicesByIdAttachmentsByFileId: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBillingInvoicesByIdInternal: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceInternalInput"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -87313,6 +89752,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Payment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingInvoicesByIdRemind: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceDetail"];
                 };
             };
             /** @description Not authenticated */
@@ -87535,6 +90030,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CorporateARImportResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingInvoicesPreview: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceDetail"];
                 };
             };
             /** @description Not authenticated */
@@ -88758,6 +91307,7 @@ export interface operations {
                 "filter[channel]"?: string;
                 "filter[folioId]"?: string;
                 "filter[accountId]"?: string;
+                "filter[purpose]"?: "settlement" | "deposit" | "account_settlement";
                 date?: string;
             };
             header: {
@@ -89334,6 +91884,123 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Refund"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBillingUnallocatedPayments: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["UnallocatedPayment"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBillingWriteOffs: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WriteOffItem"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -112181,7 +114848,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["FollowUpInput"];
+                "application/json": components["schemas"]["CrmFollowUpInput"];
             };
         };
         responses: {
@@ -211088,7 +213755,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AssignInput"];
+                "application/json": components["schemas"]["StayAssignInput"];
             };
         };
         responses: {

@@ -37,7 +37,7 @@ export interface Area {
  * holding every permission never lands on a device area.
  */
 export const AREAS: readonly Area[] = [
-  { code: 'management', label: 'Management Dashboard', icon: 'insights', path: '/management', shell: 'management', permission: 'reporting.dashboard.view', surface: 'dashboard', layout: 'top', offline: false },
+  { code: 'management', label: 'Management Dashboard', icon: 'insights', path: '/management', shell: 'management', permission: 'reporting.dashboard.view', surface: 'dashboard', layout: 'sidebar', offline: false },
   { code: 'backoffice', label: 'Back Office', icon: 'dashboard', path: '/', shell: 'backoffice', permission: 'platform.backoffice.access', surface: 'dashboard', layout: 'sidebar', offline: false },
   { code: 'platform', label: 'Platform Administration', icon: 'admin_panel_settings', path: '/platform', shell: 'platform-admin', permission: 'platform.platform_admin.access', surface: 'dashboard', layout: 'sidebar', offline: false },
   { code: 'screen', label: 'Clubhouse Screen', icon: 'tv', path: '/screen', shell: 'screen', permission: 'platform.screen.access', surface: 'dashboard', layout: 'fullscreen', offline: false },

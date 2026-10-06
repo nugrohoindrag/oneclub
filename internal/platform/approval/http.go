@@ -577,7 +577,7 @@ func (h *HTTP) list(w http.ResponseWriter, r *http.Request) {
 		args = append(args, cursor)
 		where = append(where, "r.id < $"+itoa(len(args))+"::uuid")
 	}
-	args = append(args, lp.Limit+1)
+	args = append(args, lp.PageSize+1)
 	// Inbox/mine eligibility is explicit in SQL; "all" stays within RLS scope.
 	qctx := ctx
 	if box != "all" {
@@ -605,7 +605,7 @@ func (h *HTTP) list(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	httpx.JSON(w, http.StatusOK, httpx.BuildPage(out, lp.Limit, func(x Request) string { return x.ID.String() }))
+	httpx.JSON(w, http.StatusOK, httpx.BuildPage(out, lp.PageSize, func(x Request) string { return x.ID.String() }))
 }
 
 func (h *HTTP) loadDetail(r *http.Request, tx pgx.Tx, rid uuid.UUID) (Request, error) {

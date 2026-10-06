@@ -36,7 +36,7 @@ function useSalesUsers(): Option[] {
 }
 
 /** Customer search + select. */
-function CustomerPicker({ value, onChange, label: lbl = 'Customer', required }: { value: string; onChange: (v: string) => void; label?: string; required?: boolean }) {
+export function CustomerPicker({ value, onChange, label: lbl = 'Customer', required }: { value: string; onChange: (v: string) => void; label?: string; required?: boolean }) {
   const [q, setQ] = useState('');
   const list = useGet<Page<R>>(`/api/v1/crm/customers${qs({ q, limit: 20, 'filter[status]': 'active' })}`);
   const items = list.data?.items ?? [];
@@ -49,7 +49,7 @@ function CustomerPicker({ value, onChange, label: lbl = 'Customer', required }: 
   );
 }
 
-function CorporatePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function CorporatePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const list = useGet<Page<R>>('/api/v1/crm/corporate-accounts?limit=200&filter[status]=active');
   return <SelectField label="Corporate account" value={value} onChange={onChange} placeholder="None"
     options={(list.data?.items ?? []).map((c) => ({ value: c.id, label: `${String(c.name)} (${String(c.code)})` }))} />;

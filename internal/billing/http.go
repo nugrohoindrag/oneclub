@@ -44,6 +44,8 @@ type HTTP struct {
 	Holder    HolderResolver
 	// WebsiteURL is the public website base URL (invoice payment links, P3).
 	WebsiteURL func() string
+	// Tax prices manual invoice lines (Commercial Tax & Service rules).
+	Tax TaxEngine
 }
 
 // SubmitRefund implements Approver with the approval engine.
@@ -259,7 +261,7 @@ func (h *HTTP) listFolios(w http.ResponseWriter, r *http.Request) {
 	out := []Folio{}
 	err := h.Svc.DB.WithReadTx(ctx, func(tx pgx.Tx) error {
 		rows, err := tx.Query(ctx, `SELECT `+folioCols+` FROM billing.folios f WHERE `+strings.Join(where, " AND ")+
-			fmt.Sprintf(` ORDER BY f.created_at DESC, f.id DESC LIMIT %d OFFSET %d`, lp.Limit+1, offset), args...)
+			fmt.Sprintf(` ORDER BY f.created_at DESC, f.id DESC LIMIT %d OFFSET %d`, lp.PageSize+1, offset), args...)
 		if err != nil {
 			return err
 		}
@@ -277,7 +279,7 @@ func (h *HTTP) listFolios(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	httpx.JSON(w, http.StatusOK, page(out, lp.Limit, offset))
+	httpx.JSON(w, http.StatusOK, page(out, lp.PageSize, offset))
 }
 
 func cursorOffset(c string) int {
@@ -611,7 +613,7 @@ func (h *HTTP) listPayments(w http.ResponseWriter, r *http.Request) {
 		args = append(args, v)
 		where = append(where, strings.ReplaceAll(cond, "?", "$"+strconv.Itoa(len(args))))
 	}
-	for k, col := range map[string]string{"status": "p.status", "methodType": "p.method_type", "channel": "p.channel", "folioId": "p.folio_id::text",
+	for k, col := range map[string]string{"status": "p.status", "methodType": "p.method_type", "channel": "p.channel", "folioId": "p.folio_id::text", "purpose": "p.purpose",
 		"accountId": "p.account_id::text"} {
 		if v := lp.Filters[k]; v != "" {
 			add(col+" = ?", v)
@@ -627,7 +629,7 @@ func (h *HTTP) listPayments(w http.ResponseWriter, r *http.Request) {
 	out := []Payment{}
 	err := h.Svc.DB.WithReadTx(ctx, func(tx pgx.Tx) error {
 		rows, err := tx.Query(ctx, `SELECT `+paymentCols+paymentFrom+` WHERE `+strings.Join(where, " AND ")+
-			fmt.Sprintf(` ORDER BY p.created_at DESC, p.id DESC LIMIT %d OFFSET %d`, lp.Limit+1, offset), args...)
+			fmt.Sprintf(` ORDER BY p.created_at DESC, p.id DESC LIMIT %d OFFSET %d`, lp.PageSize+1, offset), args...)
 		if err != nil {
 			return err
 		}
@@ -645,7 +647,7 @@ func (h *HTTP) listPayments(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	httpx.JSON(w, http.StatusOK, page(out, lp.Limit, offset))
+	httpx.JSON(w, http.StatusOK, page(out, lp.PageSize, offset))
 }
 
 func (h *HTTP) getPayment(w http.ResponseWriter, r *http.Request) {
@@ -1459,7 +1461,8 @@ func (h *HTTP) Register(reg *route.Registry) {
 
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/billing/payments", Tag: tp, Summary: "Payment History", Permission: "billing.payment.view",
 		Response: Payment{}, List: true, Query: []route.Param{{Name: "q"}, {Name: "filter[status]"}, {Name: "filter[methodType]"}, {Name: "filter[channel]"},
-			{Name: "filter[folioId]"}, {Name: "filter[accountId]"}, {Name: "date"}}, Handler: h.listPayments})
+			{Name: "filter[folioId]"}, {Name: "filter[accountId]"}, {Name: "filter[purpose]", Enum: []string{"settlement", "deposit", "account_settlement"}}, {Name: "date"}},
+		Handler: h.listPayments})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/billing/payments", Tag: tp, Summary: "Process Payment (venue, online or member charge)",
 		Permission: "billing.payment.create", Request: PaymentRequest{}, Response: Payment{}, Idempotent: true, Handler: h.createPayment})
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/billing/payments/{id}", Tag: tp, Summary: "View a payment", Permission: "billing.payment.view",

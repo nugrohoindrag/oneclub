@@ -4,7 +4,7 @@ import { formatDate, formatDateTime, useTranslation } from '@oneclub/i18n';
 import { useAuth } from '../context';
 import {
   ConfirmDialog, DataTable, Drawer, ErrorAlert, FilterPills, Icon, PageHeader, SearchBox, SelectField, StatusPill, TextArea, TextField,
-  Checkbox, fieldErrors, useDebounced, type Column, type Option,
+  Checkbox, fieldErrors, useDebounced, usePagedList, type Column, type Option,
 } from '../components/ui';
 import { useToast } from '../components/toast';
 
@@ -150,8 +150,8 @@ export function ResourcePage({ cfg }: { cfg: ResourceConfig }) {
   const [editing, setEditing] = useState<Row | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Row | null>(null);
   const query = useDebounced(q);
-  const path = `${cfg.path}${qs({ q: query, 'filter[status]': status, limit: 200 })}`;
-  const list = useGet<Page<Row>>(path);
+  const path = `${cfg.path}${qs({ q: query, 'filter[status]': status })}`;
+  const list = usePagedList<Row>(path);
   const del = useSend<unknown>('DELETE', () => `${cfg.path}/${deleting?.id}`, [cfg.path]);
   useEffect(() => setEditing(null), [propertyId]);
   const statusOptions = useMemo(() => [{ value: '', label: 'All' }, ...(cfg.statusOptions ?? [{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }])], [cfg.statusOptions]);
@@ -177,7 +177,7 @@ export function ResourcePage({ cfg }: { cfg: ResourceConfig }) {
           <span className="oc-spacer" />
           <FilterPills options={statusOptions} value={status} onChange={setStatus} />
         </div>
-        <DataTable columns={cfg.columns} rows={list.data?.items} loading={list.isLoading} error={list.error}
+        <DataTable columns={cfg.columns} rows={list.rows} loading={list.isLoading} error={list.error} server={list.pager}
           onRowClick={canUpdate ? (r) => setEditing(r) : undefined}
           actions={(r) => (
             <div className="oc-row" style={{ justifyContent: 'flex-end' }}>

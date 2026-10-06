@@ -490,7 +490,7 @@ func (h *HTTP) logs(w http.ResponseWriter, r *http.Request) {
 		if cursor != "" {
 			add("id < ?::uuid", cursor)
 		}
-		args = append(args, lp.Limit+1)
+		args = append(args, lp.PageSize+1)
 		rows, err := tx.Query(ctx, `SELECT id, integration_code, direction, operation, method, url, coalesce(request, 'null'),
 			coalesce(response, 'null'), status_code, success, duration_ms, error, created_at FROM platform.integration_logs
 			WHERE `+strings.Join(where, " AND ")+` ORDER BY id DESC LIMIT $`+itoa(len(args)), args...)
@@ -512,7 +512,7 @@ func (h *HTTP) logs(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	httpx.JSON(w, http.StatusOK, httpx.BuildPage(out, lp.Limit, func(l IntegrationLog) string { return l.ID.String() }))
+	httpx.JSON(w, http.StatusOK, httpx.BuildPage(out, lp.PageSize, func(l IntegrationLog) string { return l.ID.String() }))
 }
 
 func itoa(n int) string {

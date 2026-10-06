@@ -1,13 +1,16 @@
 import React, { useEffect, useId, useRef, useState } from 'react';
 import { Icon } from '@oneclub/ui';
-import { ApiError } from '@oneclub/api-client';
+import { ApiError, useGet } from '@oneclub/api-client';
 import { useTranslation, validationMessage } from '@oneclub/i18n';
 
 export { Icon };
 
 // ── status pill (Naming Convention §31; FR-SH-09) ─────────────────────────
 
-const STATUS: Record<string, { label: string; tone: 'success' | 'warning' | 'error' | 'info' | 'neutral' }> = {
+/** Colour of a status pill. */
+export type StatusTone = 'success' | 'warning' | 'error' | 'info' | 'neutral';
+
+const STATUS: Record<string, { label: string; tone: StatusTone }> = {
   draft: { label: 'Draft', tone: 'neutral' },
   pending: { label: 'Pending', tone: 'warning' },
   waiting: { label: 'Waiting', tone: 'neutral' },
@@ -80,11 +83,12 @@ const STATUS: Record<string, { label: string; tone: 'success' | 'warning' | 'err
   collected: { label: 'Completed', tone: 'success' },
 };
 
-export function StatusPill({ status, label }: { status: string; label?: string }) {
+/** Status pill; label and tone override the defaults of the status (e.g. invoice "Issued" is not the voucher "Active"). */
+export function StatusPill({ status, label, tone }: { status: string; label?: string; tone?: StatusTone }) {
   const key = status.toLowerCase().replace(/_/g, '-');
   const s = STATUS[key] ?? { label: status.charAt(0).toUpperCase() + status.slice(1), tone: 'neutral' as const };
   return (
-    <span className="oc-status" data-tone={s.tone}>
+    <span className="oc-status" data-tone={tone ?? s.tone}>
       {label ?? s.label}
     </span>
   );
@@ -122,6 +126,63 @@ export function Card({ title, icon, actions, children, ink, style }: {
       )}
       {children}
     </section>
+  );
+}
+
+/**
+ * KPI tile of the Management Dashboard: muted label with an icon on the right,
+ * the value, a status pill (top right), then a change pill against the previous period (`change` is a
+ * ratio, 0.062 = +6.2%) and optional footer rows. Clickable when `onOpen` is set.
+ */
+export function StatTile({ label, value, icon, change, changeLabel, inverse, status, progress, children, onOpen, muted, title }: {
+  label: string; value: React.ReactNode; icon?: string; change?: number | null; changeLabel?: string; status?: React.ReactNode;
+  /** Lower is better (expenses, payables): a rise shows in the down tone. */
+  inverse?: boolean;
+  progress?: number | null; children?: React.ReactNode; onOpen?: () => void; muted?: boolean; title?: string;
+}) {
+  const up = change != null && change >= 0;
+  const good = inverse ? !up : up;
+  return (
+    <div className="oc-stat" title={title} data-muted={muted || undefined} data-clickable={onOpen ? true : undefined}
+      role={onOpen ? 'button' : undefined} tabIndex={onOpen ? 0 : undefined} aria-label={onOpen ? `${label}: open the drill-down` : undefined}
+      onClick={onOpen} onKeyDown={onOpen && ((e) => (e.key === 'Enter' || e.key === ' ') && onOpen())}>
+      <div className="oc-stat-head">
+        <span className="oc-stat-label">{label}</span>
+        {status}
+        {icon && <span className="oc-stat-icon"><Icon name={icon} size={18} /></span>}
+      </div>
+      <div className="oc-stat-value">{value}</div>
+      {change != null && (
+        <div className="oc-stat-meta">
+          <span className="oc-delta" data-tone={good ? 'up' : 'down'}>
+            <Icon name={up ? 'trending_up' : 'trending_down'} size={14} /> {up ? '+' : '−'}{Math.abs(change * 100).toFixed(1)}%
+          </span>
+          {changeLabel && <span className="oc-muted">{changeLabel}</span>}
+        </div>
+      )}
+      {progress != null && (
+        <div className="oc-stat-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>
+          <span style={{ width: `${Math.max(0, Math.min(1, progress)) * 100}%` }} />
+        </div>
+      )}
+      {children && <div className="oc-stat-foot">{children}</div>}
+    </div>
+  );
+}
+
+/** Compact single-date filter for a page header. */
+export function DateFilter({ value, onChange, label = 'Date' }: { value: string; onChange: (v: string) => void; label?: string }) {
+  return <input className="oc-input oc-filter" type="date" aria-label={label} value={value} onChange={(e) => e.target.value && onChange(e.target.value)} />;
+}
+
+/** Compact From – To date filter for a page header. */
+export function DateRange({ from, to, onFrom, onTo }: { from: string; to: string; onFrom: (v: string) => void; onTo: (v: string) => void }) {
+  return (
+    <div className="oc-row" style={{ gap: 6 }}>
+      <input className="oc-input oc-filter" type="date" aria-label="From" value={from} max={to} onChange={(e) => e.target.value && onFrom(e.target.value)} />
+      <span className="oc-muted">–</span>
+      <input className="oc-input oc-filter" type="date" aria-label="To" value={to} min={from} onChange={(e) => e.target.value && onTo(e.target.value)} />
+    </div>
   );
 }
 
@@ -374,41 +435,173 @@ export function ConfirmDialog({ open, onClose, onConfirm, title, message, confir
 
 export interface Column<T> {
   key: string;
-  header: string;
+  header: React.ReactNode;
   render?: (row: T) => React.ReactNode;
   width?: string | number;
   align?: 'left' | 'right';
 }
 
-export function DataTable<T extends Record<string, unknown>>({ columns, rows, loading, error, onRowClick, actions, empty, rowKey }: {
+/** Rows per page of every data table. */
+export const PAGE_SIZE = 10;
+
+/** Client-side paging of a list: the rows of the current page; back to page 1 when the list changes size. */
+export function usePager<T>(rows: T[] | undefined, size = PAGE_SIZE) {
+  const [page, setPage] = useState(1);
+  const total = rows?.length ?? 0;
+  useEffect(() => setPage(1), [total]);
+  const pages = size > 0 ? Math.max(1, Math.ceil(total / size)) : 1;
+  const current = Math.min(page, pages);
+  const visible = !rows ? [] : size > 0 ? rows.slice((current - 1) * size, current * size) : rows;
+  return { visible, page: current, pages, total, size, setPage };
+}
+
+/** Page numbers to show: first, last, the current one and its neighbours, gaps as 0. */
+function pageList(page: number, pages: number): number[] {
+  const set = [...new Set([1, pages, page - 1, page, page + 1])].filter((p) => p >= 1 && p <= pages).sort((x, y) => x - y);
+  const out: number[] = [];
+  set.forEach((p, i) => {
+    if (i > 0 && p - set[i - 1] > 1) out.push(0);
+    out.push(p);
+  });
+  return out;
+}
+
+/** "1–10 of 57" with previous / page numbers / next; hidden on a single page. */
+export function Pager({ page, pages, total, size, setPage }: { page: number; pages: number; total: number; size: number; setPage: (p: number) => void }) {
+  const { t } = useTranslation();
+  if (pages <= 1) return null;
+  const from = (page - 1) * size + 1;
+  return (
+    <nav className="oc-pager" aria-label="Pagination">
+      <span className="oc-small oc-muted">{t('common.pageRange', { from, to: Math.min(total, page * size), total })}</span>
+      <span className="oc-row" style={{ gap: 4 }}>
+        <button type="button" className="oc-pager-btn" disabled={page <= 1} onClick={() => setPage(page - 1)} aria-label={t('common.previousPage')}>
+          <Icon name="chevron_left" size={18} />
+        </button>
+        {pageList(page, pages).map((p, i) => (p === 0
+          ? <span key={`gap${i}`} className="oc-pager-gap">…</span>
+          : <button key={p} type="button" className="oc-pager-btn" aria-current={p === page ? 'page' : undefined} aria-label={t('common.page', { page: p })}
+            onClick={() => setPage(p)}>{p}</button>))}
+        <button type="button" className="oc-pager-btn" disabled={page >= pages} onClick={() => setPage(page + 1)} aria-label={t('common.nextPage')}>
+          <Icon name="chevron_right" size={18} />
+        </button>
+      </span>
+    </nav>
+  );
+}
+
+/**
+ * One page of a list from the server (?limit=&cursor=, see httpx/paged.go):
+ * the rows of the current page and the pager; back to the first page when the
+ * path (filters, search) changes.
+ */
+export function usePagedList<T, P extends { items: T[]; nextCursor?: string; total?: number; totalAtLeast?: number } = { items: T[]; nextCursor?: string; total?: number; totalAtLeast?: number }>(
+  path: string | null, size = PAGE_SIZE) {
+  const [cursors, setCursors] = useState<string[]>(['']);
+  useEffect(() => setCursors(['']), [path]);
+  const cursor = cursors[cursors.length - 1];
+  const url = path === null ? null : `${path}${path.includes('?') ? '&' : '?'}limit=${size}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
+  const q = useGet<P>(url, { placeholderData: (prev) => prev });
+  const page = cursors.length;
+  const rows = q.data?.items ?? [];
+  const from = rows.length === 0 ? 0 : (page - 1) * size + 1;
+  const total = q.data?.total;
+  const totalAtLeast = q.data?.totalAtLeast;
+  // Offset cursors (httpx/paged.go) can be built for any page, so the pager
+  // jumps to a page number; keyset cursors only go back and forth.
+  const jump = isOffsetCursor(page > 1 ? cursor : q.data?.nextCursor);
+  return {
+    ...q,
+    rows: q.data ? rows : undefined,
+    pager: {
+      page, from, to: from === 0 ? 0 : from + rows.length - 1, total, totalAtLeast, hasPrev: page > 1,
+      hasNext: !!q.data?.nextCursor,
+      /** Known pages (a lower bound with totalAtLeast); 0 when unknown. */
+      pages: jump ? Math.max(page, Math.ceil((total ?? totalAtLeast ?? 0) / size)) : 0,
+      prev: () => setCursors((c) => (c.length > 1 ? c.slice(0, -1) : c)),
+      next: () => q.data?.nextCursor && setCursors((c) => [...c, q.data!.nextCursor!]),
+      goTo: (p: number) => setCursors(Array.from({ length: p }, (_, i) => (i === 0 ? '' : offsetCursor(i * size)))),
+    },
+  };
+}
+
+const offsetCursor = (offset: number) => btoa(`o:${offset}`).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+function isOffsetCursor(c?: string) {
+  if (!c) return false;
+  try {
+    return atob(c.replace(/-/g, '+').replace(/_/g, '/')).startsWith('o:');
+  } catch {
+    return false;
+  }
+}
+
+export type ServerPage = ReturnType<typeof usePagedList>['pager'];
+
+/** Pager of a server-paged list: "11–20 of 57" ("of 50+" past the rows read ahead), previous / page numbers / next. */
+export function ServerPager({ page, from, to, total, totalAtLeast, hasPrev, hasNext, pages, prev, next, goTo }: ServerPage) {
+  const { t } = useTranslation();
+  if (!hasPrev && !hasNext) return null;
+  return (
+    <nav className="oc-pager" aria-label="Pagination">
+      <span className="oc-small oc-muted">{total != null ? t('common.pageRange', { from, to, total })
+        : totalAtLeast != null ? t('common.pageRangeMore', { from, to, total: totalAtLeast }) : `${from}–${to}`}</span>
+      <span className="oc-row" style={{ gap: 4 }}>
+        <button type="button" className="oc-pager-btn" disabled={!hasPrev} onClick={prev} aria-label={t('common.previousPage')}><Icon name="chevron_left" size={18} /></button>
+        {pages > 1
+          ? <>
+            {pageList(page, pages).map((p, i) => (p === 0
+              ? <span key={`gap${i}`} className="oc-pager-gap">…</span>
+              : <button key={p} type="button" className="oc-pager-btn" aria-current={p === page ? 'page' : undefined} aria-label={t('common.page', { page: p })}
+                onClick={() => p !== page && goTo(p)}>{p}</button>))}
+            {total == null && hasNext && <span className="oc-pager-gap">…</span>}
+          </>
+          : <span className="oc-pager-btn" aria-current="page" aria-label={t('common.page', { page })}>{page}</span>}
+        <button type="button" className="oc-pager-btn" disabled={!hasNext} onClick={next} aria-label={t('common.nextPage')}><Icon name="chevron_right" size={18} /></button>
+      </span>
+    </nav>
+  );
+}
+
+export function DataTable<T extends Record<string, unknown>>({ columns, rows, loading, error, onRowClick, actions, actionsHeader, empty, rowKey, pageSize = PAGE_SIZE, server }: {
   columns: Column<T>[]; rows: T[] | undefined; loading?: boolean; error?: unknown; onRowClick?: (row: T) => void;
   actions?: (row: T) => React.ReactNode; empty?: React.ReactNode; rowKey?: (row: T) => string;
+  /** Title of the actions column (unlabelled by default). */
+  actionsHeader?: string;
+  /** Rows per page (default 10); 0 shows every row. */
+  pageSize?: number;
+  /** The rows are one page of a server-paged list (usePagedList): no paging in the browser, the server pager below. */
+  server?: ServerPage;
 }) {
+  const pager = usePager(rows, server ? 0 : pageSize);
   if (error) return <ErrorAlert error={error} />;
-  if (loading) return <Skeleton rows={5} />;
-  if (!rows || rows.length === 0) return <>{empty ?? <Empty />}</>;
+  // .oc-datatable is a card on the page canvas and plain inside a card, modal or drawer.
+  if (loading) return <div className="oc-datatable"><Skeleton rows={5} /></div>;
+  if (!rows || rows.length === 0) return <div className="oc-datatable">{empty ?? <Empty />}{server && <ServerPager {...server} />}</div>;
   return (
-    <div className="oc-table-wrap">
-      <table className="oc-table">
-        <thead>
-          <tr>
-            {columns.map((c) => <th key={c.key} style={{ width: c.width, textAlign: c.align }}>{c.header}</th>)}
-            {actions && <th aria-label="Actions" />}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={rowKey ? rowKey(r) : String(r.id ?? i)} data-clickable={!!onRowClick} onClick={onRowClick ? () => onRowClick(r) : undefined}>
-              {columns.map((c) => (
-                <td key={c.key} style={{ textAlign: c.align }}>
-                  {c.render ? c.render(r) : (r[c.key] as React.ReactNode) ?? <span className="oc-muted">—</span>}
-                </td>
-              ))}
-              {actions && <td className="oc-actions" onClick={(e) => e.stopPropagation()}>{actions(r)}</td>}
+    <div className="oc-datatable">
+      <div className="oc-table-wrap">
+        <table className="oc-table">
+          <thead>
+            <tr>
+              {columns.map((c) => <th key={c.key} style={{ width: c.width, textAlign: c.align }}>{c.header}</th>)}
+              {actions && (actionsHeader ? <th>{actionsHeader}</th> : <th aria-label="Actions" />)}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {pager.visible.map((r, i) => (
+              <tr key={rowKey ? rowKey(r) : String(r.id ?? i)} data-clickable={!!onRowClick} onClick={onRowClick ? () => onRowClick(r) : undefined}>
+                {columns.map((c) => (
+                  <td key={c.key} className={c.align === 'right' ? 'oc-num' : undefined} style={{ textAlign: c.align }}>
+                    {c.render ? c.render(r) : (r[c.key] as React.ReactNode) ?? <span className="oc-muted">—</span>}
+                  </td>
+                ))}
+                {actions && <td className="oc-actions" onClick={(e) => e.stopPropagation()}>{actions(r)}</td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {server ? <ServerPager {...server} /> : <Pager {...pager} />}
     </div>
   );
 }

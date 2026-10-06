@@ -107,7 +107,11 @@ func (s *Server) Handler() http.Handler {
 		})
 	}
 	for _, rt := range s.Registry.Routes() {
-		r.Method(rt.Method, rt.Path, s.wrap(rt))
+		var h http.Handler = s.wrap(rt)
+		if rt.List && rt.Method == http.MethodGet {
+			h = httpx.Paged(h) // ?limit=&cursor= → one page per response (see httpx/paged.go)
+		}
+		r.Method(rt.Method, rt.Path, h)
 	}
 	return r
 }
@@ -321,7 +325,13 @@ func (s *Server) authorize(ctx context.Context, r *http.Request, rt *route.Route
 	}
 	p, err := s.Auth.Authenticate(ctx, r)
 	if err != nil {
-		return ctx, err
+		if rt.Auth != route.AuthPublic {
+			return ctx, err
+		}
+		// A public route serves anonymous callers: an expired or revoked
+		// session cookie must not lock the browser out of the bootstrap and
+		// the login page.
+		p = nil
 	}
 	if p != nil {
 		ctx = authz.WithPrincipal(ctx, p)

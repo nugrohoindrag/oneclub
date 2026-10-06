@@ -71,6 +71,9 @@ func (a *App) buildP3(reg *route.Registry, cfg *config.Config, db *dbtx.DB, file
 	a.BillingHTTP = billingHTTP
 	billingHTTP.WebsiteURL = func() string { return cfg.WebsiteURL }
 	billingHTTP.RegisterP3(reg)
+	billingHTTP.RegisterBillingWorkspace(reg) // Revenue & Billing → Billing workspace (Accountant)
+	billingHTTP.Tax = commercialTax{}
+	billingHTTP.RegisterInvoiceWorkspace(reg) // Create Invoice workspace: manual invoices, preview, documents
 	a.Approvals.RegisterDocumentType(billing.WriteOffDocumentType, billingHTTP.WriteOffDecision)
 	a.Approvals.RegisterDocumentType(billing.CreditOverrideDocumentType, billingHTTP.CreditOverrideDecision)
 	a.Approvals.RegisterDocumentType(billing.ReopenDocumentType, billingHTTP.ReopenDecision)
