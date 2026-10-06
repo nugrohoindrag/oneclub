@@ -24,6 +24,10 @@ var defaults = map[string]map[string]tpl{
 		"en": {"{{.documentType}} {{.decision}}: {{.title}}", "Your request \"{{.title}}\" ({{.documentRef}}) was {{.decision}} by {{.deciderName}}.{{if .reason}}\n\nReason: {{.reason}}{{end}}\n\n{{.link}}"},
 		"id": {"{{.documentType}} {{.decision}}: {{.title}}", "Pengajuan \"{{.title}}\" ({{.documentRef}}) telah {{.decision}} oleh {{.deciderName}}.{{if .reason}}\n\nAlasan: {{.reason}}{{end}}\n\n{{.link}}"},
 	},
+	"approval.revision_requested": {
+		"en": {"Revision requested: {{.title}}", "{{.deciderName}} returned your request \"{{.title}}\" ({{.documentRef}}) for revision.\n\nReason: {{.reason}}\n\nRevise and resubmit it, or cancel it: {{.link}}"},
+		"id": {"Perlu revisi: {{.title}}", "{{.deciderName}} mengembalikan pengajuan \"{{.title}}\" ({{.documentRef}}) untuk direvisi.\n\nAlasan: {{.reason}}\n\nRevisi lalu ajukan kembali, atau batalkan: {{.link}}"},
+	},
 	"approval.reminder": {
 		"en": {"Reminder: approval overdue — {{.title}}", "\"{{.title}}\" ({{.documentRef}}) has been waiting for your approval since {{.since}} and is past its SLA.\n\n{{.link}}"},
 		"id": {"Pengingat: persetujuan terlambat — {{.title}}", "\"{{.title}}\" ({{.documentRef}}) menunggu persetujuan Anda sejak {{.since}} dan telah melewati SLA.\n\n{{.link}}"},

@@ -104,6 +104,7 @@ type Request struct {
 	CanDecide      bool           `json:"canDecide"`
 	CanCancel      bool           `json:"canCancel"`
 	Steps          []RequestStep  `json:"steps,omitempty"`
+	History        []RequestEvent `json:"history,omitempty" doc:"Approval history (detail only)"`
 }
 
 type DecisionRequest struct {
@@ -648,11 +649,16 @@ func (h *HTTP) loadDetail(r *http.Request, tx pgx.Tx, rid uuid.UUID) (Request, e
 		x.CanDecide = ok
 	}
 	x.CanCancel = x.RequestedBy == p.UserID && (x.Status == StatusPending || x.Status == StatusDraft)
+	if x.History, err = history(ctx, tx, rid); err != nil {
+		return x, err
+	}
 	// Visible to the requester, any approver of any step, or view_all.
 	if x.RequestedBy != p.UserID && !x.CanDecide && !p.Can("platform.approval.view_all", &x.PropertyID) {
 		var involved bool
+		// (an approver who returned it for revision stays involved: the steps are rebuilt)
 		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM platform.approval_request_steps WHERE request_id = $1 AND
-			(decided_by = $2 OR approver_user_id = $2))`, rid, p.UserID).Scan(&involved); err != nil {
+			(decided_by = $2 OR approver_user_id = $2)) OR EXISTS (SELECT 1 FROM audit.audit_log WHERE entity_type = 'platform.approval_request'
+			AND entity_id = $3 AND actor_id = $2)`, rid, p.UserID, rid.String()).Scan(&involved); err != nil {
 			return x, err
 		}
 		if !involved {
@@ -704,6 +710,8 @@ func (h *HTTP) action(kind string) http.HandlerFunc {
 				err = h.E.Decide(ctx, tx, rid, true, req.Reason)
 			case "reject":
 				err = h.E.Decide(ctx, tx, rid, false, req.Reason)
+			case "request-revision":
+				err = h.E.RequestRevision(ctx, tx, rid, req.Reason)
 			case "cancel":
 				err = h.E.Cancel(ctx, tx, rid, req.Reason)
 			case "submit":
@@ -894,6 +902,9 @@ func (h *HTTP) Register(reg *route.Registry) {
 		Request: DecisionRequest{}, Response: Request{}, Status: http.StatusOK, Handler: h.action("approve")})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/platform/approvals/{id}:reject", Summary: "Reject (reason required)",
 		Request: DecisionRequest{}, Response: Request{}, Status: http.StatusOK, Handler: h.action("reject")})
+	add(route.Route{Method: http.MethodPost, Path: "/api/v1/platform/approvals/{id}:request-revision",
+		Summary: "Return to the requester for revision (reason required; back to draft, resubmitted with :submit)",
+		Request: DecisionRequest{}, Response: Request{}, Status: http.StatusOK, Handler: h.action("request-revision")})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/platform/approvals/{id}:cancel", Summary: "Cancel (requester, while pending)",
 		Request: DecisionRequest{}, Response: Request{}, Status: http.StatusOK, Handler: h.action("cancel")})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/platform/approvals/{id}:submit", Summary: "Submit a draft",

@@ -9,6 +9,7 @@ import {
 import { ActionButton, KV, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
 import { registerEssSection, useUrlTab } from './hr';
+import { LoansWorkspace } from './hr-loans';
 import { PAYOUTS_OPS_ROUTES, PAYOUTS_OPS_TILES, PAYOUTS_ROUTES } from './payouts';
 
 // PRD P5 — payroll (EP-09 Payroll Engine, EP-10 PPh 21 & BPJS, EP-15 Payroll Accounting, Payment & Payslip): HRIS → Payroll (runs with
@@ -105,7 +106,7 @@ function Dl({ label: text, path, file, icon = 'download' }: { label: string; pat
 // ── HRIS → Payroll ────────────────────────────────────────────────────────
 
 const PAYROLL_TABS: Option[] = [
-  { value: 'runs', label: 'Payroll Runs' }, { value: 'adjustments', label: 'Adjustments & Bonuses' }, { value: 'loans', label: 'Loans' },
+  { value: 'runs', label: 'Payroll Runs' }, { value: 'adjustments', label: 'Adjustments & Bonuses' }, { value: 'loans', label: 'Loans & Advances' },
   { value: 'structures', label: 'Salary Structures' }, { value: 'components', label: 'Pay Components' }, { value: 'rates', label: 'Statutory Rates' },
   { value: 'exports', label: 'Exports & Imports' },
 ];
@@ -118,7 +119,7 @@ export function PayrollPage() {
       <Tabs tabs={PAYROLL_TABS} value={tab} onChange={setTab} />
       {tab === 'runs' && <RunList />}
       {tab === 'adjustments' && <AdjustmentList />}
-      {tab === 'loans' && <AutoResourcePage resourceKey="hris.employee_loan" />}
+      {tab === 'loans' && <LoansWorkspace />}
       {tab === 'structures' && <StructureList />}
       {tab === 'components' && <Components />}
       {tab === 'rates' && <RateList />}
@@ -217,7 +218,8 @@ export function PayrollRunPage() {
           ['Paid', r.paidOn ? `${date(r.paidOn)} · ${val(r.paymentReference)}` : '—'], ['Decision', val(r.decisionNote)],
         ]} />
       </Card>
-      {(can('accounting.journal.view') || can('accounting.posting.view')) && ['approved', 'posted', 'paid'].includes(st) && <FinancePosting runId={id} status={st} />}
+      {['draft', 'calculated'].includes(st) && Number(r.calculationCount) > 0 && <RunExceptions runId={id} canFix={can('hris.payroll_run.manage')} />}
+      {['approved', 'posted', 'paid'].includes(st) && <FinancePosting run={r} />}
       {can('hris.payroll_run.pay') && ['approved', 'posted', 'paid'].includes(st) && (
         <div className="oc-row-wrap">
           <SelectField label="Bank file layout" value={layout} onChange={setLayout} options={[{ value: 'generic_csv', label: 'Generic CSV' }, { value: 'bca_payroll', label: 'BCA payroll (fixed width)' }]} />
@@ -245,23 +247,31 @@ export function PayrollRunPage() {
 const RUN_LABELS: Record<string, string> = { submitted: 'Under review', posted: 'Posted to Finance' };
 
 /**
- * Integration with Finance & Accounting of a posted run: the payroll journal
- * and the payment journal booked from hris.payroll_posted / hris.payroll_paid
- * (looked up by source), or the open posting exceptions with their error and
- * a repost; nothing yet while the events wait in the outbox.
+ * Integration with Finance & Accounting of a posted run: the status the run
+ * follows from accounting's events (Posted to Finance / Posting failed with
+ * the reason), the payroll and payment journals booked from
+ * hris.payroll_posted / hris.payroll_paid (looked up by source) and the open
+ * posting exceptions with a repost, for users of Accounting.
  */
-function FinancePosting({ runId, status }: { runId: string; status: string }) {
+function FinancePosting({ run }: { run: R }) {
   const { can } = useAuth();
   const ACC = '/api/v1/accounting';
+  const runId = String(run.id);
+  const status = String(run.status);
   const journals = useGet<Page<R>>(can('accounting.journal.view') ? `${ACC}/journals?filter[sourceId]=${runId}&limit=20` : null);
   const exceptions = useGet<Page<R>>(can('accounting.posting.view') ? `${ACC}/posting-exceptions?filter[status]=open&limit=200` : null);
   const failed = (exceptions.data?.items ?? []).filter((e) => String(e.eventType).startsWith('hris.payroll_')
     && (e.sourceId === runId || (e.eventPayload as R | undefined)?.runId === runId));
   const booked = journals.data?.items ?? [];
-  const [tone, text] = failed.length ? ['error', 'Posting failed'] : booked.length ? ['approved', 'Posted to Finance']
-    : ['pending', status === 'posted' || status === 'paid' ? 'Posting in progress' : 'Not posted yet'];
+  const [tone, text] = ({ failed: ['error', 'Posting failed'], posted: ['approved', 'Posted to Finance'], pending: ['pending', 'Posting in progress'] } as
+    Record<string, [string, string]>)[String(run.financeStatus)] ?? ['pending', 'Not posted yet'];
+  const numbers = (run.financeJournals as string[] | undefined) ?? [];
   return (
     <Card title="Finance & Accounting" icon="account_balance" actions={<StatusPill status={tone} label={text} />}>
+      {run.financeStatus === 'failed' && !failed.length && (
+        <div className="oc-alert oc-alert-error" role="alert">{String(run.financeMessage ?? 'Accounting could not book the payroll journal')}. {can('accounting.posting.manage') ? '' : 'Ask Finance to fix the mapping and retry the posting.'}</div>
+      )}
+      {numbers.length > 0 && !booked.length && <p className="oc-small" style={{ margin: 0 }}>Journals: {numbers.join(', ')}</p>}
       {failed.map((e) => (
         <div key={String(e.id)} className="oc-alert oc-alert-error oc-row-wrap" role="alert">
           <span>{label(e.reason)}: {String(e.message ?? '')}{Number(e.attempts) ? ` · ${String(e.attempts)} attempts` : ''}</span>
@@ -725,3 +735,47 @@ export const PAYROLL_ROUTES: AreaRoute[] = [
 ];
 export const PAYROLL_OPS_TILES: OpsTile[] = [...PAYOUTS_OPS_TILES];
 export const PAYROLL_OPS_ROUTES: OpsRoute[] = [...PAYOUTS_OPS_ROUTES];
+
+// ── Payroll exception queue (HRIS phase B, spec §35) ─────────────────────
+
+// Where each exception is fixed: the employee workspace, attendance or the runs.
+const EXCEPTION_FIX: Record<string, { text: string; to: (x: R, run: string) => string }> = {
+  negative_net: { text: 'Payslip & adjustments', to: (x) => `/hris/employees/${String(x.employeeId)}?tab=payroll` },
+  duplicate_payroll: { text: 'Payroll runs', to: () => '/hris/payroll?tab=runs' },
+  missing_salary: { text: 'Contract', to: (x) => `/hris/employees/${String(x.employeeId)}` },
+  missing_contract: { text: 'Contract', to: (x) => `/hris/employees/${String(x.employeeId)}` },
+  missing_tax_profile: { text: 'Employee data', to: (x) => `/hris/employees/${String(x.employeeId)}` },
+  missing_tax_id: { text: 'Employee data', to: (x) => `/hris/employees/${String(x.employeeId)}` },
+  missing_bpjs: { text: 'Employee data', to: (x) => `/hris/employees/${String(x.employeeId)}` },
+  missing_bank: { text: 'Bank account', to: (x) => `/hris/employees/${String(x.employeeId)}` },
+  attendance_exception: { text: 'Attendance', to: (x) => `/hris/employees/${String(x.employeeId)}?tab=attendance` },
+  employee_suspended: { text: 'Employee', to: (x) => `/hris/employees/${String(x.employeeId)}` },
+};
+
+/** View → Fix → Revalidate: the exceptions of the last calculation; errors block the submission. */
+function RunExceptions({ runId, canFix }: { runId: string; canFix: boolean }) {
+  const [sev, setSev] = useState('');
+  const list = useGet<Page<R>>(`${HR}/payroll-runs/${runId}/exceptions`);
+  const all = list.data?.items ?? [];
+  const errors = all.filter((x) => x.severity === 'error').length;
+  const rows = all.filter((x) => !sev || x.severity === sev).map((x, i) => ({ ...x, id: `${String(x.slipId)}-${String(x.code)}-${i}` } as R));
+  if (!list.isLoading && !list.error && all.length === 0) return null;
+  return (
+    <Card title="Exceptions" icon="rule" actions={<>
+      <StatusPill status={errors ? 'error' : 'pending'} label={errors ? `${errors} blocking` : `${all.length} warning(s)`} />
+      {canFix && <Act label="Revalidate" path={`${HR}/payroll-runs/${runId}:calculate`} kind="neutral" />}
+    </>}>
+      {errors > 0 && <div className="oc-alert oc-alert-error" role="alert">Fix the blocking exceptions and revalidate (recalculate) before submitting the run for approval.</div>}
+      <FilterPills options={[{ value: '', label: 'All' }, { value: 'error', label: 'Blocking' }, { value: 'warning', label: 'Warnings' }]} value={sev} onChange={setSev} />
+      <DataTable rows={rows} loading={list.isLoading} error={list.error} columns={[
+        { key: 'severity', header: 'Severity', render: (x) => <StatusPill status={x.severity === 'error' ? 'error' : 'pending'} label={x.severity === 'error' ? 'Blocking' : 'Warning'} /> },
+        { key: 'employeeName', header: 'Employee', render: (x) => `${String(x.employeeName)} (${String(x.employeeNo)})` },
+        { key: 'code', header: 'Exception', render: (x) => label(x.code) },
+        { key: 'message', header: 'Detail' },
+      ]} actions={(x) => {
+        const fix = EXCEPTION_FIX[String(x.code)];
+        return fix ? <Link className="oc-btn oc-btn-text oc-btn-sm" to={fix.to(x, runId)}>Fix: {fix.text}</Link> : null;
+      }} />
+    </Card>
+  );
+}

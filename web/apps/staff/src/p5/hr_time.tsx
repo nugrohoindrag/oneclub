@@ -11,6 +11,7 @@ import { KV, Tabs, today, type R } from '../p1/common';
 import { ScanField } from '../p4/inventory';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
 import { registerEssSection, useUrlTab } from './hr';
+import { WORKFORCE_ROUTES } from './hr-workforce';
 
 // PRD P5 — schedules, attendance, leave & overtime (EP-06–08). Back Office routes (HRIS → Schedules, Attendance, Leave &
 // Permission, Overtime), the Attendance Kiosk of the ops shell (QR / PIN on a registered device, offline queue) and the
@@ -1269,6 +1270,7 @@ export const HR_TIME_ROUTES: AreaRoute[] = [
   { path: 'hris/attendance', perm: 'hris.attendance.view', element: <AttendancePage /> },
   { path: 'hris/leave', perm: 'hris.leave_request.view', element: <LeavePage /> },
   { path: 'hris/overtime', perm: 'hris.overtime_request.view', element: <OvertimePage /> },
+  ...WORKFORCE_ROUTES, // HRIS phase B (spec §8)
 ];
 
 export const HR_TIME_OPS_TILES: OpsTile[] = [['qr_code_scanner', 'Attendance Kiosk', '/ops/attendance-kiosk', 'hris.attendance.kiosk']];

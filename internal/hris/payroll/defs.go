@@ -73,7 +73,7 @@ func (m *Module) Defs() []*resource.Def {
 			{Name: "repaid", Column: "repaid", Label: "Repaid", Kind: resource.Decimal, ReadOnly: true},
 			{Name: "reference", Column: "reference", Label: "Reference", Kind: resource.String, Max: 60, Search: true},
 			{Name: "notes", Column: "notes", Label: "Notes", Kind: resource.Text, Max: 2000},
-			resource.Status("active", "settled", "cancelled")},
+			resource.Status("active", "settled", "cancelled", "submitted", "approved", "rejected")},
 		Hooks: resource.Hooks{BeforeWrite: loanBeforeWrite},
 	}
 	return []*resource.Def{components, loans}
@@ -109,13 +109,30 @@ func componentBeforeWrite(_ context.Context, _ pgx.Tx, values, before map[string
 	return nil
 }
 
-func loanBeforeWrite(_ context.Context, _ pgx.Tx, values, before map[string]any) error {
+func loanBeforeWrite(ctx context.Context, tx pgx.Tx, values, before map[string]any) error {
+	// requests go through :request and the approval engine; a loan entered
+	// here is already paid (active)
+	if st, ok := values["status"].(string); ok {
+		was := str(value(nil, before, "status"))
+		if (before == nil && st != "active") || (before != nil && st != was && (!oneOf([]string{"active", "settled", "cancelled"}, st) ||
+			!oneOf([]string{"active", "settled", "cancelled"}, was))) {
+			return handle.Invalid("status", "invalid", "a loan request changes status through approval, payment and cancellation")
+		}
+	}
 	principal, installment := dec(decString(value(values, before, "principal"))), dec(decString(value(values, before, "installment")))
 	if installment.GreaterThan(principal) {
 		return handle.Invalid("installment", "invalid", "the installment cannot exceed the principal")
 	}
 	if before != nil && principal.LessThan(dec(decString(before["repaid"]))) {
 		return handle.Invalid("principal", "invalid", "the principal cannot be less than the amount already repaid")
+	}
+	// the amount of a request is approved (and paid) as submitted: it changes only while submitted (revision)
+	if _, changed := values["principal"]; changed && before != nil && !dec(decString(before["principal"])).Equal(principal) {
+		var requested bool
+		if err := tx.QueryRow(ctx, `SELECT number IS NOT NULL AND status <> 'submitted' FROM hris.employee_loans WHERE id = $1::uuid`, str(before["id"])).
+			Scan(&requested); err == nil && requested {
+			return handle.Invalid("principal", "invalid", "the amount of an approved request cannot change; cancel it and request again")
+		}
 	}
 	return nil
 }

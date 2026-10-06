@@ -31302,6 +31302,15 @@
         ],
         "type": "object"
       },
+      "EmployeeActivateRequest": {
+        "properties": {
+          "joinDate": {
+            "description": "Default: the join date of the draft",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "EmployeeBankAccount": {
         "properties": {
           "accountName": {
@@ -31858,6 +31867,27 @@
           "supervisorName": {
             "nullable": true,
             "type": "string"
+          },
+          "workStatus": {
+            "description": "Work status today (HRIS phase B)",
+            "enum": [
+              "active",
+              "draft",
+              "on_leave",
+              "suspended",
+              "leaving",
+              "terminated",
+              "inactive"
+            ],
+            "type": "string"
+          },
+          "workStatusNote": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/WorkStatus"
+              }
+            ],
+            "nullable": true
           }
         },
         "required": [
@@ -31867,7 +31897,8 @@
           "expiringDocuments",
           "certifications",
           "certificationGaps",
-          "serviceMonths"
+          "serviceMonths",
+          "workStatus"
         ],
         "type": "object"
       },
@@ -32417,6 +32448,132 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "EmployeeLoan": {
+        "properties": {
+          "approvalRequestId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "decidedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "decisionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "disbursedOn": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "disbursementMethod": {
+            "nullable": true,
+            "type": "string"
+          },
+          "disbursementRef": {
+            "nullable": true,
+            "type": "string"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "employeeNo": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "installment": {
+            "type": "string"
+          },
+          "installments": {
+            "description": "Remaining installments (tenor left)",
+            "type": "integer"
+          },
+          "loanType": {
+            "enum": [
+              "loan",
+              "cash_advance"
+            ],
+            "type": "string"
+          },
+          "number": {
+            "nullable": true,
+            "type": "string"
+          },
+          "orgUnitName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "outstanding": {
+            "type": "string"
+          },
+          "principal": {
+            "type": "string"
+          },
+          "purpose": {
+            "nullable": true,
+            "type": "string"
+          },
+          "reference": {
+            "nullable": true,
+            "type": "string"
+          },
+          "repaid": {
+            "type": "string"
+          },
+          "requestSource": {
+            "enum": [
+              "hr",
+              "ess"
+            ],
+            "type": "string"
+          },
+          "startPeriod": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "submitted",
+              "approved",
+              "rejected",
+              "active",
+              "settled",
+              "cancelled"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "employeeId",
+          "employeeNo",
+          "employeeName",
+          "loanType",
+          "principal",
+          "installment",
+          "startPeriod",
+          "repaid",
+          "outstanding",
+          "installments",
+          "requestSource",
+          "status",
+          "createdAt"
+        ],
         "type": "object"
       },
       "EmployeeOrgUnit": {
@@ -33069,9 +33226,10 @@
             "type": "string"
           },
           "status": {
-            "description": "Status",
+            "description": "Status (draft = not yet hired)",
             "enum": [
               "active",
+              "draft",
               "inactive"
             ],
             "nullable": true,
@@ -33080,6 +33238,23 @@
           "supervisorId": {
             "description": "Supervisor",
             "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "suspendedFrom": {
+            "description": "Suspended From",
+            "format": "date",
+            "nullable": true,
+            "type": "string"
+          },
+          "suspendedUntil": {
+            "description": "Suspended Until",
+            "format": "date",
+            "nullable": true,
+            "type": "string"
+          },
+          "suspensionReason": {
+            "description": "Suspension Reason",
             "nullable": true,
             "type": "string"
           },
@@ -33339,6 +33514,16 @@
             "nullable": true,
             "type": "string"
           },
+          "status": {
+            "description": "Status (draft = not yet hired)",
+            "enum": [
+              "active",
+              "draft",
+              "inactive"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
           "supervisorId": {
             "description": "Supervisor",
             "format": "uuid",
@@ -33430,6 +33615,26 @@
           "attendanceAmount",
           "redistributed",
           "amount"
+        ],
+        "type": "object"
+      },
+      "EmployeeSuspendRequest": {
+        "properties": {
+          "from": {
+            "description": "First day (YYYY-MM-DD)",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "until": {
+            "description": "Last day; empty = until reinstated",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "reason"
         ],
         "type": "object"
       },
@@ -41377,7 +41582,12 @@
               "documents_expiring",
               "documents_expired",
               "certifications_expired",
-              "payroll_warnings"
+              "payroll_warnings",
+              "payroll_posting_failed",
+              "loan_requests",
+              "loans_to_pay",
+              "employees_draft",
+              "employees_suspended"
             ],
             "type": "string"
           }
@@ -52044,6 +52254,163 @@
         "required": [
           "created",
           "total"
+        ],
+        "type": "object"
+      },
+      "LoanCancelInput": {
+        "properties": {
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "note"
+        ],
+        "type": "object"
+      },
+      "LoanDisburseInput": {
+        "properties": {
+          "bankAccountCode": {
+            "description": "GL cash / bank account code (empty: the default account of the method)",
+            "type": "string"
+          },
+          "disbursedOn": {
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ],
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "disbursedOn",
+          "method"
+        ],
+        "type": "object"
+      },
+      "LoanMovement": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "balance": {
+            "description": "Outstanding after the movement",
+            "type": "string"
+          },
+          "date": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "disbursement",
+              "payroll",
+              "repayment"
+            ],
+            "type": "string"
+          },
+          "reference": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "kind",
+          "amount",
+          "balance"
+        ],
+        "type": "object"
+      },
+      "LoanRepayInput": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "bankAccountCode": {
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ],
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "paidOn": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "paidOn",
+          "amount",
+          "method"
+        ],
+        "type": "object"
+      },
+      "LoanRequestInput": {
+        "properties": {
+          "employeeId": {
+            "description": "HR request: the employee (ESS: yourself)",
+            "format": "uuid",
+            "type": "string"
+          },
+          "installment": {
+            "description": "Per payroll period; default the principal (one deduction)",
+            "type": "string"
+          },
+          "loanType": {
+            "enum": [
+              "loan",
+              "cash_advance"
+            ],
+            "type": "string"
+          },
+          "principal": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "startPeriod": {
+            "description": "First deduction period YYYY-MM; default next month",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loanType",
+          "principal",
+          "purpose"
+        ],
+        "type": "object"
+      },
+      "LoanStatement": {
+        "properties": {
+          "loan": {
+            "$ref": "#/components/schemas/EmployeeLoan"
+          },
+          "movements": {
+            "items": {
+              "$ref": "#/components/schemas/LoanMovement"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "loan",
+          "movements"
         ],
         "type": "object"
       },
@@ -69147,7 +69514,10 @@
             "enum": [
               "active",
               "settled",
-              "cancelled"
+              "cancelled",
+              "submitted",
+              "approved",
+              "rejected"
             ],
             "nullable": true,
             "type": "string"
@@ -69216,12 +69586,69 @@
             "enum": [
               "active",
               "settled",
-              "cancelled"
+              "cancelled",
+              "submitted",
+              "approved",
+              "rejected"
             ],
             "nullable": true,
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "PayrollException": {
+        "properties": {
+          "code": {
+            "enum": [
+              "negative_net",
+              "duplicate_payroll",
+              "missing_salary",
+              "missing_contract",
+              "missing_tax_profile",
+              "missing_tax_id",
+              "missing_bpjs",
+              "missing_bank",
+              "attendance_exception",
+              "employee_suspended",
+              "other"
+            ],
+            "type": "string"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "employeeNo": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warning"
+            ],
+            "type": "string"
+          },
+          "slipId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "severity",
+          "employeeId",
+          "employeeNo",
+          "employeeName",
+          "slipId",
+          "message"
+        ],
         "type": "object"
       },
       "PayrollImportIssue": {
@@ -69802,6 +70229,33 @@
           "employerCost": {
             "type": "string"
           },
+          "financeJournals": {
+            "description": "Journal numbers booked by Accounting",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "financeMessage": {
+            "description": "Why the posting failed",
+            "nullable": true,
+            "type": "string"
+          },
+          "financeStatus": {
+            "description": "Outcome of the posting in Finance \u0026 Accounting",
+            "enum": [
+              "not_posted",
+              "pending",
+              "posted",
+              "failed"
+            ],
+            "type": "string"
+          },
+          "financeUpdatedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
           "gross": {
             "type": "string"
           },
@@ -69985,6 +70439,8 @@
           "policyRefs",
           "bankFileCount",
           "parallelSignOffs",
+          "financeStatus",
+          "financeJournals",
           "createdAt",
           "updatedAt"
         ],
@@ -83466,6 +83922,13 @@
           "documentType": {
             "type": "string"
           },
+          "history": {
+            "description": "Approval history (detail only)",
+            "items": {
+              "$ref": "#/components/schemas/RequestEvent"
+            },
+            "type": "array"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -83516,6 +83979,35 @@
           "createdAt",
           "canDecide",
           "canCancel"
+        ],
+        "type": "object"
+      },
+      "RequestEvent": {
+        "properties": {
+          "action": {
+            "description": "create | approval_approved | approval_rejected | approval_revision_requested | approval_submitted | approval_cancelled | approver_reassigned",
+            "type": "string"
+          },
+          "actorName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "reason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "stepNo": {
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "at",
+          "action"
         ],
         "type": "object"
       },
@@ -109742,6 +110234,45 @@
         ],
         "type": "object"
       },
+      "WorkStatus": {
+        "properties": {
+          "employeeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "note": {
+            "description": "Leave type, suspension reason or leaving type",
+            "nullable": true,
+            "type": "string"
+          },
+          "since": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "until": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "workStatus": {
+            "enum": [
+              "draft",
+              "on_leave",
+              "suspended",
+              "leaving",
+              "terminated",
+              "inactive"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "employeeId",
+          "workStatus"
+        ],
+        "type": "object"
+      },
       "Workflow": {
         "properties": {
           "documentType": {
@@ -109905,6 +110436,289 @@
             "type": "array"
           }
         },
+        "type": "object"
+      },
+      "WorkforceGap": {
+        "properties": {
+          "gap": {
+            "type": "integer"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/WorkforcePlan"
+          },
+          "required": {
+            "description": "Sum over days and lines",
+            "type": "integer"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/WorkforceGapRow"
+            },
+            "type": "array"
+          },
+          "scheduled": {
+            "type": "integer"
+          },
+          "shortage": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "plan",
+          "required",
+          "scheduled",
+          "gap",
+          "shortage",
+          "rows"
+        ],
+        "type": "object"
+      },
+      "WorkforceGapRow": {
+        "properties": {
+          "available": {
+            "description": "Active employees of the department (and position) not on leave or suspended",
+            "type": "integer"
+          },
+          "date": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "gap": {
+            "description": "Required − scheduled (≥ 0): still to assign",
+            "type": "integer"
+          },
+          "lineNo": {
+            "type": "integer"
+          },
+          "positionName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "required": {
+            "type": "integer"
+          },
+          "scheduled": {
+            "description": "Assigned in the shift schedules",
+            "type": "integer"
+          },
+          "shiftName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "shortage": {
+            "description": "Required − available (≥ 0): to hire, borrow or cover with overtime",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "lineNo",
+          "required",
+          "available",
+          "scheduled",
+          "gap",
+          "shortage"
+        ],
+        "type": "object"
+      },
+      "WorkforcePlan": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lineCount": {
+            "type": "integer"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/WorkforcePlanLine"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "orgUnitId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "orgUnitName": {
+            "type": "string"
+          },
+          "periodEnd": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodStart": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "scenario": {
+            "enum": [
+              "normal",
+              "weekend",
+              "holiday",
+              "peak_season",
+              "low_season",
+              "tournament",
+              "event"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "active",
+              "archived"
+            ],
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "name",
+          "orgUnitId",
+          "orgUnitName",
+          "periodStart",
+          "periodEnd",
+          "scenario",
+          "status",
+          "lineCount",
+          "updatedAt"
+        ],
+        "type": "object"
+      },
+      "WorkforcePlanInput": {
+        "properties": {
+          "fromRequirements": {
+            "description": "Create: copy the staffing requirements of the department when no lines are given",
+            "type": "boolean"
+          },
+          "lines": {
+            "description": "Replaces the lines",
+            "items": {
+              "$ref": "#/components/schemas/WorkforcePlanLineInput"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "orgUnitId": {
+            "description": "Create only",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "periodEnd": {
+            "description": "At most 93 days",
+            "type": "string"
+          },
+          "periodStart": {
+            "type": "string"
+          },
+          "scenario": {
+            "enum": [
+              "normal",
+              "weekend",
+              "holiday",
+              "peak_season",
+              "low_season",
+              "tournament",
+              "event"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "WorkforcePlanLine": {
+        "properties": {
+          "lineNo": {
+            "type": "integer"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "positionId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "positionName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "required": {
+            "type": "integer"
+          },
+          "shiftName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "shiftTemplateId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "workDate": {
+            "description": "Empty: every day of the period",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "lineNo",
+          "required"
+        ],
+        "type": "object"
+      },
+      "WorkforcePlanLineInput": {
+        "properties": {
+          "notes": {
+            "type": "string"
+          },
+          "positionId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "required": {
+            "type": "integer"
+          },
+          "shiftTemplateId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "workDate": {
+            "description": "YYYY-MM-DD within the period; empty = every day",
+            "type": "string"
+          }
+        },
+        "required": [
+          "required"
+        ],
         "type": "object"
       },
       "WriteOff": {
@@ -208522,6 +209336,332 @@
         "x-permission": "hris.ess.use"
       }
     },
+    "/api/v1/ess/loans": {
+      "get": {
+        "operationId": "getEssLoans",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/EmployeeLoan"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My loans and cash advances",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      },
+      "post": {
+        "operationId": "postEssLoans",
+        "parameters": [
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoanRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeLoan"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Request a loan or cash advance",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
+    "/api/v1/ess/loans/{id}/statement": {
+      "get": {
+        "operationId": "getEssLoansByIdStatement",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoanStatement"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My loan statement",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
+    "/api/v1/ess/loans/{id}:cancel": {
+      "post": {
+        "operationId": "postEssLoansByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoanCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeLoan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Withdraw my loan request",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
     "/api/v1/ess/me": {
       "get": {
         "operationId": "getEssMe",
@@ -254070,6 +255210,363 @@
         "x-permission": "hris.employee_loan.update"
       }
     },
+    "/api/v1/hris/employee-loans/{id}/statement": {
+      "get": {
+        "operationId": "getHrisEmployeeLoansByIdStatement",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoanStatement"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Loan statement: payment, installments, repayments",
+        "tags": [
+          "HRIS Payroll"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.employee_loan.view"
+      }
+    },
+    "/api/v1/hris/employee-loans/{id}:cancel": {
+      "post": {
+        "operationId": "postHrisEmployeeLoansByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoanCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeLoan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel a loan request not yet paid (a pending approval is withdrawn by its requester)",
+        "tags": [
+          "HRIS Payroll"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.employee_loan.update"
+      }
+    },
+    "/api/v1/hris/employee-loans/{id}:disburse": {
+      "post": {
+        "operationId": "postHrisEmployeeLoansByIdDisburse",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoanDisburseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeLoan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Record the payment of an approved loan / cash advance by Finance (active; payroll deducts the installments)",
+        "tags": [
+          "HRIS Payroll"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.employee_loan.pay"
+      }
+    },
+    "/api/v1/hris/employee-loans/{id}:repay": {
+      "post": {
+        "operationId": "postHrisEmployeeLoansByIdRepay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoanRepayInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeLoan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Record a repayment outside payroll (cash returned, transfer)",
+        "tags": [
+          "HRIS Payroll"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.employee_loan.pay"
+      }
+    },
     "/api/v1/hris/employee-loans:export": {
       "get": {
         "operationId": "getHrisEmployeeLoansExport",
@@ -254197,6 +255694,216 @@
         ],
         "x-module": "hris",
         "x-permission": "hris.employee_loan.export"
+      }
+    },
+    "/api/v1/hris/employee-loans:request": {
+      "post": {
+        "operationId": "postHrisEmployeeLoansRequest",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoanRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeLoan"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Request a loan or cash advance for an employee (approval engine; approved at once without a workflow)",
+        "tags": [
+          "HRIS Payroll"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.employee_loan.create"
+      }
+    },
+    "/api/v1/hris/employee-work-status": {
+      "get": {
+        "operationId": "getHrisEmployeeWorkStatus",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "workStatus",
+            "schema": {
+              "enum": [
+                "draft",
+                "on_leave",
+                "suspended",
+                "leaving",
+                "terminated",
+                "inactive"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/WorkStatus"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Employees not plainly active today: draft, on leave, suspended, leaving, terminated",
+        "tags": [
+          "HRIS Employees"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.employee.view"
       }
     },
     "/api/v1/hris/employees": {
@@ -255552,6 +257259,98 @@
         "x-permission": "hris.performance_review.view"
       }
     },
+    "/api/v1/hris/employees/{id}:activate": {
+      "post": {
+        "operationId": "postHrisEmployeesByIdActivate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeActivateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Hire a draft employee (employment history, onboarding)",
+        "tags": [
+          "HRIS Employees"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.employee.create"
+      }
+    },
     "/api/v1/hris/employees/{id}:cancel-termination": {
       "post": {
         "operationId": "postHrisEmployeesByIdCancelTermination",
@@ -255826,6 +257625,190 @@
         "x-audited": true,
         "x-module": "hris",
         "x-permission": "hris.employee.transfer"
+      }
+    },
+    "/api/v1/hris/employees/{id}:reinstate": {
+      "post": {
+        "operationId": "postHrisEmployeesByIdReinstate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorehrReasonRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "End the suspension of an employee",
+        "tags": [
+          "HRIS Employees"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.employee.suspend"
+      }
+    },
+    "/api/v1/hris/employees/{id}:suspend": {
+      "post": {
+        "operationId": "postHrisEmployeesByIdSuspend",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeSuspendRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDetail"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Suspend an employee for a period (reason required)",
+        "tags": [
+          "HRIS Employees"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.employee.suspend"
       }
     },
     "/api/v1/hris/employees/{id}:terminate": {
@@ -262520,6 +264503,149 @@
         ],
         "x-module": "hris",
         "x-permission": "hris.letter_template.export"
+      }
+    },
+    "/api/v1/hris/loans": {
+      "get": {
+        "operationId": "getHrisLoans",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "submitted",
+                "approved",
+                "rejected",
+                "active",
+                "settled",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "loanType",
+            "schema": {
+              "enum": [
+                "loan",
+                "cash_advance"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "employeeId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/EmployeeLoan"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Loans and cash advances with the outstanding balance",
+        "tags": [
+          "HRIS Payroll"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.employee_loan.view"
       }
     },
     "/api/v1/hris/migration-reconciliation-metrics": {
@@ -269353,6 +271479,128 @@
           }
         ],
         "summary": "Simulation check: comparison with the previous period per employee (FR-PAY-08)",
+        "tags": [
+          "HRIS Payroll"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.payroll_run.view"
+      }
+    },
+    "/api/v1/hris/payroll-runs/{id}/exceptions": {
+      "get": {
+        "operationId": "getHrisPayrollRunsByIdExceptions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "severity",
+            "schema": {
+              "enum": [
+                "error",
+                "warning"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/PayrollException"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Exception queue of the last calculation (errors block the submission for approval)",
         "tags": [
           "HRIS Payroll"
         ],
@@ -280954,6 +283202,744 @@
         ],
         "x-module": "hris",
         "x-permission": "hris.training_session.export"
+      }
+    },
+    "/api/v1/hris/workforce-plans": {
+      "get": {
+        "operationId": "getHrisWorkforcePlans",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "orgUnitId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "draft",
+                "active",
+                "archived"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Plans covering the day",
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/WorkforcePlan"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Workforce plans",
+        "tags": [
+          "HRIS Workforce Planning"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.workforce_plan.view"
+      },
+      "post": {
+        "operationId": "postHrisWorkforcePlans",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkforcePlanInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkforcePlan"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Create a workforce plan of a department (draft)",
+        "tags": [
+          "HRIS Workforce Planning"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.workforce_plan.manage"
+      }
+    },
+    "/api/v1/hris/workforce-plans/{id}": {
+      "get": {
+        "operationId": "getHrisWorkforcePlansById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkforcePlan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Workforce plan with its lines",
+        "tags": [
+          "HRIS Workforce Planning"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.workforce_plan.view"
+      },
+      "patch": {
+        "operationId": "patchHrisWorkforcePlansById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkforcePlanInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkforcePlan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Adjust a workforce plan (header, requirements)",
+        "tags": [
+          "HRIS Workforce Planning"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.workforce_plan.manage"
+      }
+    },
+    "/api/v1/hris/workforce-plans/{id}/export": {
+      "get": {
+        "operationId": "getHrisWorkforcePlansByIdExport",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Planning result as CSV",
+        "tags": [
+          "HRIS Workforce Planning"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.workforce_plan.view"
+      }
+    },
+    "/api/v1/hris/workforce-plans/{id}/gap": {
+      "get": {
+        "operationId": "getHrisWorkforcePlansByIdGap",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkforceGap"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Gap review: required, available and scheduled per day and line",
+        "tags": [
+          "HRIS Workforce Planning"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.workforce_plan.view"
+      }
+    },
+    "/api/v1/hris/workforce-plans/{id}:activate": {
+      "post": {
+        "operationId": "postHrisWorkforcePlansByIdActivate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkforcePlan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Activate a draft plan (shown on the HR Dashboard and the schedules)",
+        "tags": [
+          "HRIS Workforce Planning"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.workforce_plan.manage"
+      }
+    },
+    "/api/v1/hris/workforce-plans/{id}:archive": {
+      "post": {
+        "operationId": "postHrisWorkforcePlansByIdArchive",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkforcePlan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Archive a plan",
+        "tags": [
+          "HRIS Workforce Planning"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.workforce_plan.manage"
       }
     },
     "/api/v1/inventory/adjustments": {
@@ -314718,6 +317704,87 @@
           }
         ],
         "summary": "Reject (reason required)",
+        "tags": [
+          "Approvals"
+        ],
+        "x-audited": true,
+        "x-module": "platform"
+      }
+    },
+    "/api/v1/platform/approvals/{id}:request-revision": {
+      "post": {
+        "operationId": "postPlatformApprovalsByIdRequestRevision",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecisionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Request"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Return to the requester for revision (reason required; back to draft, resubmitted with :submit)",
         "tags": [
           "Approvals"
         ],
@@ -356527,6 +359594,9 @@
     },
     {
       "name": "HRIS Training \u0026 Certification"
+    },
+    {
+      "name": "HRIS Workforce Planning"
     },
     {
       "name": "Hall of Fame"

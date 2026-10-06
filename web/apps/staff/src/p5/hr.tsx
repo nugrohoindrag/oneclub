@@ -162,21 +162,25 @@ function EmployeeList() {
   const [unit, setUnit] = useState(params.get('orgUnitId') ?? '');
   const [pos, setPos] = useState(params.get('positionId') ?? '');
   const leaving = params.get('terminationStatus') ?? '';
+  const drafts = params.get('status') === 'draft' ? 'draft' : '';
   const units = useUnits();
   const positions = usePositions();
   const people = useEmployees();
   const ends = useContractEnds(can('hris.contract.view'));
+  const ws = useGet<Page<R>>(`${HR}/employee-work-status`);
+  const work = Object.fromEntries((ws.data?.items ?? []).map((w) => [String(w.employeeId), w]));
   return (
     <>
       <ListPage title="Employees" help="Employee master (HRIS): organization, position, grade, employment status, contracts, documents and certifications. Identity numbers and salaries are masked by permission (UU PDP)."
-        path={`${HR}/employees`} statuses={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Left' }]}
-        extraQuery={clean({ 'filter[employmentStatus]': emp, 'filter[orgUnitId]': unit, 'filter[positionId]': pos, 'filter[terminationStatus]': leaving }) as Record<string, string>}
+        path={`${HR}/employees`} statuses={[{ value: 'active', label: 'Active' }, { value: 'draft', label: 'Draft' }, { value: 'inactive', label: 'Left' }]}
+        extraQuery={clean({ 'filter[employmentStatus]': emp, 'filter[orgUnitId]': unit, 'filter[positionId]': pos, 'filter[terminationStatus]': leaving, 'filter[status]': drafts }) as Record<string, string>}
         filters={(
           <>
             <FilterPills options={[{ value: '', label: 'All statuses' }, ...EMPLOYMENT]} value={emp} onChange={setEmp} />
             <SelectField label="Department" value={unit} onChange={setUnit} options={units} placeholder="All" />
             <SelectField label="Position" value={pos} onChange={setPos} options={positions} placeholder="All" />
             {leaving && <StatusPill status="warning" label="Leaving (scheduled)" />}
+            {drafts && <StatusPill status="draft" label="Draft employees" />}
           </>
         )}
         actions={can('hris.employee.create') && <button className="oc-btn oc-btn-ink" onClick={() => setOpen(true)}><Icon name="person_add" size={18} /> Add Employee</button>}
@@ -186,7 +190,9 @@ function EmployeeList() {
           { key: 'orgUnitId', header: 'Department', render: (r) => nameOf(units, r.orgUnitId) },
           { key: 'positionId', header: 'Position', render: (r) => (r.positionId ? nameOf(positions, r.positionId) : val(r.jobTitle)) },
           { key: 'supervisorId', header: 'Supervisor', render: (r) => nameOf(people, r.supervisorId) },
-          { key: 'employmentStatus', header: 'Employment', render: pill('employmentStatus') }, { key: 'joinDate', header: 'Joined', render: (r) => date(r.joinDate) },
+          { key: 'employmentStatus', header: 'Employment', render: pill('employmentStatus') },
+          { key: 'workStatus', header: 'Today', render: (r) => (work[String(r.id)] ? <WorkStatusPill w={work[String(r.id)]} /> : <span className='oc-muted'>Working</span>) },
+          { key: 'joinDate', header: 'Joined', render: (r) => date(r.joinDate) },
           { key: 'contractEnd', header: 'Contract ends', render: (r) => date(ends[String(r.id)]) },
           { key: 'terminationDate', header: 'Leaves', render: (r) => date(r.terminationDate) },
         ]} />
@@ -198,10 +204,12 @@ function EmployeeList() {
 function NewEmployee({ onClose, onDone }: { onClose: () => void; onDone: (r: R) => void }) {
   const positions = usePositions();
   const units = useUnits();
-  const [f, setF] = useState<Record<string, string>>({ employmentStatus: 'probation', workerCategory: 'regular', joinDate: today() });
+  const [f, setF] = useState<Record<string, string>>({ employmentStatus: 'probation', workerCategory: 'regular', joinDate: today(), status: 'active' });
   const set = (k: string) => (v: string) => setF({ ...f, [k]: v });
   return (
     <FormModal open onClose={onClose} title="Add Employee" path={`${HR}/employees`} body={() => clean(f)} onDone={onDone} wide>
+      <SelectField label="Record" value={f.status} onChange={set('status')} span
+        options={[{ value: 'active', label: 'Hire now (active)' }, { value: 'draft', label: 'Draft — prepare, activate on hire' }]} />
       <TextField label="Full name" value={f.fullName ?? ''} onChange={set('fullName')} required />
       <TextField label="Employee No." value={f.employeeNo ?? ''} onChange={set('employeeNo')} placeholder="Next number" />
       <SelectField label="Position" value={f.positionId ?? ''} onChange={set('positionId')} options={positions} placeholder="None" />
@@ -242,6 +250,7 @@ export function EmployeeDetailPage() {
         actions={<><Link className="oc-btn oc-btn-text" to="/hris/employees">All employees</Link><EmployeeActions d={d} /></>} />
       <div className="oc-row-wrap">
         <StatusPill status={String(e.employmentStatus)} label={label(e.employmentStatus)} />
+        {String(d.workStatus ?? 'active') !== 'active' && <WorkStatusPill w={(d.workStatusNote as Record<string, unknown> | null) ?? { workStatus: d.workStatus }} />}
         {e.terminationStatus === 'scheduled' && <StatusPill status="warning" label={`Leaves ${date(e.terminationDate)}`} />}
         {(d.certificationGaps as R[]).length > 0 && <StatusPill status="error" label="Certification gap" />}
         {Number(d.expiringDocuments) > 0 && <StatusPill status="pending" label={`${String(d.expiringDocuments)} documents expiring`} />}
@@ -264,8 +273,14 @@ function EmployeeActions({ d }: { d: R }) {
   const id = String(e.id);
   const [open, setOpen] = useState('');
   const active = e.status === 'active';
+  const suspended = d.workStatus === 'suspended' || (!!e.suspendedFrom && (!e.suspendedUntil || String(e.suspendedUntil) >= today()));
   return (
     <>
+      {e.status === 'draft' && can('hris.employee.create') && <button className="oc-btn oc-btn-ink oc-btn-sm" onClick={() => setOpen('activate')}>Activate (hire)</button>}
+      {active && !suspended && can('hris.employee.suspend') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setOpen('suspend')}>Suspend</button>}
+      {active && suspended && can('hris.employee.suspend') && (
+        <ActionButton label="Reinstate" path={`${HR}/employees/${id}:reinstate`} invalidate={INV} reason="optional" />
+      )}
       {active && can('hris.employee.transfer') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setOpen('transfer')}>Transfer</button>}
       {active && can('hris.employee.transfer') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setOpen('promote')}>Promote</button>}
       {active && !d.account && can('hris.employee.manage_account') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setOpen('account')}>Create Login</button>}
@@ -277,7 +292,38 @@ function EmployeeActions({ d }: { d: R }) {
       {(open === 'transfer' || open === 'promote') && <ChangeModal id={id} kind={open} onClose={() => setOpen('')} />}
       {open === 'terminate' && <TerminateModal id={id} onClose={() => setOpen('')} />}
       {open === 'account' && <AccountModal id={id} email={String(e.email ?? '')} onClose={() => setOpen('')} />}
+      {open === 'activate' && (
+        <FormModal open onClose={() => setOpen('')} title="Activate Employee" path={`${HR}/employees/${id}:activate`} submit="Activate"
+          body={() => clean({ joinDate: String(e.joinDate ?? '') })}>
+          <p className="oc-muted" style={{ margin: 0 }}>The draft becomes an active employee from the join date {date(e.joinDate)}: the hire is recorded and onboarding, attendance and payroll start.</p>
+        </FormModal>
+      )}
+      {open === 'suspend' && <SuspendModal id={id} onClose={() => setOpen('')} />}
     </>
+  );
+}
+
+// Work status of the day (HRIS phase B §34): draft, on leave, suspended, leaving, terminated.
+const WORK_STATUS: Record<string, [string, string]> = {
+  draft: ['draft', 'Draft'], on_leave: ['pending', 'On leave'], suspended: ['error', 'Suspended'], leaving: ['warning', 'Leaving'],
+  terminated: ['inactive', 'Terminated'], inactive: ['inactive', 'Inactive'],
+};
+
+export function WorkStatusPill({ w }: { w: Record<string, unknown> }) {
+  const [tone, text] = WORK_STATUS[String(w.workStatus)] ?? ['approved', 'Active'];
+  const until = w.until ? ` until ${date(w.until)}` : '';
+  return <StatusPill status={tone} label={`${text}${until}${w.note ? ` · ${label(w.note)}` : ''}`} />;
+}
+
+function SuspendModal({ id, onClose }: { id: string; onClose: () => void }) {
+  const [f, setF] = useState<Record<string, string>>({ from: today() });
+  const set = (k: string) => (v: string) => setF({ ...f, [k]: v });
+  return (
+    <FormModal open onClose={onClose} title="Suspend Employee" path={`${HR}/employees/${id}:suspend`} body={() => clean(f)} submit="Suspend">
+      <TextField label="From" type="date" value={f.from} onChange={set('from')} required />
+      <TextField label="Until (empty = until reinstated)" type="date" value={f.until ?? ''} onChange={set('until')} />
+      <TextArea label="Reason" value={f.reason ?? ''} onChange={set('reason')} span required />
+    </FormModal>
   );
 }
 

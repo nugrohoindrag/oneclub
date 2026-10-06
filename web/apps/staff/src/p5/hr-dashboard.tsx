@@ -42,6 +42,12 @@ const QUEUES: Record<string, { label: string; icon: string; path: (d: Dashboard)
   certifications_expired: { label: 'Expired certifications', icon: 'workspace_premium', tone: 'error', path: () => '/hris/training' },
   payroll_warnings: { label: 'Payroll warnings to resolve', icon: 'warning', tone: 'error',
     path: (d) => (d.payroll ? `/hris/payroll/runs/${d.payroll.runId}` : '/hris/payroll') },
+  // HRIS phase B: posting to Finance, loans and cash advances, lifecycle statuses
+  payroll_posting_failed: { label: 'Payroll posting to Finance failed', icon: 'report', tone: 'error', path: () => '/hris/payroll?tab=runs' },
+  loan_requests: { label: 'Loan / cash advance requests', icon: 'account_balance_wallet', tone: 'pending', path: () => '/hris/payroll?tab=loans' },
+  loans_to_pay: { label: 'Approved loans to pay', icon: 'payments', tone: 'pending', path: () => '/hris/payroll?tab=loans' },
+  employees_draft: { label: 'Draft employees to activate', icon: 'person_add', tone: 'pending', path: () => '/hris/employees?status=draft' },
+  employees_suspended: { label: 'Suspended employees', icon: 'person_off', tone: 'pending', path: () => '/hris/employees' },
 };
 
 const RUN: Record<string, [string, string]> = {

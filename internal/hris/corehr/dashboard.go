@@ -107,7 +107,7 @@ type HRDepartment struct {
 
 // HRAttention is one queue of work waiting for HR.
 type HRAttention struct {
-	Key string `json:"key" enum:"attendance_review,attendance_missing,attendance_corrections,leave_requests,permission_requests,overtime_requests,overtime_unapproved,shift_swaps,profile_changes,contracts_expiring,documents_expiring,documents_expired,certifications_expired,payroll_warnings"`
+	Key string `json:"key" enum:"attendance_review,attendance_missing,attendance_corrections,leave_requests,permission_requests,overtime_requests,overtime_unapproved,shift_swaps,profile_changes,contracts_expiring,documents_expiring,documents_expired,certifications_expired,payroll_warnings,payroll_posting_failed,loan_requests,loans_to_pay,employees_draft,employees_suspended"`
 	// Count of open items.
 	Count int `json:"count"`
 }
@@ -252,6 +252,15 @@ func (m *Module) Dashboard(ctx context.Context, q dbtx.Querier, property uuid.UU
 			WHERE c.property_id = $1 AND c.status = 'expired' AND e.status = 'active'
 			  AND NOT EXISTS (SELECT 1 FROM hris.certifications n WHERE n.employee_id = c.employee_id
 			    AND n.certification_type_id = c.certification_type_id AND n.status = 'active')`},
+		// HRIS phase B: payroll posting, loans and cash advances, lifecycle statuses
+		{"payroll_posting_failed", "hris.payroll_run.view", `SELECT count(*) FROM hris.payroll_runs WHERE property_id = $1 AND finance_status = 'failed'`},
+		{"loan_requests", "hris.employee_loan.view", `SELECT count(*) FROM hris.employee_loans WHERE property_id = $1 AND status = 'submitted'
+			AND archived_at IS NULL`},
+		{"loans_to_pay", "hris.employee_loan.view", `SELECT count(*) FROM hris.employee_loans WHERE property_id = $1 AND status = 'approved'
+			AND archived_at IS NULL`},
+		{"employees_draft", "hris.employee.view", `SELECT count(*) FROM hris.employees WHERE property_id = $1 AND status = 'draft' AND archived_at IS NULL`},
+		{"employees_suspended", "hris.employee.view", `SELECT count(*) FROM hris.employees WHERE property_id = $1 AND status = 'active'
+			AND archived_at IS NULL AND suspended_from <= $2::date AND (suspended_until IS NULL OR suspended_until >= $2::date)`},
 	}
 	for _, x := range queues {
 		if !allowed(x.perm) {

@@ -13043,6 +13043,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ess/loans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My loans and cash advances */
+        get: operations["getEssLoans"];
+        put?: never;
+        /** Request a loan or cash advance */
+        post: operations["postEssLoans"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/loans/{id}/statement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My loan statement */
+        get: operations["getEssLoansByIdStatement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/loans/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw my loan request */
+        post: operations["postEssLoansByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ess/me": {
         parameters: {
             query?: never;
@@ -19086,6 +19138,74 @@ export interface paths {
         patch: operations["patchHrisEmployeeLoansById"];
         trace?: never;
     };
+    "/api/v1/hris/employee-loans/{id}/statement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Loan statement: payment, installments, repayments */
+        get: operations["getHrisEmployeeLoansByIdStatement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employee-loans/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a loan request not yet paid (a pending approval is withdrawn by its requester) */
+        post: operations["postHrisEmployeeLoansByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employee-loans/{id}:disburse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the payment of an approved loan / cash advance by Finance (active; payroll deducts the installments) */
+        post: operations["postHrisEmployeeLoansByIdDisburse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employee-loans/{id}:repay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record a repayment outside payroll (cash returned, transfer) */
+        post: operations["postHrisEmployeeLoansByIdRepay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/employee-loans:export": {
         parameters: {
             query?: never;
@@ -19095,6 +19215,40 @@ export interface paths {
         };
         /** Export Employee Loans (CSV/XLSX) */
         get: operations["getHrisEmployeeLoansExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employee-loans:request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request a loan or cash advance for an employee (approval engine; approved at once without a workflow) */
+        post: operations["postHrisEmployeeLoansRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employee-work-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Employees not plainly active today: draft, on leave, suspended, leaving, terminated */
+        get: operations["getHrisEmployeeWorkStatus"];
         put?: never;
         post?: never;
         delete?: never;
@@ -19276,6 +19430,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/employees/{id}:activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hire a draft employee (employment history, onboarding) */
+        post: operations["postHrisEmployeesByIdActivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/employees/{id}:cancel-termination": {
         parameters: {
             query?: never;
@@ -19321,6 +19492,40 @@ export interface paths {
         put?: never;
         /** Promote or demote an employee (effective date) */
         post: operations["postHrisEmployeesByIdPromote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employees/{id}:reinstate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End the suspension of an employee */
+        post: operations["postHrisEmployeesByIdReinstate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employees/{id}:suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suspend an employee for a period (reason required) */
+        post: operations["postHrisEmployeesByIdSuspend"];
         delete?: never;
         options?: never;
         head?: never;
@@ -20220,6 +20425,23 @@ export interface paths {
         };
         /** Export Letter Templates (CSV/XLSX) */
         get: operations["getHrisLetterTemplatesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/loans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Loans and cash advances with the outstanding balance */
+        get: operations["getHrisLoans"];
         put?: never;
         post?: never;
         delete?: never;
@@ -21137,6 +21359,23 @@ export interface paths {
         };
         /** Simulation check: comparison with the previous period per employee (FR-PAY-08) */
         get: operations["getHrisPayrollRunsByIdComparison"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payroll-runs/{id}/exceptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exception queue of the last calculation (errors block the submission for approval) */
+        get: operations["getHrisPayrollRunsByIdExceptions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -22633,6 +22872,110 @@ export interface paths {
         get: operations["getHrisTrainingSessionsExport"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/workforce-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workforce plans */
+        get: operations["getHrisWorkforcePlans"];
+        put?: never;
+        /** Create a workforce plan of a department (draft) */
+        post: operations["postHrisWorkforcePlans"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/workforce-plans/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workforce plan with its lines */
+        get: operations["getHrisWorkforcePlansById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Adjust a workforce plan (header, requirements) */
+        patch: operations["patchHrisWorkforcePlansById"];
+        trace?: never;
+    };
+    "/api/v1/hris/workforce-plans/{id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Planning result as CSV */
+        get: operations["getHrisWorkforcePlansByIdExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/workforce-plans/{id}/gap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gap review: required, available and scheduled per day and line */
+        get: operations["getHrisWorkforcePlansByIdGap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/workforce-plans/{id}:activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate a draft plan (shown on the HR Dashboard and the schedules) */
+        post: operations["postHrisWorkforcePlansByIdActivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/workforce-plans/{id}:archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive a plan */
+        post: operations["postHrisWorkforcePlansByIdArchive"];
         delete?: never;
         options?: never;
         head?: never;
@@ -27461,6 +27804,23 @@ export interface paths {
         put?: never;
         /** Reject (reason required) */
         post: operations["postPlatformApprovalsByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/approvals/{id}:request-revision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Return to the requester for revision (reason required; back to draft, resubmitted with :submit) */
+        post: operations["postPlatformApprovalsByIdRequestRevision"];
         delete?: never;
         options?: never;
         head?: never;
@@ -44616,6 +44976,10 @@ export interface components {
             /** Format: uuid */
             userId: string;
         };
+        EmployeeActivateRequest: {
+            /** @description Default: the join date of the draft */
+            joinDate?: string;
+        };
         EmployeeBankAccount: {
             /** @description Account Name */
             accountName: string;
@@ -44855,6 +45219,12 @@ export interface components {
             scheduled: components["schemas"]["EmploymentChange"][];
             serviceMonths: number;
             supervisorName?: string | null;
+            /**
+             * @description Work status today (HRIS phase B)
+             * @enum {string}
+             */
+            workStatus: "active" | "draft" | "on_leave" | "suspended" | "leaving" | "terminated" | "inactive";
+            workStatusNote?: components["schemas"]["WorkStatus"] | null;
         };
         EmployeeDocument: {
             confidential: boolean;
@@ -45086,6 +45456,42 @@ export interface components {
             status?: "active" | "inactive" | null;
             /** @description Letter Title */
             title?: string;
+        };
+        EmployeeLoan: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt?: string | null;
+            decisionNote?: string | null;
+            /** Format: date-time */
+            disbursedOn?: string | null;
+            disbursementMethod?: string | null;
+            disbursementRef?: string | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            /** Format: uuid */
+            id: string;
+            installment: string;
+            /** @description Remaining installments (tenor left) */
+            installments: number;
+            /** @enum {string} */
+            loanType: "loan" | "cash_advance";
+            number?: string | null;
+            orgUnitName?: string | null;
+            outstanding: string;
+            principal: string;
+            purpose?: string | null;
+            reference?: string | null;
+            repaid: string;
+            /** @enum {string} */
+            requestSource: "hr" | "ess";
+            startPeriod: string;
+            /** @enum {string} */
+            status: "submitted" | "approved" | "rejected" | "active" | "settled" | "cancelled";
         };
         EmployeeOrgUnit: {
             /** Format: date-time */
@@ -45392,15 +45798,27 @@ export interface components {
             /** @description Religion */
             religion?: string | null;
             /**
-             * @description Status
+             * @description Status (draft = not yet hired)
              * @enum {string|null}
              */
-            status?: "active" | "inactive" | null;
+            status?: "active" | "draft" | "inactive" | null;
             /**
              * Format: uuid
              * @description Supervisor
              */
             supervisorId?: string | null;
+            /**
+             * Format: date
+             * @description Suspended From
+             */
+            suspendedFrom?: string | null;
+            /**
+             * Format: date
+             * @description Suspended Until
+             */
+            suspendedUntil?: string | null;
+            /** @description Suspension Reason */
+            suspensionReason?: string | null;
             /**
              * Format: date
              * @description Leaves On
@@ -45519,6 +45937,11 @@ export interface components {
             /** @description Religion */
             religion?: string | null;
             /**
+             * @description Status (draft = not yet hired)
+             * @enum {string|null}
+             */
+            status?: "active" | "draft" | "inactive" | null;
+            /**
              * Format: uuid
              * @description Supervisor
              */
@@ -45552,6 +45975,13 @@ export interface components {
             scheduledDays: number;
             /** @enum {string} */
             status: "approved" | "paid";
+        };
+        EmployeeSuspendRequest: {
+            /** @description First day (YYYY-MM-DD) */
+            from: string;
+            reason: string;
+            /** @description Last day; empty = until reinstated */
+            until?: string;
         };
         EmployeeTrainingProgram: {
             /** Format: date-time */
@@ -48138,7 +48568,7 @@ export interface components {
         HRAttention: {
             count: number;
             /** @enum {string} */
-            key: "attendance_review" | "attendance_missing" | "attendance_corrections" | "leave_requests" | "permission_requests" | "overtime_requests" | "overtime_unapproved" | "shift_swaps" | "profile_changes" | "contracts_expiring" | "documents_expiring" | "documents_expired" | "certifications_expired" | "payroll_warnings";
+            key: "attendance_review" | "attendance_missing" | "attendance_corrections" | "leave_requests" | "permission_requests" | "overtime_requests" | "overtime_unapproved" | "shift_swaps" | "profile_changes" | "contracts_expiring" | "documents_expiring" | "documents_expired" | "certifications_expired" | "payroll_warnings" | "payroll_posting_failed" | "loan_requests" | "loans_to_pay" | "employees_draft" | "employees_suspended";
         };
         HRClockRequest: {
             /** @enum {string} */
@@ -51939,6 +52369,55 @@ export interface components {
         LoadDefaultsResult: {
             created: number;
             total: number;
+        };
+        LoanCancelInput: {
+            note: string;
+        };
+        LoanDisburseInput: {
+            /** @description GL cash / bank account code (empty: the default account of the method) */
+            bankAccountCode?: string;
+            disbursedOn: string;
+            /** @enum {string} */
+            method: "cash" | "bank_transfer";
+            reference?: string;
+        };
+        LoanMovement: {
+            amount: string;
+            /** @description Outstanding after the movement */
+            balance: string;
+            /** Format: date-time */
+            date: string;
+            /** @enum {string} */
+            kind: "disbursement" | "payroll" | "repayment";
+            reference?: string | null;
+        };
+        LoanRepayInput: {
+            amount: string;
+            bankAccountCode?: string;
+            /** @enum {string} */
+            method: "cash" | "bank_transfer";
+            notes?: string;
+            paidOn: string;
+            reference?: string;
+        };
+        LoanRequestInput: {
+            /**
+             * Format: uuid
+             * @description HR request: the employee (ESS: yourself)
+             */
+            employeeId?: string;
+            /** @description Per payroll period; default the principal (one deduction) */
+            installment?: string;
+            /** @enum {string} */
+            loanType: "loan" | "cash_advance";
+            principal: string;
+            purpose: string;
+            /** @description First deduction period YYYY-MM; default next month */
+            startPeriod?: string;
+        };
+        LoanStatement: {
+            loan: components["schemas"]["EmployeeLoan"];
+            movements: components["schemas"]["LoanMovement"][];
         };
         LocalizationUpdate: {
             currency?: string | null;
@@ -57724,7 +58203,7 @@ export interface components {
              * @description Status
              * @enum {string|null}
              */
-            status?: "active" | "settled" | "cancelled" | null;
+            status?: "active" | "settled" | "cancelled" | "submitted" | "approved" | "rejected" | null;
             /** Format: date-time */
             updatedAt: string;
         };
@@ -57753,7 +58232,20 @@ export interface components {
              * @description Status
              * @enum {string|null}
              */
-            status?: "active" | "settled" | "cancelled" | null;
+            status?: "active" | "settled" | "cancelled" | "submitted" | "approved" | "rejected" | null;
+        };
+        PayrollException: {
+            /** @enum {string} */
+            code: "negative_net" | "duplicate_payroll" | "missing_salary" | "missing_contract" | "missing_tax_profile" | "missing_tax_id" | "missing_bpjs" | "missing_bank" | "attendance_exception" | "employee_suspended" | "other";
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            message: string;
+            /** @enum {string} */
+            severity: "error" | "warning";
+            /** Format: uuid */
+            slipId: string;
         };
         PayrollImportIssue: {
             key: string;
@@ -57959,6 +58451,17 @@ export interface components {
             decisionNote?: string | null;
             employeeIds: string[];
             employerCost: string;
+            /** @description Journal numbers booked by Accounting */
+            financeJournals: string[];
+            /** @description Why the posting failed */
+            financeMessage?: string | null;
+            /**
+             * @description Outcome of the posting in Finance & Accounting
+             * @enum {string}
+             */
+            financeStatus: "not_posted" | "pending" | "posted" | "failed";
+            /** Format: date-time */
+            financeUpdatedAt?: string | null;
             gross: string;
             headcount: number;
             /** Format: uuid */
@@ -62413,6 +62916,8 @@ export interface components {
             documentName: string;
             documentRef: string;
             documentType: string;
+            /** @description Approval history (detail only) */
+            history?: components["schemas"]["RequestEvent"][];
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -62424,6 +62929,15 @@ export interface components {
             status: "draft" | "pending" | "approved" | "rejected" | "cancelled";
             steps?: components["schemas"]["RequestStep"][];
             title: string;
+        };
+        RequestEvent: {
+            /** @description create | approval_approved | approval_rejected | approval_revision_requested | approval_submitted | approval_cancelled | approver_reassigned */
+            action: string;
+            actorName?: string | null;
+            /** Format: date-time */
+            at: string;
+            reason?: string | null;
+            stepNo?: number | null;
         };
         RequestStep: {
             approverRoleName?: string | null;
@@ -71161,6 +71675,18 @@ export interface components {
             name: string;
             statement?: string;
         };
+        WorkStatus: {
+            /** Format: uuid */
+            employeeId: string;
+            /** @description Leave type, suspension reason or leaving type */
+            note?: string | null;
+            /** Format: date-time */
+            since?: string | null;
+            /** Format: date-time */
+            until?: string | null;
+            /** @enum {string} */
+            workStatus: "draft" | "on_leave" | "suspended" | "leaving" | "terminated" | "inactive";
+        };
         Workflow: {
             documentType: string;
             /** Format: uuid */
@@ -71205,6 +71731,97 @@ export interface components {
             /** @enum {string|null} */
             status?: "active" | "inactive" | null;
             steps?: components["schemas"]["WorkflowStep"][] | null;
+        };
+        WorkforceGap: {
+            gap: number;
+            plan: components["schemas"]["WorkforcePlan"];
+            /** @description Sum over days and lines */
+            required: number;
+            rows: components["schemas"]["WorkforceGapRow"][];
+            scheduled: number;
+            shortage: number;
+        };
+        WorkforceGapRow: {
+            /** @description Active employees of the department (and position) not on leave or suspended */
+            available: number;
+            /** Format: date-time */
+            date: string;
+            /** @description Required − scheduled (≥ 0): still to assign */
+            gap: number;
+            lineNo: number;
+            positionName?: string | null;
+            required: number;
+            /** @description Assigned in the shift schedules */
+            scheduled: number;
+            shiftName?: string | null;
+            /** @description Required − available (≥ 0): to hire, borrow or cover with overtime */
+            shortage: number;
+        };
+        WorkforcePlan: {
+            /** Format: uuid */
+            id: string;
+            lineCount: number;
+            lines?: components["schemas"]["WorkforcePlanLine"][];
+            name: string;
+            notes?: string | null;
+            number: string;
+            /** Format: uuid */
+            orgUnitId: string;
+            orgUnitName: string;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** @enum {string} */
+            scenario: "normal" | "weekend" | "holiday" | "peak_season" | "low_season" | "tournament" | "event";
+            /** @enum {string} */
+            status: "draft" | "active" | "archived";
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        WorkforcePlanInput: {
+            /** @description Create: copy the staffing requirements of the department when no lines are given */
+            fromRequirements?: boolean;
+            /** @description Replaces the lines */
+            lines?: components["schemas"]["WorkforcePlanLineInput"][] | null;
+            name?: string;
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Create only
+             */
+            orgUnitId?: string | null;
+            /** @description At most 93 days */
+            periodEnd?: string;
+            periodStart?: string;
+            /** @enum {string} */
+            scenario?: "normal" | "weekend" | "holiday" | "peak_season" | "low_season" | "tournament" | "event";
+        };
+        WorkforcePlanLine: {
+            lineNo: number;
+            notes?: string | null;
+            /** Format: uuid */
+            positionId?: string | null;
+            positionName?: string | null;
+            required: number;
+            shiftName?: string | null;
+            /** Format: uuid */
+            shiftTemplateId?: string | null;
+            /**
+             * Format: date-time
+             * @description Empty: every day of the period
+             */
+            workDate?: string | null;
+        };
+        WorkforcePlanLineInput: {
+            notes?: string;
+            /** Format: uuid */
+            positionId?: string | null;
+            required: number;
+            /** Format: uuid */
+            shiftTemplateId?: string | null;
+            /** @description YYYY-MM-DD within the period; empty = every day */
+            workDate?: string;
         };
         WriteOff: {
             amount: string;
@@ -128267,6 +128884,217 @@ export interface operations {
             };
         };
     };
+    getEssLoans: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EmployeeLoan"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssLoans: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeLoan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssLoansByIdStatement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanStatement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssLoansByIdCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanCancelInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeLoan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getEssMe: {
         parameters: {
             query?: never;
@@ -154762,6 +155590,226 @@ export interface operations {
             };
         };
     };
+    getHrisEmployeeLoansByIdStatement: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanStatement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisEmployeeLoansByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanCancelInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeLoan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisEmployeeLoansByIdDisburse: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanDisburseInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeLoan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisEmployeeLoansByIdRepay: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanRepayInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeLoan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getHrisEmployeeLoansExport: {
         parameters: {
             query?: {
@@ -154791,6 +155839,121 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisEmployeeLoansRequest: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeLoan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisEmployeeWorkStatus: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                workStatus?: "draft" | "on_leave" | "suspended" | "leaving" | "terminated" | "inactive";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WorkStatus"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -155568,6 +156731,62 @@ export interface operations {
             };
         };
     };
+    postHrisEmployeesByIdActivate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmployeeActivateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postHrisEmployeesByIdCancelTermination: {
         parameters: {
             query?: never;
@@ -155705,6 +156924,118 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EmploymentChange"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisEmployeesByIdReinstate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CorehrReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisEmployeesByIdSuspend: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmployeeSuspendRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeDetail"];
                 };
             };
             /** @description Not authenticated */
@@ -159603,6 +160934,68 @@ export interface operations {
             };
         };
     };
+    getHrisLoans: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                status?: "submitted" | "approved" | "rejected" | "active" | "settled" | "cancelled";
+                loanType?: "loan" | "cash_advance";
+                employeeId?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EmployeeLoan"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getHrisMigrationReconciliationMetrics: {
         parameters: {
             query?: {
@@ -163456,6 +164849,67 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PayrollComparison"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisPayrollRunsByIdExceptions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                severity?: "error" | "warning";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PayrollException"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -170118,6 +171572,448 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisWorkforcePlans: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                orgUnitId?: string;
+                status?: "draft" | "active" | "archived";
+                /** @description Plans covering the day */
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WorkforcePlan"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisWorkforcePlans: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkforcePlanInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkforcePlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisWorkforcePlansById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkforcePlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchHrisWorkforcePlansById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkforcePlanInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkforcePlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisWorkforcePlansByIdExport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisWorkforcePlansByIdGap: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkforceGap"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisWorkforcePlansByIdActivate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkforcePlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisWorkforcePlansByIdArchive: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkforcePlan"];
                 };
             };
             /** @description Not authenticated */
@@ -190100,6 +191996,59 @@ export interface operations {
         };
     };
     postPlatformApprovalsByIdReject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Request"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPlatformApprovalsByIdRequestRevision: {
         parameters: {
             query?: never;
             header?: never;

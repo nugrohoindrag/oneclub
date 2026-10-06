@@ -275,10 +275,11 @@ var Trees = map[string][]Item{
 				s("hris-training", "Training & Certification", "/hris/training", "hris.certification.view"), // PRD P5 EP-04
 			),
 			section("hris-time", "Time & Attendance",
-				s("hris-attendance", "Attendance", "/hris/attendance", "hris.attendance.view"),  // PRD P5 EP-07
-				s("hris-schedules", "Shift & Roster", "/hris/schedules", "hris.schedule.view"),  // PRD P5 EP-06
-				s("hris-leave", "Leave & Permission", "/hris/leave", "hris.leave_request.view"), // PRD P5 EP-08
-				s("hris-overtime", "Overtime", "/hris/overtime", "hris.overtime_request.view"),  // PRD P5 EP-08
+				s("hris-attendance", "Attendance", "/hris/attendance", "hris.attendance.view"),           // PRD P5 EP-07
+				s("hris-schedules", "Shift & Roster", "/hris/schedules", "hris.schedule.view"),           // PRD P5 EP-06
+				s("hris-leave", "Leave & Permission", "/hris/leave", "hris.leave_request.view"),          // PRD P5 EP-08
+				s("hris-overtime", "Overtime", "/hris/overtime", "hris.overtime_request.view"),           // PRD P5 EP-08
+				s("hris-workforce", "Workforce Planning", "/hris/workforce", "hris.workforce_plan.view"), // HRIS phase B (spec §8)
 				// PRD P5 FR-ATT-08 (partner caddies / instructors on the attendance devices).
 				s("hris-partner-attendance", "Partner Clock-in", "/hris/partner-attendance", "hris.partner_attendance.view"),
 			),
@@ -550,6 +551,7 @@ var Trees = map[string][]Item{
 			s("ess-leave", "Leave & Permission", "/ops/ess/leave", "hris.ess.use"),
 			s("ess-overtime", "Overtime", "/ops/ess/overtime", "hris.ess.use"),
 			s("ess-payslip", "Payslip", "/ops/ess/payslip", "hris.ess.use"),
+			s("ess-loans", "Loans & Advances", "/ops/ess/loans", "hris.ess.use"),                 // HRIS phase B (spec §29)
 			s("ess-service-charge", "Service Charge", "/ops/ess/service-charge", "hris.ess.use"), // PRD P5 EP-11
 			s("ess-commissions", "Commission & Bonus", "/ops/ess/commissions", "hris.ess.use"),   // PRD P5 EP-12
 			s("ess-documents", "My Documents", "/ops/ess/documents", "hris.ess.use"),

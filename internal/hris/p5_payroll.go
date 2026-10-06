@@ -223,4 +223,7 @@ func DefaultSeveranceTaxBrackets() []TaxBracket {
 func init() {
 	// FR-ESS-04 / FR-PPY-03: payslips are never cached offline (FR-OPS-P5-05).
 	RegisterESSSection(ESSSection{Key: "payslip", Label: "Payslip", LabelID: "Slip Gaji", Icon: "receipt_long", Path: "/ops/ess/payslip", Order: 60})
+	// HRIS phase B (spec §29 My Loan): loan and cash advance requests and balances.
+	RegisterESSSection(ESSSection{Key: "loans", Label: "Loans & Advances", LabelID: "Pinjaman & Kasbon", Icon: "account_balance_wallet",
+		Path: "/ops/ess/loans", Order: 61})
 }

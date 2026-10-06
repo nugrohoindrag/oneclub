@@ -141,15 +141,15 @@ function PayrollTab({ id }: { id: string }) {
 }
 
 function LoansTab({ id }: { id: string }) {
-  const l = useGet<Page<R>>(`${HR}/employee-loans?filter[employeeId]=${id}&limit=50`);
+  const l = useGet<Page<R>>(`${HR}/loans?employeeId=${id}`);
   return (
     <Card title="Loans & cash advances" icon="savings" actions={<Open to="/hris/payroll?tab=loans">Manage</Open>}>
       <DataTable rows={l.data?.items} loading={l.isLoading} error={l.error} empty={<Empty title="No loan or cash advance" />} columns={[
-        { key: 'loanType', header: 'Type', render: (r) => label(r.loanType) }, { key: 'reference', header: 'Reference', render: (r) => val(r.reference) },
+        { key: 'number', header: 'Number', render: (r) => val(r.number ?? r.reference) }, { key: 'loanType', header: 'Type', render: (r) => label(r.loanType) },
         { key: 'principal', header: 'Principal', align: 'right', render: (r) => money(r.principal) },
         { key: 'installment', header: 'Installment', align: 'right', render: (r) => money(r.installment) },
         { key: 'repaid', header: 'Repaid', align: 'right', render: (r) => money(r.repaid) },
-        { key: 'outstanding', header: 'Outstanding', align: 'right', render: (r) => <strong>{money(Number(r.principal ?? 0) - Number(r.repaid ?? 0))}</strong> },
+        { key: 'outstanding', header: 'Outstanding', align: 'right', render: (r) => <strong>{money(r.outstanding)}</strong> },
         { key: 'status', header: 'Status', render: pill('status') },
       ]} />
     </Card>

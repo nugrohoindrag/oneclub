@@ -66,6 +66,8 @@ func (m *Module) Register(reg *route.Registry) {
 	m.registerStatutory(reg)
 	m.registerRuns(reg)
 	m.registerAdjustments(reg)
+	m.registerLoans(reg)
+	m.registerExceptions(reg)
 	m.registerPayslips(reg)
 	m.registerExports(reg)
 	m.registerImports(reg)

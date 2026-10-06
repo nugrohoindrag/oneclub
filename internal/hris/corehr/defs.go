@@ -171,8 +171,12 @@ func (m *Module) Defs() []*resource.Def {
 			{Name: "terminationStatus", Column: "termination_status", Label: "Leaving Status", Kind: resource.Enum, Enum: []string{"scheduled", "completed"},
 				ReadOnly: true, Filter: true},
 			text("legacyRef", "legacy_ref", "Legacy Reference", 60),
-			{Name: "status", Column: "status", Label: "Status", Kind: resource.Enum, Enum: []string{"active", "inactive"}, Default: "active", ReadOnly: true,
-				Filter: true},
+			// draft: prepared, not yet hired (HRIS phase B §34); activated with :activate
+			{Name: "status", Column: "status", Label: "Status (draft = not yet hired)", Kind: resource.Enum, Enum: []string{"active", "draft", "inactive"},
+				Default: "active", CreateOnly: true, Filter: true},
+			{Name: "suspendedFrom", Column: "suspended_from", Label: "Suspended From", Kind: resource.Date, ReadOnly: true},
+			{Name: "suspendedUntil", Column: "suspended_until", Label: "Suspended Until", Kind: resource.Date, ReadOnly: true},
+			{Name: "suspensionReason", Column: "suspension_reason", Label: "Suspension Reason", Kind: resource.Text, ReadOnly: true},
 		},
 		Hooks: resource.Hooks{BeforeWrite: m.employeeBeforeWrite, AfterCreate: m.employeeAfterCreate, AfterRead: maskEmployee},
 	}
@@ -539,6 +543,9 @@ func (m *Module) employeeBeforeWrite(ctx context.Context, tx pgx.Tx, v map[strin
 	}
 	property := propertyOf(ctx, before)
 	if before == nil {
+		if s, _ := v["status"].(string); s == "inactive" {
+			return handle.Invalid("status", "invalid", "a new employee is active or a draft")
+		}
 		st, _ := v["employmentStatus"].(string)
 		if st == hris.StatusResigned || st == hris.StatusTerminated {
 			return handle.Invalid("employmentStatus", "invalid", "a new employee starts as probation, contract or permanent")
@@ -623,9 +630,18 @@ func (m *Module) nextEmployeeNo(ctx context.Context, tx pgx.Tx, property uuid.UU
 // employeeAfterCreate records the hire in the employment history and
 // publishes hris.employee_hired.
 func (m *Module) employeeAfterCreate(ctx context.Context, tx pgx.Tx, row map[string]any) error {
+	if row["status"] == "draft" { // hired on :activate
+		return nil
+	}
 	eid, _ := uuid.Parse(row["id"].(string))
 	pid, _ := uuid.Parse(row["propertyId"].(string))
 	join, _ := row["joinDate"].(string)
+	return m.hire(ctx, tx, eid, pid, join)
+}
+
+// hire records the hire in the employment history and publishes
+// hris.employee_hired (create, or activation of a draft).
+func (m *Module) hire(ctx context.Context, tx pgx.Tx, eid, pid uuid.UUID, join string) error {
 	if join == "" {
 		join = ymd(today(ctx, tx, pid))
 	}

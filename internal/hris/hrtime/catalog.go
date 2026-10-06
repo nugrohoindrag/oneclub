@@ -76,6 +76,7 @@ func customPermissions() []catalog.Permission {
 		d(PermLockView, "View payroll period locks and time summaries"), d(PermLockManage, "Lock and release payroll periods of attendance"),
 		d(PermPartnerView, "View the device clock-in of partner caddies and instructors"),
 		d(PermPartnerManage, "Enrol partner caddies and instructors for device clock-in (consent, device numbers)"),
+		d(PermPlanView, "View workforce plans and their gap review"), d(PermPlanManage, "Create and adjust workforce plans of departments"),
 	}
 }
 
@@ -101,7 +102,7 @@ func (m *Module) Contribution() catalog.Contribution {
 	}
 	scheduling := []string{PermScheduleView, PermScheduleCreate, PermScheduleUpdate, PermSchedulePublish, PermSwapView, PermAttendanceView,
 		PermLeaveView, PermOvertimeView, PermPermissionView, PermCorrectionView, PermBalanceView, "hris.shift_template.view",
-		"hris.staffing_requirement.view", "hris.holiday.view", PermKiosk}
+		"hris.staffing_requirement.view", "hris.holiday.view", PermKiosk, PermPlanView, PermPlanManage}
 	roles := map[string][]string{
 		"hr_admin":        all,
 		"hr_manager":      all,

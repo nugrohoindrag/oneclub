@@ -1305,15 +1305,16 @@ Arsitektur tersebut harus konsisten di seluruh HRIS.
 
 # 39. Implementation Status
 
-**Update:** 7 Oktober 2026 · branch `staging`
+**Update:** 7 Oktober 2026 · branch `staging` (Fase A & B)
 
 ## 39.1 Keputusan
 
 | Topik | Keputusan |
 |---|---|
 | Recruitment / ATS | Modul Recruitment sudah ada (PRD P5 EP-03) → **tetap di-include** di HRIS (People → Recruitment), tidak dikembangkan lebih jauh |
-| Status Employee & Payroll (§34) | Disetujui; ditambahkan **expand-only** (status lama tidak diganti) di Fase B |
+| Status Employee & Payroll (§34) | Disetujui; ditambahkan **expand-only** (status lama tidak diganti) di Fase B. On Leave diturunkan dari cuti approved (tidak disimpan) |
 | Urutan kerja | UI dulu (Fase A), lalu backend parsial (Fase B), lalu backend baru (Fase C) |
+| Di luar scope (7 Okt 2026) | **HR Requests** (pusat request), **Goals/KPI**, **360° Feedback** dan **Succession** tidak dikembangkan: user tidak membutuhkan. Bagian §23 dan §24 terkait tidak berlaku |
 
 ## 39.2 Feature Matrix (hasil audit Phase 1)
 
@@ -1326,24 +1327,25 @@ Backend HRIS existing: ±32 ribu baris Go, 426 endpoint HRIS/ESS; hampir semua s
 | Organization, Position, Grade, Org chart | EXISTS — READY | READY |
 | Employee Lifecycle (effective date, history) | EXISTS — READY | READY |
 | Employee Documents + expiry | EXISTS — READY | READY (filter Expired) |
-| Workforce Planning | EXISTS — PARTIAL | PARTIAL — coverage hari ini per unit di HR Dashboard; plan/skenario → Fase B |
+| Workforce Planning | EXISTS — PARTIAL | **READY** — Workforce Plan per department (posisi, shift, tanggal, skenario), gap review available vs scheduled, export CSV |
 | Attendance, koreksi, review | EXISTS — READY | **READY** (filter exception, aksi Correct per baris) |
 | Work Schedule, Shift & Roster, swap, coverage | EXISTS — READY | READY (open shift belum) |
 | Leave, Overtime (approval berjenjang) | EXISTS — READY | READY |
 | Timesheets | MISSING BACKEND | Fase C |
 | Payroll run, payslip, PPh 21/BPJS, adjustment | EXISTS — READY | READY |
 | Payroll → Finance (jurnal GL) | NEEDS INTEGRATION (UI) | **READY** — status Posted to Finance / Posting failed / Posting in progress, nomor jurnal, Retry posting |
-| Payroll exception queue (§35) | EXISTS — PARTIAL | Fase B |
-| Loan / Cash Advance | EXISTS — PARTIAL | Fase B (request, approval, settlement, ESS) |
+| Payroll exception queue (§35) | EXISTS — PARTIAL | **READY** — antrean View → Fix → Revalidate; error memblokir submit |
+| Loan / Cash Advance | EXISTS — PARTIAL | **READY** — request HR/ESS, approval, pembayaran Finance (jurnal), repayment, statement |
 | Reimbursement | MISSING BACKEND | Fase C |
 | Benefits (master, eligibility, enrollment) | EXISTS — PARTIAL | Fase C |
-| HR Requests (pusat request) | MISSING | Fase C |
+| HR Requests (pusat request) | MISSING | **Di luar scope** (keputusan 7 Okt) |
 | Performance Review | EXISTS — READY | READY |
-| Goals/KPI berbobot, 360°, Development Plan, Succession | MISSING BACKEND | Fase C |
-| Approvals | EXISTS — PARTIAL | Request Revision → Fase B |
-| ESS | READY (sebagian besar) | My Reimbursement/Loan/Benefits/HR Requests → Fase B/C |
+| Development Plan | MISSING BACKEND | Fase C |
+| Goals/KPI berbobot, 360° Feedback, Succession | MISSING BACKEND | **Di luar scope** (keputusan 7 Okt) |
+| Approvals | EXISTS — PARTIAL | **READY** — Request Revision, Resubmit, Approval history (comment/attachment belum) |
+| ESS | READY (sebagian besar) | My Loan **READY**; My Reimbursement/Benefits → Fase C |
 | HR Dashboard (§26) | MISSING UI | **READY** |
-| Status model (§34) | Berbeda | Label "Under review" / "Posted to Finance" di UI; status baru → Fase B |
+| Status model (§34) | Berbeda | **READY** — Employee Draft/Suspended/On Leave; Payroll Posted to Finance / Posting Failed |
 
 ## 39.3 Fase A — UI/UX Alignment (selesai)
 
@@ -1357,7 +1359,23 @@ Backend HRIS existing: ±32 ribu baris Go, 426 endpoint HRIS/ESS; hampir semua s
 | Employee Detail (§5) | Tab Attendance, Leave, Overtime, Payroll (payslip + PDF, adjustment), Loans & Advances, Performance, Assets (Inventory custodian). Backend: `GET /api/v1/hris/payslips?employeeId=` |
 | Payroll → Finance (§19) | Kartu Finance & Accounting di payroll run: jurnal dari Accounting, posting exception + Retry |
 
-## 39.4 Berikutnya
+## 39.4 Fase B — Backend parsial (selesai)
 
-- **Fase B:** antrean payroll exception (View → Fix → Revalidate), Loan & Cash Advance (request, approval, settlement, ESS), Workforce plan per department, status baru Employee (draft, on leave, suspended) dan Payroll (posting failed), Request Revision di approval.
-- **Fase C:** Reimbursement, HR Requests, Timesheet, Goals/KPI, 360° Feedback, Development Plan, Succession, Benefits enrollment.
+Migrasi `db/migrations/hris/00008_hris_phase_b.sql` (expand-only).
+
+| Item | Implementasi |
+|---|---|
+| Request Revision (§27) | Approver langkah aktif mengembalikan request ke requester (alasan wajib): status kembali **Draft** (Naming Convention §31 tidak punya status terpisah), langkah dibangun ulang saat **Resubmit**. `POST /api/v1/platform/approvals/{id}:request-revision`; detail approval memuat **Approval history** (dari audit trail). Notifikasi `approval.revision_requested` |
+| Loan & Cash Advance (§24, §29, §30) | Request oleh HR (`POST /hris/employee-loans:request`) atau karyawan di ESS (`/ess/loans`) → approval engine (document type `hris.employee_loan`) → **Pay** oleh Finance (`:disburse`, permission `hris.employee_loan.pay`) → aktif, dipotong payroll → **Repayment** di luar payroll (`:repay`) → settled. Statement per loan. Jurnal: `hris.loan_disbursed` Dr Piutang Karyawan / Cr Kas-Bank, `hris.loan_repaid` sebaliknya. UI: Payroll → Loans & Advances, ESS → Loans & Advances |
+| Payroll exception queue (§35) | `GET /hris/payroll-runs/{id}/exceptions`: negative net & duplicate payroll (**blocking**), missing salary/contract/PTKP/NPWP-NIK/BPJS/bank, attendance exception, karyawan suspended. Kartu Exceptions di payroll run: filter, tautan **Fix** ke workspace terkait, **Revalidate** (recalculate) |
+| Payroll → Finance status (§19, §34) | Run menyimpan event posting/pembayaran dan mengikuti `accounting.journal_posted` / `accounting.posting_exception`: `financeStatus` not_posted / pending / **posted** / **failed** + pesan & nomor jurnal. Notifikasi posting gagal; antrean di HR Dashboard |
+| Status Employee (§34) | **Draft** (`status=draft` saat create; `:activate` mencatat hire), **Suspended** (`:suspend` periode + alasan, `:reinstate`), **On Leave** (turunan cuti approved hari ini). `GET /hris/employee-work-status`; pill status di daftar & detail Employee |
+| Workforce Planning (§8) | `/hris/workforce-plans`: plan per department + periode (≤ 93 hari) + skenario, requirement per posisi/shift/tanggal (bisa prefill dari staffing requirement), gap review (required, available, scheduled, gap, shortage), export CSV, activate/archive. Menu Time & Attendance → Workforce Planning; Assign lewat Shift & Roster |
+| HR Dashboard | Antrean baru: posting payroll gagal, request loan, loan siap dibayar, employee draft, employee suspended |
+
+Test: `test/e2e/p5_hris_phase_b_test.go`.
+
+## 39.5 Berikutnya
+
+- **Fase C:** Reimbursement, Timesheet, Development Plan, Benefits enrollment (plus sisa kecil: comment & attachment di Approval, open shift).
+- **Di luar scope:** HR Requests, Goals/KPI, 360° Feedback, Succession.

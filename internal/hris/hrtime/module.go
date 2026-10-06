@@ -84,6 +84,7 @@ func (m *Module) Register(reg *route.Registry) {
 	m.registerOvertime(reg)
 	m.registerLocks(reg)
 	m.registerESS(reg)
+	m.registerWorkforce(reg)
 	hris.SetAttendanceFinalizer(m.FinalizePeriod)
 }
 
