@@ -1,5 +1,8 @@
 # PRD P5 gap audit (non-payroll, non-payout scope)
 
+> Historical audit (before the gap closure). The current status of every PRD P5 requirement is in
+> [`p5-traceability.md`](p5-traceability.md).
+
 Baseline: staging `bd183f1` (Core HR & ESS, recruitment & performance, time & attendance, Advanced CRM, member tier
 classes, BI, package & tournament, trial dataset, payroll input registry). Checked against
 `docs/product/OneClub-PRD-P5-People-Advanced-Enterprise.md` by reading code, routes (`api/openapi/openapi.json`) and

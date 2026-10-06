@@ -559,3 +559,31 @@ mismatch needs an explanation. `oneclub import hris` also loads `--grades`, `--o
 mirrored to push for users with a subscribed device (`/api/v1/platform/push-subscriptions`, ESS profile and Member App
 offers), unless the user opted out (preference channel `push`). The payslip notification of the payroll area therefore
 reaches the phone without a change; keep amounts out of the push text.
+
+## P5 close-out (`docs/p5-traceability.md`) — additive notes
+
+**Payroll totals in the HR migration reconciliation (FR-MIG-P5-05/06).** `internal/hris/payroll/reconcile.go` registers
+the metrics `payroll_gross` (*Payroll Gross*) and `payroll_net` (*Payroll Net Pay*) with `hris.RegisterReconciliationMetric`.
+Key `TOTAL` = the last period on or before the cutover month with imported legacy payroll (`hris.legacy_payroll_lines`,
+`--legacy-payroll`), i.e. the parallel-run period; a key `YYYY-MM` names a period. The OneClub value sums `gross` / `net`
+of the payslips of the regular runs of that period that are calculated or later (`calculated`, `submitted`, `approved`,
+`posted`, `paid`; a cancelled run no longer counts). No breakdown keys (per-employee differences stay in the run's
+*Parallel Run* tab and report `hris.payroll_parallel_run`).
+
+**Asset custodian (FR-HR-06).** `inventory.assets.custodian_employee_id` (`db/migrations/inventory/00005_asset_custodian.sql`,
+plain reference to `hris.employees`, no foreign key: hris migrates after inventory) — resource field `custodianEmployeeId`
+of `/api/v1/inventory/assets` (Ref `hris.employees`, same property; filter `filter[custodianEmployeeId]`). Root function
+`inventory.AssetsInCustody(ctx, q, employeeID) []inventory.AssetSummary` (not disposed, not archived). HRIS reads it:
+`GET /api/v1/hris/employees/{id}/offboarding` adds `assets` (`OffboardingAsset`: id, code, name, category, status) to the
+checklist item `return_assets` (`corehr.OffboardingReturnAssets`), and `PATCH /api/v1/hris/offboarding-items/{id}` with
+`status: done` on that item answers 409 `assets_in_custody` while any asset remains (`not_applicable` stays possible).
+
+**Retro BPJS (FR-PAY-06 retro, FR-TAX-HR-03).** An adjustment run (`correctsPeriod`) recalculates the corrected period with
+today's data and the statutory rates in force at the end of that period, and pays the differences of the earnings **and of
+every BPJS contribution** against what the approved runs paid for the period (regular run lines incl. `bpjs_employee` /
+`bpjs_employer`, plus earlier `retro` lines). Contribution differences are payslip lines of kind `bpjs_employee` /
+`bpjs_employer`, `source: "retro"`, `sourceType: "hris.payroll_period"`, `sourceId: <period>` (negative = refund); they count in
+the run's BPJS totals, the employee JHT / JP part in the deductible and the taxable employer programmes in the TER base, and
+reach the journal of `hris.payroll_posted` as the regular contribution lines do (`part: employer_contribution` /
+`bpjs_employee`). Pure function `hris.BPJSDifferences(now []PayLine, paid map[string]decimal.Decimal, period) []PayLine`;
+`hris.PayInput.BPJSAdjustments` feeds them to `hris.Calculate`.

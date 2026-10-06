@@ -47,9 +47,9 @@ resolving generated-file and migration conflicts) and CI/CD setup: [`docs/runboo
 
 ```bash
 make unit                                  # Go unit + architecture boundary tests
-make e2e                                   # P0–P4 acceptance tests on a real PostgreSQL (fresh instances per run)
+make e2e                                   # P0–P5 acceptance tests on a real PostgreSQL (fresh instances per run)
 cd web && pnpm -r typecheck && pnpm -r test
-cd web && pnpm exec playwright test        # browser tests of every app, Staff App area and domain, golf flow, offline POS and tablet, P3/P4 specs (needs running API + previews)
+cd web && pnpm exec playwright test        # browser tests of every app, Staff App area and domain, golf flow, offline POS and tablet, P3–P5 specs (needs running API + previews)
 k6 run test/load/teetime-rush.js           # load tests (see docs/runbooks/production-readiness.md §4)
 ```
 
@@ -109,6 +109,71 @@ synchronises the permission catalogue (new permissions and role templates such a
   posting they were booked with (`stay.stays.room_posting`). An instance that saved Stay Policies with
   `roomChargePosting = "at_booking"` keeps it — change it in *Settings → Club Policies → Stay Policies* if the club
   wants nightly posting; `at_booking` remains a supported option.
+
+## Release 5 (P5 People & Advanced Enterprise)
+
+| Area | Modules (`internal/`) | Staff App / apps | Key flows |
+|---|---|---|---|
+| People | `hris` (layer 4): `corehr` (organization, employees, contracts, documents, certifications & training, ESS, migration reconciliation), `talent` (recruitment, performance review), `hrtime` (schedules, attendance & devices, leave, overtime), `payroll` (salary structures, runs, PPh 21 & BPJS, payslips, bank file, statutory exports, parallel run), `payouts` (service charge, commission & bonus, caddy & instructor payout runs) | `web/apps/staff/src/p5/{hr,hr_talent,hr_time,payroll,payouts,gaps}.tsx`: HRIS in the Back Office; Employee Self Service `/ops/ess` (personal login, PWA), Attendance Kiosk `/ops/attendance-kiosk`, Honor Statement `/ops/instructor/honor`, Caddy Tablet *Payouts*; careers page on the website | §9.1 hire to first pay, §9.2 service charge & commission, §9.3 caddy & instructor payout |
+| Advanced CRM & BI | `crm/journey`, `crm/analytics`, `crm/loyalty/p5_*` (tiers Silver / Gold / Platinum, rewards), `reporting/p5_*` (analytics store, Executive Overview, KPI targets, drill-down, scheduled reports, report builder, HR Performance) | `p5/{crm,tiers,bi}.tsx`; Member App `areas/crm_p5.tsx` (tier, rewards, offers) | §9.4 retention journey, §9.5 executive review |
+| Package & tournament | `commercial` (advanced packages), `golf/tournament` (`p5_*`: team formats, series & Order of Merit, history) | `p5/leisure.tsx`; Member App `areas/leisure.tsx` | §9.6 tournament series |
+
+Wiring: `internal/app/p5_*.go`; module contracts (H1–H7, events, hooks): [`docs/p5-contracts.md`](docs/p5-contracts.md);
+status per requirement, open items and pending product decisions: [`docs/p5-traceability.md`](docs/p5-traceability.md).
+Payroll is fully in OneClub (Mode A). The statutory rate set `ID-2024` (PPh 21 TER / Article 17, PTKP, BPJS) is shipped
+*unverified*: every payroll run shows a warning until the tax consultant verifies it (`:verify` on HRIS → Payroll →
+Statutory Rates).
+
+**Demo and trial data.** `oneclub seed-demo` adds the P5 demo to MAIN: organization with grades G1–G7, employees with
+contracts, documents and certifications (§16 #8–#9), four weeks of published rosters and attendance with leave and
+overtime requests, a recruitment pipeline and a review cycle, last month's payroll posted and paid and this month's
+calculated, last month's service charge distribution, a paid caddy payout run and a calculated instructor payout run,
+journeys, member tiers, the KPI target plan of the year and three scheduled management reports.
+P5 demo users (password `Demo#Club2026`): `hr@` (HR Manager), `hr.admin@`, `dept.head@` (F&B Manager, approvals in ESS),
+`employee@` (Employee Self Service) `demo.oneclub.id`; `gm@`, `finance@`, `golf.manager@` and `caddy.master@` are linked to
+their employee profiles. `oneclub seed-demo --trial` adds the P5 history (`internal/app/trial_p5.go`): weekly rosters,
+device clock-ins, overtime and the daily attendance job, partner caddies clocking in on the caddy house device, the daily
+journey run, RFM / VIP refresh, monthly tier evaluation and a final analytics store refresh.
+
+**Migration (`oneclub import hris`).** One command loads the HR master data and the payroll opening data of a property
+from CSV (columns in `--help`), each with `--dry-run`:
+
+```bash
+./bin/oneclub import hris -property MAIN --grades grades.csv --org-units units.csv --positions positions.csv \
+  --employees employees.csv --contracts contracts.csv --documents documents.csv --documents-dir scans/ \
+  --certifications certs.csv --leave-balances leave.csv --payroll-ytd ytd.csv [--dry-run]
+./bin/oneclub import hris -property MAIN --legacy-payroll legacy-2026-09.csv --period 2026-09     # parallel run
+./bin/oneclub import hris -property MAIN --reconcile control-totals.csv --cutover 2026-10-01 \
+  --legacy-system "HR Excel" --out reports/                                                      # FR-MIG-P5-05
+```
+
+The reconciliation CSV is `metric,key,legacy` with the metrics `headcount` (TOTAL or org unit code), `leave_balance`
+(TOTAL, leave type or EMPLOYEENO:TYPE), `payroll_gross` and `payroll_net` (TOTAL = the last legacy payroll period on or
+before the cutover, i.e. the parallel run, or a period YYYY-MM); the HR Manager and the Finance Manager sign it off in
+HRIS → Migration Reconciliation.
+
+**Push notifications.** ESS (Staff App) and the Member App subscribe with the browser Push API (`push-sw.js` of both
+PWAs; `/api/v1/platform/push-subscriptions`); in-app notifications are mirrored to subscribed devices unless the user
+opts out. Configure per instance under *Platform Administration → Integrations*: **Web Push (VAPID)** (`webpush`:
+credential *VAPID private key* — the raw 32-byte P-256 private key, base64url — and setting *Contact (VAPID subject)*, `mailto:` or
+https) for production; `mock-push` records pushes in the integration log for the trial. Without a push integration a log
+pusher is used outside production, with a VAPID key derived from the instance secret so devices can still subscribe.
+iOS needs the PWA installed (Safari 16.4+).
+
+**Tests.** Go: `test/e2e/p5_*_test.go` (one area while iterating, e.g. `ONECLUB_TEST_ADMIN_URL=<admin url>
+ONECLUB_COVERAGE_PATHS=/api/v1/hris/payroll-runs go test -count=1 -run TestP5Payroll ./test/e2e/`); payroll worked
+examples in `internal/hris/p5_payroll_calc_test.go` and `p5_payroll_retro_test.go`. Browser: `web/e2e/p5-flows.spec.ts`
+(§9.1 hire to first pay through the payslip in ESS, ESS on the phone, §9.4–§9.6, migration sign-off) with the stack of
+the P3/P4 section; with a pre-installed Chromium set `PW_EXECUTABLE_PATH=/path/to/chrome` (the config then drops the
+Chrome channel). The §9.1 spec creates a property of its own per run, so it repeats on Staging; the wedding flow of
+`p34-flows.spec.ts` reads `APP_SECRET` (`E2E_APP_SECRET` or the stack's `.env.local`) to set the customer's one-time code.
+
+**Release 5 runbooks.** Load scenarios `clockin-shift-change.js`, `payroll-run.js`, `journey-10k.js`, `bi-2y.js`
+([`production-readiness.md`](docs/runbooks/production-readiness.md) §4 Release 5), training per role and hypercare of
+one payroll period (§7), go-live checklist incl. the HR migration reconciliation sign-off (§8); security:
+[`p5-pentest-checklist.md`](docs/security/p5-pentest-checklist.md), DPIA [`p5-dpia.md`](docs/security/p5-dpia.md). Cut-over
+order for HR: master data import → leave balances and payroll YTD at the cutover → one parallel payroll period
+(`--legacy-payroll`, run tab *Parallel Run*, sign-off by HR and Finance) → reconciliation sign-off → first live payroll.
 
 ## Trial dataset
 

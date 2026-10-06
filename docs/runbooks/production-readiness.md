@@ -107,7 +107,7 @@ customers) before each P5 wave goes live (R5.1–R5.4, PRD P5 §14.2); record th
 | Shift change clock-in burst: every employee of the morning shift clocks in at the six device points within minutes, with offline resends | `clockin-shift-change.js` (bridge agent with `AGENT_TOKEN`, else the mock adapter) | p95 < 2 s per push (NFR clock-in < 2 s), every event accepted once, resends answered `duplicate`, no rejection | |
 | Journey to 10.000 customers (win-back, §9.4): activation, enrollment, run rounds until the first message step executed for everyone | `journey-10k.js` | every customer enrolled once, first step executed for all, no customer above the frequency cap (2 / week), API p95 < 1.5 s | |
 | BI queries on two years: Executive Overview (MoM / YoY), 24-month trends, drill-down to folio lines, HR Performance, report builder | `bi-2y.js` | p95 < 5 s on the analytics store (NFR), < 1 % errors | |
-| Payroll run of every employee | payroll area (`test/load`, payroll) | < 5 min per run (NFR) | |
+| Payroll run of every employee: the regular run of a period calculated for the whole property, then its payslips, comparison and journal read | `payroll-run.js` (`RUN_ID` of a draft / calculated run, or `PERIOD` to create one) | < 5 min per calculation (NFR), reads p95 < 3 s | |
 
 Correctness under contention: device resends counted once (`TestP5HRTimeAttendance`, `TestP5GapsPartnerClockIn`),
 journey frequency cap and quiet hours (`TestP5CRMJourneyRules`), executive KPI = source dashboard (`TestP5BIExecutiveOverview`).
@@ -117,9 +117,11 @@ journey frequency cap and quiet hours (`TestP5CRMJourneyRules`), executive KPI =
 - Go acceptance tests on real PostgreSQL: `test/e2e/p1_*_test.go` (golf day, booking changes, rate card, website booking
   with webhook ×3, membership lifecycle, member portal, billing, CRM, Rhapsody migration).
 - Browser: `web/e2e/golf.spec.ts` — booking → payment → caddy & golf cart → check-in → tee-off; member card; website.
-- Release 5 (FR-REL-P5-02): Go acceptance `test/e2e/p5_*_test.go` (§9.1 up to approved overtime: `TestP5GapsHireToWork`;
+- Release 5 (FR-REL-P5-02): Go acceptance `test/e2e/p5_*_test.go` (§9.1 `TestP5GapsHireToWork` + `TestP5PayrollFullRun`;
+  §9.2 `TestP5PayoutsServiceCharge`, `TestP5PayoutsCommissionBonus`; §9.3 `TestP5PayoutsCaddy*`, `TestP5PayoutsInstructorRun`;
   §9.4 `TestP5CRMJourneyRules`; §9.5 `TestP5BI*`; §9.6 `TestP5LeisureSeriesOrderOfMerit`) and the browser flows
-  `web/e2e/p5-flows.spec.ts` (Employee Self Service, Attendance Kiosk, journeys, Executive Overview, Order of Merit).
+  `web/e2e/p5-flows.spec.ts` (§9.1 hire to first pay through the payslip in the new employee's ESS, Employee Self Service
+  on the phone, journeys, Executive Overview, Order of Merit, migration reconciliation sign-off).
 
 ## 6. Security review (FR-REL-06, FR-REL-07)
 
@@ -228,6 +230,6 @@ Two to four weeks after go-live:
 | 8b | Release 4 cut-overs: two dry runs each, go/no-go minutes, sign-off — inventory (cut-over opname, purchase freeze), procurement, accounting (opening balances, parallel-run month, Excel TB comparison, sign-off stops the Accounting Export) | `inventory-migration-p4.md`, `procurement-migration-p4.md`, `accounting-migration-p4.md` | Club Finance + OneClub | |
 | 8c | Release 4 load tests (§4 Release 4), pen-test P4 scope (§6) without open High, retention 5 years configured and a restore drill including `accounting` recorded | §4, §6, Retention, `backup-restore.md` | OneClub ops + Engineering | |
 | 8d | Branch protection on `main` / `staging` with *Require review from Code Owners* enabled by a repository admin | §6 Branch protection, `.github/CODEOWNERS` | Repository admin | |
-| 8e | Release 5: HR migration reconciliation (headcount, leave balances; payroll totals by the payroll area) signed by the HR Manager and the Finance Manager (`oneclub import hris --reconcile`, HRIS → Migration Reconciliation); P5 load tests (§4 Release 5); pen test of `docs/security/p5-pentest-checklist.md` without open High; DPIA `docs/security/p5-dpia.md` signed | §4, §6, `docs/security/` | Club HR + Finance + OneClub | |
+| 8e | Release 5: HR migration reconciliation (headcount, leave balances, payroll gross / net of the last legacy period vs the parallel run) signed by the HR Manager and the Finance Manager (`oneclub import hris --reconcile`, HRIS → Migration Reconciliation); P5 load tests (§4 Release 5); pen test of `docs/security/p5-pentest-checklist.md` without open High; DPIA `docs/security/p5-dpia.md` signed | §4, §6, `docs/security/` | Club HR + Finance + OneClub | |
 | 9 | Parallel run without open critical finding (Exit #6) | `cutover-runbook.md` §2 | Club | |
 | 10 | Staff trained per interface (Starter, Caddy Master, Front Desk, Golf Staff, Back Office) | training log | Club | |
