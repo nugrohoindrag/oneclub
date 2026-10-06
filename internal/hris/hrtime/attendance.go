@@ -215,7 +215,8 @@ func (m *Module) registerAttendance(reg *route.Registry) {
 	tag := "HRIS Attendance"
 	add(reg, tag, route.Route{Method: http.MethodGet, Path: "/api/v1/hris/attendance-days", Summary: "Attendance days", Permission: PermAttendanceView,
 		Response: AttendanceDayView{}, List: true, Query: []route.Param{{Name: "from"}, {Name: "to"}, {Name: "orgUnitId"}, {Name: "employeeId"},
-			{Name: "status", Enum: hris.DayStatuses}}, Handler: listRead(m.DB, m.daysHTTP)})
+			{Name: "status", Enum: hris.DayStatuses},
+			{Name: "flag", Description: "Days with this flag; missing = missing clock-in or clock-out, any = any flag (exception queue)"}}, Handler: listRead(m.DB, m.daysHTTP)})
 	add(reg, tag, route.Route{Method: http.MethodGet, Path: "/api/v1/hris/attendance-events", Summary: "Clock events (review queue with review=pending)",
 		Permission: PermAttendanceView, Response: AttendanceEventView{}, List: true, Query: []route.Param{{Name: "from"}, {Name: "to"}, {Name: "employeeId"},
 			{Name: "review", Enum: []string{"pending", "accepted", "rejected"}}}, Handler: listRead(m.DB, m.eventsHTTP)})
@@ -262,7 +263,28 @@ func (m *Module) daysHTTP(ctx context.Context, tx pgx.Tx, r *http.Request) ([]At
 	if emp != nil {
 		ids = append(ids, *emp)
 	}
-	return handle.List[AttendanceDayView](tx.Query(ctx, daysSQL, property, ymd(from), ymd(to), ids, unit, r.URL.Query().Get("status")))
+	days, err := handle.List[AttendanceDayView](tx.Query(ctx, daysSQL, property, ymd(from), ymd(to), ids, unit, r.URL.Query().Get("status")))
+	if err != nil {
+		return nil, err
+	}
+	return filterDays(days, r.URL.Query().Get("flag")), nil
+}
+
+// filterDays keeps the days carrying flag (missing = missing clock-in or
+// clock-out, any = any flag; empty keeps all).
+func filterDays(days []AttendanceDayView, flag string) []AttendanceDayView {
+	if flag == "" {
+		return days
+	}
+	out := []AttendanceDayView{}
+	for _, d := range days {
+		if slices.ContainsFunc(d.Flags, func(f string) bool {
+			return flag == "any" || f == flag || (flag == "missing" && (f == hris.FlagMissingIn || f == hris.FlagMissingOut))
+		}) {
+			out = append(out, d)
+		}
+	}
+	return out
 }
 
 func (m *Module) eventsHTTP(ctx context.Context, tx pgx.Tx, r *http.Request) ([]AttendanceEventView, error) {

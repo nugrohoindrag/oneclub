@@ -18909,6 +18909,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** HR Dashboard: headcount, attendance today, workforce coverage, movement, payroll status and the HR queues */
+        get: operations["getHrisDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/document-files": {
         parameters: {
             query?: never;
@@ -21290,6 +21307,23 @@ export interface paths {
         };
         /** Year-to-date payroll per employee (opening + OneClub runs) */
         get: operations["getHrisPayrollYtd"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payslips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payslips of an employee across the runs (employee profile) */
+        get: operations["getHrisPayslips"];
         put?: never;
         post?: never;
         delete?: never;
@@ -48090,6 +48124,22 @@ export interface components {
             notes?: string;
             witnesses: components["schemas"]["Witness"][];
         };
+        HRAttendanceToday: {
+            absent: number;
+            late: number;
+            /** @description Missing clock-in or clock-out */
+            missingClock: number;
+            onLeave: number;
+            /** @description Clocked in (on time, late or leaving early) */
+            present: number;
+            /** @description Employees with a shift today */
+            scheduled: number;
+        };
+        HRAttention: {
+            count: number;
+            /** @enum {string} */
+            key: "attendance_review" | "attendance_missing" | "attendance_corrections" | "leave_requests" | "permission_requests" | "overtime_requests" | "overtime_unapproved" | "shift_swaps" | "profile_changes" | "contracts_expiring" | "documents_expiring" | "documents_expired" | "certifications_expired" | "payroll_warnings";
+        };
         HRClockRequest: {
             /** @enum {string} */
             direction: "in" | "out";
@@ -48098,6 +48148,34 @@ export interface components {
             note: string;
             /** @description RFC 3339 */
             occurredAt: string;
+        };
+        HRDashboard: {
+            attendance?: components["schemas"]["HRAttendanceToday"] | null;
+            /** @description Open queues with at least one item, most urgent first */
+            attention: components["schemas"]["HRAttention"][];
+            /** @description Today at the property (YYYY-MM-DD) */
+            date: string;
+            departments: components["schemas"]["HRDepartment"][];
+            headcount: components["schemas"]["HRHeadcount"];
+            monthStart: string;
+            movement: components["schemas"]["HRMovement"];
+            payroll?: components["schemas"]["HRPayrollStatus"] | null;
+            workforce?: components["schemas"]["HRWorkforce"] | null;
+        };
+        HRDepartment: {
+            headcount: number;
+            name: string;
+            /** Format: uuid */
+            orgUnitId: string;
+        };
+        HRHeadcount: {
+            contract: number;
+            /** @description Resignation or termination scheduled */
+            leaving: number;
+            permanent: number;
+            probation: number;
+            /** @description Active employees who have joined */
+            total: number;
         };
         HRHoliday: {
             /** Format: date-time */
@@ -48163,6 +48241,28 @@ export interface components {
             /** @enum {string} */
             entity: "grades" | "org_units" | "positions" | "employees" | "contracts" | "documents" | "certifications";
         };
+        HRMovement: {
+            newJoiners: number;
+            /** @description Promotions and demotions */
+            promotions: number;
+            /** @description Resignations and terminations effective this month */
+            terminations: number;
+            /** @description Transfers and rotations */
+            transfers: number;
+        };
+        HRPayrollStatus: {
+            headcount: number;
+            net: string;
+            number: string;
+            paymentDate: string;
+            periodCode: string;
+            /** Format: uuid */
+            runId: string;
+            /** @enum {string} */
+            status: "draft" | "calculated" | "submitted" | "approved" | "posted" | "paid";
+            /** @description Employees with calculation warnings */
+            warnings: number;
+        };
         HRPerformanceDashboard: {
             code: string;
             from: string;
@@ -48187,6 +48287,23 @@ export interface components {
             /** @enum {string} */
             unit: "count" | "idr" | "ratio" | "hours" | "balls" | "points" | "days";
             value?: string | null;
+        };
+        HRWorkforce: {
+            gap: number;
+            required: number;
+            scheduled: number;
+            units: components["schemas"]["HRWorkforceUnit"][];
+        };
+        HRWorkforceUnit: {
+            /** @description Staff short (0 when covered) */
+            gap: number;
+            name: string;
+            /** Format: uuid */
+            orgUnitId: string;
+            /** @description Minimum staff of the staffing requirements of the day */
+            required: number;
+            /** @description Shifts assigned that count towards the requirements */
+            scheduled: number;
         };
         HallOfFameConsentInput: {
             /** @enum {string} */
@@ -149772,6 +149889,8 @@ export interface operations {
                 orgUnitId?: string;
                 employeeId?: string;
                 status?: "scheduled" | "present" | "late" | "early_leave" | "absent" | "on_leave" | "off" | "holiday";
+                /** @description Days with this flag; missing = missing clock-in or clock-out, any = any flag (exception queue) */
+                flag?: string;
             };
             header: {
                 /** @description Active property chosen in the property switcher. */
@@ -153674,6 +153793,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ContractView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisDashboard: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HRDashboard"];
                 };
             };
             /** @description Not authenticated */
@@ -163854,6 +164023,66 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["PayrollYTD"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisPayslips: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                employeeId: string;
+                year?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PayrollSlip"][];
                         nextCursor?: string;
                     };
                 };

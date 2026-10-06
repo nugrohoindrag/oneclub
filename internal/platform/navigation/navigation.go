@@ -262,31 +262,44 @@ var Trees = map[string][]Item{
 			s("financial-reports", "Financial Reports", "/accounting/reports", "accounting.report.view"),
 			s("accounting-transition", "Accounting Transition", "/accounting/setup", "accounting.setup.view"),
 		),
-		// HRIS (PRD P5 §7.1, Naming Convention §22). Core HR is live; the menus
-		// of the later P5 areas stay Coming Soon until those areas switch them
-		// on (comingSoon: false).
-		mod("hris", "HRIS", "badge", "/hris/employees",
-			s("hris-employees", "Employees", "/hris/employees", "hris.employee.view"),
-			s("hris-organization", "Organization", "/hris/organization", "hris.org_unit.view"),
-			s("hris-recruitment", "Recruitment", "/hris/recruitment", "hris.job_requisition.view"),
-			s("hris-training", "Training & Certification", "/hris/training", "hris.certification.view"),
-			// PRD P5 EP-05 (performance review cycles, calibration).
-			s("hris-performance", "Performance Review", "/hris/performance", "hris.review_cycle.view"),
-			s("hris-attendance", "Attendance", "/hris/attendance", "hris.attendance.view"),  // PRD P5 EP-07
-			s("hris-schedules", "Schedules", "/hris/schedules", "hris.schedule.view"),       // PRD P5 EP-06
-			s("hris-leave", "Leave & Permission", "/hris/leave", "hris.leave_request.view"), // PRD P5 EP-08
-			s("hris-overtime", "Overtime", "/hris/overtime", "hris.overtime_request.view"),  // PRD P5 EP-08
-			// PRD P5 FR-ATT-08 (partner caddies / instructors on the attendance devices) and EP-28 (migration wave 5).
-			s("hris-partner-attendance", "Partner Clock-in", "/hris/partner-attendance", "hris.partner_attendance.view"),
-			s("hris-migration", "HR Migration", "/hris/import", "hris.import.create"),
-			s("hris-migration-reconciliation", "Migration Reconciliation", "/hris/migration-reconciliation", "hris.migration_reconciliation.view"),
-			s("hris-payroll", "Payroll", "/hris/payroll", "hris.payroll_run.view"),                         // PRD P5 EP-09/10/15
-			s("hris-benefits", "Benefits", "/hris/benefits", "hris.payroll_profile.view"),                  // PRD P5 EP-10 (PTKP, BPJS)
-			s("hris-service-charge", "Service Charge", "/hris/service-charge", "hris.service_charge.view"), // PRD P5 EP-11
-			s("hris-commissions", "Commissions", "/hris/commissions", "hris.commission_payout.view"),       // PRD P5 EP-12
-			s("hris-caddy", "Caddy", "/hris/caddy", "hris.payout_run.view"),                                // PRD P5 EP-13
-			s("hris-instructors", "Instructors", "/hris/instructors", "hris.payout_run.view"),              // PRD P5 EP-14
-			s("hris-reports", "HR Reports", "/reports?module=hris", "reporting.report.view"),               // PRD P5 EP-27 (BI registry)
+		// HRIS (PRD P5 §7.1, Naming Convention §22), grouped as an HR workspace
+		// (HRIS improvement specification §3): the HR Dashboard first, then
+		// People, Time & Attendance, Payroll, Performance and Reports; a group
+		// without a visible item is hidden.
+		mod("hris", "HRIS", "badge", "/hris/dashboard",
+			s("hris-dashboard", "HR Dashboard", "/hris/dashboard", "hris.employee.view"),
+			section("hris-people", "People",
+				s("hris-employees", "Employees", "/hris/employees", "hris.employee.view"),
+				s("hris-organization", "Organization", "/hris/organization", "hris.org_unit.view"),
+				s("hris-recruitment", "Recruitment", "/hris/recruitment", "hris.job_requisition.view"),      // PRD P5 EP-03
+				s("hris-training", "Training & Certification", "/hris/training", "hris.certification.view"), // PRD P5 EP-04
+			),
+			section("hris-time", "Time & Attendance",
+				s("hris-attendance", "Attendance", "/hris/attendance", "hris.attendance.view"),  // PRD P5 EP-07
+				s("hris-schedules", "Shift & Roster", "/hris/schedules", "hris.schedule.view"),  // PRD P5 EP-06
+				s("hris-leave", "Leave & Permission", "/hris/leave", "hris.leave_request.view"), // PRD P5 EP-08
+				s("hris-overtime", "Overtime", "/hris/overtime", "hris.overtime_request.view"),  // PRD P5 EP-08
+				// PRD P5 FR-ATT-08 (partner caddies / instructors on the attendance devices).
+				s("hris-partner-attendance", "Partner Clock-in", "/hris/partner-attendance", "hris.partner_attendance.view"),
+			),
+			section("hris-pay", "Payroll",
+				s("hris-payroll", "Payroll", "/hris/payroll", "hris.payroll_run.view"),                         // PRD P5 EP-09/10/15
+				s("hris-benefits", "Tax & BPJS", "/hris/benefits", "hris.payroll_profile.view"),                // PRD P5 EP-10 (PTKP, BPJS)
+				s("hris-service-charge", "Service Charge", "/hris/service-charge", "hris.service_charge.view"), // PRD P5 EP-11
+				s("hris-commissions", "Commissions", "/hris/commissions", "hris.commission_payout.view"),       // PRD P5 EP-12
+				s("hris-caddy", "Caddy", "/hris/caddy", "hris.payout_run.view"),                                // PRD P5 EP-13
+				s("hris-instructors", "Instructors", "/hris/instructors", "hris.payout_run.view"),              // PRD P5 EP-14
+			),
+			section("hris-talent", "Performance",
+				// PRD P5 EP-05 (performance review cycles, calibration).
+				s("hris-performance", "Performance Review", "/hris/performance", "hris.review_cycle.view"),
+			),
+			section("hris-insight", "Reports & Migration",
+				s("hris-reports", "HR Reports", "/reports?module=hris", "reporting.report.view"), // PRD P5 EP-27 (BI registry)
+				// PRD P5 EP-28 (migration wave 5).
+				s("hris-migration", "HR Migration", "/hris/import", "hris.import.create"),
+				s("hris-migration-reconciliation", "Migration Reconciliation", "/hris/migration-reconciliation", "hris.migration_reconciliation.view"),
+			),
 		),
 		// Employee Self Service for office staff (PRD P5 EP-16; the ops shell
 		// has the same area at /ops/ess).

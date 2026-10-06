@@ -112,6 +112,9 @@ const lineSelect = `SELECT line_no, code, name, kind, category, programme, taxab
 
 func (m *Module) registerPayslips(reg *route.Registry) {
 	tag := "HRIS Payroll"
+	add(reg, tag, route.Route{Method: http.MethodGet, Path: "/api/v1/hris/payslips", Summary: "Payslips of an employee across the runs (employee profile)",
+		Permission: PermRunView, Response: PayrollSlip{}, List: true, Query: []route.Param{{Name: "employeeId", Required: true}, {Name: "year"}},
+		Handler: listRead(m.DB, m.employeeSlipsHTTP)})
 	add(reg, tag, route.Route{Method: http.MethodGet, Path: "/api/v1/hris/payslips/{id}", Summary: "Payslip with its lines", Permission: PermRunView,
 		Response: PayrollSlip{}, Handler: handle.Read(m.DB, m.slipHTTP)})
 	add(reg, tag, route.Route{Method: http.MethodGet, Path: "/api/v1/hris/payslips/{id}/pdf", Summary: "Payslip PDF", Permission: PermRunView,
@@ -156,6 +159,30 @@ func (m *Module) runSlipsHTTP(ctx context.Context, tx pgx.Tx, r *http.Request) (
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
 	out, err := handle.List[PayrollSlip](tx.Query(ctx, slipSelect+` WHERE s.run_id = $1 AND ($2 = '' OR s.full_name ILIKE '%' || $2 || '%' OR s.employee_no ILIKE $2 || '%')
 		AND ($3 = '' OR s.status = $3) ORDER BY s.org_unit_name NULLS LAST, s.full_name`, rid, q, filterParam(r, "status")))
+	show := can(ctx, "hris.employee.view_sensitive", property)
+	for i := range out {
+		masked(&out[i], show)
+		if out[i].Messages == nil {
+			out[i].Messages = []string{}
+		}
+		out[i].Lines = []PayrollSlipLine{}
+	}
+	return out, err
+}
+
+// employeeSlipsHTTP lists the payslips of one employee, newest first (lines
+// are read per payslip).
+func (m *Module) employeeSlipsHTTP(ctx context.Context, tx pgx.Tx, r *http.Request) ([]PayrollSlip, error) {
+	property := handle.Property(ctx)
+	eid, err := handle.QueryUUID(r, "employeeId")
+	if err != nil {
+		return nil, err
+	}
+	if eid == nil {
+		return nil, errs.Validation("employee_required", "employeeId is required", errs.Field("employeeId", "required", "required"))
+	}
+	out, err := handle.List[PayrollSlip](tx.Query(ctx, slipSelect+` WHERE s.employee_id = $1 AND s.property_id = $2 AND r.status <> 'cancelled'
+		AND ($3 = '' OR left(r.period_code, 4) = $3) ORDER BY r.period_code DESC, r.payment_date DESC LIMIT 60`, *eid, property, filterParam(r, "year")))
 	show := can(ctx, "hris.employee.view_sensitive", property)
 	for i := range out {
 		masked(&out[i], show)

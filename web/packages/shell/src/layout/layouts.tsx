@@ -160,14 +160,20 @@ function SideItem({ item }: { item: NavItem }) {
       </NavLink>
       {item.children && open && item.path !== root && (
         <div className="oc-nav-sub">
-          {item.children.map((c) => (
+          {item.children.map((c) => (c.section ? (
+            // A section of a module menu (HRIS): a heading over its links.
+            <React.Fragment key={c.key}>
+              <div className="oc-nav-caption oc-nav-section oc-nav-label">{c.label}</div>
+              {(c.children ?? []).map((g) => <SubLink key={g.key} item={g} siblings={c.children!} />)}
+            </React.Fragment>
+          ) : (
             <React.Fragment key={c.key}>
               <SubLink item={c} siblings={item.children!} />
               {c.children && (loc.pathname.startsWith(c.path)) && (
                 <div className="oc-nav-sub">{c.children.map((g) => <SubLink key={g.key} item={g} siblings={c.children!} />)}</div>
               )}
             </React.Fragment>
-          ))}
+          )))}
         </div>
       )}
     </>

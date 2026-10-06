@@ -41323,6 +41323,71 @@
         ],
         "type": "object"
       },
+      "HRAttendanceToday": {
+        "properties": {
+          "absent": {
+            "type": "integer"
+          },
+          "late": {
+            "type": "integer"
+          },
+          "missingClock": {
+            "description": "Missing clock-in or clock-out",
+            "type": "integer"
+          },
+          "onLeave": {
+            "type": "integer"
+          },
+          "present": {
+            "description": "Clocked in (on time, late or leaving early)",
+            "type": "integer"
+          },
+          "scheduled": {
+            "description": "Employees with a shift today",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "scheduled",
+          "present",
+          "late",
+          "absent",
+          "onLeave",
+          "missingClock"
+        ],
+        "type": "object"
+      },
+      "HRAttention": {
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "key": {
+            "enum": [
+              "attendance_review",
+              "attendance_missing",
+              "attendance_corrections",
+              "leave_requests",
+              "permission_requests",
+              "overtime_requests",
+              "overtime_unapproved",
+              "shift_swaps",
+              "profile_changes",
+              "contracts_expiring",
+              "documents_expiring",
+              "documents_expired",
+              "certifications_expired",
+              "payroll_warnings"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "count"
+        ],
+        "type": "object"
+      },
       "HRClockRequest": {
         "properties": {
           "direction": {
@@ -41349,6 +41414,118 @@
           "direction",
           "occurredAt",
           "note"
+        ],
+        "type": "object"
+      },
+      "HRDashboard": {
+        "properties": {
+          "attendance": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HRAttendanceToday"
+              }
+            ],
+            "nullable": true
+          },
+          "attention": {
+            "description": "Open queues with at least one item, most urgent first",
+            "items": {
+              "$ref": "#/components/schemas/HRAttention"
+            },
+            "type": "array"
+          },
+          "date": {
+            "description": "Today at the property (YYYY-MM-DD)",
+            "type": "string"
+          },
+          "departments": {
+            "items": {
+              "$ref": "#/components/schemas/HRDepartment"
+            },
+            "type": "array"
+          },
+          "headcount": {
+            "$ref": "#/components/schemas/HRHeadcount"
+          },
+          "monthStart": {
+            "type": "string"
+          },
+          "movement": {
+            "$ref": "#/components/schemas/HRMovement"
+          },
+          "payroll": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HRPayrollStatus"
+              }
+            ],
+            "nullable": true
+          },
+          "workforce": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HRWorkforce"
+              }
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "date",
+          "monthStart",
+          "headcount",
+          "movement",
+          "departments",
+          "attention"
+        ],
+        "type": "object"
+      },
+      "HRDepartment": {
+        "properties": {
+          "headcount": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "orgUnitId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "orgUnitId",
+          "name",
+          "headcount"
+        ],
+        "type": "object"
+      },
+      "HRHeadcount": {
+        "properties": {
+          "contract": {
+            "type": "integer"
+          },
+          "leaving": {
+            "description": "Resignation or termination scheduled",
+            "type": "integer"
+          },
+          "permanent": {
+            "type": "integer"
+          },
+          "probation": {
+            "type": "integer"
+          },
+          "total": {
+            "description": "Active employees who have joined",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "permanent",
+          "contract",
+          "probation",
+          "leaving"
         ],
         "type": "object"
       },
@@ -41499,6 +41676,81 @@
         ],
         "type": "object"
       },
+      "HRMovement": {
+        "properties": {
+          "newJoiners": {
+            "type": "integer"
+          },
+          "promotions": {
+            "description": "Promotions and demotions",
+            "type": "integer"
+          },
+          "terminations": {
+            "description": "Resignations and terminations effective this month",
+            "type": "integer"
+          },
+          "transfers": {
+            "description": "Transfers and rotations",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "newJoiners",
+          "transfers",
+          "promotions",
+          "terminations"
+        ],
+        "type": "object"
+      },
+      "HRPayrollStatus": {
+        "properties": {
+          "headcount": {
+            "type": "integer"
+          },
+          "net": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paymentDate": {
+            "type": "string"
+          },
+          "periodCode": {
+            "type": "string"
+          },
+          "runId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "calculated",
+              "submitted",
+              "approved",
+              "posted",
+              "paid"
+            ],
+            "type": "string"
+          },
+          "warnings": {
+            "description": "Employees with calculation warnings",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "runId",
+          "number",
+          "periodCode",
+          "status",
+          "headcount",
+          "net",
+          "warnings",
+          "paymentDate"
+        ],
+        "type": "object"
+      },
       "HRPerformanceDashboard": {
         "properties": {
           "code": {
@@ -41602,6 +41854,63 @@
           "direction",
           "definition",
           "status"
+        ],
+        "type": "object"
+      },
+      "HRWorkforce": {
+        "properties": {
+          "gap": {
+            "type": "integer"
+          },
+          "required": {
+            "type": "integer"
+          },
+          "scheduled": {
+            "type": "integer"
+          },
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/HRWorkforceUnit"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "required",
+          "scheduled",
+          "gap",
+          "units"
+        ],
+        "type": "object"
+      },
+      "HRWorkforceUnit": {
+        "properties": {
+          "gap": {
+            "description": "Staff short (0 when covered)",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "orgUnitId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "required": {
+            "description": "Minimum staff of the staffing requirements of the day",
+            "type": "integer"
+          },
+          "scheduled": {
+            "description": "Shifts assigned that count towards the requirements",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "orgUnitId",
+          "name",
+          "required",
+          "scheduled",
+          "gap"
         ],
         "type": "object"
       },
@@ -245263,6 +245572,14 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "description": "Days with this flag; missing = missing clock-in or clock-out, any = any flag (exception queue)",
+            "in": "query",
+            "name": "flag",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -252155,6 +252472,79 @@
         "x-audited": true,
         "x-module": "hris",
         "x-permission": "hris.contract.renew"
+      }
+    },
+    "/api/v1/hris/dashboard": {
+      "get": {
+        "operationId": "getHrisDashboard",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HRDashboard"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "HR Dashboard: headcount, attendance today, workforce coverage, movement, payroll status and the HR queues",
+        "tags": [
+          "HRIS Dashboard"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.employee.view"
       }
     },
     "/api/v1/hris/document-files": {
@@ -269947,6 +270337,124 @@
           }
         ],
         "summary": "Year-to-date payroll per employee (opening + OneClub runs)",
+        "tags": [
+          "HRIS Payroll"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.payroll_run.view"
+      }
+    },
+    "/api/v1/hris/payslips": {
+      "get": {
+        "operationId": "getHrisPayslips",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "employeeId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "year",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/PayrollSlip"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Payslips of an employee across the runs (employee profile)",
         "tags": [
           "HRIS Payroll"
         ],
@@ -355977,6 +356485,9 @@
     },
     {
       "name": "HRIS Contracts"
+    },
+    {
+      "name": "HRIS Dashboard"
     },
     {
       "name": "HRIS Documents"

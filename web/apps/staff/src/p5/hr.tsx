@@ -12,6 +12,10 @@ import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
 import { TALENT_ESS, TALENT_ROUTES } from './hr_talent';
 // Gap closure (partner clock-in, migration reconciliation, push notifications) lives in gaps.tsx.
 import { GAPS_OPS_ROUTES, GAPS_OPS_TILES, GAPS_ROUTES, PushSettings } from './gaps';
+// The HR Dashboard (HRIS home) lives in hr-dashboard.tsx.
+import { HRDashboardPage } from './hr-dashboard';
+// The workspace tabs of the Employee Detail (attendance, leave, overtime, payroll, loans, reviews) live in hr-employee.tsx.
+import { EMPLOYEE_WORK_TABS, EmployeeWorkTab } from './hr-employee';
 
 // PRD P5 — core HR (EP-01 Organization & Employee, EP-02 Contracts & Documents, EP-04 Training & Certification, EP-24 HR Policies)
 // and Employee Self Service (EP-16). Back Office routes (HRIS → Employees, Organization, Training & Certification), the ESS area of
@@ -36,6 +40,15 @@ const PTKP = ['TK/0', 'TK/1', 'TK/2', 'TK/3', 'K/0', 'K/1', 'K/2', 'K/3'].map((v
 const DOC_TYPES = opts(['ktp', 'kk', 'npwp', 'passport', 'ijazah', 'cv', 'bpjs_kesehatan', 'bpjs_ketenagakerjaan', 'certificate', 'contract',
   'warning_letter', 'medical', 'reference_letter', 'photo', 'other']);
 const ROLES = opts(['lifeguard', 'caddy', 'instructor', 'food_handler', 'engineering', 'course_maintenance', 'security', 'sport_staff', 'starter', 'other']);
+
+/**
+ * The tab of a workspace page kept in the URL (?tab=), so the HR Dashboard
+ * and other links open it directly; switching tabs drops the other filters.
+ */
+export function useUrlTab(fallback: string): [string, (v: string) => void] {
+  const [params, setParams] = useSearchParams();
+  return [params.get('tab') ?? fallback, (v: string) => setParams({ tab: v }, { replace: true })];
+}
 
 function useOptions(path: string | null, text: (r: R) => string): Option[] {
   const l = useGet<Page<R>>(path);
@@ -128,22 +141,53 @@ export function EmployeesPage() {
   );
 }
 
+/** End date of the running contract per employee (active or expiring PKWT). */
+function useContractEnds(enabled: boolean): Record<string, string> {
+  const active = useGet<Page<R>>(enabled ? `${HR}/contracts?status=active&limit=500` : null);
+  const expiring = useGet<Page<R>>(enabled ? `${HR}/contracts?status=expiring&limit=500` : null);
+  return Object.fromEntries([...(active.data?.items ?? []), ...(expiring.data?.items ?? [])]
+    .filter((c) => c.endDate).map((c) => [String(c.employeeId), String(c.endDate)]));
+}
+
+/** Option label without its " (CODE)" suffix. */
+const nameOf = (list: Option[], id: unknown) => (id ? list.find((o) => o.value === id)?.label.replace(/ \([^)]*\)$/, '') ?? '—' : '—');
+
 function EmployeeList() {
   const nav = useNavigate();
   const { can } = useAuth();
+  // Filters open from the URL (HR Dashboard drill-downs by department and status).
+  const [params] = useSearchParams();
   const [open, setOpen] = useState(false);
-  const [emp, setEmp] = useState('');
+  const [emp, setEmp] = useState(params.get('employmentStatus') ?? '');
+  const [unit, setUnit] = useState(params.get('orgUnitId') ?? '');
+  const [pos, setPos] = useState(params.get('positionId') ?? '');
+  const leaving = params.get('terminationStatus') ?? '';
+  const units = useUnits();
+  const positions = usePositions();
+  const people = useEmployees();
+  const ends = useContractEnds(can('hris.contract.view'));
   return (
     <>
       <ListPage title="Employees" help="Employee master (HRIS): organization, position, grade, employment status, contracts, documents and certifications. Identity numbers and salaries are masked by permission (UU PDP)."
         path={`${HR}/employees`} statuses={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Left' }]}
-        extraQuery={emp ? { 'filter[employmentStatus]': emp } : {}}
-        filters={<FilterPills options={[{ value: '', label: 'All statuses' }, ...EMPLOYMENT]} value={emp} onChange={setEmp} />}
+        extraQuery={clean({ 'filter[employmentStatus]': emp, 'filter[orgUnitId]': unit, 'filter[positionId]': pos, 'filter[terminationStatus]': leaving }) as Record<string, string>}
+        filters={(
+          <>
+            <FilterPills options={[{ value: '', label: 'All statuses' }, ...EMPLOYMENT]} value={emp} onChange={setEmp} />
+            <SelectField label="Department" value={unit} onChange={setUnit} options={units} placeholder="All" />
+            <SelectField label="Position" value={pos} onChange={setPos} options={positions} placeholder="All" />
+            {leaving && <StatusPill status="warning" label="Leaving (scheduled)" />}
+          </>
+        )}
         actions={can('hris.employee.create') && <button className="oc-btn oc-btn-ink" onClick={() => setOpen(true)}><Icon name="person_add" size={18} /> Add Employee</button>}
         onRowClick={(r) => nav(`/hris/employees/${r.id}`)}
         columns={[
-          { key: 'employeeNo', header: 'No.' }, { key: 'fullName', header: 'Name' }, { key: 'jobTitle', header: 'Job Title', render: (r) => val(r.jobTitle) },
+          { key: 'employeeNo', header: 'No.' }, { key: 'fullName', header: 'Name' },
+          { key: 'orgUnitId', header: 'Department', render: (r) => nameOf(units, r.orgUnitId) },
+          { key: 'positionId', header: 'Position', render: (r) => (r.positionId ? nameOf(positions, r.positionId) : val(r.jobTitle)) },
+          { key: 'supervisorId', header: 'Supervisor', render: (r) => nameOf(people, r.supervisorId) },
           { key: 'employmentStatus', header: 'Employment', render: pill('employmentStatus') }, { key: 'joinDate', header: 'Joined', render: (r) => date(r.joinDate) },
+          { key: 'contractEnd', header: 'Contract ends', render: (r) => date(ends[String(r.id)]) },
           { key: 'terminationDate', header: 'Leaves', render: (r) => date(r.terminationDate) },
         ]} />
       {open && <NewEmployee onClose={() => setOpen(false)} onDone={(r) => nav(`/hris/employees/${r.id}`)} />}
@@ -183,7 +227,9 @@ const DETAIL_TABS: Option[] = [
 
 export function EmployeeDetailPage() {
   const { id = '' } = useParams();
-  const [tab, setTab] = useState('profile');
+  const { can } = useAuth();
+  const [tab, setTab] = useUrlTab('profile');
+  const tabs = [...DETAIL_TABS, ...EMPLOYEE_WORK_TABS.filter((t) => can(t.perm))];
   const p = useGet<R>(`${HR}/employees/${id}/profile`);
   if (p.isLoading) return <Skeleton rows={8} />;
   if (p.error || !p.data) return <ErrorAlert error={p.error} />;
@@ -200,8 +246,9 @@ export function EmployeeDetailPage() {
         {(d.certificationGaps as R[]).length > 0 && <StatusPill status="error" label="Certification gap" />}
         {Number(d.expiringDocuments) > 0 && <StatusPill status="pending" label={`${String(d.expiringDocuments)} documents expiring`} />}
       </div>
-      <Tabs tabs={DETAIL_TABS} value={tab} onChange={setTab} />
+      <Tabs tabs={tabs} value={tab} onChange={setTab} />
       {tab === 'profile' && <ProfileTab d={d} />}
+      <EmployeeWorkTab tab={tab} id={id} />
       {tab === 'employment' && <EmploymentTab id={id} d={d} />}
       {tab === 'contracts' && <ContractsPanel employeeId={id} />}
       {tab === 'documents' && <DocumentsPanel employeeId={id} />}
@@ -537,7 +584,8 @@ function RenewModal({ c, kind, onClose }: { c: R; kind: string; onClose: () => v
 
 function DocumentsPanel({ employeeId }: { employeeId?: string }) {
   const { can } = useAuth();
-  const [within, setWithin] = useState(employeeId ? '' : '60');
+  const [params] = useSearchParams();
+  const [within, setWithin] = useState(employeeId ? '' : params.get('within') ?? '60');
   const [open, setOpen] = useState(false);
   const toast = useToast();
   const l = useGet<Page<R>>(`${HR}/employee-documents?${employeeId ? `employeeId=${employeeId}&` : ''}${within ? `expiringWithin=${within}` : ''}`);
@@ -545,7 +593,7 @@ function DocumentsPanel({ employeeId }: { employeeId?: string }) {
     <div className="oc-stack">
       <PageHeader title="Documents" help="KTP, NPWP, BPJS, diplomas, certificates and warning letters with validity. Confidential documents (warning letters, medical) need their own permission."
         actions={employeeId && can('hris.employee_document.manage') && <button className="oc-btn oc-btn-ink" onClick={() => setOpen(true)}>Add Document</button>} />
-      {!employeeId && <FilterPills options={[{ value: '60', label: 'Expiring (60 days)' }, { value: '', label: 'All' }]} value={within} onChange={setWithin} />}
+      {!employeeId && <FilterPills options={[{ value: '0', label: 'Expired' }, { value: '60', label: 'Expiring (60 days)' }, { value: '', label: 'All' }]} value={within} onChange={setWithin} />}
       <DataTable rows={l.data?.items} loading={l.isLoading} error={l.error} columns={[
         ...(employeeId ? [] : [{ key: 'employeeName', header: 'Employee', render: (r: R) => <Link to={`/hris/employees/${String(r.employeeId)}`}>{String(r.employeeName)}</Link> }]),
         { key: 'title', header: 'Document', render: (r) => `${String(r.title)}${r.confidential ? ' 🔒' : ''}` }, { key: 'documentNo', header: 'No.', render: (r) => val(r.documentNo) },
@@ -1151,6 +1199,7 @@ function EssSectionPage({ base }: { base: string }) {
 // ── registrations ─────────────────────────────────────────────────────────
 
 export const HR_ROUTES: AreaRoute[] = [
+  { path: 'hris/dashboard', perm: 'hris.employee.view', element: <HRDashboardPage /> },
   { path: 'hris/employees', perm: 'hris.employee.view', element: <EmployeesPage /> },
   { path: 'hris/employees/:id', perm: 'hris.employee.view', element: <EmployeeDetailPage /> },
   { path: 'hris/contracts', perm: 'hris.contract.view', element: <div className="oc-stack"><ContractsPanel /></div> },

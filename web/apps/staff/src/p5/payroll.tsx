@@ -6,9 +6,9 @@ import {
   AutoResourcePage, Card, Checkbox, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
   TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
-import { KV, Tabs, money, today, type R } from '../p1/common';
+import { ActionButton, KV, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
-import { registerEssSection } from './hr';
+import { registerEssSection, useUrlTab } from './hr';
 import { PAYOUTS_OPS_ROUTES, PAYOUTS_OPS_TILES, PAYOUTS_ROUTES } from './payouts';
 
 // PRD P5 — payroll (EP-09 Payroll Engine, EP-10 PPh 21 & BPJS, EP-15 Payroll Accounting, Payment & Payslip): HRIS → Payroll (runs with
@@ -111,7 +111,7 @@ const PAYROLL_TABS: Option[] = [
 ];
 
 export function PayrollPage() {
-  const [tab, setTab] = useState('runs');
+  const [tab, setTab] = useUrlTab('runs');
   return (
     <div className="oc-stack">
       <PageHeader title="Payroll" help="Monthly payroll of the property: calculate from salary structures, contracts, attendance, approved overtime, unpaid leave, service charge and commissions; PPh 21 (TER, annual in December) and BPJS; approval by Finance & HR, payroll journal, bank file, payment and payslips in Employee Self Service." />
@@ -196,7 +196,7 @@ export function PayrollRunPage() {
         <PageHeader title={`${String(r.number)} · ${String(r.name)}`} help={`${label(r.runType)} run of ${String(r.periodCode)} (${date(r.periodStart)} – ${date(r.periodEnd)})`} />
       </div>
       <div className="oc-row-wrap">
-        <StatusPill status={st} label={label(st)} />
+        <StatusPill status={st} label={RUN_LABELS[st] ?? label(st)} />
         <span className="oc-spacer" />
         {can('hris.payroll_run.manage') && (st === 'draft' || st === 'calculated') && <Act label={st === 'draft' ? 'Calculate' : 'Recalculate'} path={`${base}:calculate`} kind="ink" />}
         {can('hris.payroll_run.approve') && st === 'calculated' && <Act label="Submit for approval" path={`${base}:approve`} note="optional" kind="ink" />}
@@ -217,6 +217,7 @@ export function PayrollRunPage() {
           ['Paid', r.paidOn ? `${date(r.paidOn)} · ${val(r.paymentReference)}` : '—'], ['Decision', val(r.decisionNote)],
         ]} />
       </Card>
+      {(can('accounting.journal.view') || can('accounting.posting.view')) && ['approved', 'posted', 'paid'].includes(st) && <FinancePosting runId={id} status={st} />}
       {can('hris.payroll_run.pay') && ['approved', 'posted', 'paid'].includes(st) && (
         <div className="oc-row-wrap">
           <SelectField label="Bank file layout" value={layout} onChange={setLayout} options={[{ value: 'generic_csv', label: 'Generic CSV' }, { value: 'bca_payroll', label: 'BCA payroll (fixed width)' }]} />
@@ -237,6 +238,53 @@ export function PayrollRunPage() {
         </FormModal>
       )}
     </div>
+  );
+}
+
+// Status of a run in the words of the HR workspace (the stored status is unchanged).
+const RUN_LABELS: Record<string, string> = { submitted: 'Under review', posted: 'Posted to Finance' };
+
+/**
+ * Integration with Finance & Accounting of a posted run: the payroll journal
+ * and the payment journal booked from hris.payroll_posted / hris.payroll_paid
+ * (looked up by source), or the open posting exceptions with their error and
+ * a repost; nothing yet while the events wait in the outbox.
+ */
+function FinancePosting({ runId, status }: { runId: string; status: string }) {
+  const { can } = useAuth();
+  const ACC = '/api/v1/accounting';
+  const journals = useGet<Page<R>>(can('accounting.journal.view') ? `${ACC}/journals?filter[sourceId]=${runId}&limit=20` : null);
+  const exceptions = useGet<Page<R>>(can('accounting.posting.view') ? `${ACC}/posting-exceptions?filter[status]=open&limit=200` : null);
+  const failed = (exceptions.data?.items ?? []).filter((e) => String(e.eventType).startsWith('hris.payroll_')
+    && (e.sourceId === runId || (e.eventPayload as R | undefined)?.runId === runId));
+  const booked = journals.data?.items ?? [];
+  const [tone, text] = failed.length ? ['error', 'Posting failed'] : booked.length ? ['approved', 'Posted to Finance']
+    : ['pending', status === 'posted' || status === 'paid' ? 'Posting in progress' : 'Not posted yet'];
+  return (
+    <Card title="Finance & Accounting" icon="account_balance" actions={<StatusPill status={tone} label={text} />}>
+      {failed.map((e) => (
+        <div key={String(e.id)} className="oc-alert oc-alert-error oc-row-wrap" role="alert">
+          <span>{label(e.reason)}: {String(e.message ?? '')}{Number(e.attempts) ? ` · ${String(e.attempts)} attempts` : ''}</span>
+          <span className="oc-spacer" />
+          {can('accounting.posting.manage') && (
+            <ActionButton label="Retry posting" path={`${ACC}/posting-exceptions/${String(e.id)}:repost`} invalidate={[ACC]} kind="ink" />
+          )}
+          <Link className="oc-btn oc-btn-text oc-btn-sm" to="/accounting/closing">Posting exceptions</Link>
+        </div>
+      ))}
+      {booked.length > 0 ? (
+        <DataTable rows={booked} columns={[
+          { key: 'number', header: 'Journal' }, { key: 'journalDate', header: 'Date', render: (j) => date(j.journalDate) },
+          { key: 'sourceType', header: 'Source', render: (j) => (String(j.sourceType).endsWith('paid') ? 'Payment' : 'Payroll') },
+          { key: 'total', header: 'Total', align: 'right', render: num('total') }, { key: 'status', header: 'Status', render: pill('status') },
+        ]} actions={() => <Link className="oc-btn oc-btn-text oc-btn-sm" to="/accounting/general-ledger">General Ledger</Link>} />
+      ) : !failed.length && (
+        <p className="oc-muted oc-small" style={{ margin: 0 }}>
+          {status === 'posted' || status === 'paid' ? 'The payroll journal is booked by Accounting from the posting event; it appears here once processed.'
+            : 'Post the approved run to send the payroll journal to Finance & Accounting.'}
+        </p>
+      )}
+    </Card>
   );
 }
 

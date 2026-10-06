@@ -1,16 +1,16 @@
 import React, { useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { getActiveProperty, request, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { currentLocale, formatDate, formatDateTime } from '@oneclub/i18n';
 import { cacheGet, cachePut, enqueue, useOnline } from '@oneclub/offline';
 import {
   AutoResourcePage, Card, Checkbox, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, QRCode, SelectField, Skeleton, StatusPill,
-  TextArea, TextField, useToast, type Option,
+  TextArea, TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { KV, Tabs, today, type R } from '../p1/common';
 import { ScanField } from '../p4/inventory';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
-import { registerEssSection } from './hr';
+import { registerEssSection, useUrlTab } from './hr';
 
 // PRD P5 — schedules, attendance, leave & overtime (EP-06–08). Back Office routes (HRIS → Schedules, Attendance, Leave &
 // Permission, Overtime), the Attendance Kiosk of the ops shell (QR / PIN on a registered device, offline queue) and the
@@ -129,7 +129,7 @@ const SCHED_TABS: Option[] = [
 ];
 
 export function SchedulesPage() {
-  const [tab, setTab] = useState('schedules');
+  const [tab, setTab] = useUrlTab('schedules');
   return (
     <div className="oc-stack">
       <PageHeader title="Schedules" help="Weekly / monthly shift schedules per department from shift templates, coverage against staffing requirements, publishing to Employee Self Service and shift swaps." />
@@ -145,7 +145,8 @@ export function SchedulesPage() {
 function ScheduleList() {
   const nav = useNavigate();
   const units = useUnits();
-  const [unit, setUnit] = useState('');
+  const [params] = useSearchParams();
+  const [unit, setUnit] = useState(params.get('orgUnitId') ?? '');
   const [open, setOpen] = useState(false);
   const [f, setF] = useState<Record<string, string>>({ periodStart: monday(addDays(today(), 7)) });
   const list = useGet<Page<R>>(`${HR}/schedules?${unit ? `orgUnitId=${unit}` : ''}`);
@@ -330,7 +331,7 @@ const ATT_TABS: Option[] = [
 ];
 
 export function AttendancePage() {
-  const [tab, setTab] = useState('days');
+  const [tab, setTab] = useUrlTab('days');
   return (
     <div className="oc-stack">
       <PageHeader title="Attendance" help="Clock-in / out from devices (face recognition, fingerprint), the Attendance Kiosk and mobile GPS matched to the published shifts; corrections, review of out-of-area clock-ins, devices and payroll period locks." />
@@ -347,7 +348,9 @@ export function AttendancePage() {
 }
 
 const dayColumns = [
-  { key: 'workDate', header: 'Date', render: (r: R) => date(r.workDate) }, { key: 'employeeName', header: 'Employee' },
+  { key: 'workDate', header: 'Date', render: (r: R) => date(r.workDate) },
+  { key: 'employeeName', header: 'Employee', render: (r: R) => <Link to={`/hris/employees/${String(r.employeeId)}`}>{String(r.employeeName)}</Link> },
+  { key: 'orgUnitName', header: 'Department', render: (r: R) => val(r.orgUnitName) },
   { key: 'shiftCode', header: 'Shift', render: (r: R) => (r.scheduledStart ? `${val(r.shiftCode)} ${time(r.scheduledStart)}–${time(r.scheduledEnd)}` : '—') },
   { key: 'firstIn', header: 'In', render: (r: R) => time(r.firstIn) }, { key: 'lastOut', header: 'Out', render: (r: R) => time(r.lastOut) },
   { key: 'status', header: 'Status', render: pill('status') }, { key: 'lateMinutes', header: 'Late', render: (r: R) => (Number(r.lateMinutes) ? `${String(r.lateMinutes)} min` : '—') },
@@ -355,12 +358,26 @@ const dayColumns = [
   { key: 'flags', header: 'Flags', render: (r: R) => ((r.flags as string[]) ?? []).map(label).join(', ') || '—' },
 ];
 
+// Exception filters of the attendance days (flag query of attendance-days).
+const DAY_FLAGS: Option[] = [
+  { value: 'any', label: 'Any exception' }, { value: 'missing', label: 'Missing clock-in / out' }, { value: 'out_of_area', label: 'Out of area' },
+  { value: 'unapproved_overtime', label: 'Overtime without approval' }, { value: 'no_schedule', label: 'Worked without schedule' },
+  { value: 'worked_on_leave', label: 'Worked on leave' },
+];
+
 function DaysPanel() {
   const units = useUnits();
   const employees = useEmployees();
-  const [f, setF] = useState<Record<string, string>>({ from: addDays(today(), -6), to: today() });
+  const { can } = useAuth();
+  // Filters open from the URL (HR Dashboard drill-downs: ?from=&to=&status=&flag=).
+  const [params] = useSearchParams();
+  const [f, setF] = useState<Record<string, string>>(() => ({
+    from: params.get('from') ?? addDays(today(), -6), to: params.get('to') ?? today(), orgUnitId: params.get('orgUnitId') ?? '',
+    status: params.get('status') ?? '', flag: params.get('flag') ?? '',
+  }));
   const [clock, setClock] = useState(false);
   const [recalc, setRecalc] = useState(false);
+  const [correct, setCorrect] = useState<R | null>(null);
   const q = new URLSearchParams(clean(f) as Record<string, string>).toString();
   const l = useGet<Page<R>>(`${HR}/attendance-days?${q}`);
   return (
@@ -370,11 +387,20 @@ function DaysPanel() {
         <TextField label="To" type="date" value={f.to} onChange={(v) => setF({ ...f, to: v })} />
         <SelectField label="Department" value={f.orgUnitId ?? ''} onChange={(v) => setF({ ...f, orgUnitId: v })} options={units} placeholder="All" />
         <SelectField label="Status" value={f.status ?? ''} onChange={(v) => setF({ ...f, status: v })} options={opts(DAY_STATUSES)} placeholder="All" />
+        <SelectField label="Exception" value={f.flag ?? ''} onChange={(v) => setF({ ...f, flag: v })} options={DAY_FLAGS} placeholder="All days" />
         <span className="oc-spacer" />
         <button className="oc-btn oc-btn-neutral" onClick={() => setRecalc(true)}>Recalculate</button>
         <button className="oc-btn oc-btn-ink" onClick={() => setClock(true)}>Record clock-in / out</button>
       </div>
-      <DataTable rows={withIds(l.data?.items, (r) => `${String(r.employeeId)}-${String(r.workDate)}`)} loading={l.isLoading} error={l.error} columns={dayColumns} />
+      <DataTable rows={withIds(l.data?.items, (r) => `${String(r.employeeId)}-${String(r.workDate)}`)} loading={l.isLoading} error={l.error} columns={dayColumns}
+        empty={<Empty title={f.flag ? 'No exception in this period' : 'No attendance in this period'} icon="task_alt" />}
+        actions={(r) => (!r.locked && can('hris.attendance_correction.create') && ((r.flags as string[]) ?? []).length + (r.status === 'absent' ? 1 : 0) > 0 ? (
+          <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setCorrect(r)}>Correct</button>
+        ) : null)} />
+      {correct && (
+        <CorrectionForm path={`${HR}/attendance-corrections`} employees={employees} onClose={() => setCorrect(null)}
+          initial={{ employeeId: String(correct.employeeId), workDate: String(correct.workDate).slice(0, 10) }} />
+      )}
       {clock && <HRClockModal employees={employees} onClose={() => setClock(false)} />}
       {recalc && (
         <FormModal open onClose={() => setRecalc(false)} title="Recalculate Attendance" path={`${HR}/attendance:recalculate`} body={() => ({ from: f.from, to: f.to })} submit="Recalculate">
@@ -420,8 +446,8 @@ function ReviewPanel() {
   );
 }
 
-function CorrectionForm({ path, employees, onClose }: { path: string; employees?: Option[]; onClose: () => void }) {
-  const [f, setF] = useState<Record<string, string>>({ workDate: addDays(today(), -1) });
+function CorrectionForm({ path, employees, onClose, initial }: { path: string; employees?: Option[]; onClose: () => void; initial?: Record<string, string> }) {
+  const [f, setF] = useState<Record<string, string>>({ workDate: addDays(today(), -1), ...initial });
   return (
     <FormModal open onClose={onClose} title="Attendance Correction" path={path} submit="Send"
       body={() => clean({ employeeId: f.employeeId, workDate: f.workDate, clockIn: f.clockIn, clockOut: f.clockOut, reason: f.reason ?? '' })}>
@@ -593,7 +619,7 @@ const LEAVE_TABS: Option[] = [
 ];
 
 export function LeavePage() {
-  const [tab, setTab] = useState(() => new URLSearchParams(window.location.search).get('tab') ?? 'requests');
+  const [tab, setTab] = useUrlTab('requests');
   return (
     <div className="oc-stack">
       <PageHeader title="Leave & Permission" help="Leave types of the Leave Policy, balances (12 days after 12 months, carry-over at most 6 days until 31 March), requests with approval, permission by hours and the holiday calendar." />
@@ -786,7 +812,7 @@ function LeaveTypes({ path }: { path: string }) {
 // ── Overtime (EP-08) ──────────────────────────────────────────────────────
 
 export function OvertimePage() {
-  const [tab, setTab] = useState('requests');
+  const [tab, setTab] = useUrlTab('requests');
   const employees = useEmployees();
   const [status, setStatus] = useState('submitted');
   const [open, setOpen] = useState(false);

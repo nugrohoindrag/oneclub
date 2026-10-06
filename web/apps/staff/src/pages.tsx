@@ -6,15 +6,19 @@ import {
   Card, ComingSoonPage, DataTable, ErrorAlert, Icon, PageHeader, SelectField, Skeleton, StatusPill, TextField, useAuth, useBootstrap, useToast,
 } from '@oneclub/shell';
 import { FinanceDashboardPage } from './p4/finance-dashboard';
+import { HRDashboardPage } from './p5/hr-dashboard';
 
 /** Back Office home (dashboard-ui.webp style). */
 /**
  * Back Office home: finance roles without the Management Dashboard (the
- * Accountant) open the Finance Dashboard; everyone else the general home.
+ * Accountant) open the Finance Dashboard, HR roles (HR Manager, HR Admin)
+ * the HR Dashboard; everyone else the general home.
  */
 export function DashboardPage() {
   const { can } = useAuth();
-  return can('accounting.dashboard.view') && !can('reporting.dashboard.view') ? <FinanceDashboardPage /> : <HomeDashboard />;
+  if (can('reporting.dashboard.view')) return <HomeDashboard />;
+  if (can('accounting.dashboard.view')) return <FinanceDashboardPage />;
+  return can('hris.employee.create') ? <HRDashboardPage /> : <HomeDashboard />;
 }
 
 function HomeDashboard() {
