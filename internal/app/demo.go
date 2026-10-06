@@ -125,6 +125,9 @@ func SeedDemo(ctx context.Context, db *dbtx.DB) (*DemoResult, error) {
 		if err := seedGolfDemo(ctx, tx, main); err != nil {
 			return fmt.Errorf("golf demo: %w", err)
 		}
+		if err := seedP3P4Demo(ctx, tx, main); err != nil {
+			return fmt.Errorf("P3/P4 demo: %w", err)
+		}
 
 		// approval workflows: Test Approval (2 steps, step 2 only above
 		// IDR 10,000,000) and Venue Activation (1 step).

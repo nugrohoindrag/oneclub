@@ -165,8 +165,8 @@ func (s *Service) create(kind string) http.HandlerFunc {
 		}
 		if strings.TrimSpace(req.Category) == "" {
 			fields = append(fields, errs.Field("category", "required", "category is required"))
-		} else if kind == "club_policy" && !slices.Contains(PolicyCategories, req.Category) {
-			fields = append(fields, errs.Field("category", "invalid", "one of: "+strings.Join(PolicyCategories, ", ")))
+		} else if cats := Categories(); kind == "club_policy" && !slices.Contains(cats, req.Category) {
+			fields = append(fields, errs.Field("category", "invalid", "one of: "+strings.Join(cats, ", ")))
 		}
 		var v any
 		if len(req.Value) == 0 || json.Unmarshal(req.Value, &v) != nil {

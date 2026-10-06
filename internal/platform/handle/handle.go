@@ -22,6 +22,9 @@ import (
 	"oneclub/internal/kernel/reqctx"
 )
 
+// maxAttempts bounds the runs of a write use case after deadlocks.
+const maxAttempts = 3
+
 // Empty is the request type of endpoints without a body.
 type Empty struct{}
 
@@ -35,11 +38,21 @@ func Write[Req any, Res any](db *dbtx.DB, status int, fn func(ctx context.Contex
 		}
 		ctx := r.Context()
 		var res Res
-		err := db.WithTx(ctx, func(tx pgx.Tx) error {
-			var err error
-			res, err = fn(ctx, tx, r, req)
-			return err
-		})
+		var err error
+		// A deadlock or serialization failure with a concurrent transaction
+		// (typically the background handler of an event on the same rows)
+		// rolled everything back: the use case runs again, at most 3 times.
+		for attempt := 1; ; attempt++ {
+			err = db.WithTx(ctx, func(tx pgx.Tx) error {
+				var err error
+				res, err = fn(ctx, tx, r, req)
+				return err
+			})
+			if err == nil || attempt == maxAttempts || !dbtx.IsRetryable(err) || ctx.Err() != nil {
+				break
+			}
+			time.Sleep(time.Duration(attempt*attempt) * 10 * time.Millisecond)
+		}
 		if err != nil {
 			httpx.WriteError(w, r, err)
 			return

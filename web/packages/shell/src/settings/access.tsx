@@ -22,7 +22,13 @@ function useAllProperties() {
   return me?.properties ?? [];
 }
 
-function AssignmentEditor({ value, onChange }: { value: { roleId: string; propertyId: string }[]; onChange: (v: { roleId: string; propertyId: string }[]) => void }) {
+/** A role to assign; validUntil (YYYY-MM-DD) ends a time-bound assignment (Auditor, PRD P4 §16 #18). */
+type AssignDraft = { roleId: string; propertyId: string; validUntil?: string };
+
+/** End of the chosen day in the browser's time zone, as RFC 3339. */
+const untilOf = (d?: string) => (d ? new Date(`${d}T23:59:59`).toISOString() : undefined);
+
+function AssignmentEditor({ value, onChange }: { value: AssignDraft[]; onChange: (v: AssignDraft[]) => void }) {
   const roles = useRoles();
   const props = useAllProperties();
   const byId = new Map((roles.data?.items ?? []).map((r) => [r.id, r]));
@@ -30,6 +36,7 @@ function AssignmentEditor({ value, onChange }: { value: { roleId: string; proper
     <div className="oc-stack">
       {value.map((a, i) => {
         const scope = byId.get(a.roleId)?.scope;
+        const timeBound = byId.get(a.roleId)?.code === 'auditor';
         return (
           <div key={i} className="oc-row-wrap">
             <div style={{ flex: 2, minWidth: 220 }}>
@@ -41,6 +48,10 @@ function AssignmentEditor({ value, onChange }: { value: { roleId: string; proper
                 <SelectField label="Property" value={a.propertyId} placeholder="Select…" onChange={(v) => onChange(value.map((x, j) => (j === i ? { ...x, propertyId: v } : x)))}
                   options={props.map((p) => ({ value: p.id, label: p.name }))} />
               ) : <div className="oc-field"><span className="oc-label">Property</span><span className="oc-muted" style={{ height: 44, display: 'flex', alignItems: 'center' }}>All properties</span></div>}
+            </div>
+            <div style={{ flex: 1, minWidth: 160 }}>
+              <TextField label="Access until" type="date" value={a.validUntil ?? ''} required={timeBound}
+                help={timeBound ? 'Auditor access ends after this day' : 'Optional'} onChange={(v) => onChange(value.map((x, j) => (j === i ? { ...x, validUntil: v } : x)))} />
             </div>
             <button type="button" className="oc-icon-btn" style={{ alignSelf: 'flex-end', marginBottom: 2 }} aria-label="Remove role" onClick={() => onChange(value.filter((_, j) => j !== i))}>
               <Icon name="close" size={18} />
@@ -63,7 +74,7 @@ function CreateUser({ onDone }: { onDone: () => void }) {
   const [phone, setPhone] = useState('');
   const [locale, setLocale] = useState('id');
   const [pw, setPw] = useState('');
-  const [assign, setAssign] = useState<{ roleId: string; propertyId: string }[]>([{ roleId: '', propertyId: useAllProperties()[0]?.id ?? '' }]);
+  const [assign, setAssign] = useState<AssignDraft[]>([{ roleId: '', propertyId: useAllProperties()[0]?.id ?? '' }]);
   const save = useSend('POST', '/api/v1/platform/users', ['/api/v1/platform/users']);
   const fe = fieldErrors(save.error);
   const scopeOf = (id: string) => roles.data?.items.find((r) => r.id === id)?.scope;
@@ -72,7 +83,8 @@ function CreateUser({ onDone }: { onDone: () => void }) {
       e.preventDefault();
       save.mutate({
         email, fullName: name, ...(phone ? { phone } : {}), locale, ...(pw ? { password: pw } : {}),
-        assignments: assign.filter((a) => a.roleId).map((a) => ({ roleId: a.roleId, propertyId: scopeOf(a.roleId) === 'property' ? a.propertyId : null })),
+        assignments: assign.filter((a) => a.roleId).map((a) => ({ roleId: a.roleId, propertyId: scopeOf(a.roleId) === 'property' ? a.propertyId : null,
+          validUntil: untilOf(a.validUntil) })),
       }, { onSuccess: () => { toast(t('common.saved')); onDone(); } });
     }}>
       <p className="oc-muted" style={{ margin: 0 }}>{t('help.users')}</p>
@@ -101,7 +113,7 @@ function UserDetail({ user, onClose }: { user: User; onClose: () => void }) {
   const roles = useRoles();
   const [name, setName] = useState(user.fullName);
   const [phone, setPhone] = useState(user.phone ?? '');
-  const [newAssign, setNewAssign] = useState<{ roleId: string; propertyId: string }[]>([]);
+  const [newAssign, setNewAssign] = useState<AssignDraft[]>([]);
   const [confirm, setConfirm] = useState<'deactivate' | 'activate' | 'reset-mfa' | null>(null);
   const [pin, setPin] = useState('');
   const detail = useGet<User>(`/api/v1/platform/users/${user.id}`);
@@ -109,7 +121,7 @@ function UserDetail({ user, onClose }: { user: User; onClose: () => void }) {
   const save = useSend('PATCH', `/api/v1/platform/users/${user.id}`, ['/api/v1/platform/users']);
   const act = useSend<{ reason: string }>('POST', () => `/api/v1/platform/users/${user.id}:${confirm}`, ['/api/v1/platform/users']);
   const pinM = useSend('PUT', `/api/v1/platform/users/${user.id}/pin`);
-  const addA = useSend<{ userId: string; roleId: string; propertyId: string | null }>('POST', '/api/v1/platform/role-assignments', ['/api/v1/platform/users']);
+  const addA = useSend<{ userId: string; roleId: string; propertyId: string | null; validUntil?: string }>('POST', '/api/v1/platform/role-assignments', ['/api/v1/platform/users']);
   const scopeOf = (id: string) => roles.data?.items.find((r) => r.id === id)?.scope;
   const removeA = async (a: Schemas['UserAssignment']) => {
     await request('DELETE', `/api/v1/platform/role-assignments/${a.id}`);
@@ -132,7 +144,9 @@ function UserDetail({ user, onClose }: { user: User; onClose: () => void }) {
       )}
       <div className="oc-label">Roles</div>
       <DataTable rows={u.assignments as unknown as Record<string, unknown>[]} rowKey={(a) => String(a.id)}
-        columns={[{ key: 'roleName', header: 'Role' }, { key: 'propertyName', header: 'Property', render: (a) => (a.propertyName as string) ?? 'All properties' }]}
+        columns={[{ key: 'roleName', header: 'Role' }, { key: 'propertyName', header: 'Property', render: (a) => (a.propertyName as string) ?? 'All properties' },
+          { key: 'validUntil', header: 'Access until', render: (a) => (a.validUntil
+            ? <>{formatDateTime(String(a.validUntil))}{new Date(String(a.validUntil)) <= new Date() && <> <StatusPill status="expired" /></>}</> : '—') }]}
         actions={(a) => can('platform.role_assignment.manage') && (
           <button className="oc-btn oc-btn-outline oc-btn-sm" onClick={() => void removeA(a as unknown as Schemas['UserAssignment'])}>Remove</button>
         )} />
@@ -141,7 +155,8 @@ function UserDetail({ user, onClose }: { user: User; onClose: () => void }) {
           <AssignmentEditor value={newAssign} onChange={setNewAssign} />
           {newAssign.length > 0 && <div><button className="oc-btn oc-btn-ink oc-btn-sm" onClick={async () => {
             for (const a of newAssign.filter((x) => x.roleId)) {
-              await addA.mutateAsync({ userId: user.id, roleId: a.roleId, propertyId: scopeOf(a.roleId) === 'property' ? a.propertyId : null });
+              await addA.mutateAsync({ userId: user.id, roleId: a.roleId, propertyId: scopeOf(a.roleId) === 'property' ? a.propertyId : null,
+                validUntil: untilOf(a.validUntil) });
             }
             setNewAssign([]);
             await detail.refetch();

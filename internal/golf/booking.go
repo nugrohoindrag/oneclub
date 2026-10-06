@@ -200,12 +200,15 @@ type Booking struct {
 	Payment            *billing.Payment `json:"payment" doc:"Latest pending online payment (checkout)"`
 	ManageToken        string           `json:"manageToken,omitempty" doc:"Returned once to website guests (manage link)"`
 	CreatedAt          time.Time        `json:"createdAt"`
+	PackageBookingID   *uuid.UUID       `json:"packageBookingId" doc:"Commercial package booking this tee time fulfils (PRD P3 FR-PKG-04)"`
+	PackageComponentID *uuid.UUID       `json:"packageComponentId"`
 }
 
 const bookingCols = `b.id, b.code, b.booking_type, b.channel, b.status, b.course_id, c.name, b.tee_time_id, b.play_date, b.start_at, b.playing_route_id,
 	b.player_count, b.customer_id, b.guest_id, b.member_id, b.corporate_account_id, b.contact_name, b.contact_phone, b.contact_email, b.hold_expires_at,
 	b.payment_mode, b.payment_due_at, b.deposit_amount::text, b.folio_id, b.policy_versions, b.qr_token, b.reschedule_count, b.cart_request,
-	b.caddy_request, b.notes, b.confirmed_at, b.checked_in_at, b.completed_at, b.cancelled_at, b.cancel_reason, b.no_show_at, b.created_at
+	b.caddy_request, b.notes, b.confirmed_at, b.checked_in_at, b.completed_at, b.cancelled_at, b.cancel_reason, b.no_show_at, b.created_at,
+	b.package_booking_id, b.package_component_id
 	FROM golf.bookings b JOIN golf.courses c ON c.id = b.course_id`
 
 func scanBooking(row pgx.Row) (Booking, error) {
@@ -214,7 +217,8 @@ func scanBooking(row pgx.Row) (Booking, error) {
 	err := row.Scan(&b.ID, &b.Code, &b.BookingType, &b.Channel, &b.Status, &b.CourseID, &b.CourseName, &b.TeeTimeID, &day, &b.StartAt, &b.PlayingRouteID,
 		&b.PlayerCount, &b.CustomerID, &b.GuestID, &b.MemberID, &b.CorporateAccountID, &b.ContactName, &b.ContactPhone, &b.ContactEmail, &b.HoldExpiresAt,
 		&b.PaymentMode, &b.PaymentDueAt, &b.DepositAmount, &b.FolioID, &b.PolicyVersions, &b.QRToken, &b.RescheduleCount, &b.CartRequest,
-		&b.CaddyRequest, &b.Notes, &b.ConfirmedAt, &b.CheckedInAt, &b.CompletedAt, &b.CancelledAt, &b.CancelReason, &b.NoShowAt, &b.CreatedAt)
+		&b.CaddyRequest, &b.Notes, &b.ConfirmedAt, &b.CheckedInAt, &b.CompletedAt, &b.CancelledAt, &b.CancelReason, &b.NoShowAt, &b.CreatedAt,
+		&b.PackageBookingID, &b.PackageComponentID)
 	b.PlayDate = day.Format("2006-01-02")
 	return b, err
 }
@@ -476,6 +480,7 @@ func (m *Module) PlaceHold(ctx context.Context, tx pgx.Tx, property uuid.UUID, r
 	if err != nil {
 		return Hold{}, err
 	}
+	pol = withTierWindow(pol, tierBonus(ctx, tx, tierCustomer(ctx))) // PRD P5 tier benefit
 	if req.Channel == "" {
 		req.Channel = "back_office"
 	}
@@ -610,8 +615,9 @@ func (m *Module) resolvePlayers(ctx context.Context, tx pgx.Tx, property uuid.UU
 			if !staff && st.Privileges.BookingWindowDays > 0 {
 				now := clock.Now()
 				days := int(day.Sub(time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)).Hours() / 24)
-				if days > st.Privileges.BookingWindowDays {
-					return nil, errs.Conflict("outside_booking_window", fmt.Sprintf("members of this type book up to %d days ahead", st.Privileges.BookingWindowDays))
+				window := st.Privileges.BookingWindowDays + tierBonus(ctx, tx, st.CustomerID) // PRD P5 tier benefit
+				if days > window {
+					return nil, errs.Conflict("outside_booking_window", fmt.Sprintf("members of this type book up to %d days ahead", window))
 				}
 			}
 			rp.memberID, rp.customerID, rp.membership, rp.name = mid, st.CustomerID, st.MembershipID, st.Name
@@ -863,6 +869,7 @@ func (m *Module) CreateBooking(ctx context.Context, tx pgx.Tx, property uuid.UUI
 	if err != nil {
 		return Booking{}, err
 	}
+	pol = withTierWindow(pol, requestTierBonus(ctx, tx, req)) // PRD P5 tier benefit
 	loc := location(ctx, tx, property)
 	if req.Channel == "" {
 		req.Channel = "back_office"

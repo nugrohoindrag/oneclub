@@ -7,6 +7,7 @@ import {
   statusCol, useAuth, useDebounced, useToast, type ResourceConfig,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from './common';
+import { CustomerTierBadge, TierBadge, TierFilter } from '../p5/tiers';
 
 const pill = (k: string) => (r: R) => <StatusPill status={String(r[k] ?? '').replace(/_/g, '-')} />;
 const st = { name: 'status', label: 'Status', type: 'select' as const, default: 'active', options: [{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Inactive' }] };
@@ -15,11 +16,18 @@ const st = { name: 'status', label: 'Status', type: 'select' as const, default: 
 
 export function MembersPage() {
   const [open, setOpen] = useState<string | null>(null);
+  // PRD P5 tier class: memberships with the tier of the member (crm read model) and the filter by tier.
+  const { can } = useAuth();
+  const tiers = can('crm.loyalty_account.view');
+  const [tier, setTier] = useState('');
   return (
     <>
-      <ListPage title="Members" path="/api/v1/membership/memberships" statuses={['active', 'pending', 'expired', 'inactive'].map((v) => ({ value: v, label: v }))}
+      <ListPage title="Members" path={tiers ? '/api/v1/crm/loyalty/member-tiers' : '/api/v1/membership/memberships'}
+        statuses={['active', 'pending', 'expired', 'inactive'].map((v) => ({ value: v, label: v }))}
+        extraQuery={tier ? { 'filter[tierId]': tier } : undefined} filters={tiers ? <TierFilter value={tier} onChange={setTier} /> : undefined}
         onRowClick={(r) => setOpen(String(r.memberId))}
         columns={[{ key: 'memberNo', header: 'Member No.' }, { key: 'memberName', header: 'Member' }, { key: 'typeName', header: 'Membership Type' },
+          ...(tiers ? [{ key: 'tierName', header: 'Tier', render: (r: R) => <TierBadge t={r} compact /> }] : []),
           { key: 'role', header: 'Role' }, { key: 'startsOn', header: 'Starts' }, { key: 'endsOn', header: 'Ends' }, { key: 'status', header: 'Status', render: pill('status') }]} />
       {open && <MemberDrawer id={open} onClose={() => setOpen(null)} />}
     </>
@@ -40,6 +48,7 @@ function MemberDrawer({ id, onClose }: { id: string; onClose: () => void }) {
           <div className="oc-row-wrap">
             {can('membership.member.update') && <ActionButton label="Send portal activation" path={`/api/v1/membership/members/${id}:invite`} invalidate={['/api/v1/membership']} />}
             {x.customerId || (x.member as R)?.customerId ? <Link className="oc-btn oc-btn-sm oc-btn-text" to={`/crm/customer-360?id=${String(x.customerId ?? (x.member as R)?.customerId)}`}>Customer 360</Link> : null}
+            <CustomerTierBadge customerId={String(x.customerId ?? (x.member as R)?.customerId ?? '') || null} />
           </div>
           {Object.entries(x).filter(([, v]) => Array.isArray(v)).map(([k, v]) => (
             <Card key={k} title={k.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase())}>
@@ -273,6 +282,7 @@ export function Customer360Page() {
     <div className="oc-stack">
       <PageHeader title={x ? String(x.profile.name) : 'Customer 360'} help={x ? `${String(x.profile.code)} · ${String(x.profile.phone ?? '')}` : undefined}
         actions={<>
+          <CustomerTierBadge customerId={id} />
           <button className="oc-btn oc-btn-neutral" onClick={() => setParams({})}>Search</button>
           {can('crm.customer.view') && <Link className="oc-btn oc-btn-outline" to={`/crm/customers/${id}`}>View all business lines</Link>}
           {can('crm.customer.export_personal_data') && <button className="oc-btn oc-btn-neutral" disabled={exp.isPending}

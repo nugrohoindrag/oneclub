@@ -831,7 +831,10 @@ func BuildAccountingExport(ctx context.Context, q dbtx.Querier, property uuid.UU
 		return nil, err
 	}
 	out = append(out, ExportRow{Section: "refund", Code: "refund", Description: "Refunds", Amount: dec(refunds).StringFixed(pl)})
-	return appendLineExport(ctx, q, out, property, from, to, pl) // FR-INT-P2-03
+	if out, err = appendLineExport(ctx, q, out, property, from, to, pl); err != nil { // FR-INT-P2-03
+		return nil, err
+	}
+	return appendP3Export(ctx, q, out, property, day, from, to, pl) // FR-INT-P3-05
 }
 
 // SaveAccountingExport builds and stores the export file of a day.
@@ -892,6 +895,12 @@ func (h *HTTP) createAccountingExport(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	var out AccountingExport
 	err = h.Svc.DB.WithTx(ctx, func(tx pgx.Tx) error {
+		if stopped, err := exportStopped(ctx, tx, prop(ctx)); err != nil || stopped {
+			if err == nil {
+				err = errs.Conflict("export_stopped", "the Accounting Export of this property stopped at the accounting sign-off; earlier exports stay downloadable")
+			}
+			return err
+		}
 		out, err = h.Svc.SaveAccountingExport(ctx, tx, h.Files, prop(ctx), day)
 		return err
 	})
@@ -1093,6 +1102,13 @@ func (w *DailyFinanceWorker) Work(ctx context.Context, _ *river.Job[DailyFinance
 			if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM billing.accounting_exports WHERE property_id = $1 AND business_date = $2::date)`,
 				p, day.Format("2006-01-02")).Scan(&done); err != nil {
 				return err
+			}
+			if !done {
+				if stopped, err := exportStopped(ctx, tx, p); err != nil {
+					return err
+				} else if stopped {
+					done = true // FR-TRS-04: Accounting posts the books of this property
+				}
 			}
 			if !done {
 				if _, err := w.Svc.SaveAccountingExport(ctx, tx, w.Files, p, day); err != nil {

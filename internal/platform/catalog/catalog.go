@@ -49,6 +49,13 @@ type RoleTemplate struct {
 	// IncludePlatformOnly is set).
 	AllPermissions      bool
 	IncludePlatformOnly bool
+	// ReadOnlyModules grants every view / export permission of these
+	// modules, including those contributed by the modules themselves
+	// (Auditor, PRD P4 §16 #18).
+	ReadOnlyModules []string
+	// Includes grants every permission of these role templates, including
+	// those contributed by the modules (a manager role over a staff role).
+	Includes []string
 }
 
 // Contribution is what a module adds to the catalogue.
@@ -74,16 +81,16 @@ var Modules = []Module{
 	{Code: "membership", Name: "Membership", Layer: "Shared Core", SortOrder: 30, Default: true},
 	{Code: "reservation", Name: "Booking", Layer: "Shared Core", SortOrder: 40, Default: true},
 	{Code: "stay", Name: "Stay & Venue", Layer: "Business Line", SortOrder: 50, Default: true},
-	{Code: "banquet", Name: "Banquet & Event", Layer: "Business Line", SortOrder: 60},
+	{Code: "banquet", Name: "Banquet & Event", Layer: "Business Line", SortOrder: 60, Default: true},
 	{Code: "crm", Name: "CRM", Layer: "Customer", SortOrder: 70, Default: true},
 	{Code: "commercial", Name: "Commercial", Layer: "Shared Core", SortOrder: 80, Default: true},
 	{Code: "billing", Name: "Billing & Payment", Layer: "Shared Core", SortOrder: 85, Default: true},
 	{Code: "inventory", Name: "Inventory", Layer: "Back Office", SortOrder: 90, Default: true},
 	{Code: "procurement", Name: "Procurement", Layer: "Back Office", SortOrder: 100, Default: true},
-	{Code: "accounting", Name: "Accounting", Layer: "Back Office", SortOrder: 110},
-	{Code: "hris", Name: "HRIS", Layer: "Back Office", SortOrder: 120},
+	{Code: "accounting", Name: "Accounting", Layer: "Back Office", SortOrder: 110, Default: true},
+	{Code: "hris", Name: "HRIS", Layer: "Back Office", SortOrder: 120, Default: true},
 	{Code: "reporting", Name: "Reports", Layer: "Foundation", SortOrder: 130, Default: true},
-	{Code: "cms", Name: "Landing Page / CMS", Layer: "Public Channel", SortOrder: 140},
+	{Code: "cms", Name: "CMS", Layer: "Public Channel", SortOrder: 140, Default: true},
 }
 
 // ModuleByCode returns a module definition.
@@ -236,7 +243,7 @@ var PropertyAdminPermissions = cat(bo, ops, []string{
 	"platform.device.view", "platform.device.manage",
 	"platform.import.view", "platform.import.create",
 	"platform.notification_template.view", "platform.notification_delivery.view",
-	"platform.approval_workflow.view", "platform.approval.view_all", "platform.approval.request_test",
+	"platform.approval_workflow.view", "platform.approval_workflow.manage", "platform.approval.view_all", "platform.approval.request_test",
 	"platform.integration.view", "platform.integration_log.view",
 	"platform.bridge_agent.view", "platform.bridge_agent.manage",
 	"platform.job.view", "platform.business_rule.view", "platform.club_policy.view",
@@ -291,6 +298,10 @@ var RoleTemplates = []RoleTemplate{
 	{Code: "sales_executive", Name: "Sales Executive", Category: "Sales & CRM", Scope: "property", Permissions: cat(bo, ma("crm", "banquet"))},
 	{Code: "crm_admin", Name: "CRM Admin", Category: "Sales & CRM", Scope: "property", Permissions: cat(bo, ma("crm"))},
 	{Code: "marketing_staff", Name: "Marketing Staff", Category: "Sales & CRM", Scope: "property", Permissions: cat(bo, ma("crm", "cms"))},
+	// PRD P4 §16 #15: the Marketing Manager approves the website
+	// publication (CMS approval workflow) on top of the Marketing Staff work.
+	{Code: "marketing_manager", Name: "Marketing Manager", Category: "Sales & CRM", Scope: "property", Includes: []string{"marketing_staff"},
+		Permissions: cat(bo, ma("crm", "cms", "commercial", "reporting"), []string{"reporting.report.view", "reporting.export.create", "platform.approval.view_all"})},
 	// Warehouse
 	{Code: "warehouse_staff", Name: "Warehouse Staff", Category: "Warehouse", Scope: "property", Permissions: cat(ops, ma("inventory"))},
 	{Code: "inventory_manager", Name: "Inventory Manager", Category: "Warehouse", Scope: "property", Permissions: cat(bo, ma("inventory", "procurement", "reporting"), []string{"reporting.report.view"})},
@@ -299,11 +310,20 @@ var RoleTemplates = []RoleTemplate{
 	{Code: "procurement_manager", Name: "Procurement Manager", Category: "Procurement", Scope: "property", Permissions: cat(bo, ma("procurement", "reporting"), []string{"reporting.report.view"})},
 	{Code: "approver", Name: "Approver", Category: "Procurement", Scope: "property", Permissions: cat(bo)},
 	// Finance (Finance Manager is seeded under Management)
+	// External auditor (PRD P4 FR-ACC-09, §16 #18): read-only Accounting &
+	// Reports, assigned for the audit period only (validUntil required) and
+	// every read logged in the audit log.
+	{Code: AuditorRole, Name: "Auditor", Category: "Finance", Scope: "property", MFARequired: true,
+		Permissions:     cat(bo, ma("accounting", "reporting"), []string{"reporting.report.view", "reporting.export.create", "audit.log.view"}),
+		ReadOnlyModules: []string{"accounting"}},
 	{Code: "accountant", Name: "Accountant", Category: "Finance", Scope: "property", MFARequired: true, Permissions: cat(bo, ma("accounting", "billing", "reporting"), []string{"reporting.report.view", "audit.log.view"})},
 	// HR
 	{Code: "hr_admin", Name: "HR Admin", Category: "HR", Scope: "property", Permissions: cat(bo, ma("hris"), []string{"platform.employee.view", "platform.department.view"})},
 	{Code: "hr_manager", Name: "HR Manager", Category: "HR", Scope: "property", Permissions: cat(bo, ma("hris", "reporting"), []string{"platform.employee.view", "platform.department.view", "reporting.report.view"})},
-	{Code: "employee_self_service", Name: "Employee (self-service)", Category: "HR", Scope: "property", Permissions: cat(bo)},
+	// PRD P5 EP-16 / §16 #6: Employee Self Service is the personal-login area of the ops shell; department heads lead their
+	// team there (the HRIS permissions come from the hris contribution).
+	{Code: "employee_self_service", Name: "Employee (self-service)", Category: "HR", Scope: "property", Permissions: cat(ops, ma("hris"))},
+	{Code: "department_head", Name: "Department Head", Category: "HR", Scope: "property", Permissions: cat(ops, ma("hris"))},
 	// Member & Guest Portal
 	{Code: "member", Name: "Member", Category: "Portal", Scope: "property", Permissions: []string{ShellMemberPortal}},
 	{Code: "guest", Name: "Guest", Category: "Portal", Scope: "property", Permissions: []string{ShellMemberPortal}},
@@ -347,8 +367,21 @@ func Build(contribs ...Contribution) (*Catalog, error) {
 	}
 	sort.Slice(c.Permissions, func(i, j int) bool { return c.Permissions[i].Code < c.Permissions[j].Code })
 
+	base := map[string][]string{}
 	for _, rt := range RoleTemplates {
-		rt.Permissions = cat(rt.Permissions, extra[rt.Code])
+		base[rt.Code] = cat(rt.Permissions, extra[rt.Code])
+	}
+	for _, rt := range RoleTemplates {
+		rt.Permissions = base[rt.Code]
+		for _, inc := range rt.Includes {
+			rt.Permissions = cat(rt.Permissions, base[inc])
+		}
+		for _, p := range c.Permissions {
+			m, _, a := p.Parts()
+			if (a == "view" || a == "export") && !p.PlatformOnly && slices.Contains(rt.ReadOnlyModules, m) {
+				rt.Permissions = cat(rt.Permissions, []string{p.Code})
+			}
+		}
 		if rt.AllPermissions {
 			rt.Permissions = nil
 			for _, p := range c.Permissions {

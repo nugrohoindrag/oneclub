@@ -25,7 +25,7 @@ func customer(t *testing.T, c *Client, code, name string, extra map[string]any) 
 }
 
 func dateAgo(years, months, days int) string {
-	return time.Now().AddDate(-years, -months, -days).Format("2006-01-02")
+	return clubDateAgo(inst, years, months, days)
 }
 
 // EP-04 acceptance: family eligibility, multi-program membership, pause
@@ -95,8 +95,8 @@ func TestP2MembershipLifecycle(t *testing.T) {
 	cards := []map[string]any{card}
 	// AC: pause 3 months extends validity 3 months and disables Member Rate.
 	endBefore, _ := time.Parse("2006-01-02", str(sa.Must(200, "GET", "/api/v1/membership/memberships/"+gid, nil).JSON()["endsOn"])[:10])
-	from := time.Now().Format("2006-01-02")
-	until := time.Now().AddDate(0, 3, 0).Format("2006-01-02")
+	from := clubToday(inst)
+	until := clubDateAgo(inst, 0, -3, 0)
 	pr := sa.Must(202, "POST", "/api/v1/membership/memberships/"+gid+":pause", map[string]any{"from": from, "until": until, "reason": "overseas assignment"}).JSON()
 	if pr["status"] != "applied" && pr["status"] != "approved" {
 		t.Fatalf("pause request: %v", pr)
@@ -211,5 +211,18 @@ func TestP2MembershipLifecycle(t *testing.T) {
 	}
 	if n := len(sa.Must(200, "GET", "/api/v1/membership/applications?filter[status]=completed", nil).Items()); n < 3 {
 		t.Fatalf("applications %d", n)
+	}
+
+	// A membership that ended yesterday at the club has expired, also before
+	// 07:00 WIB while the UTC date is still yesterday.
+	ended := customer(t, sa, "MB-ENDED", "Eko Ended", map[string]any{"birthDate": dateAgo(50, 0, 0)})
+	eid := activeMembership(t, sa, ended, golfInd, golfIndPkg, nil)
+	sysExec(t, inst, `UPDATE membership.memberships SET starts_on = $2, ends_on = $3 WHERE id = $1`, mustUUID(eid), clubDateAgo(inst, 1, 0, 1), clubDateAgo(inst, 0, 0, 1))
+	if ms := sa.Must(200, "GET", "/api/v1/membership/memberships/"+eid, nil).JSON(); ms["daysToExpiry"] != float64(-1) {
+		t.Fatalf("days to expiry of a membership ended yesterday: %v", ms["daysToExpiry"])
+	}
+	sec := sa.Must(200, "GET", "/api/v1/crm/customers/"+ended+"/360", nil).JSON()["sections"].(map[string]any)["membership"].([]any)
+	if len(sec) != 1 || sec[0].(map[string]any)["status"] != "expired" {
+		t.Fatalf("a membership that ended yesterday reads as expired: %v", sec)
 	}
 }

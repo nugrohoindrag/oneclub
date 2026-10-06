@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { copy, getBootstrap, LANGS, type Lang } from '../lib';
 import { SiteNav } from './nav';
+import { navFromCms, pickHeaderMenu } from './nav-model';
+import { getNavigation } from '../../components/cms/api';
 
 export async function generateMetadata(): Promise<Metadata> {
   const b = await getBootstrap();
@@ -14,6 +16,8 @@ export default async function LangLayout({ children, params }: { children: React
   if (!LANGS.includes(lang as Lang)) notFound();
   const b = await getBootstrap();
   const t = copy[lang as Lang];
+  // Header from the CMS header menu (FR-CMS-09); built-in list when none is published.
+  const header = navFromCms(pickHeaderMenu(await getNavigation(lang, 'header')));
   const custom =
     b.branding.accent === 'custom' && b.branding.customAccent
       ? `[data-accent='custom']{${Object.entries(b.branding.customAccent.light).map(([k, v]) => `${k}:${v}`).join(';')}}`
@@ -32,7 +36,7 @@ export default async function LangLayout({ children, params }: { children: React
               {b.branding.logoUrl ? <img src={b.branding.logoUrl} alt="" /> : <span className="w-mark">{b.branding.appName.slice(0, 1)}</span>}
               {b.branding.appName}
             </a>
-            <SiteNav lang={lang as Lang} labels={t.nav} />
+            <SiteNav lang={lang as Lang} labels={t.nav} items={header} />
             <a className="w-lang" href={lang === 'id' ? '/en' : '/id'} hrefLang={lang === 'id' ? 'en' : 'id'}>
               {lang === 'id' ? 'EN' : 'ID'}
             </a>
@@ -40,6 +44,8 @@ export default async function LangLayout({ children, params }: { children: React
           <main>{children}</main>
           <footer className="w-foot">
             © {new Date().getFullYear()} {b.branding.appName} · {t.footer}
+            {' · '}<a href={`/${lang}/complaint`}>{lang === 'id' ? 'Sampaikan keluhan' : 'Make a complaint'}</a>
+            {' · '}<a href={`/${lang}/careers`}>{lang === 'id' ? 'Karier' : 'Careers'}</a>
           </footer>
         </div>
       </body>

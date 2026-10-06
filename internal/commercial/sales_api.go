@@ -59,6 +59,11 @@ type OrderLine struct {
 	Status         string           `json:"status" db:"status" enum:"active,voided"`
 	SentAt         *time.Time       `json:"sentAt" db:"sent_at"`
 	ChargedFolioID *uuid.UUID       `json:"chargedFolioId" db:"charged_folio_id"`
+	// PRD P3 (additive): promotions applied to the line (FR-PRM-06).
+	PromotionDiscount string             `json:"promotionDiscount" db:"promotion_discount"`
+	Promotions        []AppliedPromotion `json:"promotions" db:"promotions"`
+	// PRD P5 (additive): loyalty tier F&B discount of the line (member tier class).
+	TierDiscount string `json:"tierDiscount" db:"tier_discount"`
 }
 
 // Bill is a (split) bill of an order.
@@ -103,6 +108,20 @@ type Order struct {
 	CreatedAt          time.Time   `json:"createdAt" db:"created_at"`
 	Lines              []OrderLine `json:"lines" db:"-"`
 	Bills              []Bill      `json:"bills" db:"-"`
+	// PRD P3 (additive): promo codes, removed promotions, the offline
+	// terminal total and the promotion mismatch flag (FR-PRM-06, FR-PRM-09).
+	PromoCodes          []string     `json:"promoCodes" db:"promo_codes"`
+	PromotionExclusions []string     `json:"promotionExclusions" db:"promotion_exclusions"`
+	ClientTotal         *string      `json:"clientTotal" db:"client_total"`
+	PromotionMismatch   bool         `json:"promotionMismatch" db:"promotion_mismatch"`
+	Promotions          []Redemption `json:"promotions" db:"-"`
+	// PRD P5 (additive): the loyalty tier of the customer when the order was
+	// opened and its F&B discount, shown as a separate discount line.
+	TierCode            *string `json:"tierCode" db:"tier_code"`
+	TierName            *string `json:"tierName" db:"tier_name"`
+	TierDiscountPercent *string `json:"tierDiscountPercent" db:"tier_discount_percent"`
+	TierDiscountLabel   *string `json:"tierDiscountLabel" db:"tier_discount_label" doc:"e.g. Gold member 5%"`
+	TierDiscount        string  `json:"tierDiscount" db:"tier_discount" doc:"Tier discount of the active lines"`
 }
 
 // LineInput is an item ordered.
@@ -136,6 +155,12 @@ type OrderInput struct {
 	Notes              string      `json:"notes,omitempty"`
 	Offline            bool        `json:"offline,omitempty"`
 	ClientCreatedAt    *time.Time  `json:"clientCreatedAt,omitempty"`
+	// PRD P3 (additive)
+	PromoCodes  []string `json:"promoCodes,omitempty" doc:"Promo codes entered"`
+	ClientTotal string   `json:"clientTotal,omitempty" doc:"Offline: the total the terminal computed with its cached promotions (checked at sync)"`
+	// PromotionExclusions are promotions the cashier removed before sending
+	// the order (permission commercial.pos.promotion_override).
+	PromotionExclusions []uuid.UUID `json:"promotionExclusions,omitempty"`
 }
 
 // Voucher is a voucher with its type.

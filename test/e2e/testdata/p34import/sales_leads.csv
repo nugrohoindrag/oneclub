@@ -1,0 +1,4 @@
+externalRef,name,phone,email,source,line,status,budget,createdAt
+CLI-{SFX}-1,CLI Bride {SFX},+62819{SFX},,instagram,wedding,qualified,250000000,{D-10}
+CLI-{SFX}-2,CLI Corp {SFX},,cli{SFX}@corp.test,phone,mice,new,,
+CLI-{SFX}-3,,,,,mice,new,,

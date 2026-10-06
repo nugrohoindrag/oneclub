@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"reflect"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -32,6 +33,9 @@ type PolicyDef struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Default     any    `json:"default"`
+	// Validate checks a new version beyond its type (ranges, codes); nil =
+	// the type check only.
+	Validate func(raw json.RawMessage) []errs.FieldError `json:"-"`
 }
 
 var (
@@ -44,6 +48,22 @@ func RegisterPolicy(d PolicyDef) {
 	defsMu.Lock()
 	defer defsMu.Unlock()
 	defs[d.Code] = d
+}
+
+// Categories lists the club-policy categories: the Naming Convention labels
+// of PolicyCategories followed by the categories of registered policies.
+func Categories() []string {
+	out := append([]string{}, PolicyCategories...)
+	defsMu.RLock()
+	defer defsMu.RUnlock()
+	var extra []string
+	for _, d := range defs {
+		if d.Category != "" && !slices.Contains(out, d.Category) && !slices.Contains(extra, d.Category) {
+			extra = append(extra, d.Category)
+		}
+	}
+	sort.Strings(extra)
+	return append(out, extra...)
 }
 
 // PolicyDefs lists the catalogue sorted by category and code.
@@ -86,6 +106,8 @@ func validatePolicy(code, category string, raw json.RawMessage) []errs.FieldErro
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(v); err != nil {
 		out = append(out, errs.Field("value", "invalid", strings.TrimPrefix(err.Error(), "json: ")))
+	} else if d.Validate != nil {
+		out = append(out, d.Validate(raw)...)
 	}
 	return out
 }

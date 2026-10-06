@@ -43,6 +43,7 @@ type UserAssignment struct {
 	RoleName     string     `json:"roleName"`
 	PropertyID   *uuid.UUID `json:"propertyId"`
 	PropertyName *string    `json:"propertyName"`
+	ValidUntil   *time.Time `json:"validUntil,omitempty" doc:"Expiry of a time-bound assignment (Auditor); no access after it"`
 }
 
 type CreateUserRequest struct {
@@ -58,6 +59,7 @@ type CreateUserRequest struct {
 type AssignmentRequest struct {
 	RoleID     uuid.UUID  `json:"roleId"`
 	PropertyID *uuid.UUID `json:"propertyId"`
+	ValidUntil *time.Time `json:"validUntil,omitempty" doc:"Expiry of the assignment (required for the Auditor role, PRD P4 §16 #18)"`
 }
 
 type UpdateUserRequest struct {
@@ -99,7 +101,7 @@ func (s *Service) loadUserAssignments(ctx context.Context, q dbtx.Querier, users
 		users[i].Assignments = []UserAssignment{}
 	}
 	rows, err := q.Query(ctx, `
-		SELECT ra.user_id, ra.id, r.id, r.code, r.name, ra.property_id, p.name
+		SELECT ra.user_id, ra.id, r.id, r.code, r.name, ra.property_id, p.name, ra.valid_until
 		FROM platform.role_assignments ra JOIN platform.roles r ON r.id = ra.role_id
 		LEFT JOIN platform.properties p ON p.id = ra.property_id
 		WHERE ra.user_id = ANY($1) ORDER BY r.name`, ids)
@@ -110,7 +112,7 @@ func (s *Service) loadUserAssignments(ctx context.Context, q dbtx.Querier, users
 	for rows.Next() {
 		var uid uuid.UUID
 		var a UserAssignment
-		if err := rows.Scan(&uid, &a.ID, &a.RoleID, &a.RoleCode, &a.RoleName, &a.PropertyID, &a.PropertyName); err != nil {
+		if err := rows.Scan(&uid, &a.ID, &a.RoleID, &a.RoleCode, &a.RoleName, &a.PropertyID, &a.PropertyName, &a.ValidUntil); err != nil {
 			return err
 		}
 		users[idx[uid]].Assignments = append(users[idx[uid]].Assignments, a)

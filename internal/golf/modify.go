@@ -85,6 +85,9 @@ func (m *Module) Cancel(ctx context.Context, tx pgx.Tx, property, bid uuid.UUID,
 	if strings.TrimSpace(req.Reason) == "" {
 		return out, errs.Validation("reason_required", "a reason is required", errs.Field("reason", "required", "reason"))
 	}
+	if b.PackageBookingID != nil {
+		return out, errPackageBooking()
+	}
 	switch b.Status {
 	case "draft":
 		if err := m.ReleaseHold(ctx, tx, property, bid, req.Reason); err != nil {
@@ -250,6 +253,9 @@ func (m *Module) Reschedule(ctx context.Context, tx pgx.Tx, property, bid uuid.U
 	}
 	if b.Status != "confirmed" && b.Status != "pending" {
 		return b, errs.Conflict("cannot_reschedule", "only pending or confirmed bookings can be rescheduled")
+	}
+	if b.PackageBookingID != nil {
+		return b, errPackageBooking()
 	}
 	if len(b.Flights) != 1 {
 		return b, errs.Conflict("group_reschedule", "group bookings are rescheduled per flight by the reservation team")
@@ -835,7 +841,7 @@ type RainCheck struct {
 }
 
 const rainCheckCols = `r.id, r.number, r.booking_id, b.code, r.booking_player_id, bp.name, r.customer_id, r.holes_played, r.holes_total, r.credit_percent::text,
-	r.credit_amount::text, r.currency, r.expires_on, CASE WHEN r.status = 'issued' AND r.expires_on < current_date THEN 'expired' ELSE r.status END,
+	r.credit_amount::text, r.currency, r.expires_on, CASE WHEN r.status = 'issued' AND r.expires_on < billing.local_date(r.property_id) THEN 'expired' ELSE r.status END,
 	r.redeemed_booking_id, r.redeemed_at, r.created_at
 	FROM golf.rain_checks r JOIN golf.bookings b ON b.id = r.booking_id JOIN golf.booking_players bp ON bp.id = r.booking_player_id`
 

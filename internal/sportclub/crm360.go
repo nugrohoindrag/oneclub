@@ -28,7 +28,7 @@ type EnrolledClass struct {
 // CustomerSection is the Sport Club part of the Customer 360.
 func (m *Module) CustomerSection(ctx context.Context, q dbtx.Querier, property, customer uuid.UUID) (any, error) {
 	a := SportActivity{}
-	if err := q.QueryRow(ctx, `SELECT count(*) FILTER (WHERE visit_date > current_date - 90)::int, max(used_at) FROM sportclub.entries
+	if err := q.QueryRow(ctx, `SELECT count(*) FILTER (WHERE visit_date > billing.local_date(property_id) - 90)::int, max(used_at) FROM sportclub.entries
 		WHERE (customer_id = $1 OR host_customer_id = $1) AND status <> 'cancelled'`, customer).Scan(&a.EntriesLast90Days, &a.LastVisit); err != nil {
 		return a, err
 	}
@@ -48,7 +48,7 @@ func (m *Module) CustomerBehavior(ctx context.Context, q dbtx.Querier, property,
 	var fav *string
 	if err := q.QueryRow(ctx, `SELECT count(*)::int, (SELECT f.name FROM sportclub.entries e2 JOIN sportclub.facilities f ON f.id = e2.facility_id
 		WHERE e2.customer_id = $1 AND e2.status = 'used' GROUP BY f.name ORDER BY count(*) DESC LIMIT 1)
-		FROM sportclub.entries WHERE customer_id = $1 AND status = 'used' AND visit_date > current_date - 90`, customer).Scan(&visits, &fav); err != nil {
+		FROM sportclub.entries WHERE customer_id = $1 AND status = 'used' AND visit_date > billing.local_date(property_id) - 90`, customer).Scan(&visits, &fav); err != nil {
 		return b, err
 	}
 	b.Facts["visitsLast90Days"] = visits

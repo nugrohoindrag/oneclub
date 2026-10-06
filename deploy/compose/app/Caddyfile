@@ -36,6 +36,9 @@
 		X-Content-Type-Options nosniff
 		Referrer-Policy strict-origin-when-cross-origin
 		Permissions-Policy "camera=(), geolocation={args[0]}, microphone=()"
+		# Icons are self-hosted (decision 4g, font-src 'self'); fonts.googleapis.com and
+		# fonts.gstatic.com serve only the text fonts (Inter, Roboto Flex), which fall
+		# back to system fonts when unreachable.
 		Content-Security-Policy "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'none'"
 		-Server
 	}

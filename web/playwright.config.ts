@@ -6,8 +6,11 @@ import { defineConfig } from '@playwright/test';
  *   API on :8080, previews on :5173 (Staff App) :5174 (Member App) :3000
  *   (website); the Staff App domains are <surface>.localhost:5173 (Technical Doc
  *   §6.1). Staging sets E2E_DASHBOARD, E2E_CASHIER, E2E_CADDY, E2E_KITCHEN,
- *   E2E_MEMBER and E2E_WEB.
+ *   E2E_MEMBER and E2E_WEB. PW_EXECUTABLE_PATH runs a preinstalled Chromium
+ *   instead of the Chrome channel (machines without Chrome).
  */
+const executablePath = process.env.PW_EXECUTABLE_PATH;
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
@@ -17,7 +20,8 @@ export default defineConfig({
   reporter: [['list']],
   globalSetup: './e2e/global-setup.ts',
   use: {
-    channel: process.env.PW_CHANNEL ?? 'chrome',
+    channel: executablePath ? undefined : (process.env.PW_CHANNEL ?? 'chrome'),
+    launchOptions: executablePath ? { executablePath } : undefined,
     headless: true,
     viewport: { width: 1360, height: 860 },
     screenshot: 'only-on-failure',

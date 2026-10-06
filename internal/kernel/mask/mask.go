@@ -15,7 +15,7 @@ var secretKeys = map[string]bool{
 	"mfasecret": true, "mfasecretenc": true, "credentials": true, "credentialsenc": true,
 	"authorization": true, "cvv": true, "cardnumber": true, "webhooksecret": true,
 	"clientsecret": true, "privatekey": true, "signature": true, "tokenhash": true,
-	"secrethash": true, "code": false,
+	"secrethash": true, "otpcode": true, "code": false,
 }
 
 // personalKeys are personal data; masked for viewers without the sensitive

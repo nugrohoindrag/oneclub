@@ -64,13 +64,15 @@ type Stay struct {
 	FolioID         *uuid.UUID       `json:"folioId" db:"folio_id"`
 	Channel         string           `json:"channel" db:"channel"`
 	CreatedAt       time.Time        `json:"createdAt" db:"created_at"`
+	PackageBooking  *uuid.UUID       `json:"packageBookingId" db:"package_booking_id" doc:"Commercial package booking this stay fulfils (PRD P3 FR-PKG-04)"`
+	RoomPosting     string           `json:"roomPosting" db:"room_posting" enum:"at_booking,nightly,package" doc:"How the room is charged: at booking, per night by the night audit, or in the package"`
 }
 
 const staySelect = `SELECT s.id, s.property_id, s.stay_no, s.kind, s.reservation_id, r.code AS reservation_code, s.customer_id, c.name AS customer_name,
 	s.guest_name, s.guest_phone, s.corporate_name, s.unit_id,
 	coalesce(b.name, v.name, mr.name, '') AS unit_name, s.unit_type_id, s.unit_assigned, s.start_at, s.end_at, s.actual_end_at, s.adults, s.children,
 	s.pax, s.layout, s.rate_plan, s.package_code, s.special_requests, s.event_schedule, s.catering, s.id_type, s.id_number_masked, s.status,
-	s.checked_in_at, s.checked_out_at, s.folio_id, s.channel, s.created_at
+	s.checked_in_at, s.checked_out_at, s.folio_id, s.channel, s.created_at, s.package_booking_id, s.room_posting
 	FROM stay.stays s JOIN reporting.reservations r ON r.reservation_id = s.reservation_id LEFT JOIN reporting.customer_directory c ON c.id = s.customer_id
 	LEFT JOIN stay.bungalows b ON b.id = s.unit_id LEFT JOIN stay.vip_suites v ON v.id = s.unit_id LEFT JOIN stay.meeting_rooms mr ON mr.id = s.unit_id`
 
@@ -370,10 +372,25 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 	}
 	main := res.Lines[0]
 	e := end
+	var quote *roomQuote
 	switch in.Kind {
 	case "bungalow":
-		if err := charge(main.ID, commercial.PriceRequest{ServiceType: "bungalow", ItemRef: u.PriceItem, Segment: segment, RatePlan: in.RatePlan,
-			Start: start, End: &e, Channel: in.Channel}, "bungalow", u.Name+" · "+in.RatePlan); err != nil {
+		req := commercial.PriceRequest{ServiceType: "bungalow", ItemRef: u.PriceItem, Segment: segment, RatePlan: in.RatePlan, Start: start, End: &e,
+			Channel: in.Channel}
+		if pol.RoomChargePosting == "nightly" && (rp == nil || !rp.DayUse) {
+			// priced now, posted one night at a time by the night audit (FR-EOD-03)
+			pr, err := commercial.Pricer{}.Price(ctx, tx, property, req)
+			if err != nil {
+				return StayResult{}, err
+			}
+			quote = &roomQuote{LineID: main.ID, Net: pr.Net().String(), Service: pr.ServiceAmount().String(), Tax: pr.TaxAmount().String(),
+				Total: pr.Total().String(), Nights: nightsBetween(start, end, loc), SnapshotID: pr.SnapshotID,
+				RevenueComponent: nonEmpty(pr.RevenueComponent, "bungalow"), Description: u.Name + " · " + in.RatePlan}
+			total = total.Add(pr.Total())
+			if err := m.Res.SetLinePrice(ctx, tx, main.ID, pr.SnapshotID, pr.Total()); err != nil {
+				return StayResult{}, err
+			}
+		} else if err := charge(main.ID, req, "bungalow", u.Name+" · "+in.RatePlan); err != nil {
 			return StayResult{}, err
 		}
 	case "vip_suite":
@@ -476,6 +493,12 @@ func (m *Module) Book(ctx context.Context, tx pgx.Tx, property uuid.UUID, in Sta
 	}
 	if err := m.Res.SetSource(ctx, tx, res.ID, sid); err != nil {
 		return StayResult{}, err
+	}
+	if quote != nil {
+		raw, _ := json.Marshal(quote)
+		if _, err := tx.Exec(ctx, `UPDATE stay.stays SET room_posting = 'nightly', room_quote = $2 WHERE id = $1`, sid, raw); err != nil {
+			return StayResult{}, err
+		}
 	}
 	if in.Payment != nil {
 		amt, err := handle.Decimal("payment.amount", in.Payment.Amount, deposit)
@@ -598,6 +621,17 @@ func (m *Module) result(ctx context.Context, tx pgx.Tx, sid uuid.UUID) (StayResu
 		}
 		out.Folio = &d
 		out.Total = d.Charges
+		if s.RoomPosting == "nightly" {
+			// the nights not yet posted by the night audit are part of the stay
+			var unposted string
+			if err := tx.QueryRow(ctx, `SELECT (coalesce((room_quote->>'total')::numeric, 0) - coalesce((SELECT sum(total) FROM stay.night_postings
+				WHERE stay_id = $1), 0))::text FROM stay.stays WHERE id = $1`, sid).Scan(&unposted); err != nil {
+				return out, err
+			}
+			charges, _ := decimal.NewFromString(d.Charges)
+			rest, _ := decimal.NewFromString(unposted)
+			out.Total = charges.Add(rest).String()
+		}
 	}
 	return out, nil
 }
@@ -736,6 +770,12 @@ func (m *Module) CheckOut(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Chec
 			}
 		}
 	}
+	if s.RoomPosting == "nightly" && s.Status == "checked_in" {
+		// the nights not posted by the night audit (at least one) are posted now
+		if _, err := m.postNights(ctx, tx, s, at, "check_out"); err != nil {
+			return StayResult{}, err
+		}
+	}
 	if s.FolioID != nil {
 		f, err := billing.GetFolio(ctx, tx, *s.FolioID)
 		if err != nil {
@@ -756,7 +796,15 @@ func (m *Module) CheckOut(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Chec
 	}
 	if at.Before(s.End) && len(r.Lines) > 0 {
 		// early departure / VIP suite actual end: free the rest of the period
-		if err := m.Res.ShortenLine(ctx, tx, r.Lines[0].ID, at); err != nil {
+		line := r.Lines[0]
+		if u, err := m.unit(ctx, tx, s.Kind, s.UnitID); err == nil && u.ResourceID != nil {
+			for _, l := range r.Lines {
+				if l.ResourceID == *u.ResourceID {
+					line = l
+				}
+			}
+		}
+		if err := m.Res.ShortenLine(ctx, tx, line.ID, at); err != nil {
 			return StayResult{}, err
 		}
 	}
@@ -903,6 +951,9 @@ func (m *Module) Cancel(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in Cancel
 	}
 	if s.Status != "reserved" && s.Status != "requested" {
 		return StayResult{}, errs.Conflict("invalid_status", "only Reserved stays can be cancelled")
+	}
+	if s.PackageBooking != nil {
+		return StayResult{}, errPackageStay()
 	}
 	if _, err := m.Res.Cancel(ctx, tx, s.ReservationID, in.Reason, in.WaiveFee); err != nil {
 		return StayResult{}, err

@@ -1,6 +1,7 @@
 // Package reporting is Management & BI (EP-10): a report registry with
 // per-report permission, queries routed to the read replica (FR-REP-01),
-// asynchronous CSV/XLSX export with a notification when ready (FR-REP-03),
+// asynchronous CSV/XLSX/PDF export with a notification when ready (FR-REP-03,
+// PDF: PRD P4 FR-FIN-05),
 // and the Management Dashboard Executive Overview (FR-REP-04).
 package reporting
 
@@ -85,7 +86,7 @@ type Result struct {
 type Export struct {
 	ID          uuid.UUID  `json:"id"`
 	ReportCode  string     `json:"reportCode"`
-	Format      string     `json:"format" enum:"csv,xlsx"`
+	Format      string     `json:"format" enum:"csv,xlsx,pdf"`
 	Status      string     `json:"status" enum:"pending,completed,failed"`
 	RowCount    *int       `json:"rowCount"`
 	FileURL     *string    `json:"fileUrl"`
@@ -96,7 +97,7 @@ type Export struct {
 
 type ExportRequest struct {
 	ReportCode string            `json:"reportCode"`
-	Format     string            `json:"format" enum:"csv,xlsx"`
+	Format     string            `json:"format" enum:"csv,xlsx,pdf"`
 	Params     map[string]string `json:"params,omitempty"`
 }
 
@@ -238,8 +239,8 @@ func (s *Service) createExport(w http.ResponseWriter, r *http.Request) {
 	if req.Format == "" {
 		req.Format = "csv"
 	}
-	if req.Format != "csv" && req.Format != "xlsx" {
-		httpx.WriteError(w, r, errs.Validation("invalid_format", "format must be csv or xlsx", errs.Field("format", "invalid", "csv or xlsx")))
+	if req.Format != "csv" && req.Format != "xlsx" && req.Format != "pdf" {
+		httpx.WriteError(w, r, errs.Validation("invalid_format", "format must be csv, xlsx or pdf", errs.Field("format", "invalid", "csv, xlsx or pdf")))
 		return
 	}
 	rep, ok := s.find(req.ReportCode)
@@ -373,6 +374,9 @@ func (wk *ExportWorker) Work(ctx context.Context, job *river.Job[ExportArgs]) er
 	var buf bytes.Buffer
 	ctype := "text/csv"
 	switch format {
+	case "pdf":
+		ctype = "application/pdf"
+		buf.Write(reportPDF(rep, prm, rows, time.Now()))
 	case "xlsx":
 		ctype = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 		f := excelize.NewFile()

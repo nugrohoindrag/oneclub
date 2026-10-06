@@ -297,6 +297,8 @@ func TestP2GolfRound(t *testing.T) {
 		return dec(s)
 	}
 	half := fee.Div(decimal.NewFromInt(2))
+	// The round_finished event may still be held by the background dispatcher.
+	waitFor(t, 10*time.Second, "caddy fee shares", func() bool { dispatch(t); return !share(c1).IsZero() })
 	if !share(c1).Equal(half) || !share(c3).Equal(half) {
 		t.Fatalf("caddy fee split of %s: c1=%s c3=%s", fee, share(c1), share(c3))
 	}
@@ -379,7 +381,7 @@ func TestP2GolfRound(t *testing.T) {
 	if k := pub.Must(200, "GET", "/api/v1/public/hall-of-fame/kiosk?propertyId="+inst.Main.String(), nil).JSON(); len(k["entries"].([]any)) != 1 {
 		t.Fatalf("kiosk after opt-in: %v", k)
 	}
-	claim := sa.Must(200, "POST", "/api/v1/golf/hole-in-ones/"+hid+":claim", map[string]any{"submittedOn": time.Now().Format("2006-01-02"), "providerRef": "INS-77"}).JSON()
+	claim := sa.Must(200, "POST", "/api/v1/golf/hole-in-ones/"+hid+":claim", map[string]any{"submittedOn": clubToday(inst), "providerRef": "INS-77"}).JSON()
 	if claim["status"] != "claimed" || len(claim["claimDocuments"].([]any)) != 1 {
 		t.Fatalf("claim: %v", claim)
 	}
@@ -606,6 +608,9 @@ func TestP2GolfReciprocal(t *testing.T) {
 	if out := sa.Must(200, "GET", "/api/v1/golf/reciprocal-visits?filter[direction]=outbound", nil).Items(); len(out) != 1 {
 		t.Fatalf("outbound visit: %v", out)
 	}
+	// An agreement that ended yesterday at the club is no longer published.
+	sa.Must(201, "POST", "/api/v1/golf/reciprocal-clubs", map[string]any{"code": "ENDED", "name": "Ended Golf Club", "country": "Thailand",
+		"agreementFrom": "2025-01-01", "agreementTo": clubDateAgo(inst, 0, 0, 1)})
 	if cl := anon(t, inst).Must(200, "GET", "/api/v1/public/reciprocal-clubs?propertyId="+inst.Main.String(), nil).Items(); len(cl) != 1 || cl[0]["country"] != "Singapore" {
 		t.Fatalf("public reciprocal clubs: %v", cl)
 	}

@@ -48,6 +48,15 @@ func clubDay(in *Instance, minDays int, ok func(time.Weekday) bool) string {
 	return d.Format("2006-01-02")
 }
 
+// clubToday is the local date of the club (Asia/Jakarta), not the UTC date:
+// they differ from 17:00 to 24:00 UTC.
+func clubToday(in *Instance) string { return time.Now().In(clubLoc(in)).Format("2006-01-02") }
+
+// clubDateAgo is the local club date years/months/days before today.
+func clubDateAgo(in *Instance, years, months, days int) string {
+	return time.Now().In(clubLoc(in)).AddDate(-years, -months, -days).Format("2006-01-02")
+}
+
 func isWeekday(w time.Weekday) bool  { return w != time.Saturday && w != time.Sunday }
 func isSaturday(w time.Weekday) bool { return w == time.Saturday }
 

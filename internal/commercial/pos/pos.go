@@ -49,22 +49,28 @@ type POSPolicy struct {
 	OfflineMemberCharge   bool   `json:"offlineMemberCharge"`
 	ScheduledLeadMinutes  int    `json:"scheduledLeadMinutes"`
 	DefaultKitchenStation string `json:"defaultKitchenStation"`
+	MarkSoldOut           bool   `json:"markSoldOut" doc:"Mark stock-tracked retail items without available stock at the outlet as Sold Out on the menu (K9 stock availability, PRD P4 FR-CNS-07)"`
 }
 
-var defaultPOSPolicy = POSPolicy{MaxDiscountPercent: "10", OfflineMemberCharge: true, ScheduledLeadMinutes: 30, DefaultKitchenStation: "kitchen"}
+var defaultPOSPolicy = POSPolicy{MaxDiscountPercent: "10", OfflineMemberCharge: true, ScheduledLeadMinutes: 30, DefaultKitchenStation: "kitchen",
+	MarkSoldOut: true}
 
 // ── views ─────────────────────────────────────────────────────────────────
 
 const orderSelect = `SELECT o.id, o.property_id, o.order_no, o.outlet_id, ou.name AS outlet_name, o.shift_id, o.order_type, o.source, o.table_no,
 	o.guest_count, o.customer_id, c.name AS customer_name, o.member_pricing, o.serving_destination, o.destination_ref, o.scheduled_for, o.status,
 	o.service_status, o.charge_folio_id, o.offline, o.needs_review, o.notes, o.void_reason, o.created_at,
-	trim_scale(coalesce((SELECT sum(total_amount) FROM commercial.order_lines l WHERE l.order_id = o.id AND l.status = 'active'), 0))::text AS total
+	o.promo_codes, o.promotion_exclusions, trim_scale(o.client_total)::text AS client_total, o.promotion_mismatch,
+	trim_scale(coalesce((SELECT sum(total_amount) FROM commercial.order_lines l WHERE l.order_id = o.id AND l.status = 'active'), 0))::text AS total,
+	o.tier_code, o.tier_name, trim_scale(o.tier_discount_percent)::text AS tier_discount_percent, o.tier_discount_label,
+	trim_scale(coalesce((SELECT sum(tier_discount) FROM commercial.order_lines l WHERE l.order_id = o.id AND l.status = 'active'), 0))::text AS tier_discount
 	FROM commercial.orders o JOIN commercial.outlets ou ON ou.id = o.outlet_id LEFT JOIN reporting.customer_directory c ON c.id = o.customer_id`
 
 const orderLineSelect = `SELECT id, line_no, product_id, variant_id, name, trim_scale(quantity)::text AS quantity, trim_scale(unit_price)::text AS unit_price,
 	modifiers, trim_scale(discount_amount)::text AS discount_amount, discount_reason, trim_scale(net_amount)::text AS net_amount,
 	trim_scale(service_amount)::text AS service_amount, trim_scale(tax_amount)::text AS tax_amount, trim_scale(total_amount)::text AS total_amount,
-	kitchen_station, bill_id, seat, notes, status, sent_at, charged_folio_id FROM commercial.order_lines`
+	kitchen_station, bill_id, seat, notes, status, sent_at, charged_folio_id, trim_scale(promotion_discount)::text AS promotion_discount, promotions,
+	trim_scale(tier_discount)::text AS tier_discount FROM commercial.order_lines`
 
 // Order returns an order with lines and bills.
 func (m *Module) Order(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (Order, error) {
@@ -91,7 +97,7 @@ func (m *Module) Order(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (Orde
 		}
 		o.Bills[i].Paid = paid.String()
 	}
-	return o, nil
+	return o, orderPromotions(ctx, q, &o) // PRD P3: promotions of the sale
 }
 
 // billPaid is what was paid on a bill net of refunds: its folio, or for an
@@ -225,7 +231,19 @@ func (m *Module) CreateOrder(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		id.New(), property, oid, in.CustomerID); err != nil {
 		return Order{}, err
 	}
+	if err := setOrderPromo(ctx, tx, oid, in); err != nil { // PRD P3 promo codes, offline client total
+		return Order{}, err
+	}
+	if err := snapshotTier(ctx, tx, oid, property, in.CustomerID); err != nil { // PRD P5 tier F&B discount
+		return Order{}, err
+	}
 	if err := m.addLines(ctx, tx, property, oid, ou, memberPricing, in.Lines); err != nil {
+		return Order{}, err
+	}
+	if _, err := m.applyPromotions(ctx, tx, oid); err != nil { // PRD P3 FR-PRM-06
+		return Order{}, err
+	}
+	if err := m.checkOfflineTotal(ctx, tx, oid, property); err != nil { // PRD P3 FR-PRM-09
 		return Order{}, err
 	}
 	o, err := m.Order(ctx, tx, oid)
@@ -268,6 +286,9 @@ func (m *Module) AddLines(ctx context.Context, tx pgx.Tx, oid uuid.UUID, lines [
 		return o, err
 	}
 	if err := m.addLines(ctx, tx, o.PropertyID, oid, ou, o.MemberPricing, lines); err != nil {
+		return o, err
+	}
+	if _, err := m.applyPromotions(ctx, tx, oid); err != nil { // PRD P3 FR-PRM-06
 		return o, err
 	}
 	after, err := m.Order(ctx, tx, oid)
@@ -431,8 +452,10 @@ type DiscountInput struct {
 	Reason  string `json:"reason"`
 }
 
-// Discount applies a manual discount; above the POS Policies limit the
-// permission commercial.pos.discount_override (supervisor) is required.
+// Discount applies a manual discount; above the limit of the user's roles
+// (Pricing Policies, default tiers of PRD P3 §16 #5; roles without a tier:
+// POS Policies) the permission commercial.pos.discount_override
+// (supervisor) is required.
 func (m *Module) Discount(ctx context.Context, tx pgx.Tx, oid, lineID uuid.UUID, in DiscountInput) (Order, error) {
 	o, err := m.lockOrder(ctx, tx, oid)
 	if err != nil {
@@ -474,9 +497,13 @@ func (m *Module) Discount(ctx context.Context, tx pgx.Tx, oid, lineID uuid.UUID,
 		return o, err
 	}
 	limit, _ := decimal.NewFromString(pol.MaxDiscountPercent)
+	// PRD P3 FR-POL-P3-02: the manual discount limit per role of the Pricing Policies
+	if limit, err = commercial.ManualDiscountLimit(ctx, tx, o.PropertyID, roleCodes(ctx, o.PropertyID), limit); err != nil {
+		return o, err
+	}
 	if gross.IsPositive() && disc.Mul(decimal.NewFromInt(100)).Div(gross).GreaterThan(limit) {
 		if err := authz.RequireAt(ctx, "commercial.pos.discount_override", o.PropertyID); err != nil {
-			return o, errs.Forbidden("discounts above " + limit.String() + "% need a supervisor (POS Policies)")
+			return o, errs.Forbidden("discounts above " + limit.String() + "% need a supervisor (Pricing Policies discount limit of your role)")
 		}
 	}
 	ou, err := loadOutlet(ctx, tx, o.OutletID)
@@ -497,6 +524,9 @@ func (m *Module) Discount(ctx context.Context, tx pgx.Tx, oid, lineID uuid.UUID,
 		lineID, disc.String(), in.Reason, net.String(), svc.String(), tax.String(), total.String(), snap); err != nil {
 		return o, err
 	}
+	if _, err := m.applyPromotions(ctx, tx, oid); err != nil { // PRD P3: promotions on the discounted line
+		return o, err
+	}
 	after, err := m.Order(ctx, tx, oid)
 	if err != nil {
 		return after, err
@@ -515,6 +545,10 @@ func (m *Module) VoidLine(ctx context.Context, tx pgx.Tx, oid, lineID uuid.UUID,
 	if o.Status != "open" {
 		return o, errs.Conflict("order_closed", "paid orders are refunded, not voided")
 	}
+	prepared, err := preparedLines(ctx, tx, oid)
+	if err != nil {
+		return o, err
+	}
 	tag, err := tx.Exec(ctx, `UPDATE commercial.order_lines SET status = 'voided', void_reason = $3 WHERE id = $1 AND order_id = $2 AND status = 'active'
 		AND charged_folio_id IS NULL`, lineID, oid, reason)
 	if err != nil {
@@ -529,11 +563,23 @@ func (m *Module) VoidLine(ctx context.Context, tx pgx.Tx, oid, lineID uuid.UUID,
 	if _, err := tx.Exec(ctx, `UPDATE commercial.kitchen_tickets SET status = 'cancelled' WHERE order_id = $1 AND cardinality(line_ids) = 0`, oid); err != nil {
 		return o, err
 	}
+	if _, err := m.applyPromotions(ctx, tx, oid); err != nil { // PRD P3: the remaining items
+		return o, err
+	}
 	after, err := m.Order(ctx, tx, oid)
 	if err != nil {
 		return after, err
 	}
 	if err := publishRT(ctx, tx, "kds", o.PropertyID, "order_changed", oid.String(), nil); err != nil {
+		return after, err
+	}
+	var voided []OrderLine
+	for _, l := range o.Lines {
+		if l.ID == lineID {
+			voided = append(voided, l)
+		}
+	}
+	if err := m.publishSaleEvent(ctx, tx, EventSaleVoided, o, voided, prepared, map[string]any{"scope": "line", "reason": reason}); err != nil {
 		return after, err
 	}
 	return after, audit.Record(ctx, tx, audit.Entry{Module: "commercial", Action: audit.ActionVoid, EntityType: "commercial.order_line",
@@ -554,6 +600,10 @@ func (m *Module) VoidOrder(ctx context.Context, tx pgx.Tx, oid uuid.UUID, reason
 			return o, errs.Conflict("partly_paid", "the order is partly paid; refund it instead")
 		}
 	}
+	prepared, err := preparedLines(ctx, tx, oid)
+	if err != nil {
+		return o, err
+	}
 	if _, err := tx.Exec(ctx, `UPDATE commercial.order_lines SET status = 'voided', void_reason = $2 WHERE order_id = $1 AND status = 'active'`, oid, reason); err != nil {
 		return o, err
 	}
@@ -563,11 +613,23 @@ func (m *Module) VoidOrder(ctx context.Context, tx pgx.Tx, oid uuid.UUID, reason
 	if _, err := tx.Exec(ctx, `UPDATE commercial.orders SET status = 'voided', void_reason = $2 WHERE id = $1`, oid, reason); err != nil {
 		return o, err
 	}
+	if err := commercial.ReverseSource(ctx, tx, commercial.PromoSource{Type: commercial.SourcePOSOrder, ID: oid}, "order voided: "+reason); err != nil {
+		return o, err
+	}
 	after, err := m.Order(ctx, tx, oid)
 	if err != nil {
 		return after, err
 	}
 	if err := publishRT(ctx, tx, "kds", o.PropertyID, "order_changed", oid.String(), nil); err != nil {
+		return after, err
+	}
+	var voided []OrderLine
+	for _, l := range o.Lines {
+		if l.Status == "active" {
+			voided = append(voided, l)
+		}
+	}
+	if err := m.publishSaleEvent(ctx, tx, EventSaleVoided, o, voided, prepared, map[string]any{"scope": "order", "reason": reason}); err != nil {
 		return after, err
 	}
 	return after, audit.Record(ctx, tx, audit.Entry{Module: "commercial", Action: audit.ActionVoid, EntityType: "commercial.order",
@@ -1108,6 +1170,21 @@ func (m *Module) complete(ctx context.Context, tx pgx.Tx, oid uuid.UUID, status 
 	if err != nil {
 		return o, err
 	}
+	// PRD P3 K3: the promotions of the sale are redeemed (commercial.promotion_applied)
+	var folio *uuid.UUID
+	for _, b := range o.Bills {
+		if b.FolioID != nil {
+			folio = b.FolioID
+			break
+		}
+	}
+	if folio == nil {
+		folio = o.ChargeFolioID
+	}
+	if err := commercial.RedeemSource(ctx, tx, m.Events, commercial.PromoSource{Type: commercial.SourcePOSOrder, ID: oid}, commercial.SourcePOSOrder, oid,
+		folio); err != nil {
+		return o, err
+	}
 	lines := []map[string]any{}
 	for _, l := range o.Lines {
 		if l.Status != "active" {
@@ -1128,6 +1205,63 @@ func (m *Module) complete(ctx context.Context, tx pgx.Tx, oid uuid.UUID, status 
 		"orderNo": o.OrderNo, "outletId": o.OutletID, "customerId": o.CustomerID, "source": o.Source, "total": o.Total, "lines": lines,
 		"at": clock.Now()})
 	return o, err
+}
+
+// Sale void / refund events (PRD P4 FR-CNS-02, docs/p3-p4-contracts.md):
+// commercial.sale_voided (an unpaid order or line voided: nothing was
+// consumed yet, stock is deducted on commercial.sale_completed only) and
+// commercial.sale_refunded (an approved refund of a completed sale:
+// inventory returns the consumption to stock per its configuration). Each
+// line says whether the kitchen had started it (prepared).
+const (
+	EventSaleVoided   = "commercial.sale_voided"
+	EventSaleRefunded = "commercial.sale_refunded"
+)
+
+// preparedLines are the order lines whose kitchen ticket was started
+// (preparing, ready, out for delivery or served).
+func preparedLines(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (map[uuid.UUID]bool, error) {
+	rows, err := q.Query(ctx, `SELECT DISTINCT unnest(line_ids) FROM commercial.kitchen_tickets WHERE order_id = $1
+		AND status IN ('preparing', 'ready', 'out_for_delivery', 'served')`, oid)
+	if err != nil {
+		return nil, err
+	}
+	ids, err := pgx.CollectRows(rows, pgx.RowTo[uuid.UUID])
+	out := map[uuid.UUID]bool{}
+	for _, x := range ids {
+		out[x] = true
+	}
+	return out, err
+}
+
+// saleEventLines are the contract lines of a void / refund event.
+func saleEventLines(lines []OrderLine, prepared map[uuid.UUID]bool) []map[string]any {
+	out := []map[string]any{}
+	for _, l := range lines {
+		mods := []string{}
+		for _, md := range l.Modifiers {
+			mods = append(mods, fmt.Sprint(md["modifierId"]))
+		}
+		out = append(out, map[string]any{"lineId": l.ID, "productId": l.ProductID, "variantId": l.VariantID, "quantity": l.Quantity,
+			"modifierIds": mods, "netAmount": l.NetAmount, "totalAmount": l.TotalAmount, "sent": l.SentAt != nil, "prepared": prepared[l.ID]})
+	}
+	return out
+}
+
+// publishSaleEvent publishes a void / refund event of an order.
+func (m *Module) publishSaleEvent(ctx context.Context, tx pgx.Tx, typ string, o Order, lines []OrderLine, prepared map[uuid.UUID]bool,
+	extra map[string]any) error {
+	if m.Events == nil || len(lines) == 0 {
+		return nil
+	}
+	oid, pid := o.ID, o.PropertyID
+	payload := map[string]any{"orderId": oid, "orderNo": o.OrderNo, "outletId": o.OutletID, "customerId": o.CustomerID, "source": o.Source,
+		"lines": saleEventLines(lines, prepared), "at": clock.Now()}
+	for k, v := range extra {
+		payload[k] = v
+	}
+	_, err := m.Events.Publish(ctx, tx, typ, "commercial.order", &oid, &pid, payload)
+	return err
 }
 
 // RefundInput requests a refund of a paid order (approval).
@@ -1216,8 +1350,25 @@ func (m *Module) RefundDecision(ctx context.Context, tx pgx.Tx, d approval.Decis
 	if _, err := tx.Exec(ctx, `UPDATE commercial.orders SET status = 'refunded', void_reason = $2 WHERE id = $1`, oid, reason); err != nil {
 		return err
 	}
+	if err := commercial.ReverseSource(ctx, tx, commercial.PromoSource{Type: commercial.SourcePOSOrder, ID: oid}, "refund: "+reason); err != nil {
+		return err
+	}
 	_, err = tx.Exec(ctx, `UPDATE commercial.order_requests SET status = 'applied' WHERE id = $1`, d.DocumentID)
 	if err != nil {
+		return err
+	}
+	prepared, err := preparedLines(ctx, tx, oid)
+	if err != nil {
+		return err
+	}
+	var refunded []OrderLine
+	for _, l := range o.Lines {
+		if l.Status == "active" {
+			refunded = append(refunded, l)
+		}
+	}
+	if err := m.publishSaleEvent(ctx, tx, EventSaleRefunded, o, refunded, prepared, map[string]any{"refundRequestId": d.DocumentID,
+		"reason": reason, "total": o.Total}); err != nil {
 		return err
 	}
 	pid := o.PropertyID
@@ -1468,6 +1619,9 @@ func (m *Module) Receipt(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (st
 		if l.DiscountAmount != "0" {
 			line("    discount", "-"+money(l.DiscountAmount))
 		}
+	}
+	if o.TierDiscountLabel != nil && o.TierDiscount != "0" { // PRD P5: tier discount line (included above)
+		line(trunc(*o.TierDiscountLabel, 30), "-"+money(o.TierDiscount))
 	}
 	b.WriteString(strings.Repeat("-", 42) + "\n")
 	line("TOTAL", money(o.Total))

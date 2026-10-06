@@ -25,6 +25,10 @@ type ResolveRequest struct {
 	Channel        string     `json:"channel,omitempty" enum:"member_app,website,back_office,walk_in,import"`
 	Peak           *bool      `json:"peak,omitempty"`
 	Quantity       int        `json:"quantity,omitempty"`
+	// PRD P3 (additive)
+	CorporateAccountID *uuid.UUID `json:"corporateAccountId,omitempty" doc:"Corporate Rate (contract rate) of a corporate account"`
+	CustomerID         *uuid.UUID `json:"customerId,omitempty" doc:"Customer for promotion eligibility"`
+	PromoCodes         []string   `json:"promoCodes,omitempty"`
 }
 
 func sessionOf(hhmm string) string {
@@ -77,7 +81,8 @@ func (m *Module) resolve(w http.ResponseWriter, r *http.Request) {
 		hh, _ := time.Parse("15:04", req.Time)
 		at := time.Date(day.Year(), day.Month(), day.Day(), hh.Hour(), hh.Minute(), 0, 0, loc).UTC()
 		out, err = Resolve(ctx, tx, PriceQuery{Property: pid, ChargeType: req.ChargeType, Segments: req.Segments, PlayAt: at, PlayDate: day,
-			LocalTime: req.Time, Session: req.Session, PlayingRouteID: req.PlayingRouteID, Channel: req.Channel, Peak: req.Peak, Quantity: req.Quantity})
+			LocalTime: req.Time, Session: req.Session, PlayingRouteID: req.PlayingRouteID, Channel: req.Channel, Peak: req.Peak, Quantity: req.Quantity,
+			CorporateAccountID: req.CorporateAccountID, CustomerID: req.CustomerID, PromoCodes: req.PromoCodes})
 		return err
 	})
 	if err != nil {

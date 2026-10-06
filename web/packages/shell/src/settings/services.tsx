@@ -126,63 +126,124 @@ export function ApprovalDetailPage() {
 type Workflow = Schemas['Workflow'];
 type WfStep = Schemas['WorkflowStep'];
 
-function WorkflowEditor({ wf, onDone }: { wf?: Workflow; onDone: () => void }) {
+const OPERATORS: Record<string, string> = { eq: '=', neq: '≠', gt: '>', gte: '≥', lt: '<', lte: '≤' };
+type WfCondition = WfStep['conditions'][number];
+type DocAttr = Schemas['DocumentTypeView']['attributes'][number];
+
+const isAmount = (attr: string) => attr.toLowerCase().includes('amount');
+
+/** One condition as text, e.g. "Amount > Rp 5.000.000". */
+function conditionText(c: WfCondition, attrs: DocAttr[]): string {
+  const a = attrs.find((x) => x.key === c.attribute);
+  const v = a?.type === 'number' && isAmount(c.attribute) && typeof c.value === 'number' ? formatMoney(c.value) : String(c.value ?? '');
+  return `${a?.label ?? c.attribute} ${OPERATORS[c.operator] ?? c.operator} ${v}`;
+}
+
+const newStep = (n: number): WfStep => ({ stepNo: n, name: n === 1 ? 'Approval' : `Step ${n}`, approverType: 'role', approverRoleId: null, approverUserId: null,
+  conditions: [], slaHours: 24 });
+
+/**
+ * Approval workflow editor (FR-APR-01/02, PO decision 4d): steps with an
+ * approver role, SLA and conditions — e.g. an amount threshold per document
+ * type — added, edited, reordered and removed; the workflow is saved as a
+ * whole (audited). A workflow for all properties needs an instance-wide
+ * administrator; a Property Admin saves one for the property.
+ */
+function WorkflowEditor({ wf, copy, onDone }: { wf?: Workflow; copy?: Workflow; onDone: () => void }) {
   const toast = useToast();
+  const { can, me, propertyId } = useAuth();
   const types = useGet<Page<Schemas['DocumentTypeView']>>('/api/v1/platform/approval-document-types');
-  const roles = useGet<Page<Schemas['Role']>>('/api/v1/platform/roles');
-  const { me } = useAuth();
-  const [docType, setDocType] = useState(wf?.documentType ?? 'test_approval');
-  const [name, setName] = useState(wf?.name ?? '');
-  const [prop, setProp] = useState(wf?.propertyId ?? '');
-  const [priority, setPriority] = useState(String(wf?.priority ?? 100));
-  const [steps, setSteps] = useState<WfStep[]>(wf?.steps ?? [{ stepNo: 1, name: 'Approval', approverType: 'role', approverRoleId: null, approverUserId: null, conditions: [], slaHours: 24 }]);
+  const roles = useGet<Page<Schemas['Role']>>('/api/v1/platform/roles?limit=200');
+  const src = wf ?? copy;
+  const [docType, setDocType] = useState(src?.documentType ?? 'test_approval');
+  const [name, setName] = useState(copy ? `${copy.name} (copy)` : (wf?.name ?? ''));
+  const [prop, setProp] = useState<string>(copy ? propertyId : (wf?.propertyId ?? ''));
+  const [priority, setPriority] = useState(String(src?.priority ?? 100));
+  const [steps, setSteps] = useState<WfStep[]>(src?.steps?.length ? src.steps.map((x) => ({ ...x, conditions: [...(x.conditions ?? [])] })) : [newStep(1)]);
   const save = useSend<Record<string, unknown>>(wf ? 'PATCH' : 'POST', wf ? `/api/v1/platform/approval-workflows/${wf.id}` : '/api/v1/platform/approval-workflows',
     ['/api/v1/platform/approval-workflows']);
+  const editable = can('platform.approval_workflow.manage');
   const attrs = types.data?.items.find((t) => t.code === docType)?.attributes ?? [];
+  const attrType = (key: string) => attrs.find((a) => a.key === key)?.type ?? (key === 'propertyId' ? 'uuid' : 'string');
+  const renumber = (list: WfStep[]) => list.map((x, j) => ({ ...x, stepNo: j + 1 }));
   const upd = (i: number, patch: Partial<WfStep>) => setSteps((s) => s.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+  const move = (i: number, d: -1 | 1) => setSteps((s) => {
+    const n = [...s];
+    [n[i], n[i + d]] = [n[i + d], n[i]];
+    return renumber(n);
+  });
+  const setCond = (i: number, k: number, patch: Partial<WfCondition>) =>
+    upd(i, { conditions: steps[i].conditions.map((x, m) => (m === k ? { ...x, ...patch } : x)) });
   const fe = fieldErrors(save.error);
+  const stepErr = (i: number, f: string) => fe[`steps[${i}].${f}`];
   return (
     <div className="oc-stack">
       <div className="oc-form">
-        <SelectField label="Document Type" value={docType} onChange={setDocType} options={(types.data?.items ?? []).map((t) => ({ value: t.code, label: t.name }))} />
-        <TextField label="Name" value={name} onChange={setName} required error={fe.name} />
-        <SelectField label="Property" value={prop} onChange={setProp} placeholder="All properties" options={(me?.properties ?? []).map((p) => ({ value: p.id, label: p.name }))} />
-        <TextField label="Priority" type="number" value={priority} onChange={setPriority} help="Lower wins when several workflows match" />
+        <SelectField label="Document Type" value={docType} onChange={(v) => { if (!wf) setDocType(v); }}
+          options={(types.data?.items ?? []).map((t) => ({ value: t.code, label: t.name }))} help={wf ? 'The document type of a saved workflow cannot change' : undefined}
+          error={fe.documentType} />
+        <TextField label="Name" value={name} onChange={setName} required error={fe.name} disabled={!editable} />
+        <SelectField label="Property" value={prop} onChange={setProp} placeholder="All properties" error={fe.propertyId}
+          help="All properties needs an instance-wide administrator; a property workflow takes precedence at its property"
+          options={(me?.properties ?? []).map((p) => ({ value: p.id, label: p.name }))} />
+        <TextField label="Priority" type="number" min={0} value={priority} onChange={setPriority} help="Lower wins when several workflows match"
+          error={fe.priority} disabled={!editable} />
       </div>
+      {fe.steps && <p className="oc-alert oc-alert-error" role="alert">{fe.steps}</p>}
       {steps.map((s, i) => (
         <div key={i} className="oc-card" style={{ background: 'var(--md-sys-color-surface-container-low)' }}>
-          <div className="oc-row"><strong>Step {s.stepNo}</strong><span className="oc-spacer" />
-            <button type="button" className="oc-icon-btn" aria-label="Remove step" onClick={() => setSteps(steps.filter((_, j) => j !== i).map((x, j) => ({ ...x, stepNo: j + 1 })))}><Icon name="delete" size={18} /></button></div>
+          <div className="oc-row"><strong>Step {s.stepNo}</strong>
+            <span className="oc-small oc-muted">{(s.conditions ?? []).length ? `Only when ${s.conditions.map((c) => conditionText(c, attrs)).join(' and ')}` : 'Always'}</span>
+            <span className="oc-spacer" />
+            {editable && <>
+              <button type="button" className="oc-icon-btn" aria-label={`Move step ${s.stepNo} up`} disabled={i === 0} onClick={() => move(i, -1)}><Icon name="arrow_upward" size={18} /></button>
+              <button type="button" className="oc-icon-btn" aria-label={`Move step ${s.stepNo} down`} disabled={i === steps.length - 1} onClick={() => move(i, 1)}><Icon name="arrow_downward" size={18} /></button>
+              <button type="button" className="oc-icon-btn" aria-label={`Remove step ${s.stepNo}`} onClick={() => setSteps(renumber(steps.filter((_, j) => j !== i)))}><Icon name="delete" size={18} /></button>
+            </>}</div>
           <div className="oc-form">
-            <TextField label="Step name" value={s.name} onChange={(v) => upd(i, { name: v })} />
+            <TextField label="Step name" value={s.name} onChange={(v) => upd(i, { name: v })} error={stepErr(i, 'name')} disabled={!editable} />
             <SelectField label="Approver role" value={s.approverRoleId ?? ''} placeholder="Select…" onChange={(v) => upd(i, { approverType: 'role', approverRoleId: v })}
-              options={(roles.data?.items ?? []).map((r) => ({ value: r.id, label: r.name }))} />
-            <TextField label="SLA (hours)" type="number" value={String(s.slaHours ?? '')} onChange={(v) => upd(i, { slaHours: v ? Number(v) : null })} />
+              options={(roles.data?.items ?? []).map((r) => ({ value: r.id, label: r.name }))} error={stepErr(i, 'approverRoleId') ?? stepErr(i, 'approverType')} />
+            <TextField label="SLA (hours)" type="number" min={1} value={String(s.slaHours ?? '')} onChange={(v) => upd(i, { slaHours: v ? Number(v) : null })}
+              error={stepErr(i, 'slaHours')} disabled={!editable} />
           </div>
-          <div className="oc-label" style={{ marginTop: 12 }}>Conditions (all must match)</div>
-          {(s.conditions ?? []).map((c, k) => (
-            <div key={k} className="oc-row-wrap">
-              <div style={{ width: 180 }}><SelectField label="Attribute" value={c.attribute} onChange={(v) => upd(i, { conditions: s.conditions.map((x, m) => (m === k ? { ...x, attribute: v } : x)) })}
-                options={[...attrs.map((a) => ({ value: a.key, label: a.label })), { value: 'propertyId', label: 'Property' }]} /></div>
-              <div style={{ width: 150 }}><SelectField label="Operator" value={c.operator} onChange={(v) => upd(i, { conditions: s.conditions.map((x, m) => (m === k ? { ...x, operator: v as typeof x.operator } : x)) })}
-                options={['eq', 'neq', 'gt', 'gte', 'lt', 'lte'].map((o) => ({ value: o, label: { eq: '=', neq: '≠', gt: '>', gte: '≥', lt: '<', lte: '≤' }[o]! }))} /></div>
-              <div style={{ width: 180 }}><TextField label="Value" value={String(c.value ?? '')} onChange={(v) => upd(i, { conditions: s.conditions.map((x, m) => (m === k ? { ...x, value: isNaN(Number(v)) || v === '' ? v : Number(v) } : x)) })} /></div>
-              <button type="button" className="oc-icon-btn" style={{ alignSelf: 'flex-end' }} aria-label="Remove condition" onClick={() => upd(i, { conditions: s.conditions.filter((_, m) => m !== k) })}><Icon name="close" size={18} /></button>
-            </div>
-          ))}
-          <button type="button" className="oc-btn oc-btn-text oc-btn-sm" onClick={() => upd(i, { conditions: [...(s.conditions ?? []), { attribute: attrs[0]?.key ?? 'amount', operator: 'gt', value: 0 }] })}>
-            <Icon name="add" size={18} /> Add condition</button>
+          <div className="oc-label" style={{ marginTop: 12 }}>Conditions (all must match; none = always)</div>
+          {(s.conditions ?? []).map((c, k) => {
+            const num = attrType(c.attribute) === 'number';
+            const err = (f: string) => stepErr(i, `conditions[${k}].${f}`);
+            return (
+              <div key={k} className="oc-row-wrap">
+                <div style={{ width: 200 }}><SelectField label="Attribute" value={c.attribute} onChange={(v) => setCond(i, k, { attribute: v })} error={err('attribute')}
+                  options={[...attrs.map((a) => ({ value: a.key, label: a.label })), { value: 'propertyId', label: 'Property' }]} /></div>
+                <div style={{ width: 120 }}><SelectField label="Operator" value={c.operator} onChange={(v) => setCond(i, k, { operator: v as WfCondition['operator'] })}
+                  error={err('operator')} options={Object.entries(OPERATORS).map(([value, label]) => ({ value, label }))} /></div>
+                <div style={{ width: 200 }}><TextField label={num && isAmount(c.attribute) ? 'Value (IDR)' : 'Value'} type={num ? 'number' : 'text'}
+                  min={num ? 0 : undefined} inputMode={num ? 'decimal' : undefined} value={String(c.value ?? '')} error={err('value')} disabled={!editable}
+                  help={num && typeof c.value === 'number' && isAmount(c.attribute) ? formatMoney(c.value) : undefined}
+                  onChange={(v) => setCond(i, k, { value: v === '' || isNaN(Number(v)) ? v : Number(v) })} /></div>
+                {editable && <button type="button" className="oc-icon-btn" style={{ alignSelf: 'flex-end' }} aria-label="Remove condition"
+                  onClick={() => upd(i, { conditions: s.conditions.filter((_, m) => m !== k) })}><Icon name="close" size={18} /></button>}
+              </div>
+            );
+          })}
+          {editable && <div className="oc-row-wrap">
+            <button type="button" className="oc-btn oc-btn-text oc-btn-sm" onClick={() => upd(i, { conditions: [...(s.conditions ?? []), { attribute: attrs[0]?.key ?? 'amount', operator: 'gt', value: 0 }] })}>
+              <Icon name="add" size={18} /> Add condition</button>
+            {attrs.some((a) => a.key === 'amount') && !(s.conditions ?? []).some((c) => c.attribute === 'amount') &&
+              <button type="button" className="oc-btn oc-btn-text oc-btn-sm" onClick={() => upd(i, { conditions: [...(s.conditions ?? []), { attribute: 'amount', operator: 'gt', value: 5000000 }] })}>
+                <Icon name="payments" size={18} /> Add amount threshold</button>}
+          </div>}
         </div>
       ))}
-      <div><button type="button" className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setSteps([...steps, { stepNo: steps.length + 1, name: `Step ${steps.length + 1}`, approverType: 'role', approverRoleId: null, approverUserId: null, conditions: [], slaHours: 24 }])}>
-        <Icon name="add" size={18} /> Add step</button></div>
-      <ErrorAlert error={save.error} />
-      <div className="oc-row"><span className="oc-spacer" /><button className="oc-btn oc-btn-neutral" onClick={onDone}>Cancel</button>
-        <button className="oc-btn oc-btn-ink" disabled={save.isPending} onClick={() => {
+      {editable && <div><button type="button" className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setSteps([...steps, newStep(steps.length + 1)])}>
+        <Icon name="add" size={18} /> Add step</button></div>}
+      <ErrorAlert error={Object.keys(fe).length ? null : save.error} />
+      <div className="oc-row"><span className="oc-spacer" /><button className="oc-btn oc-btn-neutral" onClick={onDone}>{editable ? 'Cancel' : 'Close'}</button>
+        {editable && <button className="oc-btn oc-btn-ink" disabled={save.isPending || !name.trim()} onClick={() => {
           const body: Record<string, unknown> = { name, priority: Number(priority), steps, ...(prop ? { propertyId: prop } : {}) };
           if (!wf) body.documentType = docType;
           save.mutate(body, { onSuccess: () => { toast('Saved'); onDone(); } });
-        }}>Save</button></div>
+        }}>Save</button>}</div>
     </div>
   );
 }
@@ -190,27 +251,41 @@ function WorkflowEditor({ wf, onDone }: { wf?: Workflow; onDone: () => void }) {
 export function ApprovalWorkflowsPage() {
   const { can } = useAuth();
   const { t } = useTranslation();
-  const list = useGet<Page<Workflow>>('/api/v1/platform/approval-workflows');
+  const [docType, setDocType] = useState('');
+  const list = useGet<Page<Workflow>>(`/api/v1/platform/approval-workflows${qs({ 'filter[documentType]': docType || undefined })}`);
+  const types = useGet<Page<Schemas['DocumentTypeView']>>('/api/v1/platform/approval-document-types');
   const [edit, setEdit] = useState<Workflow | 'new' | null>(null);
+  const [copy, setCopy] = useState<Workflow | null>(null);
   const toggle = useSend<{ id: string; status: string }>('PATCH', (b) => `/api/v1/platform/approval-workflows/${b.id}`, ['/api/v1/platform/approval-workflows']);
+  const typeOf = (code: string) => types.data?.items.find((x) => x.code === code);
+  const manage = can('platform.approval_workflow.manage');
+  const close = () => { setEdit(null); setCopy(null); };
   return (
     <div className="oc-stack">
-      <PageHeader title="Approval Workflows" help={t('help.approvalWorkflows')} actions={can('platform.approval_workflow.manage') &&
+      <PageHeader title="Approval Workflows" help={t('help.approvalWorkflows')} actions={manage &&
         <button className="oc-btn oc-btn-primary" onClick={() => setEdit('new')}><Icon name="add" size={18} /> Add Workflow</button>} />
       <div className="oc-card">
+        <div style={{ maxWidth: 360 }}><SelectField label="Document Type" value={docType} onChange={setDocType} placeholder="All document types"
+          options={(types.data?.items ?? []).map((x) => ({ value: x.code, label: x.name }))} /></div>
         <DataTable rows={list.data?.items as unknown as Record<string, unknown>[]} loading={list.isLoading} onRowClick={(r) => setEdit(r as unknown as Workflow)}
           columns={[
-            { key: 'name', header: 'Workflow' }, { key: 'documentType', header: 'Document Type' },
-            { key: 'steps', header: 'Steps', render: (w) => (w.steps as WfStep[]).map((s) => s.name).join(' → ') },
+            { key: 'name', header: 'Workflow' },
+            { key: 'documentType', header: 'Document Type', render: (w) => typeOf(String(w.documentType))?.name ?? String(w.documentType) },
+            { key: 'propertyId', header: 'Property', render: (w) => (w.propertyId ? 'One property' : 'All properties') },
+            { key: 'steps', header: 'Steps', render: (w) => (w.steps as WfStep[]).map((s) => s.name + ((s.conditions ?? []).length
+              ? ` (${s.conditions.map((c) => conditionText(c, typeOf(String(w.documentType))?.attributes ?? [])).join(', ')})` : '')).join(' → ') },
             { key: 'priority', header: 'Priority', align: 'right' },
             { key: 'status', header: 'Status', render: (w) => <StatusPill status={String(w.status)} /> },
           ]}
-          actions={(w) => can('platform.approval_workflow.manage') && (
+          actions={(w) => manage && (<div className="oc-row-wrap">
+            <button className="oc-btn oc-btn-outline oc-btn-sm" onClick={() => setCopy(w as unknown as Workflow)}>Copy</button>
             <button className="oc-btn oc-btn-outline oc-btn-sm" onClick={() => toggle.mutate({ id: String(w.id), status: w.status === 'active' ? 'inactive' : 'active' } as never)}>
-              {w.status === 'active' ? 'Deactivate' : 'Activate'}</button>)} />
+              {w.status === 'active' ? 'Deactivate' : 'Activate'}</button></div>)} />
+        <ErrorAlert error={toggle.error} />
       </div>
-      <Drawer open={!!edit} onClose={() => setEdit(null)} title={edit === 'new' ? 'Add Workflow' : (edit?.name ?? '')}>
-        {edit && <WorkflowEditor key={edit === 'new' ? 'new' : edit.id} wf={edit === 'new' ? undefined : edit} onDone={() => setEdit(null)} />}
+      <Drawer open={!!edit || !!copy} onClose={close} title={copy ? `Copy of ${copy.name}` : edit === 'new' ? 'Add Workflow' : (edit?.name ?? '')}>
+        {copy ? <WorkflowEditor key={`copy-${copy.id}`} copy={copy} onDone={close} />
+          : edit && <WorkflowEditor key={edit === 'new' ? 'new' : edit.id} wf={edit === 'new' ? undefined : edit} onDone={close} />}
       </Drawer>
     </div>
   );

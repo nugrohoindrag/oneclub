@@ -35,10 +35,13 @@ const (
 	LineMembership = "membership"
 	LineVoucher    = "voucher"
 	LineOther      = "other"
+	// PRD P3 business lines.
+	LineBanquet = "banquet" // banquet, MICE, wedding & events
+	LinePackage = "package" // cross-line packages before revenue allocation
 )
 
 // BusinessLines lists the valid business lines.
-var BusinessLines = []string{LineGolf, LineSport, LineStay, LinePOS, LineMembership, LineVoucher, LineOther}
+var BusinessLines = []string{LineGolf, LineSport, LineStay, LinePOS, LineMembership, LineVoucher, LineBanquet, LinePackage, LineOther}
 
 // RevenueComponents of the accounting export (FR-BIL-P2-05) on top of P1's
 // charge types.
@@ -51,6 +54,9 @@ var RevenueComponents = []string{
 	"membership_fee", "membership_annual_fee", "card_replacement_fee", "reactivation_fee", "nominee_fee",
 	"caddy_fee_settlement", "instructor_fee",
 	"cancellation_fee", "damage_charge", "late_checkout_fee", "deposit", "other",
+	// PRD P3: banquet & events, tournaments, packages, promotions, loyalty
+	"banquet_package", "banquet_fnb", "venue_rental", "corkage", "outdoor_venue", "electricity", "event_fee",
+	"tournament_fee", "sponsorship", "package", "promotion_discount", "loyalty_redemption",
 }
 
 func componentOf(line string) string {
@@ -109,12 +115,12 @@ func (s *Service) applyTender(ctx context.Context, tx pgx.Tx, property, folioID 
 		return decimal.Zero, nil, err
 	}
 	switch in.MethodType {
-	case "voucher_prepaid":
+	case "voucher_prepaid", "loyalty_points": // loyalty points: PRD P3 FR-LOY-05
 		tenderMu.RLock()
-		h, ok := tenders["voucher_prepaid"]
+		h, ok := tenders[in.MethodType]
 		tenderMu.RUnlock()
 		if !ok {
-			return decimal.Zero, nil, errs.Unavailable("voucher tender is not available")
+			return decimal.Zero, nil, errs.Unavailable(strings.ReplaceAll(in.MethodType, "_", " ") + " tender is not available")
 		}
 		key := in.IdempotencyKey
 		if key == "" {
@@ -248,7 +254,7 @@ func (s *Service) SetAccountStatus(ctx context.Context, tx pgx.Tx, property, cus
 
 // lineLabels name the business lines on the Member Statement.
 var lineLabels = map[string]string{LineGolf: "Golf", LineSport: "Sport Club", LineStay: "Stay & Venue", LinePOS: "F&B / POS",
-	LineMembership: "Membership", LineVoucher: "Voucher", LineOther: "Other"}
+	LineMembership: "Membership", LineVoucher: "Voucher", LineBanquet: "Banquet & Event", LinePackage: "Package", LineOther: "Other"}
 
 // LineTotal is the charges of one business line in a statement period.
 type LineTotal struct {
@@ -453,6 +459,11 @@ type CheckoutRequest struct {
 	Amount      decimal.Decimal // e.g. the deposit; zero = the balance
 	Description string
 	PayerName   string
+	// Unposted is the part of the booking priced but posted to the folio
+	// later (a bungalow room charged per night by the night audit, Stay
+	// Policies roomChargePosting "nightly"). It is payable in advance: the
+	// payment is then a deposit, held until the charges are posted.
+	Unposted decimal.Decimal
 }
 
 // Checkout redeems an optional voucher code and opens the online payment
@@ -463,10 +474,22 @@ func (s *Service) Checkout(ctx context.Context, tx pgx.Tx, r CheckoutRequest) (C
 	if err != nil {
 		return out, err
 	}
-	out.Total = sum.Charges
-	if due := dec(sum.Balance); r.VoucherCode != "" && due.IsPositive() {
+	unposted := decimal.Max(r.Unposted, decimal.Zero)
+	purpose := "settlement"
+	if unposted.IsPositive() {
+		purpose = "deposit"
+	}
+	// due: the balance plus what is not posted yet, less the held deposits
+	dueOf := func(sum Summary) decimal.Decimal {
+		if !unposted.IsPositive() {
+			return dec(sum.Balance)
+		}
+		return dec(sum.Balance).Add(unposted).Sub(dec(sum.HeldDeposits))
+	}
+	out.Total = dec(sum.Charges).Add(unposted).StringFixed(places(sum.Currency))
+	if due := dueOf(sum); r.VoucherCode != "" && due.IsPositive() {
 		p, err := s.TakeTender(ctx, tx, TenderPaymentInput{PaymentInput: PaymentInput{FolioID: &r.FolioID, MethodType: "voucher_prepaid", Amount: due,
-			Description: r.Description}, Tender: map[string]any{"code": r.VoucherCode}})
+			Purpose: purpose, Description: r.Description}, Tender: map[string]any{"code": r.VoucherCode}})
 		if err != nil {
 			return out, err
 		}
@@ -475,14 +498,14 @@ func (s *Service) Checkout(ctx context.Context, tx pgx.Tx, r CheckoutRequest) (C
 	if sum, err = FolioSummary(ctx, tx, r.FolioID); err != nil {
 		return out, err
 	}
-	due := dec(sum.Balance)
+	due := dueOf(sum)
 	if r.Method != "" && due.IsPositive() {
 		amt := r.Amount
 		if amt.IsZero() || amt.GreaterThan(due) {
 			amt = due
 		}
 		p, err := s.TakePayment(ctx, tx, PaymentInput{FolioID: &r.FolioID, MethodType: r.Method, Channel: "online", Amount: amt,
-			Description: r.Description, PayerName: r.PayerName})
+			Purpose: purpose, Description: r.Description, PayerName: r.PayerName})
 		if err != nil {
 			return out, err
 		}
@@ -492,5 +515,8 @@ func (s *Service) Checkout(ctx context.Context, tx pgx.Tx, r CheckoutRequest) (C
 		}
 	}
 	out.AmountDue = sum.Balance
+	if unposted.IsPositive() {
+		out.AmountDue = decimal.Max(dueOf(sum), decimal.Zero).StringFixed(places(sum.Currency))
+	}
 	return out, nil
 }

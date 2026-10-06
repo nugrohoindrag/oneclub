@@ -4,8 +4,12 @@
 //	oneclub worker                   River background jobs
 //	oneclub migrate up|status|down   database migrations (+ catalogue sync)
 //	oneclub instance create|drop     provision a dedicated customer instance
-//	oneclub seed-demo                demo data for dev/staging
+//	oneclub seed-demo [--trial]      demo data for dev/staging (+ the trial dataset)
 //	oneclub import rhapsody <step>   Rhapsody migration: stage|validate|load|reconcile (EP-18)
+//	oneclub import hris [--employees F] [--contracts F] [--certifications F]   HR migration (PRD P5 EP-28)
+//	oneclub import <scope> -file F   P3 / P4 migration importers (dry run; -commit to save):
+//	                                 sales, banquet, tournament-history, corporate-ar,
+//	                                 inventory, procurement, accounting (PRD P3 / P4 §11)
 //	oneclub openapi [-o file]        write the OpenAPI document
 //	oneclub healthcheck              container health check
 //	oneclub version
@@ -13,6 +17,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -20,6 +25,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -28,6 +34,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"oneclub/internal/app"
+	"oneclub/internal/app/dataimport"
 	"oneclub/internal/app/rhapsody"
 	"oneclub/internal/kernel/config"
 	"oneclub/internal/kernel/dbtx"
@@ -52,7 +59,7 @@ func main() {
 	case "instance":
 		err = runInstance(args)
 	case "seed-demo":
-		err = runSeedDemo()
+		err = runSeedDemo(args)
 	case "import":
 		err = runImport(args)
 	case "openapi":
@@ -290,7 +297,13 @@ func runInstance(args []string) error {
 	return fmt.Errorf("unknown instance command %q", args[0])
 }
 
-func runSeedDemo() error {
+func runSeedDemo(args []string) error {
+	fs := flag.NewFlagSet("seed-demo", flag.ExitOnError)
+	trial := fs.Bool("trial", false, "also create the trial dataset: 90 days of club activity and 30 days of upcoming business (README \"Trial dataset\")")
+	days := fs.Int("days", 90, "trial: simulated past business days")
+	ahead := fs.Int("ahead", 30, "trial: days of upcoming business")
+	seed := fs.Uint64("seed", 20260401, "trial: random seed (the same seed gives the same data)")
+	_ = fs.Parse(args)
 	cfg, db, err := load("seed-demo")
 	if err != nil {
 		return err
@@ -313,6 +326,42 @@ func runSeedDemo() error {
 	}
 	if res.DeviceToken != "" {
 		fmt.Println("  Demo POS device token (shown once):", res.DeviceToken)
+	}
+	if *trial {
+		return runSeedTrial(cfg, db, app.TrialOptions{Days: *days, Ahead: *ahead, Seed: *seed})
+	}
+	return nil
+}
+
+// runSeedTrial adds the trial dataset (internal/app/trial.go) after the
+// demo configuration. Stop the worker of the instance while it runs, so the
+// events of the simulated history are dispatched at their simulated time.
+func runSeedTrial(cfg *config.Config, _ *dbtx.DB, o app.TrialOptions) error {
+	db, err := dbtx.Open(context.Background(), app.TrialDatabaseURL(cfg.DatabaseURL), cfg.ReplicaURL(), 20)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	a, err := app.Build(cfg, db, app.Options{})
+	if err != nil {
+		return err
+	}
+	o.Log = func(format string, args ...any) { fmt.Printf(format+"\n", args...) }
+	res, err := a.SeedTrial(context.Background(), o)
+	if err != nil {
+		return err
+	}
+	if res.AlreadyComplete {
+		fmt.Printf("Trial dataset already complete (history %s – %s); nothing added.\n", res.Start, res.Today)
+	} else {
+		fmt.Printf("Trial dataset ready: history %s – %s, %d steps in %s.\n", res.Start, res.Today, res.Steps, res.Duration.Round(time.Second))
+	}
+	for _, c := range res.Coverage {
+		fmt.Printf("  %-12s %-26s %7d\n", c.Module, c.Entity, c.Rows)
+	}
+	fmt.Println("Trial staff (password " + app.DemoPassword + ", PIN " + app.DemoPIN + "):")
+	for _, u := range app.TrialUsers {
+		fmt.Printf("  %-38s %s\n", u.Email, u.Role)
 	}
 	return nil
 }
@@ -361,8 +410,18 @@ func runHealthcheck() error {
 // runImport runs one step of the Rhapsody migration (PRD P1 EP-18; runbook
 // docs/migration/cutover-runbook.md). Every step is repeatable.
 func runImport(args []string) error {
+	if len(args) > 0 && args[0] == "hris" {
+		return runImportHRIS(args[1:])
+	}
+	if len(args) >= 1 && args[0] != "rhapsody" && !strings.HasPrefix(args[0], "-") {
+		return runScopeImport(args[0], args[1:])
+	}
+	if len(args) >= 2 && args[0] == "rhapsody" && strings.HasPrefix(args[1], "-") {
+		// PRD P3 §11 form: oneclub import rhapsody --scope=banquet|corporate-ar|tournament-history …
+		return runScopeImport("", args[1:])
+	}
 	if len(args) < 2 || args[0] != "rhapsody" {
-		return errors.New("usage: oneclub import rhapsody <stage|validate|load|reconcile> -property CODE [-dir DIR] [-totals FILE] [-out DIR]")
+		return errors.New(importUsage())
 	}
 	step := args[1]
 	fs := flag.NewFlagSet("import rhapsody", flag.ExitOnError)
@@ -395,7 +454,7 @@ func runImport(args []string) error {
 	if err != nil {
 		return err
 	}
-	property, err := rhapsody.PropertyByCode(ctx, db, *prop)
+	property, err := dataimport.PropertyByCode(ctx, db, *prop) // in a system-scope transaction (RLS)
 	if err != nil {
 		return err
 	}
@@ -461,4 +520,76 @@ func runImport(args []string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown step %q", step)
+}
+
+func importUsage() string {
+	var b strings.Builder
+	b.WriteString("usage:\n  oneclub import rhapsody <stage|validate|load|reconcile> -property CODE [-dir DIR] [-totals FILE] [-out DIR]\n")
+	b.WriteString("  oneclub import <scope> [-entity E] -file FILE.csv [-property CODE] [-commit] [-out DIR] [scope options]\n")
+	b.WriteString("  oneclub import rhapsody --scope=<scope> … (same as above)\nscopes:\n")
+	for _, s := range dataimport.Scopes {
+		fmt.Fprintf(&b, "  %-19s %-48s %s\n", s.Name, strings.Join(s.Entities, "|"), s.Help)
+	}
+	b.WriteString("without -commit the run is a dry run (validated, previewed and rolled back); a committed re-run is idempotent")
+	return b.String()
+}
+
+// runScopeImport runs one P3 / P4 migration importer (PRD P3 / P4 §11) as
+// the system actor: dry run by default, -commit saves; prints the counts,
+// the rejected rows and the reconciliation, and writes the JSON report to
+// -out. Exits non-zero when rows were rejected.
+func runScopeImport(scope string, args []string) error {
+	fs := flag.NewFlagSet("import "+scope, flag.ExitOnError)
+	scopeFlag := fs.String("scope", scope, "import scope")
+	entity := fs.String("entity", "", "entity of the scope (default: the first)")
+	prop := fs.String("property", "MAIN", "target property code")
+	file := fs.String("file", "", "CSV file to import")
+	commit := fs.Bool("commit", false, "save the import (default: dry run)")
+	out := fs.String("out", ".", "directory for the JSON import report")
+	expected := fs.String("expected-total", "", "corporate-ar: control total of the open corporate AR in the legacy system")
+	businessDate := fs.String("business-date", "", "inventory opening-stock: cut-over date YYYY-MM-DD (default today)")
+	balanceDate := fs.String("balance-date", "", "accounting opening-balances: balance date YYYY-MM-DD (default the day before the cut-over)")
+	description := fs.String("description", "", "accounting opening-balances: batch description (a re-run replaces the draft of the same description)")
+	_ = fs.Parse(args)
+	if _, _, err := dataimport.Resolve(*scopeFlag, *entity); err != nil {
+		return fmt.Errorf("%w\n%s", err, importUsage())
+	}
+	if *file == "" {
+		return errors.New("-file is required\n" + importUsage())
+	}
+	raw, err := os.ReadFile(filepath.Clean(*file)) //nolint:gosec // G703: the operator names the file to import on the command line
+	if err != nil {
+		return err
+	}
+	cfg, db, err := load("import")
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	ctx := context.Background()
+	a, err := app.Build(cfg, db, app.Options{})
+	if err != nil {
+		return err
+	}
+	property, err := dataimport.PropertyByCode(ctx, db, *prop)
+	if err != nil {
+		return err
+	}
+	rep, err := dataimport.Run(ctx, a, dataimport.Request{Scope: *scopeFlag, Entity: *entity, Property: property, CSV: string(raw),
+		Filename: filepath.Base(*file), Commit: *commit, ExpectedTotal: *expected, BusinessDate: *businessDate, BalanceDate: *balanceDate,
+		Description: *description})
+	if err != nil {
+		return err
+	}
+	fmt.Print(rep.Summary())
+	path := filepath.Join(*out, fmt.Sprintf("import-%s-%s-%s-%s.json", rep.Scope, rep.Entity, rep.Mode, dataimport.Stamp(time.Now())))
+	body, _ := json.MarshalIndent(rep, "", "  ")
+	if err := os.WriteFile(filepath.Clean(path), body, 0o600); err != nil { //nolint:gosec // G703: report directory chosen by the operator (-out)
+		return err
+	}
+	fmt.Println("report:", path)
+	if rep.Failed > 0 {
+		return fmt.Errorf("%d rows rejected", rep.Failed)
+	}
+	return nil
 }

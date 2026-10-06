@@ -42,8 +42,9 @@ test('General Manager lands on Management and switches to the Back Office; 403 l
   expect(await menuLabels(page)).toContain('Executive Overview');
   await switchArea(page, 'Back Office');
   await expect(page).toHaveURL(`${DASHBOARD}/`);
+  // the menu of the new area loads after the switch: read it once it is there
+  await expect.poll(() => menuLabels(page)).toEqual(expect.arrayContaining(['Dashboard', 'Approvals', 'Golf', 'Membership', 'Booking', 'Reports']));
   const labels = await menuLabels(page);
-  for (const l of ['Dashboard', 'Approvals', 'Golf', 'Membership', 'Booking', 'Reports']) expect(labels).toContain(l);
   expect(labels).not.toContain('Users');
   // FR-SH-04: 403 with links to the areas the user may open
   await page.goto(`${DASHBOARD}/settings/users`);
@@ -152,6 +153,8 @@ test('Super Admin (MFA) reaches Settings; property switcher, notifications and l
   await login(page, DASHBOARD, email('super_admin'), '/');
   const labels = await menuLabels(page);
   expect(labels).toContain('Settings');
+  // the demo club (other specs add properties of their own, which may come first in the switcher)
+  await page.getByRole('combobox', { name: 'Property' }).selectOption({ label: 'Modern Golf & Country Club' });
   await page.goto(`${DASHBOARD}/settings/venues`);
   await expect(page.getByRole('heading', { name: 'Venues' })).toBeVisible();
   await expect(page.locator('.oc-status').first()).toBeVisible(); // status pills (FR-SH-09)
@@ -272,6 +275,13 @@ test('public website renders branding in Indonesian and English', async ({ page 
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Selamat datang');
   await page.getByRole('link', { name: 'EN', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Welcome');
-  await page.getByRole('link', { name: 'Contact' }).click();
+  // The header follows the CMS menu (FR-CMS-09): Contact may sit in a dropdown.
+  const nav = page.getByRole('navigation', { name: 'Main' });
+  const group = nav.getByRole('button', { name: 'Contact', exact: true });
+  if (await group.count()) {
+    await expect(nav).toHaveAttribute('data-ready', 'true'); // hydrated
+    await group.click();
+  }
+  await nav.getByRole('link', { name: 'Contact', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Contact' })).toBeVisible();
 });

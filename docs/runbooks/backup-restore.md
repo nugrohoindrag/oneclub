@@ -3,9 +3,11 @@
 ## Backups (DB host)
 
 - **WAL archive**: continuous via `archive_command = pgbackrest archive-push`, `archive_timeout = 60` → RPO ≤ 5 minutes.
-- **Full backup**: daily (`backup.sh full`), differential at midday, monthly copy to repo 2 kept 12 months.
-- **Retention**: 30 days PITR (repo 1), 12 monthly full backups (repo 2). Repositories are encrypted (AES-256) and
-  live in object storage at a different location from the database server.
+- **Full backup**: daily (`backup.sh full`), differential at midday, monthly copy to repo 2 kept 60 months.
+- **Retention**: 30 days PITR (repo 1), 60 monthly full backups = **5 years** (repo 2; audit log and financial
+  documents ≥ 5 years, Technical Doc §14, PRD P4 FR-REL-P4-06). Repositories are encrypted (AES-256) and live in
+  object storage at a different location from the database server; the repo 2 bucket needs a lifecycle /
+  object-lock rule of at least 5 years (set by OneClub ops on the storage account).
 - Config: `deploy/pgbackrest/pgbackrest.conf`, image `deploy/docker/Dockerfile.postgres`, schedule in `deploy/scripts/backup.sh`.
 
 ## Restore drill (monthly on Staging)
@@ -15,8 +17,9 @@ deploy/scripts/restore-drill.sh mgcc                                  # latest b
 deploy/scripts/restore-drill.sh mgcc --target-time "2026-10-04 10:00:00+07"   # point in time
 ```
 
-The script restores into a scratch container, verifies instance code, users, properties, audit entries and the
-migration version, and appends the duration to `restore-drills.log`.
+The script restores into a scratch container, verifies instance code, users, properties, audit entries, the
+migration version and the `accounting` schema (journal count and latest date, no unbalanced journal, tax invoices;
+the drill fails on an unbalanced journal), and appends the duration to `restore-drills.log`.
 
 ## Drill log
 

@@ -10,10 +10,24 @@ export interface PublicProperty {
   name: string;
 }
 
-/** The property the public pages book into (first property of the instance). */
+/**
+ * The property the public pages book into and show the CMS content of:
+ * ONECLUB_WEBSITE_PROPERTY (property code) when set, else the first property
+ * of the instance — the website property of the CMS (/public/cms/site), as
+ * the bootstrap lists the properties by name.
+ */
 export async function getProperty(): Promise<PublicProperty | null> {
   const b = (await getBootstrap()) as Bootstrap & { properties?: PublicProperty[] };
-  return b.properties?.[0] ?? null;
+  const list = b.properties ?? [];
+  const code = process.env.ONECLUB_WEBSITE_PROPERTY?.trim().toUpperCase();
+  const byCode = code ? list.find((p) => p.code.toUpperCase() === code) : undefined;
+  if (byCode) return byCode;
+  if (list.length > 1) {
+    const site = await pub<{ propertyId: string }>('/api/v1/public/cms/site');
+    const hit = list.find((p) => p.id === site?.propertyId);
+    if (hit) return hit;
+  }
+  return list[0] ?? null;
 }
 
 /** GET a public API path (revalidated every 5 minutes); null when unavailable. */

@@ -135,8 +135,11 @@ func (m *Module) registerPublic(reg *route.Registry) {
 			out := PublicStayResult{Reference: res.Reservation.Code, StayNo: res.Stay.StayNo, Status: res.Stay.Status, Total: res.Total, Deposit: res.DepositRequired}
 			if res.Folio != nil && s.Kind != "vip_suite" {
 				dep, _ := decimal.NewFromString(res.DepositRequired)
+				// nightly room charge: the nights are posted later, the deposit is paid now
+				total, _ := decimal.NewFromString(res.Total)
+				charges, _ := decimal.NewFromString(res.Folio.Charges)
 				co, err := m.Billing.Checkout(ctx, tx, billing.CheckoutRequest{FolioID: res.Folio.ID, VoucherCode: in.VoucherCode, Method: in.PayMethod,
-					Amount: dep, Description: "Booking " + res.Reservation.Code})
+					Amount: dep, Description: "Booking " + res.Reservation.Code, Unposted: total.Sub(charges)})
 				if err != nil {
 					return out, err
 				}

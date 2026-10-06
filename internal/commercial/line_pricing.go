@@ -98,6 +98,11 @@ type PriceRequest struct {
 	Package     string     `json:"package,omitempty" doc:"Package rate code"`
 	Channel     string     `json:"channel,omitempty"`
 	Persist     bool       `json:"persist,omitempty" doc:"Store an immutable pricing snapshot"`
+	// PRD P3 (additive): contract rate and promotions.
+	CorporateAccountID *uuid.UUID `json:"corporateAccountId,omitempty" doc:"Corporate Rate (contract rate) of a corporate account"`
+	CustomerID         *uuid.UUID `json:"customerId,omitempty" doc:"Customer for promotion eligibility (membership type, CRM segment, limits)"`
+	PromoCodes         []string   `json:"promoCodes,omitempty" doc:"Promo codes entered"`
+	NoPromotions       bool       `json:"noPromotions,omitempty" doc:"List price without promotions"`
 }
 
 // LineComponent is one all-in component of a line price.
@@ -141,6 +146,9 @@ type LinePrice struct {
 	Components       []LineComponent `json:"components"`
 	RevenueComponent string          `json:"revenueComponent"`
 	Explanation      []string        `json:"explanation"`
+	// PRD P3 (additive): promotions applied on the gross (FR-PRM-06/07).
+	Discount   string             `json:"discount" doc:"Promotion discount on the gross; tax & service follow the discounted amount"`
+	Promotions []AppliedPromotion `json:"promotions"`
 }
 
 // Net / Total / ServiceAmount / TaxAmount expose the breakdown as decimals for charges.
@@ -192,6 +200,9 @@ type ruleRow struct {
 	Components       json.RawMessage `db:"components"`
 	Priority         int             `db:"priority"`
 	EffectiveFrom    time.Time       `db:"effective_from"`
+	Peak             *bool           `db:"peak"`
+	Holiday          *bool           `db:"holiday"`
+	CorporateID      *uuid.UUID      `db:"corporate_account_id"`
 }
 
 // Pricer resolves prices of every line; it is stateless and safe to share.
@@ -277,7 +288,7 @@ func (Pricer) Resolve(ctx context.Context, q dbtx.Querier, property uuid.UUID, r
 		r.channel, r.unit, r.unit_minutes, r.package_quantity, r.min_quantity, r.min_policy, r.price::text AS price, r.overtime_price::text AS overtime_price,
 		coalesce(r.currency, rp.currency, (SELECT currency FROM platform.instance)) AS currency,
 		coalesce(r.pricing_mode, rp.pricing_mode, 'nett') AS pricing_mode, r.tax_codes,
-		coalesce(r.revenue_component, 'other') AS revenue_component, r.components, r.priority, r.effective_from
+		coalesce(r.revenue_component, 'other') AS revenue_component, r.components, r.priority, r.effective_from, r.peak, r.holiday, r.corporate_account_id
 		FROM commercial.pricing_rules r
 		LEFT JOIN commercial.line_day_types dt ON dt.id = r.line_day_type_id
 		LEFT JOIN commercial.time_bands tb ON tb.id = r.time_band_id
@@ -303,9 +314,18 @@ func (Pricer) Resolve(ctx context.Context, q dbtx.Querier, property uuid.UUID, r
 		r     ruleRow
 		score int
 	}
+	facts := &ruleFacts{property: property, local: local}
 	var cands []cand
 	for _, r := range rules {
 		score := 0
+		// PRD P3 FR-PRC-P3-01: Corporate Rate, Holiday Rate, Peak / Off-Peak Rate
+		if ok, add, err := facts.match(ctx, q, r, req.CorporateAccountID); err != nil {
+			return LinePrice{}, err
+		} else if !ok {
+			continue
+		} else {
+			score += add
+		}
 		if r.ItemRef != nil {
 			if *r.ItemRef != req.ItemRef {
 				continue
@@ -426,15 +446,7 @@ func (Pricer) Resolve(ctx context.Context, q dbtx.Querier, property uuid.UUID, r
 	if err != nil {
 		return LinePrice{}, err
 	}
-	if len(r.TaxCodes) > 0 {
-		var sel []Rule
-		for _, t := range taxRules {
-			if slices.Contains(r.TaxCodes, t.Code) {
-				sel = append(sel, t)
-			}
-		}
-		taxRules = sel
-	}
+	taxRules = WithCodes(taxRules, r.TaxCodes)
 	b := CalculateMode(taxRules, gross, r.Currency, req.Start, r.PricingMode)
 	comps := []LineComponent{}
 	var defs []lineComponentDef
@@ -453,10 +465,16 @@ func (Pricer) Resolve(ctx context.Context, q dbtx.Querier, property uuid.UUID, r
 	if r.Segment != nil {
 		seg = *r.Segment
 	}
-	return LinePrice{RuleID: r.ID, RuleCode: r.Code, RuleVersion: r.Version, RuleName: r.Name, ServiceType: req.ServiceType, ItemRef: r.ItemRef,
+	out := LinePrice{RuleID: r.ID, RuleCode: r.Code, RuleVersion: r.Version, RuleName: r.Name, ServiceType: req.ServiceType, ItemRef: r.ItemRef,
 		Segment: seg, DayType: r.DayTypeCode, TimeBand: r.TimeBandCode, RatePlan: r.RatePlanCode, Package: r.PackageCode, Unit: r.Unit,
 		Units: units.String(), UnitPrice: price.String(), Overtime: overtime.String(), Gross: gross.String(), Tax: b, Components: comps,
-		RevenueComponent: r.RevenueComponent, Explanation: expl}, nil
+		RevenueComponent: r.RevenueComponent, Explanation: expl, Discount: "0", Promotions: []AppliedPromotion{}}
+	if !req.NoPromotions {
+		if err := applyLinePromotions(ctx, q, property, req, &out, units, gross, taxRules, facts); err != nil {
+			return LinePrice{}, err
+		}
+	}
+	return out, nil
 }
 
 var hundred = decimal.NewFromInt(100)
@@ -477,15 +495,22 @@ func (Pricer) Snapshot(ctx context.Context, tx pgx.Tx, property uuid.UUID, req P
 	comps, _ := json.Marshal(res.Components)
 	if _, err := tx.Exec(ctx, `INSERT INTO commercial.pricing_snapshots (id, property_id, charge_type, rule_id, rule_code, rule_version, rate_plan_code,
 		segment, day_type_code, time_band_code, channel, play_at, currency, pricing_mode, list_price, quantity, net_amount, tax_amount, service_amount,
-		total, components, tax_service, context, created_by, service_type, item_ref, unit, package_rate, gross_amount)
+		total, components, tax_service, context, created_by, service_type, item_ref, unit, package_rate, gross_amount, promotions)
 		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15::numeric,$16::numeric,$17::numeric,$18::numeric,$19::numeric,$20::numeric,
-		$21,$22,$23,$24,$3,$25,$26,$27,$28::numeric)`,
+		$21,$22,$23,$24,$3,$25,$26,$27,$28::numeric,$29)`,
 		sid, property, res.ServiceType, res.RuleID, res.RuleCode, res.RuleVersion, res.RatePlan, nullStr(res.Segment), res.DayType, res.TimeBand,
 		nullStr(req.Channel), req.Start, res.Tax.Currency, res.Tax.PricingMode, res.UnitPrice, res.Units, res.Tax.NetAmount, res.TaxAmount().String(),
-		res.ServiceAmount().String(), res.Tax.Total, comps, taxLines, inputs, actorPtr(ctx), res.ItemRef, res.Unit, res.Package, res.Gross); err != nil {
+		res.ServiceAmount().String(), res.Tax.Total, comps, taxLines, inputs, actorPtr(ctx), res.ItemRef, res.Unit, res.Package, res.Gross,
+		SnapshotPromotions(res.Promotions)); err != nil {
 		return uuid.Nil, err
 	}
 	res.SnapshotID = &sid
+	if len(res.Promotions) > 0 {
+		// PRD P3 FR-PRM-07: the redemption of the promotions of this price
+		if err := recordSnapshot(ctx, tx, property, sid, res.Promotions, req.CustomerID, req.Channel, lineOfService(res.ServiceType), res.Tax.Currency); err != nil {
+			return uuid.Nil, err
+		}
+	}
 	return sid, nil
 }
 
@@ -507,15 +532,7 @@ func (Pricer) ManualSnapshot(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	if err != nil {
 		return uuid.Nil, Breakdown{}, err
 	}
-	if len(taxCodes) > 0 {
-		var sel []Rule
-		for _, t := range taxRules {
-			if slices.Contains(taxCodes, t.Code) {
-				sel = append(sel, t)
-			}
-		}
-		taxRules = sel
-	}
+	taxRules = WithCodes(taxRules, taxCodes)
 	var cur string
 	if err := tx.QueryRow(ctx, `SELECT currency FROM platform.instance`).Scan(&cur); err != nil {
 		return uuid.Nil, Breakdown{}, err
@@ -579,8 +596,8 @@ func PublicRates(ctx context.Context, q dbtx.Querier, property uuid.UUID, types 
 		LEFT JOIN commercial.time_bands tb ON tb.id = r.time_band_id
 		LEFT JOIN commercial.rate_plans rp ON rp.id = r.rate_plan_id
 		LEFT JOIN commercial.package_rates pk ON pk.id = r.package_rate_id
-		WHERE r.property_id = $1 AND r.service_type = ANY($2) AND r.status = 'active' AND r.effective_from <= current_date
-		AND (r.effective_to IS NULL OR r.effective_to >= current_date) AND coalesce(r.channel, 'website') = 'website'
+		WHERE r.property_id = $1 AND r.service_type = ANY($2) AND r.status = 'active' AND r.effective_from <= billing.local_date($1)
+		AND (r.effective_to IS NULL OR r.effective_to >= billing.local_date($1)) AND coalesce(r.channel, 'website') = 'website'
 		AND coalesce(r.segment, '') NOT IN ('member', 'corporate')
 		ORDER BY r.code, r.version DESC`, property, types))
 	for i := range out {

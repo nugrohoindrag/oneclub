@@ -783,7 +783,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 		Response: PublicClub{}, List: true, Query: []route.Param{{Name: "propertyId", Required: true}},
 		Handler: publicLimiter.Wrap(m.publicRead(func(ctx context.Context, tx pgx.Tx, pid uuid.UUID, r *http.Request) (any, error) {
 			return handle.Page(handle.List[PublicClub](tx.Query(ctx, `SELECT code, name, country, city FROM golf.reciprocal_clubs WHERE property_id = $1
-				AND status = 'active' AND archived_at IS NULL AND (agreement_to IS NULL OR agreement_to >= current_date) ORDER BY country, name`, pid)))
+				AND status = 'active' AND archived_at IS NULL AND (agreement_to IS NULL OR agreement_to >= billing.local_date($1)) ORDER BY country, name`, pid)))
 		}))})
 
 	// ── Driving Range (EP-12) ──

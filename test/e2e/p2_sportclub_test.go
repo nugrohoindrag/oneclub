@@ -6,7 +6,9 @@ import (
 	"time"
 )
 
-var allDay = map[string]any{"weekday": []string{"00:00", "23:59"}, "weekend": []string{"00:00", "23:59"}, "holiday": []string{"00:00", "23:59"}}
+// allDay opens a facility around the clock: the closing time is exclusive,
+// so "23:59" would deny access during the last minute of the club day.
+var allDay = map[string]any{"weekday": []string{"00:00", "24:00"}, "weekend": []string{"00:00", "24:00"}, "holiday": []string{"00:00", "24:00"}}
 
 func isWeekend(t time.Time) bool { return t.Weekday() == time.Saturday || t.Weekday() == time.Sunday }
 
@@ -205,11 +207,11 @@ func TestP2Classes(t *testing.T) {
 	swim := idOf(sa.Must(201, "POST", "/api/v1/sportclub/class-programs", map[string]any{"code": "SWIM-KIDS", "name": "Swimming Kids", "discipline": "swimming",
 		"capacity": 10, "durationMinutes": 60, "facilityId": pool}))
 	sched := sa.Must(201, "POST", "/api/v1/sportclub/class-schedules", map[string]any{"programId": swim, "instructorId": coach, "facilityId": pool,
-		"weekdays": []int{1, 2, 3, 4, 5, 6, 7}, "startTime": "04:00", "startDate": dateAgo(0, 0, 3), "endDate": time.Now().AddDate(0, 0, 7).Format("2006-01-02")}).JSON()
+		"weekdays": []int{1, 2, 3, 4, 5, 6, 7}, "startTime": "04:00", "startDate": dateAgo(0, 0, 3), "endDate": clubDateAgo(inst, 0, 0, -7)}).JSON()
 	// Instructor / facility conflict is rejected.
 	other := idOf(sa.Must(201, "POST", "/api/v1/sportclub/class-programs", map[string]any{"code": "AEROBIC", "name": "Aerobic", "discipline": "aerobic", "capacity": 20}))
 	if r := sa.Do("POST", "/api/v1/sportclub/class-schedules", map[string]any{"programId": other, "instructorId": coach, "weekdays": []int{1, 2, 3, 4, 5, 6, 7},
-		"startTime": "04:30", "startDate": time.Now().Format("2006-01-02"), "endDate": time.Now().AddDate(0, 0, 2).Format("2006-01-02")}); r.Status != 409 {
+		"startTime": "04:30", "startDate": clubToday(inst), "endDate": clubDateAgo(inst, 0, 0, -2)}); r.Status != 409 {
 		t.Fatalf("instructor conflict: %s", r)
 	}
 	rule(t, sa, map[string]any{"code": "SWIM-REG-M", "name": "Swimming registration member", "serviceType": "class_registration", "itemRef": "SWIM-KIDS",
@@ -277,7 +279,7 @@ func TestP2Classes(t *testing.T) {
 	sa.Must(200, "POST", "/api/v1/sportclub/class-schedules/"+str(sched["id"])+":generate", nil)
 	// Instructor fee: sessions held in the period × rate, approval, payment.
 	fee := sa.Must(201, "POST", "/api/v1/sportclub/instructor-fees:calculate", map[string]any{"instructorId": coach, "periodStart": dateAgo(0, 0, 3),
-		"periodEnd": time.Now().Format("2006-01-02")}).JSON()
+		"periodEnd": clubToday(inst)}).JSON()
 	if fee["sessions"].(float64) < 3 || fee["status"] != "approved" {
 		t.Fatalf("instructor fee: %v", fee)
 	}

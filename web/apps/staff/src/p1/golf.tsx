@@ -7,6 +7,7 @@ import {
   TextField, fieldErrors, statusCol, useAuth, useToast, type ResourceConfig,
 } from '@oneclub/shell';
 import { ActionButton, CourseDateBar, KV, ListPage, Tabs, money, today, useCourseDate, useStream, type R } from './common';
+import { MemberNoTierBadge } from '../p5/tiers';
 
 const pill = (k: string) => (r: R) => <StatusPill status={String(r[k] ?? '').replace(/_/g, '-')} />;
 const SESSION: Record<string, string> = { morning: 'Morning', afternoon: 'Afternoon', night: 'Night' };
@@ -117,7 +118,8 @@ export function BookingForm({ slot, onClose, onDone }: { slot: R; onClose: () =>
           <SelectField label="Player type" value={p.playerType} onChange={(v) => setP(i, 'playerType', v)}
             options={[{ value: 'member', label: 'Member' }, { value: 'guest_of_member', label: 'Guest of Member' }, { value: 'non_member', label: 'Non-Member' }, { value: 'reciprocal', label: 'Reciprocal' }]} />
           {p.playerType === 'member'
-            ? <TextField label="Member No." value={p.memberNo} onChange={(v) => setP(i, 'memberNo', v)} error={errs[`players[${i}].memberNo`]} />
+            ? <><TextField label="Member No." value={p.memberNo} onChange={(v) => setP(i, 'memberNo', v)} error={errs[`players[${i}].memberNo`]} />
+              <MemberNoTierBadge memberNo={p.memberNo} /></>
             : <TextField label="Name (empty = TBA)" value={p.name} onChange={(v) => setP(i, 'name', v)} error={errs[`players[${i}].name`]} />}
           {p.playerType !== 'member' && <TextField label="Phone" value={p.phone} onChange={(v) => setP(i, 'phone', v)} />}
           {players.length > 1 && <button className="oc-icon-btn" aria-label="Remove player" onClick={() => setPlayers((ps) => ps.filter((_, j) => j !== i))}><Icon name="close" size={18} /></button>}

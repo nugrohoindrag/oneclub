@@ -2,6 +2,7 @@ import { defineConfig, type Plugin, type PreviewServer, type ViteDevServer } fro
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { AREAS, SURFACES, type Surface } from '../../packages/shell/src/area-list';
+import { cacheableApiPattern } from './src/sw-cache';
 
 // Staff App: every staff area in one SPA (Technical Doc §6.1). In development
 // /api is proxied to the Go API; in production Caddy serves both on the same
@@ -102,19 +103,25 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
+        // woff2: the self-hosted Material Symbols subset (@oneclub/shell,
+        // decision 4g), so icons render on a device that never was online
+        // after install.
+        globPatterns: ['**/*.{js,css,html,woff2}'],
         manifestTransforms: [
           async (entries) => ({ manifest: entries.filter((e) => !/\.(js|css)$/.test(e.url) || offline.files.has(e.url)), warnings: [] }),
         ],
+        // Push notifications of Employee Self Service (PRD P5 FR-INT-P5-05): public/push-sw.js shows them and opens their link.
+        importScripts: ['/push-sw.js'],
         runtimeCaching: [
           {
-            urlPattern: ({ url }) =>
-              ['/api/v1/public/bootstrap', '/api/v1/auth/me', '/api/v1/platform/navigation', '/api/v1/commercial/outlets', '/api/v1/golf/my-assignments',
-                '/api/v1/golf/my-earnings', '/api/v1/golf/rounds', '/api/v1/golf/course-maps'].some((p) => url.pathname.startsWith(p)),
+            // Payroll, salary and personal HR data are never cached offline (PRD P5 FR-OPS-P5-05, src/sw-cache.ts).
+            urlPattern: cacheableApiPattern, // self-contained: workbox copies its source into sw.js
             handler: 'NetworkFirst',
             options: { cacheName: 'staff-api', networkTimeoutSeconds: 3, expiration: { maxAgeSeconds: 12 * 3600 } },
           },
           { urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\//, handler: 'CacheFirst',
-            // Google Fonts are cross-origin (opaque, status 0) — allow caching them so icons render offline.
+            // Text fonts (Inter, Roboto Flex) still come from Google Fonts and fall back to system
+            // fonts offline; cross-origin (opaque, status 0) — allow caching them once seen.
             options: { cacheName: 'fonts', cacheableResponse: { statuses: [0, 200] }, expiration: { maxEntries: 30, maxAgeSeconds: 365 * 86400 } } },
         ],
       },

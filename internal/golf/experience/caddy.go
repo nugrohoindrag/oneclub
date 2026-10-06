@@ -16,7 +16,6 @@ import (
 	"oneclub/internal/billing"
 	"oneclub/internal/crm"
 	"oneclub/internal/golf"
-	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
@@ -312,11 +311,13 @@ func (m *Module) indicators(ctx context.Context, q dbtx.Querier, caddy uuid.UUID
 		(SELECT trim_scale(round(avg(rating), 2))::text FROM golf.caddy_ratings WHERE caddy_id = $1),
 		(SELECT count(*) FROM golf.caddy_ratings WHERE caddy_id = $1)::int,
 		(SELECT count(*) FROM golf.incidents WHERE caddy_id = $1 AND subject_type = 'caddy' AND occurred_at > now() - interval '12 months')::int,
-		(SELECT coalesce(p.joined_on, c.created_at::date) FROM golf.caddies c LEFT JOIN golf.caddy_profiles p ON p.caddy_id = c.id WHERE c.id = $1)`, caddy).Scan(&ind.Rounds, &ind.AverageRating, &ind.Ratings, &ind.Incidents12m, &joined); err != nil {
+		(SELECT coalesce(p.joined_on, (c.created_at AT TIME ZONE coalesce((SELECT nullif(x.timezone, '') FROM platform.properties x WHERE x.id = c.property_id),
+		  (SELECT timezone FROM platform.instance)))::date) FROM golf.caddies c LEFT JOIN golf.caddy_profiles p ON p.caddy_id = c.id WHERE c.id = $1)`,
+		caddy).Scan(&ind.Rounds, &ind.AverageRating, &ind.Ratings, &ind.Incidents12m, &joined); err != nil {
 		return ind, err
 	}
 	if joined != nil {
-		n := clock.Now()
+		n := localNow(ctx, q) // the club's month, as joined_on
 		ind.MonthsActive = (n.Year()-joined.Year())*12 + int(n.Month()-joined.Month())
 	}
 	ind.Reasons = []string{}
@@ -913,11 +914,31 @@ func (m *Module) CreateSettlement(ctx context.Context, tx pgx.Tx, property uuid.
 func (m *Module) settlementDecision(ctx context.Context, tx pgx.Tx, d approval.Decision) error {
 	st := map[string]string{approval.StatusApproved: "approved", approval.StatusRejected: "rejected", approval.StatusCancelled: "rejected"}[d.Status]
 	tag, err := tx.Exec(ctx, `UPDATE golf.caddy_settlements SET status = $2 WHERE id = $1 AND status = 'pending'`, d.DocumentID, st)
-	if err != nil || tag.RowsAffected() == 0 || st != "rejected" {
+	if err != nil || tag.RowsAffected() == 0 {
 		return err
+	}
+	if st == "approved" {
+		return m.publishSettlementApproved(ctx, tx, d.PropertyID, d.DocumentID)
 	}
 	_, err = tx.Exec(ctx, `DELETE FROM golf.caddy_settlement_items WHERE settlement_id = $1`, d.DocumentID)
 	return err
+}
+
+// EventCaddySettlementApproved (contract K8) announces an approved caddy fee
+// settlement; accounting releases the caddy fee liability with its payout.
+const EventCaddySettlementApproved = "golf.caddy_settlement_approved"
+
+// publishSettlementApproved publishes golf.caddy_settlement_approved once,
+// when the statement is approved (by the workflow or at once without one).
+func (m *Module) publishSettlementApproved(ctx context.Context, tx pgx.Tx, property, sid uuid.UUID) error {
+	s, err := m.settlement(ctx, tx, sid)
+	if err != nil {
+		return err
+	}
+	return m.publish(ctx, tx, EventCaddySettlementApproved, "golf.caddy_settlement", sid, property, map[string]any{"settlementId": s.ID,
+		"number": s.Number, "caddyId": s.CaddyID, "caddyName": s.CaddyName, "periodStart": s.PeriodStart.Format("2006-01-02"),
+		"periodEnd": s.PeriodEnd.Format("2006-01-02"), "rounds": s.Rounds, "caddyFee": s.CaddyFee, "tips": s.Tips, "deductions": s.Deductions,
+		"total": s.Total})
 }
 
 type PayInput struct {

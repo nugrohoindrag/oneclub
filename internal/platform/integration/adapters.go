@@ -32,8 +32,8 @@ func init() {
 		New:         func(env Env) (any, error) { return &mockPayment{env: env}, nil },
 	})
 	RegisterAdapter(AdapterInfo{
-		Key: "mock-whatsapp", Capability: CapMessaging, Name: "Mock WhatsApp Business", Sandbox: true,
-		Description: "Sandbox WhatsApp messaging until the BSP is selected (P1).",
+		Key: "mock-whatsapp", Capability: CapMessaging, Name: "Mock WhatsApp Business", Sandbox: true, Webhooks: true,
+		Description: "Sandbox WhatsApp messaging until the BSP is selected (P1). Inbound messages arrive as webhooks signed with HMAC-SHA256.",
 		New:         func(env Env) (any, error) { return &mockMessaging{env: env}, nil },
 	})
 	RegisterAdapter(AdapterInfo{
@@ -175,6 +175,12 @@ func VerifyHMAC(header, secret string, body []byte, now time.Time) error {
 }
 
 func (m *mockPayment) VerifyWebhook(h http.Header, body []byte, secret string, now time.Time) (WebhookEvent, error) {
+	return verifyMockWebhook(h, body, secret, now)
+}
+
+// verifyMockWebhook checks the HMAC signature of a sandbox webhook whose
+// body is {id, type, data}.
+func verifyMockWebhook(h http.Header, body []byte, secret string, now time.Time) (WebhookEvent, error) {
 	if err := VerifyHMAC(h.Get(SignatureHeader), secret, body, now); err != nil {
 		return WebhookEvent{}, err
 	}
@@ -193,6 +199,13 @@ func (m *mockPayment) VerifyWebhook(h http.Header, body []byte, secret string, n
 
 type mockMessaging struct{ env Env }
 
+// VerifyWebhook accepts signed inbound messages: the sandbox of the BSP
+// webhook ({id, type: "message.received", data: {messages: [{id, from,
+// name, text}]}}), e.g. WhatsApp inquiries becoming leads (PRD P3 FR-INT-P3-01).
+func (m *mockMessaging) VerifyWebhook(h http.Header, body []byte, secret string, now time.Time) (WebhookEvent, error) {
+	return verifyMockWebhook(h, body, secret, now)
+}
+
 func (m *mockMessaging) SendMessage(ctx context.Context, msg OutboundMessage) (MessageResult, error) {
 	out := MessageResult{ExternalID: "wamid.mock." + id.New().String(), Status: "sent"}
 	err := timed(m.env, ctx, "send_message", map[string]any{"phone": msg.To, "template": msg.Template, "language": msg.Language}, func() (any, int, error) {
@@ -201,6 +214,9 @@ func (m *mockMessaging) SendMessage(ctx context.Context, msg OutboundMessage) (M
 		}
 		return out, 200, nil
 	})
+	if err == nil {
+		recordSandbox(SandboxMessage{Integration: m.env.Code, Channel: "whatsapp", To: msg.To, Template: msg.Template, Text: msg.Text, Named: msg.Named})
+	}
 	return out, err
 }
 
@@ -234,6 +250,14 @@ func num(v any) int {
 }
 
 func (m *mockEmail) SendEmail(ctx context.Context, e Email) error {
+	err := m.send(ctx, e)
+	if err == nil {
+		recordSandbox(SandboxMessage{Integration: m.env.Code, Channel: "email", To: e.To, Subject: e.Subject, Text: e.Text})
+	}
+	return err
+}
+
+func (m *mockEmail) send(ctx context.Context, e Email) error {
 	return timed(m.env, ctx, "send_email", map[string]any{"email": e.To, "subject": e.Subject, "text": e.Text}, func() (any, int, error) {
 		if v, _ := m.env.Settings["alwaysFail"].(bool); v {
 			return nil, 451, errors.New("simulated permanent SMTP failure")

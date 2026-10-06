@@ -21,6 +21,10 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
+        // woff2: the self-hosted Material Symbols subset (@oneclub/shell, decision 4g).
+        globPatterns: ['**/*.{js,css,html,woff2}'],
+        // Push notifications (PRD P5 FR-INT-P5-05): public/push-sw.js shows journey offers, tier changes and bookings.
+        importScripts: ['/push-sw.js'],
         runtimeCaching: [{ urlPattern: /^\/api\/v1\/public\/bootstrap/, handler: 'StaleWhileRevalidate', options: { cacheName: 'bootstrap' } }],
       },
     }),

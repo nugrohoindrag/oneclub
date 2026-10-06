@@ -5,6 +5,7 @@
 package integration
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -278,6 +279,38 @@ func toMap(v any) map[string]any {
 	return m
 }
 
+type redactKey struct{}
+
+// WithRedactions marks values (one-time codes, …) that call logs must never
+// show, whatever field of the provider payload carries them: LogCall
+// replaces them with mask.Redacted.
+func WithRedactions(ctx context.Context, values ...string) context.Context {
+	var keep []string
+	for _, v := range values {
+		if len(v) >= 4 {
+			keep = append(keep, v)
+		}
+	}
+	if len(keep) == 0 {
+		return ctx
+	}
+	prev, _ := ctx.Value(redactKey{}).([]string)
+	return context.WithValue(ctx, redactKey{}, append(append([]string{}, prev...), keep...))
+}
+
+// redact replaces the values of WithRedactions in a JSON document.
+func redact(ctx context.Context, doc []byte) []byte {
+	vals, _ := ctx.Value(redactKey{}).([]string)
+	for _, v := range vals {
+		enc, err := json.Marshal(v)
+		if err != nil || len(enc) < 2 {
+			continue
+		}
+		doc = bytes.ReplaceAll(doc, enc[1:len(enc)-1], []byte(mask.Redacted))
+	}
+	return doc
+}
+
 // LogCall persists a masked call record. It uses its own connection so the
 // record survives even if the caller's transaction rolls back.
 func (s *Service) LogCall(ctx context.Context, integrationID *uuid.UUID, code string, c Call) {
@@ -286,6 +319,7 @@ func (s *Service) LogCall(ctx context.Context, integrationID *uuid.UUID, code st
 	}
 	req, _ := json.Marshal(mask.Map(toMap(c.Request), true))
 	resp, _ := json.Marshal(mask.Map(toMap(c.Response), true))
+	req, resp = redact(ctx, req), redact(ctx, resp)
 	var errStr *string
 	if c.Err != nil {
 		e := c.Err.Error()
@@ -448,6 +482,7 @@ type logMailer struct{ log CallLogger }
 func (m logMailer) SendEmail(ctx context.Context, e Email) error {
 	slog.InfoContext(ctx, "email (log mailer)", "to", e.To, "subject", e.Subject)
 	m.log(ctx, Call{Operation: "send_email", Request: map[string]any{"to": e.To, "subject": e.Subject, "text": e.Text}})
+	recordSandbox(SandboxMessage{Integration: "log-mailer", Channel: "email", To: e.To, Subject: e.Subject, Text: e.Text})
 	return nil
 }
 

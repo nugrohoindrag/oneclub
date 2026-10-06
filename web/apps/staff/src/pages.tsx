@@ -79,6 +79,7 @@ const REPORT_GROUPS: Record<string, { title: string; match: (r: Schemas['ReportI
   booking: { title: 'Booking Reports', match: (r) => r.code === 'golf.bookings' || r.code === 'golf.no_show_cancellation' },
   membership: { title: 'Membership Reports', match: (r) => r.module === 'membership' },
   billing: { title: 'Operational Reports', match: (r) => r.module === 'billing' || r.module === 'platform' },
+  'billing-reports': { title: 'Billing Reports', match: (r) => r.module === 'billing' },
 };
 
 export function ReportsPage() {
@@ -115,6 +116,7 @@ export function ReportRunPage() {
       <PageHeader title={r?.report.name ?? 'Report'} help={r?.report.description} actions={<>
         <button className="oc-btn oc-btn-outline" onClick={() => exp.mutate({ reportCode: code, format: 'csv', params: applied }, { onSuccess: () => toast('Export started — you will be notified when it is ready') })}>Export CSV</button>
         <button className="oc-btn oc-btn-outline" onClick={() => exp.mutate({ reportCode: code, format: 'xlsx', params: applied }, { onSuccess: () => toast('Export started — you will be notified when it is ready') })}>Export XLSX</button>
+        <button className="oc-btn oc-btn-outline" onClick={() => exp.mutate({ reportCode: code, format: 'pdf', params: applied }, { onSuccess: () => toast('Export started — you will be notified when it is ready') })}>Export PDF</button>
       </>} />
       <ErrorAlert error={res.error ?? exp.error} />
       {r && (

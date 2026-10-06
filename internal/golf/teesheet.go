@@ -332,7 +332,7 @@ func (m *Module) maxWindow(ctx context.Context, q dbtx.Querier, property uuid.UU
 	if typeMax != nil && *typeMax > mx {
 		mx = *typeMax
 	}
-	return mx + 1
+	return mx + tierHorizon(ctx, q, property) + 1 // PRD P5 tier benefit (booking window + days)
 }
 
 func (m *Module) generateHTTP(w http.ResponseWriter, r *http.Request) {

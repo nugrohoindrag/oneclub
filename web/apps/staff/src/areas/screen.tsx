@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRoutes } from 'react-router';
 import { useGet, type Schemas } from '@oneclub/api-client';
 import { Icon, NotFoundPage, UserMenu, useAuth } from '@oneclub/shell';
+import { LeaderboardScreenPage } from '../p3/tournament';
 
 // Clubhouse Screen area (`/screen`, FR-HOF-05): the TV in the clubhouse,
 // signed in with the Screen role on the dashboard domain. Full screen without
@@ -41,6 +42,7 @@ function ClubhouseScreenPage() {
 
 const routes = [
   { index: true, element: <ClubhouseScreenPage /> },
+  { path: 'leaderboard', element: <LeaderboardScreenPage /> }, // PRD P3 FR-OPS-P3-04 Leaderboard Screen
   { path: '*', element: <NotFoundPage /> },
 ];
 

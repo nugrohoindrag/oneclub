@@ -278,6 +278,12 @@ func (s *Server) wrap(rt *route.Route) http.Handler {
 			httpx.WriteError(sw, r.WithContext(ctx), err)
 			return
 		}
+		if readAudited(rt, authz.From(ctx)) {
+			if err := s.logRead(ctx, r, rt); err != nil {
+				httpx.WriteError(sw, r.WithContext(ctx), err)
+				return
+			}
+		}
 
 		var tracker *reqctx.AuditTracker
 		if rt.Mutating() {

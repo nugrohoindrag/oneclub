@@ -209,7 +209,7 @@ var P2Reports = []*Report{
 		count(*) FILTER (WHERE m.status = 'suspended')::int AS "suspended", count(*) FILTER (WHERE m.status = 'expired')::int AS "expired",
 		count(*) FILTER (WHERE m.status = 'cancelled')::int AS "cancelled",
 		count(*) FILTER (WHERE m.starts_on BETWEEN $1::date AND $2::date)::int AS "new",
-		count(*) FILTER (WHERE m.status = 'active' AND m.ends_on BETWEEN current_date AND current_date + 30)::int AS "expiring30",
+		count(*) FILTER (WHERE m.status = 'active' AND m.ends_on BETWEEN (now() AT TIME ZONE $3)::date AND (now() AT TIME ZONE $3)::date + 30)::int AS "expiring30",
 		(SELECT count(*) FROM reporting.membership_events e WHERE e.type_id = m.type_id AND e.event = 'paused'
 		  AND (e.occurred_at AT TIME ZONE $3)::date BETWEEN $1::date AND $2::date)::int AS "pauses",
 		(SELECT count(*) FROM reporting.membership_events e WHERE e.type_id = m.type_id AND e.event = 'renewed'

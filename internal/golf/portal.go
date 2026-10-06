@@ -235,7 +235,7 @@ func (m *Module) memberHold(w http.ResponseWriter, r *http.Request) {
 		if !mc.standing.Active() {
 			return nil, errs.Conflict("member_not_active", "your membership is "+mc.standing.Status+"; renew it to book with your member privileges")
 		}
-		h, err := m.PlaceHold(ctx, tx, mc.property, req, []string{"member"}, false)
+		h, err := m.PlaceHold(withTierCustomer(ctx, mc.customerID), tx, mc.property, req, []string{"member"}, false)
 		h.HoldToken = ""
 		if err == nil {
 			if _, err := tx.Exec(ctx, `UPDATE golf.bookings SET member_id = $2, customer_id = $3 WHERE id = $1`, h.ID, mc.memberID, mc.customerID); err != nil {

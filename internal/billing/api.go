@@ -42,9 +42,11 @@ type Publisher interface {
 	Publish(ctx context.Context, tx pgx.Tx, eventType, aggregateType string, aggregateID, propertyID *uuid.UUID, payload any) (uuid.UUID, error)
 }
 
-// Payments is the integration surface billing needs (integration.Service).
+// Payments is the integration surface billing needs (integration.Service):
+// the payment gateway is resolved per payment method and property (P4
+// integration layer, FR-INT-P3-04).
 type Payments interface {
-	PaymentWithCode(ctx context.Context) (integration.PaymentAdapter, string, error)
+	PaymentFor(ctx context.Context, method string, property uuid.UUID) (integration.PaymentAdapter, string, error)
 	ByCode(ctx context.Context, code string) (any, error)
 }
 
@@ -210,12 +212,27 @@ func CheckCredit(ctx context.Context, q dbtx.Querier, property uuid.UUID, a Acco
 	if err != nil {
 		return err
 	}
-	if !pol.AllowMemberCharge {
+	limit := dec(pol.MemberChargeLimit)
+	if a.AccountType == "corporate" {
+		// PRD P3 FR-BIL-P3-05: the Credit Policies default applies to
+		// corporate accounts (city ledger), not the member charge switch.
+		cp, _, err := LoadCreditPolicy(ctx, q, property)
+		if err != nil {
+			return err
+		}
+		limit = dec(cp.DefaultCorporateLimit)
+	} else if !pol.AllowMemberCharge {
 		return errs.Conflict("member_charge_disabled", "member charge is not allowed by the Member Policy")
 	}
-	limit := dec(pol.MemberChargeLimit)
 	if a.CreditLimit != nil {
 		limit = dec(*a.CreditLimit)
+	}
+	if !limit.IsZero() {
+		extra, err := creditHeadroom(ctx, q, a.ID, clock.Now()) // approved credit overrides (P3)
+		if err != nil {
+			return err
+		}
+		limit = limit.Add(extra)
 	}
 	if !limit.IsZero() && dec(a.Balance).Add(amount).GreaterThan(limit) {
 		return errs.Conflict("credit_limit_exceeded", fmt.Sprintf("member charge limit exceeded (balance %s + %s > limit %s)", dec(a.Balance).String(), amount.String(), limit.String()))
@@ -346,10 +363,11 @@ func bumpVersion(ctx context.Context, tx pgx.Tx, fid uuid.UUID) error {
 
 // VoidCharge voids a line (never deleted).
 func (s *Service) VoidCharge(ctx context.Context, tx pgx.Tx, lineID uuid.UUID, reason string) error {
-	var fid uuid.UUID
-	var voided *time.Time
+	var fid, property uuid.UUID
+	var voided, bday *time.Time
 	var total string
-	if err := tx.QueryRow(ctx, `SELECT folio_id, voided_at, total::text FROM billing.folio_lines WHERE id = $1`, lineID).Scan(&fid, &voided, &total); err != nil {
+	if err := tx.QueryRow(ctx, `SELECT folio_id, property_id, voided_at, total::text, business_date FROM billing.folio_lines WHERE id = $1`, lineID).
+		Scan(&fid, &property, &voided, &total, &bday); err != nil {
 		if dbtx.IsNoRows(err) {
 			return errs.NotFound("folio line")
 		}
@@ -357,6 +375,11 @@ func (s *Service) VoidCharge(ctx context.Context, tx pgx.Tx, lineID uuid.UUID, r
 	}
 	if voided != nil {
 		return nil
+	}
+	if bday != nil {
+		if err := ensureOpenPeriod(ctx, tx, property, *bday, "post a correcting charge instead of voiding"); err != nil {
+			return err
+		}
 	}
 	pid, status, _, err := lockFolio(ctx, tx, fid)
 	if err != nil {
@@ -417,7 +440,7 @@ type Payment struct {
 	FolioNumber     *string    `json:"folioNumber"`
 	AccountID       *uuid.UUID `json:"accountId"`
 	PaymentMethodID *uuid.UUID `json:"paymentMethodId"`
-	MethodType      string     `json:"methodType" enum:"cash,bank_transfer,virtual_account,qris,card,payment_gateway,member_account,voucher_prepaid"`
+	MethodType      string     `json:"methodType" enum:"cash,bank_transfer,virtual_account,qris,card,payment_gateway,member_account,voucher_prepaid,folio_transfer,loyalty_points"`
 	Channel         string     `json:"channel" enum:"online,venue,member_account"`
 	Purpose         string     `json:"purpose" enum:"settlement,deposit,account_settlement"`
 	Amount          string     `json:"amount"`
@@ -586,16 +609,16 @@ func (s *Service) TakePayment(ctx context.Context, tx pgx.Tx, in PaymentInput) (
 		if s.Gateways == nil {
 			return Payment{}, errs.Unavailable("payment gateway not configured")
 		}
-		gw, code, err := s.Gateways.PaymentWithCode(ctx)
+		method := in.MethodType
+		if method == "payment_gateway" {
+			method = ""
+		}
+		gw, code, err := s.Gateways.PaymentFor(ctx, method, property)
 		if errors.Is(err, integration.ErrNotConfigured) {
 			return Payment{}, errs.Unavailable("online payment is not available: no payment gateway integration is enabled")
 		}
 		if err != nil {
 			return Payment{}, err
-		}
-		method := in.MethodType
-		if method == "payment_gateway" {
-			method = ""
 		}
 		res, err := gw.CreatePayment(ctx, integration.PaymentRequest{Reference: num, Amount: in.Amount.String(), Currency: cur, Method: method,
 			Description: in.Description, CustomerRef: holder})

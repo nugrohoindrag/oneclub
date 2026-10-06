@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 	"regexp"
+	"slices"
 	"sort"
 	"time"
 
@@ -139,6 +140,22 @@ func RulesAt(ctx context.Context, q dbtx.Querier, property uuid.UUID, at time.Ti
 		return out[i].Sequence < out[j].Sequence
 	})
 	return out, rows.Err()
+}
+
+// WithCodes keeps the rules whose code is in codes; empty codes keep every
+// rule (the "Tax & Service Codes (empty = all)" of a pricing rule, outlet,
+// package …).
+func WithCodes(rules []Rule, codes []string) []Rule {
+	if len(codes) == 0 {
+		return rules
+	}
+	var sel []Rule
+	for _, r := range rules {
+		if slices.Contains(codes, r.Code) {
+			sel = append(sel, r)
+		}
+	}
+	return sel
 }
 
 // Line is one computed tax or service component.

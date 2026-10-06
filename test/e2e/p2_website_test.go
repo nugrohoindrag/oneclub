@@ -90,6 +90,13 @@ func TestP2Website(t *testing.T) {
 	if st["total"] != "2400000" || st["checkout"].(map[string]any)["online"] == nil {
 		t.Fatalf("bungalow website booking: %v", st)
 	}
+	// nightly room charge (Stay Policies default): nothing is posted yet, the
+	// online deposit (settled at once by the sandbox gateway) is held until
+	// the nights are posted; the rest is due
+	if co := st["checkout"].(map[string]any); !dec(co["total"]).Equal(dec("2400000")) || co["online"].(map[string]any)["purpose"] != "deposit" ||
+		!dec(co["online"].(map[string]any)["amount"]).Equal(dec("1200000")) || !dec(co["amountDue"]).Equal(dec("1200000")) {
+		t.Fatalf("bungalow website checkout: %v", co)
+	}
 	vip := idOf(sa.Must(201, "POST", "/api/v1/stay/vip-suites", map[string]any{"code": "WEB-VIP", "name": "VIP Web", "blockHours": 8}))
 	rule(t, sa, map[string]any{"code": "WEB-VIP-ANY", "name": "VIP web block", "serviceType": "vip_suite", "itemRef": "WEB-VIP", "unit": "block", "unitMinutes": 480, "overtimePrice": "500000", "price": "5000000", "revenueComponent": "vip_suite"})
 	vr := pub.Must(201, "POST", "/api/v1/public/stays", map[string]any{"propertyId": prop, "guest": guest, "kind": "vip_suite", "unitId": vip,

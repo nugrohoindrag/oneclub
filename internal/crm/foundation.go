@@ -292,7 +292,7 @@ type Customer360 struct {
 	Sections     map[string]any    `json:"sections" doc:"golf, sportclub, stay, pos, vouchers, payments … contributed by each business line"`
 	Interactions []Interaction     `json:"interactions"`
 	Feedback     []Feedback        `json:"feedback"`
-	Placeholders map[string]string `json:"placeholders" doc:"Banquet, Campaign and Loyalty arrive in P3"`
+	Placeholders map[string]string `json:"placeholders" doc:"Banquet, Campaign and Loyalty arrive in P3 (\"live\" once their section is wired)"`
 }
 
 // hideSensitive drops health preferences (diet, allergy) unless the caller
@@ -329,6 +329,9 @@ func (m *Engagement) View360(ctx context.Context, tx pgx.Tx, property, customer 
 			return out, err
 		}
 		out.Sections[k] = v
+		if _, ok := out.Placeholders[k]; ok {
+			out.Placeholders[k] = "live" // filled by a PRD P3 section (FR-C360-01)
+		}
 	}
 	if out.Interactions, err = m.Interactions(ctx, tx, cid, 20); err != nil {
 		return out, err
@@ -743,8 +746,21 @@ type CampaignResult struct {
 	Skipped    int       `json:"skipped" doc:"No marketing consent or no contact"`
 }
 
+// CampaignSender sends a campaign with the P3 rules (per-channel consent,
+// suppression, frequency cap, throttling, approval); set by internal/app.
+type CampaignSender func(ctx context.Context, tx pgx.Tx, property, cid uuid.UUID) (CampaignResult, error)
+
+var campaignSender CampaignSender
+
+// SetCampaignSender routes P2's "send campaign" through PRD P3 Customer
+// Engagement (crm/engagement).
+func SetCampaignSender(fn CampaignSender) { campaignSender = fn }
+
 // SendCampaign sends the template to the segment, honouring opt-in.
 func (m *Engagement) SendCampaign(ctx context.Context, tx pgx.Tx, property, cid uuid.UUID) (CampaignResult, error) {
+	if campaignSender != nil {
+		return campaignSender(ctx, tx, property, cid)
+	}
 	var c struct {
 		Code, Event, Channel, Status string
 		Segment                      uuid.UUID

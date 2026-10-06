@@ -18,6 +18,7 @@ import (
 	"oneclub/internal/kernel/httpx"
 	"oneclub/internal/kernel/reqctx"
 	"oneclub/internal/kernel/route"
+	"oneclub/internal/platform/calendar"
 	"oneclub/internal/platform/catalog"
 )
 
@@ -50,6 +51,22 @@ func dateRange(x *q, col string, p map[string]string) {
 	}
 }
 
+// localDateRange is dateRange on the date of the timestamptz column col in
+// the instance timezone: col::date is its date in the session timezone
+// (UTC), the previous day from 00:00 to 07:00 WIB.
+func localDateRange(ctx context.Context, tx pgx.Tx, x *q, col string, p map[string]string) {
+	if p["from"] == "" && p["to"] == "" && p["date"] == "" {
+		return
+	}
+	x.args = append(x.args, calendar.Location(ctx, tx).String())
+	dateRange(x, "("+col+" AT TIME ZONE $"+strconv.Itoa(len(x.args))+")::date", p)
+}
+
+// clubToday is the instance's local date (YYYY-MM-DD), not the UTC date.
+func clubToday(ctx context.Context, tx pgx.Tx) string {
+	return clock.Now().In(calendar.Location(ctx, tx)).Format("2006-01-02")
+}
+
 func propertyFilter(x *q, p map[string]string) {
 	if v := p["propertyId"]; v != "" {
 		x.add("property_id::text = ?", v)
@@ -72,7 +89,7 @@ var DailyTeeSheetReport = &Report{
 	Query: func(ctx context.Context, tx pgx.Tx, p map[string]string, limit int) ([]map[string]any, error) {
 		x := &q{}
 		if p["date"] == "" {
-			p["date"] = time.Now().Format("2006-01-02")
+			p["date"] = clubToday(ctx, tx)
 		}
 		dateRange(x, "play_date", p)
 		propertyFilter(x, p)
@@ -213,7 +230,7 @@ var GolfRevenueReport = &Report{
 	Params: dateParams,
 	Query: func(ctx context.Context, tx pgx.Tx, p map[string]string, limit int) ([]map[string]any, error) {
 		x := &q{where: []string{"source_type = 'golf_booking'"}}
-		dateRange(x, "posted_at::date", p)
+		localDateRange(ctx, tx, x, "posted_at", p)
 		propertyFilter(x, p)
 		rows, err := tx.Query(ctx, `SELECT component_name AS "componentName", coalesce(segment, '-') AS segment, liability, count(*)::int8 AS lines, sum(amount)::float8 AS amount
 			FROM reporting.folio_components WHERE `+x.sql()+` GROUP BY 1, 2, 3 ORDER BY 1, 2`+limitClause(limit), x.args...)
@@ -233,7 +250,7 @@ var DailyPaymentReport = &Report{
 	Params: append([]Param{{Key: "date", Label: "Date", Type: "date"}}, dateParams...),
 	Query: func(ctx context.Context, tx pgx.Tx, p map[string]string, limit int) ([]map[string]any, error) {
 		x := &q{where: []string{"status IN ('completed', 'refunded')"}}
-		dateRange(x, "paid_at::date", p)
+		localDateRange(ctx, tx, x, "paid_at", p)
 		propertyFilter(x, p)
 		rows, err := tx.Query(ctx, `SELECT method_type AS "methodType", coalesce(received_by, CASE channel WHEN 'online' THEN 'Online (gateway)' ELSE 'Member charge' END) AS "receivedBy",
 			count(*)::int8 AS count, sum(amount)::float8 AS amount, sum(refunded_amount)::float8 AS refunded FROM reporting.payments WHERE `+x.sql()+
@@ -255,7 +272,7 @@ var RefundReport = &Report{
 	Params: dateParams,
 	Query: func(ctx context.Context, tx pgx.Tx, p map[string]string, limit int) ([]map[string]any, error) {
 		x := &q{}
-		dateRange(x, "created_at::date", p)
+		localDateRange(ctx, tx, x, "created_at", p)
 		propertyFilter(x, p)
 		rows, err := tx.Query(ctx, `SELECT number, created_at AS "createdAt", payment_number AS "paymentNumber", amount::float8 AS amount, destination, status, reason
 			FROM reporting.refunds WHERE `+x.sql()+` ORDER BY created_at`+limitClause(limit), x.args...)
@@ -285,7 +302,7 @@ var OutstandingMemberChargeReport = &Report{
 	},
 }
 
-func membershipReport(code, name, perm, desc string, where string, params []Param, extra func(x *q, p map[string]string)) *Report {
+func membershipReport(code, name, perm, desc string, where string, params []Param, extra func(ctx context.Context, tx pgx.Tx, x *q, p map[string]string)) *Report {
 	return &Report{
 		Code: code, Name: name, Module: "membership", Permission: perm, Description: desc,
 		Columns: []Column{{Key: "memberNo", Label: "Member No.", Type: "string"}, {Key: "memberName", Label: "Member", Type: "string"}, {Key: "typeName", Label: "Type", Type: "string"},
@@ -296,7 +313,7 @@ func membershipReport(code, name, perm, desc string, where string, params []Para
 			x := &q{where: []string{where}}
 			propertyFilter(x, p)
 			if extra != nil {
-				extra(x, p)
+				extra(ctx, tx, x, p)
 			}
 			rows, err := tx.Query(ctx, `SELECT member_no AS "memberNo", member_name AS "memberName", type_name AS "typeName", role, status,
 				to_char(starts_on, 'YYYY-MM-DD') AS "startsOn", to_char(ends_on, 'YYYY-MM-DD') AS "endsOn" FROM reporting.memberships WHERE `+x.sql()+
@@ -313,16 +330,18 @@ var (
 	ActiveMembersReport = membershipReport("membership.active_members", "Active Members Report", "reporting.active_members.view",
 		"Active memberships with type and validity.", "status = 'active'", []Param{{Key: "propertyId", Label: "Property", Type: "uuid"}}, nil)
 	NewMembersReport = membershipReport("membership.new_members", "New Members Report", "reporting.new_members.view",
-		"Memberships activated in a period.", "activated_at IS NOT NULL", dateParams, func(x *q, p map[string]string) { dateRange(x, "activated_at::date", p) })
+		"Memberships activated in a period.", "activated_at IS NOT NULL", dateParams, func(ctx context.Context, tx pgx.Tx, x *q, p map[string]string) {
+			localDateRange(ctx, tx, x, "activated_at", p)
+		})
 	ExpiringMembershipReport = membershipReport("membership.expiring", "Expiring Membership Report", "reporting.expiring_memberships.view",
 		"Active principal memberships ending within N days (renewal list).", "status = 'active' AND role = 'principal'",
 		[]Param{{Key: "days", Label: "Within days", Type: "string"}, {Key: "propertyId", Label: "Property", Type: "uuid"}},
-		func(x *q, p map[string]string) {
+		func(ctx context.Context, tx pgx.Tx, x *q, p map[string]string) {
 			days := 30
 			if v, err := strconv.Atoi(p["days"]); err == nil && v > 0 {
 				days = v
 			}
-			x.add("ends_on <= current_date + ?::int", days)
+			x.add("ends_on <= ?::date + "+strconv.Itoa(days), clubToday(ctx, tx))
 		})
 )
 
@@ -343,7 +362,7 @@ func GolfExecutive(ctx context.Context, tx pgx.Tx, day time.Time) ([]Widget, err
 		(SELECT coalesce(sum(capacity), 0) FROM reporting.golf_tee_times WHERE play_date = $1::date AND status = 'open'),
 		(SELECT count(*) FROM reporting.golf_players WHERE play_date = $1::date AND player_type = 'member'),
 		(SELECT count(*) FROM reporting.golf_players WHERE play_date = $1::date AND player_type <> 'member'),
-		(SELECT coalesce(sum(amount), 0)::float8 FROM reporting.folio_components WHERE source_type = 'golf_booking' AND NOT liability AND posted_at::date = $1::date)`, d).
+		(SELECT coalesce(sum(amount), 0)::float8 FROM reporting.folio_components WHERE source_type = 'golf_booking' AND NOT liability AND (posted_at AT TIME ZONE $2)::date = $1::date)`, d, calendar.Location(ctx, tx).String()).
 		Scan(&booked, &capacity, &members, &guests, &revenue)
 	if err != nil {
 		return nil, err

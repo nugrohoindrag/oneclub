@@ -215,7 +215,7 @@ export function HubMasterPage() {
 
 export const DASHBOARDS: [string, string][] = [
   ['golf-performance', 'Golf Performance'], ['sport-club-performance', 'Sport Club Performance'], ['membership-performance', 'Membership Performance'],
-  ['booking-performance', 'Booking Performance'], ['commercial-performance', 'Commercial Performance'],
+  ['booking-performance', 'Booking Performance'], ['commercial-performance', 'Commercial Performance'], ['crm-performance', 'CRM Performance'],
 ];
 
 function kpiValue(k: Schemas['KPI']) {
@@ -311,5 +311,5 @@ export const P2_ROUTES = [
 ];
 
 /** Management dashboards P2 adds next to P1's golf, membership and booking pages. */
-export const P2_MANAGEMENT_ROUTES = DASHBOARDS.filter(([code]) => code === 'sport-club-performance' || code === 'commercial-performance')
+export const P2_MANAGEMENT_ROUTES = DASHBOARDS.filter(([code]) => ['sport-club-performance', 'commercial-performance', 'crm-performance'].includes(code))
   .map(([code]) => ({ path: code, element: <KPIDashboardPage key={code} code={code} /> }));

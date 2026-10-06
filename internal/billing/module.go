@@ -27,7 +27,7 @@ import (
 )
 
 // MethodTypes follow Naming Convention §18.
-var MethodTypes = []string{"cash", "bank_transfer", "virtual_account", "qris", "card", "payment_gateway", "member_account", "voucher_prepaid"}
+var MethodTypes = []string{"cash", "bank_transfer", "virtual_account", "qris", "card", "payment_gateway", "member_account", "voucher_prepaid", "loyalty_points"}
 
 // PaymentMethods is the instance-wide payment method master.
 var PaymentMethods = &resource.Def{

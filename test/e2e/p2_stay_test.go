@@ -90,6 +90,14 @@ func TestP2StayAndVenue(t *testing.T) {
 	if dec(bal).LessThan(dec("275000")) {
 		t.Fatalf("dinner on the stay folio: balance %s", bal)
 	}
+	// Stay Policies roomChargePosting "nightly" (default, PO decision 4c): no
+	// night is posted yet (the night audit did not run); the check-out today
+	// posts last night (850.000) and frees tonight (early departure).
+	if sd := sa.Must(200, "GET", "/api/v1/stay/stays/"+sid, nil).JSON(); sd["stay"].(map[string]any)["roomPosting"] != "nightly" ||
+		!dec(sd["total"]).Equal(dec("1975000")) || !dec(sf["charges"]).Equal(dec("275000")) {
+		t.Fatalf("nightly stay before check-out: posting %v, total %v, charges %v", sd["stay"].(map[string]any)["roomPosting"], sd["total"], sf["charges"])
+	}
+	bal = dec(bal).Add(dec("850000")).String()
 	sa.Must(201, "POST", "/api/v1/billing/payments", map[string]any{"folioId": str(stay["folioId"]), "methodType": "card", "amount": bal, "reference": "EDC"})
 	co := sa.Must(200, "POST", "/api/v1/stay/stays/"+sid+":check-out", map[string]any{"at": rfc(time.Now())}).JSON()
 	if co["stay"].(map[string]any)["status"] != "checked_out" || co["folio"].(map[string]any)["status"] != "closed" {
@@ -117,7 +125,10 @@ func TestP2StayAndVenue(t *testing.T) {
 		"unit": "block", "unitMinutes": 480, "price": "4000000", "overtimePrice": "500000", "revenueComponent": "vip_suite"})
 	rule(t, sa, map[string]any{"code": "VIP-WE", "name": "VIP Suite weekend", "serviceType": "vip_suite", "itemRef": "VIP1", "lineDayTypeId": f.Weekend,
 		"unit": "block", "unitMinutes": 480, "price": "5000000", "overtimePrice": "500000", "revenueComponent": "vip_suite"})
-	wed := nextWeekday(f.Loc, time.Wednesday, 2)
+	// A Wednesday 1–7 days ahead: TestP2PricingRateCards declares the Wednesday 8–14
+	// days ahead a public holiday (weekend rate), which was this day whenever
+	// the club date was a Tuesday (from 17:00 UTC on Mondays).
+	wed := nextWeekday(f.Loc, time.Wednesday, 1)
 	vip := sa.Must(201, "POST", "/api/v1/stay/stays", map[string]any{"kind": "vip_suite", "unitId": suite, "start": rfc(at(wed, 10, 0)), "customerId": guest}).JSON()
 	if vip["total"] != "4000000" {
 		t.Fatalf("VIP block: %v", vip["total"])

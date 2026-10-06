@@ -37,7 +37,7 @@ type UnreadCount struct {
 type Template struct {
 	ID        uuid.UUID `json:"id"`
 	EventCode string    `json:"eventCode"`
-	Channel   string    `json:"channel" enum:"in_app,email,whatsapp"`
+	Channel   string    `json:"channel" enum:"in_app,email,whatsapp,push"`
 	Locale    string    `json:"locale" enum:"en,id"`
 	Subject   string    `json:"subject"`
 	Body      string    `json:"body"`
@@ -56,7 +56,7 @@ type Delivery struct {
 	UserID    *uuid.UUID `json:"userId"`
 	EventCode string     `json:"eventCode"`
 	Category  string     `json:"category"`
-	Channel   string     `json:"channel" enum:"in_app,email,whatsapp"`
+	Channel   string     `json:"channel" enum:"in_app,email,whatsapp,push"`
 	Locale    string     `json:"locale"`
 	Recipient string     `json:"recipient"`
 	Subject   string     `json:"subject"`
@@ -76,6 +76,9 @@ type Preference struct {
 	InApp     bool   `json:"inApp"`
 	Email     bool   `json:"email"`
 	WhatsApp  bool   `json:"whatsapp"`
+	// Push to subscribed devices (PRD P5 FR-INT-P5-05); omitted in an
+	// update = unchanged.
+	Push *bool `json:"push,omitempty"`
 }
 
 type PreferencesUpdate struct {
@@ -368,8 +371,10 @@ func (h *HTTP) loadPrefs(ctx context.Context, uid uuid.UUID) ([]Preference, erro
 	}
 	out := []Preference{}
 	for _, c := range Categories {
+		push := c.Mandatory || get(c.Code, "push")
 		out = append(out, Preference{Category: c.Code, Label: c.Label, Mandatory: c.Mandatory,
-			InApp: c.Mandatory || get(c.Code, "in_app"), Email: c.Mandatory || get(c.Code, "email"), WhatsApp: c.Mandatory || get(c.Code, "whatsapp")})
+			InApp: c.Mandatory || get(c.Code, "in_app"), Email: c.Mandatory || get(c.Code, "email"), WhatsApp: c.Mandatory || get(c.Code, "whatsapp"),
+			Push: &push})
 	}
 	return out, nil
 }
@@ -398,7 +403,11 @@ func (h *HTTP) updatePreferences(w http.ResponseWriter, r *http.Request) {
 			if !known {
 				return errs.Validation("unknown_category", "unknown category", errs.Field("preferences", "unknown", pr.Category))
 			}
-			for ch, en := range map[string]bool{"in_app": pr.InApp, "email": pr.Email, "whatsapp": pr.WhatsApp} {
+			chans := map[string]bool{"in_app": pr.InApp, "email": pr.Email, "whatsapp": pr.WhatsApp}
+			if pr.Push != nil {
+				chans["push"] = *pr.Push
+			}
+			for ch, en := range chans {
 				if _, err := tx.Exec(ctx, `INSERT INTO platform.notification_preferences (user_id, category, channel, enabled)
 					VALUES ($1, $2, $3, $4) ON CONFLICT (user_id, category, channel) DO UPDATE SET enabled = EXCLUDED.enabled, updated_at = now()`,
 					p.UserID, pr.Category, ch, en); err != nil {
@@ -436,7 +445,7 @@ func (h *HTTP) sendTest(w http.ResponseWriter, r *http.Request) {
 		target = *req.UserID
 	}
 	for _, c := range req.Channels {
-		if c != notify.ChannelInApp && c != notify.ChannelEmail && c != notify.ChannelWhatsApp {
+		if c != notify.ChannelInApp && c != notify.ChannelEmail && c != notify.ChannelWhatsApp && c != notify.ChannelPush {
 			httpx.WriteError(w, r, errs.Validation("invalid_channel", "invalid channel", errs.Field("channels", "invalid", c)))
 			return
 		}
@@ -479,4 +488,5 @@ func (h *HTTP) Register(reg *route.Registry) {
 		Response: Preference{}, List: true, Handler: h.preferences})
 	add(route.Route{Method: http.MethodPut, Path: "/api/v1/platform/notification-preferences", Summary: "Update my notification preferences",
 		Request: PreferencesUpdate{}, Response: Preference{}, List: true, Handler: h.updatePreferences})
+	h.registerPush(add) // PRD P5 FR-INT-P5-05
 }
