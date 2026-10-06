@@ -153,6 +153,8 @@ test('Super Admin (MFA) reaches Settings; property switcher, notifications and l
   await login(page, DASHBOARD, email('super_admin'), '/');
   const labels = await menuLabels(page);
   expect(labels).toContain('Settings');
+  // the demo club (other specs add properties of their own, which may come first in the switcher)
+  await page.getByRole('combobox', { name: 'Property' }).selectOption({ label: 'Modern Golf & Country Club' });
   await page.goto(`${DASHBOARD}/settings/venues`);
   await expect(page.getByRole('heading', { name: 'Venues' })).toBeVisible();
   await expect(page.locator('.oc-status').first()).toBeVisible(); // status pills (FR-SH-09)

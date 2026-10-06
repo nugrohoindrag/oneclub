@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { download, request, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import {
@@ -180,7 +180,7 @@ export function ReconciliationPage() {
   const [sel, setSel] = useState<string | null>(null);
   return (
     <div className="oc-stack">
-      <PageHeader title="HR Migration Reconciliation" help="Compare the headcount and leave balances of the legacy HR system at cutover with OneClub. The HR Manager and the Finance Manager sign off; differences must be explained. Also available as `oneclub import hris --reconcile`." />
+      <PageHeader title="HR Migration Reconciliation" help="Compare the headcount, leave balances and payroll totals (gross and net of the last legacy period against the parallel run) of the legacy HR system at cutover with OneClub. The HR Manager and the Finance Manager sign off; differences must be explained. Also available as `oneclub import hris --reconcile`." />
       <div><button className="oc-btn oc-btn-ink" onClick={() => setOpen(true)}>New reconciliation</button></div>
       <DataTable rows={l.data?.items} loading={l.isLoading} error={l.error} onRowClick={(r) => setSel(r.id)} columns={[
         { key: 'number', header: 'Number' }, { key: 'cutoverDate', header: 'Cutover', render: (r) => date(r.cutoverDate) },
@@ -196,7 +196,7 @@ export function ReconciliationPage() {
 function NewReconciliation({ metrics, onClose }: { metrics: R[]; onClose: () => void }) {
   const [cutover, setCutover] = useState(today());
   const [legacy, setLegacy] = useState('');
-  const [csv, setCsv] = useState('metric,key,legacy\nheadcount,TOTAL,\nleave_balance,ANNUAL,\n');
+  const [csv, setCsv] = useState('metric,key,legacy\nheadcount,TOTAL,\nleave_balance,ANNUAL,\npayroll_gross,TOTAL,\npayroll_net,TOTAL,\n');
   const lines = () => csv.split('\n').map((l) => l.split(',').map((x) => x.trim())).filter((c) => c.length >= 3 && c[0] && c[0] !== 'metric')
     .map(([metric, key, value]) => ({ metric, key, legacy: value }));
   return (
@@ -215,11 +215,13 @@ function ReconciliationDetail({ id, onClose }: { id: string; onClose: () => void
   const [sign, setSign] = useState('');
   const [note, setNote] = useState('');
   const toast = useToast();
-  const send = useSend<Record<string, unknown>, R>('POST', (b) => `${HR}/migration-reconciliations/${id}:${String(b.action)}`, [HR]);
+  // the action goes into the path only: the request body is exactly the API input (unknown fields are rejected)
+  const action = useRef('');
+  const send = useSend<Record<string, unknown>, R>('POST', () => `${HR}/migration-reconciliations/${id}:${action.current}`, [HR]);
   const x = r.data;
-  const act = (action: string, body: Record<string, unknown> = {}) => send.mutate({ action, ...body }, {
-    onSuccess: () => { toast(`${label(action)}: done`); setSign(''); setNote(''); }, onError: (e) => toast(e.message, 'error'),
-  });
+  const act = (a: string, body: Record<string, unknown> = {}) => { action.current = a; send.mutate(body, {
+    onSuccess: () => { toast(`${label(a)}: done`); setSign(''); setNote(''); }, onError: (e) => toast(e.message, 'error'),
+  }); };
   const lines = ((x?.lines as R[] | undefined) ?? []).map((l, i) => ({ ...l, id: String(i) } as R));
   return (
     <Modal open wide onClose={onClose} title={`Reconciliation ${String(x?.number ?? '')}`} actions={<button className="oc-btn oc-btn-text" onClick={onClose}>Close</button>}>

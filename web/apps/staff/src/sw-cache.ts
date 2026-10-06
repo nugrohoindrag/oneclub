@@ -23,3 +23,11 @@ export function cacheableApi(pathname: string): boolean {
   if (NEVER_CACHE.some((p) => pathname.includes(p))) return false;
   return STAFF_API_CACHE.some((p) => pathname.startsWith(p));
 }
+
+/**
+ * The runtime-caching urlPattern of vite.config.ts. Workbox writes the function's source text into the generated sw.js, so
+ * it must not close over module bindings (a call to cacheableApi would be undefined in the worker): the lists are inlined.
+ */
+export const cacheableApiPattern = new Function('options', `const p = options.url.pathname;
+  if (${JSON.stringify(NEVER_CACHE)}.some((x) => p.includes(x))) return false;
+  return ${JSON.stringify(STAFF_API_CACHE)}.some((x) => p.startsWith(x));`) as (options: { url: URL }) => boolean;

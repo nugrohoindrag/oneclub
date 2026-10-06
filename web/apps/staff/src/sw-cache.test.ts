@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { cacheableApi, STAFF_API_CACHE } from './sw-cache';
+import { cacheableApi, cacheableApiPattern, STAFF_API_CACHE } from './sw-cache';
 
 // PRD P5 FR-OPS-P5-05: Employee Self Service is installable as a PWA, but payroll data is never cached offline.
 describe('staff service worker cache', () => {
@@ -19,7 +19,15 @@ describe('staff service worker cache', () => {
   });
   it('is the rule the service worker is built with', () => {
     const cfg = readFileSync(resolve(__dirname, '../vite.config.ts'), 'utf8');
-    expect(cfg).toContain('cacheableApi(url.pathname)');
+    expect(cfg).toContain('urlPattern: cacheableApiPattern');
     expect(cfg).not.toMatch(/['"]\/api\/v1\/(hris|ess)\//);
+  });
+  it('works from its source text alone, as workbox writes it into sw.js', () => {
+    // a closure over module bindings (e.g. calling cacheableApi) is undefined in the worker and breaks the offline app
+    const inWorker = new Function(`return (${cacheableApiPattern.toString()})`)() as typeof cacheableApiPattern;
+    for (const p of ['/api/v1/auth/me', '/api/v1/public/bootstrap', '/api/v1/golf/my-assignments', '/api/v1/hris/payroll-runs', '/api/v1/ess/payslips',
+      '/api/v1/ess/schedule']) {
+      expect(inWorker({ url: new URL(`http://cashier.localhost${p}`) }), p).toBe(cacheableApi(p));
+    }
   });
 });

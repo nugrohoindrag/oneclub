@@ -36,8 +36,9 @@ test('POS: the cashier picks the customer and pays part of the bill with loyalty
 
   await page.getByLabel('Find customer').fill(`Pelanggan Poin ${stamp}`);
   const pick = page.getByRole('combobox', { name: 'Customer', exact: true }); // the order row is also labelled "Customer"
-  await expect(pick.locator('option', { hasText: `Pelanggan Poin ${stamp}` })).toHaveCount(1);
-  await pick.selectOption({ label: `Pelanggan Poin ${stamp} (E2E-LP-${stamp})` });
+  const option = pick.locator('option', { hasText: `Pelanggan Poin ${stamp} (E2E-LP-${stamp})` }); // + " · <tier>" (PRD P5 tier classes)
+  await expect(option).toHaveCount(1);
+  await pick.selectOption((await option.getAttribute('value'))!);
   await expect(page.getByText('500 points')).toBeVisible();
   await page.getByLabel('Payment', { exact: true }).selectOption({ label: 'Redeem Points' });
   await page.getByLabel('Points', { exact: true }).fill('200');

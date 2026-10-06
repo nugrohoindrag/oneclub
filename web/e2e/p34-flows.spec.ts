@@ -1,5 +1,8 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
+import { createHash, createHmac } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { CASHIER, DASHBOARD, WEB, apiOf, email, login } from './helpers';
 
 /**
@@ -26,6 +29,30 @@ function sql(query: string): string {
   return execFileSync(process.env.PSQL ?? 'psql', [url, '-At', '-v', 'ON_ERROR_STOP=1', '-c', query], { encoding: 'utf8' }).trim();
 }
 
+/**
+ * The customer's one-time code of a quotation (PRD P3 §16 #18). The code is erased from the delivery once sent (PO decision
+ * 4f) and kept only in the sandbox inbox of the worker process, so the test stands in for the customer's mailbox: it replaces
+ * the stored hash of the active code with the hash of a code it knows (hex HMAC-SHA256 with the instance secret as pepper, as
+ * crm/sales otpHash). The secret comes from E2E_APP_SECRET or the stack's .env.local (local / CI runs).
+ */
+function knownAcceptanceCode(quotationId: string): string {
+  let secret = process.env.E2E_APP_SECRET ?? '';
+  if (!secret) {
+    const env = readFileSync(resolve(process.env.E2E_ENV_FILE ?? '../.env.local'), 'utf8'); // Playwright runs from web/
+    secret = /^APP_SECRET=(.*)$/m.exec(env)?.[1]?.trim() ?? '';
+  }
+  expect(secret, 'APP_SECRET of the instance (E2E_APP_SECRET or .env.local)').not.toBe('');
+  const id = quotationId.replace(/[^0-9a-f-]/gi, '');
+  const [otp, salt] = sql(`SELECT id, salt FROM crm.sales_quotation_otps WHERE quotation_id = '${id}' AND status = 'active'
+    ORDER BY created_at DESC LIMIT 1`).split('|');
+  expect(otp, 'an active acceptance code').toBeTruthy();
+  const code = String(100000 + Math.floor(Math.random() * 900000));
+  const key = createHash('sha256').update(Buffer.concat([Buffer.from('oneclub/crm/quotation-otp\x00'), Buffer.from(secret)])).digest();
+  const hash = createHmac('sha256', key).update(`${salt}|${id}|${code}`).digest('hex');
+  sql(`UPDATE crm.sales_quotation_otps SET code_hash = '${hash}' WHERE id = '${otp}'`);
+  return code;
+}
+
 /** API calls of a logged-in page at a given property (apiOf works at MAIN). */
 async function apiAt(page: Page, property: string) {
   const call = async (method: string, path: string, body?: unknown) => {
@@ -48,7 +75,7 @@ async function pick(select: Locator, text: string) {
 }
 
 test('P3 §9.1 wedding: website inquiry → quotation accepted with the one-time code → DP → Definite → BEO issued', async ({ browser, page }) => {
-  test.skip(!!process.env.E2E_SKIP_SETUP, 'the one-time code is read from the sandbox delivery in the database (local / CI runs)');
+  test.skip(!!process.env.E2E_SKIP_SETUP, 'the one-time code is set through the instance database (local / CI runs)');
   test.setTimeout(180_000);
   const name = `E2E Wedding ${stamp}`;
   const mail = `wedding${stamp}@e2e.test`;
@@ -91,8 +118,7 @@ test('P3 §9.1 wedding: website inquiry → quotation accepted with the one-time
   await page.getByRole('checkbox', { name: /I accept the quotation/ }).check();
   await page.getByRole('button', { name: 'Send verification code' }).click();
   await expect(page.getByText(/We sent a 6-digit code by e-mail/)).toBeVisible();
-  const code = sql(`SELECT payload->>'otpCode' FROM platform.notification_deliveries WHERE event_code = 'crm.quotation_otp'
-    AND payload->>'number' = '${String(sent.number).replace(/'/g, '')}' ORDER BY created_at DESC LIMIT 1`);
+  const code = knownAcceptanceCode(String(draft.id));
   expect(code).toMatch(/^\d{6}$/);
   await page.getByLabel('Verification code').fill(code);
   await page.getByRole('button', { name: 'Accept quotation' }).click();

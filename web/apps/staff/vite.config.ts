@@ -2,7 +2,7 @@ import { defineConfig, type Plugin, type PreviewServer, type ViteDevServer } fro
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { AREAS, SURFACES, type Surface } from '../../packages/shell/src/area-list';
-import { cacheableApi } from './src/sw-cache';
+import { cacheableApiPattern } from './src/sw-cache';
 
 // Staff App: every staff area in one SPA (Technical Doc §6.1). In development
 // /api is proxied to the Go API; in production Caddy serves both on the same
@@ -115,7 +115,7 @@ export default defineConfig({
         runtimeCaching: [
           {
             // Payroll, salary and personal HR data are never cached offline (PRD P5 FR-OPS-P5-05, src/sw-cache.ts).
-            urlPattern: ({ url }) => cacheableApi(url.pathname),
+            urlPattern: cacheableApiPattern, // self-contained: workbox copies its source into sw.js
             handler: 'NetworkFirst',
             options: { cacheName: 'staff-api', networkTimeoutSeconds: 3, expiration: { maxAgeSeconds: 12 * 3600 } },
           },
