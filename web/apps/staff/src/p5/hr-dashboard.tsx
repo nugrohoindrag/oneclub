@@ -48,6 +48,11 @@ const QUEUES: Record<string, { label: string; icon: string; path: (d: Dashboard)
   loans_to_pay: { label: 'Approved loans to pay', icon: 'payments', tone: 'pending', path: () => '/hris/payroll?tab=loans' },
   employees_draft: { label: 'Draft employees to activate', icon: 'person_add', tone: 'pending', path: () => '/hris/employees?status=draft' },
   employees_suspended: { label: 'Suspended employees', icon: 'person_off', tone: 'pending', path: () => '/hris/employees' },
+  // HRIS phase C
+  reimbursements_to_send: { label: 'Approved claims to send to Finance', icon: 'receipt', tone: 'pending', path: () => '/hris/reimbursements?tab=claims' },
+  reimbursements_to_pay: { label: 'Reimbursement claims to pay', icon: 'payments', tone: 'pending', path: () => '/hris/reimbursements?tab=claims' },
+  timesheets_pending: { label: 'Timesheets waiting for approval', icon: 'schedule', tone: 'pending', path: () => '/hris/timesheets' },
+  open_shift_claims: { label: 'Open shift claims to decide', icon: 'event_available', tone: 'pending', path: () => '/hris/schedules' },
 };
 
 const RUN: Record<string, [string, string]> = {

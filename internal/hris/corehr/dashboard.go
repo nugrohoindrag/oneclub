@@ -107,7 +107,7 @@ type HRDepartment struct {
 
 // HRAttention is one queue of work waiting for HR.
 type HRAttention struct {
-	Key string `json:"key" enum:"attendance_review,attendance_missing,attendance_corrections,leave_requests,permission_requests,overtime_requests,overtime_unapproved,shift_swaps,profile_changes,contracts_expiring,documents_expiring,documents_expired,certifications_expired,payroll_warnings,payroll_posting_failed,loan_requests,loans_to_pay,employees_draft,employees_suspended"`
+	Key string `json:"key" enum:"attendance_review,attendance_missing,attendance_corrections,leave_requests,permission_requests,overtime_requests,overtime_unapproved,shift_swaps,profile_changes,contracts_expiring,documents_expiring,documents_expired,certifications_expired,payroll_warnings,payroll_posting_failed,loan_requests,loans_to_pay,employees_draft,employees_suspended,reimbursements_to_send,reimbursements_to_pay,timesheets_pending,open_shift_claims"`
 	// Count of open items.
 	Count int `json:"count"`
 }
@@ -258,6 +258,12 @@ func (m *Module) Dashboard(ctx context.Context, q dbtx.Querier, property uuid.UU
 			AND archived_at IS NULL`},
 		{"loans_to_pay", "hris.employee_loan.view", `SELECT count(*) FROM hris.employee_loans WHERE property_id = $1 AND status = 'approved'
 			AND archived_at IS NULL`},
+		// HRIS phase C: reimbursement, timesheets, open shifts
+		{"reimbursements_to_send", "hris.reimbursement.manage", `SELECT count(*) FROM hris.reimbursements WHERE property_id = $1 AND status = 'approved'`},
+		{"reimbursements_to_pay", "hris.reimbursement.pay", `SELECT count(*) FROM hris.reimbursements WHERE property_id = $1 AND status = 'sent_to_finance'`},
+		{"timesheets_pending", "hris.timesheet.view", `SELECT count(*) FROM hris.timesheets WHERE property_id = $1 AND status = 'submitted'`},
+		{"open_shift_claims", "hris.schedule.update", `SELECT count(*) FROM hris.open_shift_claims c JOIN hris.open_shifts o ON o.id = c.open_shift_id
+			WHERE c.property_id = $1 AND c.status = 'requested' AND o.status = 'open' AND o.work_date >= $2::date`},
 		{"employees_draft", "hris.employee.view", `SELECT count(*) FROM hris.employees WHERE property_id = $1 AND status = 'draft' AND archived_at IS NULL`},
 		{"employees_suspended", "hris.employee.view", `SELECT count(*) FROM hris.employees WHERE property_id = $1 AND status = 'active'
 			AND archived_at IS NULL AND suspended_from <= $2::date AND (suspended_until IS NULL OR suspended_until >= $2::date)`},

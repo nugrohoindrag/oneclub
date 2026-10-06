@@ -21,8 +21,9 @@ import (
 
 // Resource keys.
 const (
-	KeyPayComponent = "hris.pay_component"
-	KeyEmployeeLoan = "hris.employee_loan"
+	KeyPayComponent  = "hris.pay_component"
+	KeyEmployeeLoan  = "hris.employee_loan"
+	KeyReimbCategory = "hris.reimbursement_category"
 )
 
 var (
@@ -76,7 +77,23 @@ func (m *Module) Defs() []*resource.Def {
 			resource.Status("active", "settled", "cancelled", "submitted", "approved", "rejected")},
 		Hooks: resource.Hooks{BeforeWrite: loanBeforeWrite},
 	}
-	return []*resource.Def{components, loans}
+	// reimbursement categories (phase C): GL expense account, ceiling per claim, receipt
+	categories := &resource.Def{
+		Key: KeyReimbCategory, Module: hris.Module, Perm: KeyReimbCategory, Path: "/api/v1/hris/reimbursement-categories",
+		Table: "hris.reimbursement_categories", Name: "Reimbursement Category", Plural: "Reimbursement Categories", SchemaName: "ReimbursementCategory",
+		Tag: "HRIS Reimbursement", PropertyScoped: true, Archive: true, CodeField: "code", OrderBy: "code, id",
+		Fields: []resource.Field{
+			{Name: "code", Column: "code", Label: "Code", Kind: resource.String, Required: true, Max: 30, Upper: true, Pattern: componentCodeRe,
+				PatternMsg: "1–30 characters: A–Z, 0–9, - or _", Search: true, CreateOnly: true},
+			resource.Name(),
+			{Name: "expenseAccountCode", Column: "expense_account_code", Label: "GL Expense Account Code (empty = Employee Reimbursements)",
+				Kind: resource.String, Max: 20},
+			{Name: "maxAmount", Column: "max_amount", Label: "Maximum per Claim", Kind: resource.Decimal, Min: resource.Min(1)},
+			{Name: "receiptRequired", Column: "receipt_required", Label: "Receipt Required", Kind: resource.Bool, Default: true},
+			{Name: "description", Column: "description", Label: "Description", Kind: resource.Text, Max: 2000},
+			resource.Status("active", "inactive")},
+	}
+	return []*resource.Def{components, loans, categories, benefitPlanDef()}
 }
 
 func value(values, before map[string]any, k string) any {

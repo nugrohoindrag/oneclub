@@ -78,11 +78,12 @@ func payrollCoreTemplates() []provision.Template         { return payroll.Templa
 // types of payroll runs and adjustments.
 func (a *App) buildPayrollCore(reg *route.Registry, cfg *config.Config, db *dbtx.DB, files *storage.Files) {
 	m := &payroll.Module{DB: db, Engine: a.Engine, Events: a.Bus, Approvals: a.Approvals, Notify: a.Notification,
-		StaffURL: func() string { return cfg.PublicBaseURL }, Logo: brandingLogo(files)}
+		StaffURL: func() string { return cfg.PublicBaseURL }, Logo: brandingLogo(files), Files: files}
 	m.Register(reg)
 	a.Approvals.RegisterDocumentType(payroll.RunDocumentType, m.RunDecision)
 	a.Approvals.RegisterDocumentType(payroll.AdjustmentDocumentType, m.AdjustmentDecision)
 	a.Approvals.RegisterDocumentType(payroll.LoanDocumentType, m.LoanDecision)
+	a.Approvals.RegisterDocumentType(payroll.ReimbursementDocumentType, m.ReimbursementDecision)
 	a.Payroll.Module = m
 }
 

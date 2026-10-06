@@ -28,6 +28,10 @@ var defaults = map[string]map[string]tpl{
 		"en": {"Revision requested: {{.title}}", "{{.deciderName}} returned your request \"{{.title}}\" ({{.documentRef}}) for revision.\n\nReason: {{.reason}}\n\nRevise and resubmit it, or cancel it: {{.link}}"},
 		"id": {"Perlu revisi: {{.title}}", "{{.deciderName}} mengembalikan pengajuan \"{{.title}}\" ({{.documentRef}}) untuk direvisi.\n\nAlasan: {{.reason}}\n\nRevisi lalu ajukan kembali, atau batalkan: {{.link}}"},
 	},
+	"approval.comment_added": {
+		"en": {"New comment: {{.title}}", "{{.authorName}} commented on \"{{.title}}\" ({{.documentRef}}):\n\n{{.comment}}\n\n{{.link}}"},
+		"id": {"Komentar baru: {{.title}}", "{{.authorName}} mengomentari \"{{.title}}\" ({{.documentRef}}):\n\n{{.comment}}\n\n{{.link}}"},
+	},
 	"approval.reminder": {
 		"en": {"Reminder: approval overdue — {{.title}}", "\"{{.title}}\" ({{.documentRef}}) has been waiting for your approval since {{.since}} and is past its SLA.\n\n{{.link}}"},
 		"id": {"Pengingat: persetujuan terlambat — {{.title}}", "\"{{.title}}\" ({{.documentRef}}) menunggu persetujuan Anda sejak {{.since}} dan telah melewati SLA.\n\n{{.link}}"},

@@ -179,7 +179,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 	a.Instance.Register(reg)
 	a.Org.Register(reg)
 	(&notification.HTTP{Svc: a.Notification}).Register(reg)
-	(&approval.HTTP{E: a.Approvals}).Register(reg)
+	(&approval.HTTP{E: a.Approvals, Files: files}).Register(reg)
 	(&audit.HTTP{DB: db}).Register(reg)
 	(&integration.HTTP{Svc: a.Integrations, Events: a.Bus}).Register(reg)
 	(&rules.Service{DB: db}).Register(reg)

@@ -85,6 +85,8 @@ func (m *Module) Register(reg *route.Registry) {
 	m.registerLocks(reg)
 	m.registerESS(reg)
 	m.registerWorkforce(reg)
+	m.registerTimesheets(reg)
+	m.registerOpenShifts(reg)
 	hris.SetAttendanceFinalizer(m.FinalizePeriod)
 }
 

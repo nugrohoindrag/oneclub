@@ -280,12 +280,15 @@ var Trees = map[string][]Item{
 				s("hris-leave", "Leave & Permission", "/hris/leave", "hris.leave_request.view"),          // PRD P5 EP-08
 				s("hris-overtime", "Overtime", "/hris/overtime", "hris.overtime_request.view"),           // PRD P5 EP-08
 				s("hris-workforce", "Workforce Planning", "/hris/workforce", "hris.workforce_plan.view"), // HRIS phase B (spec §8)
+				s("hris-timesheets", "Timesheets", "/hris/timesheets", "hris.timesheet.view"),            // HRIS phase C (spec §16)
 				// PRD P5 FR-ATT-08 (partner caddies / instructors on the attendance devices).
 				s("hris-partner-attendance", "Partner Clock-in", "/hris/partner-attendance", "hris.partner_attendance.view"),
 			),
 			section("hris-pay", "Payroll",
 				s("hris-payroll", "Payroll", "/hris/payroll", "hris.payroll_run.view"),                         // PRD P5 EP-09/10/15
 				s("hris-benefits", "Tax & BPJS", "/hris/benefits", "hris.payroll_profile.view"),                // PRD P5 EP-10 (PTKP, BPJS)
+				s("hris-benefit-plans", "Benefits", "/hris/benefit-plans", "hris.benefit_enrollment.view"),     // HRIS phase C (spec §24)
+				s("hris-reimbursements", "Reimbursement", "/hris/reimbursements", "hris.reimbursement.view"),   // HRIS phase C (spec §24)
 				s("hris-service-charge", "Service Charge", "/hris/service-charge", "hris.service_charge.view"), // PRD P5 EP-11
 				s("hris-commissions", "Commissions", "/hris/commissions", "hris.commission_payout.view"),       // PRD P5 EP-12
 				s("hris-caddy", "Caddy", "/hris/caddy", "hris.payout_run.view"),                                // PRD P5 EP-13
@@ -546,12 +549,16 @@ var Trees = map[string][]Item{
 		{Key: "ess", Label: "Employee Self Service", Path: "/ops/ess", Icon: "badge", Module: "hris", Permission: "hris.ess.use", Children: []Item{
 			s("ess-profile", "Profile", "/ops/ess/profile", "hris.ess.use"),
 			s("ess-schedule", "My Schedule", "/ops/ess/schedule", "hris.ess.use"),
+			s("ess-open-shifts", "Open Shifts", "/ops/ess/open-shifts", "hris.ess.use"), // HRIS phase C
+			s("ess-timesheets", "Timesheet", "/ops/ess/timesheets", "hris.ess.use"),     // HRIS phase C
 			s("ess-clock", "Clock In / Out", "/ops/ess/clock", "hris.ess.use"),
 			s("ess-attendance", "Attendance History", "/ops/ess/attendance", "hris.ess.use"),
 			s("ess-leave", "Leave & Permission", "/ops/ess/leave", "hris.ess.use"),
 			s("ess-overtime", "Overtime", "/ops/ess/overtime", "hris.ess.use"),
 			s("ess-payslip", "Payslip", "/ops/ess/payslip", "hris.ess.use"),
 			s("ess-loans", "Loans & Advances", "/ops/ess/loans", "hris.ess.use"),                 // HRIS phase B (spec §29)
+			s("ess-reimbursements", "Reimbursement", "/ops/ess/reimbursements", "hris.ess.use"),  // HRIS phase C
+			s("ess-benefits", "My Benefits", "/ops/ess/benefits", "hris.ess.use"),                // HRIS phase C
 			s("ess-service-charge", "Service Charge", "/ops/ess/service-charge", "hris.ess.use"), // PRD P5 EP-11
 			s("ess-commissions", "Commission & Bonus", "/ops/ess/commissions", "hris.ess.use"),   // PRD P5 EP-12
 			s("ess-documents", "My Documents", "/ops/ess/documents", "hris.ess.use"),

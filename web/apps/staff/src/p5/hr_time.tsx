@@ -12,6 +12,7 @@ import { ScanField } from '../p4/inventory';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
 import { registerEssSection, useUrlTab } from './hr';
 import { WORKFORCE_ROUTES } from './hr-workforce';
+import { OpenShiftsPanel } from './hr-openshifts';
 
 // PRD P5 — schedules, attendance, leave & overtime (EP-06–08). Back Office routes (HRIS → Schedules, Attendance, Leave &
 // Permission, Overtime), the Attendance Kiosk of the ops shell (QR / PIN on a registered device, offline queue) and the
@@ -260,6 +261,7 @@ export function ScheduleDetailPage() {
           { key: 'short', header: 'Short', render: (r) => (Number(r.short) > 0 ? <StatusPill status="error" label={String(r.short)} /> : 'OK') },
         ]} empty={<p className="oc-muted">No staffing requirements for this department.</p>} />
       </Card>
+      {s.status !== 'cancelled' && <OpenShiftsPanel scheduleId={id} editable={editable} days={days} templates={templates} />}
       <DemandPanel from={String(s.periodStart).slice(0, 10)} to={String(s.periodEnd).slice(0, 10)} />
       {pattern && <PatternModal path={path} employees={(s.employees as R[]) ?? []} templates={templates} onClose={() => setPattern(false)} start={String(s.periodStart).slice(0, 10)} />}
     </div>

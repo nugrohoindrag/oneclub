@@ -10950,6 +10950,384 @@
         ],
         "type": "object"
       },
+      "BenefitEligibility": {
+        "properties": {
+          "eligible": {
+            "type": "boolean"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "employeeNo": {
+            "type": "string"
+          },
+          "enrolled": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "employeeId",
+          "employeeNo",
+          "employeeName",
+          "eligible",
+          "enrolled"
+        ],
+        "type": "object"
+      },
+      "BenefitEndInput": {
+        "properties": {
+          "effectiveTo": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "effectiveTo",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "BenefitEnrollment": {
+        "properties": {
+          "benefitType": {
+            "type": "string"
+          },
+          "deducted": {
+            "description": "Employee contributions deducted by posted payroll runs",
+            "type": "string"
+          },
+          "effectiveFrom": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "effectiveTo": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "employeeContribution": {
+            "type": "string"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "employeeNo": {
+            "type": "string"
+          },
+          "employerContribution": {
+            "type": "string"
+          },
+          "endReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "planCode": {
+            "type": "string"
+          },
+          "planId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "planName": {
+            "type": "string"
+          },
+          "provider": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "ended",
+              "cancelled"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "employeeId",
+          "employeeNo",
+          "employeeName",
+          "planId",
+          "planCode",
+          "planName",
+          "benefitType",
+          "effectiveFrom",
+          "employerContribution",
+          "employeeContribution",
+          "status",
+          "deducted"
+        ],
+        "type": "object"
+      },
+      "BenefitEnrollmentInput": {
+        "properties": {
+          "effectiveFrom": {
+            "type": "string"
+          },
+          "employeeContribution": {
+            "description": "Default: the plan",
+            "type": "string"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "employerContribution": {
+            "description": "Default: the plan",
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "planId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "employeeId",
+          "planId",
+          "effectiveFrom"
+        ],
+        "type": "object"
+      },
+      "BenefitPlan": {
+        "properties": {
+          "archivedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "benefitType": {
+            "description": "Type",
+            "enum": [
+              "health_insurance",
+              "life_insurance",
+              "pension",
+              "allowance",
+              "facility",
+              "other"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "code": {
+            "description": "Code",
+            "maxLength": 30,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "description": {
+            "description": "Description",
+            "maxLength": 2000,
+            "nullable": true,
+            "type": "string"
+          },
+          "eligibleCategories": {
+            "description": "Eligible Worker Categories (empty = all)",
+            "items": {
+              "enum": [
+                "regular",
+                "daily",
+                "intern"
+              ],
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "eligibleStatuses": {
+            "description": "Eligible Employment Statuses (empty = all)",
+            "items": {
+              "enum": [
+                "probation",
+                "contract",
+                "permanent"
+              ],
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "employeeContribution": {
+            "description": "Employee Contribution per Month (payroll deduction)",
+            "nullable": true,
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "employerContribution": {
+            "description": "Employer Contribution per Month",
+            "nullable": true,
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "minServiceMonths": {
+            "description": "Minimum Service (months)",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "name": {
+            "description": "Name",
+            "maxLength": 160,
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "provider": {
+            "description": "Provider",
+            "maxLength": 120,
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "code",
+          "name"
+        ],
+        "type": "object"
+      },
+      "BenefitPlanInput": {
+        "properties": {
+          "benefitType": {
+            "description": "Type",
+            "enum": [
+              "health_insurance",
+              "life_insurance",
+              "pension",
+              "allowance",
+              "facility",
+              "other"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "code": {
+            "description": "Code",
+            "maxLength": 30,
+            "type": "string"
+          },
+          "description": {
+            "description": "Description",
+            "maxLength": 2000,
+            "nullable": true,
+            "type": "string"
+          },
+          "eligibleCategories": {
+            "description": "Eligible Worker Categories (empty = all)",
+            "items": {
+              "enum": [
+                "regular",
+                "daily",
+                "intern"
+              ],
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "eligibleStatuses": {
+            "description": "Eligible Employment Statuses (empty = all)",
+            "items": {
+              "enum": [
+                "probation",
+                "contract",
+                "permanent"
+              ],
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "employeeContribution": {
+            "description": "Employee Contribution per Month (payroll deduction)",
+            "nullable": true,
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "employerContribution": {
+            "description": "Employer Contribution per Month",
+            "nullable": true,
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "minServiceMonths": {
+            "description": "Minimum Service (months)",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "name": {
+            "description": "Name",
+            "maxLength": 160,
+            "type": "string"
+          },
+          "provider": {
+            "description": "Provider",
+            "maxLength": 120,
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "Bill": {
         "properties": {
           "billNo": {
@@ -21873,6 +22251,17 @@
         },
         "required": [
           "success"
+        ],
+        "type": "object"
+      },
+      "CommentRequest": {
+        "properties": {
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "body"
         ],
         "type": "object"
       },
@@ -41587,7 +41976,11 @@
               "loan_requests",
               "loans_to_pay",
               "employees_draft",
-              "employees_suspended"
+              "employees_suspended",
+              "reimbursements_to_send",
+              "reimbursements_to_pay",
+              "timesheets_pending",
+              "open_shift_claims"
             ],
             "type": "string"
           }
@@ -43063,6 +43456,35 @@
           "pax",
           "contractTotal",
           "currency"
+        ],
+        "type": "object"
+      },
+      "HrtimeOpenShiftInput": {
+        "properties": {
+          "notes": {
+            "type": "string"
+          },
+          "positionId": {
+            "description": "Only employees of this position may claim",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "shiftTemplateId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "slots": {
+            "type": "integer"
+          },
+          "workDate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workDate",
+          "shiftTemplateId",
+          "slots"
         ],
         "type": "object"
       },
@@ -61146,6 +61568,153 @@
         ],
         "type": "object"
       },
+      "OpenShift": {
+        "properties": {
+          "claims": {
+            "items": {
+              "$ref": "#/components/schemas/OpenShiftClaim"
+            },
+            "type": "array"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "filled": {
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "myClaim": {
+            "description": "ESS: status of my claim",
+            "nullable": true,
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "orgUnitId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "orgUnitName": {
+            "type": "string"
+          },
+          "positionId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "positionName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "scheduleId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "scheduleName": {
+            "type": "string"
+          },
+          "shiftName": {
+            "type": "string"
+          },
+          "shiftTemplateId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "slots": {
+            "type": "integer"
+          },
+          "startTime": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "filled",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "workDate": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "scheduleId",
+          "scheduleName",
+          "orgUnitId",
+          "orgUnitName",
+          "workDate",
+          "shiftTemplateId",
+          "shiftName",
+          "startTime",
+          "endTime",
+          "slots",
+          "filled",
+          "status",
+          "claims"
+        ],
+        "type": "object"
+      },
+      "OpenShiftClaim": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "decidedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "decisionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "employeeNo": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "note": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "requested",
+              "approved",
+              "rejected",
+              "withdrawn"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "employeeId",
+          "employeeNo",
+          "employeeName",
+          "status",
+          "createdAt"
+        ],
+        "type": "object"
+      },
       "OpenShiftInput": {
         "properties": {
           "openingFloat": {
@@ -61166,6 +61735,14 @@
         "required": [
           "station"
         ],
+        "type": "object"
+      },
+      "OpenShiftNote": {
+        "properties": {
+          "note": {
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "OpeningBalance": {
@@ -83224,6 +83801,322 @@
         },
         "type": "object"
       },
+      "Reimbursement": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "approvalRequestId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "categoryCode": {
+            "type": "string"
+          },
+          "categoryId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "categoryName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "decidedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "decisionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "employeeNo": {
+            "type": "string"
+          },
+          "expenseDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "fileId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "fileName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "orgUnitName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "paidOn": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "paymentMethod": {
+            "nullable": true,
+            "type": "string"
+          },
+          "paymentRef": {
+            "nullable": true,
+            "type": "string"
+          },
+          "requestSource": {
+            "enum": [
+              "hr",
+              "ess"
+            ],
+            "type": "string"
+          },
+          "sentAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "submitted",
+              "approved",
+              "rejected",
+              "sent_to_finance",
+              "paid",
+              "cancelled"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "employeeId",
+          "employeeNo",
+          "employeeName",
+          "categoryId",
+          "categoryCode",
+          "categoryName",
+          "expenseDate",
+          "amount",
+          "description",
+          "requestSource",
+          "status",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "ReimbursementCategory": {
+        "properties": {
+          "archivedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "code": {
+            "description": "Code",
+            "maxLength": 30,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "description": {
+            "description": "Description",
+            "maxLength": 2000,
+            "nullable": true,
+            "type": "string"
+          },
+          "expenseAccountCode": {
+            "description": "GL Expense Account Code (empty = Employee Reimbursements)",
+            "maxLength": 20,
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxAmount": {
+            "description": "Maximum per Claim",
+            "nullable": true,
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name",
+            "maxLength": 160,
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "receiptRequired": {
+            "description": "Receipt Required",
+            "nullable": true,
+            "type": "boolean"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "code",
+          "name"
+        ],
+        "type": "object"
+      },
+      "ReimbursementCategoryInput": {
+        "properties": {
+          "code": {
+            "description": "Code",
+            "maxLength": 30,
+            "type": "string"
+          },
+          "description": {
+            "description": "Description",
+            "maxLength": 2000,
+            "nullable": true,
+            "type": "string"
+          },
+          "expenseAccountCode": {
+            "description": "GL Expense Account Code (empty = Employee Reimbursements)",
+            "maxLength": 20,
+            "nullable": true,
+            "type": "string"
+          },
+          "maxAmount": {
+            "description": "Maximum per Claim",
+            "nullable": true,
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name",
+            "maxLength": 160,
+            "type": "string"
+          },
+          "receiptRequired": {
+            "description": "Receipt Required",
+            "nullable": true,
+            "type": "boolean"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ReimbursementInput": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "categoryId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "employeeId": {
+            "description": "HR claim: the employee (ESS: yourself)",
+            "format": "uuid",
+            "type": "string"
+          },
+          "expenseDate": {
+            "type": "string"
+          },
+          "fileId": {
+            "description": "Receipt uploaded with POST …/reimbursement-files",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "categoryId",
+          "expenseDate",
+          "amount",
+          "description"
+        ],
+        "type": "object"
+      },
+      "ReimbursementNote": {
+        "properties": {
+          "note": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "ReimbursementPayInput": {
+        "properties": {
+          "bankAccountCode": {
+            "description": "GL cash / bank account code (empty: the default account of the method)",
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "cash",
+              "bank_transfer"
+            ],
+            "type": "string"
+          },
+          "paidOn": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "paidOn",
+          "method"
+        ],
+        "type": "object"
+      },
       "RejectInput": {
         "properties": {
           "reason": {
@@ -83892,6 +84785,13 @@
           "canDecide": {
             "type": "boolean"
           },
+          "comments": {
+            "description": "Comments and attachments (detail only)",
+            "items": {
+              "$ref": "#/components/schemas/RequestComment"
+            },
+            "type": "array"
+          },
           "createdAt": {
             "format": "date-time",
             "type": "string"
@@ -83979,6 +84879,40 @@
           "createdAt",
           "canDecide",
           "canCancel"
+        ],
+        "type": "object"
+      },
+      "RequestComment": {
+        "properties": {
+          "authorName": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "fileId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "fileName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "authorName",
+          "body",
+          "createdAt"
         ],
         "type": "object"
       },
@@ -100209,6 +101143,220 @@
         "required": [
           "start",
           "end"
+        ],
+        "type": "object"
+      },
+      "Timesheet": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "days": {
+            "description": "Timesheet hours against the attendance of each day (detail)",
+            "items": {
+              "$ref": "#/components/schemas/TimesheetDay"
+            },
+            "type": "array"
+          },
+          "decidedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "decisionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "employeeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "employeeName": {
+            "type": "string"
+          },
+          "employeeNo": {
+            "type": "string"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/TimesheetEntry"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "orgUnitName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "periodEnd": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "periodStart": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "submitted",
+              "approved",
+              "rejected",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/TimeApprovalStep"
+            },
+            "type": "array"
+          },
+          "submittedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "totalHours": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "number",
+          "employeeId",
+          "employeeNo",
+          "employeeName",
+          "periodStart",
+          "periodEnd",
+          "status",
+          "totalHours",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "TimesheetDay": {
+        "properties": {
+          "attendanceHours": {
+            "description": "Worked time recorded by attendance",
+            "type": "string"
+          },
+          "date": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "hours": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "hours",
+          "attendanceHours"
+        ],
+        "type": "object"
+      },
+      "TimesheetEntry": {
+        "properties": {
+          "activity": {
+            "type": "string"
+          },
+          "hours": {
+            "type": "string"
+          },
+          "lineNo": {
+            "type": "integer"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "reference": {
+            "nullable": true,
+            "type": "string"
+          },
+          "workDate": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lineNo",
+          "workDate",
+          "hours",
+          "activity"
+        ],
+        "type": "object"
+      },
+      "TimesheetEntryInput": {
+        "properties": {
+          "activity": {
+            "type": "string"
+          },
+          "hours": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "reference": {
+            "description": "Event, project or work order",
+            "type": "string"
+          },
+          "workDate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "workDate",
+          "hours",
+          "activity"
+        ],
+        "type": "object"
+      },
+      "TimesheetInput": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/TimesheetEntryInput"
+            },
+            "type": "array"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "periodEnd": {
+            "description": "Create only; at most 31 days",
+            "type": "string"
+          },
+          "periodStart": {
+            "description": "Create only",
+            "type": "string"
+          },
+          "submit": {
+            "description": "Submit for approval right away",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "entries"
         ],
         "type": "object"
       },
@@ -208576,6 +209724,99 @@
         "x-permission": "hris.ess.use"
       }
     },
+    "/api/v1/ess/benefits": {
+      "get": {
+        "operationId": "getEssBenefits",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/BenefitEnrollment"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My benefits",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
     "/api/v1/ess/clock-status": {
       "get": {
         "operationId": "getEssClockStatus",
@@ -209723,6 +210964,263 @@
         "x-permission": "hris.ess.use"
       }
     },
+    "/api/v1/ess/open-shift-claims/{id}:withdraw": {
+      "post": {
+        "operationId": "postEssOpenShiftClaimsByIdWithdraw",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenShiftNote"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenShift"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Withdraw my claim",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
+    "/api/v1/ess/open-shifts": {
+      "get": {
+        "operationId": "getEssOpenShifts",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/OpenShift"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Open shifts of my unit I can claim",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
+    "/api/v1/ess/open-shifts/{id}:claim": {
+      "post": {
+        "operationId": "postEssOpenShiftsByIdClaim",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenShiftNote"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenShift"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Claim an open shift",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
     "/api/v1/ess/overtime-requests": {
       "get": {
         "operationId": "getEssOvertimeRequests",
@@ -210723,6 +212221,395 @@
           }
         ],
         "summary": "Withdraw my data change",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
+    "/api/v1/ess/reimbursement-files": {
+      "post": {
+        "operationId": "postEssReimbursementFiles",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/File"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Upload my receipt (multipart: file)",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
+    "/api/v1/ess/reimbursements": {
+      "get": {
+        "operationId": "getEssReimbursements",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/Reimbursement"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My reimbursement claims",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      },
+      "post": {
+        "operationId": "postEssReimbursements",
+        "parameters": [
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReimbursementInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reimbursement"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Claim an expense",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
+    "/api/v1/ess/reimbursements/{id}/receipt": {
+      "get": {
+        "operationId": "getEssReimbursementsByIdReceipt",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My receipt",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
+    "/api/v1/ess/reimbursements/{id}:cancel": {
+      "post": {
+        "operationId": "postEssReimbursementsByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReimbursementNote"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reimbursement"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Withdraw my claim",
         "tags": [
           "Employee Self Service"
         ],
@@ -212414,6 +214301,494 @@
         ],
         "x-module": "hris",
         "x-permission": "hris.team.view"
+      }
+    },
+    "/api/v1/ess/timesheets": {
+      "get": {
+        "operationId": "getEssTimesheets",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/Timesheet"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My timesheets",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      },
+      "post": {
+        "operationId": "postEssTimesheets",
+        "parameters": [
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimesheetInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timesheet"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Create my timesheet (draft, or submitted)",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
+    "/api/v1/ess/timesheets/{id}": {
+      "get": {
+        "operationId": "getEssTimesheetsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timesheet"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My timesheet",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      },
+      "patch": {
+        "operationId": "patchEssTimesheetsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimesheetInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timesheet"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Edit my draft or rejected timesheet",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
+    "/api/v1/ess/timesheets/{id}:submit": {
+      "post": {
+        "operationId": "postEssTimesheetsByIdSubmit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timesheet"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Submit my timesheet for approval",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
+      }
+    },
+    "/api/v1/ess/timesheets/{id}:withdraw": {
+      "post": {
+        "operationId": "postEssTimesheetsByIdWithdraw",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timesheet"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Withdraw my submitted timesheet (back to draft)",
+        "tags": [
+          "Employee Self Service"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.ess.use"
       }
     },
     "/api/v1/ess/training": {
@@ -249250,6 +251625,1024 @@
         "x-permission": "hris.bank_account.export"
       }
     },
+    "/api/v1/hris/benefit-enrollments": {
+      "get": {
+        "operationId": "getHrisBenefitEnrollments",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "planId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "employeeId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "active",
+                "ended",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/BenefitEnrollment"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Benefit enrollments",
+        "tags": [
+          "HRIS Benefits"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.benefit_enrollment.view"
+      },
+      "post": {
+        "operationId": "postHrisBenefitEnrollments",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenefitEnrollmentInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenefitEnrollment"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Enroll an eligible employee in a benefit plan",
+        "tags": [
+          "HRIS Benefits"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.benefit_enrollment.manage"
+      }
+    },
+    "/api/v1/hris/benefit-enrollments/{id}:end": {
+      "post": {
+        "operationId": "postHrisBenefitEnrollmentsByIdEnd",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenefitEndInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenefitEnrollment"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "End an enrollment (last covered day; cancelled before it starts)",
+        "tags": [
+          "HRIS Benefits"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.benefit_enrollment.manage"
+      }
+    },
+    "/api/v1/hris/benefit-plans": {
+      "get": {
+        "operationId": "getHrisBenefitPlans",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeArchived",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Field name, prefix with - for descending",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[benefitType]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/BenefitPlan"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "List Benefit Plans",
+        "tags": [
+          "HRIS Benefits"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.benefit_plan.view"
+      },
+      "post": {
+        "operationId": "postHrisBenefitPlans",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenefitPlanInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenefitPlan"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Add Benefit Plan",
+        "tags": [
+          "HRIS Benefits"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.benefit_plan.create"
+      }
+    },
+    "/api/v1/hris/benefit-plans/{id}": {
+      "delete": {
+        "operationId": "deleteHrisBenefitPlansById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Delete Benefit Plan (only when unused; otherwise set Inactive)",
+        "tags": [
+          "HRIS Benefits"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.benefit_plan.delete"
+      },
+      "get": {
+        "operationId": "getHrisBenefitPlansById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenefitPlan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "View Benefit Plan",
+        "tags": [
+          "HRIS Benefits"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.benefit_plan.view"
+      },
+      "patch": {
+        "operationId": "patchHrisBenefitPlansById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenefitPlanInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BenefitPlan"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Edit Benefit Plan",
+        "tags": [
+          "HRIS Benefits"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.benefit_plan.update"
+      }
+    },
+    "/api/v1/hris/benefit-plans/{id}/eligibility": {
+      "get": {
+        "operationId": "getHrisBenefitPlansByIdEligibility",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/BenefitEligibility"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Active employees checked against the plan's eligibility",
+        "tags": [
+          "HRIS Benefits"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.benefit_enrollment.view"
+      }
+    },
+    "/api/v1/hris/benefit-plans:export": {
+      "get": {
+        "operationId": "getHrisBenefitPlansExport",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Search",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeArchived",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Field name, prefix with - for descending",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[benefitType]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Export Benefit Plans (CSV/XLSX)",
+        "tags": [
+          "HRIS Benefits"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.benefit_plan.export"
+      }
+    },
     "/api/v1/hris/bonus-programmes": {
       "get": {
         "operationId": "getHrisBonusProgrammes",
@@ -265844,6 +269237,404 @@
         "x-permission": "hris.application.hire"
       }
     },
+    "/api/v1/hris/open-shift-claims/{id}:approve": {
+      "post": {
+        "operationId": "postHrisOpenShiftClaimsByIdApprove",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenShiftNote"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenShift"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Approve a claim: the employee is assigned the shift",
+        "tags": [
+          "HRIS Schedules"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.schedule.update"
+      }
+    },
+    "/api/v1/hris/open-shift-claims/{id}:reject": {
+      "post": {
+        "operationId": "postHrisOpenShiftClaimsByIdReject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenShiftNote"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenShift"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Reject a claim",
+        "tags": [
+          "HRIS Schedules"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.schedule.update"
+      }
+    },
+    "/api/v1/hris/open-shifts": {
+      "get": {
+        "operationId": "getHrisOpenShifts",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "scheduleId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "open",
+                "filled",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/OpenShift"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Open shifts with their claims",
+        "tags": [
+          "HRIS Schedules"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.schedule.view"
+      }
+    },
+    "/api/v1/hris/open-shifts/{id}:cancel": {
+      "post": {
+        "operationId": "postHrisOpenShiftsByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenShiftNote"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenShift"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Withdraw an open shift (pending claims declined)",
+        "tags": [
+          "HRIS Schedules"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.schedule.update"
+      }
+    },
     "/api/v1/hris/org-chart": {
       "get": {
         "operationId": "getHrisOrgChart",
@@ -274275,6 +278066,1249 @@
         "x-permission": "hris.candidate.create"
       }
     },
+    "/api/v1/hris/reimbursement-categories": {
+      "get": {
+        "operationId": "getHrisReimbursementCategories",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeArchived",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Field name, prefix with - for descending",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/ReimbursementCategory"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "List Reimbursement Categories",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement_category.view"
+      },
+      "post": {
+        "operationId": "postHrisReimbursementCategories",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReimbursementCategoryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReimbursementCategory"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Add Reimbursement Category",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement_category.create"
+      }
+    },
+    "/api/v1/hris/reimbursement-categories/{id}": {
+      "delete": {
+        "operationId": "deleteHrisReimbursementCategoriesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Delete Reimbursement Category (only when unused; otherwise set Inactive)",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement_category.delete"
+      },
+      "get": {
+        "operationId": "getHrisReimbursementCategoriesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReimbursementCategory"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "View Reimbursement Category",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement_category.view"
+      },
+      "patch": {
+        "operationId": "patchHrisReimbursementCategoriesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReimbursementCategoryInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReimbursementCategory"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Edit Reimbursement Category",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement_category.update"
+      }
+    },
+    "/api/v1/hris/reimbursement-categories:export": {
+      "get": {
+        "operationId": "getHrisReimbursementCategoriesExport",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Search",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeArchived",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Field name, prefix with - for descending",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Export Reimbursement Categories (CSV/XLSX)",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement_category.export"
+      }
+    },
+    "/api/v1/hris/reimbursement-files": {
+      "post": {
+        "operationId": "postHrisReimbursementFiles",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/File"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Upload a receipt (multipart: file; JPEG, PNG, WebP or PDF up to 10 MB)",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement.manage"
+      }
+    },
+    "/api/v1/hris/reimbursements": {
+      "get": {
+        "operationId": "getHrisReimbursements",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "submitted",
+                "approved",
+                "rejected",
+                "sent_to_finance",
+                "paid",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "employeeId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "categoryId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/Reimbursement"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Reimbursement claims",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement.view"
+      },
+      "post": {
+        "operationId": "postHrisReimbursements",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReimbursementInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reimbursement"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Claim an expense for an employee (approval engine)",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement.manage"
+      }
+    },
+    "/api/v1/hris/reimbursements/{id}/receipt": {
+      "get": {
+        "operationId": "getHrisReimbursementsByIdReceipt",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Download the receipt of a claim",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement.view"
+      }
+    },
+    "/api/v1/hris/reimbursements/{id}:cancel": {
+      "post": {
+        "operationId": "postHrisReimbursementsByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReimbursementNote"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reimbursement"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel a claim not yet sent to Finance",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement.manage"
+      }
+    },
+    "/api/v1/hris/reimbursements/{id}:mark-paid": {
+      "post": {
+        "operationId": "postHrisReimbursementsByIdMarkPaid",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReimbursementPayInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reimbursement"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Record the payment of a claim (Finance; journal)",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement.pay"
+      }
+    },
+    "/api/v1/hris/reimbursements/{id}:send-to-finance": {
+      "post": {
+        "operationId": "postHrisReimbursementsByIdSendToFinance",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReimbursementNote"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Reimbursement"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Send an approved claim to Finance for payment",
+        "tags": [
+          "HRIS Reimbursement"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.reimbursement.manage"
+      }
+    },
     "/api/v1/hris/review-cycles": {
       "get": {
         "operationId": "getHrisReviewCycles",
@@ -277552,6 +282586,106 @@
           }
         ],
         "summary": "Edit a shift schedule",
+        "tags": [
+          "HRIS Schedules"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.schedule.update"
+      }
+    },
+    "/api/v1/hris/schedules/{id}/open-shifts": {
+      "post": {
+        "operationId": "postHrisSchedulesByIdOpenShifts",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HrtimeOpenShiftInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpenShift"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Post an open shift on a schedule",
         "tags": [
           "HRIS Schedules"
         ],
@@ -281386,6 +286520,411 @@
         ],
         "x-module": "hris",
         "x-permission": "hris.time_lock.view"
+      }
+    },
+    "/api/v1/hris/timesheets": {
+      "get": {
+        "operationId": "getHrisTimesheets",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "enum": [
+                "draft",
+                "submitted",
+                "approved",
+                "rejected",
+                "cancelled"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "employeeId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Periods ending on or after",
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Periods starting on or before",
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/Timesheet"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Timesheets",
+        "tags": [
+          "HRIS Timesheets"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.timesheet.view"
+      }
+    },
+    "/api/v1/hris/timesheets/{id}": {
+      "get": {
+        "operationId": "getHrisTimesheetsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timesheet"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Timesheet with entries, attendance and approval steps",
+        "tags": [
+          "HRIS Timesheets"
+        ],
+        "x-module": "hris",
+        "x-permission": "hris.timesheet.view"
+      }
+    },
+    "/api/v1/hris/timesheets/{id}:approve": {
+      "post": {
+        "operationId": "postHrisTimesheetsByIdApprove",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timesheet"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Approve a timesheet (HR level, or on behalf of the manager)",
+        "tags": [
+          "HRIS Timesheets"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.timesheet.approve"
+      }
+    },
+    "/api/v1/hris/timesheets/{id}:reject": {
+      "post": {
+        "operationId": "postHrisTimesheetsByIdReject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimeDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Timesheet"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Reject a timesheet (HR level, or on behalf of the manager)",
+        "tags": [
+          "HRIS Timesheets"
+        ],
+        "x-audited": true,
+        "x-module": "hris",
+        "x-permission": "hris.timesheet.approve"
       }
     },
     "/api/v1/hris/training-matrix": {
@@ -317462,6 +323001,166 @@
           }
         ],
         "summary": "View approval request",
+        "tags": [
+          "Approvals"
+        ],
+        "x-module": "platform"
+      }
+    },
+    "/api/v1/platform/approvals/{id}/comments": {
+      "post": {
+        "operationId": "postPlatformApprovalsByIdComments",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CommentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestComment"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Comment on a request, optionally with an attachment (JSON {body}, or multipart: body, file — JPEG, PNG, WebP or PDF up to 10 MB)",
+        "tags": [
+          "Approvals"
+        ],
+        "x-audited": true,
+        "x-module": "platform"
+      }
+    },
+    "/api/v1/platform/approvals/{id}/comments/{commentId}/file": {
+      "get": {
+        "operationId": "getPlatformApprovalsByIdCommentsByCommentIdFile",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "commentId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Download the attachment of a comment",
         "tags": [
           "Approvals"
         ],
@@ -359548,6 +365247,9 @@
       "name": "HRIS Attendance Kiosk"
     },
     {
+      "name": "HRIS Benefits"
+    },
+    {
       "name": "HRIS Commissions"
     },
     {
@@ -359587,10 +365289,16 @@
       "name": "HRIS Recruitment"
     },
     {
+      "name": "HRIS Reimbursement"
+    },
+    {
       "name": "HRIS Schedules"
     },
     {
       "name": "HRIS Service Charge"
+    },
+    {
+      "name": "HRIS Timesheets"
     },
     {
       "name": "HRIS Training \u0026 Certification"

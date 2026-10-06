@@ -51,6 +51,7 @@ var postingCoverage = map[string][]string{
 	"hris.payroll_paid":                   {"TestP5PayrollFullRun"},
 	"hris.loan_disbursed":                 {"TestP5LoanRequestsWithRevision"}, // HRIS phase B: Dr employee receivables / Cr bank
 	"hris.loan_repaid":                    {"TestP5LoanRequestsWithRevision"}, // cash returned: Dr cash / Cr receivables
+	"hris.reimbursement_paid":             {"TestP5ReimbursementClaims"},      // HRIS phase C: Dr category expense / Cr bank
 }
 
 // TestPostingCoverage: every consumed event has a handler and at least one

@@ -22,6 +22,7 @@ import (
 	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/audit"
 	"oneclub/internal/platform/provision"
+	"oneclub/internal/platform/storage"
 )
 
 // ── DTOs ──────────────────────────────────────────────────────────────────
@@ -86,25 +87,26 @@ type RequestStep struct {
 }
 
 type Request struct {
-	ID             uuid.UUID      `json:"id"`
-	PropertyID     uuid.UUID      `json:"propertyId"`
-	DocumentType   string         `json:"documentType"`
-	DocumentName   string         `json:"documentName"`
-	DocumentID     uuid.UUID      `json:"documentId"`
-	DocumentRef    string         `json:"documentRef"`
-	Title          string         `json:"title"`
-	Attributes     map[string]any `json:"attributes"`
-	Status         string         `json:"status" enum:"draft,pending,approved,rejected,cancelled"`
-	CurrentStepNo  *int           `json:"currentStepNo"`
-	RequestedBy    uuid.UUID      `json:"requestedBy"`
-	RequesterName  string         `json:"requesterName"`
-	DecidedAt      *time.Time     `json:"decidedAt"`
-	DecisionReason *string        `json:"decisionReason"`
-	CreatedAt      time.Time      `json:"createdAt"`
-	CanDecide      bool           `json:"canDecide"`
-	CanCancel      bool           `json:"canCancel"`
-	Steps          []RequestStep  `json:"steps,omitempty"`
-	History        []RequestEvent `json:"history,omitempty" doc:"Approval history (detail only)"`
+	ID             uuid.UUID        `json:"id"`
+	PropertyID     uuid.UUID        `json:"propertyId"`
+	DocumentType   string           `json:"documentType"`
+	DocumentName   string           `json:"documentName"`
+	DocumentID     uuid.UUID        `json:"documentId"`
+	DocumentRef    string           `json:"documentRef"`
+	Title          string           `json:"title"`
+	Attributes     map[string]any   `json:"attributes"`
+	Status         string           `json:"status" enum:"draft,pending,approved,rejected,cancelled"`
+	CurrentStepNo  *int             `json:"currentStepNo"`
+	RequestedBy    uuid.UUID        `json:"requestedBy"`
+	RequesterName  string           `json:"requesterName"`
+	DecidedAt      *time.Time       `json:"decidedAt"`
+	DecisionReason *string          `json:"decisionReason"`
+	CreatedAt      time.Time        `json:"createdAt"`
+	CanDecide      bool             `json:"canDecide"`
+	CanCancel      bool             `json:"canCancel"`
+	Steps          []RequestStep    `json:"steps,omitempty"`
+	History        []RequestEvent   `json:"history,omitempty" doc:"Approval history (detail only)"`
+	Comments       []RequestComment `json:"comments,omitempty" doc:"Comments and attachments (detail only)"`
 }
 
 type DecisionRequest struct {
@@ -139,7 +141,11 @@ type DelegationRequest struct {
 }
 
 // HTTP exposes the approval endpoints.
-type HTTP struct{ E *Engine }
+// HTTP exposes the approval endpoints; Files stores comment attachments.
+type HTTP struct {
+	E     *Engine
+	Files *storage.Files
+}
 
 // ── workflows (FR-APR-01, FR-APR-02) ──────────────────────────────────────
 
@@ -652,6 +658,9 @@ func (h *HTTP) loadDetail(r *http.Request, tx pgx.Tx, rid uuid.UUID) (Request, e
 	if x.History, err = history(ctx, tx, rid); err != nil {
 		return x, err
 	}
+	if x.Comments, err = comments(ctx, tx, rid); err != nil {
+		return x, err
+	}
 	// Visible to the requester, any approver of any step, or view_all.
 	if x.RequestedBy != p.UserID && !x.CanDecide && !p.Can("platform.approval.view_all", &x.PropertyID) {
 		var involved bool
@@ -909,6 +918,7 @@ func (h *HTTP) Register(reg *route.Registry) {
 		Request: DecisionRequest{}, Response: Request{}, Status: http.StatusOK, Handler: h.action("cancel")})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/platform/approvals/{id}:submit", Summary: "Submit a draft",
 		Request: DecisionRequest{}, Response: Request{}, Status: http.StatusOK, Handler: h.action("submit")})
+	h.registerComments(add)
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/platform/approvals:test", Summary: "Create a Test Approval document",
 		Permission: "platform.approval.request_test", Scope: route.ScopeProperty, Request: TestApprovalRequest{}, Response: Request{},
 		Idempotent: true, Handler: h.testRequest})

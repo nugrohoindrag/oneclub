@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { download, qs, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
+import { download, qs, request, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime, formatMoney, formatRelative, useTranslation } from '@oneclub/i18n';
 import { useAuth, useBootstrap } from '../context';
 import {
@@ -119,6 +119,7 @@ export function ApprovalDetailPage() {
           </ol>
         </Card>
       </div>
+      <ApprovalComments id={String(id)} comments={r.comments ?? []} onDone={() => void req.refetch()} />
       {(r.history ?? []).length > 0 && (
         <Card title="Approval history" icon="history">
           <DataTable rows={(r.history ?? []).map((h, i) => ({ ...h, id: String(i) })) as unknown as Record<string, unknown>[]} columns={[
@@ -135,6 +136,65 @@ export function ApprovalDetailPage() {
         reason={action === 'reject' || action === 'request-revision' ? 'required' : action === 'submit' ? undefined : 'optional'}
         onConfirm={(reason) => act.mutate(reason ? { reason } : {}, { onSuccess: () => { setAction(null); toast('Saved'); void req.refetch(); } })} />
     </div>
+  );
+}
+
+/** Comments with an optional attachment on a request (HRIS phase C, spec §27). */
+function ApprovalComments({ id, comments, onDone }: { id: string; comments: Schemas['RequestComment'][]; onDone: () => void }) {
+  const toast = useToast();
+  const [body, setBody] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<unknown>(null);
+  const send = async () => {
+    setBusy(true);
+    setErr(null);
+    const fd = new FormData();
+    fd.append('body', body);
+    if (file) fd.append('file', file);
+    try {
+      await request('POST', `/api/v1/platform/approvals/${id}/comments`, fd);
+      setBody('');
+      setFile(null);
+      toast('Comment added');
+      onDone();
+    } catch (e) {
+      setErr(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Card title="Comments" icon="forum">
+      <div className="oc-stack">
+        {comments.length === 0 && <p className="oc-muted oc-small" style={{ margin: 0 }}>No comment yet. Ask a question or attach a supporting document.</p>}
+        {comments.map((c) => (
+          <div key={c.id} className="oc-stack" style={{ gap: 2 }}>
+            <div className="oc-small oc-muted"><strong>{c.authorName}</strong> · {formatRelative(c.createdAt)}</div>
+            <div style={{ whiteSpace: 'pre-wrap' }}>{c.body}</div>
+            {c.fileId && (
+              <div>
+                <button className="oc-btn oc-btn-text oc-btn-sm" onClick={() => download('GET', `/api/v1/platform/approvals/${id}/comments/${c.id}/file`, undefined,
+                  c.fileName ?? 'attachment').catch((e: Error) => toast(e.message, 'error'))}>
+                  <Icon name="attach_file" size={16} /> {c.fileName ?? 'Attachment'}
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        <ErrorAlert error={err} />
+        <TextArea label="Comment" value={body} onChange={setBody} />
+        <div className="oc-row-wrap">
+          <label className="oc-btn oc-btn-neutral oc-btn-sm" style={{ cursor: 'pointer' }}>
+            <Icon name="attach_file" size={18} /> {file ? file.name : 'Attach photo or PDF'}
+            <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="oc-sr"
+              onChange={(e) => { setFile(e.target.files?.[0] ?? null); e.target.value = ''; }} />
+          </label>
+          <span className="oc-spacer" />
+          <button className="oc-btn oc-btn-ink oc-btn-sm" disabled={busy || !body.trim()} onClick={() => void send()}>{busy ? 'Sending…' : 'Add comment'}</button>
+        </div>
+      </div>
+    </Card>
   );
 }
 

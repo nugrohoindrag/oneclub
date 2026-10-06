@@ -36,10 +36,11 @@ const (
 	KindOvertime   = "overtime"
 	KindSwap       = "shift_swap"
 	KindCorrection = "attendance_correction"
+	KindTimesheet  = "timesheet" // HRIS phase C (timesheets.go)
 )
 
 // RequestKinds lists the request kinds.
-var RequestKinds = []string{KindLeave, KindPermission, KindOvertime, KindSwap, KindCorrection}
+var RequestKinds = []string{KindLeave, KindPermission, KindOvertime, KindSwap, KindCorrection, KindTimesheet}
 
 type kindSpec struct {
 	kind, table, label, employeeCol, approvePerm, hrPath string
@@ -57,6 +58,8 @@ var specs = map[string]kindSpec{
 		hrPath: "/hris/schedules?tab=swaps", doc: SwapDocumentType},
 	KindCorrection: {kind: KindCorrection, table: "hris.attendance_corrections", label: "attendance correction", employeeCol: "employee_id",
 		approvePerm: PermCorrectionApprove, hrPath: "/hris/attendance?tab=corrections", doc: CorrectionDocumentType},
+	KindTimesheet: {kind: KindTimesheet, table: "hris.timesheets", label: "timesheet", employeeCol: "employee_id", approvePerm: PermTimesheetApprove,
+		hrPath: "/hris/timesheets", doc: TimesheetDocumentType},
 }
 
 func spec(kind string) (kindSpec, error) {
@@ -414,7 +417,7 @@ func (m *Module) finalize(ctx context.Context, tx pgx.Tx, kind string, id uuid.U
 	}
 	if u := userOf(ctx, tx, h.EmployeeID); u != nil && (by == nil || *u != *by) {
 		link := map[string]string{KindLeave: "/ops/ess/leave", KindPermission: "/ops/ess/leave", KindOvertime: "/ops/ess/overtime",
-			KindSwap: "/ops/ess/schedule", KindCorrection: "/ops/ess/attendance"}[kind]
+			KindSwap: "/ops/ess/schedule", KindCorrection: "/ops/ess/attendance", KindTimesheet: "/ops/ess/timesheets"}[kind]
 		return m.notifyUsers(ctx, tx, h.PropertyID, []uuid.UUID{*u}, NotifyRequestDecided, link, map[string]any{"kind": s.label, "number": h.Number,
 			"summary": summary, "status": status, "note": note}, "in_app", "email", "whatsapp")
 	}
@@ -489,6 +492,13 @@ func (m *Module) describe(ctx context.Context, tx pgx.Tx, kind string, id uuid.U
 			Scan(&day, &property, &orgUnit)
 		summary = "attendance of " + ymd(day)
 		attrs["daysBack"] = int(today(ctx, tx, property).Sub(day).Hours() / 24)
+	case KindTimesheet:
+		var from, to, hours string
+		err = tx.QueryRow(ctx, `SELECT to_char(t.period_start, 'YYYY-MM-DD'), to_char(t.period_end, 'YYYY-MM-DD'), trim_scale(t.total_hours)::text, ou.code
+			FROM hris.timesheets t JOIN hris.employees e ON e.id = t.employee_id LEFT JOIN hris.org_units ou ON ou.id = e.org_unit_id WHERE t.id = $1`, id).
+			Scan(&from, &to, &hours, &orgUnit)
+		summary = fmt.Sprintf("%s hours, %s – %s", hours, from, to)
+		attrs["hours"] = hris.Dec(hours).InexactFloat64()
 	}
 	if orgUnit != nil {
 		attrs["orgUnit"] = *orgUnit
