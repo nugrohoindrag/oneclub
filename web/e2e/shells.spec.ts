@@ -8,7 +8,7 @@ async function menuLabels(page: Page) {
   return nav.getByRole('link').evaluateAll((els) =>
     els.map((e) => {
       const c = e.cloneNode(true) as HTMLElement;
-      c.querySelectorAll('.material-symbols-rounded, .oc-nav-soon, .oc-brand-mark').forEach((x) => x.remove());
+      c.querySelectorAll('.material-symbols-rounded, .oc-nav-soon').forEach((x) => x.remove());
       return (c.textContent ?? '').trim();
     }),
   );

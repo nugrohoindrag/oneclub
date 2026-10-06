@@ -8,7 +8,7 @@ import { getNavigation } from '../../components/cms/api';
 
 export async function generateMetadata(): Promise<Metadata> {
   const b = await getBootstrap();
-  return { title: b.branding.appName, icons: { icon: '/favicon.svg' } };
+  return { title: b.branding.appName, icons: { icon: '/favicon.png', apple: '/favicon.png' } };
 }
 
 export default async function LangLayout({ children, params }: { children: ReactNode; params: Promise<{ lang: string }> }) {
@@ -33,7 +33,7 @@ export default async function LangLayout({ children, params }: { children: React
         <div className="w-frame">
           <header className="w-top">
             <a className="w-brand" href={`/${lang}`}>
-              {b.branding.logoUrl ? <img src={b.branding.logoUrl} alt="" /> : <span className="w-mark">{b.branding.appName.slice(0, 1)}</span>}
+              <img src={b.branding.logoUrl || '/club-logo.png'} alt="" />
               {b.branding.appName}
             </a>
             <SiteNav lang={lang as Lang} labels={t.nav} items={header} />

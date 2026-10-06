@@ -18,6 +18,16 @@ export interface BrandingInfo {
   customAccent?: { light: Record<string, string>; dark: Record<string, string> } | null;
 }
 
+// Demo defaults: the club logo and login photo shipped with the app, used
+// while the instance has none in Settings → Branding (an uploaded one wins).
+const DEFAULT_LOGO = new URL('./assets/club-logo.png', import.meta.url).href;
+const DEFAULT_LOGIN_PHOTO = new URL('./assets/login-photo.jpg', import.meta.url).href;
+
+/** The logo of the instance, or the default one. */
+export const logoOf = (b: BrandingInfo) => b.logoUrl || DEFAULT_LOGO;
+/** The login photo of the instance, or the default one. */
+export const loginPhotoOf = (b: BrandingInfo) => b.loginImageUrl || DEFAULT_LOGIN_PHOTO;
+
 const THEME_KEY = 'oneclub.theme';
 const STYLE_ID = 'oc-custom-accent';
 

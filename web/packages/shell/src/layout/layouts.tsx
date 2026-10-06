@@ -6,6 +6,7 @@ import { useAuth, useBootstrap, type Shell } from '../context';
 import { Icon, Skeleton } from '../components/ui';
 import { HeaderActions } from './header';
 import { useArea } from '../areas';
+import { logoOf } from '../theme';
 import { ForbiddenPage, MaintenancePage } from '../pages/errors';
 
 export interface NavItem {
@@ -33,7 +34,7 @@ export function Brand() {
   const to = useArea()?.path ?? '/';
   return (
     <Link to={to} className="oc-brand" aria-label={b.branding.appName}>
-      {b.branding.logoUrl ? <img src={b.branding.logoUrl} alt="" /> : <span className="oc-brand-mark">{b.branding.appName.slice(0, 1)}</span>}
+      <img src={logoOf(b.branding)} alt="" />
       <span className="oc-brand-name">{b.branding.appName}</span>
     </Link>
   );
