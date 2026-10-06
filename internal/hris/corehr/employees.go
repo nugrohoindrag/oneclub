@@ -15,6 +15,7 @@ import (
 	"github.com/jackc/pgx/v5"
 
 	"oneclub/internal/hris"
+	"oneclub/internal/inventory"
 	"oneclub/internal/kernel/authz"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
@@ -156,6 +157,34 @@ type OffboardingItem struct {
 	DoneAt     *time.Time `json:"doneAt" db:"done_at"`
 	DoneByName *string    `json:"doneByName" db:"done_by_name"`
 	Notes      *string    `json:"notes" db:"notes"`
+	// FR-HR-06: the assets still in the employee's custody (item return_assets)
+	Assets []OffboardingAsset `json:"assets,omitempty" db:"-" doc:"Item return_assets: the assets of the Inventory asset register still in the employee's custody"`
+}
+
+// OffboardingReturnAssets is the checklist item of the assets to return.
+const OffboardingReturnAssets = "return_assets"
+
+// OffboardingAsset is an asset the leaver still holds (custodian on the
+// asset register).
+type OffboardingAsset struct {
+	ID       uuid.UUID `json:"id"`
+	Code     string    `json:"code"`
+	Name     string    `json:"name"`
+	Category string    `json:"category"`
+	Status   string    `json:"status"`
+}
+
+// custodyOf lists the assets in the custody of an employee.
+func custodyOf(ctx context.Context, tx pgx.Tx, eid uuid.UUID) ([]OffboardingAsset, error) {
+	list, err := inventory.AssetsInCustody(ctx, tx, eid)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]OffboardingAsset, 0, len(list))
+	for _, a := range list {
+		out = append(out, OffboardingAsset{ID: a.ID, Code: a.Code, Name: a.Name, Category: a.Category, Status: a.Status})
+	}
+	return out, nil
 }
 
 // OffboardingUpdate ticks a checklist entry.
@@ -800,7 +829,18 @@ func (m *Module) offboardingHTTP(ctx context.Context, tx pgx.Tx, r *http.Request
 	if err := m.inProperty(ctx, tx, eid); err != nil {
 		return nil, err
 	}
-	return handle.List[OffboardingItem](tx.Query(ctx, offboardingSelect+` WHERE i.employee_id = $1 ORDER BY i.sort_order, i.code`, eid))
+	items, err := handle.List[OffboardingItem](tx.Query(ctx, offboardingSelect+` WHERE i.employee_id = $1 ORDER BY i.sort_order, i.code`, eid))
+	if err != nil {
+		return nil, err
+	}
+	for i := range items {
+		if items[i].Code == OffboardingReturnAssets {
+			if items[i].Assets, err = custodyOf(ctx, tx, eid); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return items, nil
 }
 
 const offboardingSelect = `SELECT i.id, i.employee_id, i.code, i.label, i.status, i.done_at, u.full_name AS done_by_name, i.notes
@@ -818,6 +858,20 @@ func (m *Module) offboardingItemHTTP(ctx context.Context, tx pgx.Tx, r *http.Req
 		handle.Property(ctx)))
 	if err != nil {
 		return before, err
+	}
+	if before.Code == OffboardingReturnAssets && req.Status == "done" {
+		held, err := custodyOf(ctx, tx, before.EmployeeID)
+		if err != nil {
+			return before, err
+		}
+		if len(held) > 0 {
+			codes := make([]string, len(held))
+			for i, a := range held {
+				codes[i] = a.Code
+			}
+			return before, errs.Conflict("assets_in_custody", "the employee still holds "+strings.Join(codes, ", ")+
+				": record the return on the asset register (clear the custodian) first")
+		}
 	}
 	if _, err := tx.Exec(ctx, `UPDATE hris.offboarding_items SET status = $2, notes = coalesce($3, notes),
 		done_at = CASE WHEN $2 = 'pending' THEN NULL ELSE now() END, done_by = CASE WHEN $2 = 'pending' THEN NULL ELSE $4::uuid END WHERE id = $1`,

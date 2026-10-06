@@ -118,13 +118,16 @@ type PayInput struct {
 	OvertimeHours         decimal.Decimal // multiplied hours (Σ payable hours × factor)
 	OvertimePayableHours  decimal.Decimal
 	// Statutory.
-	Rates      StatutoryRates
-	BPJS       bool // contributions are calculated (regular runs)
-	BPJSWage   *decimal.Decimal
-	PTKP       string
-	HasTaxID   bool // NPWP or NIK registered
-	Tax        bool // PPh 21 is calculated
-	LastPeriod bool // December or the last period of the employment: annual calculation
+	Rates    StatutoryRates
+	BPJS     bool // contributions are calculated (regular runs)
+	BPJSWage *decimal.Decimal
+	// BPJSAdjustments are contribution differences of a corrected period
+	// (adjustment runs, BPJSDifferences); negative = refund.
+	BPJSAdjustments []PayLine
+	PTKP            string
+	HasTaxID        bool // NPWP or NIK registered
+	Tax             bool // PPh 21 is calculated
+	LastPeriod      bool // December or the last period of the employment: annual calculation
 	// Earlier runs of the same tax month and of the year before this month.
 	MonthPriorGross       decimal.Decimal
 	MonthPriorTax         decimal.Decimal
@@ -430,6 +433,20 @@ func Calculate(in PayInput) PayResult {
 			}
 		}
 	}
+	// retro differences of the contributions of a corrected period: taxed
+	// and deductible like the contributions they correct
+	for _, l := range in.BPJSAdjustments {
+		if l.Amount.IsZero() || (l.Kind != LineBPJSEmployee && l.Kind != LineBPJSEmployer) {
+			continue
+		}
+		add(l)
+		if l.Kind == LineBPJSEmployee && contains(in.Rates.DeductibleEmployeeContributions, l.Programme) {
+			res.Deductible = res.Deductible.Add(l.Amount)
+		}
+		if l.Kind == LineBPJSEmployer && contains(in.Rates.TaxableEmployerContributions, l.Programme) {
+			taxableER = taxableER.Add(l.Amount)
+		}
+	}
 	// totals before tax
 	taxable := decimal.Zero
 	for _, l := range res.Lines {
@@ -506,6 +523,81 @@ func Calculate(in PayInput) PayResult {
 	}
 	sortLines(res.Lines)
 	return res
+}
+
+// BPJSDifferences are the contribution lines of a retro correction (FR-PAY
+// retro, FR-TAX-HR-03): the BPJS lines of the corrected period recalculated
+// with today's data (now, from Calculate with BPJS) less what the approved
+// runs paid for that period (paid, by line code BPJS_<PROGRAMME>_EE / _ER,
+// earlier corrections included). One line per programme and side with a
+// difference, sorted by code; negative = refund (e.g. a cap reached, or a
+// worker category excluded from BPJS since).
+func BPJSDifferences(now []PayLine, paid map[string]decimal.Decimal, period string) []PayLine {
+	cur := map[string]PayLine{}
+	for _, l := range now {
+		if l.Kind == LineBPJSEmployee || l.Kind == LineBPJSEmployer {
+			x := cur[l.Code]
+			if x.Code == "" {
+				x = l
+				x.Amount = decimal.Zero
+			}
+			x.Amount = x.Amount.Add(l.Amount)
+			cur[l.Code] = x
+		}
+	}
+	codes := make([]string, 0, len(cur)+len(paid))
+	for c := range cur {
+		codes = append(codes, c)
+	}
+	for c := range paid {
+		if _, ok := cur[c]; !ok {
+			codes = append(codes, c)
+		}
+	}
+	sort.Strings(codes)
+	var out []PayLine
+	for _, code := range codes {
+		diff := cur[code].Amount.Sub(paid[code])
+		if diff.IsZero() {
+			continue
+		}
+		l, ok := cur[code]
+		if !ok {
+			l = bpjsLineOf(code)
+			if l.Code == "" {
+				continue // not a contribution line
+			}
+		}
+		out = append(out, PayLine{Code: code, Name: l.Name, Kind: l.Kind, Category: CatStatutory, Programme: l.Programme, Quantity: one, Rate: diff,
+			Amount: diff, Source: "retro", SourceType: "hris.payroll_period", SourceID: period,
+			Description: "Correction of " + period + ": " + cur[code].Amount.String() + " − paid " + paid[code].String()})
+	}
+	return out
+}
+
+// bpjsLineOf describes a contribution line code (BPJS_JHT_EE …).
+func bpjsLineOf(code string) PayLine {
+	rest, ok := strings.CutPrefix(code, "BPJS_")
+	if !ok {
+		return PayLine{}
+	}
+	kind, name := "", ""
+	switch {
+	case strings.HasSuffix(rest, "_EE"):
+		kind, rest = LineBPJSEmployee, strings.TrimSuffix(rest, "_EE")
+	case strings.HasSuffix(rest, "_ER"):
+		kind, rest = LineBPJSEmployer, strings.TrimSuffix(rest, "_ER")
+	default:
+		return PayLine{}
+	}
+	p := strings.ToLower(rest)
+	if name = bpjsNames[p]; name == "" {
+		return PayLine{}
+	}
+	if kind == LineBPJSEmployer {
+		name += " (employer)"
+	}
+	return PayLine{Code: code, Name: name, Kind: kind, Programme: p}
 }
 
 func rateOf(amount, base decimal.Decimal) decimal.Decimal {

@@ -178,6 +178,9 @@ var Assets = &resource.Def{
 		{Name: "departmentId", Column: "department_id", Label: "Department", Kind: resource.UUID,
 			Ref: &resource.Ref{Table: "platform.departments", SameProperty: true, Label: "department"}},
 		{Name: "costCenter", Column: "cost_center", Label: "Cost Center", Kind: resource.String, Max: 40},
+		// PRD P5 FR-HR-06: listed on the offboarding checklist of a leaver
+		{Name: "custodianEmployeeId", Column: "custodian_employee_id", Label: "Custodian (employee)", Kind: resource.UUID, Filter: true,
+			Ref: &resource.Ref{Table: "hris.employees", SameProperty: true, Label: "employee"}},
 		{Name: "acquisitionDate", Column: "acquisition_date", Label: "Acquisition Date", Kind: resource.Date},
 		{Name: "acquisitionCost", Column: "acquisition_cost", Label: "Acquisition Cost", Kind: resource.Decimal, Default: "0", Min: resource.Min(0)},
 		{Name: "residualValue", Column: "residual_value", Label: "Residual Value", Kind: resource.Decimal, Default: "0", Min: resource.Min(0)},

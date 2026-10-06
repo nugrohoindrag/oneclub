@@ -438,7 +438,7 @@ func (m *Module) calculateRun(ctx context.Context, tx pgx.Tx, run runRow) ([]sli
 	if err != nil {
 		return nil, c, err
 	}
-	paidRetro := map[uuid.UUID]map[string]decimal.Decimal{}
+	paidRetro := map[uuid.UUID]periodPaid{}
 	if run.RunType == hris.RunAdjustment && run.CorrectsPeriod != nil {
 		if paidRetro, err = paidInPeriod(ctx, tx, run.PropertyID, *run.CorrectsPeriod); err != nil {
 			return nil, c, err
@@ -455,32 +455,48 @@ func (m *Module) calculateRun(ctx context.Context, tx pgx.Tx, run runRow) ([]sli
 	return out, c, nil
 }
 
+// periodPaid is what the approved runs paid an employee for a period.
+type periodPaid struct {
+	pay  map[string]decimal.Decimal // earnings (+) and deductions (−) by code
+	bpjs map[string]decimal.Decimal // BPJS contributions by line code (BPJS_<PROGRAMME>_EE / _ER)
+}
+
 // paidInPeriod sums what the approved runs of a period paid per employee
-// and code (structure, contract, time and retro lines).
-func paidInPeriod(ctx context.Context, tx pgx.Tx, property uuid.UUID, period string) (map[uuid.UUID]map[string]decimal.Decimal, error) {
-	rows, err := tx.Query(ctx, `SELECT l.employee_id, l.code, sum(CASE WHEN l.kind = 'deduction' THEN -l.amount ELSE l.amount END)
+// and code: structure, contract and time lines and the BPJS contributions
+// of the regular run, plus the retro lines of earlier corrections.
+func paidInPeriod(ctx context.Context, tx pgx.Tx, property uuid.UUID, period string) (map[uuid.UUID]periodPaid, error) {
+	rows, err := tx.Query(ctx, `SELECT l.employee_id, l.code, l.kind IN ('bpjs_employee', 'bpjs_employer') AS bpjs,
+		  sum(CASE WHEN l.kind = 'deduction' THEN -l.amount ELSE l.amount END)
 		FROM hris.payroll_lines l JOIN hris.payroll_runs r ON r.id = l.run_id
 		WHERE r.property_id = $1 AND r.status IN ('approved', 'posted', 'paid') AND r.run_type IN ('regular', 'adjustment')
-		  AND ((r.run_type = 'regular' AND r.period_code = $2 AND l.source IN ('structure', 'contract', 'time', 'grade', 'position', 'employee'))
+		  AND ((r.run_type = 'regular' AND r.period_code = $2 AND (l.source IN ('structure', 'contract', 'time', 'grade', 'position', 'employee')
+		        OR l.kind IN ('bpjs_employee', 'bpjs_employer')))
 		    OR (r.run_type = 'adjustment' AND r.corrects_period = $2 AND l.source = 'retro'))
-		  AND l.kind IN ('earning', 'deduction')
-		GROUP BY 1, 2`, property, period)
+		  AND l.kind IN ('earning', 'deduction', 'bpjs_employee', 'bpjs_employer')
+		GROUP BY 1, 2, 3`, property, period)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	out := map[uuid.UUID]map[string]decimal.Decimal{}
+	out := map[uuid.UUID]periodPaid{}
 	for rows.Next() {
 		var eid uuid.UUID
 		var code string
+		var bpjs bool
 		var amt decimal.Decimal
-		if err := rows.Scan(&eid, &code, &amt); err != nil {
+		if err := rows.Scan(&eid, &code, &bpjs, &amt); err != nil {
 			return nil, err
 		}
-		if out[eid] == nil {
-			out[eid] = map[string]decimal.Decimal{}
+		p, ok := out[eid]
+		if !ok {
+			p = periodPaid{pay: map[string]decimal.Decimal{}, bpjs: map[string]decimal.Decimal{}}
+			out[eid] = p
 		}
-		out[eid][code] = amt
+		if bpjs {
+			p.bpjs[code] = p.bpjs[code].Add(amt)
+		} else {
+			p.pay[code] = p.pay[code].Add(amt)
+		}
 	}
 	return out, rows.Err()
 }
@@ -530,7 +546,7 @@ func (m *Module) regularInput(ctx context.Context, tx pgx.Tx, c calcContext, e h
 }
 
 func (m *Module) calculateEmployee(ctx context.Context, tx pgx.Tx, c calcContext, e hris.Employee, ts *hris.TimeSummary, inputs []hris.PayrollInputLine,
-	adjs []adjustment, loans []loanRow, p *priors, paid map[string]decimal.Decimal) (slipResult, error) {
+	adjs []adjustment, loans []loanRow, p *priors, paid periodPaid) (slipResult, error) {
 	run := c.run
 	s := slipResult{emp: e, time: ts}
 	prof, err := hris.PayrollProfileOf(ctx, tx, e.ID)
@@ -598,11 +614,12 @@ func (m *Module) calculateEmployee(ctx context.Context, tx pgx.Tx, c calcContext
 			s.messages = append(s.messages, msgs...)
 		case hris.RunAdjustment:
 			if run.CorrectsPeriod != nil {
-				items, err := m.retroItems(ctx, tx, c, e, *run.CorrectsPeriod, paid)
+				items, bpjs, err := m.retroItems(ctx, tx, c, e, *run.CorrectsPeriod, paid)
 				if err != nil {
 					return s, err
 				}
 				in.Items = append(in.Items, items...)
+				in.BPJSAdjustments = bpjs
 			}
 		}
 	}
@@ -736,16 +753,19 @@ func (m *Module) settlementItems(ctx context.Context, tx pgx.Tx, c calcContext, 
 }
 
 // retroItems recalculates the corrected period with today's data and pays
-// the differences with what the approved runs paid (FR-PAY-06).
-func (m *Module) retroItems(ctx context.Context, tx pgx.Tx, c calcContext, e hris.Employee, period string, paid map[string]decimal.Decimal) ([]hris.PayItem, error) {
+// the differences with what the approved runs paid (FR-PAY-06): pay lines
+// as earnings, and the BPJS contributions of the recalculated fixed wage
+// (statutory rates of the corrected period) as contribution differences.
+func (m *Module) retroItems(ctx context.Context, tx pgx.Tx, c calcContext, e hris.Employee, period string, paid periodPaid) ([]hris.PayItem,
+	[]hris.PayLine, error) {
 	pc, err := time.Parse("2006-01", period)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	from, to := periodBounds(pc, c.cfg.PeriodStartDay)
 	ts, err := hris.TimeSummaries(ctx, tx, c.run.PropertyID, from, to, []uuid.UUID{e.ID})
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	var t *hris.TimeSummary
 	if len(ts) > 0 {
@@ -753,10 +773,14 @@ func (m *Module) retroItems(ctx context.Context, tx pgx.Tx, c calcContext, e hri
 	}
 	in, _, err := m.regularInput(ctx, tx, c, e, from, to, t, false)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	in.Tax, in.BPJS, in.RoundingUnit = false, false, dec("1")
+	if in.Rates, _, err = statutoryRatesAt(ctx, tx, c.run.PropertyID, to); err != nil {
+		return nil, nil, err
+	}
+	in.Tax, in.RoundingUnit = false, dec("1") // BPJS as in the regular run (worker categories excluded by the policy stay excluded)
 	res := hris.Calculate(in)
+	bpjs := hris.BPJSDifferences(res.Lines, paid.bpjs, period)
 	now := map[string]hris.PayLine{}
 	for _, l := range res.Lines {
 		if l.Kind == hris.LineEarning || l.Kind == hris.LineDeduction {
@@ -777,7 +801,7 @@ func (m *Module) retroItems(ctx context.Context, tx pgx.Tx, c calcContext, e hri
 	for k := range now {
 		codes[k] = true
 	}
-	for k := range paid {
+	for k := range paid.pay {
 		codes[k] = true
 	}
 	var keys []string
@@ -787,7 +811,7 @@ func (m *Module) retroItems(ctx context.Context, tx pgx.Tx, c calcContext, e hri
 	sort.Strings(keys)
 	var items []hris.PayItem
 	for _, code := range keys {
-		diff := now[code].Amount.Sub(paid[code])
+		diff := now[code].Amount.Sub(paid.pay[code])
 		if diff.IsZero() {
 			continue
 		}
@@ -807,7 +831,7 @@ func (m *Module) retroItems(ctx context.Context, tx pgx.Tx, c calcContext, e hri
 			Amount: diff, Source: "retro", SourceType: "hris.payroll_period", SourceID: period, Description: "Correction of " + period}
 		items = append(items, it)
 	}
-	return items, nil
+	return items, bpjs, nil
 }
 
 // periodBounds returns the dates of a payroll period: the calendar month,

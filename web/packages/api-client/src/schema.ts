@@ -48164,6 +48164,11 @@ export interface components {
             createdAt: string;
             /**
              * Format: uuid
+             * @description Custodian (employee)
+             */
+            custodianEmployeeId?: string | null;
+            /**
+             * Format: uuid
              * @description Department
              */
             departmentId?: string | null;
@@ -48343,6 +48348,11 @@ export interface components {
             code?: string;
             /** @description Cost Center */
             costCenter?: string | null;
+            /**
+             * Format: uuid
+             * @description Custodian (employee)
+             */
+            custodianEmployeeId?: string | null;
             /**
              * Format: uuid
              * @description Department
@@ -53671,7 +53681,17 @@ export interface components {
             facilityType?: string | null;
             inside: number;
         };
+        OffboardingAsset: {
+            category: string;
+            code: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+            status: string;
+        };
         OffboardingItem: {
+            /** @description Item return_assets: the assets of the Inventory asset register still in the employee's custody */
+            assets?: components["schemas"]["OffboardingAsset"][];
             code: string;
             /** Format: date-time */
             doneAt?: string | null;
@@ -167864,6 +167884,7 @@ export interface operations {
                 sort?: string;
                 "filter[categoryId]"?: string;
                 "filter[warehouseId]"?: string;
+                "filter[custodianEmployeeId]"?: string;
                 "filter[rentable]"?: string;
                 "filter[status]"?: string;
             };
@@ -168418,6 +168439,7 @@ export interface operations {
                 sort?: string;
                 "filter[categoryId]"?: string;
                 "filter[warehouseId]"?: string;
+                "filter[custodianEmployeeId]"?: string;
                 "filter[rentable]"?: string;
                 "filter[status]"?: string;
             };

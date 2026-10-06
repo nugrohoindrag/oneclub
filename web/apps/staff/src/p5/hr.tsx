@@ -368,7 +368,16 @@ function EmploymentTab({ id, d }: { id: string; d: R }) {
       {d.offboarding !== null && d.offboarding !== undefined && (
         <Card title="Offboarding checklist" icon="checklist">
           <DataTable rows={off.data?.items} loading={off.isLoading} error={off.error} columns={[
-            { key: 'label', header: 'Item' }, { key: 'status', header: 'Status', render: pill('status') },
+            { key: 'label', header: 'Item', render: (r) => (
+              <>
+                {String(r.label)}
+                {/* FR-HR-06: assets of the asset register still in the leaver's custody */}
+                {((r.assets as R[] | undefined) ?? []).length > 0 && (
+                  <div className="oc-small oc-muted">Still held: {(r.assets as R[]).map((a) => `${String(a.code)} · ${String(a.name)}`).join(', ')}</div>
+                )}
+              </>
+            ) },
+            { key: 'status', header: 'Status', render: pill('status') },
             { key: 'doneByName', header: 'By', render: (r) => (r.doneAt ? `${val(r.doneByName)} · ${formatDateTime(String(r.doneAt))}` : '—') },
             { key: 'notes', header: 'Notes', render: (r) => val(r.notes) },
           ]} actions={(r) => can('hris.offboarding.manage') && r.status === 'pending' ? (

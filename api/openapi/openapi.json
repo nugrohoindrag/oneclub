@@ -42632,6 +42632,12 @@
             "format": "date-time",
             "type": "string"
           },
+          "custodianEmployeeId": {
+            "description": "Custodian (employee)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
           "departmentId": {
             "description": "Department",
             "format": "uuid",
@@ -43014,6 +43020,12 @@
           "costCenter": {
             "description": "Cost Center",
             "maxLength": 40,
+            "nullable": true,
+            "type": "string"
+          },
+          "custodianEmployeeId": {
+            "description": "Custodian (employee)",
+            "format": "uuid",
             "nullable": true,
             "type": "string"
           },
@@ -58132,8 +58144,43 @@
         ],
         "type": "object"
       },
+      "OffboardingAsset": {
+        "properties": {
+          "category": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "category",
+          "status"
+        ],
+        "type": "object"
+      },
       "OffboardingItem": {
         "properties": {
+          "assets": {
+            "description": "Item return_assets: the assets of the Inventory asset register still in the employee's custody",
+            "items": {
+              "$ref": "#/components/schemas/OffboardingAsset"
+            },
+            "type": "array"
+          },
           "code": {
             "type": "string"
           },
@@ -276780,6 +276827,13 @@
           },
           {
             "in": "query",
+            "name": "filter[custodianEmployeeId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
             "name": "filter[rentable]",
             "schema": {
               "type": "string"
@@ -277706,6 +277760,13 @@
           {
             "in": "query",
             "name": "filter[warehouseId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[custodianEmployeeId]",
             "schema": {
               "type": "string"
             }
