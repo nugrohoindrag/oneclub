@@ -66,6 +66,29 @@ func (s *Service) Register(reg *route.Registry) {
 		reg.Add(rt)
 	}
 	pq := []route.Param{{Name: "from", Description: "YYYY-MM-DD"}, {Name: "to", Description: "YYYY-MM-DD"}}
+	add(route.Route{Method: http.MethodGet, Path: "/api/v1/crm/dashboard", Tag: "CRM Dashboard", Summary: "CRM Dashboard Overview: members, engagement, membership, value and the action center",
+		Permission: "crm.analytics.view", Response: CRMDashboard{},
+		Query: []route.Param{{Name: "period", Enum: []string{"month", "quarter", "year"}}, {Name: "type", Description: "Membership type name"},
+			{Name: "activeDays", Description: "Active: an activity within N days (default 90)"}, {Name: "occasionalDays", Description: "Occasional: the last activity within N days (default 180)"},
+			{Name: "expiringDays", Description: "Expiring: the membership ends within N days (default 30)"}},
+		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (CRMDashboard, error) {
+			f, err := dashboardFilter(ctx, tx, r)
+			if err != nil {
+				return CRMDashboard{}, err
+			}
+			return Dashboard(ctx, tx, handle.Property(ctx), f)
+		})})
+	add(route.Route{Method: http.MethodGet, Path: "/api/v1/crm/dashboard/members", Tag: "CRM Dashboard", Summary: "Members behind a CRM dashboard widget (expiring, at risk, high value)",
+		Permission: "crm.analytics.view", Response: DashMember{}, List: true,
+		Query: []route.Param{{Name: "list", Enum: []string{"expiring", "at_risk", "high_value"}, Required: true}, {Name: "days", Description: "Expiring within N days (default 90)"},
+			{Name: "type", Description: "Membership type name"}},
+		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (httpx.Page[DashMember], error) {
+			f, err := dashboardFilter(ctx, tx, r)
+			if err != nil {
+				return httpx.Page[DashMember]{}, err
+			}
+			return handle.Page(DashboardMembers(ctx, tx, handle.Property(ctx), f, r.URL.Query().Get("list"), handle.QueryInt(r, "days", 90), handle.QueryInt(r, "limit", 200)))
+		})})
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/crm/analytics/rfm", Summary: "RFM groups and cross-business mix (latest snapshot)",
 		Permission: "crm.analytics.view", Response: RFMSummary{},
 		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (RFMSummary, error) {

@@ -486,3 +486,197 @@ export function DashName({ icon, name, sub, tone }: { icon: string; name: React.
     </span>
   );
 }
+
+/** Solid colour of a board lane head (the dashboard's blue, ink, lime, sky, amber; green won, red lost). */
+export type BoardTone = 'blue' | 'dark' | 'lime' | 'sky' | 'amber' | 'green' | 'red';
+
+/** The lane colours in turn for open stages. */
+export const BOARD_TONES: BoardTone[] = ['blue', 'dark', 'lime', 'sky', 'amber'];
+
+/** A column of a board: title, count, badge (probability), its total and its colour. */
+export interface BoardLane {
+  key: string;
+  title: string;
+  count: number;
+  badge?: string;
+  /** Total of the column (an amount, drawn with Amount). */
+  total?: string;
+  tone?: BoardTone;
+  children?: React.ReactNode;
+}
+
+/**
+ * A board (pipeline, recruitment stages): white lanes side by side that
+ * scroll sideways, each under a solid coloured head (title, count, badge,
+ * total) like the Expense card's panel, holding BoardCards.
+ */
+export function Board({ label, lanes, empty = 'Nothing here' }: { label: string; lanes: BoardLane[]; empty?: string }) {
+  return (
+    <div className="oc-dash-board" role="list" aria-label={label}>
+      {lanes.map((l, i) => (
+        <section key={l.key} className="oc-dash-lane" role="listitem" aria-label={l.title}>
+          <header className="oc-dash-lane-head" data-tone={l.tone ?? BOARD_TONES[i % BOARD_TONES.length]}>
+            <div className="oc-dash-lane-title">
+              <h3>{l.title}</h3>
+              <span className="oc-dash-count">{l.count}</span>
+              <span className="oc-spacer" />
+              {l.badge && <span className="oc-dash-lane-badge">{l.badge}</span>}
+            </div>
+            {l.total && <Amount text={l.total} size="md" />}
+          </header>
+          <div className="oc-dash-lane-items">
+            {React.Children.count(l.children) > 0 ? l.children : <p className="oc-dash-lane-empty">{empty}</p>}
+          </div>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+/** A chip of a board card: icon and text, soft (plain) or solid red / green / blue. */
+export interface BoardChip { icon?: string; text: string; tone?: 'plain' | 'red' | 'green' | 'blue' }
+
+/**
+ * A card on a board: tag (number) and a dark open arrow, title, the party,
+ * the amount, chips (close date, source, rating), the owner's avatar and a
+ * footer (the blue move pill).
+ */
+export function BoardCard({ tag, title, party, amount, chips, owner, onOpen, footer }: {
+  tag?: string; title: React.ReactNode; party?: React.ReactNode; amount?: string; chips?: (BoardChip | null | undefined | false)[];
+  owner?: string; onOpen?: () => void; footer?: React.ReactNode;
+}) {
+  const shown = (chips ?? []).filter((c): c is BoardChip => !!c && !!c.text);
+  return (
+    <article className="oc-dash-kcard">
+      <div className="oc-dash-kcard-head">
+        {tag && <span className="oc-dash-tag">{tag}</span>}
+        <span className="oc-spacer" />
+        {onOpen && <CircleButton arrow dark label="Open" onClick={onOpen} />}
+      </div>
+      {onOpen
+        ? <button type="button" className="oc-dash-kcard-title" onClick={onOpen}>{title}</button>
+        : <strong className="oc-dash-kcard-title">{title}</strong>}
+      {party && <span className="oc-dash-kcard-party"><span className="oc-dash-tile" data-tone="blue"><Icon name="person" size={14} /></span>{party}</span>}
+      {amount && <Amount text={amount} size="sm" />}
+      {shown.length > 0 && (
+        <div className="oc-dash-kcard-chips">
+          {shown.map((c, i) => <span key={i} className="oc-dash-kchip" data-tone={c.tone ?? 'plain'}>{c.icon && <Icon name={c.icon} size={14} />}{c.text}</span>)}
+        </div>
+      )}
+      {(owner || footer) && (
+        <div className="oc-dash-kcard-foot">
+          {owner && <span title={owner}><Avatar name={owner} /></span>}
+          {footer}
+        </div>
+      )}
+    </article>
+  );
+}
+
+/** A ranked entry (leaderboards, top spenders): rank, previous rank, name and its value. */
+export interface RankItem {
+  key: string;
+  rank: number;
+  /** Rank in the previous period; null = new in the ranking, undefined = not tracked. */
+  previousRank?: number | null;
+  name: string;
+  sub?: React.ReactNode;
+  /** The formatted value ("Rp 101.000.000", "12 rounds"). */
+  value: string;
+  onOpen?: () => void;
+}
+
+/** Movement against the previous period: ▲ 3 (green), ▼ 2 (red), NEW (blue), = (grey). */
+export function RankMove({ rank, previousRank }: { rank: number; previousRank?: number | null }) {
+  if (previousRank === undefined) return null;
+  if (previousRank === null) return <span className="oc-dash-move" data-tone="new">NEW</span>;
+  const d = previousRank - rank;
+  if (d === 0) return <span className="oc-dash-move" data-tone="same" title="Same rank">=</span>;
+  return <span className="oc-dash-move" data-tone={d > 0 ? 'up' : 'down'} title={`Was #${previousRank}`}>{d > 0 ? '▲' : '▼'} {Math.abs(d)}</span>;
+}
+
+/** Rank in a medal circle: gold, silver and bronze for the first three. */
+export function RankBadge({ rank }: { rank: number }) {
+  return <span className="oc-dash-medal" data-rank={rank <= 3 ? rank : undefined}>{rank}</span>;
+}
+
+/** Initials of a name in a round avatar. */
+export function Avatar({ name, tone = 'lime' }: { name: string; tone?: 'lime' | 'blue' | 'dark' | 'white' }) {
+  const text = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join('');
+  return <span className="oc-dash-avatar" data-tone={tone} aria-hidden>{text}</span>;
+}
+
+/**
+ * The first three of a ranking on a podium: #1 in the middle on the tallest
+ * dark step, #2 blue on the left, #3 lime on the right.
+ */
+export function Podium({ items, empty = 'Nothing ranked yet.' }: { items: RankItem[]; empty?: string }) {
+  const top = items.slice(0, 3);
+  if (top.length === 0) return <p className="oc-dash-empty">{empty}</p>;
+  const order = [top[1], top[0], top[2]].filter((x): x is RankItem => !!x);
+  return (
+    <div className="oc-dash-podium">
+      {order.map((it) => (
+        <div key={it.key} className="oc-dash-podium-col" data-place={it.rank}>
+          <div className="oc-dash-podium-who">
+            <Avatar name={it.name} tone={it.rank === 1 ? 'dark' : it.rank === 2 ? 'blue' : 'lime'} />
+            {it.onOpen
+              ? <button type="button" className="oc-dash-podium-name" onClick={it.onOpen}>{it.name}</button>
+              : <strong className="oc-dash-podium-name">{it.name}</strong>}
+            {it.sub && <span className="oc-dash-podium-sub">{it.sub}</span>}
+          </div>
+          <div className="oc-dash-podium-step">
+            <span className="oc-dash-podium-rank">#{it.rank}</span>
+            <Amount text={it.value} size={it.rank === 1 ? 'md' : 'sm'} />
+            <RankMove rank={it.rank} previousRank={it.previousRank} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** A part of a ranking bar (a business line of the spend). */
+export interface RankPart { label: string; value: number; color: string }
+
+/**
+ * Horizontal ranking bars: rank, name, a bar as long as the value against
+ * the first, split into coloured parts, the value and the movement.
+ */
+export function RankBars({ rows, format, legend, ranked = true }: {
+  rows: (RankItem & { total: number; parts?: RankPart[] })[]; format: (v: number) => string; legend?: { label: string; color: string }[];
+  /** Medal badges with the rank (off for plain bars, such as activities). */
+  ranked?: boolean;
+}) {
+  const max = Math.max(1, ...rows.map((r) => r.total));
+  return (
+    <div className="oc-dash-rankbars">
+      {legend && <div className="oc-dash-legend">{legend.map((l) => <span key={l.label}><i style={{ background: l.color }} />{l.label}</span>)}</div>}
+      {rows.map((r) => {
+        const parts = r.parts?.filter((p) => p.value > 0) ?? [];
+        return (
+          <div key={r.key} className="oc-dash-rankbar">
+            {ranked && <RankBadge rank={r.rank} />}
+            <div className="oc-dash-rankbar-main">
+              <div className="oc-dash-rankbar-head">
+                {r.onOpen
+                  ? <button type="button" className="oc-dash-rankbar-name" onClick={r.onOpen}>{r.name}</button>
+                  : <span className="oc-dash-rankbar-name">{r.name}</span>}
+                {ranked && <RankMove rank={r.rank} previousRank={r.previousRank} />}
+                <span className="oc-spacer" />
+                <strong className="oc-dash-num">{r.value}</strong>
+              </div>
+              <div className="oc-dash-rankbar-track" title={parts.map((p) => `${p.label}: ${format(p.value)}`).join(' · ') || r.value}>
+                <div className="oc-dash-rankbar-fill" style={{ width: `${Math.max(2, (r.total / max) * 100)}%` }}>
+                  {parts.length > 0
+                    ? parts.map((p) => <span key={p.label} style={{ flexGrow: p.value, background: p.color }} />)
+                    : <span style={{ flexGrow: 1, background: 'var(--dash-blue)' }} />}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

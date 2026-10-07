@@ -14889,6 +14889,302 @@
         ],
         "type": "object"
       },
+      "CRMDashboard": {
+        "properties": {
+          "acquisition": {
+            "properties": {
+              "newCustomers": {
+                "type": "integer"
+              },
+              "sources": {
+                "description": "Lead source of the new customers; direct when they came without a lead",
+                "items": {
+                  "$ref": "#/components/schemas/DashCount"
+                },
+                "type": "array"
+              }
+            },
+            "required": [
+              "newCustomers",
+              "sources"
+            ],
+            "type": "object"
+          },
+          "activity": {
+            "description": "Member activities in the period per kind",
+            "items": {
+              "$ref": "#/components/schemas/DashCount"
+            },
+            "type": "array"
+          },
+          "atRisk": {
+            "properties": {
+              "declining": {
+                "type": "integer"
+              },
+              "expiring": {
+                "type": "integer"
+              },
+              "members": {
+                "items": {
+                  "$ref": "#/components/schemas/DashMember"
+                },
+                "type": "array"
+              },
+              "noVisit": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "total",
+              "noVisit",
+              "declining",
+              "expiring",
+              "members"
+            ],
+            "type": "object"
+          },
+          "byStatus": {
+            "items": {
+              "$ref": "#/components/schemas/DashCount"
+            },
+            "type": "array"
+          },
+          "byType": {
+            "items": {
+              "$ref": "#/components/schemas/DashCount"
+            },
+            "type": "array"
+          },
+          "engagement": {
+            "description": "Active members per RFM group (no_score when not scored yet)",
+            "items": {
+              "$ref": "#/components/schemas/DashCount"
+            },
+            "type": "array"
+          },
+          "expiry": {
+            "properties": {
+              "d30": {
+                "type": "integer"
+              },
+              "d60": {
+                "type": "integer"
+              },
+              "d90": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "d30",
+              "d60",
+              "d90"
+            ],
+            "type": "object"
+          },
+          "followUps": {
+            "description": "Mine",
+            "properties": {
+              "dueToday": {
+                "type": "integer"
+              },
+              "items": {
+                "items": {
+                  "$ref": "#/components/schemas/DashFollowUp"
+                },
+                "type": "array"
+              },
+              "overdue": {
+                "type": "integer"
+              },
+              "upcoming": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "dueToday",
+              "overdue",
+              "upcoming",
+              "items"
+            ],
+            "type": "object"
+          },
+          "from": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "growth": {
+            "description": "Last 12 months up to the period end",
+            "items": {
+              "$ref": "#/components/schemas/DashGrowth"
+            },
+            "type": "array"
+          },
+          "guests": {
+            "properties": {
+              "converted": {
+                "description": "Members joined in the period who played as a member's guest before",
+                "type": "integer"
+              },
+              "repeat": {
+                "type": "integer"
+              },
+              "topReferrers": {
+                "items": {
+                  "$ref": "#/components/schemas/DashReferrer"
+                },
+                "type": "array"
+              },
+              "unique": {
+                "type": "integer"
+              },
+              "visits": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "visits",
+              "unique",
+              "repeat",
+              "converted",
+              "topReferrers"
+            ],
+            "type": "object"
+          },
+          "highValue": {
+            "items": {
+              "$ref": "#/components/schemas/DashMember"
+            },
+            "type": "array"
+          },
+          "kpis": {
+            "$ref": "#/components/schemas/DashKPIs"
+          },
+          "renewal": {
+            "description": "This month",
+            "properties": {
+              "due": {
+                "type": "integer"
+              },
+              "expired": {
+                "type": "integer"
+              },
+              "pending": {
+                "type": "integer"
+              },
+              "renewed": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "due",
+              "renewed",
+              "pending",
+              "expired"
+            ],
+            "type": "object"
+          },
+          "segments": {
+            "description": "Active members: expiring, active, occasional, inactive",
+            "items": {
+              "$ref": "#/components/schemas/DashCount"
+            },
+            "type": "array"
+          },
+          "thresholds": {
+            "properties": {
+              "activeDays": {
+                "type": "integer"
+              },
+              "expiringDays": {
+                "type": "integer"
+              },
+              "occasionalDays": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "activeDays",
+              "occasionalDays",
+              "expiringDays"
+            ],
+            "type": "object"
+          },
+          "to": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "today": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "types": {
+            "description": "Membership types (filter options)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "upcoming": {
+            "properties": {
+              "birthdays": {
+                "description": "Members, next 30 days",
+                "type": "integer"
+              },
+              "events": {
+                "description": "Event registrations of members, next 30 days",
+                "type": "integer"
+              },
+              "expiring": {
+                "description": "Next 30 days",
+                "type": "integer"
+              },
+              "followUps": {
+                "description": "Open follow-ups due in the next 7 days",
+                "type": "integer"
+              },
+              "vipArrivals": {
+                "description": "Tee times of VIPs, next 7 days",
+                "type": "integer"
+              }
+            },
+            "required": [
+              "expiring",
+              "birthdays",
+              "vipArrivals",
+              "events",
+              "followUps"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "today",
+          "thresholds",
+          "types",
+          "kpis",
+          "growth",
+          "segments",
+          "activity",
+          "engagement",
+          "byType",
+          "byStatus",
+          "renewal",
+          "expiry",
+          "acquisition",
+          "guests",
+          "highValue",
+          "atRisk",
+          "upcoming",
+          "followUps"
+        ],
+        "type": "object"
+      },
       "Caddy": {
         "properties": {
           "archivedAt": {
@@ -28738,6 +29034,14 @@
             },
             "type": "array"
           },
+          "relationship": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OverviewRelationship"
+              }
+            ],
+            "nullable": true
+          },
           "relationships": {
             "items": {
               "$ref": "#/components/schemas/OverviewRelation"
@@ -29834,6 +30138,228 @@
           "byMethod",
           "byStaff",
           "total"
+        ],
+        "type": "object"
+      },
+      "DashCount": {
+        "properties": {
+          "count": {
+            "type": "integer"
+          },
+          "key": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "count"
+        ],
+        "type": "object"
+      },
+      "DashFollowUp": {
+        "properties": {
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "dueAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "subject"
+        ],
+        "type": "object"
+      },
+      "DashGrowth": {
+        "properties": {
+          "cancelled": {
+            "type": "integer"
+          },
+          "expired": {
+            "type": "integer"
+          },
+          "members": {
+            "description": "Members at the end of the month",
+            "type": "integer"
+          },
+          "month": {
+            "description": "YYYY-MM",
+            "type": "string"
+          },
+          "net": {
+            "description": "New − expired − cancelled",
+            "type": "integer"
+          },
+          "new": {
+            "type": "integer"
+          },
+          "renewed": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "month",
+          "members",
+          "new",
+          "renewed",
+          "expired",
+          "cancelled",
+          "net"
+        ],
+        "type": "object"
+      },
+      "DashKPIs": {
+        "properties": {
+          "activeMembers": {
+            "description": "Active members with an activity in the period",
+            "type": "integer"
+          },
+          "avgClv": {
+            "description": "Average lifetime value of active members (RFM store)",
+            "type": "number"
+          },
+          "expiring": {
+            "description": "Active memberships ending within the expiring threshold",
+            "type": "integer"
+          },
+          "inactiveMembers": {
+            "description": "Active members without an activity in the period",
+            "type": "integer"
+          },
+          "newMembers": {
+            "description": "Joined in the period",
+            "type": "integer"
+          },
+          "newMembersPrev": {
+            "description": "Joined in the previous period of the same length",
+            "type": "integer"
+          },
+          "nonMembers": {
+            "description": "Non-member customers who transacted in the period",
+            "type": "integer"
+          },
+          "retention": {
+            "description": "Renewed ÷ (renewed + expired + cancelled) over the last 12 months",
+            "nullable": true,
+            "type": "number"
+          },
+          "totalMembers": {
+            "description": "Active members",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "totalMembers",
+          "newMembers",
+          "newMembersPrev",
+          "activeMembers",
+          "inactiveMembers",
+          "expiring",
+          "nonMembers",
+          "avgClv"
+        ],
+        "type": "object"
+      },
+      "DashMember": {
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "clv": {
+            "type": "number"
+          },
+          "code": {
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "endsOn": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "lastVisit": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "no_visit",
+              "declining",
+              "expiring"
+            ],
+            "type": "string"
+          },
+          "recencyDays": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "typeName": {
+            "type": "string"
+          },
+          "value": {
+            "description": "Spend (RFM monetary)",
+            "type": "number"
+          },
+          "visits": {
+            "description": "Visit days (RFM frequency)",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "customerId",
+          "code",
+          "name",
+          "typeName",
+          "visits",
+          "value",
+          "clv"
+        ],
+        "type": "object"
+      },
+      "DashReferrer": {
+        "properties": {
+          "customerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "guests": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "customerId",
+          "name",
+          "guests"
         ],
         "type": "object"
       },
@@ -65829,6 +66355,14 @@
             },
             "type": "array"
           },
+          "relationship": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OverviewRelationship"
+              }
+            ],
+            "nullable": true
+          },
           "relationships": {
             "items": {
               "$ref": "#/components/schemas/OverviewRelation"
@@ -65879,6 +66413,69 @@
           "accountType",
           "balance",
           "status"
+        ],
+        "type": "object"
+      },
+      "OverviewBooking": {
+        "properties": {
+          "bookingId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "playDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "players": {
+            "type": "integer"
+          },
+          "startAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bookingId",
+          "code",
+          "playDate",
+          "courseName",
+          "players",
+          "status"
+        ],
+        "type": "object"
+      },
+      "OverviewLine": {
+        "properties": {
+          "frequency": {
+            "description": "Visit days",
+            "type": "integer"
+          },
+          "lastAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "line": {
+            "type": "string"
+          },
+          "monetary": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "line",
+          "frequency",
+          "monetary"
         ],
         "type": "object"
       },
@@ -65968,6 +66565,66 @@
         ],
         "type": "object"
       },
+      "OverviewRelationship": {
+        "properties": {
+          "clv": {
+            "nullable": true,
+            "type": "number"
+          },
+          "guests": {
+            "description": "Guests brought on the customer's tee times",
+            "type": "integer"
+          },
+          "interactions": {
+            "type": "integer"
+          },
+          "lastActivity": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "lastInteraction": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewLine"
+            },
+            "type": "array"
+          },
+          "rfmGroup": {
+            "nullable": true,
+            "type": "string"
+          },
+          "spend": {
+            "description": "RFM monetary",
+            "nullable": true,
+            "type": "number"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewTask"
+            },
+            "type": "array"
+          },
+          "upcomingBookings": {
+            "items": {
+              "$ref": "#/components/schemas/OverviewBooking"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "lines",
+          "upcomingBookings",
+          "guests",
+          "interactions",
+          "tasks"
+        ],
+        "type": "object"
+      },
       "OverviewStats": {
         "properties": {
           "lastVisit": {
@@ -65989,6 +66646,31 @@
           "rounds",
           "totalPayments",
           "noShows"
+        ],
+        "type": "object"
+      },
+      "OverviewTask": {
+        "properties": {
+          "dueAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "subject"
         ],
         "type": "object"
       },
@@ -190775,6 +191457,255 @@
         "x-audited": true,
         "x-module": "crm",
         "x-permission": "crm.customer.merge"
+      }
+    },
+    "/api/v1/crm/dashboard": {
+      "get": {
+        "operationId": "getCrmDashboard",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "enum": [
+                "month",
+                "quarter",
+                "year"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Membership type name",
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active: an activity within N days (default 90)",
+            "in": "query",
+            "name": "activeDays",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Occasional: the last activity within N days (default 180)",
+            "in": "query",
+            "name": "occasionalDays",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Expiring: the membership ends within N days (default 30)",
+            "in": "query",
+            "name": "expiringDays",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CRMDashboard"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "CRM Dashboard Overview: members, engagement, membership, value and the action center",
+        "tags": [
+          "CRM Dashboard"
+        ],
+        "x-module": "crm",
+        "x-permission": "crm.analytics.view"
+      }
+    },
+    "/api/v1/crm/dashboard/members": {
+      "get": {
+        "operationId": "getCrmDashboardMembers",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "list",
+            "required": true,
+            "schema": {
+              "enum": [
+                "expiring",
+                "at_risk",
+                "high_value"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Expiring within N days (default 90)",
+            "in": "query",
+            "name": "days",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Membership type name",
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/DashMember"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Members behind a CRM dashboard widget (expiring, at risk, high value)",
+        "tags": [
+          "CRM Dashboard"
+        ],
+        "x-module": "crm",
+        "x-permission": "crm.analytics.view"
       }
     },
     "/api/v1/crm/data-requests": {
@@ -370463,6 +371394,9 @@
     },
     {
       "name": "CRM Analytics"
+    },
+    {
+      "name": "CRM Dashboard"
     },
     {
       "name": "CRM Sales"

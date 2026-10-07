@@ -542,3 +542,97 @@ a.oc-btn { text-decoration: none; }
   background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); }
 .oc-image-preview img { width: 100%; height: 100%; object-fit: cover; }
 .oc-image-thumb { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; display: block; }
+
+/* ── Office pages in the dashboard look (docs/product/dashboard-ui.webp) ──
+ * Every page of Back Office, Management Dashboard and Platform Administration
+ * (lists, tables, forms, detail pages, modals, drawers) takes the colours of
+ * the dashboard kit: the theme tokens are mapped onto the --dash-* palette
+ * inside the content area, so the components keep their markup. The app shell
+ * (sidebar, header) keeps the club theme; touch screens (POS, caddy, kitchen)
+ * keep their own look. */
+.oc-app:is([data-shell='backoffice'], [data-shell='management'], [data-shell='platform-admin']) .oc-content,
+body > .oc-popover {
+  --md-sys-color-primary: var(--dash-blue);
+  --md-sys-color-primary-strong: var(--dash-blue);
+  --md-sys-color-on-primary: #fff;
+  --md-sys-color-primary-container: color-mix(in srgb, var(--dash-blue) 14%, var(--dash-card));
+  --md-sys-color-on-primary-container: var(--dash-blue);
+  --md-sys-color-primary-soft: color-mix(in srgb, var(--dash-blue) 10%, var(--dash-card));
+  --md-sys-color-surface: var(--dash-card);
+  --md-sys-color-surface-container-lowest: var(--dash-card);
+  --md-sys-color-surface-container-low: color-mix(in srgb, var(--dash-muted) 60%, var(--dash-card));
+  --md-sys-color-surface-container: var(--dash-muted);
+  --md-sys-color-surface-container-high: var(--dash-line);
+  --md-sys-color-surface-container-highest: var(--dash-grey);
+  --md-sys-color-on-surface: var(--dash-text);
+  --md-sys-color-on-surface-variant: var(--dash-sub);
+  --md-sys-color-outline: color-mix(in srgb, var(--dash-sub) 45%, var(--dash-line));
+  --md-sys-color-outline-variant: var(--dash-line);
+  --md-sys-color-border: var(--dash-line);
+  --md-sys-color-inverse-surface: var(--dash-ink);
+  --md-sys-color-inverse-on-surface: var(--dash-card);
+  --md-sys-color-success: var(--dash-green);
+  --md-sys-color-on-success: #fff;
+  --md-sys-color-success-container: var(--dash-green-soft);
+  --md-sys-color-on-success-container: var(--dash-green);
+  --md-sys-color-error: var(--dash-red);
+  --md-sys-color-on-error: #fff;
+  --md-sys-color-error-container: var(--dash-red-soft);
+  --md-sys-color-on-error-container: var(--dash-red);
+  --md-sys-color-warning: var(--dash-amber);
+  --md-sys-color-on-warning: #fff;
+  --md-sys-color-warning-container: color-mix(in srgb, var(--dash-amber) 16%, var(--dash-card));
+  --md-sys-color-on-warning-container: color-mix(in srgb, var(--dash-amber) 65%, var(--dash-text));
+  --md-sys-color-info: var(--dash-blue);
+  --md-sys-color-on-info: #fff;
+  --md-sys-color-info-container: color-mix(in srgb, var(--dash-blue) 12%, var(--dash-card));
+  --md-sys-color-on-info-container: var(--dash-blue);
+  --oc-ink: var(--dash-ink);
+  --oc-on-ink: var(--dash-card);
+  --oc-tint: color-mix(in srgb, var(--dash-blue) 10%, var(--dash-card));
+  color: var(--dash-text);
+}
+.oc-app:is([data-shell='backoffice'], [data-shell='management'], [data-shell='platform-admin']) .oc-content {
+  /* Page title as on the dashboards. */
+  & .oc-page-head h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: var(--dash-text); }
+  & .oc-page-head p { color: var(--dash-sub); font-size: 13px; }
+  /* A page header inside a tab stays a section title. */
+  & :is(.oc-page-head ~ .oc-stack, .oc-page-head ~ * .oc-stack) .oc-page-head h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  /* White cards with the 22px radius, no shadow; card head as the kit's (icon circle + title). */
+  & .oc-card, & .oc-datatable { border-radius: 22px; border-color: var(--dash-line); box-shadow: none; }
+  & .oc-card-head h2, & .oc-card-head h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  & .oc-card-ink { background: var(--dash-dark); color: #fff; }
+  & .oc-icon-circle { background: var(--dash-card); border: 1px solid var(--dash-line); color: var(--dash-blue); }
+  /* Table: light uppercase header (the dashboard's transaction table), rounded hover rows. */
+  & .oc-table thead th { background: transparent; color: var(--dash-sub); font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+    padding: 10px 10px 8px; border-bottom: 1px solid var(--dash-line); }
+  & .oc-table th:first-child, & .oc-table th:last-child { border-radius: 0; }
+  & .oc-table td { border-bottom-color: var(--dash-line); }
+  & .oc-table tbody tr:hover td { background: var(--dash-muted); }
+  & .oc-table tbody tr:hover td:first-child { border-radius: 12px 0 0 12px; }
+  & .oc-table tbody tr:hover td:last-child { border-radius: 0 12px 12px 0; }
+  /* Status pills: solid like the dashboard's Complete / Canceled. */
+  & .oc-status { height: 26px; padding: 0 12px; font-size: 12px; }
+  & .oc-status[data-tone='success'] { background: var(--dash-green); color: #fff; }
+  & .oc-status[data-tone='error'] { background: var(--dash-red); color: #fff; }
+  & .oc-status[data-tone='warning'] { background: var(--dash-amber); color: #fff; }
+  & .oc-status[data-tone='info'] { background: var(--dash-blue); color: #fff; }
+  & .oc-status[data-tone='neutral'] { background: var(--dash-muted); color: var(--dash-sub); }
+  /* Filter pills and segmented tabs: white pills, the active one ink. */
+  & .oc-chip { border-color: var(--dash-line); background: var(--dash-card); color: var(--dash-text); font-weight: 600; }
+  & .oc-chip[aria-pressed='true'] { background: var(--dash-ink); color: var(--dash-card); }
+  & .oc-row-wrap[role='tablist'] { background: var(--dash-card); border-color: var(--dash-line); }
+  & .oc-row-wrap[role='tablist'] .oc-chip { border-color: transparent; background: transparent; color: var(--dash-sub); }
+  & .oc-row-wrap[role='tablist'] .oc-chip:hover { background: var(--dash-muted); }
+  & .oc-row-wrap[role='tablist'] .oc-chip[aria-pressed='true'] { background: var(--dash-ink); color: var(--dash-card); }
+  /* Buttons: blue primary, ink, grey neutral (the kit's three pill buttons). */
+  & .oc-btn { font-weight: 600; }
+  & .oc-btn-neutral { background: var(--dash-card); border-color: var(--dash-line); color: var(--dash-text); }
+  & :is(.oc-card, .oc-datatable, .oc-modal, .oc-drawer) .oc-btn-neutral { background: var(--dash-muted); border-color: transparent; }
+  & .oc-btn-outline { border-color: var(--dash-line); background: var(--dash-card); }
+  /* Fields: line borders, blue focus. */
+  & :is(.oc-input, .oc-select, .oc-textarea) { border-color: var(--dash-line); background: var(--dash-card); color: var(--dash-text); }
+  & :is(.oc-input, .oc-select, .oc-textarea):hover { border-color: var(--dash-grey); }
+  & :is(.oc-input, .oc-select, .oc-textarea):focus-visible { outline: 2px solid var(--dash-blue); outline-offset: 1px; }
+  & .oc-check input { accent-color: var(--dash-blue); }
+}

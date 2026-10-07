@@ -16,6 +16,18 @@ export type StatusTone = 'success' | 'warning' | 'error' | 'info' | 'neutral';
 const STATUS: Record<string, { label: string; tone: StatusTone }> = {
   draft: { label: 'Draft', tone: 'neutral' },
   pending: { label: 'Pending', tone: 'warning' },
+  // Service-level states (first response, complaint SLA).
+  met: { label: 'Met', tone: 'success' },
+  overdue: { label: 'Overdue', tone: 'error' },
+  breached: { label: 'Breached', tone: 'error' },
+  escalated: { label: 'Escalated', tone: 'warning' },
+  // Priorities (complaints, tasks).
+  high: { label: 'High', tone: 'warning' },
+  urgent: { label: 'Urgent', tone: 'error' },
+  critical: { label: 'Critical', tone: 'error' },
+  // Lead outcomes.
+  qualified: { label: 'Qualified', tone: 'info' },
+  converted: { label: 'Converted', tone: 'success' },
   waiting: { label: 'Waiting', tone: 'neutral' },
   confirmed: { label: 'Confirmed', tone: 'success' },
   approved: { label: 'Approved', tone: 'success' },

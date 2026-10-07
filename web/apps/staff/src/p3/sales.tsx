@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField,
+  AutoResourcePage, BOARD_TONES, Board, BoardCard, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Modal, PageHeader, SelectField, Skeleton, StatTile, StatusPill, TextArea, TextField,
   useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
@@ -535,35 +535,26 @@ export function SalesPipelinePage() {
       {tab === 'board' && board.isLoading && <Skeleton rows={6} />}
       {tab === 'board' && b && (
         <>
-          <div className="oc-row-wrap"><span className="oc-chip">Open {String(b.openCount)}</span><span className="oc-chip">Value {money(b.openValue)}</span>
-            <span className="oc-chip">Weighted {money(b.weightedValue)}</span></div>
-          <div style={{ display: 'grid', gridAutoFlow: 'column', gridAutoColumns: 'minmax(240px, 1fr)', gap: 12, overflowX: 'auto', paddingBottom: 8 }}
-            role="list" aria-label="Pipeline stages">
-            {b.stages.map((s) => (
-              <section key={String(s.stageId)} className="oc-card" role="listitem" aria-label={String(s.name)} style={{ padding: 12, minHeight: 200 }}>
-                <header style={{ marginBottom: 8 }}>
-                  <strong>{String(s.name)}</strong> <span className="oc-muted oc-small">{String(s.probability)}%</span>
-                  <div className="oc-small oc-muted">{String(s.count)} · {money(s.value)}</div>
-                </header>
-                <div className="oc-stack" style={{ gap: 8 }}>
-                  {s.opportunities.map((o) => (
-                    <article key={o.id} className="oc-card" style={{ padding: 10 }}>
-                      <button className="oc-btn oc-btn-text oc-btn-sm" style={{ padding: 0, textAlign: 'left' }} onClick={() => set('id', o.id)}>
-                        {String(o.number)} · {String(o.title)}
-                      </button>
-                      <div className="oc-small oc-muted">{String(o.corporateName ?? o.customerName ?? '—')}</div>
-                      <div className="oc-small">{money(o.expectedValue)}{o.expectedCloseDate ? ` · close ${formatDate(String(o.expectedCloseDate))}` : ''}</div>
-                      <div className="oc-small oc-muted">{String(o.ownerName ?? '')}</div>
-                      {s.kind === 'open' && can('crm.opportunity.update') && (
-                        <MoveSelect opp={o} stages={b.stages.filter((t) => t.kind === 'open' && t.stageId !== s.stageId)} />
-                      )}
-                    </article>
-                  ))}
-                  {s.opportunities.length === 0 && <span className="oc-small oc-muted">No opportunity</span>}
-                </div>
-              </section>
-            ))}
+          <div className="oc-stat-grid">
+            <StatTile label="Open opportunities" value={String(b.openCount)} icon="view_kanban" />
+            <StatTile label="Pipeline value" value={money(b.openValue)} icon="payments" />
+            <StatTile label="Weighted value" value={money(b.weightedValue)} icon="trending_up" />
           </div>
+          <Board label="Pipeline stages" empty="No opportunity" lanes={b.stages.map((s, i) => ({
+            key: String(s.stageId), title: String(s.name), count: Number(s.count), badge: `${String(s.probability)}%`, total: money(s.value),
+            tone: s.kind === 'won' ? 'green' : s.kind === 'lost' ? 'red' : BOARD_TONES[i % BOARD_TONES.length],
+            children: s.opportunities.map((o) => (
+              <BoardCard key={o.id} tag={String(o.number)} title={String(o.title)} onOpen={() => set('id', o.id)}
+                party={String(o.corporateName ?? o.customerName ?? '—')} amount={money(o.expectedValue)} owner={o.ownerName ? String(o.ownerName) : undefined}
+                chips={[!!o.expectedCloseDate && {
+                  icon: 'event', text: `Close ${formatDate(String(o.expectedCloseDate))}`,
+                  // An open opportunity past its close date is overdue.
+                  tone: s.kind === 'open' && String(o.expectedCloseDate) < today() ? 'red' : 'plain',
+                }]}
+                footer={s.kind === 'open' && can('crm.opportunity.update')
+                  ? <MoveSelect opp={o} stages={b.stages.filter((t) => t.kind === 'open' && t.stageId !== s.stageId)} /> : undefined} />
+            )),
+          }))} />
         </>
       )}
       {tab === 'forecast' && (
@@ -584,7 +575,7 @@ function MoveSelect({ opp, stages }: { opp: R; stages: R[] }) {
   const toast = useToast();
   const move = useSend<R, R>('POST', `/api/v1/crm/opportunities/${opp.id}:move-stage`, CRM);
   return (
-    <select className="oc-select" aria-label={`Move ${String(opp.number)} to`} value="" disabled={move.isPending} style={{ marginTop: 6 }}
+    <select className="oc-dash-pill" aria-label={`Move ${String(opp.number)} to`} value="" disabled={move.isPending}
       onChange={(e) => e.target.value && move.mutate({ stageId: e.target.value } as unknown as R, { onError: (err) => toast(err.message, 'error') })}>
       <option value="">Move to…</option>
       {stages.map((t) => <option key={String(t.stageId)} value={String(t.stageId)}>{String(t.name)}</option>)}

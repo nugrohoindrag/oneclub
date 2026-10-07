@@ -10097,6 +10097,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/crm/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** CRM Dashboard Overview: members, engagement, membership, value and the action center */
+        get: operations["getCrmDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/dashboard/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Members behind a CRM dashboard widget (expiring, at risk, high value) */
+        get: operations["getCrmDashboardMembers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/crm/data-requests": {
         parameters: {
             query?: never;
@@ -40272,6 +40306,84 @@ export interface components {
             /** @description First day posted by OneClub (go-live, normally the first day of a month) */
             cutOverDate: string;
         };
+        CRMDashboard: {
+            acquisition: {
+                newCustomers: number;
+                /** @description Lead source of the new customers; direct when they came without a lead */
+                sources: components["schemas"]["DashCount"][];
+            };
+            /** @description Member activities in the period per kind */
+            activity: components["schemas"]["DashCount"][];
+            atRisk: {
+                declining: number;
+                expiring: number;
+                members: components["schemas"]["DashMember"][];
+                noVisit: number;
+                total: number;
+            };
+            byStatus: components["schemas"]["DashCount"][];
+            byType: components["schemas"]["DashCount"][];
+            /** @description Active members per RFM group (no_score when not scored yet) */
+            engagement: components["schemas"]["DashCount"][];
+            expiry: {
+                d30: number;
+                d60: number;
+                d90: number;
+            };
+            /** @description Mine */
+            followUps: {
+                dueToday: number;
+                items: components["schemas"]["DashFollowUp"][];
+                overdue: number;
+                upcoming: number;
+            };
+            /** Format: date-time */
+            from: string;
+            /** @description Last 12 months up to the period end */
+            growth: components["schemas"]["DashGrowth"][];
+            guests: {
+                /** @description Members joined in the period who played as a member's guest before */
+                converted: number;
+                repeat: number;
+                topReferrers: components["schemas"]["DashReferrer"][];
+                unique: number;
+                visits: number;
+            };
+            highValue: components["schemas"]["DashMember"][];
+            kpis: components["schemas"]["DashKPIs"];
+            /** @description This month */
+            renewal: {
+                due: number;
+                expired: number;
+                pending: number;
+                renewed: number;
+            };
+            /** @description Active members: expiring, active, occasional, inactive */
+            segments: components["schemas"]["DashCount"][];
+            thresholds: {
+                activeDays: number;
+                expiringDays: number;
+                occasionalDays: number;
+            };
+            /** Format: date-time */
+            to: string;
+            /** Format: date-time */
+            today: string;
+            /** @description Membership types (filter options) */
+            types: string[];
+            upcoming: {
+                /** @description Members, next 30 days */
+                birthdays: number;
+                /** @description Event registrations of members, next 30 days */
+                events: number;
+                /** @description Next 30 days */
+                expiring: number;
+                /** @description Open follow-ups due in the next 7 days */
+                followUps: number;
+                /** @description Tee times of VIPs, next 7 days */
+                vipArrivals: number;
+            };
+        };
         Caddy: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -45195,6 +45307,7 @@ export interface components {
             preferences: components["schemas"]["OverviewPreference"][];
             profile: components["schemas"]["Profile"];
             recentHistory: components["schemas"]["HistoryItem"][];
+            relationship?: components["schemas"]["OverviewRelationship"] | null;
             relationships: components["schemas"]["OverviewRelation"][];
             /** @description golf, sportclub, stay, pos, vouchers, payments … contributed by each business line */
             sections: Record<string, never>;
@@ -45604,6 +45717,79 @@ export interface components {
             currency: string;
             date: string;
             total: string;
+        };
+        DashCount: {
+            count: number;
+            key: string;
+        };
+        DashFollowUp: {
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            /** Format: date-time */
+            dueAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            subject: string;
+            type: string;
+        };
+        DashGrowth: {
+            cancelled: number;
+            expired: number;
+            /** @description Members at the end of the month */
+            members: number;
+            /** @description YYYY-MM */
+            month: string;
+            /** @description New − expired − cancelled */
+            net: number;
+            new: number;
+            renewed: number;
+        };
+        DashKPIs: {
+            /** @description Active members with an activity in the period */
+            activeMembers: number;
+            /** @description Average lifetime value of active members (RFM store) */
+            avgClv: number;
+            /** @description Active memberships ending within the expiring threshold */
+            expiring: number;
+            /** @description Active members without an activity in the period */
+            inactiveMembers: number;
+            /** @description Joined in the period */
+            newMembers: number;
+            /** @description Joined in the previous period of the same length */
+            newMembersPrev: number;
+            /** @description Non-member customers who transacted in the period */
+            nonMembers: number;
+            /** @description Renewed ÷ (renewed + expired + cancelled) over the last 12 months */
+            retention?: number | null;
+            /** @description Active members */
+            totalMembers: number;
+        };
+        DashMember: {
+            action?: string;
+            clv: number;
+            code: string;
+            /** Format: uuid */
+            customerId: string;
+            /** Format: date-time */
+            endsOn?: string | null;
+            /** Format: date-time */
+            lastVisit?: string | null;
+            name: string;
+            /** @enum {string} */
+            reason?: "no_visit" | "declining" | "expiring";
+            recencyDays?: number | null;
+            typeName: string;
+            /** @description Spend (RFM monetary) */
+            value: number;
+            /** @description Visit days (RFM frequency) */
+            visits: number;
+        };
+        DashReferrer: {
+            /** Format: uuid */
+            customerId: string;
+            guests: number;
+            name: string;
         };
         Dashboard: {
             code: string;
@@ -58072,6 +58258,7 @@ export interface components {
             preferences: components["schemas"]["OverviewPreference"][];
             profile: components["schemas"]["Profile"];
             recentHistory: components["schemas"]["HistoryItem"][];
+            relationship?: components["schemas"]["OverviewRelationship"] | null;
             relationships: components["schemas"]["OverviewRelation"][];
             stats: components["schemas"]["OverviewStats"];
         };
@@ -58083,6 +58270,26 @@ export interface components {
             creditLimit?: number | null;
             number: string;
             status: string;
+        };
+        OverviewBooking: {
+            /** Format: uuid */
+            bookingId: string;
+            code: string;
+            courseName: string;
+            /** Format: date-time */
+            playDate: string;
+            players: number;
+            /** Format: date-time */
+            startAt?: string | null;
+            status: string;
+        };
+        OverviewLine: {
+            /** @description Visit days */
+            frequency: number;
+            /** Format: date-time */
+            lastAt?: string | null;
+            line: string;
+            monetary: number;
         };
         OverviewMembership: {
             category: string;
@@ -58110,12 +58317,36 @@ export interface components {
             name: string;
             relationship: string;
         };
+        OverviewRelationship: {
+            clv?: number | null;
+            /** @description Guests brought on the customer's tee times */
+            guests: number;
+            interactions: number;
+            /** Format: date-time */
+            lastActivity?: string | null;
+            /** Format: date-time */
+            lastInteraction?: string | null;
+            lines: components["schemas"]["OverviewLine"][];
+            rfmGroup?: string | null;
+            /** @description RFM monetary */
+            spend?: number | null;
+            tasks: components["schemas"]["OverviewTask"][];
+            upcomingBookings: components["schemas"]["OverviewBooking"][];
+        };
         OverviewStats: {
             /** Format: date-time */
             lastVisit?: string | null;
             noShows: number;
             rounds: number;
             totalPayments: number;
+        };
+        OverviewTask: {
+            /** Format: date-time */
+            dueAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            subject: string;
+            type: string;
         };
         POSCachedCode: {
             code: string;
@@ -118458,6 +118689,129 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MergeResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmDashboard: {
+        parameters: {
+            query?: {
+                period?: "month" | "quarter" | "year";
+                /** @description Membership type name */
+                type?: string;
+                /** @description Active: an activity within N days (default 90) */
+                activeDays?: string;
+                /** @description Occasional: the last activity within N days (default 180) */
+                occasionalDays?: string;
+                /** @description Expiring: the membership ends within N days (default 30) */
+                expiringDays?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CRMDashboard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmDashboardMembers: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                list: "expiring" | "at_risk" | "high_value";
+                /** @description Expiring within N days (default 90) */
+                days?: string;
+                /** @description Membership type name */
+                type?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DashMember"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */

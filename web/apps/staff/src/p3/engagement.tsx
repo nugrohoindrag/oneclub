@@ -3,10 +3,10 @@ import { Link, useParams, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField,
-  useAuth, useToast, type Option,
+  Amount, AutoResourcePage, Avatar, BreakdownList, Card, Checkbox, DashCard, DashGrid, DataTable, Drawer, Empty, ErrorAlert, Gauge, Modal, PageHeader, Podium,
+  RankBadge, RankBars, RankMove, SegmentBar, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
-import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
+import { ActionButton, KV, ListPage, Tabs, money, moneyShort, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from './types';
 
 // CRM engagement & loyalty (PRD P3 EP-05–09) — Back Office screens, ops workstations.
@@ -496,6 +496,7 @@ export function TopSpenderPage() {
   const board = useGet<R>(view !== 'ranking' ? `/api/v1/crm/leaderboards/${view}?period=${period}` : null);
   const addSeg = useSend<R, R>('POST', '/api/v1/crm/top-spenders:add-to-segment', CRM);
   const items = rows(list.data?.items).map((r) => ({ ...r, id: String(r.customerId) })) as R[];
+  const move = mover(items);
   return (
     <div className="oc-stack">
       <PageHeader title="Top Spender" help="Ranking by spend from folios (net charges − refunds − credit notes) — internal to sales and management." />
@@ -511,32 +512,112 @@ export function TopSpenderPage() {
       </div>
       {view === 'ranking' ? (
         <>
-          {can('crm.top_spender.manage') && (
-            <div className="oc-row-wrap">
-              <TextField label="VIP list (new static segment code)" value={vip} onChange={setVip} />
-              <button className="oc-btn oc-btn-neutral" disabled={!vip || addSeg.isPending} onClick={() => addSeg.mutate({ segmentCode: vip, segmentName: `VIP ${vip}`,
-                customerIds: items.slice(0, 10).map((i) => i.id) } as unknown as R, { onSuccess: (r) => toast(`${String(r.added)} customers in ${String(r.segmentCode)}`) })}>Top 10 to VIP list</button>
-            </div>
-          )}
-          <ErrorAlert error={addSeg.error} />
-          <DataTable rows={items} loading={list.isLoading} error={list.error} columns={[
-            { key: 'rank', header: '#', render: (r) => <>{String(r.rank)}{r.previousRank != null ? <span className="oc-small oc-muted"> (was {String(r.previousRank)})</span> : null}</> },
-            { key: 'name', header: 'Customer', render: (r) => <>{String(r.name)}<div className="oc-small oc-muted">{String(r.code)}{r.member ? ' · Member' : ''}{r.corporate ? ' · Corporate' : ''}</div></> },
-            { key: 'spend', header: 'Spend', align: 'right', render: (r) => <strong>{money(r.spend)}</strong> },
-            { key: 'golf', header: 'Golf', align: 'right', render: (r) => money(r.golf) }, { key: 'fnb', header: 'F&B', align: 'right', render: (r) => money(r.fnb) },
-            { key: 'sport', header: 'Sport', align: 'right', render: (r) => money(r.sport) }, { key: 'bungalow', header: 'Bungalow', align: 'right', render: (r) => money(r.bungalow) },
-            { key: 'banquet', header: 'Banquet', align: 'right', render: (r) => money(r.banquet) }, { key: 'refunds', header: 'Refunds', align: 'right', render: (r) => money(r.refunds) },
-            { key: 'visits', header: 'Visit days', align: 'right' }]}
-            actions={can('crm.top_spender.manage') ? (r) => <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setNote(r)}>Tier Note</button> : undefined} />
-          {list.data && <p className="oc-small oc-muted">{formatDate(String(list.data.from))} – {formatDate(String(list.data.to))} · total {money(list.data.total)}</p>}
+          <ErrorAlert error={list.error ?? addSeg.error} />
+          {list.isLoading && <Skeleton rows={8} />}
+          {list.data && <SpendOverview items={items} total={Number(list.data.total ?? 0)} from={String(list.data.from)} to={String(list.data.to)}
+            vipAction={can('crm.top_spender.manage') && (
+              <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+                <TextField label="VIP list (new static segment code)" value={vip} onChange={setVip} />
+                <button className="oc-btn oc-btn-ink" disabled={!vip || addSeg.isPending} onClick={() => addSeg.mutate({ segmentCode: vip, segmentName: `VIP ${vip}`,
+                  customerIds: items.slice(0, 10).map((i) => i.id) } as unknown as R, { onSuccess: (r) => toast(`${String(r.added)} customers in ${String(r.segmentCode)}`) })}>Top 10 to VIP list</button>
+              </div>
+            )} />}
+          <Card title="Full ranking" icon="format_list_numbered">
+            <DataTable rows={items} loading={list.isLoading} columns={[
+              { key: 'rank', header: '#', render: (r) => <span className="oc-row"><RankBadge rank={Number(r.rank)} /><RankMove rank={Number(r.rank)} previousRank={move(r)} /></span> },
+              { key: 'name', header: 'Customer', render: (r) => (
+                <span className="oc-row" style={{ gap: 10 }}><Avatar name={String(r.name)} tone="white" />
+                  <span>{String(r.name)}<div className="oc-small oc-muted">{String(r.code)}{r.member ? ' · Member' : ''}{r.corporate ? ' · Corporate' : ''}</div></span></span>
+              ) },
+              { key: 'spend', header: 'Spend', align: 'right', render: (r) => <strong>{money(r.spend)}</strong> },
+              ...SPEND_LINES.map((l) => ({ key: l.key, header: l.label, align: 'right' as const, render: (r: R) => (Number(r[l.key] ?? 0) ? money(r[l.key]) : <span className="oc-muted">—</span>) })),
+              { key: 'refunds', header: 'Refunds', align: 'right', render: (r) => (Number(r.refunds ?? 0) ? <span style={{ color: 'var(--dash-red)' }}>{money(r.refunds)}</span> : <span className="oc-muted">—</span>) },
+              { key: 'visits', header: 'Visit days', align: 'right' }]}
+              actions={can('crm.top_spender.manage') ? (r) => <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setNote(r)}>Tier Note</button> : undefined} />
+          </Card>
         </>
       ) : (
-        <DataTable rows={rows(board.data?.items).map((r) => ({ ...r, id: String(r.customerId) })) as R[]} loading={board.isLoading}
-          columns={[{ key: 'rank', header: '#' }, { key: 'name', header: 'Customer' }, { key: 'code', header: 'Code' },
-            { key: 'value', header: view === 'rounds' ? 'Rounds' : 'Active days', align: 'right' }]} />
+        <LeaderboardView view={view} rows={rows(board.data?.items).map((r) => ({ ...r, id: String(r.customerId) })) as R[]} loading={board.isLoading} />
       )}
       {note && <TierNoteModal customer={note} onClose={() => setNote(null)} />}
     </div>
+  );
+}
+
+/** Business lines of the spend, in the colours of the dashboard kit. */
+const SPEND_LINES = [
+  { key: 'golf', label: 'Golf', color: 'var(--dash-blue)' }, { key: 'fnb', label: 'F&B', color: 'var(--dash-lime)' },
+  { key: 'sport', label: 'Sport', color: 'var(--dash-sky)' }, { key: 'bungalow', label: 'Bungalow', color: 'var(--dash-amber)' },
+  { key: 'banquet', label: 'Banquet', color: 'var(--dash-ink)' },
+];
+
+/**
+ * Rank movement of a row: its previous rank, null (NEW) when the previous
+ * month's snapshot exists but lacks it, undefined when there is no snapshot.
+ */
+const mover = (items: R[]) => {
+  const tracked = items.some((r) => r.previousRank != null);
+  return (r: R) => (r.previousRank != null ? Number(r.previousRank) : tracked ? null : undefined);
+};
+
+const customerSub = (r: R) => [String(r.code ?? ''), r.member ? 'Member' : '', r.corporate ? 'Corporate' : ''].filter(Boolean).join(' · ');
+
+/** Podium, total with the top-10 share, spend per business line and the top-10 bars. */
+function SpendOverview({ items, total, from, to, vipAction }: { items: R[]; total: number; from: string; to: string; vipAction?: React.ReactNode }) {
+  const move = mover(items);
+  const ranked = items.map((r) => ({ key: r.id, rank: Number(r.rank), previousRank: move(r), name: String(r.name), sub: customerSub(r), value: money(r.spend) }));
+  const top10 = items.slice(0, 10);
+  const top10Spend = top10.reduce((s, r) => s + Number(r.spend ?? 0), 0);
+  const sum = total || items.reduce((s, r) => s + Number(r.spend ?? 0), 0);
+  const lines = SPEND_LINES.map((l) => ({ ...l, value: items.reduce((s, r) => s + Number(r[l.key] ?? 0), 0) }));
+  const linesTotal = lines.reduce((s, l) => s + l.value, 0) || 1;
+  return (
+    <DashGrid>
+      <DashCard icon="emoji_events" tone="dark" title="Top 3" span={8} controls={<span className="oc-dash-tag">{formatDate(from)} – {formatDate(to)}</span>}>
+        <Podium items={ranked} empty="No spend in this period." />
+      </DashCard>
+      <DashCard icon="payments" tone="blue" title="Spend of the ranked" span={4}>
+        <Amount text={money(sum)} size="lg" />
+        <Gauge title="Top 10 share" ratio={sum > 0 ? top10Spend / sum : null} caption="Top 10 spend" value={moneyShort(top10Spend)}
+          sub={sum > 0 ? `${((top10Spend / sum) * 100).toFixed(1)}% of the ranked spend` : undefined} />
+        <span className="oc-dash-sub">{formatNumber(items.length)} customers ranked</span>
+      </DashCard>
+      <DashCard icon="donut_large" title="Spend by business line" span={5}>
+        <SegmentBar parts={lines.map((l) => ({ label: l.label, value: l.value, color: l.color }))} format={moneyShort} legend={false} />
+        <BreakdownList rows={lines.map((l) => ({ label: l.label, value: money(l.value), share: l.value / linesTotal, color: l.color }))} />
+      </DashCard>
+      <DashCard icon="leaderboard" title="Top 10" span={7}>
+        <RankBars format={(v) => money(v)} legend={SPEND_LINES.map((l) => ({ label: l.label, color: l.color }))}
+          rows={top10.map((r) => ({ key: r.id, rank: Number(r.rank), previousRank: move(r), name: String(r.name), value: money(r.spend),
+            total: Number(r.spend ?? 0), parts: SPEND_LINES.map((l) => ({ label: l.label, value: Number(r[l.key] ?? 0), color: l.color })) }))} />
+        {vipAction}
+      </DashCard>
+    </DashGrid>
+  );
+}
+
+/** Most Rounds / Most Active Member: podium, top-10 bars and the full list. */
+function LeaderboardView({ view, rows: list, loading }: { view: string; rows: R[]; loading: boolean }) {
+  const unit = view === 'rounds' ? 'Rounds' : 'Active days';
+  const fmt = (v: unknown) => `${formatNumber(Number(v ?? 0))} ${view === 'rounds' ? 'rounds' : 'days'}`;
+  const ranked = list.map((r) => ({ key: r.id, rank: Number(r.rank), name: String(r.name), sub: String(r.code ?? ''), value: fmt(r.value) }));
+  if (loading) return <Skeleton rows={8} />;
+  return (
+    <>
+      <DashGrid>
+        <DashCard icon={view === 'rounds' ? 'golf_course' : 'event_available'} tone="dark" title="Top 3" span={6}>
+          <Podium items={ranked} empty="Nothing ranked in this period." />
+        </DashCard>
+        <DashCard icon="leaderboard" title="Top 10" span={6}>
+          <RankBars format={(v) => fmt(v)} rows={list.slice(0, 10).map((r) => ({ key: r.id, rank: Number(r.rank), name: String(r.name), value: fmt(r.value), total: Number(r.value ?? 0) }))} />
+        </DashCard>
+      </DashGrid>
+      <Card title="Full ranking" icon="format_list_numbered">
+        <DataTable rows={list} columns={[{ key: 'rank', header: '#', render: (r) => <RankBadge rank={Number(r.rank)} /> },
+          { key: 'name', header: 'Customer', render: (r) => <span className="oc-row" style={{ gap: 10 }}><Avatar name={String(r.name)} tone="white" />{String(r.name)}</span> },
+          { key: 'code', header: 'Code' }, { key: 'value', header: unit, align: 'right', render: (r) => <strong>{formatNumber(Number(r.value ?? 0))}</strong> }]} />
+      </Card>
+    </>
   );
 }
 

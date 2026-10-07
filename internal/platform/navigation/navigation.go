@@ -8,6 +8,7 @@ package navigation
 import (
 	"context"
 	"net/http"
+	"slices"
 
 	"github.com/google/uuid"
 
@@ -143,6 +144,7 @@ var Trees = map[string][]Item{
 			s("banquet-reports", "Event Reports", "/reports?module=banquet", "reporting.report.view"),
 		),
 		mod("crm", "CRM", "groups", "/crm/customers",
+			s("crm-overview", "Overview", "/crm/overview", "crm.analytics.view"), // CRM Dashboard Overview
 			s("customers", "Customers", "/crm/customers", "crm.customer.view"),
 			s("customer-360", "Customer 360", "/crm/customer-360", "crm.customer_overview.view"),
 			s("leads", "Leads", "/crm/leads", "crm.lead.view"),
@@ -618,6 +620,22 @@ type Service struct {
 // still open.
 var RoleTrees = map[string]map[string][]Item{
 	"accountant": {"backoffice": accountantTree},
+	"crm_admin":  {"backoffice": crmAdminTree},
+}
+
+// crmAdminTree is the Back Office of the CRM Admin: the CRM menu only (CRM
+// Reports sit inside it); CMS, Reports and Employee Self Service stay off it.
+var crmAdminTree = pick(Trees["backoffice"], "dashboard", "approvals", "crm")
+
+// pick returns the top-level items of tree with these keys, in tree order.
+func pick(tree []Item, keys ...string) []Item {
+	var out []Item
+	for _, it := range tree {
+		if slices.Contains(keys, it.Key) {
+			out = append(out, it)
+		}
+	}
+	return out
 }
 
 // soon is a menu of the role tree whose screen does not exist yet.

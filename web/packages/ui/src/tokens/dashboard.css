@@ -222,3 +222,94 @@ a.oc-dash-breakdown-row:hover { background: var(--dash-muted); border-radius: 10
 .oc-dash-empty { margin: 0; padding: 24px 8px; text-align: center; color: var(--dash-sub); font-size: 14px; }
 .oc-dash-num { font-variant-numeric: tabular-nums; }
 .oc-dash-sub { font-size: 13px; color: var(--dash-sub); margin: 0; }
+
+/* Board (pipeline / stages): white lanes under a solid coloured head, scrolling sideways. */
+.oc-dash-board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(280px, 1fr); gap: 16px; overflow-x: auto; padding-bottom: 8px; align-items: start; }
+.oc-dash-lane { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 240px; padding: 8px; border-radius: 22px; background: var(--dash-card);
+  border: 1px solid var(--dash-line); color: var(--dash-text); }
+.oc-dash-lane-head { display: flex; flex-direction: column; gap: 10px; padding: 14px 14px 16px; border-radius: 18px; background: var(--dash-blue); color: #fff; }
+.oc-dash-lane-head[data-tone='dark'] { background: var(--dash-dark); }
+.oc-dash-lane-head[data-tone='lime'] { background: var(--dash-lime); color: #161616; }
+.oc-dash-lane-head[data-tone='sky'] { background: var(--dash-sky); color: #161616; }
+.oc-dash-lane-head[data-tone='amber'] { background: var(--dash-amber); color: #161616; }
+.oc-dash-lane-head[data-tone='green'] { background: var(--dash-green); }
+.oc-dash-lane-head[data-tone='red'] { background: var(--dash-red); }
+.oc-dash-lane-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.oc-dash-lane-title h3 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.oc-dash-count { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 7px; border-radius: 999px;
+  background: #fff; color: #161616; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.oc-dash-lane-badge { padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; background: rgb(255 255 255 / .2); border: 1px solid rgb(255 255 255 / .45); }
+.oc-dash-lane-head:is([data-tone='lime'], [data-tone='sky'], [data-tone='amber']) .oc-dash-lane-badge { background: rgb(255 255 255 / .55); border-color: transparent; }
+.oc-dash-lane-head:is([data-tone='lime'], [data-tone='sky'], [data-tone='amber']) .oc-dash-count { background: #161616; color: #fff; }
+.oc-dash-lane-items { display: flex; flex-direction: column; gap: 8px; }
+.oc-dash-lane-empty { margin: 0; padding: 24px 8px; border-radius: 16px; text-align: center; color: var(--dash-sub); font-size: 13px;
+  background: repeating-linear-gradient(135deg, transparent 0 6px, var(--dash-hatch) 6px 8px); }
+.oc-dash-kcard { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 14px; border-radius: 18px; background: var(--dash-muted); border: 1px solid transparent;
+  transition: border-color .15s, box-shadow .15s; }
+.oc-dash-kcard:hover { border-color: var(--dash-sky); box-shadow: 0 4px 14px rgb(30 107 246 / .10); }
+.oc-dash-kcard .oc-dash-tag { background: var(--dash-card); }
+.oc-dash-kcard-head { display: flex; align-items: center; gap: 8px; min-height: 28px; }
+.oc-dash-kcard-head .oc-dash-circle { width: 30px; height: 30px; }
+.oc-dash-kcard-title { margin: 0; padding: 0; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 600; line-height: 1.3; letter-spacing: -0.01em;
+  color: var(--dash-text); text-align: left; overflow-wrap: anywhere; }
+button.oc-dash-kcard-title { cursor: pointer; } button.oc-dash-kcard-title:hover { color: var(--dash-blue); }
+button.oc-dash-kcard-title:focus-visible { outline: 2px solid var(--dash-blue); outline-offset: 2px; border-radius: 6px; }
+.oc-dash-kcard-party { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; color: var(--dash-sub); overflow-wrap: anywhere; }
+.oc-dash-kcard-party .oc-dash-tile { width: 22px; height: 22px; border-radius: 50%; }
+.oc-dash-kcard-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.oc-dash-kchip { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  background: var(--dash-card); color: var(--dash-text); white-space: nowrap; }
+.oc-dash-kchip[data-tone='red'] { background: var(--dash-red); color: #fff; }
+.oc-dash-kchip[data-tone='green'] { background: var(--dash-green); color: #fff; }
+.oc-dash-kchip[data-tone='blue'] { background: var(--dash-blue); color: #fff; }
+.oc-dash-kcard-foot { display: flex; align-items: center; gap: 8px; padding-top: 10px; border-top: 1px solid var(--dash-grey); }
+.oc-dash-avatar { width: 30px; height: 30px; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--dash-lime); color: #161616; font-size: 11px; font-weight: 700; }
+.oc-dash-kcard-foot .oc-dash-pill { flex: 1; min-width: 0; background-color: var(--dash-blue); border-color: transparent; color: #fff; }
+.oc-dash-kcard-foot .oc-dash-pill option { color: #161616; background: #fff; }
+
+/* Rankings (top spenders, leaderboards): podium, medal badges, movement chips, ranking bars. */
+.oc-dash-move { display: inline-flex; align-items: center; gap: 2px; height: 20px; padding: 0 8px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  white-space: nowrap; font-variant-numeric: tabular-nums; }
+.oc-dash-move[data-tone='up'] { background: var(--dash-green); color: #fff; }
+.oc-dash-move[data-tone='down'] { background: var(--dash-red); color: #fff; }
+.oc-dash-move[data-tone='new'] { background: var(--dash-blue); color: #fff; }
+.oc-dash-move[data-tone='same'] { background: var(--dash-muted); color: var(--dash-sub); }
+.oc-dash-medal { width: 30px; height: 30px; flex: none; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; background: var(--dash-muted); color: var(--dash-text); font-variant-numeric: tabular-nums; }
+.oc-dash-medal[data-rank='1'] { background: #F2B705; color: #161616; box-shadow: inset 0 0 0 2px rgb(255 255 255 / .55); }
+.oc-dash-medal[data-rank='2'] { background: #C9CED6; color: #161616; box-shadow: inset 0 0 0 2px rgb(255 255 255 / .55); }
+.oc-dash-medal[data-rank='3'] { background: #D98C4A; color: #fff; box-shadow: inset 0 0 0 2px rgb(255 255 255 / .45); }
+.oc-dash-avatar[data-tone='blue'] { background: var(--dash-blue); color: #fff; }
+.oc-dash-avatar[data-tone='dark'] { background: var(--dash-ink); color: var(--dash-card); }
+.oc-dash-avatar[data-tone='white'] { background: var(--dash-card); color: var(--dash-text); border: 1px solid var(--dash-line); }
+
+.oc-dash-podium { flex: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: end; min-height: 280px; }
+.oc-dash-podium-col { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.oc-dash-podium-who { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; min-width: 0; }
+.oc-dash-podium-who .oc-dash-avatar { width: 52px; height: 52px; font-size: 16px; }
+.oc-dash-podium-col[data-place='1'] .oc-dash-podium-who .oc-dash-avatar { width: 64px; height: 64px; font-size: 19px; box-shadow: 0 0 0 4px #F2B705; }
+.oc-dash-podium-name { margin: 0; padding: 0; border: 0; background: none; font: inherit; font-size: 15px; font-weight: 600; color: var(--dash-text);
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+button.oc-dash-podium-name { cursor: pointer; } button.oc-dash-podium-name:hover { color: var(--dash-blue); }
+.oc-dash-podium-sub { font-size: 12px; color: var(--dash-sub); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oc-dash-podium-step { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 8px; padding: 16px 10px; border-radius: 18px 18px 14px 14px;
+  background: var(--dash-blue); color: #fff; min-height: 120px; text-align: center; }
+.oc-dash-podium-col[data-place='1'] .oc-dash-podium-step { background: var(--dash-dark); min-height: 168px; }
+.oc-dash-podium-col[data-place='3'] .oc-dash-podium-step { background: var(--dash-lime); color: #161616; min-height: 96px; }
+.oc-dash-podium-rank { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+.oc-dash-podium-col[data-place='1'] .oc-dash-podium-rank { font-size: 40px; color: #F2B705; }
+.oc-dash-podium-step .oc-dash-move[data-tone='same'] { background: rgb(255 255 255 / .25); color: inherit; }
+
+.oc-dash-rankbars { display: flex; flex-direction: column; gap: 12px; }
+.oc-dash-rankbar { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.oc-dash-rankbar-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.oc-dash-rankbar-head { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 13px; }
+.oc-dash-rankbar-head strong { font-weight: 600; white-space: nowrap; }
+.oc-dash-rankbar-name { margin: 0; padding: 0; border: 0; background: none; font: inherit; font-weight: 600; color: var(--dash-text); min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+button.oc-dash-rankbar-name { cursor: pointer; } button.oc-dash-rankbar-name:hover { color: var(--dash-blue); }
+.oc-dash-rankbar-track { height: 14px; border-radius: 999px; background: var(--dash-muted); overflow: hidden; }
+.oc-dash-rankbar-fill { display: flex; height: 100%; gap: 2px; border-radius: 999px; overflow: hidden; }
+.oc-dash-rankbar-fill > span { display: block; height: 100%; min-width: 3px; }
+@media (max-width: 760px) { .oc-dash-podium { gap: 6px; } .oc-dash-podium-step { padding: 12px 6px; } }

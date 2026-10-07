@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { download, request, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { currentLocale, formatDate, formatDateTime } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
+  AutoResourcePage, Board, BoardCard, Card, Checkbox, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
   TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
@@ -218,23 +218,17 @@ export function RequisitionDetailPage() {
       </Card>
       <Card title="Pipeline" icon="view_kanban" actions={st === 'open' && can('hris.application.manage') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setAdd(true)}>Add Application</button>}>
         {apps.isLoading ? <Skeleton rows={3} /> : (
-          <div className="oc-row-wrap" style={{ alignItems: 'flex-start' }}>
-            {STAGES.map((s) => {
-              const items = (apps.data?.items ?? []).filter((a) => a.stage === s);
-              return (
-                <div key={s} style={{ minWidth: 170, flex: 1 }}>
-                  <h4 style={{ margin: '0 0 8px' }}>{label(s)} ({items.length})</h4>
-                  <div className="oc-stack" style={{ gap: 6 }}>
-                    {items.map((a) => (
-                      <button key={a.id} className="oc-card" style={{ textAlign: 'left', padding: 10, cursor: 'pointer' }} onClick={() => nav(`/hris/recruitment/applications/${a.id}`)}>
-                        <strong>{String(a.candidateName)}</strong><br /><span className="oc-muted">{String(a.number)} · {label(a.source)}{a.rating ? ` · ★ ${String(a.rating)}` : ''}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <Board label="Recruitment stages" empty="No candidate" lanes={STAGES.map((s) => {
+            const items = (apps.data?.items ?? []).filter((a) => a.stage === s);
+            return {
+              key: s, title: label(s), count: items.length,
+              tone: s === 'hired' ? 'green' : s === 'rejected' || s === 'withdrawn' ? 'red' : undefined,
+              children: items.map((a) => (
+                <BoardCard key={a.id} tag={String(a.number)} title={String(a.candidateName)} onOpen={() => nav(`/hris/recruitment/applications/${a.id}`)}
+                  chips={[{ icon: 'campaign', text: label(a.source) }, !!a.rating && { icon: 'star', text: String(a.rating), tone: 'blue' }]} />
+              )),
+            };
+          })} />
         )}
       </Card>
       {edit && <RequisitionForm edit={r} onClose={() => setEdit(false)} />}
