@@ -85,14 +85,14 @@ func SeedDemo(ctx context.Context, db *dbtx.DB) (*DemoResult, error) {
 					ON CONFLICT (property_id, code) DO UPDATE SET name = EXCLUDED.name RETURNING id`, vid, pid, v[0], v[1]+" "+code, v[2]).Scan(&vid); err != nil {
 					return err
 				}
-				if v[2] == "golf" {
-					for _, c := range [][2]string{{"EAST", "East Course"}, {"WEST", "West Course"}} {
-						if _, err := tx.Exec(ctx, `INSERT INTO golf.courses (id, property_id, venue_id, code, name, holes) VALUES ($1,$2,$3,$4,$5,18)
-							ON CONFLICT (property_id, code) DO NOTHING`, id.New(), pid, vid, c[0], c[1]); err != nil {
-							return err
-						}
-					}
-				}
+			}
+			// Earlier seeds added empty EAST/WEST placeholder courses (no holes, no
+			// templates); archive them so the tee sheet opens on the real course.
+			if _, err := tx.Exec(ctx, `UPDATE golf.courses c SET status = 'inactive', archived_at = now()
+				WHERE c.property_id = $1 AND c.code IN ('EAST', 'WEST') AND c.archived_at IS NULL
+				  AND NOT EXISTS (SELECT 1 FROM golf.tee_sheet_templates t WHERE t.course_id = c.id)
+				  AND NOT EXISTS (SELECT 1 FROM golf.tee_times t WHERE t.course_id = c.id)`, pid); err != nil {
+				return err
 			}
 			for _, d := range [][2]string{{"GOLF-OPS", "Golf Operations"}, {"FIN", "Finance"}, {"FNB", "Food & Beverage"}} {
 				if _, err := tx.Exec(ctx, `INSERT INTO platform.departments (id, property_id, code, name) VALUES ($1,$2,$3,$4)
