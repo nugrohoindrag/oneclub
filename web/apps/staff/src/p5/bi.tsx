@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber, formatRelative } from '@oneclub/i18n';
 import {
-  BarChart, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, RequirePermission, SelectField, Skeleton, StatusPill, TextField, useAuth,
+  ColumnChart, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, RequirePermission, SelectField, Skeleton, StatusPill, TextField, useAuth,
   useToast,
 } from '@oneclub/shell';
 import { ActionButton, KV, Tabs, money, type R } from '../p1/common';
@@ -84,7 +84,7 @@ function Trend({ kpi }: { kpi: string }) {
   const month = (p: R) => MONTHS[Number(String(p.month).slice(5, 7)) - 1] ?? String(p.month);
   return (
     <Card title="Trend — 13 months" icon="show_chart">
-      <BarChart aLabel="Actual" bLabel={withTarget ? 'Target' : 'Last year'} format={(v) => fmtKPI(v, unit)}
+      <ColumnChart aLabel="Actual" bLabel={withTarget ? 'Target' : 'Last year'} format={(v) => fmtKPI(v, unit)}
         points={pts.map((p, i) => ({
           label: month(p), title: `${month(p)} ${String(p.month).slice(0, 4)}`, a: Number(p.value ?? 0),
           b: (withTarget ? p.target : p.lastYear) == null ? null : Number(withTarget ? p.target : p.lastYear),

@@ -1,7 +1,7 @@
 /**
- * Morphic Design System — 01 Foundations (§17)
+ * OneClub Design System — foundations (Morphic tokens)
  *
  * Import the CSS layer once at your application root:
- *     import '@design-system/motion/tokens/components.css';
+ *     import '@oneclub/ui/tokens/components.css';
  */
 export * from './tokens.js';

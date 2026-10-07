@@ -3,7 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { qs, useGet, type Schemas } from '@oneclub/api-client';
 import { currentLocale, formatDate } from '@oneclub/i18n';
 import {
-  Amount, BarChart, BreakdownList, Card, CircleButton, DASH_COLORS, DASH_OTHER, DashButton, DashCard, DashGrid, DashHead, DashIcon, DashName, DashStatusPill, DashTable, Delta, Empty, ErrorAlert,
+  Amount, ColumnChart, BreakdownList, Card, CircleButton, DASH_COLORS, DASH_OTHER, DashButton, DashCard, DashGrid, DashHead, DashIcon, DashName, DashStatusPill, DashTable, Delta, Empty, ErrorAlert,
   Gauge, HeatBars, Icon, MiniCard, Note, PageHeader, PillSelect, ProgressRow, PromoCard, ReportCard, SegmentBar, Skeleton, SplitStats, monthOptions,
   type DashStatus,
 } from '@oneclub/shell';
@@ -186,7 +186,7 @@ export function FinanceDashboardPage() {
           )}
         </DashCard>
         <DashCard span={4} icon="bar_chart" title="Cash Flow" controls={pill}>
-          <BarChart aLabel="Cash in" bLabel="Cash out" axis="Amount (IDR)" format={(v) => short(String(v))}
+          <ColumnChart aLabel="Cash in" bLabel="Cash out" axis="Amount (IDR)" format={(v) => short(String(v))}
             points={flows.map((f, i) => ({ label: monthLabel(f.month), title: `${monthLabel(f.month)} ${f.month.slice(0, 4)}`, a: num(f.cashIn), b: num(f.cashOut),
               state: i === flows.length - 1 ? 'current' : 'past' }))} />
         </DashCard>

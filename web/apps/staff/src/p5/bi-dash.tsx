@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { qs, useGet } from '@oneclub/api-client';
 import { currentLocale, formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
-  Amount, BarChart, BreakdownList, CircleButton, DASH_COLORS, DASH_OTHER, DashButton, DashCard, DashGrid, DashHead, DashIcon, DashName, DashStatusPill, DashTable, Delta, ErrorAlert, Gauge,
+  Amount, ColumnChart, BreakdownList, CircleButton, DASH_COLORS, DASH_OTHER, DashButton, DashCard, DashGrid, DashHead, DashIcon, DashName, DashStatusPill, DashTable, Delta, ErrorAlert, Gauge,
   HeatBars, Icon, MiniCard, Note, PillSelect, ProgressRow, PromoCard, ReportCard, SegmentBar, Skeleton, SplitStats, monthOptions, type DashStatus,
 } from '@oneclub/shell';
 import { moneyShort, today, type R } from '../p1/common';
@@ -197,7 +197,7 @@ export function DomainDashboard({ domain, title, extra }: { domain: string; titl
         </DashCard>
         <DashCard span={4} icon="bar_chart" title={`${lead.label} trend`} controls={pill}>
           {trend.length === 0 ? <p className="oc-dash-empty">No history yet.</p> : (
-            <BarChart points={trend} aLabel="Actual" bLabel="Target" axis={lead.unit === 'idr' ? 'Amount (IDR)' : lead.label} format={(v) => headline(v, lead.unit)} />
+            <ColumnChart points={trend} aLabel="Actual" bLabel="Target" axis={lead.unit === 'idr' ? 'Amount (IDR)' : lead.label} format={(v) => headline(v, lead.unit)} />
           )}
         </DashCard>
         <div className="oc-dash-stack" data-span="4">
@@ -312,7 +312,7 @@ export function ExecutiveDashboard() {
           </DashCard>
           <DashCard span={4} icon="bar_chart" title={lead ? `${lead.label} trend` : 'Trend'} controls={<MonthPill month={month} set={set} />}>
             {!lead || trend.length === 0 ? <p className="oc-dash-empty">No history yet.</p> : (
-              <BarChart points={trend} aLabel="Actual" bLabel="Target" axis={lead.unit === 'idr' ? 'Amount (IDR)' : lead.label} format={(v) => headline(v, lead.unit)} />
+              <ColumnChart points={trend} aLabel="Actual" bLabel="Target" axis={lead.unit === 'idr' ? 'Amount (IDR)' : lead.label} format={(v) => headline(v, lead.unit)} />
             )}
           </DashCard>
           <div className="oc-dash-stack" data-span="4">

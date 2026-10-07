@@ -4,6 +4,7 @@ import { useGet } from '@oneclub/api-client';
 import { useTranslation } from '@oneclub/i18n';
 import { useAuth, useBootstrap, type Shell } from '../context';
 import { Icon, RowActionsStyle, Skeleton } from '../components/ui';
+import { DashRouterLinks } from '../components/dash';
 import { HeaderActions } from './header';
 import { useArea } from '../areas';
 import { logoOf } from '../theme';
@@ -253,7 +254,7 @@ export function SidebarLayout({ shell = 'backoffice' }: { shell?: Shell }) {
         </header>
         <main className="oc-content" id="main">
           {/* office tables: row actions in a ⋮ menu */}
-          <RowActionsStyle.Provider value="menu"><Outlet /></RowActionsStyle.Provider>
+          <DashRouterLinks><RowActionsStyle.Provider value="menu"><Outlet /></RowActionsStyle.Provider></DashRouterLinks>
         </main>
       </div>
     </div>

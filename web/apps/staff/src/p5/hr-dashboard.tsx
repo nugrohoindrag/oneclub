@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { useGet, type Schemas } from '@oneclub/api-client';
 import { formatDate, formatNumber } from '@oneclub/i18n';
 import {
-  Amount, BarChart, CircleButton, DashButton, DashCard, DashGrid, DashHead, DashIcon, DashName, DashStatusPill, DashTable, Delta, ErrorAlert, Gauge,
+  Amount, ColumnChart, CircleButton, DashButton, DashCard, DashGrid, DashHead, DashIcon, DashName, DashStatusPill, DashTable, Delta, ErrorAlert, Gauge,
   HeatBars, Icon, MiniCard, Note, ProgressRow, PromoCard, ReportCard, SegmentBar, Skeleton, SplitStats, useAuth, type DashStatus,
 } from '@oneclub/shell';
 import { money } from '../p1/common';
@@ -169,7 +169,7 @@ export function HRDashboardPage() {
         </DashCard>
         <DashCard span={4} icon="bar_chart" title="Headcount by Department" action={<CircleButton arrow label="Employees" to="/hris/employees" />}>
           {depts.length === 0 ? <p className="oc-dash-empty">No employee yet.</p> : (
-            <BarChart aLabel="Headcount" bLabel={w ? 'Scheduled today' : undefined} format={(v) => formatNumber(v)} axis="Employees"
+            <ColumnChart aLabel="Headcount" bLabel={w ? 'Scheduled today' : undefined} format={(v) => formatNumber(v)} axis="Employees"
               points={depts.map((u, i) => ({ label: u.name.split(' ')[0].slice(0, 8), title: u.name, a: u.headcount, b: scheduledOf(u.orgUnitId),
                 state: i === biggest ? 'current' : 'past' }))} />
           )}
