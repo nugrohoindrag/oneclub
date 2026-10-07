@@ -217,16 +217,3 @@ export function consentLabel(lang?: string) {
     ? 'Kirimi saya berita dan penawaran melalui e-mail (opsional). Anda dapat berhenti berlangganan kapan saja.'
     : 'Send me news and offers by e-mail (optional). You can unsubscribe at any time.';
 }
-
-const CONTACT_TOPICS = ['general', 'membership', 'golf', 'corporate golf', 'tournament', 'sport club', 'bungalow', 'meeting'];
-
-export function ContactForm({ propertyId, lang }: { propertyId: string; lang?: string }) {
-  return (
-    <BookingForm title="Send us a message" path="/api/v1/public/contact" propertyId={propertyId} pay={false} submitLabel="Send" consent={consentLabel(lang)}
-      fields={[
-        { name: 'topic', label: 'Topic', type: 'select', initial: 'general', options: CONTACT_TOPICS.map((x) => ({ value: x, label: x })) },
-        { name: 'message', label: 'Message', type: 'textarea', required: true },
-      ]}
-      build={(v) => ({ topic: v.topic, message: v.message })} done={() => <p>Thank you — we will get back to you soon.</p>} />
-  );
-}

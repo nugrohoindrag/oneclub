@@ -46,7 +46,7 @@ export interface Rate {
   serviceType: string;
   itemRef?: string | null;
   name: string;
-  segment: string;
+  segment: string | null;
   dayType?: string | null;
   timeBand?: string | null;
   ratePlan?: string | null;
@@ -59,11 +59,3 @@ export interface Rate {
 
 export const rp = (v: string | number) => `Rp ${Number(v).toLocaleString('id-ID')}`;
 
-/** Website menu entries of P2 (added to P1's SiteNav). */
-export function p2Nav(lang: string): [string, string][] {
-  return [
-    [`/${lang}/sport-club`, 'Sport Club'],
-    [`/${lang}/bungalow`, 'Stay & Venue'],
-    [`/${lang}/hall-of-fame`, 'Hall of Fame'],
-  ];
-}

@@ -116,8 +116,8 @@ var RouteKeys = map[string]string{
 	"facilities": "golf/facilities", "reciprocal_clubs": "golf/reciprocal-clubs", "sport_club": "sport-club", "bungalow": "bungalow",
 	"vip_suite": "vip-suite", "meeting_mice": "meeting", "wedding_banquet": "wedding-banquet", "events": "events", "membership": "membership",
 	"packages": "packages", "promotions": "promotions", "hall_of_fame": "hall-of-fame", "tournaments": "tournaments", "news": "news", "gallery": "gallery",
-	"contact": "contact", "location": "location", "book_golf": "book-golf", "book_sport_club": "sport-club/book", "book_bungalow": "bungalow/book",
-	"book_meeting_room": "meeting/book", "book_event": "events/book", "member_portal": "member",
+	"contact": "contact", "location": "location", "book_golf": "book-golf", "book_sport_club": "book/sport-club", "book_bungalow": "book/bungalow",
+	"book_meeting_room": "book/meeting-room", "book_event": "events/book", "member_portal": "member",
 }
 
 func routeKeyNames() []string {

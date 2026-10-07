@@ -1,5 +1,6 @@
 import { getProperty, pub, rp } from '../../lib-p2';
 import { BanquetInquiry } from '../events/forms';
+import { VenueLayout } from '../../../components/mgcc/venue';
 
 interface Pkg {
   id: string; code: string; name: string; category: string; pricingMethod: string; price: string; pricingMode: string; minPax: number; includedPax: number;
@@ -41,53 +42,62 @@ export default async function WeddingBanquet({ params }: { params: Promise<{ lan
       description: v.description ?? undefined, amenityFeature: v.facilities.map((f) => ({ '@type': 'LocationFeatureSpecification', name: f, value: true })) })),
   ];
   return (
-    <div className="w-grid">
-      <div className="w-card">
-        <h1 style={{ marginTop: 0 }}>Wedding &amp; Banquet</h1>
-        <p>{id ? 'Paket pernikahan, banquet dan acara sosial dengan ballroom, function room dan venue outdoor.' : 'Wedding, banquet and social event packages with the ballroom, function rooms and outdoor venues.'}</p>
-        <p><a href={`/${lang}/events`}>{id ? 'Lihat acara club' : 'See club events'}</a></p>
-      </div>
+    <VenueLayout venue="meeting-room" lang={lang} title="Wedding &amp; Banquet"
+      intro={<>{id ? 'Paket pernikahan, banquet dan acara sosial dengan ballroom, function room dan venue outdoor. ' : 'Wedding, banquet and social event packages with the ballroom, function rooms and outdoor venues. '}
+        <a href={`/${lang}/events`}>{id ? 'Lihat acara club' : 'See club events'}</a>.</>}>
       {packages.length > 0 && (
-        <section className="w-card">
-          <h2 style={{ marginTop: 0 }}>{id ? 'Paket' : 'Packages'}</h2>
-          {packages.map((x) => (
-            <div key={x.id}>
-              <h3>{x.name} <small>· {label(x.category)}</small></h3>
-              <p><strong>{price(x, id)}</strong> · {x.durationHours} {id ? 'jam' : 'hours'}</p>
-              {x.inclusions.length > 0 && <ul>{x.inclusions.map((i) => <li key={i}>{i}</li>)}</ul>}
-              {x.description && <p>{x.description}</p>}
-            </div>
-          ))}
-        </section>
+        <>
+          <h4 className="oc-sec">{id ? 'Paket' : 'Packages'}</h4>
+          <div className="columns is-multiline oc-units">
+            {packages.map((x) => (
+              <div key={x.id} className="column is-6">
+                <div className="oc-unit">
+                  <span className="oc-tag">{label(x.category)}</span>
+                  <h4>{x.name}</h4>
+                  <div className="oc-price">{price(x, id)}</div>
+                  <span>{x.durationHours} {id ? 'jam' : 'hours'}</span>
+                  {x.inclusions.length > 0 && <ul>{x.inclusions.map((i) => <li key={i}>{i}</li>)}</ul>}
+                  {x.description && <p>{x.description}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
       {venues.length > 0 && (
-        <section className="w-card">
-          <h2 style={{ marginTop: 0 }}>Venues</h2>
-          <table className="w-table">
+        <>
+          <h4 className="oc-sec">Venues</h4>
+          <table className="oc-table">
             <thead><tr><th>Venue</th><th>{id ? 'Kapasitas per layout' : 'Capacity per layout'}</th><th>{id ? 'Catatan' : 'Notes'}</th></tr></thead>
             <tbody>{venues.map((v) => (
               <tr key={v.id}>
-                <td>{v.name}<br /><small>{label(v.venueType)}{v.sizeSqm ? ` · ${v.sizeSqm} m²` : ''}</small></td>
-                <td>{v.layouts.length ? v.layouts.map((l) => `${label(l.layout)} ${l.capacity}`).join(' · ') : v.maxCapacity ?? '—'}</td>
-                <td>{Number(v.addonPrice) > 0 ? `${id ? 'Add-on' : 'Add-on'} ${rp(v.addonPrice)}` : ''}{v.minPax ? ` · min. ${v.minPax} pax` : ''}{v.facilities.length ? ` · ${v.facilities.join(', ')}` : ''}</td>
+                <td><strong>{v.name}</strong><small>{label(v.venueType)}{v.sizeSqm ? ` · ${v.sizeSqm} m²` : ''}</small></td>
+                <td>{v.layouts.length ? v.layouts.map((l) => <span key={l.layout} className="oc-chipline">{label(l.layout)} <b>{l.capacity}</b></span>) : v.maxCapacity ?? '—'}</td>
+                <td>{[Number(v.addonPrice) > 0 ? `Add-on ${rp(v.addonPrice)}` : '', v.minPax ? `min. ${v.minPax} pax` : '', v.facilities.join(', ')].filter(Boolean).join(' · ') || '—'}</td>
               </tr>
             ))}</tbody>
           </table>
-        </section>
+        </>
       )}
       {menus.length > 0 && (
-        <section className="w-card">
-          <h2 style={{ marginTop: 0 }}>Menu</h2>
-          {menus.map((m) => (
-            <div key={m.id}>
-              <h3>{m.name} <small>· {label(m.menuType)}{Number(m.pricePerPax) > 0 ? ` · ${rp(m.pricePerPax)}${m.pricingMode === 'nett' ? ' nett' : '++'} / pax` : ''}</small></h3>
-              {m.items.length > 0 && <p>{m.items.join(' · ')}</p>}
-            </div>
-          ))}
-        </section>
+        <>
+          <h4 className="oc-sec">Menu</h4>
+          <div className="columns is-multiline oc-units">
+            {menus.map((m) => (
+              <div key={m.id} className="column is-6">
+                <div className="oc-unit">
+                  <span className="oc-tag">{label(m.menuType)}</span>
+                  <h4>{m.name}</h4>
+                  {Number(m.pricePerPax) > 0 && <div className="oc-price">{rp(m.pricePerPax)}{m.pricingMode === 'nett' ? ' nett' : '++'} / pax</div>}
+                  {m.items.length > 0 && <p>{m.items.join(' · ')}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
       <BanquetInquiry propertyId={p.id} lang={lang} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
-    </div>
+    </VenueLayout>
   );
 }
