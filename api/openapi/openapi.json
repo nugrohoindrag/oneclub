@@ -6431,6 +6431,51 @@
         ],
         "type": "object"
       },
+      "AttendancePresenceRequest": {
+        "properties": {
+          "accuracyMeters": {
+            "nullable": true,
+            "type": "number"
+          },
+          "clientEventId": {
+            "description": "Client UUID; a resubmission returns the recorded event",
+            "type": "string"
+          },
+          "direction": {
+            "enum": [
+              "in",
+              "out"
+            ],
+            "type": "string"
+          },
+          "employeeNo": {
+            "type": "string"
+          },
+          "latitude": {
+            "nullable": true,
+            "type": "number"
+          },
+          "longitude": {
+            "nullable": true,
+            "type": "number"
+          },
+          "pin": {
+            "description": "Attendance PIN (6 digits, set in Employee Self Service)",
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "propertyId",
+          "employeeNo",
+          "pin",
+          "direction"
+        ],
+        "type": "object"
+      },
       "AttendanceProfile": {
         "properties": {
           "biometricConsent": {
@@ -30649,7 +30694,7 @@
             "type": "string"
           },
           "surface": {
-            "description": "Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces",
+            "description": "Staff App: dashboard, cashier, caddy, kitchen or presence (Attendance Form); backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces",
             "enum": [
               "web",
               "member",
@@ -30657,6 +30702,7 @@
               "cashier",
               "caddy",
               "kitchen",
+              "presence",
               "api",
               "backoffice",
               "ops",
@@ -30694,7 +30740,7 @@
             "type": "string"
           },
           "surface": {
-            "description": "Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces",
+            "description": "Staff App: dashboard, cashier, caddy, kitchen or presence (Attendance Form); backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces",
             "enum": [
               "web",
               "member",
@@ -30702,6 +30748,7 @@
               "cashier",
               "caddy",
               "kitchen",
+              "presence",
               "api",
               "backoffice",
               "ops",
@@ -343868,6 +343915,50 @@
         "x-permission": "procurement.vendor_performance.view"
       }
     },
+    "/api/v1/public/attendance:clock": {
+      "post": {
+        "operationId": "postPublicAttendanceClock",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendancePresenceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceClockResult"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Clock in / out from the login page (employee number, attendance PIN and GPS; rate limited)",
+        "tags": [
+          "HRIS Attendance Presence Form"
+        ],
+        "x-audited": true,
+        "x-module": "hris"
+      }
+    },
     "/api/v1/public/availability": {
       "get": {
         "operationId": "getPublicAvailability",
@@ -365245,6 +365336,9 @@
     },
     {
       "name": "HRIS Attendance Kiosk"
+    },
+    {
+      "name": "HRIS Attendance Presence Form"
     },
     {
       "name": "HRIS Benefits"

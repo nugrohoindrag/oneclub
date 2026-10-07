@@ -323,6 +323,7 @@ domain. Domain menentukan area yang terbuka dan cara login; permission tetap men
 | `cashier.<club>` | `cashier` | Operational: POS, Front Desk, Starter, Caddy Master, Golf Staff, Driving Range, Sport Reception, Stay Desk | PIN staf di perangkat terdaftar (password tetap tersedia) | Operational |
 | `caddy.<club>` | `caddy` | Caddy Tablet | PIN caddy di tablet terdaftar | Caddy Tablet |
 | `kitchen.<club>` | `kitchen` | Kitchen Display (KDS), layar penuh | PIN di perangkat terdaftar | KDS |
+| `presence.<club>` | `presence` | Formulir Presensi saja (clock in / out dengan GPS), semua path membuka form | Tanpa login: ID karyawan + PIN presensi per clock in / out | Form siap untuk karyawan berikutnya |
 
 Aturan:
 
@@ -336,7 +337,7 @@ Aturan:
 - **Clubhouse Screen** pindah dari Operational ke `dashboard`: role template **Screen** hanya berhak melihat layar itu dan
   langsung membukanya dalam tampilan penuh tanpa menu (TV/kiosk di clubhouse).
 - **Surface diberikan oleh server**, bukan ditebak dari nama domain: Caddy menyajikan `/surface.json` per domain
-  (`{"surface":"cashier","domains":{…}}`, berisi juga keempat domain Staff App untuk tautan 403) dan manifest PWA sesuai
+  (`{"surface":"cashier","domains":{…}}`, berisi juga kelima domain Staff App untuk tautan 403) dan manifest PWA sesuai
   surface (nama aplikasi saat di-install). App membacanya sebelum render pertama dan menyimpannya per domain untuk
   offline. **Custom domain** (FR-INS-06): `GET /api/v1/public/domains/allowed` yang dipakai Caddy untuk TLS on-demand
   juga mengembalikan header `X-Surface`; Caddy (`forward_auth`) menyajikan Staff App dengan surface itu, Member App, atau
@@ -351,8 +352,13 @@ Aturan:
   (Operational, Caddy Tablet).
 - **Path back office tetap di root** domain `dashboard`, sehingga tautan di email dan notifikasi (`PUBLIC_BASE_URL` + path
   module) tidak berubah; `PUBLIC_BASE_URL` menunjuk ke `dashboard`.
-- **Build & deploy.** CI membangun Staff App sekali (image `oneclub-static`); Caddy menyajikannya untuk keempat domain
-  (`DOMAIN_DASHBOARD`, `DOMAIN_CASHIER`, `DOMAIN_CADDY`, `DOMAIN_KITCHEN`). Tidak ada container tambahan.
+- **Build & deploy.** CI membangun Staff App sekali (image `oneclub-static`); Caddy menyajikannya untuk kelima domain
+  (`DOMAIN_DASHBOARD`, `DOMAIN_CASHIER`, `DOMAIN_CADDY`, `DOMAIN_KITCHEN`, `DOMAIN_PRESENCE`). Tidak ada container tambahan.
+- **Formulir Presensi** (`presence`). Clock in / out tanpa login: ID karyawan + PIN presensi (PIN kiosk, terkunci 15 menit
+  setelah 5 kali salah) dan GPS browser, lewat `POST /api/v1/public/attendance:clock` (rate limited) dengan aturan Mobile GPS
+  yang sama dengan ESS (Attendance Configuration, geofence, Attendance Policy). GPS dicek begitu form dibuka; tanpa GPS
+  muncul notice "GPS Anda belum hidup" dan form tidak bisa dikirim. Hanya `caddy` dan `presence` yang mengizinkan
+  geolocation (`Permissions-Policy`); halaman login `dashboard` menautkan ke domain ini.
 
 ## 6.2 Struktur Monorepo
 
@@ -685,11 +691,12 @@ services:
   caddy:
     image: caddy:<versi>
     ports: ["80:80", "443:443"]
-    environment:                    # satu build Staff App, empat domain (§6.1)
+    environment:                    # satu build Staff App, lima domain (§6.1)
       DOMAIN_DASHBOARD: ${DOMAIN_DASHBOARD}
       DOMAIN_CASHIER: ${DOMAIN_CASHIER}
       DOMAIN_CADDY: ${DOMAIN_CADDY}
       DOMAIN_KITCHEN: ${DOMAIN_KITCHEN}
+      DOMAIN_PRESENCE: ${DOMAIN_PRESENCE}
       DOMAIN_MEMBER: ${DOMAIN_MEMBER}
       DOMAIN_WEB: ${DOMAIN_WEB}
     volumes:

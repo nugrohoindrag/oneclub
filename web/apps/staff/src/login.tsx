@@ -4,6 +4,7 @@ import { request } from '@oneclub/api-client';
 import { useTranslation } from '@oneclub/i18n';
 import { AuthFrame, ErrorAlert, LoginPage, PasswordField, TextField, currentSurface, landingPath, useAuth, type Me } from '@oneclub/shell';
 import { DEVICE_KEY, read, write } from './offline';
+import { PresenceLink } from './presence';
 
 /*
  * One login for every staff area (Technical Doc §6.1). On the device domains
@@ -24,12 +25,15 @@ export function StaffLoginPage() {
 
 /** /login/password: e-mail + password, also on a registered device. */
 export function PasswordLoginPage() {
-  if (!deviceMode()) return <LoginPage />;
+  if (!deviceMode()) return <LoginPage footer={<PresenceLink />} />;
   return (
     <LoginPage footer={
-      <p className="oc-small oc-muted" style={{ margin: 0 }}>
-        {read(DEVICE_KEY) ? <Link to="/login">PIN login</Link> : <Link to="/login/device">Register this device</Link>}
-      </p>
+      <>
+        <PresenceLink />
+        <p className="oc-small oc-muted" style={{ margin: 0 }}>
+          {read(DEVICE_KEY) ? <Link to="/login">PIN login</Link> : <Link to="/login/device">Register this device</Link>}
+        </p>
+      </>
     } />
   );
 }

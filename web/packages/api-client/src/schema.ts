@@ -31227,6 +31227,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/attendance:clock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Clock in / out from the login page (employee number, attendance PIN and GPS; rate limited) */
+        post: operations["postPublicAttendanceClock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/availability": {
         parameters: {
             query?: never;
@@ -36794,6 +36811,20 @@ export interface components {
         };
         AttendancePINResult: {
             pinSet: boolean;
+        };
+        AttendancePresenceRequest: {
+            accuracyMeters?: number | null;
+            /** @description Client UUID; a resubmission returns the recorded event */
+            clientEventId?: string;
+            /** @enum {string} */
+            direction: "in" | "out";
+            employeeNo: string;
+            latitude?: number | null;
+            longitude?: number | null;
+            /** @description Attendance PIN (6 digits, set in Employee Self Service) */
+            pin: string;
+            /** Format: uuid */
+            propertyId: string;
         };
         AttendanceProfile: {
             biometricConsent: boolean;
@@ -45352,10 +45383,10 @@ export interface components {
             /** @enum {string} */
             status: "pending" | "verified" | "active" | "failed";
             /**
-             * @description Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces
+             * @description Staff App: dashboard, cashier, caddy, kitchen or presence (Attendance Form); backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces
              * @enum {string}
              */
-            surface: "web" | "member" | "dashboard" | "cashier" | "caddy" | "kitchen" | "api" | "backoffice" | "ops" | "platform-admin";
+            surface: "web" | "member" | "dashboard" | "cashier" | "caddy" | "kitchen" | "presence" | "api" | "backoffice" | "ops" | "platform-admin";
             /** @description DNS TXT record name to create */
             verificationRecordName: string;
             verificationRecordValue: string;
@@ -45365,10 +45396,10 @@ export interface components {
         DomainRequest: {
             hostname: string;
             /**
-             * @description Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces
+             * @description Staff App: dashboard, cashier, caddy, kitchen or presence (Attendance Form); backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces
              * @enum {string}
              */
-            surface: "web" | "member" | "dashboard" | "cashier" | "caddy" | "kitchen" | "api" | "backoffice" | "ops" | "platform-admin";
+            surface: "web" | "member" | "dashboard" | "cashier" | "caddy" | "kitchen" | "presence" | "api" | "backoffice" | "ops" | "platform-admin";
         };
         DrivingRangeBay: {
             /** Format: date-time */
@@ -207991,6 +208022,39 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicAttendanceClock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendancePresenceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceClockResult"];
                 };
             };
             /** @description Problem Details (RFC 9457) */

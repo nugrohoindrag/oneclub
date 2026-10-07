@@ -5,13 +5,14 @@ import type { Shell } from './context';
 export type AreaCode = 'management' | 'backoffice' | 'platform' | 'screen' | 'tablet' | 'kitchen' | 'ops';
 
 /**
- * Domain the Staff App is served on (Technical Doc §6.1): one build, four
+ * Domain the Staff App is served on (Technical Doc §6.1): one build, five
  * domains. The surface locks the areas that open and the way to log in;
- * permissions still decide what opens inside.
+ * permissions still decide what opens inside. The presence domain has no
+ * area: it serves only the Attendance Form (clock in / out with GPS).
  */
-export type Surface = 'dashboard' | 'cashier' | 'caddy' | 'kitchen';
+export type Surface = 'dashboard' | 'cashier' | 'caddy' | 'kitchen' | 'presence';
 
-export const SURFACES: readonly Surface[] = ['dashboard', 'cashier', 'caddy', 'kitchen'];
+export const SURFACES: readonly Surface[] = ['dashboard', 'cashier', 'caddy', 'kitchen', 'presence'];
 
 /** One area of the Staff App (Technical Doc §6.1). */
 export interface Area {

@@ -237,6 +237,7 @@ func (m *Module) registerAttendance(reg *route.Registry) {
 		Handler: handle.Write(m.DB, http.StatusOK, m.kioskClockHTTP)})
 	add(reg, kiosk, route.Route{Method: http.MethodPost, Path: "/api/v1/hris/attendance/kiosk:sync", Summary: "Send the offline queue of the kiosk (idempotent)",
 		Permission: PermKiosk, Request: AttendanceKioskSyncRequest{}, Response: AttendanceKioskSyncResult{}, Status: http.StatusOK, Handler: m.kioskSyncHTTP})
+	m.registerPresence(reg)
 }
 
 // ── listing ──────────────────────────────────────────────────────────────

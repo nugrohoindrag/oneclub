@@ -25,7 +25,7 @@ Each customer gets its **own database, database roles and Docker Compose stack**
    writes the deploy bundle (`.env` + `secrets/*`, mode 0600).
 
 3. **Secure the bundle**: encrypt with `sops`/`age` or move to the secret store. Never commit it.
-4. **DNS and `.env`.** The Staff App is one build on four domains (Technical Doc §6.1); create an A/AAAA record
+4. **DNS and `.env`.** The Staff App is one build on five domains (Technical Doc §6.1); create an A/AAAA record
    to the App Host for each domain below, then complete `.env`:
 
    | Variable | Example | Serves |
@@ -34,10 +34,11 @@ Each customer gets its **own database, database roles and Docker Compose stack**
    | `DOMAIN_CASHIER` | `cashier.moderngolf.id` | Operational Interface on shared devices (POS, front desk, starter, …) |
    | `DOMAIN_CADDY` | `caddy.moderngolf.id` | Caddy Tablet |
    | `DOMAIN_KITCHEN` | `kitchen.moderngolf.id` | Kitchen Display |
+   | `DOMAIN_PRESENCE` | `presence.moderngolf.id` | Attendance Form (clock in / out with GPS, no login) |
    | `DOMAIN_MEMBER` | `app.moderngolf.id` | Member App |
    | `DOMAIN_WEB` | `www.moderngolf.id` | Website |
 
-   Every domain proxies `/api`, so requests stay same-origin; set `ALLOWED_ORIGINS` to the six `https://` origins
+   Every domain proxies `/api`, so requests stay same-origin; set `ALLOWED_ORIGINS` to the seven `https://` origins
    (comma-separated) all the same. Add `ACME_EMAIL`, SMTP and S3 settings; create `.env.pgbouncer`. Custom domains
    (FR-INS-06) need no `.env` entry: Platform Administration → Custom Domain registers them with their surface.
 5. **Deploy**: `deploy/scripts/deploy.sh mgcc <version>`.

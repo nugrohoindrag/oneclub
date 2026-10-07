@@ -37,6 +37,7 @@ domains (Technical Doc §6.1). Before deploying it to an instance that runs the 
      e-mails keep working;
    - rename `DOMAIN_OPS` to `DOMAIN_CASHIER` (the hostname may stay);
    - keep `DOMAIN_CADDY`; add `DOMAIN_KITCHEN` (new DNS record, see [instance-provisioning.md](instance-provisioning.md));
+   - add `DOMAIN_PRESENCE` (new DNS record for the Attendance Form);
    - remove `DOMAIN_PLATFORM_ADMIN`: Platform Administration opens on the dashboard domain.
 2. Shared devices open the domain of their area: POS and counter devices `cashier`, caddy tablets `caddy`, kitchen
    screens `kitchen`. Each domain keeps its own device registration, so a device that shows the password form instead

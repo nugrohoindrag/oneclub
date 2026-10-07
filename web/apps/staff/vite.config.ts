@@ -55,7 +55,7 @@ const MANIFEST = {
   theme_color: '#254E09',
   icons: [{ src: '/favicon.png', sizes: '120x108', type: 'image/png', purpose: 'any' }],
 };
-const SURFACE_NAMES: Record<Surface, string> = { dashboard: 'OneClub', cashier: 'Cashier', caddy: 'Caddy', kitchen: 'Kitchen' };
+const SURFACE_NAMES: Record<Surface, string> = { dashboard: 'OneClub', cashier: 'Cashier', caddy: 'Caddy', kitchen: 'Kitchen', presence: 'Presence' };
 
 /**
  * Emits manifest-<surface>.webmanifest. In development and preview it also
@@ -66,7 +66,7 @@ const SURFACE_NAMES: Record<Surface, string> = { dashboard: 'OneClub', cashier: 
 function surfaces(): Plugin {
   const serve = (server: ViteDevServer | PreviewServer) => {
     server.middlewares.use((req, res, next) => {
-      const m = /^(dashboard|cashier|caddy|kitchen)\.localhost(:\d+)?$/.exec(req.headers.host ?? '');
+      const m = /^(dashboard|cashier|caddy|kitchen|presence)\.localhost(:\d+)?$/.exec(req.headers.host ?? '');
       if (!m) return next();
       const surface = m[1] as Surface;
       if (req.url === '/surface.json') {

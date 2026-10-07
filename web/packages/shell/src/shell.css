@@ -42,7 +42,8 @@
 
 :root {
   --oc-sidebar-collapsed: 68px;
-  --oc-sidebar-expanded: 248px;
+  --oc-sidebar-expanded: 232px;
+  --oc-content-gutter: 16px; /* office shell side padding: narrow so tables get more columns */
   --oc-header-height: 64px;
   --oc-control-height: 44px;
   --oc-ink: var(--md-sys-color-inverse-surface);
@@ -182,7 +183,7 @@ a { color: inherit; }
 /* ── KPI tiles (Management Dashboard; StatTile) ────────────────────────── */
 /* Stat tile: the dashboard kit card (icon circle and title, amount with a small fraction, change chip, breakdown rows). */
 .oc-stat {
-  display: flex; flex-direction: column; gap: 12px; min-width: 0;
+  display: flex; flex-direction: column; gap: 12px; min-width: 0; container-type: inline-size;
   background: var(--dash-card); border: 1px solid var(--dash-line); border-radius: 22px; padding: 20px; color: var(--dash-text);
 }
 .oc-stat[data-clickable='true'] { cursor: pointer; transition: border-color 120ms ease, background 120ms ease; }
@@ -193,9 +194,10 @@ a { color: inherit; }
 .oc-stat-label { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--dash-text); }
 .oc-stat-icon { order: -1; width: 40px; height: 40px; border-radius: 50%; flex: none; display: inline-flex; align-items: center; justify-content: center;
   border: 1px solid var(--dash-line); background: var(--dash-card); color: var(--dash-blue); }
-.oc-stat-value { font-variant-numeric: tabular-nums; font-size: clamp(24px, 2.2vw, 32px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.1;
+/* Sized by the tile, not the viewport: "Rp 527.757.000" stays on one line inside a narrow tile. */
+.oc-stat-value { font-variant-numeric: tabular-nums; font-size: clamp(20px, 12cqi, 32px); white-space: nowrap; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1;
   color: var(--dash-text); overflow-wrap: anywhere; }
-.oc-stat-value .oc-dash-amount { font-size: inherit; }
+.oc-stat-value .oc-dash-amount, .oc-stat-value .oc-dash-amount[data-size] { font-size: inherit; }
 .oc-stat-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--md-sys-spacing-2); font-size: var(--md-sys-typescale-meta-size); }
 .oc-stat-head .oc-status { height: 22px; padding: 0 10px; flex: none; }
 .oc-stat-head .oc-status[data-tone='error'] { background: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container); }
@@ -292,7 +294,7 @@ a { color: inherit; }
 .oc-table-wrap { overflow-x: auto; }
 .oc-table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .oc-table th { text-align: left; font-size: var(--md-sys-typescale-meta-size); color: var(--md-sys-color-on-surface-variant); font-weight: 600;
-  padding: 10px 12px; background: var(--md-sys-color-surface-container-low); white-space: nowrap; }
+  padding: 10px; background: var(--md-sys-color-surface-container-low); white-space: nowrap; }
 /* Header row: black with white text in light and dark mode (every .oc-table / DataTable). */
 .oc-table thead th { background: var(--oc-table-head-bg); color: var(--oc-table-head-fg); }
 .oc-table thead th a, .oc-table thead th button { color: inherit; }
@@ -324,7 +326,7 @@ a { color: inherit; }
 /* A page header repeated inside a tab (ListPage in a tab) reads as a section title. */
 .oc-page-head ~ .oc-stack .oc-page-head, .oc-page-head ~ * .oc-stack .oc-page-head { margin: 0; }
 .oc-page-head ~ .oc-stack .oc-page-head h1, .oc-page-head ~ * .oc-stack .oc-page-head h1 { font-size: var(--md-sys-typescale-section-title-size); font-weight: var(--md-sys-typescale-section-title-weight); letter-spacing: 0; }
-.oc-table td { padding: 12px; border-bottom: 1px solid var(--md-sys-color-outline-variant); vertical-align: middle; }
+.oc-table td { padding: 12px 10px; border-bottom: 1px solid var(--md-sys-color-outline-variant); vertical-align: middle; }
 .oc-table tbody tr:hover td { background: var(--md-sys-color-surface-container-low); }
 .oc-table tbody tr[data-clickable='true'] { cursor: pointer; }
 .oc-table td.oc-actions { text-align: right; white-space: nowrap; }
@@ -337,11 +339,14 @@ a { color: inherit; }
 .oc-app { display: flex; min-height: 100vh; }
 .oc-sidebar {
   width: var(--oc-sidebar-expanded); flex: none; position: sticky; top: 0; height: 100vh; overflow-y: auto;
-  background: var(--oc-sidebar-bg, #FFFFFF); border-right: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--oc-sidebar-bg, #FFFFFF); border-right: 1px solid var(--dash-line);
+  /* neutral thin scrollbar, shown on hover (the theme outline is tinted green) */
+  scrollbar-width: thin; scrollbar-color: transparent transparent;
   padding: var(--md-sys-spacing-5) var(--md-sys-spacing-3); display: flex; flex-direction: column; gap: var(--md-sys-spacing-1);
   transition: width 160ms ease;
 }
 [data-theme='dark'] .oc-sidebar, .dark .oc-sidebar { --oc-sidebar-bg: var(--md-sys-color-surface); }
+.oc-sidebar:hover { scrollbar-color: var(--dash-grey) transparent; }
 .oc-sidebar > * { flex: none; }
 .oc-sidebar[data-collapsed='true'] { width: var(--oc-sidebar-collapsed); }
 .oc-sidebar[data-collapsed='true'] .oc-nav-label, .oc-sidebar[data-collapsed='true'] .oc-brand-name, .oc-sidebar[data-collapsed='true'] .oc-nav-sub { display: none; }
@@ -377,9 +382,9 @@ a { color: inherit; }
 .oc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .oc-header {
   position: sticky; top: 0; z-index: 20; height: var(--oc-header-height); display: flex; align-items: center; gap: var(--md-sys-spacing-3);
-  padding: 0 var(--md-sys-padding-page); background: color-mix(in srgb, var(--md-sys-color-background) 88%, transparent); backdrop-filter: blur(10px);
+  padding: 0 var(--oc-content-gutter); background: color-mix(in srgb, var(--md-sys-color-background) 88%, transparent); backdrop-filter: blur(10px);
 }
-.oc-content { padding: var(--md-sys-spacing-2) var(--md-sys-padding-page) var(--md-sys-spacing-12); flex: 1; }
+.oc-content { padding: var(--md-sys-spacing-2) var(--oc-content-gutter) var(--md-sys-spacing-12); flex: 1; }
 .oc-page-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--md-sys-spacing-4); margin: var(--md-sys-spacing-4) 0 var(--md-sys-spacing-5); }
 .oc-page-head h1 { margin: 0; font-size: var(--md-sys-typescale-page-title-size); font-weight: var(--md-sys-typescale-page-title-weight); letter-spacing: var(--md-sys-typescale-page-title-tracking); }
 .oc-page-head p { margin: 4px 0 0; color: var(--md-sys-color-on-surface-variant); max-width: 760px; }
