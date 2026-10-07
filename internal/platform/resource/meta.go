@@ -14,13 +14,13 @@ import (
 )
 
 var kindNames = map[Kind]string{String: "text", Text: "textarea", Int: "number", Decimal: "decimal", Bool: "boolean", Date: "date", Timestamp: "datetime",
-	UUID: "reference", Enum: "select", Email: "email", JSON: "json", Time: "time", IntList: "intlist", StringList: "list", JSONList: "jsonlist"}
+	UUID: "reference", Enum: "select", Email: "email", JSON: "json", Time: "time", IntList: "intlist", StringList: "list", JSONList: "jsonlist", Image: "image"}
 
 // FieldMeta describes one field.
 type FieldMeta struct {
 	Name       string   `json:"name"`
 	Label      string   `json:"label"`
-	Type       string   `json:"type" enum:"text,textarea,number,decimal,boolean,date,datetime,reference,select,email,json,time,intlist,list,jsonlist"`
+	Type       string   `json:"type" enum:"text,textarea,number,decimal,boolean,date,datetime,reference,select,email,json,time,intlist,list,jsonlist,image"`
 	Required   bool     `json:"required"`
 	Options    []string `json:"options,omitempty"`
 	RefPath    string   `json:"refPath,omitempty" doc:"List endpoint of the referenced resource"`

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { download, qs, useGet, useSend, type Page } from '@oneclub/api-client';
+import { download, qs, request, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, useTranslation } from '@oneclub/i18n';
 import { useAuth } from '../context';
 import {
@@ -13,7 +13,7 @@ export type Row = Record<string, unknown> & { id: string };
 export interface FieldDef {
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'number' | 'decimal' | 'textarea' | 'date' | 'datetime' | 'boolean' | 'select' | 'reference' | 'json' | 'list' | 'intlist' | 'time';
+  type?: 'text' | 'email' | 'number' | 'decimal' | 'textarea' | 'date' | 'datetime' | 'boolean' | 'select' | 'reference' | 'json' | 'list' | 'intlist' | 'time' | 'image';
   required?: boolean;
   options?: Option[];
   /** For type=reference: list endpoint and label key. */
@@ -26,6 +26,8 @@ export interface FieldDef {
 }
 
 export interface ResourceConfig {
+  /** Resource key (e.g. commercial.product): photo uploads of image fields. */
+  resourceKey?: string;
   title: string;
   help?: string;
   /** API collection path, e.g. /api/v1/platform/venues */
@@ -80,6 +82,42 @@ function RefSelect({ f, value, onChange, error }: { f: FieldDef; value: string; 
     placeholder={f.required ? 'Select…' : '—'} />;
 }
 
+/** Photo of a record (image field): upload, preview, remove. */
+function ImageField({ f, resourceKey, value, onChange, error }: { f: FieldDef; resourceKey?: string; value: string; onChange: (v: string) => void; error?: string }) {
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<unknown>(null);
+  return (
+    <div className="oc-field oc-span">
+      <span className="oc-label">{f.label}</span>
+      <div className="oc-row" style={{ alignItems: 'center' }}>
+        <div className="oc-image-preview">{value ? <img src={value} alt="" /> : <Icon name="image" size={28} />}</div>
+        <label className="oc-btn oc-btn-outline oc-btn-sm" style={{ cursor: busy ? 'wait' : 'pointer' }}>
+          <Icon name="upload" size={18} /> {busy ? 'Uploading…' : value ? 'Change photo' : 'Upload photo'}
+          <input type="file" accept="image/png,image/jpeg,image/webp" className="oc-sr" disabled={busy || !resourceKey} onChange={async (e) => {
+            const file = e.target.files?.[0];
+            e.target.value = '';
+            if (!file) return;
+            setBusy(true);
+            setErr(null);
+            const fd = new FormData();
+            fd.append('file', file);
+            try {
+              onChange((await request<{ url: string }>('POST', `/api/v1/platform/images${qs({ resource: resourceKey })}`, fd)).url);
+            } catch (x) {
+              setErr(x);
+            } finally {
+              setBusy(false);
+            }
+          }} />
+        </label>
+        {value && <button type="button" className="oc-btn oc-btn-text oc-btn-sm" onClick={() => onChange('')}>Remove</button>}
+      </div>
+      {error && <span className="oc-field-error" role="alert">{error}</span>}
+      <ErrorAlert error={err} />
+    </div>
+  );
+}
+
 /** Form for one resource (create or edit). */
 export function ResourceForm({ cfg, row, onDone }: { cfg: ResourceConfig; row?: Row; onDone: () => void }) {
   const { t } = useTranslation();
@@ -122,6 +160,8 @@ export function ResourceForm({ cfg, row, onDone }: { cfg: ResourceConfig; row?: 
                 placeholder={f.required ? undefined : '—'} />;
             case 'reference':
               return <RefSelect key={f.name} f={f} value={String(values[f.name])} onChange={set(f.name)} error={fe[f.name]} />;
+            case 'image':
+              return <ImageField key={f.name} f={f} resourceKey={cfg.resourceKey} value={String(values[f.name])} onChange={set(f.name)} error={fe[f.name]} />;
             default:
               return <TextField key={f.name} {...common} disabled={disabled} placeholder={f.placeholder}
                 type={f.type === 'email' ? 'email' : f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : f.type === 'datetime' ? 'datetime-local' : 'text'}

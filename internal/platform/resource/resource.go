@@ -40,6 +40,7 @@ const (
 	IntList    // SQL int[]; JSON array of integers (Enum/Min/MaxN apply per element)
 	StringList // SQL text[]; JSON array of strings (Enum/Upper apply per element)
 	JSONList   // SQL jsonb holding an array of objects
+	Image      // SQL text: URL of an uploaded image (/api/v1/files/…) or an https:// image
 )
 
 // Ref is a reference to another table.
@@ -200,7 +201,7 @@ func coerce(f *Field, v any) (any, *errs.FieldError) {
 		return "", false
 	}
 	switch f.Kind {
-	case String, Text, Email, Enum:
+	case String, Text, Email, Enum, Image:
 		s, ok := str()
 		if !ok {
 			return bad("invalid_type", "must be text")
@@ -217,6 +218,9 @@ func coerce(f *Field, v any) (any, *errs.FieldError) {
 		}
 		if f.Kind == Email && (!strings.Contains(s, "@") || strings.ContainsAny(s, " \t")) {
 			return bad("invalid_email", "must be a valid e-mail address")
+		}
+		if f.Kind == Image && !strings.HasPrefix(s, "/api/v1/files/") && !strings.HasPrefix(s, "https://") {
+			return bad("invalid_image", "must be an uploaded image or an https:// address")
 		}
 		if f.Kind == Enum {
 			found := false

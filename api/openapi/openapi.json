@@ -30406,6 +30406,152 @@
         },
         "type": "object"
       },
+      "DiningTable": {
+        "properties": {
+          "archivedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "area": {
+            "description": "Area",
+            "maxLength": 40,
+            "nullable": true,
+            "type": "string"
+          },
+          "code": {
+            "description": "Table",
+            "maxLength": 40,
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "outletId": {
+            "description": "Outlet",
+            "format": "uuid",
+            "type": "string"
+          },
+          "posX": {
+            "description": "Position X (%)",
+            "nullable": true,
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "posY": {
+            "description": "Position Y (%)",
+            "nullable": true,
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "seats": {
+            "description": "Seats",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "shape": {
+            "description": "Shape",
+            "enum": [
+              "square",
+              "round",
+              "rect",
+              "seat"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "code",
+          "outletId"
+        ],
+        "type": "object"
+      },
+      "DiningTableInput": {
+        "properties": {
+          "area": {
+            "description": "Area",
+            "maxLength": 40,
+            "nullable": true,
+            "type": "string"
+          },
+          "code": {
+            "description": "Table",
+            "maxLength": 40,
+            "type": "string"
+          },
+          "outletId": {
+            "description": "Outlet",
+            "format": "uuid",
+            "type": "string"
+          },
+          "posX": {
+            "description": "Position X (%)",
+            "nullable": true,
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "posY": {
+            "description": "Position Y (%)",
+            "nullable": true,
+            "pattern": "^-?\\d+(\\.\\d+)?$",
+            "type": "string"
+          },
+          "seats": {
+            "description": "Seats",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "shape": {
+            "description": "Shape",
+            "enum": [
+              "square",
+              "round",
+              "rect",
+              "seat"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "DiscardRequest": {
         "properties": {
           "reason": {
@@ -39629,7 +39775,8 @@
               "time",
               "intlist",
               "list",
-              "jsonlist"
+              "jsonlist",
+              "image"
             ],
             "type": "string"
           }
@@ -58727,6 +58874,11 @@
           "code": {
             "type": "string"
           },
+          "imageUrl": {
+            "description": "Product photo (POS menu)",
+            "nullable": true,
+            "type": "string"
+          },
           "kitchenStation": {
             "nullable": true,
             "type": "string"
@@ -62863,6 +63015,11 @@
       },
       "Order": {
         "properties": {
+          "billedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
           "bills": {
             "items": {
               "$ref": "#/components/schemas/Bill"
@@ -62997,7 +63154,19 @@
             ],
             "type": "string"
           },
+          "tableIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
           "tableNo": {
+            "nullable": true,
+            "type": "string"
+          },
+          "tableReservationId": {
+            "format": "uuid",
             "nullable": true,
             "type": "string"
           },
@@ -63052,7 +63221,8 @@
           "promotionExclusions",
           "promotionMismatch",
           "promotions",
-          "tierDiscount"
+          "tierDiscount",
+          "tableIds"
         ],
         "type": "object"
       },
@@ -63177,7 +63347,21 @@
             ],
             "type": "string"
           },
+          "tableIds": {
+            "description": "Dining tables the order seats (Table View); tableNo defaults to their codes",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
           "tableNo": {
+            "type": "string"
+          },
+          "tableReservationId": {
+            "description": "Table reservation seated by this order",
+            "format": "uuid",
+            "nullable": true,
             "type": "string"
           }
         },
@@ -74830,6 +75014,12 @@
             "format": "uuid",
             "type": "string"
           },
+          "imageUrl": {
+            "description": "Photo",
+            "maxLength": 500,
+            "nullable": true,
+            "type": "string"
+          },
           "kitchenStation": {
             "description": "Kitchen Station",
             "maxLength": 40,
@@ -74994,6 +75184,12 @@
             },
             "nullable": true,
             "type": "array"
+          },
+          "imageUrl": {
+            "description": "Photo",
+            "maxLength": 500,
+            "nullable": true,
+            "type": "string"
           },
           "kitchenStation": {
             "description": "Kitchen Station",
@@ -98526,6 +98722,350 @@
         },
         "required": [
           "items"
+        ],
+        "type": "object"
+      },
+      "TableBooking": {
+        "properties": {
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "guestCount": {
+            "type": "integer"
+          },
+          "guestName": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reservedFor": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "tableIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "guestName",
+          "guestCount",
+          "reservedFor",
+          "tableIds"
+        ],
+        "type": "object"
+      },
+      "TableOrder": {
+        "properties": {
+          "billedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "guestCount": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "orderNo": {
+            "type": "string"
+          },
+          "seatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "serviceStatus": {
+            "enum": [
+              "new",
+              "sent",
+              "preparing",
+              "ready",
+              "out_for_delivery",
+              "served"
+            ],
+            "type": "string"
+          },
+          "tableNo": {
+            "nullable": true,
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "orderNo",
+          "total",
+          "serviceStatus",
+          "seatedAt"
+        ],
+        "type": "object"
+      },
+      "TableReservation": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "customerId": {
+            "description": "Customer",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "durationMinutes": {
+            "description": "Duration (minutes)",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "guestCount": {
+            "description": "Guests",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "guestName": {
+            "description": "Guest Name",
+            "maxLength": 160,
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "notes": {
+            "description": "Notes",
+            "maxLength": 500,
+            "nullable": true,
+            "type": "string"
+          },
+          "orderId": {
+            "description": "Order",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "outletId": {
+            "description": "Outlet",
+            "format": "uuid",
+            "type": "string"
+          },
+          "phone": {
+            "description": "Phone",
+            "maxLength": 40,
+            "nullable": true,
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reservedFor": {
+            "description": "Reserved For",
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "booked",
+              "seated",
+              "cancelled",
+              "no_show"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "tableIds": {
+            "description": "Tables",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "outletId",
+          "reservedFor"
+        ],
+        "type": "object"
+      },
+      "TableReservationInput": {
+        "properties": {
+          "customerId": {
+            "description": "Customer",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "durationMinutes": {
+            "description": "Duration (minutes)",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "guestCount": {
+            "description": "Guests",
+            "format": "int64",
+            "nullable": true,
+            "type": "integer"
+          },
+          "guestName": {
+            "description": "Guest Name",
+            "maxLength": 160,
+            "nullable": true,
+            "type": "string"
+          },
+          "notes": {
+            "description": "Notes",
+            "maxLength": 500,
+            "nullable": true,
+            "type": "string"
+          },
+          "outletId": {
+            "description": "Outlet",
+            "format": "uuid",
+            "type": "string"
+          },
+          "phone": {
+            "description": "Phone",
+            "maxLength": 40,
+            "nullable": true,
+            "type": "string"
+          },
+          "reservedFor": {
+            "description": "Reserved For",
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "booked",
+              "seated",
+              "cancelled",
+              "no_show"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "tableIds": {
+            "description": "Tables",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "TableState": {
+        "properties": {
+          "area": {
+            "nullable": true,
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "order": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TableOrder"
+              }
+            ],
+            "nullable": true
+          },
+          "posX": {
+            "type": "number"
+          },
+          "posY": {
+            "type": "number"
+          },
+          "reservation": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TableBooking"
+              }
+            ],
+            "nullable": true
+          },
+          "seats": {
+            "type": "integer"
+          },
+          "shape": {
+            "enum": [
+              "square",
+              "round",
+              "rect",
+              "seat"
+            ],
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "available",
+              "booked",
+              "occupied",
+              "billed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "seats",
+          "shape",
+          "posX",
+          "posY",
+          "state"
+        ],
+        "type": "object"
+      },
+      "TablesInput": {
+        "properties": {
+          "tableIds": {
+            "description": "All the tables the order seats from now on",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "tableIds"
         ],
         "type": "object"
       },
@@ -159355,6 +159895,616 @@
         "x-permission": "commercial.pricing.export"
       }
     },
+    "/api/v1/commercial/dining-tables": {
+      "get": {
+        "operationId": "getCommercialDiningTables",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeArchived",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Field name, prefix with - for descending",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[outletId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[area]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/DiningTable"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "List Dining Tables",
+        "tags": [
+          "POS"
+        ],
+        "x-module": "commercial",
+        "x-permission": "commercial.dining_table.view"
+      },
+      "post": {
+        "operationId": "postCommercialDiningTables",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiningTableInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiningTable"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Add Dining Table",
+        "tags": [
+          "POS"
+        ],
+        "x-audited": true,
+        "x-module": "commercial",
+        "x-permission": "commercial.dining_table.create"
+      }
+    },
+    "/api/v1/commercial/dining-tables/{id}": {
+      "delete": {
+        "operationId": "deleteCommercialDiningTablesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Delete Dining Table (only when unused; otherwise set Inactive)",
+        "tags": [
+          "POS"
+        ],
+        "x-audited": true,
+        "x-module": "commercial",
+        "x-permission": "commercial.dining_table.delete"
+      },
+      "get": {
+        "operationId": "getCommercialDiningTablesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiningTable"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "View Dining Table",
+        "tags": [
+          "POS"
+        ],
+        "x-module": "commercial",
+        "x-permission": "commercial.dining_table.view"
+      },
+      "patch": {
+        "operationId": "patchCommercialDiningTablesById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiningTableInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiningTable"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Edit Dining Table",
+        "tags": [
+          "POS"
+        ],
+        "x-audited": true,
+        "x-module": "commercial",
+        "x-permission": "commercial.dining_table.update"
+      }
+    },
+    "/api/v1/commercial/dining-tables:export": {
+      "get": {
+        "operationId": "getCommercialDiningTablesExport",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Search",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeArchived",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Field name, prefix with - for descending",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[outletId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[area]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Export Dining Tables (CSV/XLSX)",
+        "tags": [
+          "POS"
+        ],
+        "x-module": "commercial",
+        "x-permission": "commercial.dining_table.export"
+      }
+    },
     "/api/v1/commercial/kds/stream": {
       "get": {
         "operationId": "getCommercialKdsStream",
@@ -162857,6 +164007,88 @@
         "x-permission": "commercial.pos.promotion"
       }
     },
+    "/api/v1/commercial/orders/{id}:bill": {
+      "post": {
+        "operationId": "postCommercialOrdersByIdBill",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Print Bill: present the bill to the table (Table View: Billed)",
+        "tags": [
+          "POS"
+        ],
+        "x-audited": true,
+        "x-module": "commercial",
+        "x-permission": "commercial.order.create"
+      }
+    },
     "/api/v1/commercial/orders/{id}:charge": {
       "post": {
         "operationId": "postCommercialOrdersByIdCharge",
@@ -163584,6 +164816,98 @@
         "x-permission": "commercial.order.pay"
       }
     },
+    "/api/v1/commercial/orders/{id}:tables": {
+      "post": {
+        "operationId": "postCommercialOrdersByIdTables",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TablesInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Move Table: seat the order at other tables (move or join)",
+        "tags": [
+          "POS"
+        ],
+        "x-audited": true,
+        "x-module": "commercial",
+        "x-permission": "commercial.order.create"
+      }
+    },
     "/api/v1/commercial/orders/{id}:void": {
       "post": {
         "operationId": "postCommercialOrdersByIdVoid",
@@ -164270,6 +165594,209 @@
         "tags": [
           "POS"
         ],
+        "x-module": "commercial",
+        "x-permission": "commercial.order.view"
+      }
+    },
+    "/api/v1/commercial/outlets/{id}/tables": {
+      "get": {
+        "operationId": "getCommercialOutletsByIdTables",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/TableState"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Table View: the tables of an outlet with their state now",
+        "tags": [
+          "POS"
+        ],
+        "x-module": "commercial",
+        "x-permission": "commercial.order.view"
+      }
+    },
+    "/api/v1/commercial/outlets/{id}:quote": {
+      "post": {
+        "operationId": "postCommercialOutletsByIdQuote",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalculateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Breakdown"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Tax \u0026 service of an amount at the outlet now (cart estimate; nothing is stored)",
+        "tags": [
+          "POS"
+        ],
+        "x-audited": false,
         "x-module": "commercial",
         "x-permission": "commercial.order.view"
       }
@@ -175810,6 +177337,602 @@
         "x-audited": true,
         "x-module": "commercial",
         "x-permission": "commercial.shift.manage"
+      }
+    },
+    "/api/v1/commercial/table-reservations": {
+      "get": {
+        "operationId": "getCommercialTableReservations",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeArchived",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Field name, prefix with - for descending",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[outletId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/TableReservation"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "List Table Reservations",
+        "tags": [
+          "POS"
+        ],
+        "x-module": "commercial",
+        "x-permission": "commercial.table_reservation.view"
+      },
+      "post": {
+        "operationId": "postCommercialTableReservations",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableReservationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableReservation"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Add Table Reservation",
+        "tags": [
+          "POS"
+        ],
+        "x-audited": true,
+        "x-module": "commercial",
+        "x-permission": "commercial.table_reservation.create"
+      }
+    },
+    "/api/v1/commercial/table-reservations/{id}": {
+      "delete": {
+        "operationId": "deleteCommercialTableReservationsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Delete Table Reservation (only when unused; otherwise set Inactive)",
+        "tags": [
+          "POS"
+        ],
+        "x-audited": true,
+        "x-module": "commercial",
+        "x-permission": "commercial.table_reservation.delete"
+      },
+      "get": {
+        "operationId": "getCommercialTableReservationsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableReservation"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "View Table Reservation",
+        "tags": [
+          "POS"
+        ],
+        "x-module": "commercial",
+        "x-permission": "commercial.table_reservation.view"
+      },
+      "patch": {
+        "operationId": "patchCommercialTableReservationsById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableReservationInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TableReservation"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Edit Table Reservation",
+        "tags": [
+          "POS"
+        ],
+        "x-audited": true,
+        "x-module": "commercial",
+        "x-permission": "commercial.table_reservation.update"
+      }
+    },
+    "/api/v1/commercial/table-reservations:export": {
+      "get": {
+        "operationId": "getCommercialTableReservationsExport",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Search",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeArchived",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Field name, prefix with - for descending",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[outletId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Export Table Reservations (CSV/XLSX)",
+        "tags": [
+          "POS"
+        ],
+        "x-module": "commercial",
+        "x-permission": "commercial.table_reservation.export"
       }
     },
     "/api/v1/commercial/tax-service-rules": {
@@ -327585,6 +329708,78 @@
         ],
         "x-module": "platform",
         "x-permission": "platform.bridge_agent.view"
+      }
+    },
+    "/api/v1/platform/images": {
+      "post": {
+        "operationId": "postPlatformImages",
+        "parameters": [
+          {
+            "description": "Resource key, e.g. commercial.product",
+            "in": "query",
+            "name": "resource",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/File"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Upload a photo of a master data record (multipart: file); allowed to whoever may create or edit the resource",
+        "tags": [
+          "Master Data"
+        ],
+        "x-audited": true,
+        "x-module": "platform"
       }
     },
     "/api/v1/platform/imports": {

@@ -536,3 +536,9 @@ a.oc-btn { text-decoration: none; }
 
 /* Dashboard pages (design system dashboard kit, @oneclub/ui tokens/dashboard.css) sit on the kit canvas, header included. */
 .oc-main:has(.oc-dash-page), .oc-main:has(.oc-dash-page) .oc-header { background: var(--dash-canvas); }
+
+/* Photo of a master data record (image fields, e.g. the product photo on the POS menu) */
+.oc-image-preview { width: 72px; height: 72px; border-radius: 12px; overflow: hidden; flex: none; display: grid; place-items: center;
+  background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); }
+.oc-image-preview img { width: 100%; height: 100%; object-fit: cover; }
+.oc-image-thumb { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; display: block; }

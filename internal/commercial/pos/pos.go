@@ -62,7 +62,7 @@ const orderSelect = `SELECT o.id, o.property_id, o.order_no, o.outlet_id, ou.nam
 	o.service_status, o.charge_folio_id, o.offline, o.needs_review, o.notes, o.void_reason, o.created_at,
 	o.promo_codes, o.promotion_exclusions, trim_scale(o.client_total)::text AS client_total, o.promotion_mismatch,
 	trim_scale(coalesce((SELECT sum(total_amount) FROM commercial.order_lines l WHERE l.order_id = o.id AND l.status = 'active'), 0))::text AS total,
-	o.tier_code, o.tier_name, trim_scale(o.tier_discount_percent)::text AS tier_discount_percent, o.tier_discount_label,
+	o.tier_code, o.tier_name, trim_scale(o.tier_discount_percent)::text AS tier_discount_percent, o.tier_discount_label, o.table_ids, o.table_reservation_id, o.billed_at,
 	trim_scale(coalesce((SELECT sum(tier_discount) FROM commercial.order_lines l WHERE l.order_id = o.id AND l.status = 'active'), 0))::text AS tier_discount
 	FROM commercial.orders o JOIN commercial.outlets ou ON ou.id = o.outlet_id LEFT JOIN reporting.customer_directory c ON c.id = o.customer_id`
 
@@ -216,6 +216,15 @@ func (m *Module) CreateOrder(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	if in.GuestCount > 0 {
 		guests = &in.GuestCount
 	}
+	if len(in.TableIDs) > 0 { // Table View: the tables must be free; tableNo defaults to their codes
+		codes, err := seatTables(ctx, tx, ou.ID, in.TableIDs, nil)
+		if err != nil {
+			return Order{}, err
+		}
+		if in.TableNo == "" {
+			in.TableNo = strings.Join(codes, ", ")
+		}
+	}
 	p := authz.From(ctx)
 	if _, err := tx.Exec(ctx, `INSERT INTO commercial.orders (id, property_id, order_no, outlet_id, shift_id, order_type, source, table_no, guest_count,
 		customer_id, member_pricing, serving_destination, destination_ref, scheduled_for, charge_folio_id, offline, device_id, notes, client_created_at, created_by)
@@ -230,6 +239,17 @@ func (m *Module) CreateOrder(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	if _, err := tx.Exec(ctx, `INSERT INTO commercial.order_bills (id, property_id, order_id, bill_no, customer_id) VALUES ($1,$2,$3,1,$4)`,
 		id.New(), property, oid, in.CustomerID); err != nil {
 		return Order{}, err
+	}
+	if len(in.TableIDs) > 0 || in.TableReservationID != nil {
+		if _, err := tx.Exec(ctx, `UPDATE commercial.orders SET table_ids = $2, table_reservation_id = $3 WHERE id = $1`,
+			oid, append([]uuid.UUID{}, in.TableIDs...), in.TableReservationID); err != nil {
+			return Order{}, err
+		}
+		if in.TableReservationID != nil {
+			if err := seatReservation(ctx, tx, ou.ID, *in.TableReservationID, oid); err != nil {
+				return Order{}, err
+			}
+		}
 	}
 	if err := setOrderPromo(ctx, tx, oid, in); err != nil { // PRD P3 promo codes, offline client total
 		return Order{}, err
@@ -290,6 +310,11 @@ func (m *Module) AddLines(ctx context.Context, tx pgx.Tx, oid uuid.UUID, lines [
 	}
 	if _, err := m.applyPromotions(ctx, tx, oid); err != nil { // PRD P3 FR-PRM-06
 		return o, err
+	}
+	if o.BilledAt != nil { // new items: the presented bill is out of date (Table View: Occupied again)
+		if _, err := tx.Exec(ctx, `UPDATE commercial.orders SET billed_at = NULL WHERE id = $1`, oid); err != nil {
+			return o, err
+		}
 	}
 	after, err := m.Order(ctx, tx, oid)
 	if err != nil {
@@ -1738,6 +1763,11 @@ func (m *Module) Repeat(ctx context.Context, tx pgx.Tx, oid uuid.UUID, in OrderI
 type SyncOrder struct {
 	Order   OrderInput `json:"order"`
 	Payment *PayInput  `json:"payment,omitempty"`
+	// An action on an order created earlier (online or by a previous queue
+	// item): items added and sent to the kitchen, tables moved, the payment.
+	OrderID  *uuid.UUID  `json:"orderId,omitempty"`
+	Lines    []LineInput `json:"lines,omitempty"`
+	TableIDs []uuid.UUID `json:"tableIds,omitempty"`
 }
 
 // SyncHandler processes a queued offline sale (FR-POS-11): the order keeps
@@ -1748,14 +1778,21 @@ func (m *Module) SyncHandler(ctx context.Context, tx pgx.Tx, payload json.RawMes
 	if err := json.Unmarshal(payload, &in); err != nil {
 		return nil, errs.Validation("invalid_payload", "invalid order payload")
 	}
-	if in.Order.ID == nil {
-		return nil, errs.Validation("order_id_required", "offline orders need a client id")
-	}
-	in.Order.Offline = true
 	property := handle.Property(ctx)
-	o, err := m.CreateOrder(ctx, tx, property, in.Order)
-	if err != nil {
-		return nil, err
+	var o Order
+	var err error
+	if in.OrderID != nil { // POS Table View offline: items, tables and payment of an open order
+		if o, err = m.syncOrderActions(ctx, tx, *in.OrderID, in); err != nil {
+			return nil, err
+		}
+	} else {
+		if in.Order.ID == nil {
+			return nil, errs.Validation("order_id_required", "offline orders need a client id")
+		}
+		in.Order.Offline = true
+		if o, err = m.CreateOrder(ctx, tx, property, in.Order); err != nil {
+			return nil, err
+		}
 	}
 	if in.Payment != nil && o.Status == "open" {
 		pol, err := m.posPolicy(ctx, tx, property)
@@ -1768,7 +1805,7 @@ func (m *Module) SyncHandler(ctx context.Context, tx pgx.Tx, payload json.RawMes
 			}
 		}
 		in.Payment.Offline = true
-		if o, err = m.Pay(ctx, tx, o.ID, *in.Payment, "sync-"+o.ID.String()); err != nil {
+		if o, err = m.Pay(ctx, tx, o.ID, *in.Payment, "sync-"+o.ID.String()); err != nil { // one payment per order: a resent queue never pays twice
 			return nil, err
 		}
 	}

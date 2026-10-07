@@ -31,6 +31,7 @@ var P1DemoUsers = []DemoUser{
 	{"golf.staff@demo.oneclub.id", "Bayu Golf Staff", "golf_staff", "MAIN"},
 	{"membership@demo.oneclub.id", "Maya Membership Manager", "membership_manager", "MAIN"},
 	{"membership.admin@demo.oneclub.id", "Tono Membership Admin", "membership_admin", "MAIN"},
+	{"caddy@demo.oneclub.id", "Siti Caddy", "caddy", "MAIN"}, // Caddy Tablet, linked to caddy C001
 }
 
 // holes: par and championship (BLUE) distance in meters; 6,350 m, par 72.
@@ -260,6 +261,13 @@ func seedGolfDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 			ON CONFLICT (property_id, code) DO NOTHING`, id.New(), property, fmt.Sprintf("C%03d", i+1), n); err != nil {
 			return err
 		}
+	}
+	// caddy@demo.oneclub.id signs in to the Caddy Tablet as C001 (My Assignments)
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.caddy_profiles AS p (caddy_id, property_id, user_id)
+		SELECT c.id, c.property_id, u.id FROM golf.caddies c, platform.users u
+		WHERE c.property_id = $1 AND c.code = 'C001' AND u.email = 'caddy@demo.oneclub.id'
+		ON CONFLICT (caddy_id) DO UPDATE SET user_id = EXCLUDED.user_id WHERE p.user_id IS NULL`, property); err != nil {
+		return err
 	}
 	for i := 1; i <= 30; i++ {
 		if _, err := tx.Exec(ctx, `INSERT INTO golf.golf_carts (id, property_id, code, name) VALUES ($1,$2,$3,$4)

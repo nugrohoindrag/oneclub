@@ -6,6 +6,7 @@ import {
   AutoResourcePage, Card, DataTable, Empty, ErrorAlert, Icon, PageHeader, ResourceIndex, Skeleton, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
 import { DomainDashboard } from './p5/bi-dash';
+import { FloorPlanPage } from './pos/floorplan';
 
 type Row = Record<string, unknown>;
 
@@ -148,7 +149,7 @@ export const HUBS: Hub[] = [
         ['status', 'Status', 'status']] },
   ] },
   { path: 'commercial/master', title: 'Outlets & Products', only: ['commercial.outlet', 'commercial.product', 'commercial.product_variant', 'commercial.menu',
-    'commercial.modifier_group', 'commercial.modifier', 'commercial.package_rate', 'commercial.day_type_set', 'commercial.line_day_type'], lists: [] },
+    'commercial.modifier_group', 'commercial.modifier', 'commercial.dining_table', 'commercial.table_reservation', 'commercial.package_rate', 'commercial.day_type_set', 'commercial.line_day_type'], lists: [] },
   { path: 'inventory', title: 'Inventory', modules: ['inventory'], lists: [] },
 ];
 
@@ -281,6 +282,7 @@ export const P2_ROUTES = [
     ...h.lists.map((l) => ({ path: `${h.path}/${l.slug}`, element: <OpListPage hub={h} slug={l.slug} /> })),
   ]),
   { path: 'crm/customers/:id', element: <CustomerLines360Page /> },
+  { path: 'commercial/floor-plan', element: <FloorPlanPage /> }, // POS Table View floor plans
   ...DASHBOARDS.map(([code]) => ({ path: `dashboards/${code}`, element: <KPIDashboardPage key={code} code={code} /> })),
 ];
 

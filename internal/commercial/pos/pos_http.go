@@ -62,6 +62,7 @@ type MenuItem struct {
 	Price          string    `json:"price" db:"price"`
 	MemberPrice    *string   `json:"memberPrice" db:"member_price"`
 	KitchenStation *string   `json:"kitchenStation" db:"kitchen_station"`
+	ImageURL       *string   `json:"imageUrl" db:"image_url" doc:"Product photo (POS menu)"`
 	// PRD P4 FR-CNS-07 (additive): stock of retail items sold 1:1 in the
 	// warehouses of the outlet (K9 reporting.stock_availability).
 	StockTracked bool    `json:"stockTracked" doc:"The item is stocked in a warehouse of the outlet (inventory)"`
@@ -443,11 +444,11 @@ func (m *Module) menuNow(ctx context.Context, tx pgx.Tx, ou outlet, outletID uui
 	if menus == 0 {
 		// no menus configured: every active product sold at the outlet
 		return handle.List[MenuItem](tx.Query(ctx, `SELECT id, code, name, category, product_type, trim_scale(price)::text AS price,
-			trim_scale(member_price)::text AS member_price, kitchen_station FROM commercial.products WHERE property_id = $1 AND status = 'active'
+			trim_scale(member_price)::text AS member_price, kitchen_station, image_url FROM commercial.products WHERE property_id = $1 AND status = 'active'
 			AND archived_at IS NULL AND (cardinality(outlet_ids) = 0 OR $2 = ANY(outlet_ids)) ORDER BY category NULLS LAST, name`, ou.PropertyID, outletID.String()))
 	}
 	return handle.List[MenuItem](tx.Query(ctx, `SELECT DISTINCT p.id, p.code, p.name, p.category, p.product_type, trim_scale(p.price)::text AS price,
-		trim_scale(p.member_price)::text AS member_price, p.kitchen_station FROM commercial.menus mn JOIN commercial.products p ON p.id::text = ANY(mn.product_ids)
+		trim_scale(p.member_price)::text AS member_price, p.kitchen_station, p.image_url FROM commercial.menus mn JOIN commercial.products p ON p.id::text = ANY(mn.product_ids)
 		WHERE mn.outlet_id = $1 AND mn.status = 'active' AND mn.archived_at IS NULL AND $2 = ANY(mn.channels) AND $3 = ANY(mn.weekdays)
 		AND (mn.available_from IS NULL OR mn.available_from <= $4::time) AND (mn.available_to IS NULL OR mn.available_to > $4::time)
 		AND p.status = 'active' ORDER BY p.category NULLS LAST, p.name`, outletID, channel, wd, hm))

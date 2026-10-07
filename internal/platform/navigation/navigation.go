@@ -189,6 +189,7 @@ var Trees = map[string][]Item{
 			),
 			s("vouchers", "Voucher & Prepaid", "/commercial/operations", "commercial.voucher.view"),
 			s("commercial-master", "Outlets & Products", "/commercial/master", "commercial.outlet.view"),
+			s("floor-plan", "Floor Plan", "/commercial/floor-plan", "commercial.dining_table.view"), // POS Table View
 		),
 		mod("billing", "Billing & Payment", "payments", "/billing/folios",
 			s("customer-accounts", "Customer Accounts", "/billing/customer-accounts", "billing.customer_account.view"),

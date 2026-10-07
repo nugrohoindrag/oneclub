@@ -33,6 +33,7 @@ export function configFromMeta(d: DefMeta): ResourceConfig {
       const v = r[f.name];
       if (v === null || v === undefined || v === '') return '—';
       if (f.name === 'status' || f.name === 'readiness' || f.name === 'dutyStatus') return <StatusPill status={String(v)} />;
+      if (f.type === 'image') return <img className="oc-image-thumb" src={String(v)} alt="" />;
       if (f.type === 'boolean') return v ? 'Yes' : 'No';
       if (f.type === 'date') return formatDate(String(v));
       if (f.type === 'datetime') return formatDateTime(String(v));
@@ -42,7 +43,7 @@ export function configFromMeta(d: DefMeta): ResourceConfig {
   }));
   const status = d.fields.find((f) => f.name === 'status');
   return {
-    title: d.plural, singular: d.name, path: d.path, perm: d.perm, fields, columns, noDelete: d.noDelete,
+    resourceKey: d.key, title: d.plural, singular: d.name, path: d.path, perm: d.perm, fields, columns, noDelete: d.noDelete,
     statusOptions: status?.options?.map((o) => ({ value: o, label: o.replace(/_/g, ' ') })),
   };
 }

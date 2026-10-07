@@ -1,75 +1,121 @@
 import { useMemo, useState } from 'react';
-import { Outlet, useRoutes } from 'react-router';
+import { NavLink, Outlet, useRoutes } from 'react-router';
 import { qs, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
-import { Brand, ErrorAlert, HeaderActions, NotFoundPage, NotificationsPage, ProfilePage, TextField, useAuth, useToast } from '@oneclub/shell';
+import { ErrorAlert, Icon, NotFoundPage, NotificationsPage, ProfilePage, Skeleton, logoOf, useAuth, useBootstrap, useToast } from '@oneclub/shell';
 import { useLive } from '../live';
-import { Tabs, today } from '../p1/common';
+import { today } from '../p1/common';
+import { TodayLabel, elapsed, useTick } from '../pos/shared';
+import '../pos/pos.css';
 
 // Kitchen Display area (`/kitchen`, EP-21): the screen in the kitchen or bar,
-// full width without the Operational menus (Technical Doc §6.1). PRD P3
-// FR-BEO-04: the dishes of the issued BEOs appear on the same display at
-// their serving time (Banquet Production).
+// in the look of the POS Cashier (blue rail, POS tokens). PRD P3 FR-BEO-04:
+// the dishes of the issued BEOs appear on the same display at their serving
+// time (Banquet Production).
 
 type Row = Record<string, unknown>;
+type Ticket = Schemas['Ticket'];
 
-/** Brand and the user menu only (PIN shift change, logout); the board gets the screen. */
+/** Blue rail: board, banquet production, notifications, profile and logout; the board gets the screen. */
 function KitchenLayout() {
+  const b = useBootstrap();
+  const { can, logout } = useAuth();
   return (
-    <div className="oc-topnav-frame" style={{ maxWidth: 'none' }}>
-      <header className="oc-topbar">
-        <Brand />
-        <span className="oc-spacer" />
-        <HeaderActions property={false} />
-      </header>
-      <Outlet />
+    <div className="pos">
+      <nav className="pos-rail" aria-label="Kitchen">
+        <span className="pos-rail-logo"><img src={logoOf(b.branding)} alt={b.branding.appName} /></span>
+        <NavLink to="/kitchen" end aria-label="Orders" title="Orders"><Icon name="soup_kitchen" size={26} /></NavLink>
+        {can('banquet.production.view') && <NavLink to="/kitchen/banquet" aria-label="Banquet Production" title="Banquet Production"><Icon name="celebration" size={26} /></NavLink>}
+        <NavLink to="/kitchen/notifications" aria-label="Notifications" title="Notifications"><Icon name="notifications" size={26} /></NavLink>
+        <NavLink to="/kitchen/profile" aria-label="Profile" title="Profile"><Icon name="person" size={26} /></NavLink>
+        <span className="pos-spacer" />
+        <button onClick={() => void logout()} aria-label="Log out" title="Log out"><Icon name="logout" size={26} /></button>
+      </nav>
+      <main className="pos-main"><Outlet /></main>
     </div>
   );
 }
 
-/** Kitchen Display: POS tickets and, for the banquet kitchen, the BEO production. */
-function KitchenBoardPage() {
-  const { can } = useAuth();
-  const [view, setView] = useState('orders');
-  const banquet = can('banquet.production.view');
-  return (
-    <div className="oc-stack">
-      {banquet && <Tabs tabs={[{ value: 'orders', label: 'Orders' }, { value: 'banquet', label: 'Banquet Production' }]} value={view} onChange={setView} />}
-      {banquet && view === 'banquet' ? <BanquetProductionBoard /> : <OrdersBoard />}
-    </div>
-  );
+const SOURCE: Record<string, string> = { pos: 'POS', member_app: 'Member App', caddy_tablet: 'Caddy Tablet', vip_suite: 'VIP Suite', meeting_catering: 'Meeting', website: 'Website',
+  driving_range: 'Driving Range' };
+const LATE_MIN = 15; // a ticket waiting longer turns red
+
+/** Where the dishes go: table, hole, pickup … */
+function destination(t: Ticket) {
+  if (t.tableNo) return { badge: t.tableNo.split(',')[0].trim(), label: `Table ${t.tableNo}` };
+  if (t.servingDestination === 'hole') return { badge: `H${t.destinationRef ?? ''}`, label: `Hole ${t.destinationRef ?? ''}` };
+  const label = (t.destinationRef ?? t.servingDestination).replace(/_/g, ' ');
+  return { badge: label.slice(0, 2).toUpperCase(), label };
 }
 
+/** Kitchen Display: POS tickets per station, Received → Preparing → Ready → Served. */
 function OrdersBoard() {
   const toast = useToast();
   const [station, setStation] = useState('');
-  const tickets = useGet<Page<Schemas['Ticket']>>(`/api/v1/commercial/kitchen-orders${qs({ station })}`, { refetchInterval: 30_000 });
+  const tickets = useGet<Page<Ticket>>(`/api/v1/commercial/kitchen-orders${qs({})}`, { refetchInterval: 30_000 });
   useLive('/api/v1/commercial/kds/stream', ['commercial.kds'], useMemo(() => () => void tickets.refetch(), [tickets]));
   const state = useSend<Row>('POST', (b) => `/api/v1/commercial/kitchen-orders/${b.id}:state`, ['/api/v1/commercial/kitchen-orders']);
-  const cols: [string, string][] = [['received', 'Received'], ['preparing', 'Preparing'], ['ready', 'Ready']];
+  useTick(30_000);
+  const all = tickets.data?.items ?? [];
+  const stations = [...new Set(all.map((t) => t.station))].sort();
+  const shown = all.filter((t) => !station || t.station === station);
+  const cols: [string, string, string][] = [['received', 'Received', 'Start'], ['preparing', 'Preparing', 'Ready'], ['ready', 'Ready to serve', 'Served']];
   const next: Record<string, string> = { received: 'preparing', preparing: 'ready', ready: 'served' };
   return (
-    <div className="oc-stack">
-      <div className="oc-page-head"><div><h1>Kitchen</h1></div><span className="oc-spacer" />
-        <div style={{ width: 200 }}><TextField label="Station" value={station} onChange={setStation} placeholder="kitchen, bar…" /></div></div>
-      <ErrorAlert error={state.error} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
-        {cols.map(([s, label]) => (
-          <div key={s} className="oc-stack">
-            <h3>{label}</h3>
-            {(tickets.data?.items ?? []).filter((t) => t.status === s).map((t) => (
-              <div key={t.id} className="oc-card">
-                <div className="oc-row"><strong>{t.orderNo}</strong><span className="oc-spacer" /><span className="oc-small">{t.tableNo ? `Table ${t.tableNo}` : t.destinationRef ?? t.servingDestination}</span></div>
-                <div className="oc-small oc-muted">{t.outletName} · {formatDateTime(t.receivedAt)}</div>
-                <ul style={{ margin: '8px 0', paddingLeft: 18 }}>{(t.items as unknown as Row[]).map((i, n) => <li key={n}>{String(i.quantity)} × {String(i.name)}{i.notes ? ` (${String(i.notes)})` : ''}</li>)}</ul>
-                <button className="oc-btn oc-btn-ink oc-btn-sm oc-btn-block" onClick={() => state.mutate({ id: t.id, state: next[s] }, { onSuccess: () => toast('Updated') })}>
-                  {next[s] === 'served' ? 'Served' : next[s] === 'ready' ? 'Ready' : 'Start'}</button>
-              </div>
-            ))}
-          </div>
-        ))}
+    <>
+      <div className="pos-head">
+        <h1>Kitchen Display</h1>
+        <span className="pos-muted">{shown.filter((t) => t.status !== 'served').length} open tickets</span>
+        <span className="pos-spacer" />
+        <TodayLabel />
       </div>
-    </div>
+      <div className="pos-cats" role="group" aria-label="Stations">
+        <button className="pos-chip" aria-pressed={!station} onClick={() => setStation('')}><Icon name="grid_view" size={20} />All Stations</button>
+        {stations.map((s) => <button key={s} className="pos-chip" aria-pressed={station === s} onClick={() => setStation(s)}>
+          <Icon name={/bar|drink/.test(s) ? 'local_bar' : 'skillet'} size={20} />{s.replace(/_/g, ' ')}</button>)}
+      </div>
+      <div className="pos-body">
+        <ErrorAlert error={tickets.error ?? state.error} />
+        {tickets.isLoading ? <Skeleton rows={6} /> : (
+          <div className="pos-kds">
+            {cols.map(([s, label, action]) => {
+              const list = shown.filter((t) => t.status === s || (s === 'ready' && t.status === 'out_for_delivery'));
+              return (
+                <section key={s} className="pos-kds-col" aria-label={label}>
+                  <header><span className="pos-dot" data-kds={s} />{label}<span className="pos-kds-count">{list.length}</span></header>
+                  {list.map((t) => {
+                    const d = destination(t);
+                    const late = s !== 'ready' && (Date.now() - new Date(t.receivedAt).getTime()) / 60_000 > LATE_MIN;
+                    return (
+                      <article key={t.id} className="pos-ticket-card" data-kds={s}>
+                        <div className="pos-ticket-card-head">
+                          <span className="pos-kds-badge" data-kds={s}>{d.badge}</span>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <strong>{d.label}</strong>
+                            <div className="pos-muted" style={{ fontSize: 12 }}>{t.orderNo} · {SOURCE[t.source] ?? t.source} · {t.station}</div>
+                          </div>
+                          <span className="pos-kds-timer" data-late={late || undefined} title={formatDateTime(t.receivedAt)}><Icon name="timer" size={14} />{elapsed(t.receivedAt)}</span>
+                        </div>
+                        {t.dueAt && (t.orderType === 'pre_order' || t.orderType === 'catering' || new Date(t.dueAt).getTime() > Date.now()) && <div className="pos-kitchen" data-kitchen="preparing" style={{ alignSelf: 'flex-start' }}>Due {formatDateTime(t.dueAt)}</div>}
+                        <ul className="pos-kds-items">
+                          {(t.items as unknown as Row[]).map((i, n) => (
+                            <li key={n}><span className="pos-kds-qty">{String(Number(i.quantity))}x</span><span>{String(i.name)}
+                              {i.notes ? <em>{String(i.notes)}</em> : null}</span></li>
+                          ))}
+                        </ul>
+                        <button className="pos-btn" data-variant={s === 'ready' ? 'outline' : undefined} data-block disabled={state.isPending}
+                          onClick={() => state.mutate({ id: t.id, state: next[s] }, { onSuccess: () => toast(`${t.orderNo}: ${action}`) })}>{action}</button>
+                      </article>
+                    );
+                  })}
+                  {list.length === 0 && <div className="pos-empty">No tickets</div>}
+                </section>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 
@@ -83,43 +129,65 @@ function BanquetProductionBoard() {
   const move = useSend<Row>('POST', (b) => `/api/v1/banquet/production-items/${String(b.id)}:status`, ['/api/v1/banquet/production']);
   const cols: [string, string][] = [['pending', 'To produce'], ['in_progress', 'In progress'], ['ready', 'Ready']];
   const next: Record<string, [string, string]> = { pending: ['in_progress', 'Start'], in_progress: ['ready', 'Ready'], ready: ['served', 'Served'] };
+  const kds: Record<string, string> = { pending: 'received', in_progress: 'preparing', ready: 'ready' };
   return (
-    <div className="oc-stack">
-      <div className="oc-page-head"><div><h1>Banquet Production</h1><p>Dishes of the issued BEOs by serving time.</p></div><span className="oc-spacer" />
-        <div className="oc-row-wrap"><TextField label="Date" type="date" value={day} onChange={setDay} />
-          <div style={{ width: 200 }}><TextField label="Station" value={station} onChange={setStation} placeholder="buffet, kitchen…" /></div></div></div>
-      <ErrorAlert error={q.error ?? move.error} />
-      {q.isSuccess && (q.data?.items.length ?? 0) === 0 && <p className="oc-muted">No banquet dishes for this day.</p>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
-        {cols.map(([s, label]) => (
-          <div key={s} className="oc-stack">
-            <h3>{label}</h3>
-            {(q.data?.items ?? []).filter((p) => p.status === s).map((p) => (
-              <div key={String(p.id)} className="oc-card">
-                <div className="oc-row"><strong>{String(p.quantity)} × {String(p.name)}</strong><span className="oc-spacer" />
-                  <span className="oc-small">{formatDateTime(String(p.serveAt))}</span></div>
-                <div className="oc-small oc-muted">{String(p.eventNumber)} {String(p.eventTitle)} · BEO v{String(p.beoVersion)}{p.station ? ` · ${String(p.station)}` : ''}</div>
-                {can('banquet.production.update') && (
-                  <button className="oc-btn oc-btn-ink oc-btn-sm oc-btn-block" style={{ marginTop: 8, minHeight: 44 }} disabled={move.isPending}
-                    onClick={() => move.mutate({ id: p.id, status: next[s][0] }, { onSuccess: () => toast('Updated') })}>{next[s][1]}</button>
-                )}
-              </div>
-            ))}
-          </div>
-        ))}
+    <>
+      <div className="pos-head">
+        <h1>Banquet Production</h1>
+        <span className="pos-muted">Dishes of the issued BEOs by serving time</span>
+        <span className="pos-spacer" />
+        <input className="pos-input" type="date" style={{ width: 180 }} value={day} onChange={(e) => setDay(e.target.value)} aria-label="Date" />
+        <input className="pos-input" style={{ width: 200 }} value={station} onChange={(e) => setStation(e.target.value)} placeholder="Station (buffet, kitchen…)" aria-label="Station" />
       </div>
-    </div>
+      <div className="pos-body">
+        <ErrorAlert error={q.error ?? move.error} />
+        {q.isSuccess && (q.data?.items.length ?? 0) === 0 && <div className="pos-empty"><Icon name="celebration" size={36} />No banquet dishes for this day.</div>}
+        <div className="pos-kds">
+          {cols.map(([s, label]) => {
+            const list = (q.data?.items ?? []).filter((p) => p.status === s);
+            return (
+              <section key={s} className="pos-kds-col" aria-label={label}>
+                <header><span className="pos-dot" data-kds={kds[s]} />{label}<span className="pos-kds-count">{list.length}</span></header>
+                {list.map((p) => (
+                  <article key={String(p.id)} className="pos-ticket-card" data-kds={kds[s]}>
+                    <div className="pos-ticket-card-head">
+                      <span className="pos-kds-badge" data-kds={kds[s]}>{String(p.quantity)}</span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <strong>{String(p.name)}</strong>
+                        <div className="pos-muted" style={{ fontSize: 12 }}>{String(p.eventNumber)} {String(p.eventTitle)} · BEO v{String(p.beoVersion)}{p.station ? ` · ${String(p.station)}` : ''}</div>
+                      </div>
+                      <span className="pos-kds-timer"><Icon name="schedule" size={14} />{formatDateTime(String(p.serveAt))}</span>
+                    </div>
+                    {can('banquet.production.update') && (
+                      <button className="pos-btn" data-variant={s === 'ready' ? 'outline' : undefined} data-block disabled={move.isPending}
+                        onClick={() => move.mutate({ id: p.id, status: next[s][0] }, { onSuccess: () => toast('Updated') })}>{next[s][1]}</button>
+                    )}
+                  </article>
+                ))}
+                {list.length === 0 && <div className="pos-empty">Nothing here</div>}
+              </section>
+            );
+          })}
+        </div>
+      </div>
+    </>
   );
+}
+
+/** Notifications and profile inside the kitchen frame. */
+function Page({ children }: { children: React.ReactNode }) {
+  return <div className="pos-body" style={{ paddingTop: 24 }}>{children}</div>;
 }
 
 const routes = [
   {
     element: <KitchenLayout />,
     children: [
-      { index: true, element: <KitchenBoardPage /> },
-      { path: 'notifications', element: <NotificationsPage /> },
-      { path: 'profile', element: <ProfilePage showPin /> },
-      { path: '*', element: <NotFoundPage /> },
+      { index: true, element: <OrdersBoard /> },
+      { path: 'banquet', element: <BanquetProductionBoard /> },
+      { path: 'notifications', element: <Page><NotificationsPage /></Page> },
+      { path: 'profile', element: <Page><ProfilePage showPin /></Page> },
+      { path: '*', element: <Page><NotFoundPage /></Page> },
     ],
   },
 ];

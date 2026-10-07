@@ -14,7 +14,8 @@ import { cacheableApiPattern } from './src/sw-cache';
 // last bootstrap, session and the data those areas read, so they open without
 // a connection; actions go to the IndexedDB sync queue (@oneclub/offline).
 
-const OFFLINE_AREAS = new RegExp(`[\\\\/]src[\\\\/]areas[\\\\/](${AREAS.filter((a) => a.offline).map((a) => a.code).join('|')})\\.tsx$`);
+// The POS Cashier (src/pos, loaded by the Operational area when opened) works offline too.
+const OFFLINE_AREAS = new RegExp(`[\\\\/]src[\\\\/](areas[\\\\/](${AREAS.filter((a) => a.offline).map((a) => a.code).join('|')})|pos[\\\\/]index)\\.tsx$`);
 
 /** Collects the files of the app shell and the offline areas, with their static imports and CSS. */
 function offlineAreaFiles(): Plugin & { files: Set<string> } {

@@ -6586,6 +6586,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/commercial/dining-tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Dining Tables */
+        get: operations["getCommercialDiningTables"];
+        put?: never;
+        /** Add Dining Table */
+        post: operations["postCommercialDiningTables"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/dining-tables/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Dining Table */
+        get: operations["getCommercialDiningTablesById"];
+        put?: never;
+        post?: never;
+        /** Delete Dining Table (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCommercialDiningTablesById"];
+        options?: never;
+        head?: never;
+        /** Edit Dining Table */
+        patch: operations["patchCommercialDiningTablesById"];
+        trace?: never;
+    };
+    "/api/v1/commercial/dining-tables:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Dining Tables (CSV/XLSX) */
+        get: operations["getCommercialDiningTablesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/commercial/kds/stream": {
         parameters: {
             query?: never;
@@ -6990,6 +7044,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/commercial/orders/{id}:bill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Print Bill: present the bill to the table (Table View: Billed) */
+        post: operations["postCommercialOrdersByIdBill"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/commercial/orders/{id}:charge": {
         parameters: {
             query?: never;
@@ -7126,6 +7197,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/commercial/orders/{id}:tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move Table: seat the order at other tables (move or join) */
+        post: operations["postCommercialOrdersByIdTables"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/commercial/orders/{id}:void": {
         parameters: {
             query?: never;
@@ -7191,6 +7279,40 @@ export interface paths {
         get: operations["getCommercialOutletsByIdMenu"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/outlets/{id}/tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Table View: the tables of an outlet with their state now */
+        get: operations["getCommercialOutletsByIdTables"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/outlets/{id}:quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Tax & service of an amount at the outlet now (cart estimate; nothing is stored) */
+        post: operations["postCommercialOutletsByIdQuote"];
         delete?: never;
         options?: never;
         head?: never;
@@ -8472,6 +8594,60 @@ export interface paths {
         put?: never;
         /** Open Shift (opening cash) */
         post: operations["postCommercialShiftsOpen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/table-reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Table Reservations */
+        get: operations["getCommercialTableReservations"];
+        put?: never;
+        /** Add Table Reservation */
+        post: operations["postCommercialTableReservations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/table-reservations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Table Reservation */
+        get: operations["getCommercialTableReservationsById"];
+        put?: never;
+        post?: never;
+        /** Delete Table Reservation (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCommercialTableReservationsById"];
+        options?: never;
+        head?: never;
+        /** Edit Table Reservation */
+        patch: operations["patchCommercialTableReservationsById"];
+        trace?: never;
+    };
+    "/api/v1/commercial/table-reservations:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Table Reservations (CSV/XLSX) */
+        get: operations["getCommercialTableReservationsExport"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -29025,6 +29201,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload a photo of a master data record (multipart: file); allowed to whoever may create or edit the resource */
+        post: operations["postPlatformImages"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/imports": {
         parameters: {
             query?: never;
@@ -45302,6 +45495,76 @@ export interface components {
             /** @enum {string|null} */
             status?: "active" | "inactive" | null;
         };
+        DiningTable: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Area */
+            area?: string | null;
+            /** @description Table */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Outlet
+             */
+            outletId: string;
+            /** @description Position X (%) */
+            posX?: string | null;
+            /** @description Position Y (%) */
+            posY?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Seats
+             */
+            seats?: number | null;
+            /**
+             * @description Shape
+             * @enum {string|null}
+             */
+            shape?: "square" | "round" | "rect" | "seat" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        DiningTableInput: {
+            /** @description Area */
+            area?: string | null;
+            /** @description Table */
+            code?: string;
+            /**
+             * Format: uuid
+             * @description Outlet
+             */
+            outletId?: string;
+            /** @description Position X (%) */
+            posX?: string | null;
+            /** @description Position Y (%) */
+            posY?: string | null;
+            /**
+             * Format: int64
+             * @description Seats
+             */
+            seats?: number | null;
+            /**
+             * @description Shape
+             * @enum {string|null}
+             */
+            shape?: "square" | "round" | "rect" | "seat" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
         DiscardRequest: {
             reason: string;
         };
@@ -48620,7 +48883,7 @@ export interface components {
             refPath?: string;
             required: boolean;
             /** @enum {string} */
-            type: "text" | "textarea" | "number" | "decimal" | "boolean" | "date" | "datetime" | "reference" | "select" | "email" | "json" | "time" | "intlist" | "list" | "jsonlist";
+            type: "text" | "textarea" | "number" | "decimal" | "boolean" | "date" | "datetime" | "reference" | "select" | "email" | "json" | "time" | "intlist" | "list" | "jsonlist" | "image";
         };
         File: {
             contentType: string;
@@ -55370,6 +55633,8 @@ export interface components {
             available?: string | null;
             category?: string | null;
             code: string;
+            /** @description Product photo (POS menu) */
+            imageUrl?: string | null;
             kitchenStation?: string | null;
             memberPrice?: string | null;
             name: string;
@@ -56654,6 +56919,8 @@ export interface components {
             venueResourceId?: string | null;
         };
         Order: {
+            /** Format: date-time */
+            billedAt?: string | null;
             bills: components["schemas"]["Bill"][];
             /** Format: uuid */
             chargeFolioId?: string | null;
@@ -56693,7 +56960,10 @@ export interface components {
             source: string;
             /** @enum {string} */
             status: "open" | "paid" | "charged" | "voided" | "refunded";
+            tableIds: string[];
             tableNo?: string | null;
+            /** Format: uuid */
+            tableReservationId?: string | null;
             tierCode?: string | null;
             /** @description Tier discount of the active lines */
             tierDiscount: string;
@@ -56749,7 +57019,14 @@ export interface components {
             shiftId?: string | null;
             /** @enum {string} */
             source?: "pos" | "member_app" | "caddy_tablet" | "vip_suite" | "meeting_catering" | "website" | "driving_range";
+            /** @description Dining tables the order seats (Table View); tableNo defaults to their codes */
+            tableIds?: string[];
             tableNo?: string;
+            /**
+             * Format: uuid
+             * @description Table reservation seated by this order
+             */
+            tableReservationId?: string | null;
         };
         OrderLine: {
             /** Format: uuid */
@@ -60604,6 +60881,8 @@ export interface components {
             createdAt: string;
             /** Format: uuid */
             id: string;
+            /** @description Photo */
+            imageUrl?: string | null;
             /** @description Kitchen Station */
             kitchenStation?: string | null;
             /** @description Member Price */
@@ -60652,6 +60931,8 @@ export interface components {
             code?: string;
             /** @description Combo / Package Items */
             comboItems?: Record<string, never>[] | null;
+            /** @description Photo */
+            imageUrl?: string | null;
             /** @description Kitchen Station */
             kitchenStation?: string | null;
             /** @description Member Price */
@@ -68529,6 +68810,144 @@ export interface components {
         };
         SyncRequest: {
             items: components["schemas"]["SyncItem"][];
+        };
+        TableBooking: {
+            /** Format: uuid */
+            customerId?: string | null;
+            guestCount: number;
+            guestName: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            reservedFor: string;
+            tableIds: string[];
+        };
+        TableOrder: {
+            /** Format: date-time */
+            billedAt?: string | null;
+            customerName?: string | null;
+            guestCount?: number | null;
+            /** Format: uuid */
+            id: string;
+            orderNo: string;
+            /** Format: date-time */
+            seatedAt: string;
+            /** @enum {string} */
+            serviceStatus: "new" | "sent" | "preparing" | "ready" | "out_for_delivery" | "served";
+            tableNo?: string | null;
+            total: string;
+        };
+        TableReservation: {
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: uuid
+             * @description Customer
+             */
+            customerId?: string | null;
+            /**
+             * Format: int64
+             * @description Duration (minutes)
+             */
+            durationMinutes?: number | null;
+            /**
+             * Format: int64
+             * @description Guests
+             */
+            guestCount?: number | null;
+            /** @description Guest Name */
+            guestName?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Order
+             */
+            orderId?: string | null;
+            /**
+             * Format: uuid
+             * @description Outlet
+             */
+            outletId: string;
+            /** @description Phone */
+            phone?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: date-time
+             * @description Reserved For
+             */
+            reservedFor: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "booked" | "seated" | "cancelled" | "no_show" | null;
+            /** @description Tables */
+            tableIds?: string[] | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        TableReservationInput: {
+            /**
+             * Format: uuid
+             * @description Customer
+             */
+            customerId?: string | null;
+            /**
+             * Format: int64
+             * @description Duration (minutes)
+             */
+            durationMinutes?: number | null;
+            /**
+             * Format: int64
+             * @description Guests
+             */
+            guestCount?: number | null;
+            /** @description Guest Name */
+            guestName?: string | null;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Outlet
+             */
+            outletId?: string;
+            /** @description Phone */
+            phone?: string | null;
+            /**
+             * Format: date-time
+             * @description Reserved For
+             */
+            reservedFor?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "booked" | "seated" | "cancelled" | "no_show" | null;
+            /** @description Tables */
+            tableIds?: string[] | null;
+        };
+        TableState: {
+            area?: string | null;
+            code: string;
+            /** Format: uuid */
+            id: string;
+            order?: components["schemas"]["TableOrder"] | null;
+            posX: number;
+            posY: number;
+            reservation?: components["schemas"]["TableBooking"] | null;
+            seats: number;
+            /** @enum {string} */
+            shape: "square" | "round" | "rect" | "seat";
+            /** @enum {string} */
+            state: "available" | "booked" | "occupied" | "billed";
+        };
+        TablesInput: {
+            /** @description All the tables the order seats from now on */
+            tableIds: string[];
         };
         TargetAchievement: {
             achievedDeals: number;
@@ -100656,6 +101075,346 @@ export interface operations {
             };
         };
     };
+    getCommercialDiningTables: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[outletId]"?: string;
+                "filter[area]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DiningTable"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialDiningTables: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiningTableInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiningTable"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialDiningTablesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiningTable"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCommercialDiningTablesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCommercialDiningTablesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiningTableInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiningTable"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialDiningTablesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[outletId]"?: string;
+                "filter[area]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCommercialKdsStream: {
         parameters: {
             query?: never;
@@ -102672,6 +103431,58 @@ export interface operations {
             };
         };
     };
+    postCommercialOrdersByIdBill: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postCommercialOrdersByIdCharge: {
         parameters: {
             query?: never;
@@ -103116,6 +103927,62 @@ export interface operations {
             };
         };
     };
+    postCommercialOrdersByIdTables: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TablesInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postCommercialOrdersByIdVoid: {
         parameters: {
             query?: never;
@@ -103481,6 +104348,122 @@ export interface operations {
                         items: components["schemas"]["MenuItem"][];
                         nextCursor?: string;
                     };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialOutletsByIdTables: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TableState"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialOutletsByIdQuote: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalculateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Breakdown"];
                 };
             };
             /** @description Not authenticated */
@@ -109908,6 +110891,344 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Shift"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialTableReservations: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[outletId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TableReservation"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialTableReservations: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TableReservationInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableReservation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialTableReservationsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableReservation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCommercialTableReservationsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCommercialTableReservationsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TableReservationInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableReservation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialTableReservationsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[outletId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
                 };
             };
             /** @description Not authenticated */
@@ -198285,6 +199606,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HardwareProfilesView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPlatformImages: {
+        parameters: {
+            query: {
+                /** @description Resource key, e.g. commercial.product */
+                resource: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["File"];
                 };
             };
             /** @description Not authenticated */

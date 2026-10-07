@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { Link, Navigate, Outlet, useRoutes } from 'react-router';
 import { useGet, type Page } from '@oneclub/api-client';
 import { useTranslation } from '@oneclub/i18n';
 import { enqueue, useOnline } from '@oneclub/offline';
-import { Brand, Card, HeaderActions, Icon, NotFoundPage, NotificationsPage, ProfilePage, TextArea, useAuth, useToast } from '@oneclub/shell';
+import { Brand, Card, HeaderActions, Icon, NotFoundPage, NotificationsPage, ProfilePage, Skeleton, TextArea, useAuth, useToast } from '@oneclub/shell';
 import {
   BagDropPage, BagStoragePage, CaddyAssignmentPage, CaddyQueuePage, CartAssignmentPage, CartReadinessPage, FrontDeskFoliosPage, FrontDeskPage,
   FrontDeskPaymentsPage, GuestPage, LockersPage, OpsCheckInPage, OpsTeeSheetPage, OpsTiles, StarterQueuePage,
@@ -13,6 +13,9 @@ import { P3_OPS_ROUTES, P3Tiles } from '../ops/p3';
 import { ConnectivityChip, OUTLET_KEY, SyncPage, read, write } from '../offline';
 
 // Operational area (`/ops`): touch-first, offline-capable (Technical Doc §6.4, PRD FR-SH-05).
+
+/** POS Cashier: a full-screen app of its own (pos/), loaded when opened. */
+const PosApp = lazy(() => import('../pos'));
 
 /** Touch-first layout without dashboard chrome (Technical Doc §6.5). */
 function OpsLayout() {
@@ -91,6 +94,7 @@ function HomePage() {
 }
 
 const routes = [
+  { path: 'pos/*', element: <Suspense fallback={<Skeleton rows={6} />}><PosApp /></Suspense> },
   {
     element: <OpsLayout />,
     children: [

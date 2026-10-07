@@ -78,6 +78,7 @@ import (
 	"io"
 	"log/slog"
 	"math/rand/v2"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"regexp"
@@ -321,11 +322,10 @@ func (a *App) SeedTrial(ctx context.Context, o TrialOptions) (res *TrialResult, 
 		return nil, err
 	}
 	res.Start, res.Today, res.Property = t.Start.Format(time.DateOnly), t.Today.Format(time.DateOnly), t.Property
-	if _, ok := t.marks["complete"]; ok {
-		res.AlreadyComplete = true
-		res.Coverage, err = TrialCoverage(ctx, a.DB, t.Property)
-		return res, err
-	}
+	// A complete dataset only gets the setup and final steps of seeders
+	// added since (every other step has its marker and is skipped).
+	_, complete := t.marks["complete"]
+	defer func() { res.AlreadyComplete = complete && t.steps == 0 }()
 	if err := t.step(ctx, "users", func() error { return t.ensureUsers(ctx) }); err != nil {
 		return res, err
 	}
@@ -562,6 +562,8 @@ var trialRedated = [][2]string{
 	{"crm.sales_opportunities", "created_at"}, {"crm.sales_quotations", "created_at"}, {"crm.sales_quotations", "sent_at"}, {"crm.campaigns", "created_at"},
 	{"crm.campaign_recipients", "created_at"}, {"crm.loyalty_accounts", "created_at"},
 	{"golf.bookings", "created_at"}, {"commercial.orders", "created_at"}, {"commercial.package_bookings", "created_at"},
+	{"commercial.kitchen_tickets", "received_at"}, {"commercial.kitchen_tickets", "preparing_at"}, {"commercial.kitchen_tickets", "ready_at"},
+	{"commercial.kitchen_tickets", "served_at"}, {"commercial.kitchen_tickets", "updated_at"},
 	{"membership.applications", "created_at"}, {"banquet.events", "created_at"}, {"stay.stays", "created_at"},
 	{"procurement.purchase_requisitions", "created_at"}, {"procurement.purchase_orders", "created_at"},
 }
@@ -888,7 +890,9 @@ func (r *trialRecorder) WriteHeader(code int) {
 // Call performs a request and returns the status and the decoded body.
 func (c *TrialClient) Call(method, path string, body any, hdr ...string) (int, J, []byte) {
 	var rd io.Reader
-	if body != nil {
+	if raw, ok := body.(trialRaw); ok { // multipart upload (Upload)
+		rd = bytes.NewReader(raw)
+	} else if body != nil {
 		raw, err := json.Marshal(body)
 		c.t.check(err)
 		rd = bytes.NewReader(raw)
@@ -951,6 +955,21 @@ func (c *TrialClient) Do(method, path string, body any, hdr ...string) J {
 		c.t.fail("%s %s as %s: %d %s", method, path, c.Email, st, msg)
 	}
 	return out
+}
+
+// trialRaw is a request body sent as is.
+type trialRaw []byte
+
+// Upload posts a file as multipart/form-data (field "file"); it must succeed.
+func (c *TrialClient) Upload(path, filename string, data []byte) J {
+	var buf bytes.Buffer
+	w := multipart.NewWriter(&buf)
+	fw, err := w.CreateFormFile("file", filename)
+	c.t.check(err)
+	_, err = fw.Write(data)
+	c.t.check(err)
+	c.t.check(w.Close())
+	return c.Do(http.MethodPost, path, trialRaw(buf.Bytes()), "Content-Type", w.FormDataContentType())
 }
 
 // Post creates / acts (must succeed).

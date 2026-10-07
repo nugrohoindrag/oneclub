@@ -67,6 +67,8 @@ var trialCoverageTables = [][3]string{
 	{"banquet", "events", "banquet.events"},
 	{"banquet", "BEOs", "banquet.beos"},
 	{"commercial", "POS orders", "commercial.orders"},
+	{"commercial", "dining tables", "commercial.dining_tables"},
+	{"commercial", "table reservations", "commercial.table_reservations"},
 	{"commercial", "POS order lines", "commercial.order_lines"},
 	{"commercial", "POS shifts", "commercial.pos_shifts"},
 	{"commercial", "vouchers", "commercial.vouchers"},
