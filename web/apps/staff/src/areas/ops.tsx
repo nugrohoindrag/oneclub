@@ -6,7 +6,7 @@ import { enqueue, useOnline } from '@oneclub/offline';
 import { Brand, Card, HeaderActions, Icon, NotFoundPage, NotificationsPage, ProfilePage, Skeleton, TextArea, useAuth, useToast } from '@oneclub/shell';
 import {
   BagDropPage, BagStoragePage, CaddyAssignmentPage, CaddyQueuePage, CartAssignmentPage, CartReadinessPage, FrontDeskFoliosPage, FrontDeskPage,
-  FrontDeskPaymentsPage, GuestPage, LockersPage, OpsCheckInPage, OpsTeeSheetPage, OpsTiles, StarterQueuePage,
+  FrontDeskPaymentsPage, GuestPage, LockersPage, OpsCheckInPage, OpsCheckOutPage, OpsTeeSheetPage, OpsTiles, StarterQueuePage,
 } from '../ops/golf';
 import { P2_OPS_ROUTES, P2Tiles } from '../ops/p2';
 import { P3_OPS_ROUTES, P3Tiles } from '../ops/p3';
@@ -106,6 +106,7 @@ const routes = [
       { path: 'starter/rounds', element: <StarterQueuePage view="rounds" /> },
       { path: 'starter/tee-sheet', element: <OpsTeeSheetPage /> },
       { path: 'check-in', element: <OpsCheckInPage /> },
+      { path: 'check-out', element: <OpsCheckOutPage /> },
       { path: 'caddy', element: <CaddyQueuePage /> },
       { path: 'caddy/availability', element: <CaddyQueuePage /> },
       { path: 'caddy/rotation', element: <CaddyQueuePage /> },

@@ -617,16 +617,8 @@ func (m *Module) finishFlight(ctx context.Context, tx pgx.Tx, property, fid uuid
 		period = tstzrange(lower(period), greatest(lower(period) + interval '1 minute', now()), '[)') WHERE flight_id = $1 AND status IN ('assigned', 'in_use')`, fid); err != nil {
 		return err
 	}
-	// daily lockers return to Available when the round ends (FR-CHK-05)
-	if _, err := tx.Exec(ctx, `UPDATE golf.lockers SET locker_status = 'available' WHERE id IN (SELECT la.locker_id FROM golf.locker_assignments la
-		JOIN golf.booking_players bp ON bp.id = la.booking_player_id WHERE bp.flight_id = $1 AND la.status = 'active' AND la.assignment_type = 'daily')`, fid); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.locker_assignments SET status = 'released', released_at = now(),
-		period = tstzrange(lower(period), greatest(lower(period) + interval '1 minute', now()), '[)')
-		WHERE status = 'active' AND assignment_type = 'daily' AND booking_player_id IN (SELECT id FROM golf.booking_players WHERE flight_id = $1)`, fid); err != nil {
-		return err
-	}
+	// daily lockers stay in use after the round (shower, change): they return
+	// to Available at the Golfer Check-out (FR-CHK-05, checkout.go)
 	if bookingID != nil {
 		var open int
 		if err := tx.QueryRow(ctx, `SELECT count(*) FROM golf.flights WHERE booking_id = $1 AND status NOT IN ('completed', 'cancelled')`, *bookingID).Scan(&open); err != nil {
@@ -1832,11 +1824,20 @@ func (m *Module) AssignLocker(ctx context.Context, tx pgx.Tx, property uuid.UUID
 		return LockerAssignment{}, err
 	}
 	if fee := dec(req.Fee); fee.IsPositive() {
-		folio, err := m.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: property, CustomerID: cust, HolderName: holder, SourceType: "other", SourceRef: "Locker " + code})
-		if err != nil {
-			return LockerAssignment{}, err
+		// a player's locker goes on the booking folio (one bill at check-out)
+		var folioID *uuid.UUID
+		if req.BookingPlayerID != nil {
+			_ = tx.QueryRow(ctx, `SELECT b.folio_id FROM golf.booking_players bp JOIN golf.bookings b ON b.id = bp.booking_id JOIN billing.folios f ON f.id = b.folio_id
+				WHERE bp.id = $1 AND f.status = 'open' AND b.checked_out_at IS NULL`, *req.BookingPlayerID).Scan(&folioID)
 		}
-		lid, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: folio.ID, ChargeType: "locker", Description: "Locker rental " + code, UnitPrice: fee, Net: fee, Total: fee,
+		if folioID == nil {
+			folio, err := m.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: property, CustomerID: cust, HolderName: holder, SourceType: "other", SourceRef: "Locker " + code})
+			if err != nil {
+				return LockerAssignment{}, err
+			}
+			folioID = &folio.ID
+		}
+		lid, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: *folioID, ChargeType: "locker", Description: "Locker rental " + code, UnitPrice: fee, Net: fee, Total: fee,
 			ReferenceType: "golf_locker", ReferenceID: &aid})
 		if err != nil {
 			return LockerAssignment{}, err

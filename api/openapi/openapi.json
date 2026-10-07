@@ -13202,6 +13202,12 @@
             "nullable": true,
             "type": "string"
           },
+          "checkedOutAt": {
+            "description": "Golfer Check-out: settled and left the club",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
           "code": {
             "type": "string"
           },
@@ -18055,6 +18061,63 @@
         ],
         "type": "object"
       },
+      "ChargeTarget": {
+        "properties": {
+          "bagTag": {
+            "nullable": true,
+            "type": "string"
+          },
+          "bookingCode": {
+            "type": "string"
+          },
+          "bookingId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "flightNo": {
+            "type": "integer"
+          },
+          "flightStatus": {
+            "enum": [
+              "checked_in",
+              "ready",
+              "on_hold",
+              "in_play",
+              "completed"
+            ],
+            "type": "string"
+          },
+          "folioId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "localTime": {
+            "type": "string"
+          },
+          "locker": {
+            "nullable": true,
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "folioId",
+          "bookingId",
+          "bookingCode",
+          "playerName",
+          "localTime",
+          "flightNo",
+          "flightStatus"
+        ],
+        "type": "object"
+      },
       "ChargeToAccountInput": {
         "properties": {
           "accountId": {
@@ -18241,12 +18304,127 @@
         ],
         "type": "object"
       },
+      "CheckOutEntry": {
+        "properties": {
+          "bags": {
+            "description": "Bag tags not handed back yet",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "balance": {
+            "type": "string"
+          },
+          "bookingId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "charges": {
+            "type": "string"
+          },
+          "checkedOutAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "contactName": {
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "folioId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "inPlay": {
+            "description": "Flights still on the course",
+            "type": "integer"
+          },
+          "localTime": {
+            "type": "string"
+          },
+          "lockers": {
+            "description": "Daily lockers still in use",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "memberAccount": {
+            "description": "The balance can be charged to a member account",
+            "type": "boolean"
+          },
+          "paymentMode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "payments": {
+            "type": "string"
+          },
+          "players": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "checked_in",
+              "completed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "bookingId",
+          "code",
+          "localTime",
+          "courseName",
+          "contactName",
+          "status",
+          "players",
+          "inPlay",
+          "charges",
+          "payments",
+          "balance",
+          "memberAccount",
+          "lockers",
+          "bags"
+        ],
+        "type": "object"
+      },
       "CheckOutInput": {
         "properties": {
           "at": {
             "description": "Actual departure / end; default now",
             "format": "date-time",
             "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CheckOutRequest": {
+        "properties": {
+          "methodType": {
+            "description": "Pays the outstanding balance first; empty when nothing is due",
+            "enum": [
+              "cash",
+              "card",
+              "qris",
+              "bank_transfer",
+              "member_account"
+            ],
+            "type": "string"
+          },
+          "reference": {
+            "description": "EDC approval code, QRIS or transfer reference",
             "type": "string"
           }
         },
@@ -27339,8 +27517,29 @@
             },
             "type": "array"
           },
+          "greenX": {
+            "nullable": true,
+            "type": "number"
+          },
+          "greenY": {
+            "nullable": true,
+            "type": "number"
+          },
+          "hereX": {
+            "description": "With lat \u0026 lng inside the course map",
+            "nullable": true,
+            "type": "number"
+          },
+          "hereY": {
+            "nullable": true,
+            "type": "number"
+          },
           "holeId": {
             "format": "uuid",
+            "type": "string"
+          },
+          "overviewUrl": {
+            "nullable": true,
             "type": "string"
           }
         },
@@ -219905,6 +220104,106 @@
         "x-permission": "golf.booking.cancel"
       }
     },
+    "/api/v1/golf/bookings/{id}:check-out": {
+      "post": {
+        "operationId": "postGolfBookingsByIdCheckOut",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckOutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Booking"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Golfer Check-out (settle and close the folio, release lockers, hand back bags)",
+        "tags": [
+          "Check-in"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.check_in.perform"
+      }
+    },
     "/api/v1/golf/bookings/{id}:confirm": {
       "post": {
         "operationId": "postGolfBookingsByIdConfirm",
@@ -224448,6 +224747,123 @@
         "x-permission": "golf.caddy.view"
       }
     },
+    "/api/v1/golf/charge-targets": {
+      "get": {
+        "operationId": "getGolfChargeTargets",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/ChargeTarget"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Golfers whose booking folio a POS order can be charged to",
+        "tags": [
+          "Check-in"
+        ],
+        "x-module": "golf",
+        "x-permission": "commercial.order.pay"
+      }
+    },
     "/api/v1/golf/check-ins": {
       "post": {
         "operationId": "postGolfCheckIns",
@@ -224657,6 +225073,116 @@
           }
         ],
         "summary": "Find today's booking by member card, QR, code or name",
+        "tags": [
+          "Check-in"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.check_in.perform"
+      }
+    },
+    "/api/v1/golf/check-outs": {
+      "get": {
+        "operationId": "getGolfCheckOuts",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CheckOutEntry"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Check-out desk: checked-in bookings with balance, lockers and bags",
         "tags": [
           "Check-in"
         ],

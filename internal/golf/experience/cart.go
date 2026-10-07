@@ -501,6 +501,33 @@ func (m *Module) HoleDistances(ctx context.Context, q dbtx.Querier, hole uuid.UU
 	return out, nil
 }
 
+// courseOverview puts the course map and the green of the hole on it
+// (Cart View, FR-PLX-01/02); the map projects the device position too.
+func courseOverview(ctx context.Context, q dbtx.Querier, hole uuid.UUID, out *CourseMap) (courseMap, error) {
+	var course uuid.UUID
+	if err := q.QueryRow(ctx, `SELECT course_id FROM golf.holes WHERE id = $1`, hole).Scan(&course); err != nil {
+		return courseMap{}, err
+	}
+	cm, err := loadCourseMap(ctx, q, course)
+	if err != nil || !cm.ok {
+		return cm, err
+	}
+	out.OverviewURL = cm.url
+	var geom map[string]any
+	err = q.QueryRow(ctx, `SELECT geometry FROM golf.course_assets WHERE hole_id = $1 AND asset_type = 'green_center' AND status = 'active'
+		AND archived_at IS NULL ORDER BY code LIMIT 1`, hole).Scan(&geom)
+	if dbtx.IsNoRows(err) {
+		return cm, nil
+	}
+	if err != nil {
+		return cm, err
+	}
+	if la, lo, ok := geoPoint(geom); ok {
+		out.GreenX, out.GreenY = cm.project(la, lo)
+	}
+	return cm, nil
+}
+
 func haversine(lat1, lng1, lat2, lng2 float64) int {
 	const r = 6371000.0
 	rad := math.Pi / 180

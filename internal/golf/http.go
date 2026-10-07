@@ -987,6 +987,41 @@ func (m *Module) collectBagHTTP(w http.ResponseWriter, r *http.Request) {
 	m.write(w, r, http.StatusOK, func(ctx context.Context, tx pgx.Tx) (any, error) { return m.CollectBag(ctx, tx, prop(ctx), did) })
 }
 
+func (m *Module) checkOutDeskHTTP(w http.ResponseWriter, r *http.Request) {
+	m.read(w, r, func(ctx context.Context, tx pgx.Tx) (any, error) {
+		day, err := dayParam(ctx, tx, r)
+		if err != nil {
+			return nil, err
+		}
+		out, err := m.CheckOutDesk(ctx, tx, prop(ctx), day)
+		return httpx.Page[CheckOutEntry]{Items: out}, err
+	})
+}
+
+func (m *Module) checkOutHTTP(w http.ResponseWriter, r *http.Request) {
+	bid, err := httpx.PathUUID(r, "id")
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	req, ok := decode[CheckOutRequest](w, r)
+	if !ok {
+		return
+	}
+	m.write(w, r, http.StatusOK, func(ctx context.Context, tx pgx.Tx) (any, error) { return m.CheckOut(ctx, tx, prop(ctx), bid, req) })
+}
+
+func (m *Module) chargeTargetsHTTP(w http.ResponseWriter, r *http.Request) {
+	m.read(w, r, func(ctx context.Context, tx pgx.Tx) (any, error) {
+		day, err := dayParam(ctx, tx, r)
+		if err != nil {
+			return nil, err
+		}
+		out, err := m.ChargeTargets(ctx, tx, prop(ctx), day, r.URL.Query().Get("q"))
+		return httpx.Page[ChargeTarget]{Items: out}, err
+	})
+}
+
 func (m *Module) bagDropsHTTP(w http.ResponseWriter, r *http.Request) {
 	m.read(w, r, func(ctx context.Context, tx pgx.Tx) (any, error) {
 		day, err := dayParam(ctx, tx, r)
@@ -1271,6 +1306,13 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 		Response: CaddyTip{}, List: true, Query: []route.Param{{Name: "date"}}, Handler: m.tipsHTTP})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/caddy-tips", Tag: tcd, Summary: "Add a Caddy Tip to the folio", Permission: "golf.check_in.perform",
 		Request: TipRequest{}, Response: CaddyTip{}, Idempotent: true, Handler: m.tipHTTP})
+	// check-out (FR-CHK-05) and the POS charge to a golfer's folio (FR-POS-07)
+	add(route.Route{Method: http.MethodGet, Path: "/api/v1/golf/check-outs", Tag: tk, Summary: "Check-out desk: checked-in bookings with balance, lockers and bags",
+		Permission: "golf.check_in.perform", Response: CheckOutEntry{}, List: true, Query: []route.Param{{Name: "date"}}, Handler: m.checkOutDeskHTTP})
+	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/bookings/{id}:check-out", Tag: tk, Summary: "Golfer Check-out (settle and close the folio, release lockers, hand back bags)",
+		Permission: "golf.check_in.perform", Request: CheckOutRequest{}, Response: Booking{}, Status: http.StatusOK, Idempotent: true, Handler: m.checkOutHTTP})
+	add(route.Route{Method: http.MethodGet, Path: "/api/v1/golf/charge-targets", Tag: tk, Summary: "Golfers whose booking folio a POS order can be charged to",
+		Permission: "commercial.order.pay", Response: ChargeTarget{}, List: true, Query: []route.Param{{Name: "q"}, {Name: "date"}}, Handler: m.chargeTargetsHTTP})
 	// golf carts
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/golf/golf-cart-board", Tag: tgc, Summary: "Golf Cart Readiness board", Permission: "golf.golf_cart.view",
 		Response: CartBoardEntry{}, List: true, Query: []route.Param{{Name: "date"}}, Handler: m.cartBoardHTTP})

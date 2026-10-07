@@ -393,6 +393,36 @@
   background: linear-gradient(135deg, var(--pos-primary) 0%, var(--pos-primary-strong) 100%); box-shadow: var(--pos-shadow); }
 .pos-hole .pos-btn[data-variant='outline'] { background: #fff; border-color: #fff; }
 .pos-hole-title { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+
+/* Cart View: the golf cart GPS screen of the caddy tablet */
+.pos-cart { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .pos-cart { grid-template-columns: 1fr; } }
+.pos-cart-hole, .pos-cart-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.pos-cart-yards { display: flex; gap: 10px; }
+.pos-cart-yards > div { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 12px 8px; border-radius: 16px;
+  background: var(--pos-surface, #fff); border: 1px solid var(--pos-line, #e3e8f0); }
+.pos-cart-yards > div[data-main] { background: var(--pos-primary, #1d4ed8); border-color: transparent; color: #fff; }
+.pos-cart-yards span { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.8; }
+.pos-cart-yards strong { font-size: 38px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.pos-cart-yards small { font-size: 13px; opacity: 0.8; }
+.pos-cart-card { width: 100%; max-height: 380px; object-fit: contain; border-radius: 16px; background: #fff; }
+.pos-cart-map { position: relative; border-radius: 16px; overflow: hidden; }
+.pos-cart-map img { display: block; width: 100%; }
+.pos-cart-pin, .pos-cart-here { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center; width: 30px; height: 30px;
+  border-radius: 50%; color: #fff; box-shadow: 0 2px 6px rgb(0 0 0 / 0.35); }
+.pos-cart-pin { background: #dc2626; }
+.pos-cart-here { background: #2563eb; outline: 4px solid rgb(37 99 235 / 0.3); }
+.pos-cart-table { width: 100%; border-collapse: collapse; font-size: 14px; font-variant-numeric: tabular-nums; background: var(--pos-surface, #fff);
+  border-radius: 12px; overflow: hidden; }
+.pos-cart-table th, .pos-cart-table td { padding: 6px 4px; text-align: center; border: 1px solid var(--pos-line, #e3e8f0); }
+.pos-cart-table th:first-child { text-align: left; padding-left: 8px; white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+.pos-cart-table thead th { background: #0f2a1d; color: #fff; }
+.pos-cart-par td, .pos-cart-par th { font-weight: 700; }
+.pos-cart-si td, .pos-cart-si th { color: var(--pos-muted, #64748b); font-size: 12px; }
+.pos-cart-table [data-current] { background: #fef3c7; }
+.pos-cart-table thead th[data-current] { background: #ca8a04; }
+.pos-cart-table td[data-score='under'] { color: #b91c1c; font-weight: 700; }
+.pos-cart-table td[data-score='over'] { color: #1d4ed8; }
 .pos-muted-inverse { color: rgba(255, 255, 255, 0.78); font-size: 13px; font-weight: 500; }
 .pos-progress { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
 .pos-progress i { width: 22px; height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.28); }

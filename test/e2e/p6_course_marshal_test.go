@@ -102,6 +102,16 @@ func TestCourseGuideAndMarshal(t *testing.T) {
 		t.Fatalf("map position: %v", x)
 	}
 
+	// Cart View of the caddy tablet: the hole on the course map, with the
+	// green and the tablet's GPS position (lng 106.6 = the middle of the map).
+	cv := roleUser(t, inst, "caddy").Must(200, "GET", "/api/v1/golf/course-maps/"+str(c.Holes[2]["holeId"])+"?lat=-6.195&lng=106.6", nil).JSON()
+	if cv["overviewUrl"] != "https://images.example.com/cm-course-map.jpg" || cv["greenX"] == nil || cv["hereX"] == nil || len(cv["distances"].([]any)) == 0 {
+		t.Fatalf("cart view of hole 3: %v", cv)
+	}
+	if x := cv["hereX"].(float64); x < 0.45 || x > 0.55 {
+		t.Fatalf("tablet on the course map: %v", x)
+	}
+
 	// Marshal: only the Starter / Marshal (and managers) intervene; a note needs a text.
 	roleUser(t, inst, "caddy").Must(403, "POST", "/api/v1/golf/flights/"+fid+"/pace-interventions", map[string]any{"kind": "warning"})
 	marshal := roleUser(t, inst, "starter_marshal")

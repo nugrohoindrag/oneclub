@@ -427,7 +427,7 @@ func Contribution() catalog.Contribution {
 			"caddy_manager": with(view, "golf.caddy_promotion.request", "golf.caddy_incident.create", "golf.caddy_incident.manage",
 				"golf.caddy_settlement.manage"),
 			"caddy": {"golf.tablet.use", "golf.caddy_assignment.accept", "golf.round.view", "golf.round.operate", "golf.scorecard.view", "golf.scorecard.enter", "golf.caddy_incident.create",
-				"golf.cart_incident.create", "golf.pace.view"},
+				"golf.cart_incident.create", "golf.pace.view", "golf.course.view"}, // course.view: the hole map and Cart View of the tablet
 			"golf_staff": {"golf.cart_inspection.view", "golf.cart_inspection.create", "golf.cart_maintenance.view", "golf.cart_maintenance.manage",
 				"golf.cart_incident.view", "golf.cart_incident.create"},
 			"driving_range_staff": {"golf.range_bay.view", "golf.range.view", "golf.range.operate", "golf.range_bay.update"},

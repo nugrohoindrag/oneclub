@@ -237,10 +237,15 @@ export function OrderFoodPage() {
   const menu = useGet<Page<Schemas['MenuItem']>>(outlet ? `/api/v1/member/outlets/${outlet}/menu` : null);
   const orders = useGet<Page<Schemas['Order']>>('/api/v1/member/orders', { refetchInterval: 10000 });
   const [cart, setCart] = useState<Record<string, number>>({});
+  const [dest, setDest] = useState('pickup');
+  const [hole, setHole] = useState('');
   const place = useSend<Row, Schemas['Order']>('POST', '/api/v1/member/orders', ['/api/v1/member/orders'], idem);
+  // FR-FNB-02 on-course order: delivered to the halfway house or the hole the flight is on
+  const where = dest === 'hole' ? { orderType: 'on_course', servingDestination: 'hole', destinationRef: `Hole ${hole}` }
+    : dest === 'halfway_house' ? { orderType: 'on_course', servingDestination: 'halfway_house', destinationRef: 'Halfway House' } : {};
   return (
     <div className="oc-stack">
-      <PageHeader title="Order Food" help="Pre-order to pick up, or have it delivered on course." />
+      <PageHeader title="Order Food" help="Pre-order to pick up, or have it delivered on course: at the halfway house or to your hole." />
       <div style={{ width: 320 }}><SelectField label="Outlet" value={outlet} onChange={setOutlet} placeholder="Choose outlet"
         options={(outlets.data?.items ?? []).map((o) => ({ value: o.id, label: o.name }))} /></div>
       <ErrorAlert error={place.error ?? menu.error} />
@@ -255,13 +260,19 @@ export function OrderFoodPage() {
               </div>
             ))}
           </div>
-          <button className="oc-btn oc-btn-ink" style={{ marginTop: 12 }} disabled={!Object.values(cart).some((n) => n > 0)}
-            onClick={() => place.mutate({ outletId: outlet, memberCharge: true, lines: Object.entries(cart).filter(([, n]) => n > 0).map(([productId, n]) => ({ productId, quantity: String(n) })) },
+          <div className="oc-row-wrap" style={{ marginTop: 12, alignItems: 'flex-end' }}>
+            <div style={{ width: 220 }}><SelectField label="Deliver to" value={dest} onChange={setDest}
+              options={[{ value: 'pickup', label: 'Pick up' }, { value: 'halfway_house', label: 'Halfway House' }, { value: 'hole', label: 'My hole (on course)' }]} /></div>
+            {dest === 'hole' && <div style={{ width: 120 }}><TextField label="Hole" value={hole} onChange={(v) => setHole(v.replace(/\D/g, '').slice(0, 2))} /></div>}
+          </div>
+          <button className="oc-btn oc-btn-ink" style={{ marginTop: 12 }} disabled={!Object.values(cart).some((n) => n > 0) || (dest === 'hole' && !hole)}
+            onClick={() => place.mutate({ outletId: outlet, memberCharge: true, ...where, lines: Object.entries(cart).filter(([, n]) => n > 0).map(([productId, n]) => ({ productId, quantity: String(n) })) },
               { onSuccess: (o) => { setCart({}); toast(`Order ${o.orderNo} sent to the kitchen`); } })}>Order (member charge)</button>
         </Card>
       )}
       <Card title="My orders" icon="receipt">
         <DataTable rows={orders.data?.items as unknown as Row[]} columns={[{ key: 'orderNo', header: 'Order' }, { key: 'outletName', header: 'Outlet' },
+          { key: 'destinationRef', header: 'Deliver to', render: (r) => String(r.destinationRef ?? 'Pick up') },
           { key: 'total', header: 'Total', render: (r) => money(r.total) }, { key: 'serviceStatus', header: 'Kitchen', render: (r) => <StatusPill status={String(r.serviceStatus)} /> }]} />
       </Card>
     </div>

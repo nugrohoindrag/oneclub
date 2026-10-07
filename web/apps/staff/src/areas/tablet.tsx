@@ -138,7 +138,7 @@ function RoundPage() {
   const [seq, setSeq] = useState(0);
   const [status, setStatus] = useState('');
   const [scores, setScores] = useState<Record<string, Record<number, number>>>({});
-  const [tab, setTab] = useState<'score' | 'players' | 'map' | 'order'>('score');
+  const [tab, setTab] = useState<'cart' | 'score' | 'players' | 'map' | 'order'>('cart');
   // the last round action: once the server answers, the round is read again (scorecards open on tee-off)
   const [lastId, setLastId] = useState('');
   const last = useQueue().find((q) => q.id === lastId);
@@ -177,7 +177,8 @@ function RoundPage() {
   const playerOf = (scorecardId: string) => round.players.find((p) => p.scorecardId === scorecardId);
   const setScore = (sc: string, s: number, v: number) => setScores({ ...scores, [sc]: { ...(scores[sc] ?? {}), [s]: v } });
   const score = (sc: string, n: number) => { setScore(sc, seq, n); void act({ op: 'score', scorecardId: sc, entries: [{ seq, strokes: n, clientAt: new Date().toISOString() }] }, `Score ${n}`); };
-  const tabs: [typeof tab, string, string][] = [['score', 'Scorecard', 'scoreboard'], ['players', 'Players', 'group'], ['map', 'Course Map', 'map'], ['order', 'On-Course Order', 'local_cafe']];
+  const tabs: [typeof tab, string, string][] = [['cart', 'Cart View', 'golf_course'], ['score', 'Scorecard', 'scoreboard'], ['players', 'Players', 'group'],
+    ['map', 'Course Map', 'map'], ['order', 'On-Course Order', 'local_cafe']];
   return (
     <>
       <div className="pos-head">
@@ -252,6 +253,7 @@ function RoundPage() {
             })}
           </div>
         )}
+        {tab === 'cart' && <CartView round={round} seq={seq} scores={scores} onScore={score} />}
         {tab === 'players' && <PlayersTab round={round} />}
         {tab === 'map' && hole && <MapTab hole={hole} />}
         {tab === 'order' && <OrderTab round={round} seq={seq} />}
@@ -321,14 +323,8 @@ function PlayersTab({ round }: { round: Round }) {
 
 /** Course map & GPS distance (FR-CTB-11, FR-PLX-01/02). */
 function MapTab({ hole }: { hole: Round['holes'][number] }) {
-  const [pos, setPos] = useState<GeolocationPosition | null>(null);
-  const map = useGet<Schemas['CourseMap']>(`/api/v1/golf/course-maps/${hole.holeId}${pos ? `?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}` : ''}`);
+  const { pos, map } = useHoleMap(hole.holeId);
   const image = map.data?.assets.find((a) => a.fileUrl)?.fileUrl;
-  useEffect(() => {
-    if (!('geolocation' in navigator)) return;
-    const w = navigator.geolocation.watchPosition(setPos, () => undefined, { enableHighAccuracy: true });
-    return () => navigator.geolocation.clearWatch(w);
-  }, []);
   return (
     <div className="pos-section">
       <h2>Course Map · Hole {hole.number}</h2>
@@ -337,6 +333,109 @@ function MapTab({ hole }: { hole: Round['holes'][number] }) {
       <div className="pos-guests" style={{ marginTop: 12, flexWrap: 'wrap' }}>
         {map.data?.distances.map((d) => <span key={d.target + (d.name ?? '')} className="pos-kitchen" style={{ fontSize: 14, padding: '6px 12px' }}>{d.name || d.target}: {d.meters} m</span>)}
         {!pos && <span className="pos-muted">Waiting for GPS…</span>}
+      </div>
+    </div>
+  );
+}
+
+/** The hole map with the tablet's GPS position (watched while shown). */
+function useHoleMap(holeId: string) {
+  const [pos, setPos] = useState<GeolocationPosition | null>(null);
+  const at = pos ? `?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}` : '';
+  const map = useGet<Schemas['CourseMap']>(`/api/v1/golf/course-maps/${holeId}${at}`);
+  useEffect(() => {
+    if (!('geolocation' in navigator)) return;
+    const w = navigator.geolocation.watchPosition(setPos, () => undefined, { enableHighAccuracy: true });
+    return () => navigator.geolocation.clearWatch(w);
+  }, []);
+  return { pos, map };
+}
+
+const GREEN: Record<string, string> = { green_front: 'Front', green_center: 'Center', green_back: 'Back' };
+
+/** Cart View (golf cart GPS screen): the hole with the distances to the
+ * green, the course map with the green and "you are here", and the
+ * scorecard of the whole round (FR-CTB-11, FR-PLX-01/02). */
+function CartView({ round, seq, scores, onScore }: {
+  round: Round; seq: number; scores: Record<string, Record<number, number>>; onScore: (scorecardId: string, strokes: number) => void;
+}) {
+  const hole = round.holes[Math.max(seq, 1) - 1];
+  const { pos, map } = useHoleMap(hole?.holeId ?? '');
+  if (!hole) return null;
+  const m = map.data;
+  const image = m?.assets.find((a) => a.fileUrl)?.fileUrl;
+  const green = (m?.distances ?? []).filter((d) => GREEN[d.target]);
+  const others = (m?.distances ?? []).filter((d) => !GREEN[d.target]);
+  const strokes = (sc: Round['scorecards'][number], s: number) => scores[sc.id]?.[s] ?? sc.scores.find((h) => h.seq === s)?.strokes ?? undefined;
+  // nine holes per table (OUT / IN), the whole round in TOT
+  const nines: Round['holes'][] = [];
+  for (let i = 0; i < round.holes.length; i += 9) nines.push(round.holes.slice(i, i + 9));
+  const seqOf = (h: Round['holes'][number]) => round.holes.indexOf(h) + 1;
+  const sum = (sc: Round['scorecards'][number], hs: Round['holes'][number][]) => hs.reduce((t, h) => t + (strokes(sc, seqOf(h)) ?? 0), 0);
+  return (
+    <div className="pos-cart">
+      <div className="pos-cart-hole">
+        <div className="pos-cart-yards" aria-label="Distance to the green">
+          {green.length > 0 ? green.map((d) => (
+            <div key={d.target} data-main={d.target === 'green_center' || undefined}><span>{GREEN[d.target]}</span><strong>{formatNumber(d.meters)}</strong><small>m</small></div>
+          )) : <div><span>Green</span><strong>—</strong><small>{pos ? 'no green point' : 'waiting for GPS'}</small></div>}
+        </div>
+        {others.length > 0 && (
+          <div className="pos-guests" style={{ flexWrap: 'wrap' }}>
+            {others.map((d) => <span key={d.target + (d.name ?? '')} className="pos-kitchen" style={{ fontSize: 14, padding: '6px 12px' }}>{d.name || d.target}: {d.meters} m</span>)}
+          </div>
+        )}
+        {image ? <img className="pos-cart-card" src={image} alt={`Hole ${hole.number} layout`} />
+          : <div className="pos-empty"><Icon name="map" size={36} />No layout for this hole.</div>}
+        {m?.overviewUrl && (
+          <div className="pos-cart-map">
+            <img src={m.overviewUrl} alt="Course map" />
+            {m.greenX != null && m.greenY != null && (
+              <span className="pos-cart-pin" style={{ left: `${m.greenX * 100}%`, top: `${m.greenY * 100}%` }} title={`Green of hole ${hole.number}`}>
+                <Icon name="flag" size={18} /></span>
+            )}
+            {m.hereX != null && m.hereY != null && (
+              <span className="pos-cart-here" style={{ left: `${m.hereX * 100}%`, top: `${m.hereY * 100}%` }} title="You are here"><Icon name="my_location" size={18} /></span>
+            )}
+          </div>
+        )}
+      </div>
+      <div className="pos-cart-side">
+        {nines.map((hs, n) => (
+          <table key={n} className="pos-cart-table">
+            <thead>
+              <tr><th>Hole</th>{hs.map((h) => <th key={h.holeId + h.sequence} data-current={seqOf(h) === seq || undefined}>{h.number}</th>)}<th>{n === 0 ? 'OUT' : 'IN'}</th>{n === nines.length - 1 && <th>TOT</th>}</tr>
+            </thead>
+            <tbody>
+              <tr className="pos-cart-par"><th>Par</th>{hs.map((h) => <td key={h.holeId + h.sequence} data-current={seqOf(h) === seq || undefined}>{h.par}</td>)}
+                <td>{hs.reduce((t, h) => t + h.par, 0)}</td>{n === nines.length - 1 && <td>{round.holes.reduce((t, h) => t + h.par, 0)}</td>}</tr>
+              <tr className="pos-cart-si"><th>SI</th>{hs.map((h) => <td key={h.holeId + h.sequence} data-current={seqOf(h) === seq || undefined}>{h.strokeIndex ?? ''}</td>)}<td />{n === nines.length - 1 && <td />}</tr>
+              {round.scorecards.map((sc) => (
+                <tr key={sc.id}><th>{sc.playerName.split(' ')[0]}</th>
+                  {hs.map((h) => {
+                    const v = strokes(sc, seqOf(h));
+                    return <td key={h.holeId + h.sequence} data-current={seqOf(h) === seq || undefined} data-score={v == null ? undefined : v < h.par ? 'under' : v > h.par ? 'over' : 'par'}>{v ?? ''}</td>;
+                  })}
+                  <td><strong>{sum(sc, hs) || ''}</strong></td>{n === nines.length - 1 && <td><strong>{sum(sc, round.holes) || ''}</strong></td>}</tr>
+              ))}
+            </tbody>
+          </table>
+        ))}
+        {round.scorecards.length === 0 ? <div className="pos-empty"><Icon name="scoreboard" size={32} />The scorecards open when the round starts (tee-off).</div> : (
+          <div className="pos-stack">
+            <strong>Hole {hole.number} · Par {hole.par}</strong>
+            {round.scorecards.map((sc) => (
+              <div key={sc.id} className="pos-score-row" style={{ padding: 0 }}>
+                <span style={{ minWidth: 110 }}>{sc.playerName}</span>
+                <div className="pos-guests" role="group" aria-label={`Score for ${sc.playerName}`}>
+                  {[hole.par - 1, hole.par, hole.par + 1, hole.par + 2].filter((x) => x > 0).map((x) => (
+                    <button key={x} type="button" className="pos-guest pos-score" aria-pressed={strokes(sc, seq) === x} onClick={() => onScore(sc.id, x)}>{x}</button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

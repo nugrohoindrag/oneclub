@@ -14168,6 +14168,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/bookings/{id}:check-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Golfer Check-out (settle and close the folio, release lockers, hand back bags) */
+        post: operations["postGolfBookingsByIdCheckOut"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/bookings/{id}:confirm": {
         parameters: {
             query?: never;
@@ -14742,6 +14759,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/charge-targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Golfers whose booking folio a POS order can be charged to */
+        get: operations["getGolfChargeTargets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/check-ins": {
         parameters: {
             query?: never;
@@ -14768,6 +14802,23 @@ export interface paths {
         };
         /** Find today's booking by member card, QR, code or name */
         get: operations["getGolfCheckInsLookup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/check-outs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check-out desk: checked-in bookings with balance, lockers and bags */
+        get: operations["getGolfCheckOuts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -39636,6 +39687,11 @@ export interface components {
             channel: "member_app" | "website" | "back_office" | "walk_in" | "import";
             /** Format: date-time */
             checkedInAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Golfer Check-out: settled and left the club
+             */
+            checkedOutAt?: string | null;
             code: string;
             /** Format: date-time */
             completedAt?: string | null;
@@ -41300,6 +41356,22 @@ export interface components {
              */
             folioId: string;
         };
+        ChargeTarget: {
+            bagTag?: string | null;
+            bookingCode: string;
+            /** Format: uuid */
+            bookingId: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            flightNo: number;
+            /** @enum {string} */
+            flightStatus: "checked_in" | "ready" | "on_hold" | "in_play" | "completed";
+            /** Format: uuid */
+            folioId: string;
+            localTime: string;
+            locker?: string | null;
+            playerName: string;
+        };
         ChargeToAccountInput: {
             /** Format: uuid */
             accountId?: string | null;
@@ -41352,12 +41424,48 @@ export interface components {
             checkedIn: string[];
             flightsReady: string[];
         };
+        CheckOutEntry: {
+            /** @description Bag tags not handed back yet */
+            bags: string[];
+            balance: string;
+            /** Format: uuid */
+            bookingId: string;
+            charges: string;
+            /** Format: date-time */
+            checkedOutAt?: string | null;
+            code: string;
+            contactName: string;
+            courseName: string;
+            /** Format: uuid */
+            folioId?: string | null;
+            /** @description Flights still on the course */
+            inPlay: number;
+            localTime: string;
+            /** @description Daily lockers still in use */
+            lockers: string[];
+            /** @description The balance can be charged to a member account */
+            memberAccount: boolean;
+            paymentMode?: string | null;
+            payments: string;
+            players: string[];
+            /** @enum {string} */
+            status: "checked_in" | "completed";
+        };
         CheckOutInput: {
             /**
              * Format: date-time
              * @description Actual departure / end; default now
              */
             at?: string | null;
+        };
+        CheckOutRequest: {
+            /**
+             * @description Pays the outstanding balance first; empty when nothing is due
+             * @enum {string}
+             */
+            methodType?: "cash" | "card" | "qris" | "bank_transfer" | "member_account";
+            /** @description EDC approval code, QRIS or transfer reference */
+            reference?: string;
         };
         CheckResult: {
             item: string;
@@ -44626,8 +44734,14 @@ export interface components {
             assets: components["schemas"]["AssetInfo"][];
             /** @description With lat & lng: distance to the green, hazards and POIs */
             distances: components["schemas"]["Distance"][];
+            greenX?: number | null;
+            greenY?: number | null;
+            /** @description With lat & lng inside the course map */
+            hereX?: number | null;
+            hereY?: number | null;
             /** Format: uuid */
             holeId: string;
+            overviewUrl?: string | null;
         };
         CourseMonitor: {
             /** Format: uuid */
@@ -135603,6 +135717,64 @@ export interface operations {
             };
         };
     };
+    postGolfBookingsByIdCheckOut: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckOutRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Booking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postGolfBookingsByIdConfirm: {
         parameters: {
             query?: never;
@@ -138217,6 +138389,66 @@ export interface operations {
             };
         };
     };
+    getGolfChargeTargets: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ChargeTarget"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postGolfCheckIns: {
         parameters: {
             query?: never;
@@ -138301,6 +138533,65 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["CheckInCandidate"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfCheckOuts: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CheckOutEntry"][];
                         nextCursor?: string;
                     };
                 };

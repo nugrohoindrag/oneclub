@@ -84,6 +84,13 @@ type CourseMap struct {
 	HoleID    uuid.UUID   `json:"holeId"`
 	Assets    []AssetInfo `json:"assets"`
 	Distances []Distance  `json:"distances" doc:"With lat & lng: distance to the green, hazards and POIs"`
+	// the geo-referenced course map (Cart View): where the green of the hole
+	// and the device are on it, as fractions of its width and height
+	OverviewURL *string  `json:"overviewUrl"`
+	GreenX      *float64 `json:"greenX"`
+	GreenY      *float64 `json:"greenY"`
+	HereX       *float64 `json:"hereX" doc:"With lat & lng inside the course map"`
+	HereY       *float64 `json:"hereY"`
 }
 
 // HallOfFameConsentInput records the player's opt-in for one entry.
@@ -364,7 +371,12 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 			if out.Assets, err = holeAssets(ctx, tx, hid); err != nil {
 				return out, err
 			}
+			cm, err := courseOverview(ctx, tx, hid, &out)
+			if err != nil {
+				return out, err
+			}
 			if lat, lng, ok := queryPosition(r); ok {
+				out.HereX, out.HereY = cm.project(lat, lng)
 				out.Distances, err = m.HoleDistances(ctx, tx, hid, lat, lng)
 			}
 			return out, err
