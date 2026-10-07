@@ -265,6 +265,21 @@ export function SidebarLayout({ shell = 'backoffice' }: { shell?: Shell }) {
 export function TopNavLayout({ shell, bottomNav, property = true }: { shell: Shell; bottomNav?: boolean; property?: boolean }) {
   const nav = useNavigation(shell);
   const items = nav.data?.items ?? [];
+  const { pathname } = useLocation();
+  // a top menu stays active on the pages of its sub-menu (e.g. Loyalty under Membership)
+  // (the one whose own or child path matches the URL most specifically)
+  const under = (p: string) => p !== '/' && (pathname === p || pathname.startsWith(`${p}/`));
+  let activeKey = '';
+  let best = 0;
+  for (const it of items) {
+    for (const p of [it.path, ...(it.children ?? []).map((c) => c.path)]) {
+      if (under(p) && p.length > best) {
+        best = p.length;
+        activeKey = it.key;
+      }
+    }
+  }
+  const activeOf = (it: NavItem) => it.key === activeKey;
   return (
     <div className="oc-topnav-frame">
       <header className="oc-topbar">
@@ -272,7 +287,7 @@ export function TopNavLayout({ shell, bottomNav, property = true }: { shell: She
         <span className="oc-spacer" />
         <nav className="oc-pill-nav" aria-label="Main" data-mobile-hide={bottomNav}>
           {items.map((it) => (
-            <NavLink key={it.key} to={it.path} end>
+            <NavLink key={it.key} to={it.path} end className={({ isActive }) => (isActive || activeOf(it) ? 'active' : undefined)}>
               {it.icon && <Icon name={it.icon} size={18} />} {it.label}
               {it.comingSoon && <span className="oc-nav-soon">{it.phase}</span>}
             </NavLink>
@@ -285,7 +300,7 @@ export function TopNavLayout({ shell, bottomNav, property = true }: { shell: She
       {bottomNav && (
         <nav className="oc-bottom-nav" aria-label="Main">
           {items.slice(0, 5).map((it) => (
-            <NavLink key={it.key} to={it.path} end>
+            <NavLink key={it.key} to={it.path} end className={({ isActive }) => (isActive || activeOf(it) ? 'active' : undefined)}>
               <Icon name={it.icon ?? 'circle'} size={24} />
               {it.label}
             </NavLink>

@@ -1302,4 +1302,5 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/bag-storage/{id}:end", Tag: tk, Summary: "End a bag storage", Permission: "golf.bag.manage",
 		Response: BagStorage{}, Status: http.StatusOK, Handler: m.endBagHTTP})
 	m.registerPortal(reg)
+	m.registerMemberJourney(reg)
 }

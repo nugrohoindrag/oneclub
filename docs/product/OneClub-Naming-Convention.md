@@ -1584,73 +1584,80 @@ Languages
 
 # 27. Member / Guest Portal
 
+Navigasi Member App mengikuti member journey **Book → Arrive → Play/Stay → Pay → History → Return** (keputusan product owner, 7 Okt 2026): enam menu utama; fitur lain berada di bawah menu tempatnya.
+
 ## Main Navigation
 
 ```text
 Home
-Golf
-Sport Club
-Stay & Venue
-Bookings
+Book
+My Activity
 Membership
-Voucher & Prepaid
-Scores
-Loyalty
 Transactions
 Profile
 ```
 
-## Golf
+## Book
 
 ```text
-Book Golf
 Tee Time
-My Flights
-My Caddy
-My Golf Cart
-Scorecard
-Round History
-Handicap
-Hall of Fame
+Bungalow
+Meeting Room
+Event
+Tournaments
+Sport Club
+Order Food
+Packages
+Offers
 ```
 
-## Sport Club
+## Book Tee Time (journey)
 
 ```text
-Book Facility
-Book Class
-My Classes
-My Sessions
-Facility Access
+Date & Time
+Players
+Caddy
+Review
+Payment
+Confirmed
 ```
 
-## Stay & Venue
+Caddy per player:
 
 ```text
-Book Bungalow
-Book VIP Suite
-Book Meeting Room
-My Stay
+No Caddy
+Request Caddy
+Preferred Caddy
+No Preference
+Pending Assignment
+Assigned
+Rate Caddy
+```
+
+## My Activity
+
+```text
+Bookings
+Golf History
+Stay History
+My Events
+My Tournaments
+Feedback
 ```
 
 ## Membership
 
 ```text
-My Membership
+Membership
 Digital Member Card
-Membership Benefits
+Benefits
+Guests
 Family Members
+Loyalty
+Voucher & Prepaid
+Fees & Requests
 Membership Statement
-Membership History
-```
-
-## Voucher & Prepaid
-
-```text
-My Vouchers
-Prepaid Balance
-Voucher History
-Redemption History
+Renew Membership
 ```
 
 ## Transactions
@@ -1660,7 +1667,27 @@ My Transactions
 Invoices
 Payments
 Member Charges
-Statements
+```
+
+## Profile
+
+```text
+Profile
+Preferences
+Communication Preferences
+Complaints
+```
+
+## Join Membership (sebelum login)
+
+```text
+Become a Member
+Membership Packages
+Registration
+Submit Application
+Track Application
+Membership Fee
+Membership Activated
 ```
 
 ---

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { qs, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, Modal, PageHeader, QRCode, SelectField, Skeleton, StatusPill, TextArea, TextField, useToast,
 } from '@oneclub/shell';
+import { PaymentPanel } from './journey/pay';
 
 type Row = Record<string, unknown>;
 const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : `Rp ${formatNumber(Number(v))}`);
@@ -58,20 +60,13 @@ export function MembershipServicesPage() {
   );
 }
 
+/** Online payment of a fee, invoice, event or package (journey PaymentPanel, sandbox gateway included). */
 export function CheckoutModal({ checkout, onClose }: { checkout: Schemas['Payment'] | null; onClose: () => void }) {
-  const st = useGet<Schemas['Payment']>(checkout ? `/api/v1/member/payments/${checkout.id}` : null, { refetchInterval: 4000 });
+  const qc = useQueryClient();
   if (!checkout) return null;
-  const status = st.data?.status ?? checkout.status;
   return (
     <Modal open onClose={onClose} title="Online payment" actions={<button className="oc-btn oc-btn-ink" onClick={onClose}>Close</button>}>
-      <div className="oc-stack" style={{ alignItems: 'center' }}>
-        <div className="oc-metric">{money(checkout.amount)}</div>
-        <StatusPill status={status} />
-        {status === 'pending' && checkout.qrString && <QRCode value={checkout.qrString} size={220} label="QRIS payment code" />}
-        {status === 'pending' && checkout.vaNumber && <div className="oc-code">VA {checkout.vaNumber}</div>}
-        {status === 'pending' && checkout.checkoutUrl && <a className="oc-btn oc-btn-outline" href={checkout.checkoutUrl} target="_blank" rel="noreferrer">Open payment page</a>}
-        {status === 'completed' && <div className="oc-alert oc-alert-success">Payment received — thank you.</div>}
-      </div>
+      <PaymentPanel payment={checkout} onPaid={() => void qc.invalidateQueries()} />
     </Modal>
   );
 }
@@ -231,45 +226,6 @@ export function SportClubPage() {
   );
 }
 
-// ── Stay & Venue (FR-APP-P2-04) ───────────────────────────────────────────
-
-export function StayPage() {
-  const toast = useToast();
-  const [from, setFrom] = useState(new Date(Date.now() + 86400_000).toISOString().slice(0, 10));
-  const [nights, setNights] = useState('1');
-  const avail = useGet<Page<Schemas['TypeAvailability']>>(`/api/v1/member/bungalow-availability${qs({ from, nights })}`);
-  const stays = useGet<Page<Schemas['Stay']>>('/api/v1/member/stays');
-  const book = useSend<Row, Schemas['StayResult']>('POST', '/api/v1/member/stays', ['/api/v1/member/stays'], idem);
-  const [ratePlan, setRatePlan] = useState('');
-  return (
-    <div className="oc-stack">
-      <PageHeader title="Stay & Venue" />
-      <Card title="Book Bungalow" icon="hotel">
-        <div className="oc-row-wrap">
-          <div style={{ width: 180 }}><TextField label="Arrival" type="date" value={from} onChange={setFrom} /></div>
-          <div style={{ width: 120 }}><TextField label="Nights" type="number" value={nights} onChange={setNights} /></div>
-          <div style={{ width: 200 }}><TextField label="Rate plan code" value={ratePlan} onChange={setRatePlan} placeholder="e.g. STAY_RO" /></div>
-        </div>
-        <ErrorAlert error={book.error} />
-        <DataTable rows={(avail.data?.items ?? []).map((t) => ({ ...t, available: Math.min(...t.nights.map((n) => n.available)) })) as unknown as Row[]} rowKey={(r) => String(r.typeId)}
-          columns={[{ key: 'typeName', header: 'Bungalow type' }, { key: 'available', header: 'Available' }, { key: 'units', header: 'Units' }]}
-          actions={(r) => Number(r.available) > 0 ? (
-            <button className="oc-btn oc-btn-primary oc-btn-sm" onClick={() => {
-              const dep = new Date(new Date(from).getTime() + Number(nights) * 86400_000).toISOString().slice(0, 10);
-              book.mutate({ kind: 'bungalow', bungalowTypeId: r.typeId, arrivalDate: from, departureDate: dep, ratePlan, adults: 2, memberCharge: true },
-                { onSuccess: (s) => toast(`Booked ${s.stay.stayNo}`) });
-            }}>Book</button>
-          ) : <span className="oc-small oc-muted">Full</span>} />
-      </Card>
-      <Card title="My Stay" icon="luggage">
-        <DataTable rows={stays.data?.items as unknown as Row[]} columns={[{ key: 'stayNo', header: 'Booking' }, { key: 'kind', header: 'Kind' },
-          { key: 'unitName', header: 'Unit' }, { key: 'start', header: 'From', render: (r) => formatDateTime(String(r.start)) },
-          { key: 'end', header: 'To', render: (r) => formatDateTime(String(r.end)) }, { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> }]} />
-      </Card>
-    </div>
-  );
-}
-
 // ── Order Food (FR-APP-P2-06) ─────────────────────────────────────────────
 
 export function OrderFoodPage() {
@@ -355,7 +311,6 @@ export const P2_MEMBER_ROUTES = [
   { path: 'golf/scores', element: <ScoresPage /> },
   { path: 'golf/scores/:id', element: <ScorecardPage /> },
   { path: 'sport-club', element: <SportClubPage /> },
-  { path: 'stay', element: <StayPage /> },
   { path: 'vouchers', element: <VouchersPage /> },
   { path: 'membership/services', element: <MembershipServicesPage /> },
   { path: 'order-food', element: <OrderFoodPage /> },

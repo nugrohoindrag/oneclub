@@ -4354,6 +4354,64 @@
         ],
         "type": "object"
       },
+      "ApplicationTrack": {
+        "properties": {
+          "applicationNo": {
+            "type": "string"
+          },
+          "decisionReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "fee": {
+            "description": "Joining fee + first period fee",
+            "type": "string"
+          },
+          "memberNo": {
+            "description": "Set once the membership is active",
+            "nullable": true,
+            "type": "string"
+          },
+          "outstanding": {
+            "description": "Fee still to pay (approved applications)",
+            "nullable": true,
+            "type": "string"
+          },
+          "packageName": {
+            "type": "string"
+          },
+          "payment": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Payment"
+              }
+            ],
+            "nullable": true
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "pending",
+              "approved",
+              "rejected",
+              "cancelled",
+              "completed"
+            ],
+            "type": "string"
+          },
+          "typeName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "applicationNo",
+          "status",
+          "typeName",
+          "packageName",
+          "fee"
+        ],
+        "type": "object"
+      },
       "AppliedPromotion": {
         "properties": {
           "code": {
@@ -13642,6 +13700,29 @@
         ],
         "type": "object"
       },
+      "BookingJourney": {
+        "properties": {
+          "bookingId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "caddy": {
+            "$ref": "#/components/schemas/CaddyPolicy"
+          },
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/PlayerJourney"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "bookingId",
+          "caddy",
+          "players"
+        ],
+        "type": "object"
+      },
       "BookingPayment": {
         "properties": {
           "amount": {
@@ -14702,6 +14783,23 @@
         ],
         "type": "object"
       },
+      "BusySlot": {
+        "properties": {
+          "end": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "start": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "type": "object"
+      },
       "CLVAnalytics": {
         "properties": {
           "asOf": {
@@ -15374,6 +15472,25 @@
         ],
         "type": "object"
       },
+      "CaddyPolicy": {
+        "properties": {
+          "allowRequest": {
+            "type": "boolean"
+          },
+          "mandatory": {
+            "type": "boolean"
+          },
+          "playersPerCaddy": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "playersPerCaddy",
+          "mandatory",
+          "allowRequest"
+        ],
+        "type": "object"
+      },
       "CaddyProfile": {
         "properties": {
           "caddyId": {
@@ -15497,6 +15614,47 @@
         "required": [
           "assignmentId",
           "rating"
+        ],
+        "type": "object"
+      },
+      "CaddyRequestInput": {
+        "properties": {
+          "caddyId": {
+            "description": "Preferred caddy",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "playerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "preference": {
+            "enum": [
+              "none",
+              "any",
+              "preferred"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerId",
+          "preference"
+        ],
+        "type": "object"
+      },
+      "CaddyRequestsInput": {
+        "properties": {
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/CaddyRequestInput"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "players"
         ],
         "type": "object"
       },
@@ -17016,6 +17174,29 @@
         ],
         "type": "object"
       },
+      "CartPolicy": {
+        "properties": {
+          "afterReturn": {
+            "type": "string"
+          },
+          "mandatory": {
+            "type": "boolean"
+          },
+          "playersPerCart": {
+            "type": "integer"
+          },
+          "singleRiderAllowed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "playersPerCart",
+          "mandatory",
+          "singleRiderAllowed",
+          "afterReturn"
+        ],
+        "type": "object"
+      },
       "CartProfile": {
         "properties": {
           "batteryPercent": {
@@ -17425,6 +17606,49 @@
         ],
         "type": "object"
       },
+      "CatalogBungalowType": {
+        "properties": {
+          "bedrooms": {
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "facilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "maxAdults": {
+            "type": "integer"
+          },
+          "maxChildren": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "maxAdults",
+          "maxChildren",
+          "bedrooms",
+          "facilities"
+        ],
+        "type": "object"
+      },
       "CatalogEntry": {
         "properties": {
           "category": {
@@ -17462,6 +17686,71 @@
           "inForce",
           "version",
           "propertyScoped"
+        ],
+        "type": "object"
+      },
+      "CatalogMeetingRoom": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "facilities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "layouts": {
+            "items": {
+              "$ref": "#/components/schemas/StayRoomLayout"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sizeSqm": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "facilities",
+          "layouts"
+        ],
+        "type": "object"
+      },
+      "CatalogRatePlan": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "includesBreakfast": {
+            "type": "boolean"
+          },
+          "minNights": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "minNights",
+          "includesBreakfast"
         ],
         "type": "object"
       },
@@ -57317,6 +57606,57 @@
         ],
         "type": "object"
       },
+      "MemberCaddy": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "gender": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "level": {
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "onDuty": {
+            "description": "Present on the date (attendance); unknown for later days",
+            "type": "boolean"
+          },
+          "rating": {
+            "description": "Average of the players' ratings (1–5)",
+            "nullable": true,
+            "type": "string"
+          },
+          "ratings": {
+            "type": "integer"
+          },
+          "rounds": {
+            "description": "Completed rounds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "ratings",
+          "rounds",
+          "favorite",
+          "onDuty"
+        ],
+        "type": "object"
+      },
       "MemberEvent": {
         "properties": {
           "capacity": {
@@ -57678,6 +58018,46 @@
           "cards",
           "history",
           "renewals"
+        ],
+        "type": "object"
+      },
+      "MemberQuote": {
+        "properties": {
+          "caddy": {
+            "$ref": "#/components/schemas/CaddyPolicy"
+          },
+          "cart": {
+            "$ref": "#/components/schemas/CartPolicy"
+          },
+          "localTime": {
+            "type": "string"
+          },
+          "playDate": {
+            "type": "string"
+          },
+          "remaining": {
+            "type": "integer"
+          },
+          "segments": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PriceResult"
+            },
+            "description": "member (or guest without Member Rate) and guest_of_member, with components",
+            "type": "object"
+          },
+          "teeTimeId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "teeTimeId",
+          "playDate",
+          "localTime",
+          "remaining",
+          "segments",
+          "caddy",
+          "cart"
         ],
         "type": "object"
       },
@@ -59850,6 +60230,29 @@
           "status",
           "players",
           "golfCarts"
+        ],
+        "type": "object"
+      },
+      "MyGuest": {
+        "properties": {
+          "lastPlayed": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "phone": {
+            "nullable": true,
+            "type": "string"
+          },
+          "rounds": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "rounds",
+          "lastPlayed"
         ],
         "type": "object"
       },
@@ -72664,6 +73067,49 @@
         ],
         "type": "object"
       },
+      "PlayerCaddy": {
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
+          "assignmentId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "caddyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "rated": {
+            "description": "I rated this caddy",
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "assigned",
+              "in_play",
+              "completed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "assignmentId",
+          "caddyId",
+          "code",
+          "name",
+          "status",
+          "accepted",
+          "rated"
+        ],
+        "type": "object"
+      },
       "PlayerContext": {
         "properties": {
           "favoriteCaddyIsMe": {
@@ -72796,6 +73242,52 @@
         ],
         "type": "object"
       },
+      "PlayerJourney": {
+        "properties": {
+          "caddy": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerCaddy"
+              }
+            ],
+            "nullable": true
+          },
+          "caddyPreference": {
+            "enum": [
+              "none",
+              "any",
+              "preferred"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "playerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "preferredCaddyId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "preferredCaddyName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "scorecard": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PlayerScore"
+              }
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "playerId"
+        ],
+        "type": "object"
+      },
       "PlayerPatch": {
         "properties": {
           "customerId": {
@@ -72873,6 +73365,35 @@
           "segment",
           "status",
           "localTime"
+        ],
+        "type": "object"
+      },
+      "PlayerScore": {
+        "properties": {
+          "gross": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "holes": {
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "submitted",
+              "finalized"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "holes",
+          "status"
         ],
         "type": "object"
       },
@@ -81598,6 +82119,21 @@
         ],
         "type": "object"
       },
+      "QuoteLine": {
+        "properties": {
+          "description": {
+            "type": "string"
+          },
+          "total": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "description",
+          "total"
+        ],
+        "type": "object"
+      },
       "RFMCustomer": {
         "properties": {
           "asOf": {
@@ -87589,6 +88125,25 @@
         },
         "type": "object"
       },
+      "RoomDay": {
+        "properties": {
+          "busy": {
+            "items": {
+              "$ref": "#/components/schemas/BusySlot"
+            },
+            "type": "array"
+          },
+          "roomId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "roomId",
+          "busy"
+        ],
+        "type": "object"
+      },
       "RoomLayout": {
         "properties": {
           "capacity": {
@@ -89948,6 +90503,78 @@
           "fullName",
           "email",
           "teams"
+        ],
+        "type": "object"
+      },
+      "SandboxCheckout": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "description": {
+            "description": "Folio number",
+            "nullable": true,
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "methodType": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "paidAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "qrString": {
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "completed",
+              "cancelled",
+              "refunded"
+            ],
+            "type": "string"
+          },
+          "vaNumber": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "methodType",
+          "amount",
+          "currency",
+          "status"
+        ],
+        "type": "object"
+      },
+      "SandboxOutcome": {
+        "properties": {
+          "outcome": {
+            "description": "Default: paid",
+            "enum": [
+              "paid",
+              "failed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "outcome"
         ],
         "type": "object"
       },
@@ -95727,6 +96354,34 @@
         ],
         "type": "object"
       },
+      "StayCatalog": {
+        "properties": {
+          "bungalowTypes": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogBungalowType"
+            },
+            "type": "array"
+          },
+          "meetingRooms": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogMeetingRoom"
+            },
+            "type": "array"
+          },
+          "ratePlans": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogRatePlan"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "bungalowTypes",
+          "ratePlans",
+          "meetingRooms"
+        ],
+        "type": "object"
+      },
       "StayExtendInput": {
         "properties": {
           "hours": {
@@ -95893,6 +96548,32 @@
         ],
         "type": "object"
       },
+      "StayQuote": {
+        "properties": {
+          "depositRequired": {
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/QuoteLine"
+            },
+            "type": "array"
+          },
+          "total": {
+            "type": "string"
+          },
+          "unitName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "total",
+          "depositRequired",
+          "lines",
+          "unitName"
+        ],
+        "type": "object"
+      },
       "StayReasonInput": {
         "properties": {
           "reason": {
@@ -95929,6 +96610,21 @@
           "reservation",
           "total",
           "depositRequired"
+        ],
+        "type": "object"
+      },
+      "StayRoomLayout": {
+        "properties": {
+          "capacity": {
+            "type": "integer"
+          },
+          "layout": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "layout",
+          "capacity"
         ],
         "type": "object"
       },
@@ -108145,6 +108841,25 @@
           "startDate",
           "refundPercent",
           "refunds"
+        ],
+        "type": "object"
+      },
+      "TrackInput": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "qris",
+              "virtual_account",
+              "card"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
         ],
         "type": "object"
       },
@@ -308810,6 +309525,159 @@
         "x-permission": "platform.member_portal.access"
       }
     },
+    "/api/v1/member/bookings/{id}/caddy-requests": {
+      "put": {
+        "operationId": "putMemberBookingsByIdCaddyRequests",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaddyRequestsInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingJourney"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Caddy preference per player (No Caddy, Request, Preferred)",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/bookings/{id}/journey": {
+      "get": {
+        "operationId": "getMemberBookingsByIdJourney",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingJourney"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My booking per player: caddy, check-in, scorecard",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
     "/api/v1/member/bookings/{id}:cancel": {
       "post": {
         "operationId": "postMemberBookingsByIdCancel",
@@ -310289,6 +311157,107 @@
         "x-permission": "platform.member_portal.access"
       }
     },
+    "/api/v1/member/golf/caddies": {
+      "get": {
+        "operationId": "getMemberGolfCaddies",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "YYYY-MM-DD: on duty that day",
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/MemberCaddy"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Caddies I can prefer (rating, rounds, favourite)",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
     "/api/v1/member/golf/caddies/{id}:favorite": {
       "post": {
         "operationId": "postMemberGolfCaddiesByIdFavorite",
@@ -310525,6 +311494,99 @@
           }
         ],
         "summary": "Courses (Course Guide)",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/golf/guests": {
+      "get": {
+        "operationId": "getMemberGolfGuests",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/MyGuest"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My Guests (from my earlier bookings)",
         "tags": [
           "Member Portal"
         ],
@@ -311464,6 +312526,77 @@
           "Member Portal"
         ],
         "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/golf/quote": {
+      "get": {
+        "operationId": "getMemberGolfQuote",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "teeTimeId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemberQuote"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Fee estimate of a tee time (Green Fee, Caddy, Golf Cart)",
+        "tags": [
+          "Member Portal"
+        ],
         "x-module": "golf",
         "x-permission": "platform.member_portal.access"
       }
@@ -313992,6 +315125,108 @@
         ],
         "x-audited": true,
         "x-module": "crm",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/meeting-room-availability": {
+      "get": {
+        "operationId": "getMemberMeetingRoomAvailability",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "YYYY-MM-DD",
+            "in": "query",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/RoomDay"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Busy hours of each meeting room on a day",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "stay",
         "x-permission": "platform.member_portal.access"
       }
     },
@@ -317162,6 +318397,67 @@
         "x-permission": "platform.member_portal.access"
       }
     },
+    "/api/v1/member/stay-catalog": {
+      "get": {
+        "operationId": "getMemberStayCatalog",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StayCatalog"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Bungalow types, rate plans and meeting rooms I can book",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "stay",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
     "/api/v1/member/stays": {
       "get": {
         "operationId": "getMemberStays",
@@ -317327,6 +318623,78 @@
           }
         ],
         "summary": "Book Bungalow, VIP Suite or Meeting Room",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-audited": true,
+        "x-module": "stay",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/stays:quote": {
+      "post": {
+        "operationId": "postMemberStaysQuote",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MyStayInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StayQuote"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Price my bungalow / meeting room booking (review step, nothing is kept)",
         "tags": [
           "Member Portal"
         ],
@@ -348925,6 +350293,114 @@
         "x-module": "membership"
       }
     },
+    "/api/v1/public/membership-applications/{number}:pay-online": {
+      "post": {
+        "operationId": "postPublicMembershipApplicationsByNumberPayOnline",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrackInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationTrack"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Pay the joining fee of my approved application online",
+        "tags": [
+          "Public"
+        ],
+        "x-audited": true,
+        "x-module": "membership"
+      }
+    },
+    "/api/v1/public/membership-applications/{number}:track": {
+      "post": {
+        "operationId": "postPublicMembershipApplicationsByNumberTrack",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrackInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplicationTrack"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Follow my membership application (number + e-mail)",
+        "tags": [
+          "Public"
+        ],
+        "x-audited": true,
+        "x-module": "membership"
+      }
+    },
     "/api/v1/public/membership-types": {
       "get": {
         "operationId": "getPublicMembershipTypes",
@@ -350008,6 +351484,103 @@
           "Website"
         ],
         "x-module": "golf"
+      }
+    },
+    "/api/v1/public/sandbox-checkout/{number}": {
+      "get": {
+        "operationId": "getPublicSandboxCheckoutByNumber",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboxCheckout"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Sandbox gateway: the hosted payment page of a mock payment",
+        "tags": [
+          "Public"
+        ],
+        "x-module": "billing"
+      }
+    },
+    "/api/v1/public/sandbox-checkout/{number}:complete": {
+      "post": {
+        "operationId": "postPublicSandboxCheckoutByNumberComplete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "number",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboxOutcome"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboxCheckout"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Sandbox gateway: pay (or fail) a mock payment, settled like a gateway webhook",
+        "tags": [
+          "Public"
+        ],
+        "x-audited": true,
+        "x-module": "billing"
       }
     },
     "/api/v1/public/sport-club": {

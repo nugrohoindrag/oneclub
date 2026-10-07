@@ -41,6 +41,7 @@ type AccountLimit struct {
 func (h *HTTP) RegisterP2(reg *route.Registry) {
 	s, db := h.Svc, h.Svc.DB
 	s.registerOnline(reg)
+	s.registerSandboxCheckout(reg)
 	add := func(rt route.Route) {
 		rt.Module, rt.Scope = "billing", route.ScopeProperty
 		reg.Add(rt)

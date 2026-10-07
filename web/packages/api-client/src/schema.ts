@@ -25793,6 +25793,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/bookings/{id}/caddy-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Caddy preference per player (No Caddy, Request, Preferred) */
+        put: operations["putMemberBookingsByIdCaddyRequests"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/bookings/{id}/journey": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My booking per player: caddy, check-in, scorecard */
+        get: operations["getMemberBookingsByIdJourney"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/bookings/{id}:cancel": {
         parameters: {
             query?: never;
@@ -26083,6 +26117,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/golf/caddies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Caddies I can prefer (rating, rounds, favourite) */
+        get: operations["getMemberGolfCaddies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/golf/caddies/{id}:favorite": {
         parameters: {
             query?: never;
@@ -26126,6 +26177,23 @@ export interface paths {
         };
         /** Courses (Course Guide) */
         get: operations["getMemberGolfCourses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/guests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Guests (from my earlier bookings) */
+        get: operations["getMemberGolfGuests"];
         put?: never;
         post?: never;
         delete?: never;
@@ -26299,6 +26367,23 @@ export interface paths {
         put?: never;
         /** Withdraw my registration (until the policy cut-off) */
         post: operations["postMemberGolfMyTournamentsByIdWithdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Fee estimate of a tee time (Green Fee, Caddy, Golf Cart) */
+        get: operations["getMemberGolfQuote"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -26826,6 +26911,23 @@ export interface paths {
         put?: never;
         /** Join the loyalty programme (opt-in) */
         post: operations["postMemberLoyaltyJoin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/meeting-room-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Busy hours of each meeting room on a day */
+        get: operations["getMemberMeetingRoomAvailability"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -27415,6 +27517,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/stay-catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bungalow types, rate plans and meeting rooms I can book */
+        get: operations["getMemberStayCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/stays": {
         parameters: {
             query?: never;
@@ -27427,6 +27546,23 @@ export interface paths {
         put?: never;
         /** Book Bungalow, VIP Suite or Meeting Room */
         post: operations["postMemberStays"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/stays:quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Price my bungalow / meeting room booking (review step, nothing is kept) */
+        post: operations["postMemberStaysQuote"];
         delete?: never;
         options?: never;
         head?: never;
@@ -32254,6 +32390,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/membership-applications/{number}:pay-online": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pay the joining fee of my approved application online */
+        post: operations["postPublicMembershipApplicationsByNumberPayOnline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/membership-applications/{number}:track": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Follow my membership application (number + e-mail) */
+        post: operations["postPublicMembershipApplicationsByNumberTrack"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/membership-types": {
         parameters: {
             query?: never;
@@ -32571,6 +32741,40 @@ export interface paths {
         get: operations["getPublicReciprocalClubs"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/sandbox-checkout/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sandbox gateway: the hosted payment page of a mock payment */
+        get: operations["getPublicSandboxCheckoutByNumber"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/sandbox-checkout/{number}:complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sandbox gateway: pay (or fail) a mock payment, settled like a gateway webhook */
+        post: operations["postPublicSandboxCheckoutByNumberComplete"];
         delete?: never;
         options?: never;
         head?: never;
@@ -36313,6 +36517,21 @@ export interface components {
             /** @enum {string} */
             stage: "screening" | "interview";
         };
+        ApplicationTrack: {
+            applicationNo: string;
+            decisionReason?: string | null;
+            /** @description Joining fee + first period fee */
+            fee: string;
+            /** @description Set once the membership is active */
+            memberNo?: string | null;
+            /** @description Fee still to pay (approved applications) */
+            outstanding?: string | null;
+            packageName: string;
+            payment?: components["schemas"]["Payment"] | null;
+            /** @enum {string} */
+            status: "draft" | "pending" | "approved" | "rejected" | "cancelled" | "completed";
+            typeName: string;
+        };
         AppliedPromotion: {
             code: string;
             discount: string;
@@ -39508,6 +39727,12 @@ export interface components {
             /** @description Local start date YYYY-MM-DD */
             startDate: string;
         };
+        BookingJourney: {
+            /** Format: uuid */
+            bookingId: string;
+            caddy: components["schemas"]["CaddyPolicy"];
+            players: components["schemas"]["PlayerJourney"][];
+        };
         BookingPayment: {
             /** @description Default: the down payment of the schedule, else the total */
             amount?: string;
@@ -39897,6 +40122,12 @@ export interface components {
             status: "open" | "closed";
             summary: Record<string, never>;
         };
+        BusySlot: {
+            /** Format: date-time */
+            end: string;
+            /** Format: date-time */
+            start: string;
+        };
         CLVAnalytics: {
             asOf?: string | null;
             avgClv: string;
@@ -40141,6 +40372,11 @@ export interface components {
             /** @description Caddy fee of finished rounds + non-cash tips */
             recorded: string;
         };
+        CaddyPolicy: {
+            allowRequest: boolean;
+            mandatory: boolean;
+            playersPerCaddy: number;
+        };
         CaddyProfile: {
             /** Format: uuid */
             caddyId: string;
@@ -40193,6 +40429,20 @@ export interface components {
             customerId?: string | null;
             /** @description 1–5 */
             rating: number;
+        };
+        CaddyRequestInput: {
+            /**
+             * Format: uuid
+             * @description Preferred caddy
+             */
+            caddyId?: string | null;
+            /** Format: uuid */
+            playerId: string;
+            /** @enum {string} */
+            preference: "none" | "any" | "preferred";
+        };
+        CaddyRequestsInput: {
+            players: components["schemas"]["CaddyRequestInput"][];
         };
         CaddyTip: {
             amount: string;
@@ -40717,6 +40967,12 @@ export interface components {
             inspections: components["schemas"]["Inspection"][];
             maintenance: components["schemas"]["Maintenance"][];
         };
+        CartPolicy: {
+            afterReturn: string;
+            mandatory: boolean;
+            playersPerCart: number;
+            singleRiderAllowed: boolean;
+        };
         CartProfile: {
             batteryPercent?: number | null;
             /** Format: uuid */
@@ -40847,6 +41103,17 @@ export interface components {
             totals: components["schemas"]["MethodTotal"][];
             variance?: string | null;
         };
+        CatalogBungalowType: {
+            bedrooms: number;
+            code: string;
+            description?: string | null;
+            facilities: string[];
+            /** Format: uuid */
+            id: string;
+            maxAdults: number;
+            maxChildren: number;
+            name: string;
+        };
         CatalogEntry: {
             category: string;
             code: string;
@@ -40859,6 +41126,22 @@ export interface components {
             propertyScoped: boolean;
             /** @description 0 = code default */
             version: number;
+        };
+        CatalogMeetingRoom: {
+            code: string;
+            facilities: string[];
+            /** Format: uuid */
+            id: string;
+            layouts: components["schemas"]["StayRoomLayout"][];
+            name: string;
+            sizeSqm?: string | null;
+        };
+        CatalogRatePlan: {
+            code: string;
+            description?: string | null;
+            includesBreakfast: boolean;
+            minNights: number;
+            name: string;
         };
         CertificationCheck: {
             gaps: components["schemas"]["CertificationGap"][];
@@ -55068,6 +55351,22 @@ export interface components {
             promoCodes?: string[];
             startDate: string;
         };
+        MemberCaddy: {
+            code: string;
+            favorite: boolean;
+            gender?: string | null;
+            /** Format: uuid */
+            id: string;
+            level?: string | null;
+            name: string;
+            /** @description Present on the date (attendance); unknown for later days */
+            onDuty: boolean;
+            /** @description Average of the players' ratings (1–5) */
+            rating?: string | null;
+            ratings: number;
+            /** @description Completed rounds */
+            rounds: number;
+        };
         MemberEvent: {
             capacity?: number | null;
             category: string;
@@ -55187,6 +55486,19 @@ export interface components {
             renewals: components["schemas"]["RenewalView"][];
             standing: components["schemas"]["Info"];
             status: string;
+        };
+        MemberQuote: {
+            caddy: components["schemas"]["CaddyPolicy"];
+            cart: components["schemas"]["CartPolicy"];
+            localTime: string;
+            playDate: string;
+            remaining: number;
+            /** @description member (or guest without Member Rate) and guest_of_member, with components */
+            segments: {
+                [key: string]: components["schemas"]["PriceResult"];
+            };
+            /** Format: uuid */
+            teeTimeId: string;
         };
         MemberTicketInput: {
             attachmentFileIds?: string[];
@@ -55994,6 +56306,12 @@ export interface components {
             /** Format: date-time */
             startAt: string;
             status: string;
+        };
+        MyGuest: {
+            lastPlayed: string;
+            name: string;
+            phone?: string | null;
+            rounds: number;
         };
         MyHallOfFame: {
             mine: components["schemas"]["MyEntry"][];
@@ -60084,6 +60402,19 @@ export interface components {
             status: "booked" | "checked_in" | "no_show" | "cancelled" | "removed";
             tba: boolean;
         };
+        PlayerCaddy: {
+            accepted: boolean;
+            /** Format: uuid */
+            assignmentId: string;
+            /** Format: uuid */
+            caddyId: string;
+            code: string;
+            name: string;
+            /** @description I rated this caddy */
+            rated: boolean;
+            /** @enum {string} */
+            status: "assigned" | "in_play" | "completed";
+        };
         PlayerContext: {
             favoriteCaddyIsMe: boolean;
             handicap?: string | null;
@@ -60126,6 +60457,17 @@ export interface components {
             /** @description To be announced; identity completed before check-in */
             tba?: boolean;
         };
+        PlayerJourney: {
+            caddy?: components["schemas"]["PlayerCaddy"] | null;
+            /** @enum {string|null} */
+            caddyPreference?: "none" | "any" | "preferred" | null;
+            /** Format: uuid */
+            playerId: string;
+            /** Format: uuid */
+            preferredCaddyId?: string | null;
+            preferredCaddyName?: string | null;
+            scorecard?: components["schemas"]["PlayerScore"] | null;
+        };
         PlayerPatch: {
             /** Format: uuid */
             customerId?: string | null;
@@ -60149,6 +60491,14 @@ export interface components {
             priceTotal?: string | null;
             segment: string;
             status: string;
+        };
+        PlayerScore: {
+            gross?: number | null;
+            holes: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "draft" | "submitted" | "finalized";
         };
         PlayingRoute: {
             /** Format: date-time */
@@ -62911,6 +63261,10 @@ export interface components {
             total: string;
             version: number;
         };
+        QuoteLine: {
+            description: string;
+            total: string;
+        };
         RFMCustomer: {
             asOf: string;
             clv: string;
@@ -65024,6 +65378,11 @@ export interface components {
             /** @enum {string|null} */
             status?: "active" | "inactive" | null;
         };
+        RoomDay: {
+            busy: components["schemas"]["BusySlot"][];
+            /** Format: uuid */
+            roomId: string;
+        };
         RoomLayout: {
             /**
              * Format: int64
@@ -65859,6 +66218,29 @@ export interface components {
             /** Format: uuid */
             id: string;
             teams: string[];
+        };
+        SandboxCheckout: {
+            amount: string;
+            currency: string;
+            /** @description Folio number */
+            description?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            methodType: string;
+            number: string;
+            /** Format: date-time */
+            paidAt?: string | null;
+            qrString?: string | null;
+            /** @enum {string} */
+            status: "pending" | "completed" | "cancelled" | "refunded";
+            vaNumber?: string | null;
+        };
+        SandboxOutcome: {
+            /**
+             * @description Default: paid
+             * @enum {string}
+             */
+            outcome: "paid" | "failed";
         };
         SavedReport: {
             /** Format: date-time */
@@ -67701,6 +68083,11 @@ export interface components {
             reason: string;
             waiveFee?: boolean;
         };
+        StayCatalog: {
+            bungalowTypes: components["schemas"]["CatalogBungalowType"][];
+            meetingRooms: components["schemas"]["CatalogMeetingRoom"][];
+            ratePlans: components["schemas"]["CatalogRatePlan"][];
+        };
         StayExtendInput: {
             hours: number;
         };
@@ -67761,6 +68148,12 @@ export interface components {
              */
             unitId?: string | null;
         };
+        StayQuote: {
+            depositRequired: string;
+            lines: components["schemas"]["QuoteLine"][];
+            total: string;
+            unitName: string;
+        };
         StayReasonInput: {
             reason?: string;
         };
@@ -67770,6 +68163,10 @@ export interface components {
             reservation: components["schemas"]["Reservation"];
             stay: components["schemas"]["Stay"];
             total: string;
+        };
+        StayRoomLayout: {
+            capacity: number;
+            layout: string;
         };
         StockAdjustment: {
             /** Format: uuid */
@@ -71897,6 +72294,11 @@ export interface components {
             withdrawReason?: string | null;
             /** Format: date-time */
             withdrawnAt?: string | null;
+        };
+        TrackInput: {
+            email: string;
+            /** @enum {string} */
+            method?: "qris" | "virtual_account" | "card";
         };
         TransferInput: {
             /** Format: uuid */
@@ -186747,6 +187149,108 @@ export interface operations {
             };
         };
     };
+    putMemberBookingsByIdCaddyRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaddyRequestsInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingJourney"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberBookingsByIdJourney: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingJourney"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postMemberBookingsByIdCancel: {
         parameters: {
             query?: never;
@@ -187697,6 +188201,63 @@ export interface operations {
             };
         };
     };
+    getMemberGolfCaddies: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description YYYY-MM-DD: on duty that day */
+                date?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MemberCaddy"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postMemberGolfCaddiesByIdFavorite: {
         parameters: {
             query?: never;
@@ -187821,6 +188382,61 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["CourseInfo"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberGolfGuests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MyGuest"][];
                         nextCursor?: string;
                     };
                 };
@@ -188408,6 +189024,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicTournamentRegistration"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberGolfQuote: {
+        parameters: {
+            query: {
+                teeTimeId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberQuote"];
                 };
             };
             /** @description Not authenticated */
@@ -190024,6 +190689,63 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MyLoyalty"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberMeetingRoomAvailability: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description YYYY-MM-DD */
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RoomDay"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -192097,6 +192819,53 @@ export interface operations {
             };
         };
     };
+    getMemberStayCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayCatalog"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getMemberStays: {
         parameters: {
             query?: {
@@ -192175,6 +192944,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StayResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberStaysQuote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MyStayInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayQuote"];
                 };
             };
             /** @description Not authenticated */
@@ -211148,6 +211968,76 @@ export interface operations {
             };
         };
     };
+    postPublicMembershipApplicationsByNumberPayOnline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrackInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationTrack"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicMembershipApplicationsByNumberTrack: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrackInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationTrack"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getPublicMembershipTypes: {
         parameters: {
             query: {
@@ -211794,6 +212684,72 @@ export interface operations {
                         items: components["schemas"]["PublicClub"][];
                         nextCursor?: string;
                     };
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicSandboxCheckoutByNumber: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SandboxCheckout"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicSandboxCheckoutByNumberComplete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SandboxOutcome"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SandboxCheckout"];
                 };
             };
             /** @description Problem Details (RFC 9457) */

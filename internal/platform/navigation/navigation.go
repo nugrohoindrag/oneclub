@@ -410,64 +410,52 @@ var Trees = map[string][]Item{
 		{Key: "hr-performance", Label: "HR Performance", Path: "/management/hr-performance", Icon: "badge", Module: "reporting", Permission: "reporting.hr_performance.view"},
 		{Key: "kpi-targets", Label: "KPI Targets", Path: "/management/targets", Icon: "monitoring", Module: "reporting", Permission: "reporting.kpi_target.view"},
 	},
+	// Member App navigation of the member journey (Book → Arrive → Play/Stay
+	// → Pay → History → Return, product owner 7 Oct 2026): six top menus;
+	// every other Member App page sits under the one it belongs to.
 	"member": {
 		{Key: "home", Label: "Home", Path: "/", Icon: "home", Permission: catalog.ShellMemberPortal},
-		{Key: "offers", Label: "Offers", Path: "/offers", Icon: "local_offer", Module: "commercial", Permission: catalog.ShellMemberPortal},
-		{Key: "golf", Label: "Golf", Path: "/golf", Icon: "golf_course", Module: "golf", Permission: catalog.ShellMemberPortal, Children: []Item{
-			s("book-golf", "Book Golf", "/golf", catalog.ShellMemberPortal),
-			s("tee-time", "Tee Time", "/golf/tee-time", catalog.ShellMemberPortal),
-			s("my-flights", "My Flights", "/golf/my-flights", catalog.ShellMemberPortal),
-			s("my-caddy", "My Caddy", "/golf/my-caddy", catalog.ShellMemberPortal),
-			s("my-golf-cart", "My Golf Cart", "/golf/my-golf-cart", catalog.ShellMemberPortal),
-			s("my-scores", "Scores & Handicap", "/golf/scores", catalog.ShellMemberPortal),
-			// PRD P3 §7.4: Tournaments — Register, My Tournaments, Leaderboard
-			s("tournaments", "Tournaments", "/golf/tournaments", catalog.ShellMemberPortal),
-			s("my-tournaments", "My Tournaments", "/golf/my-tournaments", catalog.ShellMemberPortal),
-			s("tournament-leaderboard", "Leaderboard", "/golf/tournaments/leaderboard", catalog.ShellMemberPortal),
-			// PRD P5 §7.4: series standing (Order of Merit) and tournament history
-			s("order-of-merit", "Order of Merit", "/golf/order-of-merit", catalog.ShellMemberPortal),
-			s("tournament-history", "Tournament History", "/golf/tournament-history", catalog.ShellMemberPortal),
+		{Key: "book", Label: "Book", Path: "/book", Icon: "calendar_add_on", Permission: catalog.ShellMemberPortal, Children: []Item{
+			inModule("golf", s("book-tee-time", "Tee Time", "/book/tee-time", catalog.ShellMemberPortal)),
+			inModule("stay", s("book-bungalow", "Bungalow", "/book/bungalow", catalog.ShellMemberPortal)),
+			inModule("stay", s("book-meeting-room", "Meeting Room", "/book/meeting-room", catalog.ShellMemberPortal)),
+			inModule("banquet", s("upcoming-events", "Event", "/events", catalog.ShellMemberPortal)),
+			inModule("golf", s("tournaments", "Tournaments", "/golf/tournaments", catalog.ShellMemberPortal)),
+			inModule("sportclub", s("sport-club", "Sport Club", "/sport-club", catalog.ShellMemberPortal)),
+			inModule("commercial", s("order-food", "Order Food", "/order-food", catalog.ShellMemberPortal)),
+			inModule("commercial", s("packages", "Packages", "/packages", catalog.ShellMemberPortal)),
+			inModule("commercial", s("offers", "Offers", "/offers", catalog.ShellMemberPortal)),
 		}},
-		{Key: "sport-club", Label: "Sport Club", Path: "/sport-club", Icon: "sports_tennis", Module: "sportclub", Permission: catalog.ShellMemberPortal},
-		{Key: "stay-venue", Label: "Stay & Venue", Path: "/stay", Icon: "hotel", Module: "stay", Permission: catalog.ShellMemberPortal},
-		{Key: "packages", Label: "Packages", Path: "/packages", Icon: "card_travel", Module: "commercial", Permission: catalog.ShellMemberPortal},
-		{Key: "events", Label: "Events", Path: "/events", Icon: "celebration", Module: "banquet", Permission: catalog.ShellMemberPortal, Children: []Item{
-			s("upcoming-events", "Upcoming Events", "/events", catalog.ShellMemberPortal),
-			s("my-events", "My Events", "/events/my-events", catalog.ShellMemberPortal),
+		{Key: "activity", Label: "My Activity", Path: "/activity", Icon: "history", Permission: catalog.ShellMemberPortal, Children: []Item{
+			s("my-bookings", "Bookings", "/activity", catalog.ShellMemberPortal),
+			inModule("golf", s("golf-history", "Golf History", "/activity/golf", catalog.ShellMemberPortal)),
+			inModule("stay", s("stay-history", "Stay History", "/activity/stays", catalog.ShellMemberPortal)),
+			inModule("banquet", s("my-events", "My Events", "/events/my-events", catalog.ShellMemberPortal)),
+			inModule("golf", s("my-tournaments", "My Tournaments", "/golf/my-tournaments", catalog.ShellMemberPortal)),
+			inModule("crm", s("support-feedback", "Feedback", "/support/feedback", catalog.ShellMemberPortal)),
 		}},
-		{Key: "bookings", Label: "Bookings", Path: "/bookings", Icon: "event_available", Module: "reservation", Permission: catalog.ShellMemberPortal},
 		{Key: "membership", Label: "Membership", Path: "/membership", Icon: "card_membership", Module: "membership", Permission: catalog.ShellMemberPortal, Children: []Item{
-			s("my-membership", "My Membership", "/membership", catalog.ShellMemberPortal),
+			s("my-membership", "Membership", "/membership", catalog.ShellMemberPortal),
 			s("digital-member-card", "Digital Member Card", "/membership/card", catalog.ShellMemberPortal),
-			s("membership-benefits", "Membership Benefits", "/membership/benefits", catalog.ShellMemberPortal),
+			s("membership-benefits", "Benefits", "/membership/benefits", catalog.ShellMemberPortal),
+			inModule("golf", s("my-guests", "Guests", "/membership/guests", catalog.ShellMemberPortal)),
 			s("family-members", "Family Members", "/membership/family", catalog.ShellMemberPortal),
-			s("membership-statement", "Membership Statement", "/membership/statements", catalog.ShellMemberPortal),
+			inModule("crm", s("loyalty", "Loyalty", "/loyalty", catalog.ShellMemberPortal)),
+			inModule("commercial", s("vouchers", "Voucher & Prepaid", "/vouchers", catalog.ShellMemberPortal)),
 			s("membership-services", "Fees & Requests", "/membership/services", catalog.ShellMemberPortal),
+			s("membership-statement", "Membership Statement", "/membership/statements", catalog.ShellMemberPortal),
 		}},
-		{Key: "vouchers", Label: "Voucher & Prepaid", Path: "/vouchers", Icon: "redeem", Module: "commercial", Permission: catalog.ShellMemberPortal},
-		{Key: "order-food", Label: "Order Food", Path: "/order-food", Icon: "restaurant", Module: "commercial", Permission: catalog.ShellMemberPortal},
 		{Key: "transactions", Label: "Transactions", Path: "/transactions", Icon: "receipt_long", Module: "billing", Permission: catalog.ShellMemberPortal, Children: []Item{
 			s("my-transactions", "My Transactions", "/transactions", catalog.ShellMemberPortal),
+			s("my-invoices", "Invoices", "/transactions/invoices", catalog.ShellMemberPortal),
 			s("member-payments", "Payments", "/transactions/payments", catalog.ShellMemberPortal),
 			s("my-member-charges", "Member Charges", "/transactions/member-charges", catalog.ShellMemberPortal),
-			s("my-invoices", "Invoices", "/transactions/invoices", catalog.ShellMemberPortal),
 		}},
-		{Key: "loyalty", Label: "Loyalty", Path: "/loyalty", Icon: "loyalty", Module: "crm", Permission: catalog.ShellMemberPortal, Children: []Item{
-			s("my-points", "My Points", "/loyalty", catalog.ShellMemberPortal),
-			s("loyalty-tier", "Tier", "/loyalty/tier", catalog.ShellMemberPortal),
-			s("loyalty-rewards", "Rewards", "/loyalty/rewards", catalog.ShellMemberPortal),
-			s("points-history", "Points History", "/loyalty/history", catalog.ShellMemberPortal),
-			s("loyalty-progress", "Tier Progress", "/loyalty/progress", catalog.ShellMemberPortal), // PRD P5 §7.4
-			s("loyalty-offers", "Personal Offers", "/loyalty/offers", catalog.ShellMemberPortal),   // PRD P5 §7.4 (journey offers)
-		}},
-		{Key: "preferences", Label: "Preferences", Path: "/preferences", Icon: "tune", Module: "crm", Permission: catalog.ShellMemberPortal},
 		{Key: "profile", Label: "Profile", Path: "/profile", Icon: "person", Permission: catalog.ShellMemberPortal, Children: []Item{
 			s("my-profile", "Profile", "/profile", catalog.ShellMemberPortal),
-			s("communication-preferences", "Communication Preferences", "/profile/communication-preferences", catalog.ShellMemberPortal),
-		}},
-		{Key: "support", Label: "Support", Path: "/support", Icon: "support_agent", Module: "crm", Permission: catalog.ShellMemberPortal, Children: []Item{
-			s("support-feedback", "Feedback", "/support/feedback", catalog.ShellMemberPortal),
-			s("support-complaints", "Complaints", "/support/complaints", catalog.ShellMemberPortal),
+			inModule("crm", s("preferences", "Preferences", "/preferences", catalog.ShellMemberPortal)),
+			inModule("crm", s("communication-preferences", "Communication Preferences", "/profile/communication-preferences", catalog.ShellMemberPortal)),
+			inModule("crm", s("support-complaints", "Complaints", "/support/complaints", catalog.ShellMemberPortal)),
 		}},
 	},
 	"ops": {

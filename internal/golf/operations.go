@@ -1125,9 +1125,15 @@ func (m *Module) AssignCaddies(ctx context.Context, tx pgx.Tx, property uuid.UUI
 	rows.Close()
 	inputs := req.Assignments
 	if req.Auto {
+		// the players' caddy preferences from the Member App: No Caddy is
+		// skipped (unless a caddy is mandatory), a Preferred Caddy goes first
+		pref, preferred, err := playerCaddyRequests(ctx, tx, fi.players)
+		if err != nil {
+			return nil, err
+		}
 		var open []uuid.UUID
 		for _, p := range fi.players {
-			if !assigned[p] {
+			if !assigned[p] && (pref[p] != "none" || pol.Caddy.Mandatory) {
 				open = append(open, p)
 			}
 		}
@@ -1150,6 +1156,40 @@ func (m *Module) AssignCaddies(ctx context.Context, tx pgx.Tx, property uuid.UUI
 			})
 		}
 		per := max(pol.Caddy.PlayersPerCaddy, 1)
+		if pol.Caddy.AllowRequest && len(preferred) > 0 {
+			var rest []uuid.UUID
+			byCaddy := map[uuid.UUID][]uuid.UUID{}
+			var order []uuid.UUID
+			for _, p := range open {
+				c, ok := preferred[p]
+				if !ok {
+					rest = append(rest, p)
+					continue
+				}
+				if _, seen := byCaddy[c]; !seen {
+					order = append(order, c)
+				}
+				byCaddy[c] = append(byCaddy[c], p)
+			}
+			for _, c := range order {
+				at := -1
+				for i := range avail {
+					if avail[i].CaddyID == c {
+						at = i
+						break
+					}
+				}
+				ps := byCaddy[c]
+				if at < 0 {
+					rest = append(rest, ps...) // not available: the queue serves them
+					continue
+				}
+				inputs = append(inputs, CaddyAssignInput{CaddyID: c, PlayerIDs: ps[:min(per, len(ps))]})
+				rest = append(rest, ps[min(per, len(ps)):]...)
+				avail = append(avail[:at], avail[at+1:]...)
+			}
+			open = rest
+		}
 		for i := 0; i < len(open); i += per {
 			if len(avail) == 0 {
 				return nil, errs.Conflict("no_caddy_available", "no caddy is available in the queue")
@@ -1158,6 +1198,9 @@ func (m *Module) AssignCaddies(ctx context.Context, tx pgx.Tx, property uuid.UUI
 			inputs = append(inputs, CaddyAssignInput{CaddyID: avail[0].CaddyID, PlayerIDs: open[i:end]})
 			avail = avail[1:]
 		}
+	}
+	if len(inputs) == 0 && req.Auto {
+		return nil, errs.Conflict("no_caddy_requested", "every player without a caddy asked for No Caddy")
 	}
 	if len(inputs) == 0 {
 		return nil, errs.Validation("assignments_required", "choose caddies or use auto", errs.Field("assignments", "required", "one or more"))
