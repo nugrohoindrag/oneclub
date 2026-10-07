@@ -1,0 +1,130 @@
+/*
+ * Member App in the look of the POS Cashier, Kitchen Display and Caddy Tablet
+ * (product owner design, 7 Oct 2026): POS blue, Plus Jakarta Sans, white
+ * cards on a light grey page, blue navigation. The shell components keep
+ * their markup; this layer maps the shell tokens to the POS palette for the
+ * Member App only (html[data-app='member'], set in main.tsx), above the
+ * club's accent preset.
+ */
+html[data-app='member'],
+html[data-app='member'][data-accent] {
+  --md-sys-color-primary: #4d80f0;
+  --md-sys-color-primary-strong: #3a6de0;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #e6edfd;
+  --md-sys-color-on-primary-container: #1f3d8f;
+  --md-sys-color-primary-soft: #e6edfd;
+  --md-sys-color-inverse-primary: #9db8f7;
+  --md-sys-color-chart-primary: #4d80f0;
+  --md-sys-color-chart-secondary: #9db8f7;
+  --md-sys-color-chart-area-from: rgba(77, 128, 240, 0.24);
+  --md-sys-color-chart-area-to: rgba(77, 128, 240, 0);
+
+  --md-sys-color-background: #f4f5f8;
+  --md-sys-color-surface: #ffffff;
+  --md-sys-color-surface-container-low: #f7f8fa;
+  --md-sys-color-surface-container: #f1f2f5;
+  --md-sys-color-surface-container-high: #eceef3;
+  --md-sys-color-on-surface: #1d1e24;
+  --md-sys-color-on-surface-variant: #8c90a0;
+  --md-sys-color-outline: #d9dce5;
+  --md-sys-color-outline-variant: #eceef3;
+
+  --oc-ink: #4d80f0;
+  --oc-on-ink: #ffffff;
+  --oc-table-head-bg: #f1f2f5;
+  --oc-table-head-fg: #8c90a0;
+
+  --hero-banner-bg: linear-gradient(135deg, #4d80f0 0%, #3a6de0 100%);
+  --hero-banner-text: #ffffff;
+  --hero-banner-subtext: rgba(255, 255, 255, 0.8);
+  --hero-banner-pill-bg: #ffffff;
+  --hero-banner-pill-text: #3a6de0;
+  --hero-banner-pill-icon: #4d80f0;
+  --hero-banner-tag-bg: rgba(255, 255, 255, 0.18);
+  --hero-banner-tag-text: #ffffff;
+  --hero-banner-blob-1: rgba(255, 255, 255, 0.08);
+  --hero-banner-blob-2: rgba(255, 255, 255, 0.12);
+  --hero-banner-arc: rgba(255, 255, 255, 0.2);
+
+  --md-sys-typescale-font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, system-ui, sans-serif;
+  --md-sys-typescale-font-family-numeric: 'Plus Jakarta Sans', 'Inter', ui-monospace, sans-serif;
+}
+html[data-app='member'][data-theme='dark'] {
+  --md-sys-color-primary: #6b95f5;
+  --md-sys-color-primary-strong: #86a8f7;
+  --md-sys-color-on-primary: #0d1530;
+  --md-sys-color-primary-container: #23304f;
+  --md-sys-color-on-primary-container: #dbe5fd;
+  --md-sys-color-primary-soft: #23304f;
+  --md-sys-color-background: #121318;
+  --md-sys-color-surface: #1b1d24;
+  --md-sys-color-surface-container-low: #1f2128;
+  --md-sys-color-surface-container: #23252d;
+  --md-sys-color-surface-container-high: #2c2f38;
+  --md-sys-color-on-surface: #eceef4;
+  --md-sys-color-on-surface-variant: #9a9eae;
+  --md-sys-color-outline: #3a3d48;
+  --md-sys-color-outline-variant: #2c2f38;
+  --oc-ink: #6b95f5;
+  --oc-on-ink: #0d1530;
+  --oc-table-head-bg: #23252d;
+  --oc-table-head-fg: #9a9eae;
+}
+
+html[data-app='member'] body { background: var(--md-sys-color-background); }
+
+/* top bar: white card like the POS header */
+html[data-app='member'] .oc-topbar {
+  position: sticky; top: 0; z-index: 30; margin: 0 0 18px; padding: 12px 16px; border-radius: 0 0 20px 20px; background: var(--md-sys-color-surface);
+  box-shadow: 0 6px 24px rgba(23, 31, 56, 0.06);
+}
+html[data-app='member'] .oc-pill-nav a[aria-current='page'], html[data-app='member'] .oc-pill-nav a.active {
+  background: var(--md-sys-color-primary-container); color: var(--md-sys-color-primary);
+}
+
+/* bottom navigation: the blue POS rail, on the phone */
+html[data-app='member'] .oc-bottom-nav {
+  left: 12px; right: 12px; bottom: 12px; height: 68px; border: 0; border-radius: 22px; background: var(--md-sys-color-primary);
+  box-shadow: 0 10px 30px rgba(58, 109, 224, 0.35); padding: 0 6px;
+}
+html[data-app='member'] .oc-bottom-nav a { color: rgba(255, 255, 255, 0.78); border-radius: 16px; padding: 6px 4px; }
+html[data-app='member'] .oc-bottom-nav a.active { color: #fff; background: rgba(255, 255, 255, 0.2); font-weight: 700; }
+
+/* cards, chips and buttons with the POS geometry */
+html[data-app='member'] .oc-card:not(.oc-card-ink) {
+  border: 1px solid var(--md-sys-color-outline-variant); border-radius: 18px; box-shadow: 0 6px 24px rgba(23, 31, 56, 0.04); background: var(--md-sys-color-surface);
+}
+html[data-app='member'] .oc-btn { border-radius: 14px; font-weight: 600; }
+html[data-app='member'] .oc-btn-ink, html[data-app='member'] .oc-btn-primary { background: var(--md-sys-color-primary); color: #fff; }
+html[data-app='member'] .oc-btn-ink:hover, html[data-app='member'] .oc-btn-primary:hover { background: var(--md-sys-color-primary-strong); }
+html[data-app='member'] .oc-btn-outline { border-color: var(--md-sys-color-primary); color: var(--md-sys-color-primary); }
+html[data-app='member'] .oc-chip { border-radius: 14px; }
+html[data-app='member'] .oc-chip[aria-pressed='true'] {
+  background: var(--md-sys-color-primary-container); border-color: var(--md-sys-color-primary); color: var(--md-sys-color-primary);
+}
+html[data-app='member'] .oc-input, html[data-app='member'] .oc-select, html[data-app='member'] select.oc-input, html[data-app='member'] textarea {
+  border-radius: 14px;
+}
+html[data-app='member'] .oc-input:focus { border-color: var(--md-sys-color-primary); box-shadow: 0 0 0 3px var(--md-sys-color-primary-container); }
+html[data-app='member'] .oc-page-head h1 { letter-spacing: -0.01em; }
+html[data-app='member'] .oc-metric { color: var(--md-sys-color-primary); }
+html[data-app='member'] .oc-icon-circle { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-primary); }
+
+/* ink cards (digital member card, highlights): the blue POS hero card */
+html[data-app='member'] .oc-card-ink {
+  border: 0; border-radius: 20px; color: #fff; background: linear-gradient(135deg, var(--md-sys-color-primary) 0%, var(--md-sys-color-primary-strong) 100%);
+  box-shadow: 0 10px 30px rgba(58, 109, 224, 0.25);
+}
+html[data-app='member'] .oc-card-ink .oc-muted, html[data-app='member'] .oc-card-ink .oc-small { color: rgba(255, 255, 255, 0.82); }
+html[data-app='member'] .oc-card-ink svg, html[data-app='member'] .oc-card-ink canvas, html[data-app='member'] .oc-card-ink img[alt*='QR'] {
+  background: #fff; padding: 8px; border-radius: 12px;
+}
+
+/* phone: a compact top bar and room above the floating navigation */
+@media (max-width: 720px) {
+  html[data-app='member'] .oc-topnav-frame { padding-bottom: 112px; }
+  html[data-app='member'] .oc-topbar { margin: -12px -16px 16px; border-radius: 0 0 20px 20px; }
+  html[data-app='member'] .oc-brand-name, html[data-app='member'] .oc-user-name { display: none; }
+}
+html[data-app='member'] .oc-card-ink .oc-metric { color: #fff; }

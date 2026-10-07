@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { NavLink, Outlet, useRoutes } from 'react-router';
-import { qs, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
+import { qs, request, useGet, uuidv7, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import { ErrorAlert, Icon, NotFoundPage, NotificationsPage, ProfilePage, Skeleton, logoOf, useAuth, useBootstrap, useToast } from '@oneclub/shell';
 import { useLive } from '../live';
@@ -15,6 +15,21 @@ import '../pos/pos.css';
 
 type Row = Record<string, unknown>;
 type Ticket = Schemas['Ticket'];
+
+/** A state change of one card (the record id goes in the path; the body holds only the new state). */
+function useAct(refetch: () => unknown) {
+  const toast = useToast();
+  const [busy, setBusy] = useState('');
+  const [error, setError] = useState<unknown>(null);
+  const act = (id: string, path: string, body: Row, done: string) => {
+    setBusy(id);
+    setError(null);
+    request('POST', path, body, { 'Idempotency-Key': uuidv7() })
+      .then(() => { toast(done); void refetch(); }, setError)
+      .finally(() => setBusy(''));
+  };
+  return { act, busy, error };
+}
 
 /** Blue rail: board, banquet production, notifications, profile and logout; the board gets the screen. */
 function KitchenLayout() {
@@ -50,11 +65,10 @@ function destination(t: Ticket) {
 
 /** Kitchen Display: POS tickets per station, Received → Preparing → Ready → Served. */
 function OrdersBoard() {
-  const toast = useToast();
   const [station, setStation] = useState('');
   const tickets = useGet<Page<Ticket>>(`/api/v1/commercial/kitchen-orders${qs({})}`, { refetchInterval: 30_000 });
   useLive('/api/v1/commercial/kds/stream', ['commercial.kds'], useMemo(() => () => void tickets.refetch(), [tickets]));
-  const state = useSend<Row>('POST', (b) => `/api/v1/commercial/kitchen-orders/${b.id}:state`, ['/api/v1/commercial/kitchen-orders']);
+  const state = useAct(() => tickets.refetch());
   useTick(30_000);
   const all = tickets.data?.items ?? [];
   const stations = [...new Set(all.map((t) => t.station))].sort();
@@ -103,8 +117,8 @@ function OrdersBoard() {
                               {i.notes ? <em>{String(i.notes)}</em> : null}</span></li>
                           ))}
                         </ul>
-                        <button className="pos-btn" data-variant={s === 'ready' ? 'outline' : undefined} data-block disabled={state.isPending}
-                          onClick={() => state.mutate({ id: t.id, state: next[s] }, { onSuccess: () => toast(`${t.orderNo}: ${action}`) })}>{action}</button>
+                        <button className="pos-btn" data-variant={s === 'ready' ? 'outline' : undefined} data-block disabled={state.busy === t.id}
+                          onClick={() => state.act(t.id, `/api/v1/commercial/kitchen-orders/${t.id}:state`, { state: next[s] }, `${t.orderNo}: ${action}`)}>{action}</button>
                       </article>
                     );
                   })}
@@ -121,12 +135,11 @@ function OrdersBoard() {
 
 /** Banquet Production (FR-BEO-04): dishes of the issued BEOs per serving time; a BEO revision replaces the list. */
 function BanquetProductionBoard() {
-  const toast = useToast();
   const { can } = useAuth();
   const [day, setDay] = useState(today());
   const [station, setStation] = useState('');
   const q = useGet<Page<Row>>(`/api/v1/banquet/production${qs({ date: day, 'filter[station]': station })}`, { refetchInterval: 30_000 });
-  const move = useSend<Row>('POST', (b) => `/api/v1/banquet/production-items/${String(b.id)}:status`, ['/api/v1/banquet/production']);
+  const move = useAct(() => q.refetch());
   const cols: [string, string][] = [['pending', 'To produce'], ['in_progress', 'In progress'], ['ready', 'Ready']];
   const next: Record<string, [string, string]> = { pending: ['in_progress', 'Start'], in_progress: ['ready', 'Ready'], ready: ['served', 'Served'] };
   const kds: Record<string, string> = { pending: 'received', in_progress: 'preparing', ready: 'ready' };
@@ -159,8 +172,8 @@ function BanquetProductionBoard() {
                       <span className="pos-kds-timer"><Icon name="schedule" size={14} />{formatDateTime(String(p.serveAt))}</span>
                     </div>
                     {can('banquet.production.update') && (
-                      <button className="pos-btn" data-variant={s === 'ready' ? 'outline' : undefined} data-block disabled={move.isPending}
-                        onClick={() => move.mutate({ id: p.id, status: next[s][0] }, { onSuccess: () => toast('Updated') })}>{next[s][1]}</button>
+                      <button className="pos-btn" data-variant={s === 'ready' ? 'outline' : undefined} data-block disabled={move.busy === String(p.id)}
+                        onClick={() => move.act(String(p.id), `/api/v1/banquet/production-items/${String(p.id)}:status`, { status: next[s][0] }, 'Updated')}>{next[s][1]}</button>
                     )}
                   </article>
                 ))}

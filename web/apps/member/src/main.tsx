@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, Link, Outlet, RouterProvider } from 'react-router';
 import '@oneclub/shell/shell.css';
+import './member.css';
 import { useGet, type Page, type Schemas } from '@oneclub/api-client';
 import { formatRelative, useTranslation } from '@oneclub/i18n';
 import {
@@ -88,6 +89,9 @@ const router = createBrowserRouter([
     ],
   },
 ]);
+
+// Member App theme in the POS look (member.css)
+document.documentElement.dataset.app = 'member';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

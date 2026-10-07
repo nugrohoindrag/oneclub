@@ -386,3 +386,23 @@
 .pos-kds-items em { display: block; font-style: normal; font-size: 13px; color: var(--pos-red); font-weight: 500; }
 .pos-kds-qty { flex: none; min-width: 34px; color: var(--pos-primary); font-weight: 700; }
 @media (max-width: 1100px) { .pos-kds { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); } }
+
+/* ── Caddy Tablet (areas/tablet.tsx), in the POS look ── */
+.pos-stack { display: flex; flex-direction: column; gap: 14px; }
+.pos-hole { display: flex; flex-direction: column; gap: 6px; padding: 22px 24px; border-radius: 20px; color: #fff;
+  background: linear-gradient(135deg, var(--pos-primary) 0%, var(--pos-primary-strong) 100%); box-shadow: var(--pos-shadow); }
+.pos-hole .pos-btn[data-variant='outline'] { background: #fff; border-color: #fff; }
+.pos-hole-title { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+.pos-muted-inverse { color: rgba(255, 255, 255, 0.78); font-size: 13px; font-weight: 500; }
+.pos-progress { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.pos-progress i { width: 22px; height: 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.28); }
+.pos-progress i[data-on] { background: rgba(255, 255, 255, 0.85); }
+.pos-progress i[data-current] { background: #fff; box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45); width: 34px; }
+.pos-score-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 16px 18px; border-radius: 18px; border: 1px solid var(--pos-line);
+  background: var(--pos-surface); }
+.pos-score { width: 56px !important; height: 56px !important; font-size: 18px; font-weight: 600; text-align: center; border-radius: 14px; }
+.pos-card .pos-btn { text-decoration: none; }
+/* shared data tables inside the POS frame (Caddy Tablet earnings, payouts) */
+.pos .oc-datatable { border: 0; box-shadow: none; background: none; padding: 0; }
+.pos .oc-table thead th { background: var(--pos-sunken); color: var(--pos-muted); }
+.pos .oc-table td { border-bottom-color: var(--pos-line); }

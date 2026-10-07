@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react';
-import { Link, Outlet, useParams, useRoutes } from 'react-router';
+import { Link, NavLink, Outlet, useNavigate, useParams, useRoutes } from 'react-router';
 import { request, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
-import { cacheGet, cachePut, enqueue, useOnline } from '@oneclub/offline';
-import {
-  Brand, Card, DataTable, Empty, ErrorAlert, HeaderActions, Icon, NotFoundPage, NotificationsPage, ProfilePage, SelectField, StatusPill, useAuth, useToast,
-} from '@oneclub/shell';
-import { ConnectivityChip, SyncPage, read, write } from '../offline';
+import { cacheGet, cachePut, enqueue, useOnline, useQueue } from '@oneclub/offline';
+import { DataTable, ErrorAlert, Icon, NotFoundPage, NotificationsPage, ProfilePage, Skeleton, StatusPill, logoOf, useAuth, useBootstrap, useToast } from '@oneclub/shell';
+import { SyncPage, read, write } from '../offline';
 import { TabletTournamentCard, TabletTournamentPage } from '../p3/tournament';
 import { PAYOUTS_TABLET_ROUTES } from '../p5/payouts';
+import { ProductImage, TodayLabel } from '../pos/shared';
+import '../pos/pos.css';
 
 /*
  * Caddy Tablet area (`/tablet`, PRD P2 EP-06): My Assignments → Current Round
- * (players, scorecard, hole progress, course map, on-course order) → Earnings.
+ * (players, scorecard, hole progress, course map, on-course order) → Earnings,
+ * in the look of the POS Cashier (blue rail, POS tokens).
  * Every round action goes through the offline sync queue (UUIDv7 ids):
  * a hole without signal is recorded and synced later without duplicates.
  */
@@ -31,28 +32,43 @@ function tabletId() {
 }
 
 const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : `Rp ${formatNumber(Number(v))}`);
+const label = (s: string) => s.replace(/_/g, ' ');
 
+/** Duty / round state as a POS chip. */
+function StateChip({ status }: { status: string }) {
+  const tone = ['in_play', 'preparing'].includes(status) ? 'preparing' : ['completed', 'finished', 'available'].includes(status) ? 'ready' : 'sent';
+  return <span className="pos-kitchen" data-kitchen={tone} style={{ textTransform: 'capitalize' }}>{label(status)}</span>;
+}
+
+/** Blue rail: assignments, earnings, payouts, sync, profile and logout. */
 function Layout() {
+  const b = useBootstrap();
   const online = useOnline();
+  const { can, logout } = useAuth();
   return (
-    <div className="oc-topnav-frame" style={{ maxWidth: 900 }}>
-      <header className="oc-topbar">
-        <Brand />
-        <span className="oc-spacer" />
-        <ConnectivityChip />
-        <HeaderActions property={false} />
-      </header>
-      {!online && <div className="oc-alert oc-alert-warning" role="status" style={{ marginBottom: 12 }}>No signal — round actions are saved on the tablet and synced later.</div>}
-      <Outlet />
-      <nav className="oc-bottom-nav" data-always="true" aria-label="Main">
-        <Link to="/tablet"><Icon name="assignment" size={26} />Assignments</Link>
-        <Link to="/tablet/earnings"><Icon name="payments" size={26} />Earnings</Link>
-        <PayoutHistoryLink />
-        <Link to="/tablet/sync"><Icon name="sync" size={26} />Sync</Link>
-        <Link to="/tablet/profile"><Icon name="person" size={26} />Profile</Link>
+    <div className="pos">
+      <nav className="pos-rail" aria-label="Caddy Tablet">
+        <span className="pos-rail-logo"><img src={logoOf(b.branding)} alt={b.branding.appName} /></span>
+        <NavLink to="/tablet" end aria-label="My Assignments" title="My Assignments"><Icon name="assignment" size={26} /></NavLink>
+        <NavLink to="/tablet/earnings" aria-label="Earnings" title="Earnings"><Icon name="payments" size={26} /></NavLink>
+        {can('hris.payout.own') && <NavLink to="/tablet/payouts" aria-label="Payouts" title="Payouts"><Icon name="account_balance_wallet" size={26} /></NavLink>}
+        <NavLink to="/tablet/sync" aria-label="Sync" title="Sync"><Icon name={online ? 'sync' : 'cloud_off'} size={26} /></NavLink>
+        <NavLink to="/tablet/profile" aria-label="Profile" title="Profile"><Icon name="person" size={26} /></NavLink>
+        <span className="pos-spacer" />
+        <button onClick={() => void logout()} aria-label="Log out" title="Log out"><Icon name="logout" size={26} /></button>
       </nav>
+      <main className="pos-main">
+        {!online && <div className="pos-banner" data-tone="warn" style={{ marginTop: 16 }} role="status"><Icon name="cloud_off" size={20} />
+          No signal — round actions are saved on the tablet and synced later.</div>}
+        <Outlet />
+      </main>
     </div>
   );
+}
+
+/** Pages shared with other areas, inside the tablet frame. */
+function Body({ children }: { children: React.ReactNode }) {
+  return <div className="pos-body" style={{ paddingTop: 24 }}>{children}</div>;
 }
 
 /** My Assignments: current and next (FR-CTB-02). */
@@ -67,36 +83,53 @@ function AssignmentsPage() {
   };
   const a = my.data;
   return (
-    <div className="oc-stack">
-      <div className="oc-page-head"><div><h1>{a ? `#${a.code} ${a.name}` : 'My Assignments'}</h1>{a && <p><StatusPill status={a.dutyStatus} /></p>}</div></div>
-      <ErrorAlert error={my.error} />
-      {a?.current && (
-        <Link to={`/tablet/round/${a.current.flightId}`} className="oc-card oc-card-ink" style={{ textDecoration: 'none' }}>
-          <div className="oc-small" style={{ opacity: 0.7 }}>Current Round</div>
-          <h2 style={{ margin: '4px 0' }}>{a.current.bookingCode ?? 'Walk-in flight'}</h2>
-          <div>{a.current.teeTime} · {a.current.playerNames.join(', ')}</div>
-        </Link>
-      )}
-      <TabletTournamentCard />
-      <Card title="Next Assignment" icon="schedule">
-        {a?.next.length === 0 && <div className="oc-muted">{a.queuePosition ? `Position ${a.queuePosition} in today's rotation` : 'No assignment yet'}</div>}
-        <div className="oc-stack">
+    <>
+      <div className="pos-head">
+        <h1>My Assignments</h1>
+        {a && <><span className="pos-tablebar-chip" style={{ height: 32 }}>#{a.code} {a.name}</span><StateChip status={a.dutyStatus} /></>}
+        <span className="pos-spacer" />
+        <TodayLabel />
+      </div>
+      <div className="pos-body">
+        <ErrorAlert error={my.error} />
+        {my.isLoading && <Skeleton rows={4} />}
+        {a?.current && (
+          <Link to={`/tablet/round/${a.current.flightId}`} className="pos-hole" style={{ textDecoration: 'none' }}>
+            <span className="pos-muted-inverse">Current Round</span>
+            <strong className="pos-hole-title">{a.current.bookingCode ?? 'Walk-in flight'}</strong>
+            <span>{a.current.teeTime} · {a.current.playerNames.join(', ')}</span>
+            <span className="pos-btn" data-variant="outline" style={{ alignSelf: 'flex-start', marginTop: 8 }}>Open Round <Icon name="chevron_right" size={20} /></span>
+          </Link>
+        )}
+        <div style={{ margin: '18px 0' }}><TabletTournamentCard /></div>
+        <h2 style={{ fontSize: 18, margin: '8px 0 14px' }}>Next Assignment</h2>
+        {a?.next.length === 0 && (
+          <div className="pos-empty"><Icon name="sports_golf" size={36} />{a.queuePosition ? `Position ${a.queuePosition} in today's rotation` : 'No assignment yet'}</div>
+        )}
+        <div className="pos-cards">
           {a?.next.map((n) => (
-            <div key={n.id} className="oc-row-wrap">
-              <strong>{formatDate(n.playDate)} {n.teeTime}</strong><span>{n.bookingCode ?? 'Walk-in flight'}</span><StatusPill status={n.status} /><span className="oc-spacer" />
-              {n.status === 'assigned' && <button className="oc-btn oc-btn-ink" onClick={() => void accept(n.id, n.flightId)}>Accept Assignment</button>}
-              <Link className="oc-btn oc-btn-outline" to={`/tablet/round/${n.flightId}`}>Open</Link>
+            <div key={n.id} className="pos-card">
+              <div className="pos-card-top">
+                <span className="pos-kds-badge" data-kds={n.status === 'assigned' ? 'received' : 'ready'}>{n.teeTime.slice(0, 5)}</span>
+                <div style={{ flex: 1, minWidth: 0 }}><strong>{n.bookingCode ?? 'Walk-in flight'}</strong><div className="pos-muted">{formatDate(n.playDate)} · tee {n.teeTime}</div></div>
+                <StateChip status={n.status} />
+              </div>
+              <div className="pos-card-actions">
+                <Link className="pos-btn" data-variant="soft" data-size="sm" to={`/tablet/round/${n.flightId}`}>Open</Link>
+                {n.status === 'assigned' && <button className="pos-btn" data-size="sm" onClick={() => void accept(n.id, n.flightId)}>Accept</button>}
+              </div>
             </div>
           ))}
         </div>
-      </Card>
-    </div>
+      </div>
+    </>
   );
 }
 
 /** Current Round: players, scorecard, hole progress (FR-CTB-03..09). */
 function RoundPage() {
   const { id = '' } = useParams();
+  const nav = useNavigate();
   const toast = useToast();
   const { propertyId } = useAuth();
   const online = useOnline();
@@ -106,6 +139,14 @@ function RoundPage() {
   const [status, setStatus] = useState('');
   const [scores, setScores] = useState<Record<string, Record<number, number>>>({});
   const [tab, setTab] = useState<'score' | 'players' | 'map' | 'order'>('score');
+  // the last round action: once the server answers, the round is read again (scorecards open on tee-off)
+  const [lastId, setLastId] = useState('');
+  const last = useQueue().find((q) => q.id === lastId);
+  const answered = !!last && ['accepted', 'duplicate', 'rejected', 'conflict'].includes(last.status);
+  useEffect(() => {
+    if (answered) void live.refetch();
+  }, [answered, lastId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const refused = last && (last.status === 'rejected' || last.status === 'conflict') ? last : null;
   useEffect(() => {
     if (live.data) {
       setRound(live.data);
@@ -122,25 +163,38 @@ function RoundPage() {
       });
     }
   }, [live.data, live.isError, id, propertyId]);
-  if (!round) return live.isLoading ? <div className="oc-card">Loading round…</div> : <Empty title="Round not available offline" icon="cloud_off" />;
+  if (!round) {
+    return live.isLoading ? <Body><Skeleton rows={6} /></Body>
+      : <div className="pos-empty" style={{ margin: 'auto' }}><Icon name="cloud_off" size={40} />Round not available offline</div>;
+  }
   const device = tabletId();
   const act = async (payload: Row, msg: string) => {
-    await enqueue('golf.round', { flightId: id, deviceId: device, at: new Date().toISOString(), ...payload }, propertyId);
+    const item = await enqueue('golf.round', { flightId: id, deviceId: device, at: new Date().toISOString(), ...payload }, propertyId);
+    setLastId(item.id);
     toast(online ? msg : `${msg} (queued)`);
   };
   const hole = round.holes[Math.max(seq, 1) - 1];
   const setScore = (sc: string, s: number, v: number) => setScores({ ...scores, [sc]: { ...(scores[sc] ?? {}), [s]: v } });
+  const score = (sc: string, n: number) => { setScore(sc, seq, n); void act({ op: 'score', scorecardId: sc, entries: [{ seq, strokes: n, clientAt: new Date().toISOString() }] }, `Score ${n}`); };
+  const tabs: [typeof tab, string, string][] = [['score', 'Scorecard', 'scoreboard'], ['players', 'Players', 'group'], ['map', 'Course Map', 'map'], ['order', 'On-Course Order', 'local_cafe']];
   return (
-    <div className="oc-stack">
-      <div className="oc-page-head"><div><h1>{round.round.bookingCode ?? `Flight ${round.round.flightNo}`}</h1>
-        <p>{round.round.playingRouteName ?? ''} · {formatDateTime(round.round.teeTime)} · <StatusPill status={status} /></p></div></div>
-      <div className="oc-row-wrap">
-        {(status === 'checked_in' || status === 'ready') && <button className="oc-btn oc-btn-ink" onClick={() => { void act({ op: 'tee_off' }, 'Round started'); setStatus('in_play'); setSeq(1); }}>Start Round</button>}
-        {status === 'in_play' && seq < round.holes.length && (
-          <button className="oc-btn oc-btn-ink" onClick={() => { void act({ op: 'hole', seq: seq + 1 }, `Hole ${seq + 1}`); setSeq(seq + 1); }}>Next hole → {seq + 1}</button>
+    <>
+      <div className="pos-head">
+        <button className="pos-icon-btn" style={{ border: 0 }} onClick={() => nav('/tablet')} aria-label="Back to My Assignments"><Icon name="arrow_back" size={22} /></button>
+        <div>
+          <h1>{round.round.bookingCode ?? `Flight ${round.round.flightNo}`}</h1>
+          <span className="pos-muted">{round.round.playingRouteName ?? ''} · {formatDateTime(round.round.teeTime)}</span>
+        </div>
+        <StateChip status={status} />
+        <span className="pos-spacer" />
+        {(status === 'checked_in' || status === 'ready') && (
+          <button className="pos-btn" onClick={() => { void act({ op: 'tee_off' }, 'Round started'); setStatus('in_play'); setSeq(1); }}><Icon name="sports_golf" size={20} />Start Round</button>
         )}
-        {status === 'in_play' && <button className="oc-btn oc-btn-outline" onClick={() => { void act({ op: 'finish' }, 'Round completed'); setStatus('completed'); }}>Complete Round</button>}
-        <button className="oc-btn oc-btn-neutral" onClick={async () => {
+        {status === 'in_play' && seq < round.holes.length && (
+          <button className="pos-btn" onClick={() => { void act({ op: 'hole', seq: seq + 1 }, `Hole ${seq + 1}`); setSeq(seq + 1); }}>Next hole <Icon name="chevron_right" size={20} /></button>
+        )}
+        {status === 'in_play' && <button className="pos-btn" data-variant="outline" onClick={() => { void act({ op: 'finish' }, 'Round completed'); setStatus('completed'); }}>Complete Round</button>}
+        <button className="pos-btn" data-variant="soft" onClick={async () => {
           try {
             const r = await request<Round>('POST', `/api/v1/golf/rounds/${id}:handover`, { deviceId: device });
             setRound(r);
@@ -149,39 +203,52 @@ function RoundPage() {
           } catch (e) {
             toast(String((e as Error).message));
           }
-        }}>Take over on this tablet</button>
+        }}>Take over</button>
       </div>
-      {hole && (
-        <div className="oc-card oc-card-ink">
-          <div className="oc-row"><h2 style={{ margin: 0 }}>Hole {hole.sectionCode}-{hole.number}</h2><span className="oc-spacer" />
-            <span>Par {hole.par}{hole.strokeIndex ? ` · SI ${hole.strokeIndex}` : ''}</span></div>
-        </div>
-      )}
-      <div className="oc-row-wrap">
-        {(['score', 'players', 'map', 'order'] as const).map((x) => <button key={x} className="oc-chip" aria-pressed={tab === x} onClick={() => setTab(x)}>{x === 'score' ? 'Scorecard' : x === 'players' ? 'Players' : x === 'map' ? 'Course Map' : 'On-Course Order'}</button>)}
-      </div>
-      {tab === 'score' && (
-        <Card title="Score entry" icon="scoreboard">
-          <div className="oc-stack">
-            {round.scorecards.map((sc) => (
-              <div key={sc.id} className="oc-row-wrap">
-                <strong style={{ minWidth: 140 }}>{sc.playerName}</strong>
-                {hole && [hole.par - 1, hole.par, hole.par + 1, hole.par + 2].filter((n) => n > 0).map((n) => (
-                  <button key={n} className={`oc-btn oc-btn-sm ${scores[sc.id]?.[seq] === n ? 'oc-btn-ink' : 'oc-btn-outline'}`} style={{ minWidth: 44, minHeight: 44 }}
-                    onClick={() => { setScore(sc.id, seq, n); void act({ op: 'score', scorecardId: sc.id, entries: [{ seq, strokes: n, clientAt: new Date().toISOString() }] }, `Score ${n}`); }}>{n}</button>
-                ))}
-                <input className="oc-input" style={{ width: 60, minHeight: 44 }} inputMode="numeric" aria-label={`Other score for ${sc.playerName}`} placeholder="…"
-                  onBlur={(e) => { const n = Number(e.target.value); if (n > 0) { setScore(sc.id, seq, n); void act({ op: 'score', scorecardId: sc.id, entries: [{ seq, strokes: n, clientAt: new Date().toISOString() }] }, `Score ${n}`); e.target.value = ''; } }} />
-                <span className="oc-small oc-muted">{sc.scores.filter((h) => h.strokes || scores[sc.id]?.[h.seq]).reduce((s, h) => s + (scores[sc.id]?.[h.seq] ?? h.strokes ?? 0), 0)} total</span>
-              </div>
-            ))}
+      <div className="pos-body">
+        {refused && <div className="pos-banner" data-tone="warn" style={{ margin: '0 0 14px' }} role="alert"><Icon name="error" size={20} />
+          The club system did not accept the last action{refused.error ? `: ${refused.error}` : ''}. The flight must be checked in, with caddies and a golf cart, in the starter queue.</div>}
+        {hole && (
+          <div className="pos-hole">
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
+              <strong className="pos-hole-title">Hole {hole.sectionCode}-{hole.number}</strong>
+              <span>Par {hole.par}{hole.strokeIndex ? ` · SI ${hole.strokeIndex}` : ''}</span>
+              <span className="pos-spacer" />
+              <span className="pos-muted-inverse">{Math.max(seq, 0)} / {round.holes.length}</span>
+            </div>
+            <div className="pos-progress" aria-label="Hole progress">
+              {round.holes.map((h, i) => <i key={h.holeId + i} data-on={i < seq || undefined} data-current={i === seq - 1 || undefined} />)}
+            </div>
           </div>
-        </Card>
-      )}
-      {tab === 'players' && <PlayersTab round={round} />}
-      {tab === 'map' && hole && <MapTab hole={hole} />}
-      {tab === 'order' && <OrderTab round={round} seq={seq} />}
-    </div>
+        )}
+        <div className="pos-cats" role="group" aria-label="Round" style={{ padding: '18px 0' }}>
+          {tabs.map(([x, l, icon]) => <button key={x} className="pos-chip" aria-pressed={tab === x} onClick={() => setTab(x)}><Icon name={icon} size={20} />{l}</button>)}
+        </div>
+        {tab === 'score' && (
+          <div className="pos-stack">
+            {round.scorecards.length === 0 && <div className="pos-empty"><Icon name="scoreboard" size={36} />The scorecards open when the round starts (tee-off).</div>}
+            {round.scorecards.map((sc) => {
+              const total = sc.scores.filter((h) => h.strokes || scores[sc.id]?.[h.seq]).reduce((s, h) => s + (scores[sc.id]?.[h.seq] ?? h.strokes ?? 0), 0);
+              return (
+                <div key={sc.id} className="pos-score-row">
+                  <div style={{ minWidth: 160 }}><strong>{sc.playerName}</strong><div className="pos-muted">Total {total}</div></div>
+                  <div className="pos-guests" role="group" aria-label={`Score for ${sc.playerName}`}>
+                    {hole && [hole.par - 1, hole.par, hole.par + 1, hole.par + 2].filter((n) => n > 0).map((n) => (
+                      <button key={n} type="button" className="pos-guest pos-score" aria-pressed={scores[sc.id]?.[seq] === n} onClick={() => score(sc.id, n)}>{n}</button>
+                    ))}
+                    <input className="pos-input pos-score" inputMode="numeric" aria-label={`Other score for ${sc.playerName}`} placeholder="…"
+                      onBlur={(e) => { const n = Number(e.target.value); if (n > 0) { score(sc.id, n); e.target.value = ''; } }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {tab === 'players' && <PlayersTab round={round} />}
+        {tab === 'map' && hole && <MapTab hole={hole} />}
+        {tab === 'order' && <OrderTab round={round} seq={seq} />}
+      </div>
+    </>
   );
 }
 
@@ -191,23 +258,28 @@ function PlayersTab({ round }: { round: Round }) {
   const [pref, setPref] = useState<Record<string, string>>({});
   const save = useSend<Row>('POST', (b) => `/api/v1/golf/customers/${b.customerId}/preferences`, []);
   return (
-    <div className="oc-stack">
+    <div className="pos-cards">
       <ErrorAlert error={save.error} />
       {round.players.map((p) => {
         const player = round.round.players.find((x) => x.id === p.playerId);
         return (
-          <Card key={p.playerId} title={p.name} icon="person">
-            <div className="oc-small">{p.playerType.replace(/_/g, ' ')}{p.teeSet ? ` · ${p.teeSet} tee` : ''}{p.handicap ? ` · HCP ${p.handicap}` : ''}</div>
-            {p.roundsWithMe > 0 && <div className="oc-small">{p.roundsWithMe} rounds with you{p.lastRoundWithMe ? `, last ${formatDate(p.lastRoundWithMe)}` : ''}{p.favoriteCaddyIsMe ? ' · you are the favourite caddy' : ''}</div>}
-            {p.highlights.map((h) => <div key={h} className="oc-small">• {h}</div>)}
+          <div key={p.playerId} className="pos-card">
+            <div className="pos-card-top">
+              <span className="pos-tablebar-icon"><Icon name="person" size={22} /></span>
+              <div style={{ flex: 1, minWidth: 0 }}><strong>{p.name}</strong>
+                <div className="pos-muted" style={{ textTransform: 'capitalize' }}>{label(p.playerType)}{p.teeSet ? ` · ${p.teeSet} tee` : ''}{p.handicap ? ` · HCP ${p.handicap}` : ''}</div></div>
+            </div>
+            {p.roundsWithMe > 0 && <div className="pos-muted">{p.roundsWithMe} rounds with you{p.lastRoundWithMe ? `, last ${formatDate(p.lastRoundWithMe)}` : ''}
+              {p.favoriteCaddyIsMe ? ' · you are the favourite caddy' : ''}</div>}
+            {p.highlights.map((h) => <div key={h}>• {h}</div>)}
             {player?.customerId && (
-              <div className="oc-row" style={{ marginTop: 8 }}>
-                <input className="oc-input" placeholder="Record preference (e.g. Es teh tawar)" value={pref[p.playerId] ?? ''} onChange={(e) => setPref({ ...pref, [p.playerId]: e.target.value })} />
-                <button className="oc-btn oc-btn-outline" disabled={!pref[p.playerId]} onClick={() => save.mutate({ customerId: player.customerId, category: 'beverage', value: pref[p.playerId] },
+              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
+                <input className="pos-input" placeholder="Preference (e.g. Es teh tawar)" value={pref[p.playerId] ?? ''} onChange={(e) => setPref({ ...pref, [p.playerId]: e.target.value })} />
+                <button className="pos-btn" data-variant="outline" disabled={!pref[p.playerId]} onClick={() => save.mutate({ customerId: player.customerId, category: 'beverage', value: pref[p.playerId] },
                   { onSuccess: () => { toast('Preference recorded'); setPref({ ...pref, [p.playerId]: '' }); } })}>Save</button>
               </div>
             )}
-          </Card>
+          </div>
         );
       })}
     </div>
@@ -225,25 +297,29 @@ function MapTab({ hole }: { hole: Round['holes'][number] }) {
     return () => navigator.geolocation.clearWatch(w);
   }, []);
   return (
-    <Card title="Course Map" icon="map">
-      {image ? <img src={image} alt={`Hole ${hole.number} map`} style={{ width: '100%', borderRadius: 12 }} /> : <div className="oc-muted">No map for this hole.</div>}
-      <div className="oc-row-wrap" style={{ marginTop: 8 }}>
-        {map.data?.distances.map((d) => <span key={d.target + (d.name ?? '')} className="oc-chip">{d.name || d.target}: {d.meters} m</span>)}
-        {!pos && <span className="oc-small oc-muted">Waiting for GPS…</span>}
+    <div className="pos-section">
+      <h2>Course Map · Hole {hole.number}</h2>
+      {image ? <img src={image} alt={`Hole ${hole.number} map`} style={{ width: '100%', borderRadius: 16 }} />
+        : <div className="pos-empty"><Icon name="map" size={36} />No map for this hole.</div>}
+      <div className="pos-guests" style={{ marginTop: 12, flexWrap: 'wrap' }}>
+        {map.data?.distances.map((d) => <span key={d.target + (d.name ?? '')} className="pos-kitchen" style={{ fontSize: 14, padding: '6px 12px' }}>{d.name || d.target}: {d.meters} m</span>)}
+        {!pos && <span className="pos-muted">Waiting for GPS…</span>}
       </div>
-    </Card>
+    </div>
   );
 }
 
 /** On-course order charged to the player's folio (FR-CTB-07). */
 function OrderTab({ round, seq }: { round: Round; seq: number }) {
   const toast = useToast();
-  const { propertyId } = useAuth();
   const outlets = useGet<Page<Row>>('/api/v1/commercial/outlets?filter[status]=active');
   const [outlet, setOutlet] = useState('');
   const [player, setPlayer] = useState(round.round.players[0]?.id ?? '');
   const menu = useGet<Page<Schemas['MenuItem']>>(outlet ? `/api/v1/commercial/outlets/${outlet}/menu?channel=caddy_tablet` : null);
   const [cart, setCart] = useState<Record<string, number>>({});
+  const items = menu.data?.items ?? [];
+  const count = Object.values(cart).reduce((s, n) => s + n, 0);
+  const total = items.reduce((s, m) => s + Number(m.price) * (cart[m.productId] ?? 0), 0);
   const place = async () => {
     const lines = Object.entries(cart).filter(([, n]) => n > 0).map(([productId, n]) => ({ productId, quantity: String(n) }));
     try {
@@ -254,58 +330,66 @@ function OrderTab({ round, seq }: { round: Round; seq: number }) {
       toast(String((e as Error).message));
     }
   };
-  void propertyId;
   return (
-    <Card title="On-Course Order" icon="local_cafe">
-      <div className="oc-row-wrap">
-        <div style={{ width: 220 }}><SelectField label="Outlet" value={outlet} onChange={setOutlet} placeholder="Halfway House…"
-          options={(outlets.data?.items ?? []).map((o) => ({ value: String(o.id), label: String(o.name) }))} /></div>
-        <div style={{ width: 220 }}><SelectField label="Player" value={player} onChange={setPlayer}
-          options={round.round.players.map((p) => ({ value: p.id, label: p.name }))} /></div>
-      </div>
-      <div className="oc-stack" style={{ marginTop: 8 }}>
-        {menu.data?.items.map((m) => (
-          <div key={m.productId} className="oc-row"><span>{m.name}</span><span className="oc-small oc-muted">{money(m.price)}</span><span className="oc-spacer" />
-            <button className="oc-btn oc-btn-outline oc-btn-sm" style={{ minWidth: 44, minHeight: 44 }} onClick={() => setCart({ ...cart, [m.productId]: (cart[m.productId] ?? 0) + 1 })}>
-              + {cart[m.productId] ? `(${cart[m.productId]})` : ''}</button></div>
+    <div className="pos-stack">
+      <div className="pos-cats" role="group" aria-label="Outlet" style={{ padding: 0 }}>
+        {(outlets.data?.items ?? []).filter((o) => o.outletType !== 'retail').map((o) => (
+          <button key={String(o.id)} className="pos-chip" aria-pressed={outlet === o.id} onClick={() => { setOutlet(String(o.id)); setCart({}); }}>
+            <Icon name="restaurant" size={20} />{String(o.name)}</button>
         ))}
       </div>
-      <button className="oc-btn oc-btn-ink" style={{ marginTop: 12 }} disabled={!outlet || !Object.values(cart).some((n) => n > 0)} onClick={() => void place()}>Send order</button>
-    </Card>
+      <div className="pos-guests" role="group" aria-label="Player" style={{ flexWrap: 'wrap' }}>
+        {round.round.players.map((p) => <button key={p.id} type="button" className="pos-guest" data-wide aria-pressed={player === p.id} onClick={() => setPlayer(p.id)}>{p.name}</button>)}
+      </div>
+      {!outlet ? <div className="pos-empty"><Icon name="local_cafe" size={36} />Choose an outlet (e.g. Halfway House).</div> : (
+        <div className="pos-grid">
+          {items.map((m) => (
+            <button key={m.productId} className="pos-product" disabled={m.soldOut} onClick={() => setCart({ ...cart, [m.productId]: (cart[m.productId] ?? 0) + 1 })}>
+              <ProductImage item={m} className="pos-product-img" />
+              {cart[m.productId] ? <span className="pos-product-qty">{cart[m.productId]}</span> : null}
+              <span className="pos-product-row"><span className="pos-product-name">{m.name}</span><span className="pos-product-price">{money(m.price)}</span></span>
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="pos-tablebar" style={{ margin: 0, position: 'sticky', bottom: 0 }}>
+        <span className="pos-tablebar-icon"><Icon name="local_cafe" size={24} /></span>
+        <div className="pos-tableinfo"><strong>{count} items · {money(total)}</strong><span className="pos-muted">Charged to the player's folio · delivered at hole {seq + 1}</span></div>
+        <span className="pos-spacer" />
+        {count > 0 && <button className="pos-btn pos-pill" data-variant="outline" onClick={() => setCart({})}>Clear</button>}
+        <button className="pos-btn pos-pill" disabled={!outlet || count === 0} onClick={() => void place()}>Send Order</button>
+      </div>
+    </div>
   );
 }
 
 /** Earnings: caddy fee, tips, settlements, attendance, history (FR-CTB-10). */
 function EarningsPage() {
   const e = useGet<Schemas['Earnings']>('/api/v1/golf/my-earnings');
-  if (!e.data) return <ErrorAlert error={e.error} />;
   return (
-    <div className="oc-stack">
-      <div className="oc-page-head"><div><h1>Earnings</h1><p>{formatDate(e.data.from)} – {formatDate(e.data.to)}</p></div></div>
-      <div className="oc-grid">
-        <div className="oc-card oc-card-ink"><div className="oc-small" style={{ opacity: 0.7 }}>Caddy Fee</div><div className="oc-metric">{money(e.data.caddyFee)}</div></div>
-        <div className="oc-card"><div className="oc-small oc-muted">Tip</div><div className="oc-metric">{money(e.data.tips)}</div></div>
+    <>
+      <div className="pos-head"><h1>Earnings</h1>{e.data && <span className="pos-muted">{formatDate(e.data.from)} – {formatDate(e.data.to)}</span>}</div>
+      <div className="pos-body">
+        <ErrorAlert error={e.error} />
+        {!e.data ? <Skeleton rows={6} /> : <>
+          <div className="pos-cards" style={{ marginBottom: 18 }}>
+            <div className="pos-hole"><span className="pos-muted-inverse">Caddy Fee</span><strong className="pos-hole-title">{money(e.data.caddyFee)}</strong></div>
+            <div className="pos-card"><span className="pos-muted">Tip</span><strong style={{ fontSize: 28 }}>{money(e.data.tips)}</strong></div>
+          </div>
+          <div className="pos-section"><h2>Settlement</h2>
+            <DataTable rows={e.data.settlements as unknown as Row[]} columns={[{ key: 'number', header: 'Settlement' }, { key: 'periodEnd', header: 'Period end', render: (r) => formatDate(String(r.periodEnd)) },
+              { key: 'total', header: 'Total', render: (r) => money(r.total) }, { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> }]} /></div>
+          <div className="pos-section"><h2>Attendance</h2>
+            <DataTable rows={e.data.attendance as unknown as Row[]} columns={[{ key: 'workDate', header: 'Date', render: (r) => formatDate(String(r.workDate)) },
+              { key: 'clockedInAt', header: 'In', render: (r) => (r.clockedInAt ? formatDateTime(String(r.clockedInAt)) : '—') }, { key: 'roundsToday', header: 'Rounds' }]} /></div>
+          <div className="pos-section"><h2>Assignment History</h2>
+            <DataTable rows={e.data.assignments as unknown as Row[]} columns={[{ key: 'playDate', header: 'Date', render: (r) => `${formatDate(String(r.playDate))} ${String(r.teeTime)}` },
+              { key: 'bookingCode', header: 'Booking' }, { key: 'feeAmount', header: 'Fee', render: (r) => money(r.feeAmount) },
+              { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> }]} /></div>
+        </>}
       </div>
-      <Card title="Settlement" icon="receipt_long">
-        <DataTable rows={e.data.settlements as unknown as Row[]} columns={[{ key: 'number', header: 'Settlement' }, { key: 'periodEnd', header: 'Period end', render: (r) => formatDate(String(r.periodEnd)) },
-          { key: 'total', header: 'Total', render: (r) => money(r.total) }, { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> }]} />
-      </Card>
-      <Card title="Attendance" icon="how_to_reg">
-        <DataTable rows={e.data.attendance as unknown as Row[]} columns={[{ key: 'workDate', header: 'Date', render: (r) => formatDate(String(r.workDate)) },
-          { key: 'clockedInAt', header: 'In', render: (r) => (r.clockedInAt ? formatDateTime(String(r.clockedInAt)) : '—') }, { key: 'roundsToday', header: 'Rounds' }]} />
-      </Card>
-      <Card title="Assignment History" icon="history">
-        <DataTable rows={e.data.assignments as unknown as Row[]} columns={[{ key: 'playDate', header: 'Date', render: (r) => `${formatDate(String(r.playDate))} ${String(r.teeTime)}` },
-          { key: 'bookingCode', header: 'Booking' }, { key: 'feeAmount', header: 'Fee', render: (r) => money(r.feeAmount) }, { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> }]} />
-      </Card>
-    </div>
+    </>
   );
-}
-
-/** Payout History of the caddy payout runs (PRD P5 §7.3, FR-OPS-P5-03); shown when HRIS pays the caddy. */
-function PayoutHistoryLink() {
-  const { can } = useAuth();
-  return can('hris.payout.own') ? <Link to="/tablet/payouts"><Icon name="account_balance_wallet" size={26} />Payouts</Link> : null;
 }
 
 const routes = [
@@ -314,13 +398,13 @@ const routes = [
     children: [
       { index: true, element: <AssignmentsPage /> },
       { path: 'round/:id', element: <RoundPage /> },
-      { path: 'tournament/:tid/:fid', element: <TabletTournamentPage /> }, // PRD P3 §7.3 tournament scorecard
+      { path: 'tournament/:tid/:fid', element: <Body><TabletTournamentPage /></Body> }, // PRD P3 §7.3 tournament scorecard
       { path: 'earnings', element: <EarningsPage /> },
-      ...PAYOUTS_TABLET_ROUTES, // PRD P5 EP-13 Payout History & Statement
-      { path: 'sync', element: <SyncPage /> },
-      { path: 'notifications', element: <NotificationsPage /> },
-      { path: 'profile', element: <ProfilePage showPin /> },
-      { path: '*', element: <NotFoundPage /> },
+      ...PAYOUTS_TABLET_ROUTES.map((r) => ({ ...r, element: <Body>{r.element}</Body> })), // PRD P5 EP-13 Payout History & Statement
+      { path: 'sync', element: <Body><SyncPage /></Body> },
+      { path: 'notifications', element: <Body><NotificationsPage /></Body> },
+      { path: 'profile', element: <Body><ProfilePage showPin /></Body> },
+      { path: '*', element: <Body><NotFoundPage /></Body> },
     ],
   },
 ];
