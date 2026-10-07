@@ -250,7 +250,9 @@ func TestP5PayrollExceptionsAndFinanceStatus(t *testing.T) {
 	// the journal booked together with the exception keeps the failure; a journal after the fix clears it
 	accPublish(t, inst.MDR, "accounting.journal_posted", map[string]any{"journalId": failedJournal, "number": "JV-PART-" + tm.sfx,
 		"sourceType": "hris.payroll_posted", "sourceId": first})
-	r = finance("failed")
+	if r = finance("failed"); !strings.Contains(str(r["financeMessage"]), "missing_account") {
+		t.Fatalf("journal booked with the exception cleared the failure: %v", r)
+	}
 	accPublish(t, inst.MDR, "accounting.journal_posted", map[string]any{"journalId": uuid.New(), "number": "JV-FIX-" + tm.sfx,
 		"sourceType": "hris.payroll_posted", "sourceId": first})
 	r = finance("posted")

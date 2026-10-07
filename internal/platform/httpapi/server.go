@@ -107,7 +107,7 @@ func (s *Server) Handler() http.Handler {
 		})
 	}
 	for _, rt := range s.Registry.Routes() {
-		var h http.Handler = s.wrap(rt)
+		h := s.wrap(rt)
 		if rt.List && rt.Method == http.MethodGet {
 			h = httpx.Paged(h) // ?limit=&cursor= → one page per response (see httpx/paged.go)
 		}

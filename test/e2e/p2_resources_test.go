@@ -108,6 +108,10 @@ func TestP2ResourceDefinitionsCRUD(t *testing.T) {
 				// synthesized date range keep it unused, hence deletable.
 				body["weekdays"] = []int{freeWeekday(str(body["startDate"]), str(body["endDate"]))}
 			}
+			if key == "commercial.table_reservation" {
+				// The guest name is required unless a customer is chosen (BeforeWrite hook).
+				body["guestName"] = "Synthetic Guest"
+			}
 			if missing {
 				next = append(next, d)
 				last[key] = "a referenced list is empty"

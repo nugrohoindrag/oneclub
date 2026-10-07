@@ -1279,17 +1279,15 @@ func (s *Service) AdjustBilling(ctx context.Context, tx pgx.Tx, property, folio 
 			}
 		}
 	}
-	curQty, curUnit := l.Qty, l.Unit
-	if v, err := last("quantity", l.Qty.String()); err != nil {
+	qv, err := last("quantity", l.Qty.String())
+	if err != nil {
 		return BillingRecordDetail{}, err
-	} else {
-		curQty = dec(v)
 	}
-	if v, err := last("price", l.Unit.String()); err != nil {
+	uv, err := last("price", l.Unit.String())
+	if err != nil {
 		return BillingRecordDetail{}, err
-	} else {
-		curUnit = dec(v)
 	}
+	curQty, curUnit := dec(qv), dec(uv)
 	label := strings.ReplaceAll(in.Kind, "_", " ")
 	switch in.Kind {
 	case "quantity", "price":
