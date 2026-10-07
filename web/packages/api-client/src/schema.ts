@@ -14882,6 +14882,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/course-monitor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Course Monitor (Starter / Marshal): course map, flights in play, golf carts */
+        get: operations["getGolfCourseMonitor"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/course-sections": {
         parameters: {
             query?: never;
@@ -15070,6 +15087,23 @@ export interface paths {
         put?: never;
         /** Create Flight */
         post: operations["postGolfFlights"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/flights/{id}/pace-interventions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Marshal: remind, warn, ask to skip a hole or let the flight behind play through (shown on the caddy tablet) */
+        post: operations["postGolfFlightsByIdPaceInterventions"];
         delete?: never;
         options?: never;
         head?: never;
@@ -15962,6 +15996,23 @@ export interface paths {
         put?: never;
         /** On-course F&B order charged to the booking folio */
         post: operations["postGolfOnCourseOrders"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/pace-interventions/{id}:acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Caddy tablet: the flight got the Marshal's message */
+        post: operations["postGolfPaceInterventionsByIdAcknowledge"];
         delete?: never;
         options?: never;
         head?: never;
@@ -26162,6 +26213,23 @@ export interface paths {
         put?: never;
         /** Rate my caddy after the round */
         post: operations["postMemberGolfCaddyAssignmentsByIdRate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/course-guide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Course Guide: Hole by Hole and my course handicap per tee */
+        get: operations["getMemberGolfCourseGuide"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -44438,6 +44506,8 @@ export interface components {
             holeId?: string | null;
             /** Format: uuid */
             id: string;
+            /** @description Picture (course map, hole layout) */
+            imageUrl?: string | null;
             /** @description Name */
             name: string;
             /** Format: uuid */
@@ -44475,6 +44545,8 @@ export interface components {
              * @description Hole
              */
             holeId?: string | null;
+            /** @description Picture (course map, hole layout) */
+            imageUrl?: string | null;
             /** @description Name */
             name?: string;
             /**
@@ -44482,6 +44554,23 @@ export interface components {
              * @enum {string|null}
              */
             status?: "active" | "inactive" | null;
+        };
+        CourseGuide: {
+            code: string;
+            /** Format: uuid */
+            courseId: string;
+            description?: string | null;
+            guide?: string | null;
+            /** @description Of the signed-in member */
+            handicapIndex?: string | null;
+            holes: components["schemas"]["GuideHole"][];
+            lengthMeters?: number | null;
+            /** @description Overview course map */
+            mapUrl?: string | null;
+            name: string;
+            par: number;
+            /** @description Longest first */
+            teeSets: components["schemas"]["GuideTee"][];
         };
         CourseInfo: {
             assets: components["schemas"]["AssetInfo"][];
@@ -44539,6 +44628,22 @@ export interface components {
             distances: components["schemas"]["Distance"][];
             /** Format: uuid */
             holeId: string;
+        };
+        CourseMonitor: {
+            /** Format: uuid */
+            courseId: string;
+            courseName: string;
+            /** @description In play, most behind first */
+            flights: components["schemas"]["MonitorFlight"][];
+            /** Format: date-time */
+            generatedAt: string;
+            golfCarts: components["schemas"]["MonitorCart"][];
+            holes: components["schemas"]["MonitorHole"][];
+            inPlay: number;
+            /** @description Today's log, latest first */
+            interventions: components["schemas"]["PaceIntervention"][];
+            mapUrl?: string | null;
+            slow: number;
         };
         CourseOrderInput: {
             /**
@@ -49847,6 +49952,45 @@ export interface components {
             skipped: string[];
             waitlisted: number;
         };
+        GuideHole: {
+            description?: string | null;
+            /** @description Meters per tee set code */
+            distances: {
+                [key: string]: number;
+            };
+            /** Format: uuid */
+            holeId: string;
+            images: components["schemas"]["GuideImage"][];
+            /** @description Position on the course map, 0–1 from the left */
+            mapX?: number | null;
+            /** @description Position on the course map, 0–1 from the top */
+            mapY?: number | null;
+            number: number;
+            par: number;
+            sectionCode: string;
+            strokeIndex?: number | null;
+        };
+        GuideImage: {
+            code: string;
+            name: string;
+            url: string;
+        };
+        GuideTee: {
+            code: string;
+            color?: string | null;
+            /** @description Course handicap of the signed-in member from this tee (18 holes) */
+            courseHandicap?: number | null;
+            /** @description Same for a nine-hole round */
+            courseHandicap9?: number | null;
+            courseRating?: string | null;
+            /** @enum {string} */
+            gender: "male" | "female" | "any";
+            /** Format: uuid */
+            id: string;
+            lengthMeters: number;
+            name: string;
+            slope?: number | null;
+        };
         HIO: {
             /** Format: date-time */
             achievedOn: string;
@@ -50944,6 +51088,12 @@ export interface components {
             /** Format: date-time */
             occurredAt?: string | null;
             subject: string;
+        };
+        InterventionInput: {
+            /** @enum {string} */
+            kind: "reminder" | "warning" | "final_warning" | "skip_hole" | "play_through" | "note";
+            /** @description Required for a note; default text for the other kinds */
+            message?: string;
         };
         Interview: {
             /** Format: uuid */
@@ -56222,6 +56372,72 @@ export interface components {
                 enabled: boolean;
             }[];
         };
+        MonitorCart: {
+            /** Format: date-time */
+            at: string;
+            batteryPercent?: number | null;
+            code: string;
+            /** Format: uuid */
+            golfCartId: string;
+            lat: number;
+            lng: number;
+            mapX?: number | null;
+            mapY?: number | null;
+        };
+        MonitorFlight: {
+            aheadLabel?: string | null;
+            /** @description Positive: behind the target */
+            behindMinutes: number;
+            caddies: string[];
+            /** Format: uuid */
+            courseId: string;
+            currentSeq: number;
+            elapsedMinutes: number;
+            /** Format: uuid */
+            flightId: string;
+            /** @description Holes between this flight and the flight ahead */
+            gapHoles?: number | null;
+            /** @description Minutes since the flight ahead started this hole */
+            gapMinutes?: number | null;
+            golfCarts: string[];
+            hole: string;
+            /**
+             * Format: uuid
+             * @description Hole being played
+             */
+            holeId?: string | null;
+            holeNumber?: number | null;
+            /** Format: date-time */
+            holeStartedAt?: string | null;
+            holes: number;
+            /** @description Today's interventions on this flight, latest first */
+            interventions: components["schemas"]["PaceIntervention"][];
+            /** @description Booking code or flight number */
+            label: string;
+            mapX?: number | null;
+            mapY?: number | null;
+            players: string[];
+            playingRouteName?: string | null;
+            /** @description Behind more than the route tolerance */
+            slow: boolean;
+            /** @description Cumulative target through the current hole */
+            targetMinutes: number;
+            /** Format: date-time */
+            teeOffAt: string;
+            /** Format: date-time */
+            teeTime: string;
+        };
+        MonitorHole: {
+            /** @description Flights playing this hole now */
+            flights: number;
+            /** Format: uuid */
+            holeId: string;
+            mapX?: number | null;
+            mapY?: number | null;
+            number: number;
+            par: number;
+            sectionCode: string;
+        };
         MovePlayerRequest: {
             /** Format: uuid */
             playerId: string;
@@ -57848,6 +58064,8 @@ export interface components {
             /** @description Positive: behind the target */
             behindMinutes: number;
             caddies: string[];
+            /** Format: uuid */
+            courseId: string;
             currentSeq: number;
             elapsedMinutes: number;
             /** Format: uuid */
@@ -57858,6 +58076,11 @@ export interface components {
             gapMinutes?: number | null;
             golfCarts: string[];
             hole: string;
+            /**
+             * Format: uuid
+             * @description Hole being played
+             */
+            holeId?: string | null;
             /** Format: date-time */
             holeStartedAt?: string | null;
             holes: number;
@@ -57873,6 +58096,24 @@ export interface components {
             teeOffAt: string;
             /** Format: date-time */
             teeTime: string;
+        };
+        PaceIntervention: {
+            /** Format: date-time */
+            acknowledgedAt?: string | null;
+            behindMinutes?: number | null;
+            /** Format: date-time */
+            createdAt: string;
+            createdByName?: string | null;
+            currentSeq?: number | null;
+            /** Format: uuid */
+            flightId: string;
+            flightLabel: string;
+            hole?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "reminder" | "warning" | "final_warning" | "skip_hole" | "play_through" | "note";
+            message: string;
         };
         PaceTargetInput: {
             /** @description 5–40 minutes */
@@ -60416,9 +60657,13 @@ export interface components {
             status: "assigned" | "in_play" | "completed";
         };
         PlayerContext: {
+            /** @description From the scorecard's tee set (WHS) */
+            courseHandicap?: number | null;
             favoriteCaddyIsMe: boolean;
             handicap?: string | null;
             highlights: string[];
+            /** @description Handicap strokes received per hole, in route sequence */
+            holeStrokes: number[];
             /** Format: date-time */
             lastRoundWithMe?: string | null;
             name: string;
@@ -65487,6 +65732,8 @@ export interface components {
         };
         RoundInfo: {
             holes: components["schemas"]["RouteHole"][];
+            /** @description Marshal messages not yet acknowledged */
+            interventions: components["schemas"]["PaceIntervention"][];
             players: components["schemas"]["PlayerContext"][];
             round: components["schemas"]["Round"];
             scorecards: components["schemas"]["Scorecard"][];
@@ -138650,6 +138897,59 @@ export interface operations {
             };
         };
     };
+    getGolfCourseMonitor: {
+        parameters: {
+            query?: {
+                /** @description Default: the first course with holes */
+                courseId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseMonitor"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfCourseSections: {
         parameters: {
             query?: {
@@ -139633,6 +139933,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FlightRef"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfFlightsByIdPaceInterventions: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterventionInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaceIntervention"];
                 };
             };
             /** @description Not authenticated */
@@ -143881,6 +144237,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Order"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfPaceInterventionsByIdAcknowledge: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaceIntervention"];
                 };
             };
             /** @description Not authenticated */
@@ -188330,6 +188738,61 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberGolfCourseGuide: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CourseGuide"][];
+                        nextCursor?: string;
+                    };
+                };
             };
             /** @description Not authenticated */
             401: {

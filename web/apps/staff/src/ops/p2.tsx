@@ -3,7 +3,8 @@ import { qs, request, uuidv7, useGet, useSend, type Page, type Schemas } from '@
 import { formatDateTime, formatNumber } from '@oneclub/i18n';
 import { enqueue } from '@oneclub/offline';
 import { Link } from 'react-router';
-import { useLive } from '../live';
+import { GOLF_STREAM, useLive } from '../live';
+import { CourseMonitorPage } from './marshal';
 import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
@@ -11,9 +12,6 @@ import {
 type Row = Record<string, unknown>;
 const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : `Rp ${formatNumber(Number(v))}`);
 const idem = () => ({ 'Idempotency-Key': uuidv7() });
-
-/** P1's golf stream carries every golf.* topic, P2's included. */
-const GOLF_STREAM = '/api/v1/golf/tee-sheet/stream';
 
 function Head({ title, help }: { title: string; help?: string }) {
   return <div className="oc-page-head"><div><h1>{title}</h1>{help && <p>{help}</p>}</div></div>;
@@ -313,6 +311,7 @@ export function StayDeskPage() {
 /** Ops routes of P2, at the paths of the server navigation. */
 export const P2_OPS_ROUTES = [
   { path: 'starter/pace', element: <PaceOfPlayPage /> },
+  { path: 'starter/monitor', element: <CourseMonitorPage /> }, // Marshal (FR-PLX-04/05)
   { path: 'caddy/incidents', element: <CaddyIncidentsPage /> },
   { path: 'golf-staff/inspection', element: <GolfCartInspectionPage /> },
   { path: 'stay-desk', element: <StayDeskPage /> },

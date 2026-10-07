@@ -926,19 +926,7 @@ func handicaps(index *string, maxHcp decimal.Decimal, cr *string, slope *int, pa
 	if maxHcp.IsPositive() && hi.GreaterThan(maxHcp) {
 		hi = maxHcp
 	}
-	rating := decimal.Zero
-	if cr != nil {
-		rating = dec(*cr)
-	}
-	if holes <= 9 {
-		hi = hi.Div(decimal.NewFromInt(2))
-		rating = rating.Div(decimal.NewFromInt(2))
-	}
-	ch := hi
-	if slope != nil && cr != nil && *slope > 0 {
-		ch = hi.Mul(decimal.NewFromInt(int64(*slope))).Div(decimal.NewFromInt(113)).Add(rating.Sub(decimal.NewFromInt(int64(par))))
-	}
-	c := int(ch.Round(0).IntPart())
+	c := experience.CourseHandicap(hi, cr, slope, par, holes)
 	ph := int(decimal.NewFromInt(int64(c)).Mul(allowance).Div(hundred).Round(0).IntPart())
 	return &c, &ph
 }

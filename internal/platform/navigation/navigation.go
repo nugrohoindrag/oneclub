@@ -75,6 +75,7 @@ var Trees = map[string][]Item{
 			s("course", "Course", "/golf/course", "golf.course.view"),
 			s("check-in", "Check-in", "/golf/check-in", "golf.check_in.perform"),
 			s("starter", "Starter", "/golf/starter", "golf.starter.view"),
+			s("course-monitor", "Course Monitor", "/golf/course-monitor", "golf.pace.view"), // PRD P2 FR-PLX-04/05 Marshal
 			s("rain-checks", "Rain Checks", "/golf/rain-checks", "golf.rain_check.view"),
 			s("golf-operations", "Round Operations", "/golf/operations", "golf.flight.view"),
 			s("golf-master", "Golf Master Data", "/golf/master", "golf.course.view"),
@@ -417,6 +418,7 @@ var Trees = map[string][]Item{
 		{Key: "home", Label: "Home", Path: "/", Icon: "home", Permission: catalog.ShellMemberPortal},
 		{Key: "book", Label: "Book", Path: "/book", Icon: "calendar_add_on", Permission: catalog.ShellMemberPortal, Children: []Item{
 			inModule("golf", s("book-tee-time", "Tee Time", "/book/tee-time", catalog.ShellMemberPortal)),
+			inModule("golf", s("course-guide", "Course Guide", "/golf/course-guide", catalog.ShellMemberPortal)),
 			inModule("stay", s("book-bungalow", "Bungalow", "/book/bungalow", catalog.ShellMemberPortal)),
 			inModule("stay", s("book-meeting-room", "Meeting Room", "/book/meeting-room", catalog.ShellMemberPortal)),
 			inModule("banquet", s("upcoming-events", "Event", "/events", catalog.ShellMemberPortal)),
@@ -429,6 +431,7 @@ var Trees = map[string][]Item{
 		{Key: "activity", Label: "My Activity", Path: "/activity", Icon: "history", Permission: catalog.ShellMemberPortal, Children: []Item{
 			s("my-bookings", "Bookings", "/activity", catalog.ShellMemberPortal),
 			inModule("golf", s("golf-history", "Golf History", "/activity/golf", catalog.ShellMemberPortal)),
+			inModule("golf", s("scores-handicap", "Scores & Handicap", "/golf/scores", catalog.ShellMemberPortal)),
 			inModule("stay", s("stay-history", "Stay History", "/activity/stays", catalog.ShellMemberPortal)),
 			inModule("banquet", s("my-events", "My Events", "/events/my-events", catalog.ShellMemberPortal)),
 			inModule("golf", s("my-tournaments", "My Tournaments", "/golf/my-tournaments", catalog.ShellMemberPortal)),
@@ -468,6 +471,7 @@ var Trees = map[string][]Item{
 			s("starter-check-in", "Check-in", "/ops/check-in", "golf.check_in.perform"),
 			s("tee-off", "Tee-Off", "/ops/starter/dispatch", "golf.starter.control"),
 			s("round-status", "Round Status", "/ops/starter/rounds", "golf.starter.view"),
+			s("ops-course-monitor", "Course Monitor", "/ops/starter/monitor", "golf.pace.view"),
 			s("pace-of-play", "Pace of Play", "/ops/starter/pace", "golf.pace.view"),
 			s("shotgun-start", "Shotgun Start", "/ops/tournament-desk/start", "golf.tournament.start"), // PRD P3 §7.6
 		}},

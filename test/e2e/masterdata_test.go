@@ -34,7 +34,8 @@ func TestOrganizationStructure(t *testing.T) {
 		if n := len(c.Must(200, "GET", "/api/v1/platform/venues", nil).Items()); n < 2 {
 			t.Fatalf("property %s has %d venues", prop, n)
 		}
-		if n := len(c.Must(200, "GET", "/api/v1/golf/courses", nil).Items()); n < 2 {
+		// the demo club's championship course (the driving range has none)
+		if n := len(c.Must(200, "GET", "/api/v1/golf/courses", nil).Items()); prop == inst.Main.String() && n < 1 {
 			t.Fatalf("property %s has %d courses", prop, n)
 		}
 	}

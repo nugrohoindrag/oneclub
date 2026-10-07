@@ -222,3 +222,35 @@ a.mj-item:hover strong { color: var(--md-sys-color-primary); }
 .mj-stats strong { font-size: 20px; }
 @media (max-width: 720px) { .mj-stats strong { font-size: 16px; } .mj-stats .mj-card { padding: 12px !important; } }
 .mj-tabs.mj-hub { max-width: 1080px; margin: 0 auto 16px; }
+
+/* Course Guide (course.tsx): hole tabs, hole card, tees and course handicap */
+.mj-tabs button { flex: none; padding: 8px 14px; border-radius: 12px; font: 600 14px/1.2 inherit; cursor: pointer;
+  color: var(--md-sys-color-on-surface-variant); background: var(--md-sys-color-surface); border: 1px solid var(--md-sys-color-outline-variant); }
+.mj-tabs button[aria-pressed='true'] { background: var(--md-sys-color-primary); border-color: var(--md-sys-color-primary); color: #fff; }
+.mj-course-top { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); align-items: center; }
+.mj-course-map { width: 100%; border-radius: 12px; display: block; }
+.mj-hole-tabs { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; }
+.mj-hole-tabs button { height: 40px; border-radius: 10px; font: 700 15px/1 inherit; cursor: pointer; font-variant-numeric: tabular-nums;
+  background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); border: 1px solid var(--md-sys-color-outline-variant); }
+.mj-hole-tabs button[aria-pressed='true'] { background: var(--md-sys-color-primary); border-color: var(--md-sys-color-primary); color: #fff; }
+.mj-hole { display: grid; gap: 18px; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); }
+.mj-hole-pics { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); align-content: start; }
+.mj-hole-pics img { width: 100%; border-radius: 12px; display: block; background: #fff; border: 1px solid var(--md-sys-color-outline-variant); }
+.mj-hole-nopic { display: grid; place-items: center; min-height: 160px; border-radius: 12px; background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); }
+.mj-hole-title { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.mj-hole-title h2 { margin: 0 8px 0 0; font-size: 24px; }
+.mj-hole-tees { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); margin: 14px 0; }
+.mj-hole-tee { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; background: var(--md-sys-color-surface-container-low); }
+.mj-hole-tee strong { margin-left: auto; }
+.mj-hole-body p { line-height: 1.55; }
+.mj-tee-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.35); flex: none; vertical-align: -1px; }
+.mj-tee-table { display: grid; gap: 2px; }
+.mj-tee-row { display: grid; grid-template-columns: minmax(110px, 2fr) repeat(var(--cols, 4), minmax(48px, 1fr)); gap: 8px; align-items: center; padding: 8px 4px;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant); }
+.mj-tee-row:last-child { border-bottom: 0; }
+.mj-tee-row strong { font-size: 18px; }
+.mj-tee-headrow { font-size: 12px; font-weight: 700; color: var(--md-sys-color-on-surface-variant); text-transform: uppercase; letter-spacing: 0.02em; }
+@media (max-width: 720px) {
+  .mj-course-top, .mj-hole { grid-template-columns: minmax(0, 1fr); }
+  .mj-hole-pics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

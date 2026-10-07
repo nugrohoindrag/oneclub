@@ -12,6 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
+	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/id"
 	"oneclub/internal/kernel/secret"
 )
@@ -34,13 +35,39 @@ var P1DemoUsers = []DemoUser{
 	{"caddy@demo.oneclub.id", "Siti Caddy", "caddy", "MAIN"}, // Caddy Tablet, linked to caddy C001
 }
 
-// holes: par and championship (BLUE) distance in meters; 6,350 m, par 72.
-var demoHoles = [18][2]int{
-	{4, 360}, {4, 370}, {3, 170}, {5, 510}, {4, 380}, {4, 350}, {3, 165}, {5, 520}, {4, 375},
-	{4, 365}, {5, 505}, {3, 180}, {4, 370}, {4, 355}, {5, 515}, {3, 160}, {4, 380}, {4, 320},
+// demoHoles: par and distance in meters from the Black, Blue, White and Red
+// tees of the course of Modern Golf & Country Club (hole cards of
+// www.moderngolf.co.id, "Hole by Hole"); 6,311 m from the Black tees, par 72.
+var demoHoles = [18][5]int{
+	{5, 478, 458, 426, 407}, {4, 382, 360, 342, 324}, {3, 171, 127, 123, 115}, {4, 334, 319, 301, 271}, {5, 477, 454, 430, 410},
+	{3, 165, 151, 140, 126}, {4, 405, 383, 369, 351}, {4, 378, 350, 322, 293}, {4, 331, 305, 288, 260},
+	{4, 358, 339, 315, 293}, {3, 157, 139, 125, 109}, {4, 354, 328, 310, 272}, {4, 410, 384, 361, 334}, {5, 517, 484, 462, 417},
+	{4, 340, 310, 290, 260}, {4, 364, 334, 324, 299}, {3, 190, 164, 149, 123}, {5, 500, 474, 445, 417},
 }
 
-var demoStrokeIndex = [18]int{7, 3, 15, 1, 5, 11, 17, 9, 13, 8, 2, 16, 4, 12, 6, 18, 10, 14}
+var demoStrokeIndex = [18]int{15, 3, 9, 17, 7, 11, 1, 5, 13, 14, 6, 18, 2, 4, 16, 12, 10, 8}
+
+// demoHoleGuide is the Hole-by-Hole text of each hole (www.moderngolf.co.id).
+var demoHoleGuide = [18]string{
+	"This is a good hole to start off with, an open par 5 with a wide fairway winding through mounds and across a small meandering stream at the second shot, ending in a small tightly bunkered green that sits amongst three connecting lakes. The stream will cause some decisions for golfers who have hit a poor tee shot, but there is still a chance left to make a par on this pleasant opening hole.",
+	"Crossing the bridge and passing the palm-surrounded lakes of the first green brings you to the second tees. Here the longer hitters will be tested more severely than the average club player as they confront a necklace of bunkers awaiting a stray tee shot. A medium iron shot is the reward for accuracy, played to a small green guarded by a single pot bunker at the front.",
+	"This one-shotter is a pretty picture indeed. Medium in length, the hazard and the beauty come in the form of a long lake stretching from the tees to the green, covered in flowering waterlilies. Play away from the lake too much and the shot will land in the greenside bunker. Accuracy pays on this, the first par 3.",
+	"The tees are located beside an attractive little pond as the players contemplate a tee shot to a wide fairway which necks between bunkers and stream for the long hitters. A medium iron is played to a small green flanked by pot bunkers and mounds. It is important to make a good tee shot to set up the second to this pleasant little par 4.",
+	"A strong par 5 which demands care to achieve length whilst avoiding the series of lakes along the left side of the fairway. The fairway is a mass of gentle undulations into which pot bunkers are placed at strategic places. Palms create a strong silhouette and finish to the green. Definitely a hole where caution is preferable to brute strength, and a very hard one to birdie.",
+	"The tee shot needs to be correctly clubbed and struck if the bunkers and the hollows guarding the long green are to be successfully negotiated. A difficult birdie chance but a very pretty hole to play.",
+	"Not only attractive but a very demanding par 4, requiring a daring tee shot staying close to the lake at the left to set up the shortest shot to the green. Swaying grasses and groundcovers hug the mounds and rough. All the hazards are between the golfer and the target, with the lure of open space awaiting the more cautious player to the right side. A good hole to escape with a par.",
+	"Another strong par 4 but less awesome than the 7th. Although there is water to the left, it is a long way left and forms a pretty picture rather than a testing hazard. A series of mounds cross the front of the fairway around the shot length from the championship tee, inviting the golfer to let out the shaft and get past them.",
+	"Back to the clubhouse with a medium-length two-shotter. The player needs to consider the tee shot with care, as a series of bunkers and mounds await a mishit or poorly directed shot. A large green awaits before the clubhouse, where the emphasis will be on putting on the gently undulating surface.",
+	"Another opening hole with a wide, inviting fairway and danger only to the long hitters who stray to the right, where they will find bunkers. For the majority a medium-length second shot will find a large green guarded by a single pot bunker. Water flanks most of this hole, but it lies to the left, away from the line of play.",
+	"The water this time is closer to the tees than to the target. A medium-length one-shotter: the tee shot needs to be properly clubbed and bravely played if a birdie is sought. A difficult par 3 with a testing putting surface; to miss this green is to invite an almost certain bogey.",
+	"A strong par 4. Although there is water to the right, it forms a pretty picture rather than a testing hazard. A series of mounds cross the fairway around the shot length from the championship tee; get past them and the second to a well-bunkered green is greatly simplified.",
+	"A strong par 4 with problems off the tees for all but the shorter hitters: mounds and hazards litter the landing area. Pass them safely and the long second is played to an angled green set among palms, open at the front but guarded at the sides. A very good hole to par and really tough to birdie.",
+	"A long three-shotter which requires terrific accuracy and length to reach in two. Potted with bunkers and mounds covered with groundcovers and grasses, the target seems elusive in the distance; those who stray from the fairway into these bunkers usually go from bad to worse as the fairway winds its tortuous way to the green. A good hole to par.",
+	"A shortish par 4, slightly dog-legged to the left and played to a long and narrow green. The secret is to play as close to the bunkers as prudence permits; this sets up the second to an open-fronted green bunkered only at the left by a deep pot. The green runs away to the right to a deep hollow. A good birdie chance for the bold.",
+	"A longer par 4, wide open from the tee except for the long hitter, who must be straight or sorry. The plateau green is flanked by a deep hollow to the left and guarded by two pot bunkers at the front and right side, almost surrounding the green. A good hole to par.",
+	"A medium-length one-shotter: the tee shot needs to be properly clubbed and bravely played if a birdie is sought. A difficult par 3 with a testing putting surface; take a longer club on this hole.",
+	"With the driving range forming a huge water hazard at the left side, the temptation to play to the right is irresistible, and it is there that the bunkers lie in wait. A tough finish demanding accuracy and length if the little stream before the green is to be cleared to set up a birdie chance. A lovely finish to a grand round.",
+}
 
 func seedGolfDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 	var venue uuid.UUID
@@ -50,10 +77,18 @@ func seedGolfDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 	// ── course structure (EP-02) ──
 	course := id.New()
 	if err := tx.QueryRow(ctx, `INSERT INTO golf.courses (id, property_id, venue_id, code, name, holes, length_meters, par, description, guide)
-		VALUES ($1,$2,$3,$4,'Modern Golf Championship Course',18,6350,72,
+		VALUES ($1,$2,$3,$4,'Modern Golf Championship Course',18,6311,72,
 		'18-hole championship course of Modern Golf & Country Club, Tangerang.',
-		'Tree-lined fairways with water on the back nine. Night golf on the Front Nine under lights.')
+		'Mounds, pot bunkers and a chain of lakes on both nines. Night golf on the Front Nine under lights.')
 		ON CONFLICT (property_id, code) DO UPDATE SET name = EXCLUDED.name RETURNING id`, course, property, venue, DemoCourseCode).Scan(&course); err != nil {
+		return err
+	}
+	// Instances seeded before the real hole data carry a generic layout
+	// (6,350 m, no Black tees): move them to the course of the club once.
+	legacy := false
+	if err := tx.QueryRow(ctx, `UPDATE golf.courses SET length_meters = 6311,
+		guide = 'Mounds, pot bunkers and a chain of lakes on both nines. Night golf on the Front Nine under lights.'
+		WHERE id = $1 AND length_meters = 6350 RETURNING true`, course).Scan(&legacy); err != nil && !dbtx.IsNoRows(err) {
 		return err
 	}
 	sections := map[string]uuid.UUID{}
@@ -65,19 +100,28 @@ func seedGolfDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 		}
 		sections[s[0]] = sid
 	}
+	// Tee sets of the club's Handicap Index tables (slope per tee, course
+	// rating = par). The scorecard picks the tee by gender, then "any", then
+	// sequence: men play Blue, ladies Red, others White; Black is the
+	// championship tee.
 	type teeSet struct {
 		code, name, color, gender string
 		rating                    float64
 		slope                     int
-		factor                    float64
 	}
-	sets := []teeSet{{"BLUE", "Blue (Championship)", "blue", "male", 72.5, 131, 1}, {"WHITE", "White (Regular)", "white", "any", 70.6, 125, 0.93},
-		{"RED", "Red (Ladies)", "red", "female", 71.8, 123, 0.82}}
+	sets := []teeSet{{"BLUE", "Blue (Men)", "blue", "male", 72, 132}, {"WHITE", "White (Regular)", "white", "any", 72, 130},
+		{"RED", "Red (Ladies)", "red", "female", 72, 132}, {"BLACK", "Black (Championship)", "black", "male", 72, 134}}
 	for i, t := range sets {
 		if _, err := tx.Exec(ctx, `INSERT INTO golf.tee_sets (id, property_id, course_id, code, name, color, course_rating, slope, gender, sequence)
 			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT (course_id, code) DO NOTHING`,
 			id.New(), property, course, t.code, t.name, t.color, t.rating, t.slope, t.gender, i+1); err != nil {
 			return err
+		}
+		if legacy {
+			if _, err := tx.Exec(ctx, `UPDATE golf.tee_sets SET name = $3, course_rating = $4, slope = $5, sequence = $6 WHERE course_id = $1 AND code = $2`,
+				course, t.code, t.name, t.rating, t.slope, i+1); err != nil {
+				return err
+			}
 		}
 	}
 	for i, h := range demoHoles {
@@ -86,15 +130,17 @@ func seedGolfDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 		if n > 9 {
 			sec = sections["BACK"]
 		}
-		dist := map[string]int{}
-		for _, t := range sets {
-			dist[t.code] = int(float64(h[1])*t.factor + 0.5)
-		}
-		raw, _ := json.Marshal(dist)
-		if _, err := tx.Exec(ctx, `INSERT INTO golf.holes (id, property_id, course_id, section_id, code, number, par, stroke_index, distances)
-			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) ON CONFLICT (course_id, number) DO NOTHING`,
-			id.New(), property, course, sec, fmt.Sprintf("H%02d", n), n, h[0], demoStrokeIndex[i], raw); err != nil {
+		raw, _ := json.Marshal(map[string]int{"BLACK": h[1], "BLUE": h[2], "WHITE": h[3], "RED": h[4]})
+		if _, err := tx.Exec(ctx, `INSERT INTO golf.holes (id, property_id, course_id, section_id, code, number, par, stroke_index, distances, description)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT (course_id, number) DO NOTHING`,
+			id.New(), property, course, sec, fmt.Sprintf("H%02d", n), n, h[0], demoStrokeIndex[i], raw, demoHoleGuide[i]); err != nil {
 			return err
+		}
+		if legacy {
+			if _, err := tx.Exec(ctx, `UPDATE golf.holes SET par = $3, stroke_index = $4, distances = $5, description = $6 WHERE course_id = $1 AND number = $2`,
+				course, n, h[0], demoStrokeIndex[i], raw, demoHoleGuide[i]); err != nil {
+				return err
+			}
 		}
 	}
 	routes := map[string]uuid.UUID{}

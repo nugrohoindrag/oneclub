@@ -166,6 +166,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	}
 	id := func(r *http.Request) (uuid.UUID, error) { return handle.ID(r) }
 	prop := handle.Property
+	m.registerGuide(reg, add)
 
 	// ── P2 profiles of P1 master data ──
 	add("Caddies", route.Route{Method: http.MethodGet, Path: "/api/v1/golf/caddies/{id}/profile", Summary: "Caddy profile: level, tablet login, joined date",
@@ -953,8 +954,9 @@ func holeAssets(ctx context.Context, q dbtx.Querier, hole uuid.UUID) ([]AssetInf
 		}
 		return nil, err
 	}
-	rows, err := q.Query(ctx, `SELECT code, asset_type, name, hole_id, file_id FROM golf.course_assets WHERE course_id = $1 AND (hole_id = $2 OR (hole_id IS NULL AND asset_type = 'course_map'))
-		AND status = 'active' AND archived_at IS NULL ORDER BY asset_type, code`, course, hole)
+	// the hole's own pictures before the course map
+	rows, err := q.Query(ctx, `SELECT code, asset_type, name, hole_id, `+assetImage+` FROM golf.course_assets WHERE course_id = $1 AND (hole_id = $2 OR (hole_id IS NULL AND asset_type = 'course_map'))
+		AND status = 'active' AND archived_at IS NULL ORDER BY asset_type, hole_id IS NULL, code`, course, hole)
 	if err != nil {
 		return nil, err
 	}
@@ -962,13 +964,8 @@ func holeAssets(ctx context.Context, q dbtx.Querier, hole uuid.UUID) ([]AssetInf
 	out := []AssetInfo{}
 	for rows.Next() {
 		var a AssetInfo
-		var fid *uuid.UUID
-		if err := rows.Scan(&a.Code, &a.AssetType, &a.Name, &a.HoleID, &fid); err != nil {
+		if err := rows.Scan(&a.Code, &a.AssetType, &a.Name, &a.HoleID, &a.FileURL); err != nil {
 			return nil, err
-		}
-		if fid != nil {
-			u := "/api/v1/files/" + fid.String()
-			a.FileURL = &u
 		}
 		out = append(out, a)
 	}

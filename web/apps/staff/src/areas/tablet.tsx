@@ -174,6 +174,7 @@ function RoundPage() {
     toast(online ? msg : `${msg} (queued)`);
   };
   const hole = round.holes[Math.max(seq, 1) - 1];
+  const playerOf = (scorecardId: string) => round.players.find((p) => p.scorecardId === scorecardId);
   const setScore = (sc: string, s: number, v: number) => setScores({ ...scores, [sc]: { ...(scores[sc] ?? {}), [s]: v } });
   const score = (sc: string, n: number) => { setScore(sc, seq, n); void act({ op: 'score', scorecardId: sc, entries: [{ seq, strokes: n, clientAt: new Date().toISOString() }] }, `Score ${n}`); };
   const tabs: [typeof tab, string, string][] = [['score', 'Scorecard', 'scoreboard'], ['players', 'Players', 'group'], ['map', 'Course Map', 'map'], ['order', 'On-Course Order', 'local_cafe']];
@@ -208,6 +209,7 @@ function RoundPage() {
       <div className="pos-body">
         {refused && <div className="pos-banner" data-tone="warn" style={{ margin: '0 0 14px' }} role="alert"><Icon name="error" size={20} />
           The club system did not accept the last action{refused.error ? `: ${refused.error}` : ''}. The flight must be checked in, with caddies and a golf cart, in the starter queue.</div>}
+        {status === 'in_play' && <MarshalMessages flightId={id} initial={round.interventions} />}
         {hole && (
           <div className="pos-hole">
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
@@ -229,9 +231,15 @@ function RoundPage() {
             {round.scorecards.length === 0 && <div className="pos-empty"><Icon name="scoreboard" size={36} />The scorecards open when the round starts (tee-off).</div>}
             {round.scorecards.map((sc) => {
               const total = sc.scores.filter((h) => h.strokes || scores[sc.id]?.[h.seq]).reduce((s, h) => s + (scores[sc.id]?.[h.seq] ?? h.strokes ?? 0), 0);
+              const pc = playerOf(sc.id);
+              const got = seq > 0 ? pc?.holeStrokes?.[seq - 1] ?? 0 : 0;
               return (
                 <div key={sc.id} className="pos-score-row">
-                  <div style={{ minWidth: 160 }}><strong>{sc.playerName}</strong><div className="pos-muted">Total {total}</div></div>
+                  <div style={{ minWidth: 160 }}><strong>{sc.playerName}</strong><div className="pos-muted">Total {total}</div>
+                    {pc?.courseHandicap != null && (
+                      <div className="pos-muted" title="Course handicap from this player's tee; strokes received on this hole by stroke index">
+                        CH {pc.courseHandicap}{got !== 0 ? ` · ${got > 0 ? '+' : ''}${got} stroke${Math.abs(got) > 1 ? 's' : ''} here` : ''}</div>
+                    )}</div>
                   <div className="pos-guests" role="group" aria-label={`Score for ${sc.playerName}`}>
                     {hole && [hole.par - 1, hole.par, hole.par + 1, hole.par + 2].filter((n) => n > 0).map((n) => (
                       <button key={n} type="button" className="pos-guest pos-score" aria-pressed={scores[sc.id]?.[seq] === n} onClick={() => score(sc.id, n)}>{n}</button>
@@ -252,6 +260,30 @@ function RoundPage() {
   );
 }
 
+/** Marshal messages for the flight (FR-PLX-04): shown until the caddy
+ * confirms the flight got them; checked every 30 s, apart from the round
+ * state so a queued hole is never overwritten. */
+function MarshalMessages({ flightId, initial }: { flightId: string; initial: Schemas['PaceIntervention'][] }) {
+  const poll = useGet<Round>(`/api/v1/golf/rounds/${flightId}?part=marshal`, { refetchInterval: 30_000 });
+  const ack = useSend<Row>('POST', (b) => `/api/v1/golf/pace-interventions/${b.id}:acknowledge`, [`/api/v1/golf/rounds/${flightId}?part=marshal`]);
+  const [done, setDone] = useState<string[]>([]);
+  const open = (poll.data?.interventions ?? initial).filter((i) => !done.includes(i.id));
+  if (open.length === 0) return null;
+  return (
+    <div className="pos-stack" style={{ marginBottom: 14 }}>
+      {open.map((i) => (
+        <div key={i.id} className="pos-banner" data-tone="warn" role="alert" style={{ margin: 0 }}>
+          <Icon name={i.kind === 'reminder' || i.kind === 'note' ? 'campaign' : 'flag'} size={22} />
+          <div style={{ flex: 1 }}><strong style={{ textTransform: 'capitalize' }}>{label(i.kind)}</strong> · {i.message}
+            <div className="pos-muted">{i.createdByName ?? 'Marshal'} · {formatDateTime(i.createdAt)}{i.hole ? ` · ${i.hole}` : ''}</div></div>
+          <button className="pos-btn" data-size="sm" disabled={ack.isPending}
+            onClick={() => ack.mutate({ id: i.id }, { onSuccess: () => setDone([...done, i.id]) })}>Got it</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /** Customer context without unnecessary personal data (FR-CTB-04). */
 function PlayersTab({ round }: { round: Round }) {
   const toast = useToast();
@@ -267,7 +299,8 @@ function PlayersTab({ round }: { round: Round }) {
             <div className="pos-card-top">
               <span className="pos-tablebar-icon"><Icon name="person" size={22} /></span>
               <div style={{ flex: 1, minWidth: 0 }}><strong>{p.name}</strong>
-                <div className="pos-muted" style={{ textTransform: 'capitalize' }}>{label(p.playerType)}{p.teeSet ? ` · ${p.teeSet} tee` : ''}{p.handicap ? ` · HCP ${p.handicap}` : ''}</div></div>
+                <div className="pos-muted" style={{ textTransform: 'capitalize' }}>{label(p.playerType)}{p.teeSet ? ` · ${p.teeSet} tee` : ''}{p.handicap ? ` · HCP ${p.handicap}` : ''}
+                  {p.courseHandicap != null ? ` · course handicap ${p.courseHandicap}` : ''}</div></div>
             </div>
             {p.roundsWithMe > 0 && <div className="pos-muted">{p.roundsWithMe} rounds with you{p.lastRoundWithMe ? `, last ${formatDate(p.lastRoundWithMe)}` : ''}
               {p.favoriteCaddyIsMe ? ' · you are the favourite caddy' : ''}</div>}

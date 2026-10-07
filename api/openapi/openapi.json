@@ -27032,6 +27032,12 @@
             "format": "uuid",
             "type": "string"
           },
+          "imageUrl": {
+            "description": "Picture (course map, hole layout)",
+            "maxLength": 500,
+            "nullable": true,
+            "type": "string"
+          },
           "name": {
             "description": "Name",
             "maxLength": 160,
@@ -27109,6 +27115,12 @@
             "nullable": true,
             "type": "string"
           },
+          "imageUrl": {
+            "description": "Picture (course map, hole layout)",
+            "maxLength": 500,
+            "nullable": true,
+            "type": "string"
+          },
           "name": {
             "description": "Name",
             "maxLength": 160,
@@ -27124,6 +27136,67 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "CourseGuide": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "guide": {
+            "nullable": true,
+            "type": "string"
+          },
+          "handicapIndex": {
+            "description": "Of the signed-in member",
+            "nullable": true,
+            "type": "string"
+          },
+          "holes": {
+            "items": {
+              "$ref": "#/components/schemas/GuideHole"
+            },
+            "type": "array"
+          },
+          "lengthMeters": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "mapUrl": {
+            "description": "Overview course map",
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "par": {
+            "type": "integer"
+          },
+          "teeSets": {
+            "description": "Longest first",
+            "items": {
+              "$ref": "#/components/schemas/GuideTee"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "courseId",
+          "code",
+          "name",
+          "par",
+          "teeSets",
+          "holes"
+        ],
         "type": "object"
       },
       "CourseInfo": {
@@ -27275,6 +27348,69 @@
           "holeId",
           "assets",
           "distances"
+        ],
+        "type": "object"
+      },
+      "CourseMonitor": {
+        "properties": {
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "flights": {
+            "description": "In play, most behind first",
+            "items": {
+              "$ref": "#/components/schemas/MonitorFlight"
+            },
+            "type": "array"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "golfCarts": {
+            "items": {
+              "$ref": "#/components/schemas/MonitorCart"
+            },
+            "type": "array"
+          },
+          "holes": {
+            "items": {
+              "$ref": "#/components/schemas/MonitorHole"
+            },
+            "type": "array"
+          },
+          "inPlay": {
+            "type": "integer"
+          },
+          "interventions": {
+            "description": "Today's log, latest first",
+            "items": {
+              "$ref": "#/components/schemas/PaceIntervention"
+            },
+            "type": "array"
+          },
+          "mapUrl": {
+            "nullable": true,
+            "type": "string"
+          },
+          "slow": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "courseId",
+          "courseName",
+          "holes",
+          "flights",
+          "golfCarts",
+          "inPlay",
+          "slow",
+          "interventions",
+          "generatedAt"
         ],
         "type": "object"
       },
@@ -42168,6 +42304,137 @@
         ],
         "type": "object"
       },
+      "GuideHole": {
+        "properties": {
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "distances": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Meters per tee set code",
+            "type": "object"
+          },
+          "holeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "images": {
+            "items": {
+              "$ref": "#/components/schemas/GuideImage"
+            },
+            "type": "array"
+          },
+          "mapX": {
+            "description": "Position on the course map, 0–1 from the left",
+            "nullable": true,
+            "type": "number"
+          },
+          "mapY": {
+            "description": "Position on the course map, 0–1 from the top",
+            "nullable": true,
+            "type": "number"
+          },
+          "number": {
+            "type": "integer"
+          },
+          "par": {
+            "type": "integer"
+          },
+          "sectionCode": {
+            "type": "string"
+          },
+          "strokeIndex": {
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "holeId",
+          "number",
+          "sectionCode",
+          "par",
+          "distances",
+          "images"
+        ],
+        "type": "object"
+      },
+      "GuideImage": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "url"
+        ],
+        "type": "object"
+      },
+      "GuideTee": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "color": {
+            "nullable": true,
+            "type": "string"
+          },
+          "courseHandicap": {
+            "description": "Course handicap of the signed-in member from this tee (18 holes)",
+            "nullable": true,
+            "type": "integer"
+          },
+          "courseHandicap9": {
+            "description": "Same for a nine-hole round",
+            "nullable": true,
+            "type": "integer"
+          },
+          "courseRating": {
+            "nullable": true,
+            "type": "string"
+          },
+          "gender": {
+            "enum": [
+              "male",
+              "female",
+              "any"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lengthMeters": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slope": {
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "gender",
+          "lengthMeters"
+        ],
+        "type": "object"
+      },
       "HIO": {
         "properties": {
           "achievedOn": {
@@ -45383,6 +45650,29 @@
         "required": [
           "channel",
           "subject"
+        ],
+        "type": "object"
+      },
+      "InterventionInput": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "reminder",
+              "warning",
+              "final_warning",
+              "skip_hole",
+              "play_through",
+              "note"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "description": "Required for a note; default text for the other kinds",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
         ],
         "type": "object"
       },
@@ -59927,6 +60217,217 @@
         ],
         "type": "object"
       },
+      "MonitorCart": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "batteryPercent": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "code": {
+            "type": "string"
+          },
+          "golfCartId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          },
+          "mapX": {
+            "nullable": true,
+            "type": "number"
+          },
+          "mapY": {
+            "nullable": true,
+            "type": "number"
+          }
+        },
+        "required": [
+          "golfCartId",
+          "code",
+          "lat",
+          "lng",
+          "at"
+        ],
+        "type": "object"
+      },
+      "MonitorFlight": {
+        "properties": {
+          "aheadLabel": {
+            "nullable": true,
+            "type": "string"
+          },
+          "behindMinutes": {
+            "description": "Positive: behind the target",
+            "type": "integer"
+          },
+          "caddies": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "currentSeq": {
+            "type": "integer"
+          },
+          "elapsedMinutes": {
+            "type": "integer"
+          },
+          "flightId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "gapHoles": {
+            "description": "Holes between this flight and the flight ahead",
+            "nullable": true,
+            "type": "integer"
+          },
+          "gapMinutes": {
+            "description": "Minutes since the flight ahead started this hole",
+            "nullable": true,
+            "type": "integer"
+          },
+          "golfCarts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "hole": {
+            "type": "string"
+          },
+          "holeId": {
+            "description": "Hole being played",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "holeNumber": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "holeStartedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "holes": {
+            "type": "integer"
+          },
+          "interventions": {
+            "description": "Today's interventions on this flight, latest first",
+            "items": {
+              "$ref": "#/components/schemas/PaceIntervention"
+            },
+            "type": "array"
+          },
+          "label": {
+            "description": "Booking code or flight number",
+            "type": "string"
+          },
+          "mapX": {
+            "nullable": true,
+            "type": "number"
+          },
+          "mapY": {
+            "nullable": true,
+            "type": "number"
+          },
+          "players": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "playingRouteName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "slow": {
+            "description": "Behind more than the route tolerance",
+            "type": "boolean"
+          },
+          "targetMinutes": {
+            "description": "Cumulative target through the current hole",
+            "type": "integer"
+          },
+          "teeOffAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "teeTime": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "flightId",
+          "courseId",
+          "label",
+          "teeTime",
+          "teeOffAt",
+          "currentSeq",
+          "holes",
+          "hole",
+          "elapsedMinutes",
+          "targetMinutes",
+          "behindMinutes",
+          "slow",
+          "players",
+          "caddies",
+          "golfCarts",
+          "interventions"
+        ],
+        "type": "object"
+      },
+      "MonitorHole": {
+        "properties": {
+          "flights": {
+            "description": "Flights playing this hole now",
+            "type": "integer"
+          },
+          "holeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "mapX": {
+            "nullable": true,
+            "type": "number"
+          },
+          "mapY": {
+            "nullable": true,
+            "type": "number"
+          },
+          "number": {
+            "type": "integer"
+          },
+          "par": {
+            "type": "integer"
+          },
+          "sectionCode": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "holeId",
+          "number",
+          "par",
+          "sectionCode",
+          "flights"
+        ],
+        "type": "object"
+      },
       "MovePlayerRequest": {
         "properties": {
           "playerId": {
@@ -65498,6 +65999,10 @@
             },
             "type": "array"
           },
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
           "currentSeq": {
             "type": "integer"
           },
@@ -65525,6 +66030,12 @@
             "type": "array"
           },
           "hole": {
+            "type": "string"
+          },
+          "holeId": {
+            "description": "Hole being played",
+            "format": "uuid",
+            "nullable": true,
             "type": "string"
           },
           "holeStartedAt": {
@@ -65568,6 +66079,7 @@
         },
         "required": [
           "flightId",
+          "courseId",
           "label",
           "teeTime",
           "teeOffAt",
@@ -65581,6 +66093,69 @@
           "players",
           "caddies",
           "golfCarts"
+        ],
+        "type": "object"
+      },
+      "PaceIntervention": {
+        "properties": {
+          "acknowledgedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "behindMinutes": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "createdByName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "currentSeq": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "flightId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "flightLabel": {
+            "type": "string"
+          },
+          "hole": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "reminder",
+              "warning",
+              "final_warning",
+              "skip_hole",
+              "play_through",
+              "note"
+            ],
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "flightId",
+          "flightLabel",
+          "kind",
+          "message",
+          "createdAt"
         ],
         "type": "object"
       },
@@ -73112,6 +73687,11 @@
       },
       "PlayerContext": {
         "properties": {
+          "courseHandicap": {
+            "description": "From the scorecard's tee set (WHS)",
+            "nullable": true,
+            "type": "integer"
+          },
           "favoriteCaddyIsMe": {
             "type": "boolean"
           },
@@ -73122,6 +73702,13 @@
           "highlights": {
             "items": {
               "type": "string"
+            },
+            "type": "array"
+          },
+          "holeStrokes": {
+            "description": "Handicap strokes received per hole, in route sequence",
+            "items": {
+              "type": "integer"
             },
             "type": "array"
           },
@@ -73166,7 +73753,8 @@
           "preferences",
           "highlights",
           "roundsWithMe",
-          "favoriteCaddyIsMe"
+          "favoriteCaddyIsMe",
+          "holeStrokes"
         ],
         "type": "object"
       },
@@ -88426,6 +89014,13 @@
             },
             "type": "array"
           },
+          "interventions": {
+            "description": "Marshal messages not yet acknowledged",
+            "items": {
+              "$ref": "#/components/schemas/PaceIntervention"
+            },
+            "type": "array"
+          },
           "players": {
             "items": {
               "$ref": "#/components/schemas/PlayerContext"
@@ -88455,6 +89050,7 @@
           "players",
           "scorecards",
           "times",
+          "interventions",
           "serverTime"
         ],
         "type": "object"
@@ -225068,6 +225664,87 @@
         "x-permission": "golf.course.view"
       }
     },
+    "/api/v1/golf/course-monitor": {
+      "get": {
+        "operationId": "getGolfCourseMonitor",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Default: the first course with holes",
+            "in": "query",
+            "name": "courseId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseMonitor"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Course Monitor (Starter / Marshal): course map, flights in play, golf carts",
+        "tags": [
+          "Pace of Play"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.pace.view"
+      }
+    },
     "/api/v1/golf/course-sections": {
       "get": {
         "operationId": "getGolfCourseSections",
@@ -226828,6 +227505,98 @@
         "x-audited": true,
         "x-module": "golf",
         "x-permission": "golf.flight.manage"
+      }
+    },
+    "/api/v1/golf/flights/{id}/pace-interventions": {
+      "post": {
+        "operationId": "postGolfFlightsByIdPaceInterventions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterventionInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaceIntervention"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Marshal: remind, warn, ask to skip a hole or let the flight behind play through (shown on the caddy tablet)",
+        "tags": [
+          "Pace of Play"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.pace.manage"
       }
     },
     "/api/v1/golf/flights/{id}/players": {
@@ -234147,6 +234916,88 @@
         "x-audited": true,
         "x-module": "golf",
         "x-permission": "golf.tablet.use"
+      }
+    },
+    "/api/v1/golf/pace-interventions/{id}:acknowledge": {
+      "post": {
+        "operationId": "postGolfPaceInterventionsByIdAcknowledge",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaceIntervention"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Caddy tablet: the flight got the Marshal's message",
+        "tags": [
+          "Pace of Play"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.round.operate"
       }
     },
     "/api/v1/golf/pace-of-play": {
@@ -311408,6 +312259,99 @@
         "x-permission": "platform.member_portal.access"
       }
     },
+    "/api/v1/member/golf/course-guide": {
+      "get": {
+        "operationId": "getMemberGolfCourseGuide",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CourseGuide"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Course Guide: Hole by Hole and my course handicap per tee",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
     "/api/v1/member/golf/courses": {
       "get": {
         "operationId": "getMemberGolfCourses",
@@ -318698,7 +319642,7 @@
         "tags": [
           "Member Portal"
         ],
-        "x-audited": true,
+        "x-audited": false,
         "x-module": "stay",
         "x-permission": "platform.member_portal.access"
       }
@@ -350397,7 +351341,7 @@
         "tags": [
           "Public"
         ],
-        "x-audited": true,
+        "x-audited": false,
         "x-module": "membership"
       }
     },

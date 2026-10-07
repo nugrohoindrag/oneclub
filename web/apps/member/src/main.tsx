@@ -9,6 +9,7 @@ import {
 } from '@oneclub/shell';
 import { BenefitsPage, CardPage, FamilyPage, MemberProfilePage, MyChargesPage, MyPaymentsPage, OtpLoginPage, StatementsPage } from './golf';
 import { P2_MEMBER_ROUTES } from './p2';
+import { CourseGuidePage } from './journey/course';
 import { P3_MEMBER_ROUTES } from './p3';
 import { ActivityPage, GolfHistoryPage, StayHistoryPage } from './journey/activity';
 import { BookHub } from './journey/book';
@@ -63,6 +64,7 @@ const router = createBrowserRouter([
           { path: 'activity', element: <ActivityPage /> },
           { path: 'activity/golf', element: <GolfHistoryPage /> },
           { path: 'activity/stays', element: <StayHistoryPage /> },
+          { path: 'golf/course-guide', element: <CourseGuidePage /> },
           // Membership
           { path: 'membership', element: <MembershipOverviewPage /> },
           { path: 'membership/card', element: <CardPage /> },

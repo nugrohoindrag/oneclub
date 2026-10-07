@@ -7,6 +7,7 @@ import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, Modal, PageHeader, QRCode, SelectField, Skeleton, StatusPill, TextArea, TextField, useToast,
 } from '@oneclub/shell';
 import { PaymentPanel } from './journey/pay';
+import { MyCourseHandicap } from './journey/course';
 
 type Row = Record<string, unknown>;
 const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : `Rp ${formatNumber(Number(v))}`);
@@ -129,6 +130,7 @@ export function ScoresPage() {
         <div className="oc-card"><div className="oc-small oc-muted">Average gross</div><div className="oc-metric">{s?.averageGross ?? '—'}</div></div>
         <div className="oc-card"><div className="oc-small oc-muted">Birdies or better</div><div className="oc-metric">{s?.birdiesOrBetter ?? '—'}</div></div>
       </div>
+      <MyCourseHandicap />
       <Card title="Round History" icon="golf_course">
         <DataTable rows={s?.history as unknown as Row[]} loading={stats.isLoading} columns={[
           { key: 'playedOn', header: 'Date', render: (r) => formatDate(String(r.playedOn)) }, { key: 'playingRouteName', header: 'Route' },
