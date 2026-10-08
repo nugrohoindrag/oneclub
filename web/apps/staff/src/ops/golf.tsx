@@ -6,6 +6,7 @@ import { cacheGet, cachePut, enqueue, useOnline } from '@oneclub/offline';
 import {
   Card, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
+import { CaddyCartModal } from './desk';
 
 type R = Record<string, unknown> & { id: string };
 
@@ -211,12 +212,15 @@ export function OpsCheckInPage() {
   const bookings = useCached<Page<R>>(`/api/v1/golf/bookings${qs({ date, limit: 500 })}`, `bookings:${date}`);
   const [q, setQ] = useState('');
   const [scan, setScan] = useState('');
+  const [caddyFor, setCaddyFor] = useState<string | null>(null);
   const lookup = useGet<Page<R>>(online && scan ? `/api/v1/golf/check-ins:lookup${qs({ method: scan.startsWith('oneclub:booking:') ? 'booking_qr' : 'member_card', value: scan, date })}` : null);
   const list = (bookings.data?.items ?? []).filter((b) => ['confirmed', 'checked_in'].includes(String(b.status)) &&
     (!q || `${String(b.code)} ${String(b.contactName)}`.toLowerCase().includes(q.toLowerCase())));
   const checkIn = async (b: R) => {
     await enqueue('golf.check_in', { method: 'booking_code', value: b.code, bookingId: b.bookingId ?? b.id, date }, propertyId);
     toast(online ? `Check-in sent for ${String(b.code)}` : `Saved offline: ${String(b.code)} will sync when online`);
+    // next: ask the players who their caddy is (or recommend one)
+    if (online) setCaddyFor(String(b.bookingId ?? b.id));
   };
   return (
     <div className="oc-stack">
@@ -237,7 +241,9 @@ export function OpsCheckInPage() {
       <TextField label="Search today's bookings" value={q} onChange={setQ} />
       <DataTable rows={list} loading={bookings.isLoading} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'code', header: 'Booking' },
         { key: 'contactName', header: 'Booked by' }, { key: 'playerCount', header: 'Players', align: 'right' }, { key: 'status', header: 'Status', render: pill('status') }]}
-        actions={(b) => b.status === 'confirmed' && <Btn label="Check-in" kind="primary" onClick={() => void checkIn(b)} />} />
+        actions={(b) => (b.status === 'confirmed' ? <Btn label="Check-in" kind="primary" onClick={() => void checkIn(b)} />
+          : b.status === 'checked_in' && online ? <Btn label="Caddy & Cart" onClick={() => setCaddyFor(b.id)} /> : null)} />
+      {caddyFor && <CaddyCartModal id={caddyFor} onClose={() => { setCaddyFor(null); void bookings.refetch(); }} />}
     </div>
   );
 }
@@ -402,7 +408,9 @@ export function CaddyAssignmentPage({ history }: { history?: boolean }) {
   const list = useGet<Page<R>>(`/api/v1/golf/caddy-assignments?date=${date}`);
   const flights = useGet<Page<R>>(history ? null : `/api/v1/golf/flights?date=${date}`);
   const auto = useSend<Record<string, unknown>>('POST', '/api/v1/golf/caddy-assignments', ['/api/v1/golf']);
-  const open = (flights.data?.items ?? []).filter((f) => !['completed', 'cancelled'].includes(String(f.status)) && !(f.readiness as R)?.caddiesOk).sort(byTeeTime);
+  // caddies are assigned after the players check in at the front desk
+  const open = (flights.data?.items ?? []).filter((f) => !['completed', 'cancelled'].includes(String(f.status)) && !(f.readiness as R)?.caddiesOk
+    && Number((f.readiness as R)?.checkedIn) > 0).sort(byTeeTime);
   return (
     <div className="oc-stack">
       <Head title={history ? 'Caddy History' : 'Caddy Assignment'} />

@@ -14184,6 +14184,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/bookings/{id}/caddy-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Caddy choice per player at the front desk: assigned, requested, favourites, usual caddies and a recommendation */
+        get: operations["getGolfBookingsByIdCaddySuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/bookings/{id}/history": {
         parameters: {
             query?: never;
@@ -40883,6 +40900,18 @@ export interface components {
             /** @description Caddy fee of finished rounds + non-cash tips */
             recorded: string;
         };
+        CaddyOption: {
+            /** @description Present and free today */
+            available: boolean;
+            /** Format: uuid */
+            caddyId: string;
+            code: string;
+            name: string;
+            /** @enum {string} */
+            reason?: "requested" | "favourite" | "usual" | "queue";
+            /** @description Rounds with this player (usual caddies) */
+            rounds: number;
+        };
         CaddyPolicy: {
             allowRequest: boolean;
             mandatory: boolean;
@@ -61294,6 +61323,22 @@ export interface components {
             rated: boolean;
             /** @enum {string} */
             status: "assigned" | "in_play" | "completed";
+        };
+        PlayerCaddySuggestion: {
+            /** Format: uuid */
+            assignmentId?: string | null;
+            /** @description The caddy is assigned once the player has checked in */
+            checkedIn: boolean;
+            current?: components["schemas"]["CaddyOption"] | null;
+            favourites: components["schemas"]["CaddyOption"][];
+            /** Format: uuid */
+            flightId: string;
+            name: string;
+            /** Format: uuid */
+            playerId: string;
+            recommended?: components["schemas"]["CaddyOption"] | null;
+            requested?: components["schemas"]["CaddyOption"] | null;
+            usual: components["schemas"]["CaddyOption"][];
         };
         PlayerContext: {
             /** @description From the scorecard's tee set (WHS) */
@@ -136377,6 +136422,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["BookingBill"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfBookingsByIdCaddySuggestions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PlayerCaddySuggestion"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */

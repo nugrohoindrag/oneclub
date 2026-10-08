@@ -353,15 +353,16 @@ function CaddyTab({ b }: { b: Booking }) {
       {b.flights.filter((f) => f.status !== 'cancelled').map((f) => (
         <div key={String(f.id)} className="oc-stack">
           {b.flights.length > 1 && <strong>Flight {String(f.flightNo)}</strong>}
-          <FlightCaddies flightId={String(f.id)} date={b.playDate} players={b.players.filter((p) => live(p) && p.flightId === f.id)} />
-          <FlightCarts flightId={String(f.id)} date={b.playDate} />
+          <FlightCaddies bookingId={b.id} code={String(b.code)} flightId={String(f.id)} date={b.playDate} />
+          <FlightCarts flightId={String(f.id)} date={b.playDate} players={b.players.filter((p) => live(p) && p.flightId === f.id)} />
         </div>
       ))}
     </div>
   );
 }
 
-function FlightCarts({ flightId, date }: { flightId: string; date: string }) {
+/** Golf carts: one cart carries 2 players and their 2 caddies. */
+function FlightCarts({ flightId, date, players }: { flightId: string; date: string; players: R[] }) {
   const toast = useToast();
   const list = useGet<Page<R>>(`/api/v1/golf/golf-cart-assignments${qs({ date })}`);
   const ready = useGet<Page<R>>('/api/v1/golf/golf-carts?filter[readiness]=ready&filter[status]=active&limit=200');
@@ -373,11 +374,12 @@ function FlightCarts({ flightId, date }: { flightId: string; date: string }) {
   const ok = (what: string) => () => { toast(what); setPick(''); void list.refetch(); void ready.refetch(); };
   return (
     <div className="oc-stack">
-      <h3 style={{ margin: '8px 0 0' }}>Golf carts</h3>
+      <h3 style={{ margin: '8px 0 0' }}>Golf carts <span className="oc-small oc-muted">· 1 cart = 2 players + their 2 caddies · {Math.ceil(players.length / 2)} needed</span></h3>
       {mine.length === 0 && <span className="oc-muted">No golf cart yet</span>}
-      {mine.map((a) => (
+      {mine.map((a, i) => (
         <div key={a.id} className="oc-row-wrap" style={{ alignItems: 'center' }}>
           <strong style={{ minWidth: 200 }}>Cart {String(a.golfCartCode)}{a.extra ? ' · extra (surcharge)' : ''}</strong>
+          <span className="oc-muted">{players.slice(i * 2, i * 2 + 2).map((p) => String(p.name || 'Guest')).join(' & ') || '—'}</span>
           <StatusPill status={String(a.status).replace(/_/g, '-')} />
           <Btn label="Return" disabled={ret.isPending} onClick={() => ret.mutate({ id: a.id }, { onSuccess: ok('Golf cart returned') })} />
         </div>
@@ -395,37 +397,80 @@ function FlightCarts({ flightId, date }: { flightId: string; date: string }) {
   );
 }
 
-function FlightCaddies({ flightId, date, players }: { flightId: string; date: string; players: R[] }) {
+/** After check-in the desk asks who the player's caddy is, or recommends
+ * one: requested, favourite, usual caddy (most rounds together), else the
+ * next caddy of the queue. One caddy serves one player. */
+function FlightCaddies({ bookingId, code, flightId, date }: { bookingId: string; code: string; flightId: string; date: string }) {
   const toast = useToast();
-  const list = useGet<Page<R>>(`/api/v1/golf/caddy-assignments${qs({ flightId })}`);
+  const sugg = useGet<Page<R>>(`/api/v1/golf/bookings/${bookingId}/caddy-suggestions`);
   const board = useGet<Page<R>>(`/api/v1/golf/caddy-availability${qs({ date })}`);
-  const assign = useSend<Record<string, unknown>>('POST', '/api/v1/golf/caddy-assignments', ['/api/v1/golf']);
-  const replace = useSend<Record<string, unknown>>('POST', (v) => `/api/v1/golf/caddy-assignments/${String(v.id)}:replace`, ['/api/v1/golf']);
+  const inv = ['/api/v1/golf'];
+  const assign = useSend<Record<string, unknown>>('POST', '/api/v1/golf/caddy-assignments', inv);
+  const replace = useSend<Record<string, unknown>>('POST', (v) => `/api/v1/golf/caddy-assignments/${String(v.id)}:replace`, inv);
+  const checkIn = useSend<Record<string, unknown>>('POST', '/api/v1/golf/check-ins', inv);
   const [pick, setPick] = useState<Record<string, string>>({});
-  const current = (list.data?.items ?? []).filter((a) => !['cancelled', 'replaced'].includes(String(a.status)));
+  const players = (sugg.data?.items ?? []).filter((p) => p.flightId === flightId);
   const free = (board.data?.items ?? []).filter((c) => c.status === 'available').map((c) => ({ value: String(c.caddyId), label: `${String(c.code)} · ${String(c.name)}` }));
-  const of = (pid: string) => current.find((a) => ((a.playerIds as string[] | undefined) ?? []).includes(pid));
-  const ok = () => { toast('Caddy assigned'); setPick({}); void list.refetch(); void board.refetch(); };
+  const ok = (what: string) => () => { toast(what); setPick({}); void sugg.refetch(); void board.refetch(); };
+  const REASON: Record<string, string> = { requested: 'asked for', favourite: 'favourite', usual: 'usual caddy', queue: 'next in queue' };
   return (
     <div className="oc-stack">
+      <h3 style={{ margin: '8px 0 0' }}>Caddies <span className="oc-small oc-muted">· 1 caddy per player, assigned after check-in</span></h3>
+      <ErrorAlert error={sugg.error} />
       {players.map((p) => {
-        const a = of(p.id);
+        const pid = String(p.playerId);
+        const current = p.current as R | null;
+        const rec = p.recommended as R | null;
+        const known = [p.requested as R | null, ...((p.favourites as R[]) ?? []), ...((p.usual as R[]) ?? [])].filter(Boolean) as R[];
+        const chosen = pick[pid] ?? (current ? '' : String(rec?.caddyId ?? ''));
         return (
-          <div key={p.id} className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
-            <span style={{ minWidth: 200 }}><strong>{String(p.name || 'Guest (TBA)')}</strong><br />
-              <span className="oc-small oc-muted">{a ? `Caddy ${String(a.caddyCode)} · ${String(a.caddyName)}` : 'No caddy yet'}</span></span>
-            <SelectField label={a ? 'Replace with' : 'Caddy'} value={pick[p.id] ?? ''} onChange={(v) => setPick({ ...pick, [p.id]: v })} placeholder="Choose" options={free} />
-            <Btn label={a ? 'Replace' : 'Assign'} kind="primary" disabled={!pick[p.id] || assign.isPending || replace.isPending}
-              onClick={() => (a
-                ? replace.mutate({ id: a.id, caddyId: pick[p.id], reason: 'Changed at the front desk' }, { onSuccess: ok })
-                : assign.mutate({ flightId, assignments: [{ caddyId: pick[p.id], playerIds: [p.id] }] }, { onSuccess: ok }))} />
+          <div key={pid} className="oc-card oc-stack" style={{ gap: 8 }}>
+            <div className="oc-row-wrap" style={{ alignItems: 'center' }}>
+              <strong style={{ minWidth: 180 }}>{String(p.name || 'Guest (TBA)')}</strong>
+              {current ? <span>Caddy <strong>{String(current.code)} · {String(current.name)}</strong></span>
+                : p.checkedIn ? <span className="oc-muted">No caddy yet</span> : <span className="oc-muted">Not checked in</span>}
+              {p.checkedIn !== true && <Btn label="Check-in" kind="primary" disabled={checkIn.isPending}
+                onClick={() => checkIn.mutate({ method: 'booking_code', value: code, bookingId, playerIds: [pid], date }, { onSuccess: ok('Checked in — now the caddy') })} />}
+            </div>
+            {p.checkedIn === true && (
+              <>
+                {known.length > 0 && (
+                  <div className="oc-row-wrap" aria-label="Known caddies">
+                    {known.map((c, i) => (
+                      <button key={`${String(c.caddyId)}-${i}`} type="button" className="oc-chip" aria-pressed={chosen === c.caddyId} disabled={!c.available}
+                        title={c.available ? undefined : 'Not free today'} onClick={() => setPick({ ...pick, [pid]: String(c.caddyId) })}>
+                        {String(c.code)} · {String(c.name)} · {REASON[String(c.reason)] ?? ''}{Number(c.rounds) > 0 ? ` (${String(c.rounds)} rounds)` : ''}{c.available ? '' : ' · busy'}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+                  <SelectField label={current ? 'Replace with' : rec ? `Caddy (recommended: ${String(rec.code)}, ${REASON[String(rec.reason)] ?? ''})` : 'Caddy'}
+                    value={chosen} onChange={(v) => setPick({ ...pick, [pid]: v })} placeholder="Choose" options={free} />
+                  <Btn label={current ? 'Replace' : 'Assign'} kind="primary" disabled={!chosen || assign.isPending || replace.isPending}
+                    onClick={() => (current && p.assignmentId
+                      ? replace.mutate({ id: p.assignmentId, caddyId: chosen, reason: 'Changed at the front desk' }, { onSuccess: ok('Caddy replaced') })
+                      : assign.mutate({ flightId, assignments: [{ caddyId: chosen, playerIds: [pid] }] }, { onSuccess: ok('Caddy assigned') }))} />
+                </div>
+              </>
+            )}
           </div>
         );
       })}
-      <div><Btn label="Assign the rest from the queue" disabled={assign.isPending || players.every((p) => of(p.id))}
-        onClick={() => assign.mutate({ flightId, auto: true }, { onSuccess: ok })} /></div>
-      <ErrorAlert error={assign.error ?? replace.error} />
+      <ErrorAlert error={assign.error ?? replace.error ?? checkIn.error} />
     </div>
+  );
+}
+
+/** Caddies and golf carts of a booking, opened from the Check-in page. */
+export function CaddyCartModal({ id, onClose }: { id: string; onClose: () => void }) {
+  const b = useGet<Booking>(`/api/v1/golf/bookings/${id}`);
+  return (
+    <Modal open wide onClose={onClose} title={b.data ? `Caddy & Cart · ${String(b.data.code)} · ${String(b.data.localTime)}` : 'Caddy & Cart'}
+      actions={<Btn label="Done" kind="primary" onClick={onClose} />}>
+      <ErrorAlert error={b.error} />
+      {b.data && <CaddyTab b={b.data} />}
+    </Modal>
   );
 }
 

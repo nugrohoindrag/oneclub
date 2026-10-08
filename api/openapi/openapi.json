@@ -15908,6 +15908,45 @@
         ],
         "type": "object"
       },
+      "CaddyOption": {
+        "properties": {
+          "available": {
+            "description": "Present and free today",
+            "type": "boolean"
+          },
+          "caddyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "requested",
+              "favourite",
+              "usual",
+              "queue"
+            ],
+            "type": "string"
+          },
+          "rounds": {
+            "description": "Rounds with this player (usual caddies)",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "caddyId",
+          "code",
+          "name",
+          "rounds",
+          "available"
+        ],
+        "type": "object"
+      },
       "CaddyPolicy": {
         "properties": {
           "allowRequest": {
@@ -74742,6 +74781,75 @@
           "status",
           "accepted",
           "rated"
+        ],
+        "type": "object"
+      },
+      "PlayerCaddySuggestion": {
+        "properties": {
+          "assignmentId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "checkedIn": {
+            "description": "The caddy is assigned once the player has checked in",
+            "type": "boolean"
+          },
+          "current": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CaddyOption"
+              }
+            ],
+            "nullable": true
+          },
+          "favourites": {
+            "items": {
+              "$ref": "#/components/schemas/CaddyOption"
+            },
+            "type": "array"
+          },
+          "flightId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "playerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "recommended": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CaddyOption"
+              }
+            ],
+            "nullable": true
+          },
+          "requested": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CaddyOption"
+              }
+            ],
+            "nullable": true
+          },
+          "usual": {
+            "items": {
+              "$ref": "#/components/schemas/CaddyOption"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "playerId",
+          "flightId",
+          "name",
+          "checkedIn",
+          "favourites",
+          "usual"
         ],
         "type": "object"
       },
@@ -221404,6 +221512,117 @@
         "x-audited": true,
         "x-module": "golf",
         "x-permission": "billing.payment.create"
+      }
+    },
+    "/api/v1/golf/bookings/{id}/caddy-suggestions": {
+      "get": {
+        "operationId": "getGolfBookingsByIdCaddySuggestions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/PlayerCaddySuggestion"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Caddy choice per player at the front desk: assigned, requested, favourites, usual caddies and a recommendation",
+        "tags": [
+          "Caddies"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.caddy_assignment.manage"
       }
     },
     "/api/v1/golf/bookings/{id}/history": {
