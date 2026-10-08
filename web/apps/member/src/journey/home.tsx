@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router';
 import { useGet, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
-import { Icon, Skeleton, useAuth, useBootstrap, useNavigation } from '@oneclub/shell';
+import { Icon, PlayTime, Skeleton, useAuth, useBootstrap, useNavigation } from '@oneclub/shell';
 import { Chip, dayLabel, money, StatusChip } from './ui';
 
 // Member Home: the starting point of the journey. It answers three
@@ -140,6 +140,7 @@ function UpcomingGolf({ b }: { b: Schemas['BookingSummary'] }) {
       </div>
       <div className="oc-row-wrap">
         <Chip tone={b.status === 'pending' ? 'warn' : 'ok'}>Tee Time {b.status === 'pending' ? 'awaiting payment' : b.status === 'checked_in' ? '✓ Checked in' : '✓ Confirmed'}</Chip>
+        {b.teeOffAt && <Chip tone="info"><PlayTime start={b.teeOffAt} end={b.roundFinishAt} /></Chip>}
         {want.length > 0 && (assigned.length === want.length
           ? <Chip tone="ok">Caddy ✓ Assigned{assigned.length === 1 ? ` · ${assigned[0]!.caddy!.name}` : ''}</Chip>
           : <Chip tone="warn">Caddy pending assignment</Chip>)}

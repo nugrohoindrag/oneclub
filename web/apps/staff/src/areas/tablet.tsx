@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useNavigate, useParams, useRoutes } from 'react-
 import { request, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import { cacheGet, cachePut, enqueue, useOnline, useQueue } from '@oneclub/offline';
-import { DataTable, ErrorAlert, Icon, NotFoundPage, NotificationsPage, ProfilePage, Skeleton, StatusPill, logoOf, useAuth, useBootstrap, useToast } from '@oneclub/shell';
+import { DataTable, ErrorAlert, Icon, NotFoundPage, NotificationsPage, PlayTime, ProfilePage, Skeleton, StatusPill, logoOf, useAuth, useBootstrap, useToast } from '@oneclub/shell';
 import { SyncPage, read, write } from '../offline';
 import { TabletTournamentCard, TabletTournamentPage } from '../p3/tournament';
 import { PAYOUTS_TABLET_ROUTES } from '../p5/payouts';
@@ -101,6 +101,7 @@ function AssignmentsPage() {
             <span className="pos-muted-inverse">Current Round</span>
             <strong className="pos-hole-title">{a.current.bookingCode ?? 'Walk-in flight'}</strong>
             <span>{a.current.teeTime} · {a.current.playerNames.join(', ')}</span>
+            {a.current.startedAt && <PlayTime start={a.current.startedAt} end={a.current.finishedAt} />}
             <span className="pos-btn" data-variant="outline" style={{ alignSelf: 'flex-start', marginTop: 8 }}>Open Round <Icon name="chevron_right" size={20} /></span>
           </Link>
         )}
@@ -142,6 +143,9 @@ function RoundPage() {
   const [round, setRound] = useState<Round | null>(null);
   const [seq, setSeq] = useState(0);
   const [status, setStatus] = useState('');
+  // play time counts from the tee-off at once on this tablet, also offline
+  const [localStart, setLocalStart] = useState<string>();
+  const [localEnd, setLocalEnd] = useState<string>();
   const [scores, setScores] = useState<Record<string, Record<number, number>>>({});
   const [tab, setTab] = useState<'cart' | 'score' | 'players' | 'map' | 'order'>('cart');
   // the last round action: once the server answers, the round is read again (scorecards open on tee-off)
@@ -192,15 +196,16 @@ function RoundPage() {
           <h1>{round.round.bookingCode ?? `Flight ${round.round.flightNo}`}</h1>
           <span className="pos-muted">{round.round.playingRouteName ?? ''} · {formatDateTime(round.round.teeTime)}</span>
         </div>
+        <PlayTime start={round.round.teeOffAt ?? localStart} end={round.round.roundFinishAt ?? localEnd} />
         <StateChip status={status} />
         <span className="pos-spacer" />
         {(status === 'checked_in' || status === 'ready') && (
-          <button className="pos-btn" onClick={() => { void act({ op: 'tee_off' }, 'Round started'); setStatus('in_play'); setSeq(1); }}><Icon name="sports_golf" size={20} />Start Round</button>
+          <button className="pos-btn" onClick={() => { void act({ op: 'tee_off' }, 'Round started'); setStatus('in_play'); setSeq(1); setLocalStart(new Date().toISOString()); }}><Icon name="sports_golf" size={20} />Start Round</button>
         )}
         {status === 'in_play' && seq < round.holes.length && (
           <button className="pos-btn" onClick={() => { void act({ op: 'hole', seq: seq + 1 }, `Hole ${seq + 1}`); setSeq(seq + 1); }}>Next hole <Icon name="chevron_right" size={20} /></button>
         )}
-        {status === 'in_play' && <button className="pos-btn" data-variant="outline" onClick={() => { void act({ op: 'finish' }, 'Round completed'); setStatus('completed'); }}>Complete Round</button>}
+        {status === 'in_play' && <button className="pos-btn" data-variant="outline" onClick={() => { void act({ op: 'finish' }, 'Round completed'); setStatus('completed'); setLocalEnd(new Date().toISOString()); }}>Complete Round</button>}
         <button className="pos-btn" data-variant="soft" onClick={async () => {
           try {
             const r = await request<Round>('POST', `/api/v1/golf/rounds/${id}:handover`, { deviceId: device });

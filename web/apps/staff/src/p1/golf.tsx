@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import {
-  Card, Checkbox, CoursesPage, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, ResourcePage, SelectField, Skeleton, StatusPill,
+  Card, Checkbox, CoursesPage, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, PlayTime, ResourcePage, SelectField, Skeleton, StatusPill,
   TextField, fieldErrors, statusCol, useAuth, useToast, type ResourceConfig,
 } from '@oneclub/shell';
 import { ActionButton, CourseDateBar, KV, ListPage, Tabs, money, today, useCourseDate, useStream, type R } from './common';
@@ -56,6 +56,7 @@ export function TeeSheetPage() {
                         {f.bookingId ? <button className="oc-btn oc-btn-text oc-btn-sm" onClick={() => setOpen(String(f.bookingId))}>
                           {((f.players as R[]) ?? []).map((p) => String(p.name)).join(', ')}</button> : <span className="oc-muted">open</span>}
                         {(f.golfCarts as string[] | undefined)?.length ? <span className="oc-muted">· {(f.golfCarts as string[]).join(', ')}</span> : null}
+                        {f.teeOffAt ? <PlayTime start={f.teeOffAt as string} end={f.roundFinishAt as string} /> : null}
                       </div>
                     ))}
                   </td>
@@ -190,6 +191,10 @@ export function BookingDrawer({ id, onClose }: { id: string; onClose: () => void
               { key: 'name', header: 'Player', render: (p) => <>{String(p.name)}{p.tba ? <span className="oc-muted"> (TBA)</span> : null}</> },
               { key: 'playerType', header: 'Type', render: (p) => String(p.playerType).replace(/_/g, ' ') }, { key: 'segment', header: 'Segment' },
               { key: 'priceTotal', header: 'Price', align: 'right', render: (p) => money(p.priceTotal) }, { key: 'status', header: 'Status', render: pill('status') },
+              { key: 'flightId', header: 'Play time', render: (p) => {
+                const f = x.flights.find((fl) => fl.id === p.flightId);
+                return <PlayTime start={f?.teeOffAt as string} end={f?.roundFinishAt as string} label={false} fallback="—" />;
+              } },
             ]} actions={(p) => (active && p.status === 'booked' && can('golf.booking.update') && x.players.length > 1
               ? <ActionButton label="Remove" method="DELETE" path={`/api/v1/golf/bookings/${id}/players/${p.id}`} invalidate={inv} danger confirm="Remove this player?" />
               : null)} />
@@ -264,7 +269,8 @@ export function BookingsPage({ title = 'Bookings', preset, noDate }: { title?: s
         onRowClick={(r) => setOpen(r.id)}
         columns={[{ key: 'code', header: 'Booking' }, { key: 'playDate', header: 'Date' }, { key: 'localTime', header: 'Tee Time' }, { key: 'contactName', header: 'Booked by' },
           { key: 'bookingType', header: 'Type', render: (r) => String(r.bookingType).replace('_', ' ') }, { key: 'playerCount', header: 'Players', align: 'right' },
-          { key: 'channel', header: 'Channel', render: (r) => String(r.channel).replace('_', ' ') }, { key: 'status', header: 'Status', render: pill('status') }]} />
+          { key: 'channel', header: 'Channel', render: (r) => String(r.channel).replace('_', ' ') }, { key: 'status', header: 'Status', render: pill('status') },
+          { key: 'teeOffAt', header: 'Play time', render: (r) => <PlayTime start={r.teeOffAt as string} end={r.roundFinishAt as string} label={false} fallback="—" /> }]} />
       {open && <BookingDrawer id={open} onClose={() => setOpen(null)} />}
     </>
   );
@@ -278,7 +284,8 @@ export function FlightsPage() {
       columns={[{ key: 'flightNo', header: 'Flight' }, { key: 'bookingStatus', header: 'Booking', render: pill('bookingStatus') },
         { key: 'players', header: 'Players', render: (f) => ((f.players as R[]) ?? []).map((p) => String(p.name)).join(', ') },
         { key: 'readiness', header: 'Ready', render: (f) => { const rd = f.readiness as R; return `${String(rd?.checkedIn)}/${String(rd?.players)} checked-in${rd?.caddiesOk ? '' : ' · caddy'}${rd?.golfCartsOk ? '' : ' · golf cart'}`; } },
-        { key: 'golfCarts', header: 'Golf Carts', render: (f) => ((f.golfCarts as string[]) ?? []).join(', ') }, { key: 'status', header: 'Status', render: pill('status') }]} />
+        { key: 'golfCarts', header: 'Golf Carts', render: (f) => ((f.golfCarts as string[]) ?? []).join(', ') }, { key: 'status', header: 'Status', render: pill('status') },
+        { key: 'teeOffAt', header: 'Play time', render: (f) => <PlayTime start={f.teeOffAt as string} end={f.roundFinishAt as string} label={false} fallback="—" /> }]} />
   );
 }
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router';
 import { useGet, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
-import { Empty, Icon, Skeleton } from '@oneclub/shell';
+import { Empty, Icon, PlayTime, Skeleton } from '@oneclub/shell';
 import { DateBadge } from './home';
 import { Chip, Head, money, StatusChip } from './ui';
 
@@ -14,7 +14,11 @@ type Golf = Schemas['BookingSummary'];
 type Stay = Schemas['Stay'];
 type Ticket = Schemas['EventTicket'];
 
-interface Entry { key: string; when: string; icon: string; kind: string; title: string; sub: string; status: string; to?: string; amount?: string | null }
+interface Entry {
+  key: string; when: string; icon: string; kind: string; title: string; sub: string; status: string; to?: string; amount?: string | null;
+  /** golf: actual play time (tee-off → round finish) */
+  play?: [string | null | undefined, string | null | undefined];
+}
 
 const STAY_KIND: Record<string, string> = { bungalow: 'Bungalow', vip_suite: 'VIP Suite', meeting_room: 'Meeting Room' };
 const OPEN_GOLF = ['draft', 'pending', 'confirmed', 'checked_in'];
@@ -29,6 +33,7 @@ export function ActivityPage() {
     ...(golf.data?.items ?? []).filter((b) => b.status !== 'draft').map((b) => ({
       key: `g${b.id}`, when: b.startAt, icon: 'sports_golf', kind: 'Tee Time', title: `${b.localTime} · ${b.courseName}`, sub: `${b.playerCount} players · ${b.code}`,
       status: b.status, to: `/bookings/${b.id}`, amount: b.total, upcoming: OPEN_GOLF.includes(b.status) && new Date(b.startAt).getTime() > now - 6 * 3600_000,
+      play: [b.teeOffAt, b.roundFinishAt] as Entry['play'],
     })),
     ...(stays.data?.items ?? []).map((s) => ({
       key: `s${s.id}`, when: s.start, icon: s.kind === 'meeting_room' ? 'meeting_room' : 'cottage', kind: STAY_KIND[s.kind] ?? s.kind, title: s.unitName,
@@ -77,6 +82,7 @@ function EntryList({ entries }: { entries: Entry[] }) {
             </div>
             <div className="mj-item-end">
               <StatusChip status={e.status} />
+              {e.play?.[0] && <PlayTime start={e.play[0]} end={e.play[1]} className="oc-playtime mj-small" />}
               {e.amount && Number(e.amount) > 0 && <span className="mj-small mj-num">{money(e.amount)}</span>}
             </div>
           </>
@@ -120,7 +126,10 @@ export function GolfHistoryPage() {
             <Link key={b.id} to={`/bookings/${b.id}`} className="mj-item">
               <DateBadge iso={b.playDate} />
               <div className="mj-item-body"><strong>{b.courseName} · {b.localTime}</strong><span className="mj-small mj-muted">{b.playerCount} players · {b.code}</span></div>
-              <div className="mj-item-end"><Chip>Rate caddy · details</Chip></div>
+              <div className="mj-item-end">
+                {b.teeOffAt && <PlayTime start={b.teeOffAt} end={b.roundFinishAt} className="oc-playtime mj-small" />}
+                <Chip>Rate caddy · details</Chip>
+              </div>
             </Link>
           ))}
         </div>

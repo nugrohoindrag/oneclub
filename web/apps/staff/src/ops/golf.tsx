@@ -4,7 +4,7 @@ import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime, formatMoney } from '@oneclub/i18n';
 import { cacheGet, cachePut, enqueue, useOnline } from '@oneclub/offline';
 import {
-  Card, DataTable, ErrorAlert, Icon, Modal, SelectField, StatusPill, TextField, useAuth, useToast,
+  Card, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
 
 type R = Record<string, unknown> & { id: string };
@@ -152,7 +152,8 @@ export function StarterQueuePage({ view = 'queue' }: { view?: 'queue' | 'ready' 
       {view === 'rounds' && (
         <DataTable rows={q.data?.dispatched} rowKey={(f) => String(f.flightId)}
           columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'players', header: 'Players', render: players },
-            { key: 'dispatchedAt', header: 'Tee-Off', render: (f) => formatDateTime(String(f.dispatchedAt)) }]}
+            { key: 'dispatchedAt', header: 'Tee-Off', render: (f) => formatDateTime(String(f.dispatchedAt)) },
+            { key: 'playTime', header: 'Play time', render: (f) => <PlayTime start={f.dispatchedAt as string} label={false} /> }]}
           actions={(f) => ctl && <Btn label="Round Finish" onClick={() => setFinishFor(f)} />} />
       )}
       <ReasonModal open={!!holdFor} title="Hold flight" label="Operational reason" onClose={() => setHoldFor(null)} onSubmit={(reason) => holdFor && run(holdFor, 'hold', { reason })} />
@@ -266,6 +267,7 @@ export function OpsCheckOutPage() {
       <DataTable rows={rows} loading={desk.isLoading} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'code', header: 'Booking' },
         { key: 'players', header: 'Players', render: (b) => list(b.players) },
         { key: 'inPlay', header: 'Round', render: (b) => <StatusPill status={Number(b.inPlay) > 0 ? 'in-play' : String(b.status).replace(/_/g, '-')} /> },
+        { key: 'teeOffAt', header: 'Play time', render: (b) => <PlayTime start={b.teeOffAt as string} end={b.roundFinishAt as string} label={false} fallback="—" /> },
         { key: 'lockers', header: 'Lockers', render: (b) => list(b.lockers) }, { key: 'bags', header: 'Bags', render: (b) => list(b.bags) },
         { key: 'balance', header: 'Balance', align: 'right', render: (b) => <strong>{money(b.balance)}</strong> }]}
         actions={(b) => !b.checkedOutAt && <Btn label="Check-out" kind="primary" disabled={Number(b.inPlay) > 0} onClick={() => setOpen(b)} />} />

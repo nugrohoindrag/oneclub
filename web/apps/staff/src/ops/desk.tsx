@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { qs, request, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
-import { Checkbox, DataTable, ErrorAlert, Icon, Modal, SelectField, StatusPill, TextField, useToast } from '@oneclub/shell';
+import { Checkbox, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TextField, useToast } from '@oneclub/shell';
 import { BookingForm } from '../p1/golf';
 import { Btn, Head, money, today, useCached } from './golf';
 
@@ -43,7 +43,8 @@ export function FrontDeskPage() {
       <DataTable rows={bookings.data?.items} loading={bookings.isLoading} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'code', header: 'Booking' },
         { key: 'contactName', header: 'Booked by' }, { key: 'playerCount', header: 'Players', align: 'right' },
         { key: 'paymentMode', header: 'Payment', render: (b) => String(b.paymentMode ?? '—').replace(/_/g, ' ') },
-        { key: 'status', header: 'Status', render: (b) => <StatusPill status={String(b.status).replace(/_/g, '-')} /> }]}
+        { key: 'status', header: 'Status', render: (b) => <StatusPill status={String(b.status).replace(/_/g, '-')} /> },
+        { key: 'teeOffAt', header: 'Play time', render: (b) => <PlayTime start={b.teeOffAt as string} end={b.roundFinishAt as string} label={false} fallback="—" /> }]}
         actions={(b) => (bookings.offline ? null : merge
           ? <Checkbox label="Merge" checked={merge.includes(b.id)} disabled={['cancelled', 'no_show'].includes(String(b.status))} onChange={(on) => toggle(b.id, on)} />
           : <Btn label="Manage" onClick={() => setOpen(b.id)} />)} />
@@ -176,6 +177,7 @@ function DeskBookingModal({ id, onClose }: { id: string; onClose: () => void }) 
         <div className="oc-stack">
           <div className="oc-row-wrap">
             <StatusPill status={String(x.status).replace(/_/g, '-')} />
+            <BookingPlayTime flights={x.flights} />
             <span className="oc-muted">{String(x.playDate)} · {String(x.courseName)} · {x.players.filter(live).length} players · payment {String(x.paymentMode ?? '—').replace(/_/g, ' ')}</span>
           </div>
           <div className="oc-row-wrap" role="tablist">
@@ -312,7 +314,8 @@ function PlayersTab({ b, onDone }: { b: Booking; onDone: () => void }) {
               </>
             ) : (
               <span style={{ minWidth: 220 }}><strong>{String(p.name || 'Guest (TBA)')}</strong>
-                <span className="oc-small oc-muted"> · {String(p.playerType).replace(/_/g, ' ')} · {String(p.status).replace(/_/g, ' ')}</span></span>
+                <span className="oc-small oc-muted"> · {String(p.playerType).replace(/_/g, ' ')} · {String(p.status).replace(/_/g, ' ')}</span>
+                <FlightPlayTime flights={b.flights} flightId={p.flightId} /></span>
             )}
             {!e && p.playerType !== 'member' && <Btn label="Edit" onClick={() => setEdit({ ...edit, [p.id]: { name: String(p.name ?? ''), phone: String(p.phone ?? '') } })} />}
             {!e && p.status === 'booked' && players.length > 1 && <Btn label="Remove" kind="danger" disabled={remove.isPending}
@@ -380,6 +383,25 @@ function FlightCaddies({ flightId, date, players }: { flightId: string; date: st
       <ErrorAlert error={assign.error ?? replace.error} />
     </div>
   );
+}
+
+// ── actual play time ───────────────────────────────────────────────────────
+
+/** The play time of the booking: first tee-off until the last flight finishes. */
+export function BookingPlayTime({ flights }: { flights: R[] }) {
+  const live = flights.filter((f) => f.status !== 'cancelled');
+  const starts = live.map((f) => f.teeOffAt as string | null).filter(Boolean) as string[];
+  if (!starts.length) return null;
+  const done = live.every((f) => f.roundFinishAt);
+  const end = done ? live.map((f) => String(f.roundFinishAt)).sort().at(-1) : undefined;
+  return <PlayTime start={starts.sort()[0]} end={end} />;
+}
+
+/** The play time of a player (the flight they play in). */
+export function FlightPlayTime({ flights, flightId }: { flights: R[]; flightId: unknown }) {
+  const f = flights.find((x) => x.id === flightId);
+  if (!f?.teeOffAt) return null;
+  return <> · <PlayTime start={f.teeOffAt as string} end={f.roundFinishAt as string | null} /></>;
 }
 
 // ── merged bill ────────────────────────────────────────────────────────────

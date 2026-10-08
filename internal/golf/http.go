@@ -90,6 +90,10 @@ type BookingSummary struct {
 	PaymentMode *string   `json:"paymentMode"`
 	Total       *string   `json:"total"`
 	CreatedAt   time.Time `json:"createdAt"`
+	// Actual play time: from the tee-off (Starter Dispatch or the caddy's
+	// Start Round) until the last flight of the booking finishes.
+	TeeOffAt      *time.Time `json:"teeOffAt" doc:"Actual tee-off (first flight dispatched)"`
+	RoundFinishAt *time.Time `json:"roundFinishAt" doc:"Round finish of the last flight (empty while any flight is still playing)"`
 }
 
 func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *http.Request, extraWhere string, extraArgs ...any) (httpx.Page[BookingSummary], error) {
@@ -142,7 +146,12 @@ func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *ht
 		order = "b.created_at DESC"
 	}
 	rows, err := q.Query(ctx, `SELECT b.id, b.code, b.booking_type, b.channel, b.status, b.course_id, c.name, b.play_date, b.start_at, b.player_count, b.contact_name,
-		b.payment_mode, b.folio_id, b.created_at FROM golf.bookings b JOIN golf.courses c ON c.id = b.course_id WHERE `+strings.Join(where, " AND ")+
+		b.payment_mode, b.folio_id, b.created_at, pt.tee_off_at, pt.round_finish_at
+		FROM golf.bookings b JOIN golf.courses c ON c.id = b.course_id
+		LEFT JOIN LATERAL (SELECT min(f.tee_off_at) AS tee_off_at,
+		  CASE WHEN bool_and(f.round_finish_at IS NOT NULL) THEN max(f.round_finish_at) END AS round_finish_at
+		  FROM golf.flights f WHERE f.id IN (SELECT x.flight_id FROM golf.booking_players x WHERE x.booking_id = b.id AND x.status <> 'removed')
+		    AND f.status <> 'cancelled') pt ON true WHERE `+strings.Join(where, " AND ")+
 		fmt.Sprintf(" ORDER BY %s LIMIT %d OFFSET %d", order, lp.PageSize+1, offset), args...)
 	if err != nil {
 		return httpx.Page[BookingSummary]{}, err
@@ -154,7 +163,7 @@ func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *ht
 		var d time.Time
 		var folio *uuid.UUID
 		if err := rows.Scan(&b.ID, &b.Code, &b.BookingType, &b.Channel, &b.Status, &b.CourseID, &b.CourseName, &d, &b.StartAt, &b.PlayerCount, &b.ContactName,
-			&b.PaymentMode, &folio, &b.CreatedAt); err != nil {
+			&b.PaymentMode, &folio, &b.CreatedAt, &b.TeeOffAt, &b.RoundFinishAt); err != nil {
 			rows.Close()
 			return httpx.Page[BookingSummary]{}, err
 		}

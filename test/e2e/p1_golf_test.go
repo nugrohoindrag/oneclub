@@ -164,6 +164,19 @@ func TestP1GolfDayOperation(t *testing.T) {
 	// B plays its full round; rain stops A after 9 holes (50% credit). The
 	// rain check closes the round of A (FR-BKG-11).
 	gm.Must(200, "POST", sq+fb+":finish", map[string]any{"holesPlayed": 18})
+	// actual play time on the booking list: tee-off, then the finish of B only
+	for _, x := range gm.Must(200, "GET", "/api/v1/golf/bookings?date="+day, nil).Items() {
+		switch x["id"] {
+		case a["id"]:
+			if x["teeOffAt"] == nil || x["roundFinishAt"] != nil {
+				t.Fatalf("A is playing: %v / %v", x["teeOffAt"], x["roundFinishAt"])
+			}
+		case b["id"]:
+			if x["teeOffAt"] == nil || x["roundFinishAt"] == nil {
+				t.Fatalf("B has finished: %v / %v", x["teeOffAt"], x["roundFinishAt"])
+			}
+		}
+	}
 	rc := gm.Must(201, "POST", "/api/v1/golf/rain-checks", map[string]any{"flightId": fa, "holesPlayed": 9}).Items()
 	if len(rc) != 2 {
 		t.Fatalf("rain checks A: %v", rc)

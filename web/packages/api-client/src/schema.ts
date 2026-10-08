@@ -40215,9 +40215,19 @@ export interface components {
             paymentMode?: string | null;
             playDate: string;
             playerCount: number;
+            /**
+             * Format: date-time
+             * @description Round finish of the last flight (empty while any flight is still playing)
+             */
+            roundFinishAt?: string | null;
             /** Format: date-time */
             startAt: string;
             status: string;
+            /**
+             * Format: date-time
+             * @description Actual tee-off (first flight dispatched)
+             */
+            teeOffAt?: string | null;
             total?: string | null;
         };
         Bookings: {
@@ -41817,8 +41827,18 @@ export interface components {
             paymentMode?: string | null;
             payments: string;
             players: string[];
+            /**
+             * Format: date-time
+             * @description Round finish of the last flight
+             */
+            roundFinishAt?: string | null;
             /** @enum {string} */
             status: "checked_in" | "completed";
+            /**
+             * Format: date-time
+             * @description Actual tee-off (play time starts)
+             */
+            teeOffAt?: string | null;
         };
         CheckOutInput: {
             /**

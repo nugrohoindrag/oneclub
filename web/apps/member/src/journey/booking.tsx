@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { qs, request, useGet, type Page, type Schemas } from '@oneclub/api-client';
-import { ErrorAlert, Icon, Modal, QRCode, SelectField, Skeleton, TextField, useToast } from '@oneclub/shell';
+import { ErrorAlert, Icon, Modal, PlayTime, QRCode, SelectField, Skeleton, TextField, useToast } from '@oneclub/shell';
 import { MethodPicker, PaymentPanel } from './pay';
 import { Check, Chip, dayLabel, downloadICS, Head, initials, money, Rows, StatusChip } from './ui';
 
@@ -59,13 +59,16 @@ export function GolfBookingPage() {
       {finished ? (
         <div className="mj-card">
           <h2><Icon name="flag" size={20} /> Round Completed</h2>
-          <Rows rows={[['Date', dayLabel(x.playDate)], ['Course', x.courseName], ['Score', myScore?.gross ? <strong className="mj-num">{myScore.gross}</strong> : <span className="mj-muted">Not entered</span>]]} />
+          <Rows rows={[['Date', dayLabel(x.playDate)], ['Course', x.courseName],
+            ['Play time', <PlayTime start={flight?.teeOffAt} end={flight?.roundFinishAt} label={false} fallback="—" />],
+            ['Score', myScore?.gross ? <strong className="mj-num">{myScore.gross}</strong> : <span className="mj-muted">Not entered</span>]]} />
           {myScore && <div className="mj-actions" style={{ marginTop: 12 }}><Link className="oc-btn oc-btn-outline" to={`/golf/scores/${myScore.id}`}>View Round Detail</Link></div>}
         </div>
       ) : teedOff ? (
         <div className="mj-card">
           <h2><Icon name="sports_golf" size={20} /> Round In Progress</h2>
-          <Rows rows={[['Tee Time', x.localTime], ['Teed off', new Date(flight!.teeOffAt!).toLocaleTimeString('en-GB', { timeStyle: 'short' })], ['Players', x.playerCount]]} />
+          <Rows rows={[['Tee Time', x.localTime], ['Teed off', new Date(flight!.teeOffAt!).toLocaleTimeString('en-GB', { timeStyle: 'short' })],
+            ['Playing for', <PlayTime start={flight!.teeOffAt} label={false} />], ['Players', x.playerCount]]} />
           {myScore && <div className="mj-actions" style={{ marginTop: 12 }}><Link className="oc-btn oc-btn-primary" to={`/golf/scores/${myScore.id}`}>Scorecard</Link></div>}
         </div>
       ) : checkedIn ? (
@@ -152,6 +155,7 @@ function PlayersCard({ booking, journey, finished }: { booking: Booking; journey
             <div className="mj-item-body">
               <strong>{p.name || 'Guest (TBA)'}</strong>
               <span className="mj-small mj-muted">{p.playerType.replace(/_/g, ' ')}{p.status === 'checked_in' ? ' · checked in' : ''}</span>
+              <PlayerPlayTime booking={booking} flightId={p.flightId} />
             </div>
             <CaddyState pj={byId.get(p.id)} finished={finished} />
           </div>
@@ -162,6 +166,13 @@ function PlayersCard({ booking, journey, finished }: { booking: Booking; journey
       )}
     </div>
   );
+}
+
+/** The play time of a player: the flight they play in (tee-off → finish). */
+function PlayerPlayTime({ booking, flightId }: { booking: Booking; flightId: string }) {
+  const f = booking.flights.find((x) => x.id === flightId);
+  if (!f?.teeOffAt) return null;
+  return <PlayTime start={f.teeOffAt} end={f.roundFinishAt} className="oc-playtime mj-small" />;
 }
 
 function CaddyState({ pj, finished }: { pj?: PlayerJ; finished: boolean }) {

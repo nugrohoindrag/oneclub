@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { qs, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import {
-  Empty, ErrorAlert, Icon, Modal, PageHeader, SelectField, Skeleton, StatTile, StatusPill, TextArea, useAuth, useToast,
+  Empty, ErrorAlert, Icon, Modal, PageHeader, PlayTime, SelectField, Skeleton, StatTile, StatusPill, TextArea, useAuth, useToast,
 } from '@oneclub/shell';
 import { GOLF_STREAM, useLive } from '../live';
 import './marshal.css';
@@ -196,7 +196,7 @@ function FlightCard({ f, selected, onSelect, onAct }: { f: Flight; selected: boo
         <strong className="mon-behind" data-tone={toneOf(f)}>{behindText(f)}</strong>
       </button>
       <div className="oc-small oc-muted">
-        Tee-off {hhmm(f.teeOffAt)} · {f.elapsedMinutes} min played (target {f.targetMinutes})
+        Tee-off {hhmm(f.teeOffAt)} · <PlayTime start={f.teeOffAt} label={false} /> played (target {f.targetMinutes} min)
         {f.aheadLabel ? ` · ${f.gapHoles ?? 0} hole${f.gapHoles === 1 ? '' : 's'} behind ${f.aheadLabel}` : ' · first on the route'}
       </div>
       <div className="oc-small">{f.players.join(', ') || '—'}</div>

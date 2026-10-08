@@ -14032,11 +14032,23 @@
           "playerCount": {
             "type": "integer"
           },
+          "roundFinishAt": {
+            "description": "Round finish of the last flight (empty while any flight is still playing)",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
           "startAt": {
             "format": "date-time",
             "type": "string"
           },
           "status": {
+            "type": "string"
+          },
+          "teeOffAt": {
+            "description": "Actual tee-off (first flight dispatched)",
+            "format": "date-time",
+            "nullable": true,
             "type": "string"
           },
           "total": {
@@ -18781,11 +18793,23 @@
             },
             "type": "array"
           },
+          "roundFinishAt": {
+            "description": "Round finish of the last flight",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
           "status": {
             "enum": [
               "checked_in",
               "completed"
             ],
+            "type": "string"
+          },
+          "teeOffAt": {
+            "description": "Actual tee-off (play time starts)",
+            "format": "date-time",
+            "nullable": true,
             "type": "string"
           }
         },

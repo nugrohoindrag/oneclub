@@ -636,3 +636,10 @@ body > .oc-popover {
   & :is(.oc-input, .oc-select, .oc-textarea):focus-visible { outline: 2px solid var(--dash-blue); outline-offset: 1px; }
   & .oc-check input { accent-color: var(--dash-blue); }
 }
+
+/* actual play time of a golf round (live while on course) */
+.oc-playtime { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.oc-playtime::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--md-sys-color-outline, #9aa0a6); }
+.oc-playtime[data-live]::before { background: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2); animation: oc-playtime-pulse 2s ease-in-out infinite; }
+@keyframes oc-playtime-pulse { 50% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); } }
+@media (prefers-reduced-motion: reduce) { .oc-playtime[data-live]::before { animation: none; } }
