@@ -147,4 +147,22 @@ func TestBillingWorkspace(t *testing.T) {
 	if it := item(other); codes(it)["invalid_payment_term"] || it["canInvoice"] != true {
 		t.Fatalf("acknowledged: %v", it)
 	}
+
+	// Collections: a payment reminder now and the follow-up log of the customer; Vendor Follow-up for a supplier.
+	invID := str(res["invoiceId"])
+	if r := fin.Must(200, "POST", "/api/v1/billing/invoices/"+invID+":remind", map[string]any{"email": "billing" + sfx + "@example.com"}).JSON(); r["status"] != "partially_paid" {
+		t.Fatalf("reminder: %v", r)
+	}
+	next := time.Now().AddDate(0, 0, 7).Format("2006-01-02")
+	fu := sa.Must(201, "POST", "/api/v1/accounting/collections/"+cust+"/follow-ups", map[string]any{"partyName": "Billing Customer " + sfx, "action": "promise_to_pay",
+		"invoiceId": invID, "promisedDate": next, "promisedAmount": "1300000", "nextFollowUp": next}).JSON()
+	if fu["action"] != "promise_to_pay" || fu["promisedDate"] != next {
+		t.Fatalf("collections follow-up: %v", fu)
+	}
+	sa.Must(422, "POST", "/api/v1/accounting/collections/"+cust+"/follow-ups", map[string]any{"partyName": "Billing Customer " + sfx, "action": "promise_to_pay"})
+	sup := idOf(sa.Must(201, "POST", "/api/v1/procurement/suppliers", map[string]any{"code": "BWS" + sfx, "name": "Billing Supplier " + sfx}))
+	if v := sa.Must(201, "POST", "/api/v1/accounting/vendor-follow-ups/"+sup+"/follow-ups", map[string]any{"partyName": "Billing Supplier " + sfx, "action": "call",
+		"notes": "Asked for the corrected invoice"}).JSON(); v["partyType"] != "supplier" {
+		t.Fatalf("vendor follow-up: %v", v)
+	}
 }

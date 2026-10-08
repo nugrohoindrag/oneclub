@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { CASHIER, DASHBOARD, KITCHEN, MEMBER, WEB, apiOf, email, login } from './helpers';
+import { CASHIER, DASHBOARD, KITCHEN, MEMBER, WEB, apiOf, email, login, openPosShift } from './helpers';
 
 /**
  * PRD P3 browser acceptance of the channel screens: Redeem Points with a
@@ -29,22 +29,21 @@ test('POS: the cashier picks the customer and pays part of the bill with loyalty
   await login(page, CASHIER, email('cashier'));
   await page.getByRole('button', { name: outlet.name }).click();
   await page.getByRole('link', { name: 'POS' }).click();
-  page.once('dialog', (d) => void d.accept('0'));
-  await page.getByRole('button', { name: 'Open shift' }).click();
-  await expect(page.getByText(/Shift \S+ open/)).toBeVisible();
-  await page.getByRole('button', { name: new RegExp(`Kopi Poin ${stamp}`) }).click();
+  await openPosShift(page);
+  await page.getByRole('link', { name: 'Table View' }).click();
+  await page.getByRole('button', { name: 'Manual Order' }).first().click();
+  await page.getByRole('button', { name: new RegExp(`^Kopi Poin ${stamp},`) }).click();
 
-  await page.getByLabel('Find customer').fill(`Pelanggan Poin ${stamp}`);
-  const pick = page.getByRole('combobox', { name: 'Customer', exact: true }); // the order row is also labelled "Customer"
-  const option = pick.locator('option', { hasText: `Pelanggan Poin ${stamp} (E2E-LP-${stamp})` }); // + " · <tier>" (PRD P5 tier classes)
-  await expect(option).toHaveCount(1);
-  await pick.selectOption((await option.getAttribute('value'))!);
-  await expect(page.getByText('500 points')).toBeVisible();
-  await page.getByLabel('Payment', { exact: true }).selectOption({ label: 'Redeem Points' });
-  await page.getByLabel('Points', { exact: true }).fill('200');
-  await page.getByLabel('Rest paid by').selectOption('cash');
-  await page.getByRole('button', { name: 'Pay & send' }).click();
-  await expect(page.getByText(/Paid 200 points and cash/)).toBeVisible();
+  await page.getByRole('button', { name: 'Order options' }).click();
+  await page.getByLabel('Customer', { exact: true }).fill(`Pelanggan Poin ${stamp}`);
+  await page.getByRole('button', { name: new RegExp(`Pelanggan Poin ${stamp} E2E-LP-${stamp}`) }).click(); // + " · <tier>" (PRD P5 tier classes)
+  await page.getByRole('button', { name: /^Charge/ }).click();
+  await page.getByRole('button', { name: 'Redeem Points' }).click();
+  await expect(page.getByText(/500 points available/)).toBeVisible();
+  await page.getByRole('spinbutton').fill('200');
+  await page.locator('.pos-guests').getByRole('button', { name: 'Cash', exact: true }).click(); // the rest of the bill
+  await page.getByRole('button', { name: 'Next' }).click();
+  await expect(page.getByRole('dialog', { name: 'Order successful' })).toContainText('Redeem Points + Cash');
 
   const ledger = await api.get(`/api/v1/crm/loyalty/accounts/${account.id}/ledger?filter[kind]=redeemed`);
   expect(ledger.items).toHaveLength(1);

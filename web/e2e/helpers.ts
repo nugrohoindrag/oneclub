@@ -126,3 +126,10 @@ export function playDay(min: number) {
   while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+/** Opens the cashier shift of the outlet in POS Settings (opening cash 500,000); payments need one. */
+export async function openPosShift(page: Page) {
+  await page.getByRole('link', { name: 'Settings' }).click();
+  await page.getByRole('button', { name: 'Open Shift' }).click();
+  await expect(page.getByRole('heading', { name: /^Cashier shift \S/ })).toBeVisible();
+}

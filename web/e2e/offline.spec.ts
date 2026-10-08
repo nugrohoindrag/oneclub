@@ -1,5 +1,5 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test';
-import { CADDY, CASHIER, DASHBOARD, MEMBER, apiOf, email, login, playDay } from './helpers';
+import { CADDY, CASHIER, DASHBOARD, MEMBER, apiOf, email, login, openPosShift, playDay } from './helpers';
 
 /**
  * Offline areas of the Staff App (Technical Doc §6.4, PRD FR-SH-05,
@@ -17,6 +17,11 @@ const stamp = String(Date.now()).slice(-6);
  */
 async function goOffline(page: Page, context: BrowserContext) {
   await page.getByRole('link', { name: /pending/ }).click();
+  await simulateOffline(page, context);
+}
+
+/** The offline switch on the Sync Queue page, then the browser goes offline. */
+async function simulateOffline(page: Page, context: BrowserContext) {
   await page.getByRole('button', { name: 'Simulate offline' }).click();
   await expect(page.getByRole('link', { name: /^Offline/ })).toBeVisible();
   await context.setOffline(true);
@@ -47,17 +52,26 @@ test('POS: a sale without connection is queued and synced as one order', async (
   await expect(page).toHaveURL(/\/ops$/);
   await page.getByRole('button', { name: outlet.name }).click();
   await page.getByRole('link', { name: 'POS' }).click();
-  page.once('dialog', (d) => void d.accept('500000'));
-  await page.getByRole('button', { name: 'Open shift' }).click();
-  await expect(page.getByText(/Shift \S+ open/)).toBeVisible();
-  await expect(page.getByRole('button', { name: new RegExp(`Kopi ${stamp}`) })).toBeVisible();
+  await openPosShift(page);
+  await page.getByRole('link', { name: 'Table View' }).click();
+  await page.getByRole('button', { name: 'Manual Order' }).first().click();
+  await expect(page.getByRole('button', { name: new RegExp(`^Kopi ${stamp},`) })).toBeVisible();
 
-  await goOffline(page, context);
-  await page.goBack(); // the POS screen keeps working from what it already loaded
-  await page.getByRole('button', { name: new RegExp(`Kopi ${stamp}`) }).click();
-  await page.getByRole('button', { name: new RegExp(`Kopi ${stamp}`) }).click();
-  await page.getByRole('button', { name: 'Pay & send' }).click();
-  await page.getByRole('link', { name: /pending/ }).click();
+  // the sync queue lives in the Operational shell; the POS screen keeps working from what it already loaded
+  await page.getByRole('link', { name: 'Settings' }).click();
+  await page.getByRole('link', { name: 'Sync Queue' }).click();
+  await simulateOffline(page, context);
+  await page.goBack();
+  await page.getByRole('link', { name: 'Table View' }).click();
+  await page.getByRole('button', { name: 'Manual Order' }).first().click();
+  await page.getByRole('button', { name: new RegExp(`^Kopi ${stamp},`) }).click();
+  await page.getByRole('button', { name: new RegExp(`^Kopi ${stamp},`) }).click();
+  await page.getByRole('button', { name: /^Charge/ }).click();
+  await page.getByRole('button', { name: 'Next' }).click(); // cash, kept on this device
+  await expect(page.getByRole('dialog', { name: 'Order successful' })).toBeVisible();
+  await page.getByRole('button', { name: 'Done' }).click();
+  await page.getByRole('link', { name: 'Settings' }).click();
+  await page.getByRole('link', { name: 'Sync Queue' }).click();
   await syncAll(page, context, 1);
 
   const orders = await api.get(`/api/v1/commercial/orders?filter[outletId]=${outlet.id}`);
