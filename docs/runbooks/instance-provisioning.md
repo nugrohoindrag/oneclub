@@ -24,7 +24,9 @@ Each customer gets its **own database, database roles and Docker Compose stack**
    permissions and role templates, seeds payment methods and sandbox integrations, creates the first Super Admin and
    writes the deploy bundle (`.env` + `secrets/*`, mode 0600).
 
-3. **Secure the bundle**: encrypt with `sops`/`age` or move to the secret store. Never commit it.
+3. **Secure the bundle**: encrypt with `sops`/`age` or move to the secret store. Never commit it. On the App Host the
+   secret files must belong to the containers' user: `chown 65532:65532 secrets/* && chmod 400 secrets/*` (Compose
+   mounts them with their host owner and mode; the backend runs as distroless `nonroot`).
 4. **DNS and `.env`.** The Staff App is one build on five domains (Technical Doc §6.1); create an A/AAAA record
    to the App Host for each domain below, then complete `.env`:
 

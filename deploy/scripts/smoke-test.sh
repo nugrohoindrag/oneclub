@@ -17,6 +17,11 @@ check() {
 	echo "ok   $url → $code"
 }
 
+# A fresh host gets its certificates on the first requests: wait up to 2 minutes.
+for i in $(seq 1 24); do
+	[[ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$BASE/api/v1/public/bootstrap")" == 200 ]] && break
+	sleep 5
+done
 check "$BASE/api/v1/public/bootstrap" 200
 check "$BASE/api/v1/auth/me" 401
 check "$BASE/" 200
