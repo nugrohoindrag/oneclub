@@ -321,9 +321,24 @@ func TestP1BookingChanges(t *testing.T) {
 		"contactName": "Gita NoShow", "contactPhone": "+628129990020",
 		"players": []map[string]any{{"playerType": "non_member", "name": "Gita NoShow", "phone": "+628129990020"},
 			{"playerType": "non_member", "name": "Joko NoShow", "phone": "+628129990021"}}}).JSON()
+	// The caddy and golf cart of a no-show flight are released (back to the queue and the fleet).
+	nsPlayers := ns["players"].([]any)
+	nsCaddy := gm.Must(201, "POST", "/api/v1/golf/caddy-assignments", map[string]any{"flightId": firstFlight(ns), "assignments": []map[string]any{
+		{"caddyId": caddies[1], "playerIds": []string{str(nsPlayers[0].(map[string]any)["id"])}}}}).Items()
+	nsCart := gm.Must(201, "POST", "/api/v1/golf/golf-cart-assignments", map[string]any{"flightId": firstFlight(ns), "golfCartIds": []string{str(carts[27]["id"])}}).Items()
 	ns = gm.Must(200, "POST", "/api/v1/golf/bookings/"+str(ns["id"])+":no-show", map[string]any{"reason": "Did not arrive"}).JSON()
 	if ns["status"] != "no_show" {
 		t.Fatalf("no-show: %v", ns["status"])
+	}
+	for _, a := range gm.Must(200, "GET", "/api/v1/golf/caddy-assignments?date="+day, nil).Items() {
+		if a["id"] == nsCaddy[0]["id"] && a["status"] != "cancelled" {
+			t.Fatalf("caddy of a no-show flight still %v", a["status"])
+		}
+	}
+	for _, a := range gm.Must(200, "GET", "/api/v1/golf/golf-cart-assignments?date="+day, nil).Items() {
+		if a["id"] == nsCart[0]["id"] && a["status"] != "cancelled" {
+			t.Fatalf("golf cart of a no-show flight still %v", a["status"])
+		}
 	}
 	rep := gm.Must(200, "GET", "/api/v1/reporting/reports/golf.no_show_cancellation?params[from]="+day+"&params[to]="+day, nil).JSON()
 	if len(rep["rows"].([]any)) < 2 {

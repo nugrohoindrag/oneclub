@@ -167,6 +167,9 @@ func (m *Module) Cancel(ctx context.Context, tx pgx.Tx, property, bid uuid.UUID,
 	if _, err := tx.Exec(ctx, `UPDATE golf.flights SET status = 'cancelled' WHERE booking_id = $1`, bid); err != nil {
 		return out, err
 	}
+	if err := releaseCancelledFlights(ctx, tx, property, bid, mustDay(b.PlayDate), "booking cancelled"); err != nil {
+		return out, err
+	}
 	if out.WaiverPending && feeLine != uuid.Nil {
 		f, _ := fee.Float64()
 		if _, _, err := m.Approvals.Submit(ctx, tx, approval.SubmitRequest{DocumentType: CancellationWaiverType.Code, DocumentID: feeLine, DocumentRef: b.Code,
@@ -446,6 +449,9 @@ func (m *Module) NoShow(ctx context.Context, tx pgx.Tx, property, bid uuid.UUID,
 		return b, err
 	}
 	if _, err := tx.Exec(ctx, `UPDATE golf.flights SET status = 'cancelled' WHERE booking_id = $1 AND status = 'confirmed'`, bid); err != nil {
+		return b, err
+	}
+	if err := releaseCancelledFlights(ctx, tx, property, bid, mustDay(b.PlayDate), "no-show"); err != nil {
 		return b, err
 	}
 	if err := addHistory(ctx, tx, property, bid, "no_show", map[string]any{"status": b.Status}, map[string]any{"status": "no_show", "fee": fee.StringFixed(0)}, reason); err != nil {
