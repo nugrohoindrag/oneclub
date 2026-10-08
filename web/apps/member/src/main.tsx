@@ -18,6 +18,7 @@ import { MemberHome } from './journey/home';
 import { ApplicationStatusPage, ApplyPage, JoinPage } from './journey/join';
 import { GuestsPage, MembershipOverviewPage, TransactionsPage } from './journey/membership';
 import { BungalowWizard, MeetingRoomWizard } from './journey/resort';
+import { RangeWizard } from './journey/range';
 import { TeeTimeWizard } from './journey/teetime';
 import { HubFrame } from './journey/ui';
 
@@ -57,6 +58,7 @@ const router = createBrowserRouter([
           // Book (Plan Your Visit)
           { path: 'book', element: <BookHub /> },
           { path: 'book/tee-time', element: <TeeTimeWizard /> },
+          { path: 'book/driving-range', element: <RangeWizard /> },
           { path: 'book/bungalow', element: <BungalowWizard /> },
           { path: 'book/meeting-room', element: <MeetingRoomWizard /> },
           { path: 'bookings/:id', element: <GolfBookingPage /> },

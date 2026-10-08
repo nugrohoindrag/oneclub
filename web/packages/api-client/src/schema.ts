@@ -16363,6 +16363,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/range-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Driving range start times with free bays */
+        get: operations["getGolfRangeAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/range-bays": {
         parameters: {
             query?: never;
@@ -16411,6 +16428,58 @@ export interface paths {
         get: operations["getGolfRangeBaysExport"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/range-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Driving range bookings of a day */
+        get: operations["getGolfRangeBookings"];
+        put?: never;
+        /** Book the range at the front desk (bay and time, or the visit) */
+        post: operations["postGolfRangeBookings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/range-bookings/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a range booking (no fee) */
+        post: operations["postGolfRangeBookingsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/range-bookings/{id}:check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check in: the booked bay when free, else another bay or the queue */
+        post: operations["postGolfRangeBookingsByIdCheckIn"];
         delete?: never;
         options?: never;
         head?: never;
@@ -26594,6 +26663,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/golf/range-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Driving range start times with free bays */
+        get: operations["getMemberGolfRangeAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/range-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My driving range bookings */
+        get: operations["getMemberGolfRangeBookings"];
+        put?: never;
+        /** Book the driving range (bay and time, or the visit) */
+        post: operations["postMemberGolfRangeBookings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/range-bookings/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel my driving range booking */
+        post: operations["postMemberGolfRangeBookingsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/golf/scorecards/{id}": {
         parameters: {
             query?: never;
@@ -32469,6 +32590,40 @@ export interface paths {
         get: operations["getPublicGolfInfo"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/golf/range-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Driving range start times with free bays */
+        get: operations["getPublicGolfRangeAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/golf/range-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Book the driving range from the website (no account) */
+        post: operations["postPublicGolfRangeBookings"];
         delete?: never;
         options?: never;
         head?: never;
@@ -62877,6 +63032,36 @@ export interface components {
             total: string;
             unitPrice: string;
         };
+        PublicRangeBookingInput: {
+            /** @enum {string} */
+            area?: "indoor" | "outdoor";
+            /**
+             * Format: uuid
+             * @description A chosen bay (with reserveBay); default the first free bay
+             */
+            bayId?: string | null;
+            /**
+             * Format: uuid
+             * @description Front desk: the customer or member (empty for a walk-in guest)
+             */
+            customerId?: string | null;
+            /** @description Play date (YYYY-MM-DD) */
+            date: string;
+            guest: components["schemas"]["PublicGuest"];
+            guestEmail?: string;
+            guestName?: string;
+            guestPhone?: string;
+            /** @description Bay time 30–240 minutes (default 60) */
+            minutes?: number;
+            notes?: string;
+            players?: number;
+            /** Format: uuid */
+            propertyId: string;
+            /** @description Hold a bay for the time; false: only announce the visit (balls at the counter) */
+            reserveBay?: boolean;
+            /** @description Arrival time HH:MM (club time); flexible — a late guest queues */
+            time: string;
+        };
         PublicRate: {
             currency: string;
             dayType?: string | null;
@@ -64071,6 +64256,77 @@ export interface components {
             flightId: string;
             holesPlayed: number;
         };
+        RangeBayRef: {
+            code: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        RangeBooking: {
+            /** @enum {string} */
+            area: "indoor" | "outdoor";
+            bayCode?: string | null;
+            /** Format: uuid */
+            bayId?: string | null;
+            /** @description The bay the guest plays on after check-in */
+            bayNow?: string | null;
+            /** @enum {string} */
+            channel: "member_app" | "website" | "back_office" | "walk_in";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** Format: date-time */
+            endAt: string;
+            guestName: string;
+            guestPhone?: string | null;
+            /** @description The bay is held for the time (released when the guest is late or leaves) */
+            holdsBay: boolean;
+            /** Format: uuid */
+            id: string;
+            notes?: string | null;
+            number: string;
+            playDate: string;
+            players: number;
+            /** Format: uuid */
+            sessionId?: string | null;
+            /** @description Range session after check-in: waiting (queue), active (on a bay), finished */
+            sessionStatus?: string | null;
+            /** Format: date-time */
+            startAt: string;
+            /** @enum {string} */
+            status: "booked" | "checked_in" | "cancelled" | "no_show";
+        };
+        RangeBookingInput: {
+            /** @enum {string} */
+            area?: "indoor" | "outdoor";
+            /**
+             * Format: uuid
+             * @description A chosen bay (with reserveBay); default the first free bay
+             */
+            bayId?: string | null;
+            /**
+             * Format: uuid
+             * @description Front desk: the customer or member (empty for a walk-in guest)
+             */
+            customerId?: string | null;
+            /** @description Play date (YYYY-MM-DD) */
+            date: string;
+            guestEmail?: string;
+            guestName?: string;
+            guestPhone?: string;
+            /** @description Bay time 30–240 minutes (default 60) */
+            minutes?: number;
+            notes?: string;
+            players?: number;
+            /** @description Hold a bay for the time; false: only announce the visit (balls at the counter) */
+            reserveBay?: boolean;
+            /** @description Arrival time HH:MM (club time); flexible — a late guest queues */
+            time: string;
+        };
+        RangeCancelInput: {
+            reason?: string;
+        };
         RangeSession: {
             area: string;
             balls: number;
@@ -64105,6 +64361,13 @@ export interface components {
             /** Format: uuid */
             customerId?: string | null;
             guestName?: string;
+        };
+        RangeSlot: {
+            bays: components["schemas"]["RangeBayRef"][];
+            freeBays: number;
+            /** Format: date-time */
+            startAt: string;
+            time: string;
         };
         RangeUsage: {
             balls: number;
@@ -146183,6 +146446,67 @@ export interface operations {
             };
         };
     };
+    getGolfRangeAvailability: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                date: string;
+                area?: string;
+                minutes?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RangeSlot"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfRangeBays: {
         parameters: {
             query?: {
@@ -146492,6 +146816,228 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfRangeBookings: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                date?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RangeBooking"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfRangeBookings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RangeBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeBooking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfRangeBookingsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RangeCancelInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeBooking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfRangeBookingsByIdCheckIn: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeBooking"];
                 };
             };
             /** @description Not authenticated */
@@ -190521,6 +191067,223 @@ export interface operations {
             };
         };
     };
+    getMemberGolfRangeAvailability: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                date: string;
+                area?: string;
+                minutes?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RangeSlot"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberGolfRangeBookings: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RangeBooking"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberGolfRangeBookings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RangeBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeBooking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberGolfRangeBookingsByIdCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RangeCancelInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeBooking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getMemberGolfScorecardsById: {
         parameters: {
             query?: never;
@@ -213137,6 +213900,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicInfo"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicGolfRangeAvailability: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                propertyId: string;
+                date: string;
+                area?: string;
+                minutes?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RangeSlot"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicGolfRangeBookings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicRangeBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeBooking"];
                 };
             };
             /** @description Problem Details (RFC 9457) */

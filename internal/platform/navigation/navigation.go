@@ -420,6 +420,7 @@ var Trees = map[string][]Item{
 		{Key: "home", Label: "Home", Path: "/", Icon: "home", Permission: catalog.ShellMemberPortal},
 		{Key: "book", Label: "Book", Path: "/book", Icon: "calendar_add_on", Permission: catalog.ShellMemberPortal, Children: []Item{
 			inModule("golf", s("book-tee-time", "Tee Time", "/book/tee-time", catalog.ShellMemberPortal)),
+			inModule("golf", s("book-driving-range", "Driving Range", "/book/driving-range", catalog.ShellMemberPortal)),
 			inModule("golf", s("course-guide", "Course Guide", "/golf/course-guide", catalog.ShellMemberPortal)),
 			inModule("stay", s("book-bungalow", "Bungalow", "/book/bungalow", catalog.ShellMemberPortal)),
 			inModule("stay", s("book-meeting-room", "Meeting Room", "/book/meeting-room", catalog.ShellMemberPortal)),

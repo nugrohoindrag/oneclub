@@ -27,8 +27,8 @@ function greeting() {
 }
 
 const QUICK: [string, string, string][] = [
-  ['book-tee-time', 'sports_golf', 'Book Tee Time'], ['book-bungalow', 'cottage', 'Book Bungalow'],
-  ['book-meeting-room', 'meeting_room', 'Book Meeting Room'], ['upcoming-events', 'celebration', 'Join Event'],
+  ['book-tee-time', 'sports_golf', 'Book Tee Time'], ['book-driving-range', 'golf_course', 'Driving Range'],
+  ['book-bungalow', 'cottage', 'Book Bungalow'], ['upcoming-events', 'celebration', 'Join Event'],
 ];
 
 export function MemberHome() {

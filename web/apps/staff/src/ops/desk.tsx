@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { qs, request, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import { Checkbox, DataTable, ErrorAlert, Icon, Modal, SelectField, StatusPill, TextField, useToast } from '@oneclub/shell';
@@ -54,8 +54,23 @@ export function FrontDeskPage() {
   );
 }
 
-/** New booking at the desk: walk-in (no account needed) or by phone. */
+/** New booking at the desk: a tee time or the driving range, walk-in (no
+ * account needed) or by phone. */
 export function DeskNewBookingPage() {
+  const [params, setParams] = useSearchParams();
+  const range = params.get('kind') === 'range';
+  return (
+    <div className="oc-stack">
+      <div className="oc-row-wrap" role="tablist">
+        <Btn label="Tee Time" kind={range ? 'neutral' : 'ink'} onClick={() => setParams({})} />
+        <Btn label="Driving Range" kind={range ? 'ink' : 'neutral'} onClick={() => setParams({ kind: 'range' })} />
+      </div>
+      {range ? <DeskRangeBooking /> : <DeskTeeTimeBooking />}
+    </div>
+  );
+}
+
+function DeskTeeTimeBooking() {
   const nav = useNavigate();
   const [date, setDate] = useState(today());
   const courses = useGet<Page<R>>('/api/v1/golf/courses?filter[status]=active&limit=50');
@@ -88,6 +103,58 @@ export function DeskNewBookingPage() {
       </div>
       {slot && <BookingForm key={`${slot.id}-${walkIn}`} slot={slot} channel={walkIn ? 'walk_in' : 'back_office'} onClose={() => setSlot(null)}
         onDone={() => nav('/ops/front-desk')} />}
+    </div>
+  );
+}
+
+/** Driving range: a bay and a time, or the visit only (balls at the counter). */
+function DeskRangeBooking() {
+  const toast = useToast();
+  const [date, setDate] = useState(today());
+  const [area, setArea] = useState('outdoor');
+  const [minutes, setMinutes] = useState('60');
+  const [bay, setBay] = useState(true);
+  const [time, setTime] = useState('');
+  const [bayId, setBayId] = useState('');
+  const [guest, setGuest] = useState({ name: '', phone: '', players: '1' });
+  const slots = useGet<Page<R>>(`/api/v1/golf/range-availability${qs({ date, area, minutes })}`);
+  const book = useSend<Record<string, unknown>, R>('POST', '/api/v1/golf/range-bookings', ['/api/v1/golf/range-bookings']);
+  const list = (slots.data?.items ?? []).filter((s) => !bay || Number(s.freeBays) > 0);
+  const picked = list.find((s) => s.time === time);
+  return (
+    <div className="oc-stack">
+      <Head title="Book Driving Range" help="The time is flexible: a held bay is kept 15 minutes; a late guest gets the next free bay or the queue."
+        actions={<Link className="oc-btn oc-btn-neutral" to="/ops/driving-range">Driving Range</Link>} />
+      <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+        <Btn label="Bay & time" kind={bay ? 'ink' : 'neutral'} onClick={() => setBay(true)} />
+        <Btn label="Visit only" kind={bay ? 'neutral' : 'ink'} onClick={() => { setBay(false); setBayId(''); }} />
+        <TextField label="Date" type="date" value={date} onChange={(v) => { setDate(v); setTime(''); }} />
+        <SelectField label="Area" value={area} onChange={(v) => { setArea(v); setTime(''); }} options={[{ value: 'outdoor', label: 'Outdoor' }, { value: 'indoor', label: 'Indoor' }]} />
+        <SelectField label="Length" value={minutes} onChange={(v) => { setMinutes(v); setTime(''); }}
+          options={['30', '60', '90', '120'].map((m) => ({ value: m, label: `${m} min` }))} />
+      </div>
+      <ErrorAlert error={slots.error} />
+      <div className="oc-row-wrap">
+        {list.map((s) => (
+          <button key={String(s.time)} type="button" className={`oc-btn ${time === s.time ? 'oc-btn-ink' : 'oc-btn-neutral'}`} style={{ minHeight: 56, minWidth: 92, flexDirection: 'column' }}
+            onClick={() => { setTime(String(s.time)); setBayId(''); }}>
+            <strong>{String(s.time)}</strong>{bay && <span className="oc-small">{String(s.freeBays)} bays</span>}
+          </button>
+        ))}
+      </div>
+      {time && (
+        <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+          {bay && <SelectField label="Bay" value={bayId} onChange={setBayId} placeholder="Any free bay"
+            options={((picked?.bays as R[] | undefined) ?? []).map((b) => ({ value: String(b.id), label: String(b.code) }))} />}
+          <TextField label="Guest name" value={guest.name} onChange={(v) => setGuest({ ...guest, name: v })} />
+          <TextField label="Phone" value={guest.phone} onChange={(v) => setGuest({ ...guest, phone: v })} />
+          <SelectField label="Players" value={guest.players} onChange={(v) => setGuest({ ...guest, players: v })} options={['1', '2', '3', '4'].map((n) => ({ value: n, label: n }))} />
+          <Btn label="Book" kind="primary" disabled={!guest.name || book.isPending}
+            onClick={() => book.mutate({ date, time, minutes: Number(minutes), area, reserveBay: bay, bayId: bayId || undefined, players: Number(guest.players),
+              guestName: guest.name, guestPhone: guest.phone || undefined }, { onSuccess: (b) => { toast(`Range booking ${String(b.number)}`); setTime(''); setGuest({ name: '', phone: '', players: '1' }); } })} />
+        </div>
+      )}
+      <ErrorAlert error={book.error} />
     </div>
   );
 }

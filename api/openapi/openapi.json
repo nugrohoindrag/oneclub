@@ -80249,6 +80249,74 @@
         ],
         "type": "object"
       },
+      "PublicRangeBookingInput": {
+        "properties": {
+          "area": {
+            "enum": [
+              "indoor",
+              "outdoor"
+            ],
+            "type": "string"
+          },
+          "bayId": {
+            "description": "A chosen bay (with reserveBay); default the first free bay",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerId": {
+            "description": "Front desk: the customer or member (empty for a walk-in guest)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "date": {
+            "description": "Play date (YYYY-MM-DD)",
+            "type": "string"
+          },
+          "guest": {
+            "$ref": "#/components/schemas/PublicGuest"
+          },
+          "guestEmail": {
+            "type": "string"
+          },
+          "guestName": {
+            "type": "string"
+          },
+          "guestPhone": {
+            "type": "string"
+          },
+          "minutes": {
+            "description": "Bay time 30–240 minutes (default 60)",
+            "type": "integer"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "players": {
+            "type": "integer"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reserveBay": {
+            "description": "Hold a bay for the time; false: only announce the visit (balls at the counter)",
+            "type": "boolean"
+          },
+          "time": {
+            "description": "Arrival time HH:MM (club time); flexible — a late guest queues",
+            "type": "string"
+          }
+        },
+        "required": [
+          "propertyId",
+          "guest",
+          "date",
+          "time"
+        ],
+        "type": "object"
+      },
       "PublicRate": {
         "properties": {
           "currency": {
@@ -84106,6 +84174,206 @@
         ],
         "type": "object"
       },
+      "RangeBayRef": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "type": "object"
+      },
+      "RangeBooking": {
+        "properties": {
+          "area": {
+            "enum": [
+              "indoor",
+              "outdoor"
+            ],
+            "type": "string"
+          },
+          "bayCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "bayId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "bayNow": {
+            "description": "The bay the guest plays on after check-in",
+            "nullable": true,
+            "type": "string"
+          },
+          "channel": {
+            "enum": [
+              "member_app",
+              "website",
+              "back_office",
+              "walk_in"
+            ],
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "endAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "guestName": {
+            "type": "string"
+          },
+          "guestPhone": {
+            "nullable": true,
+            "type": "string"
+          },
+          "holdsBay": {
+            "description": "The bay is held for the time (released when the guest is late or leaves)",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "playDate": {
+            "type": "string"
+          },
+          "players": {
+            "type": "integer"
+          },
+          "sessionId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "sessionStatus": {
+            "description": "Range session after check-in: waiting (queue), active (on a bay), finished",
+            "nullable": true,
+            "type": "string"
+          },
+          "startAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "booked",
+              "checked_in",
+              "cancelled",
+              "no_show"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "playDate",
+          "startAt",
+          "endAt",
+          "area",
+          "holdsBay",
+          "players",
+          "guestName",
+          "channel",
+          "status",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "RangeBookingInput": {
+        "properties": {
+          "area": {
+            "enum": [
+              "indoor",
+              "outdoor"
+            ],
+            "type": "string"
+          },
+          "bayId": {
+            "description": "A chosen bay (with reserveBay); default the first free bay",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerId": {
+            "description": "Front desk: the customer or member (empty for a walk-in guest)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "date": {
+            "description": "Play date (YYYY-MM-DD)",
+            "type": "string"
+          },
+          "guestEmail": {
+            "type": "string"
+          },
+          "guestName": {
+            "type": "string"
+          },
+          "guestPhone": {
+            "type": "string"
+          },
+          "minutes": {
+            "description": "Bay time 30–240 minutes (default 60)",
+            "type": "integer"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "players": {
+            "type": "integer"
+          },
+          "reserveBay": {
+            "description": "Hold a bay for the time; false: only announce the visit (balls at the counter)",
+            "type": "boolean"
+          },
+          "time": {
+            "description": "Arrival time HH:MM (club time); flexible — a late guest queues",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "time"
+        ],
+        "type": "object"
+      },
+      "RangeCancelInput": {
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "RangeSession": {
         "properties": {
           "area": {
@@ -84205,6 +84473,33 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "RangeSlot": {
+        "properties": {
+          "bays": {
+            "items": {
+              "$ref": "#/components/schemas/RangeBayRef"
+            },
+            "type": "array"
+          },
+          "freeBays": {
+            "type": "integer"
+          },
+          "startAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "time",
+          "startAt",
+          "freeBays",
+          "bays"
+        ],
         "type": "object"
       },
       "RangeUsage": {
@@ -238547,6 +238842,131 @@
         "x-permission": "golf.rain_check.issue"
       }
     },
+    "/api/v1/golf/range-availability": {
+      "get": {
+        "operationId": "getGolfRangeAvailability",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "area",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "minutes",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/RangeSlot"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Driving range start times with free bays",
+        "tags": [
+          "Driving Range"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.range.view"
+      }
+    },
     "/api/v1/golf/range-bays": {
       "get": {
         "operationId": "getGolfRangeBays",
@@ -239155,6 +239575,379 @@
         ],
         "x-module": "golf",
         "x-permission": "golf.range_bay.export"
+      }
+    },
+    "/api/v1/golf/range-bookings": {
+      "get": {
+        "operationId": "getGolfRangeBookings",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/RangeBooking"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Driving range bookings of a day",
+        "tags": [
+          "Driving Range"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.range.view"
+      },
+      "post": {
+        "operationId": "postGolfRangeBookings",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RangeBookingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeBooking"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Book the range at the front desk (bay and time, or the visit)",
+        "tags": [
+          "Driving Range"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.range.operate"
+      }
+    },
+    "/api/v1/golf/range-bookings/{id}:cancel": {
+      "post": {
+        "operationId": "postGolfRangeBookingsByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RangeCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeBooking"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel a range booking (no fee)",
+        "tags": [
+          "Driving Range"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.range.operate"
+      }
+    },
+    "/api/v1/golf/range-bookings/{id}:check-in": {
+      "post": {
+        "operationId": "postGolfRangeBookingsByIdCheckIn",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeBooking"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Check in: the booked bay when free, else another bay or the queue",
+        "tags": [
+          "Driving Range"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.range.operate"
       }
     },
     "/api/v1/golf/range-buckets": {
@@ -315505,6 +316298,366 @@
         "x-permission": "platform.member_portal.access"
       }
     },
+    "/api/v1/member/golf/range-availability": {
+      "get": {
+        "operationId": "getMemberGolfRangeAvailability",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "area",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "minutes",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/RangeSlot"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Driving range start times with free bays",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/golf/range-bookings": {
+      "get": {
+        "operationId": "getMemberGolfRangeBookings",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/RangeBooking"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My driving range bookings",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      },
+      "post": {
+        "operationId": "postMemberGolfRangeBookings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RangeBookingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeBooking"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Book the driving range (bay and time, or the visit)",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/golf/range-bookings/{id}:cancel": {
+      "post": {
+        "operationId": "postMemberGolfRangeBookingsByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RangeCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeBooking"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel my driving range booking",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
     "/api/v1/member/golf/scorecards/{id}": {
       "get": {
         "operationId": "getMemberGolfScorecardsById",
@@ -352824,6 +353977,145 @@
         "tags": [
           "Website"
         ],
+        "x-module": "golf"
+      }
+    },
+    "/api/v1/public/golf/range-availability": {
+      "get": {
+        "operationId": "getPublicGolfRangeAvailability",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "propertyId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "area",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "minutes",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/RangeSlot"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Driving range start times with free bays",
+        "tags": [
+          "Public"
+        ],
+        "x-module": "golf"
+      }
+    },
+    "/api/v1/public/golf/range-bookings": {
+      "post": {
+        "operationId": "postPublicGolfRangeBookings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicRangeBookingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeBooking"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Book the driving range from the website (no account)",
+        "tags": [
+          "Public"
+        ],
+        "x-audited": true,
         "x-module": "golf"
       }
     },
