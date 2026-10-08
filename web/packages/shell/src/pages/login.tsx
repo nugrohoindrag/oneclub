@@ -53,7 +53,8 @@ export function LoginPage({ shell, footer }: { shell?: Shell; footer?: React.Rea
   const [params] = useSearchParams();
   const qc = useQueryClient();
   const [step, setStep] = useState<Step>('credentials');
-  const [email, setEmail] = useState('');
+  // ?email= fills the address in (demo access page, links from e-mails).
+  const [email, setEmail] = useState(() => params.get('email') ?? '');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -78,6 +79,12 @@ export function LoginPage({ shell, footer }: { shell?: Shell; footer?: React.Rea
   // Resume an unfinished login (e.g. page reload while MFA was pending).
   useEffect(() => {
     if (!me) return;
+    // A login link for another user (?email=, demo access page) signs the current one out first.
+    const wanted = params.get('email');
+    if (wanted && me.email.toLowerCase() !== wanted.toLowerCase()) {
+      void request('POST', '/api/v1/auth/logout').catch(() => undefined).then(() => { qc.clear(); return refresh(); });
+      return;
+    }
     if (me.mfaPending) setStep(me.mfaEnabled ? 'mfa-verify' : 'mfa-setup');
     else if (me.passwordChangeRequired) setStep('password');
     else {

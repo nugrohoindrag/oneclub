@@ -32646,6 +32646,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/demo-access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Demo accounts for the demo access page (404 on production or without the demo seed) */
+        get: operations["getPublicDemoAccess"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/domains/allowed": {
         parameters: {
             query?: never;
@@ -46680,6 +46697,13 @@ export interface components {
             subject: string;
             /** Format: uuid */
             userId?: string | null;
+        };
+        DemoAccess: {
+            accounts: components["schemas"]["DemoAccount"][];
+        };
+        DemoAccount: {
+            email: string;
+            name: string;
         };
         Department: {
             /** Format: date-time */
@@ -214962,6 +214986,35 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SportclubPublicBooking"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicDemoAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DemoAccess"];
                 };
             };
             /** @description Problem Details (RFC 9457) */

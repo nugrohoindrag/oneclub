@@ -5,6 +5,7 @@ import '@oneclub/shell/shell.css';
 import { AppProviders, ErrorBoundary, RequireArea, ResetPasswordPage, Skeleton, StaffAreas, currentSurface, loadSurface, type AreaCode } from '@oneclub/shell';
 import { DeviceEnrollPage, PasswordLoginPage, StaffLoginPage } from './login';
 import { clearOfflineData } from './offline';
+import { DemoAccessPage } from './demo';
 import { PresencePage } from './presence';
 
 /*
@@ -46,6 +47,7 @@ const STAFF_ROUTES: RouteObject[] = [
       { path: '/login/device', element: <DeviceEnrollPage /> },
       { path: '/reset-password', element: <ResetPasswordPage /> },
       { path: '/presence', element: <PresencePage /> },
+      { path: '/demo', element: <DemoAccessPage /> },
       { path: '/management/*', element: <AreaRoute code="management" /> },
       { path: '/platform/*', element: <AreaRoute code="platform" /> },
       { path: '/screen/*', element: <AreaRoute code="screen" /> },

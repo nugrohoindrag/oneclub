@@ -106,6 +106,11 @@ steps of seeders added since.
 
 Password for all: `Demo#Club2026`.
 
+**Demo access** (`/demo` on the Staff App, also linked under the login form): cards per business (Golf, Sport Club,
+Bungalow, VIP Suite, Wedding / MICE / Banquet) with their demo users; a click opens that user's login (on the right
+domain) with the e-mail filled in and signs out whoever is logged in. It lists the active `@demo.oneclub.id` accounts
+from `GET /api/v1/public/demo-access`, which answers 404 when `ONECLUB_ENV=production` or without the demo seed.
+
 ## 5. Tests
 
 `make e2e` provisions two throw-away instances per run (`ONECLUB_TEST_ADMIN_URL`), starts the API and River worker

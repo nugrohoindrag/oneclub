@@ -31589,6 +31589,35 @@
         ],
         "type": "object"
       },
+      "DemoAccess": {
+        "properties": {
+          "accounts": {
+            "items": {
+              "$ref": "#/components/schemas/DemoAccount"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "accounts"
+        ],
+        "type": "object"
+      },
+      "DemoAccount": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "name"
+        ],
+        "type": "object"
+      },
       "Department": {
         "properties": {
           "archivedAt": {
@@ -355975,6 +356004,39 @@
         ],
         "x-audited": true,
         "x-module": "sportclub"
+      }
+    },
+    "/api/v1/public/demo-access": {
+      "get": {
+        "operationId": "getPublicDemoAccess",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoAccess"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Demo accounts for the demo access page (404 on production or without the demo seed)",
+        "tags": [
+          "Public"
+        ],
+        "x-module": "platform"
       }
     },
     "/api/v1/public/domains/allowed": {

@@ -197,6 +197,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 	a.Sync = syncsvc.New(db)
 	a.Sync.Register(reg)
 	a.Navigation.Register(reg)
+	registerDemoAccess(reg, cfg, db)
 	a.Reporting.Register(reg)
 	a.Engine.RegisterImports(reg)
 	(&billing.Module{DB: db}).Register(reg, a.Engine)
