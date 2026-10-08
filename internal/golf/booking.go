@@ -154,6 +154,12 @@ type BookingFlight struct {
 	ReadyAt   *time.Time `json:"readyAt"`
 	TeeOffAt  *time.Time `json:"teeOffAt"`
 	FinishAt  *time.Time `json:"roundFinishAt"`
+	// rain pause: the play time stops while pausedAt is set
+	PausedAt      *time.Time `json:"pausedAt"`
+	PauseReason   *string    `json:"pauseReason"`
+	PausedSeconds int        `json:"pausedSeconds" doc:"Paused time already left out of the play time"`
+	HolesPlayed   *int       `json:"holesPlayed"`
+	CurrentHole   int        `json:"currentHole" doc:"Hole in progress on the caddy tablet (0 before tee-off)"`
 }
 
 // Booking is the API view of a booking.
@@ -237,7 +243,8 @@ func GetBooking(ctx context.Context, q dbtx.Querier, bid uuid.UUID) (Booking, er
 	var pid uuid.UUID
 	_ = q.QueryRow(ctx, `SELECT property_id FROM golf.bookings WHERE id = $1`, bid).Scan(&pid)
 	b.LocalTime = b.StartAt.In(location(ctx, q, pid)).Format("15:04")
-	rows, err := q.Query(ctx, `SELECT f.id, f.tee_time_id, t.start_at, t.start_tee, f.flight_no, f.status, f.ready_at, f.tee_off_at, f.round_finish_at
+	rows, err := q.Query(ctx, `SELECT f.id, f.tee_time_id, t.start_at, t.start_tee, f.flight_no, f.status, f.ready_at, f.tee_off_at, f.round_finish_at,
+		f.paused_at, f.pause_reason, f.paused_seconds, f.holes_played, coalesce((SELECT max(hp.seq) FROM golf.hole_progress hp WHERE hp.flight_id = f.id), 0)
 		FROM golf.flights f JOIN golf.tee_times t ON t.id = f.tee_time_id WHERE f.booking_id = $1 ORDER BY t.start_at, f.flight_no`, bid)
 	if err != nil {
 		return b, err
@@ -245,7 +252,8 @@ func GetBooking(ctx context.Context, q dbtx.Querier, bid uuid.UUID) (Booking, er
 	b.Flights = []BookingFlight{}
 	for rows.Next() {
 		var f BookingFlight
-		if err := rows.Scan(&f.ID, &f.TeeTimeID, &f.StartAt, &f.StartTee, &f.FlightNo, &f.Status, &f.ReadyAt, &f.TeeOffAt, &f.FinishAt); err != nil {
+		if err := rows.Scan(&f.ID, &f.TeeTimeID, &f.StartAt, &f.StartTee, &f.FlightNo, &f.Status, &f.ReadyAt, &f.TeeOffAt, &f.FinishAt,
+			&f.PausedAt, &f.PauseReason, &f.PausedSeconds, &f.HolesPlayed, &f.CurrentHole); err != nil {
 			rows.Close()
 			return b, err
 		}

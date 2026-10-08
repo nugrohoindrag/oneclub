@@ -15331,6 +15331,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/flights/{id}:pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pause the round (rain): the play time stops */
+        post: operations["postGolfFlightsByIdPause"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/flights/{id}:resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume the round after the rain */
+        post: operations["postGolfFlightsByIdResume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/golf-cart-assignments": {
         parameters: {
             query?: never;
@@ -40161,9 +40195,17 @@ export interface components {
             status: "unused" | "consumed" | "expired" | "cancelled";
         };
         BookingFlight: {
+            /** @description Hole in progress on the caddy tablet (0 before tee-off) */
+            currentHole: number;
             flightNo: number;
+            holesPlayed?: number | null;
             /** Format: uuid */
             id: string;
+            pauseReason?: string | null;
+            /** Format: date-time */
+            pausedAt?: string | null;
+            /** @description Paused time already left out of the play time */
+            pausedSeconds: number;
             /** Format: date-time */
             readyAt?: string | null;
             /** Format: date-time */
@@ -40288,6 +40330,13 @@ export interface components {
             /** Format: uuid */
             id: string;
             localTime: string;
+            /**
+             * Format: date-time
+             * @description Set while the round is paused (rain): the play time stops
+             */
+            pausedAt?: string | null;
+            /** @description Paused time left out of the play time */
+            pausedSeconds: number;
             paymentMode?: string | null;
             playDate: string;
             playerCount: number;
@@ -41941,6 +41990,9 @@ export interface components {
             lockers: string[];
             /** @description The balance can be charged to a member account */
             memberAccount: boolean;
+            /** Format: date-time */
+            pausedAt?: string | null;
+            pausedSeconds: number;
             paymentMode?: string | null;
             payments: string;
             players: string[];
@@ -50106,6 +50158,15 @@ export interface components {
             status: string;
             year: number;
         };
+        FlightPause: {
+            /** Format: uuid */
+            flightId: string;
+            pauseReason?: string | null;
+            /** Format: date-time */
+            pausedAt?: string | null;
+            pausedSeconds: number;
+            status: string;
+        };
         FlightRef: {
             /** Format: uuid */
             id: string;
@@ -56613,6 +56674,13 @@ export interface components {
              */
             typeId?: string;
         };
+        MembershipPauseInput: {
+            /** @description YYYY-MM-DD */
+            from: string;
+            reason: string;
+            /** @description YYYY-MM-DD */
+            until: string;
+        };
         MembershipProgram: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -59979,11 +60047,16 @@ export interface components {
             email: string;
         };
         PauseInput: {
-            /** @description YYYY-MM-DD */
-            from: string;
-            reason: string;
-            /** @description YYYY-MM-DD */
-            until: string;
+            /**
+             * Format: date-time
+             * @description When it happened on the tablet (offline replay)
+             */
+            at?: string | null;
+            /**
+             * @description Default rain
+             * @enum {string}
+             */
+            reason?: "rain" | "lightning" | "other";
         };
         PayFeeInput: {
             /** @enum {string} */
@@ -66635,6 +66708,13 @@ export interface components {
             holes: number;
             /** @enum {string} */
             paceStatus: "on_pace" | "slow" | "fast";
+            pauseReason?: string | null;
+            /**
+             * Format: date-time
+             * @description Paused (rain): the play time stops
+             */
+            pausedAt?: string | null;
+            pausedSeconds: number;
             /** Format: date-time */
             playDate: string;
             players: components["schemas"]["RoundPlayer"][];
@@ -68267,6 +68347,12 @@ export interface components {
             id: string;
             /** @description Tee time in the club's time zone (HH:MM) */
             localTime: string;
+            /**
+             * Format: date-time
+             * @description Paused (rain): the play time stops
+             */
+            pausedAt?: string | null;
+            pausedSeconds: number;
             players: components["schemas"]["SheetPlayer"][];
             queueStatus?: string | null;
             readiness: components["schemas"]["Readiness"];
@@ -141731,6 +141817,118 @@ export interface operations {
             };
         };
     };
+    postGolfFlightsByIdPause: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PauseInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlightPause"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfFlightsByIdResume: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PauseInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlightPause"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfGolfCartAssignments: {
         parameters: {
             query?: {
@@ -193777,7 +193975,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PauseInput"];
+                "application/json": components["schemas"]["MembershipPauseInput"];
             };
         };
         responses: {
@@ -198077,7 +198275,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PauseInput"];
+                "application/json": components["schemas"]["MembershipPauseInput"];
             };
         };
         responses: {

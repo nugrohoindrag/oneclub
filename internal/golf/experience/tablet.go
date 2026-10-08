@@ -521,7 +521,8 @@ func (m *Module) Earnings(ctx context.Context, q dbtx.Querier, property, caddy u
 
 // RoundSync is one queued tablet action.
 type RoundSync struct {
-	Op           string       `json:"op" enum:"accept,tee_off,hole,finish,score"`
+	Op           string       `json:"op" enum:"accept,tee_off,hole,finish,score,pause,resume"`
+	Reason       string       `json:"reason,omitempty" doc:"pause: rain, lightning, other"`
 	FlightID     uuid.UUID    `json:"flightId"`
 	AssignmentID *uuid.UUID   `json:"assignmentId,omitempty"`
 	ScorecardID  *uuid.UUID   `json:"scorecardId,omitempty"`
@@ -568,6 +569,10 @@ func (m *Module) SyncHandler(ctx context.Context, tx pgx.Tx, payload json.RawMes
 	case "finish":
 		out, err := m.FinishRound(ctx, tx, in.FlightID, RoundEvent{At: in.At, DeviceID: in.DeviceID})
 		return map[string]any{"status": out.Status}, err
+	case "pause":
+		return m.Golf.PauseRound(ctx, tx, in.FlightID, golf.PauseInput{Reason: in.Reason, At: in.At})
+	case "resume":
+		return m.Golf.ResumeRound(ctx, tx, in.FlightID, golf.PauseInput{At: in.At})
 	case "score":
 		if in.ScorecardID == nil {
 			return nil, errs.Validation("scorecard_required", "scorecardId is required")

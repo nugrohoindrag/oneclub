@@ -9,6 +9,10 @@ describe('play time', () => {
   it('stops at the round finish', () => {
     expect(playMinutes(tee, '2026-10-09T11:12:00Z', Date.parse('2026-10-09T15:00:00Z'))).toBe(252);
   });
+  it('leaves the rain pause out and stops while paused', () => {
+    expect(playMinutes(tee, null, Date.parse('2026-10-09T09:00:00Z'), 20 * 60)).toBe(100);
+    expect(playMinutes(tee, null, Date.parse('2026-10-09T12:00:00Z'), 0, '2026-10-09T08:30:00Z')).toBe(90);
+  });
   it('is empty before the tee-off', () => {
     expect(playMinutes(null)).toBeNull();
   });

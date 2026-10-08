@@ -60,7 +60,7 @@ export function GolfBookingPage() {
         <div className="mj-card">
           <h2><Icon name="flag" size={20} /> Round Completed</h2>
           <Rows rows={[['Date', dayLabel(x.playDate)], ['Course', x.courseName],
-            ['Play time', <PlayTime start={flight?.teeOffAt} end={flight?.roundFinishAt} label={false} fallback="—" />],
+            ['Play time', <PlayTime start={flight?.teeOffAt} end={flight?.roundFinishAt} pausedAt={flight?.pausedAt as string | null | undefined} pausedSeconds={Number(flight?.pausedSeconds ?? 0)} label={false} fallback="—" />],
             ['Score', myScore?.gross ? <strong className="mj-num">{myScore.gross}</strong> : <span className="mj-muted">Not entered</span>]]} />
           {myScore && <div className="mj-actions" style={{ marginTop: 12 }}><Link className="oc-btn oc-btn-outline" to={`/golf/scores/${myScore.id}`}>View Round Detail</Link></div>}
         </div>
@@ -68,7 +68,7 @@ export function GolfBookingPage() {
         <div className="mj-card">
           <h2><Icon name="sports_golf" size={20} /> Round In Progress</h2>
           <Rows rows={[['Tee Time', x.localTime], ['Teed off', new Date(flight!.teeOffAt!).toLocaleTimeString('en-GB', { timeStyle: 'short' })],
-            ['Playing for', <PlayTime start={flight!.teeOffAt} label={false} />], ['Players', x.playerCount]]} />
+            [flight!.pausedAt ? 'Paused (rain)' : 'Playing for', <PlayTime start={flight!.teeOffAt} pausedAt={flight!.pausedAt} pausedSeconds={flight!.pausedSeconds} label={false} />], ['Players', x.playerCount]]} />
           {myScore && <div className="mj-actions" style={{ marginTop: 12 }}><Link className="oc-btn oc-btn-primary" to={`/golf/scores/${myScore.id}`}>Scorecard</Link></div>}
         </div>
       ) : checkedIn ? (
@@ -172,7 +172,7 @@ function PlayersCard({ booking, journey, finished }: { booking: Booking; journey
 function PlayerPlayTime({ booking, flightId }: { booking: Booking; flightId: string }) {
   const f = booking.flights.find((x) => x.id === flightId);
   if (!f?.teeOffAt) return null;
-  return <PlayTime start={f.teeOffAt} end={f.roundFinishAt} className="oc-playtime mj-small" />;
+  return <PlayTime start={f.teeOffAt} end={f.roundFinishAt} pausedAt={f.pausedAt as string | null | undefined} pausedSeconds={Number(f.pausedSeconds ?? 0)} className="oc-playtime mj-small" />;
 }
 
 function CaddyState({ pj, finished }: { pj?: PlayerJ; finished: boolean }) {

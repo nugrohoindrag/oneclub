@@ -273,7 +273,7 @@ export function OpsCheckOutPage() {
       <DataTable rows={rows} loading={desk.isLoading} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'code', header: 'Booking' },
         { key: 'players', header: 'Players', render: (b) => list(b.players) },
         { key: 'inPlay', header: 'Round', render: (b) => <StatusPill status={Number(b.inPlay) > 0 ? 'in-play' : String(b.status).replace(/_/g, '-')} /> },
-        { key: 'teeOffAt', header: 'Play time', render: (b) => <PlayTime start={b.teeOffAt as string} end={b.roundFinishAt as string} label={false} fallback="—" /> },
+        { key: 'teeOffAt', header: 'Play time', render: (b) => <PlayTime start={b.teeOffAt as string} end={b.roundFinishAt as string} pausedAt={b.pausedAt as string | null | undefined} pausedSeconds={Number(b.pausedSeconds ?? 0)} label={false} fallback="—" /> },
         { key: 'lockers', header: 'Lockers', render: (b) => list(b.lockers) }, { key: 'bags', header: 'Bags', render: (b) => list(b.bags) },
         { key: 'balance', header: 'Balance', align: 'right', render: (b) => <strong>{money(b.balance)}</strong> }]}
         actions={(b) => !b.checkedOutAt && <Btn label="Check-out" kind="primary" disabled={Number(b.inPlay) > 0} onClick={() => setOpen(b)} />} />

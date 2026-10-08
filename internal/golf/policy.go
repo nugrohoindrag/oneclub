@@ -88,6 +88,9 @@ type WeatherRule struct {
 type WeatherPolicy struct {
 	Rules        []WeatherRule `json:"rules"`
 	ValidityDays int           `json:"validityDays"`
+	// FullCreditBeforeHalf: rain before half of the holes gives a 100% rain
+	// check — the players reschedule (demo feedback 9 Oct 2026).
+	FullCreditBeforeHalf bool `json:"fullCreditBeforeHalf"`
 }
 
 // CaddyPolicy (FR-POL-06).
@@ -160,7 +163,7 @@ var (
 	DefaultCancellation = CancellationPolicy{FreeCancelHours: 24, LateCancelFeePercent: "50", NoShowFeePercent: "100", NoShowBlockAfter: 3, NoShowBlockWindowDays: 90,
 		WaiverRequiresApproval: true}
 	DefaultWeather = WeatherPolicy{Rules: []WeatherRule{{MaxHolesPlayed: 0, CreditPercent: "100"}, {MaxHolesPlayed: 9, CreditPercent: "50"},
-		{MaxHolesPlayed: 36, CreditPercent: "0"}}, ValidityDays: 90}
+		{MaxHolesPlayed: 36, CreditPercent: "0"}}, ValidityDays: 90, FullCreditBeforeHalf: true}
 	DefaultCaddy   = CaddyPolicy{PlayersPerCaddy: 1, Mandatory: true, AllowRequest: true}
 	DefaultCart    = CartPolicy{PlayersPerCart: 2, Mandatory: true, SingleRiderAllowed: true, AfterReturn: "charging"}
 	DefaultPayment = PaymentPolicy{Default: "pay_at_venue", CustomerModes: []string{"prepaid", "deposit", "pay_at_venue"}, Rules: []PaymentRule{

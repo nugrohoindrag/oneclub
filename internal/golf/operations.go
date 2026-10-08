@@ -594,6 +594,9 @@ func (m *Module) finishFlight(ctx context.Context, tx pgx.Tx, property, fid uuid
 	if status != "in_play" {
 		return errs.Conflict("not_in_play", "only flights In Play can finish")
 	}
+	if err := closePause(ctx, tx, fid); err != nil {
+		return err
+	}
 	if _, err := tx.Exec(ctx, `UPDATE golf.flights SET status = 'completed', round_finish_at = now(), holes_played = $2 WHERE id = $1`, fid, holes); err != nil {
 		return err
 	}

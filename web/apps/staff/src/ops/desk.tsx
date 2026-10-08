@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { qs, request, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import { Checkbox, CrowdLabel, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TextField, crowdClass, useToast } from '@oneclub/shell';
-import { BookingForm } from '../p1/golf';
+import { BookingForm, type BookingPrefill } from '../p1/golf';
 import { Btn, Head, money, today, useCached } from './golf';
 
 // Front Desk (demo feedback 9 Oct 2026): players book at the desk with or
@@ -44,7 +44,7 @@ export function FrontDeskPage() {
         { key: 'contactName', header: 'Booked by' }, { key: 'playerCount', header: 'Players', align: 'right' },
         { key: 'paymentMode', header: 'Payment', render: (b) => String(b.paymentMode ?? '—').replace(/_/g, ' ') },
         { key: 'status', header: 'Status', render: (b) => <StatusPill status={String(b.status).replace(/_/g, '-')} /> },
-        { key: 'teeOffAt', header: 'Play time', render: (b) => <PlayTime start={b.teeOffAt as string} end={b.roundFinishAt as string} label={false} fallback="—" /> }]}
+        { key: 'teeOffAt', header: 'Play time', render: (b) => <PlayTime start={b.teeOffAt as string} end={b.roundFinishAt as string} pausedAt={b.pausedAt as string | null | undefined} pausedSeconds={Number(b.pausedSeconds ?? 0)} label={false} fallback="—" /> }]}
         actions={(b) => (bookings.offline ? null : merge
           ? <Checkbox label="Merge" checked={merge.includes(b.id)} disabled={['cancelled', 'no_show'].includes(String(b.status))} onChange={(on) => toggle(b.id, on)} />
           : <Btn label="Manage" onClick={() => setOpen(b.id)} />)} />
@@ -73,6 +73,8 @@ export function DeskNewBookingPage() {
 
 function DeskTeeTimeBooking() {
   const nav = useNavigate();
+  const [params] = useSearchParams();
+  const prefill = useRebook(params.get('rebook'));
   const [date, setDate] = useState(today());
   const courses = useGet<Page<R>>('/api/v1/golf/courses?filter[status]=active&limit=50');
   const [courseId, setCourse] = useState('');
@@ -104,7 +106,8 @@ function DeskTeeTimeBooking() {
           </button>
         ))}
       </div>
-      {slot && <BookingForm key={`${slot.id}-${walkIn}`} slot={slot} channel={walkIn ? 'walk_in' : 'back_office'} onClose={() => setSlot(null)}
+      {prefill && <div className="oc-alert oc-alert-info">Rain rebooking: {prefill.players.length} players with {prefill.rainCheckIds.length} rain check(s). Pick the new tee time.</div>}
+      {slot && <BookingForm key={`${slot.id}-${walkIn}`} slot={slot} channel={walkIn ? 'walk_in' : 'back_office'} prefill={prefill ?? undefined} onClose={() => setSlot(null)}
         onDone={() => nav('/ops/front-desk')} />}
     </div>
   );
@@ -264,6 +267,63 @@ function BillTab({ id }: { id: string }) {
   );
 }
 
+/** The players and issued rain checks of a rained-off booking. */
+function useRebook(id: string | null): BookingPrefill | null {
+  const b = useGet<Booking>(id ? `/api/v1/golf/bookings/${id}` : null);
+  const rc = useGet<Page<R>>(id ? '/api/v1/golf/rain-checks?filter[status]=issued&limit=200' : null);
+  if (!id || !b.data) return null;
+  const players = b.data.players.filter((p) => live(p));
+  return {
+    bookingType: String(b.data.bookingType), contactName: String(b.data.contactName ?? ''), contactPhone: String(b.data.contactPhone ?? ''),
+    players: players.map((p) => ({ playerType: String(p.playerType), memberId: p.memberId ? String(p.memberId) : undefined, memberNo: '', name: String(p.name ?? ''), phone: String(p.phone ?? '') })),
+    rainCheckIds: (rc.data?.items ?? []).filter((r) => r.bookingId === id).map((r) => r.id),
+  };
+}
+
+/** Rain: pause / resume the play time; before half of the round the
+ * players get a full rain check and are rebooked. */
+function RainPanel({ b, onDone }: { b: Booking; onDone: () => void }) {
+  const toast = useToast();
+  const nav = useNavigate();
+  const inv = ['/api/v1/golf'];
+  const pause = useSend<Record<string, unknown>>('POST', (v) => `/api/v1/golf/flights/${String(v.id)}:${String(v.op)}`, inv);
+  const stop = useSend<Record<string, unknown>, Page<R>>('POST', '/api/v1/golf/rain-checks', inv);
+  const [holes, setHoles] = useState<Record<string, string>>({});
+  const [issued, setIssued] = useState<R[]>([]);
+  const playing = b.flights.filter((f) => f.teeOffAt && !f.roundFinishAt);
+  if (!playing.length && !issued.length) return null;
+  return (
+    <div className="oc-card oc-stack">
+      <strong>Rain</strong>
+      {playing.map((f) => {
+        const done = Math.max(Number(f.currentHole ?? 0) - 1, 0);
+        const h = holes[f.id] ?? String(done);
+        return (
+          <div key={f.id} className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+            <span style={{ minWidth: 200 }}>Flight {String(f.flightNo)} · hole {String(f.currentHole ?? 0)}{f.pausedAt ? ' · paused for rain' : ''}</span>
+            {f.pausedAt
+              ? <Btn label="Resume play" kind="primary" disabled={pause.isPending} onClick={() => pause.mutate({ id: f.id, op: 'resume' }, { onSuccess: () => { toast('Play resumed'); onDone(); } })} />
+              : <Btn label="Pause (rain)" disabled={pause.isPending} onClick={() => pause.mutate({ id: f.id, op: 'pause', reason: 'rain' }, { onSuccess: () => { toast('Play time paused'); onDone(); } })} />}
+            <TextField label="Holes played" value={h} onChange={(v) => setHoles({ ...holes, [f.id]: v.replace(/\D/g, '') })} inputMode="numeric" />
+            <Btn label="Rain stop" kind="danger" disabled={stop.isPending || h === ''}
+              onClick={() => stop.mutate({ flightId: f.id, holesPlayed: Number(h) }, { onSuccess: (r) => { setIssued(r.items ?? []); toast('Rain checks issued'); onDone(); } })} />
+          </div>
+        );
+      })}
+      <span className="oc-small oc-muted">Rain before half of the holes gives a 100% rain check: the players reschedule at no cost.</span>
+      {issued.length > 0 && (
+        <>
+          <DataTable rows={issued} columns={[{ key: 'number', header: 'Rain check' }, { key: 'playerName', header: 'Player' },
+            { key: 'creditPercent', header: 'Credit', align: 'right', render: (r) => `${String(r.creditPercent)}%` }, { key: 'creditAmount', header: 'Value', align: 'right', render: (r) => money(r.creditAmount) },
+            { key: 'expiresOn', header: 'Valid until' }]} />
+          <div><Btn label="Book the new tee time" kind="primary" onClick={() => nav(`/ops/front-desk/new?rebook=${b.id}`)} /></div>
+        </>
+      )}
+      <ErrorAlert error={pause.error ?? stop.error} />
+    </div>
+  );
+}
+
 /** First come, first served: move the flight to another tee time. */
 function TimeTab({ b, onDone }: { b: Booking; onDone: () => void }) {
   const toast = useToast();
@@ -277,6 +337,7 @@ function TimeTab({ b, onDone }: { b: Booking; onDone: () => void }) {
   const free = (slots.data?.items ?? []).filter((s) => s.id !== b.teeTimeId && s.status !== 'blocked' && n <= Number(s.maxPlayers || 4));
   return (
     <div className="oc-stack">
+      <RainPanel b={b} onDone={onDone} />
       <p style={{ margin: 0 }}>Now {String(b.playDate)} {String(b.localTime)}. Late or early? Move the flight to the next free tee time.</p>
       <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
         <TextField label="Date" type="date" value={date} onChange={(v) => { setDate(v); setSlot(''); }} />
@@ -554,14 +615,15 @@ export function BookingPlayTime({ flights }: { flights: R[] }) {
   if (!starts.length) return null;
   const done = live.every((f) => f.roundFinishAt);
   const end = done ? live.map((f) => String(f.roundFinishAt)).sort().at(-1) : undefined;
-  return <PlayTime start={starts.sort()[0]} end={end} />;
+  const paused = live.find((f) => f.pausedAt);
+  return <PlayTime start={starts.sort()[0]} end={end} pausedAt={paused?.pausedAt as string | undefined} pausedSeconds={Math.max(0, ...live.map((f) => Number(f.pausedSeconds ?? 0)))} />;
 }
 
 /** The play time of a player (the flight they play in). */
 export function FlightPlayTime({ flights, flightId }: { flights: R[]; flightId: unknown }) {
   const f = flights.find((x) => x.id === flightId);
   if (!f?.teeOffAt) return null;
-  return <> · <PlayTime start={f.teeOffAt as string} end={f.roundFinishAt as string | null} /></>;
+  return <> · <PlayTime start={f.teeOffAt as string} end={f.roundFinishAt as string | null} pausedAt={f.pausedAt as string | null | undefined} pausedSeconds={Number(f.pausedSeconds ?? 0)} /></>;
 }
 
 // ── merged bill ────────────────────────────────────────────────────────────

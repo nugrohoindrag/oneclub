@@ -56,7 +56,7 @@ export function TeeSheetPage() {
                         {f.bookingId ? <button className="oc-btn oc-btn-text oc-btn-sm" onClick={() => setOpen(String(f.bookingId))}>
                           {((f.players as R[]) ?? []).map((p) => String(p.name)).join(', ')}</button> : <span className="oc-muted">open</span>}
                         {(f.golfCarts as string[] | undefined)?.length ? <span className="oc-muted">· {(f.golfCarts as string[]).join(', ')}</span> : null}
-                        {f.teeOffAt ? <PlayTime start={f.teeOffAt as string} end={f.roundFinishAt as string} /> : null}
+                        {f.teeOffAt ? <PlayTime start={f.teeOffAt as string} end={f.roundFinishAt as string} pausedAt={f.pausedAt as string | null | undefined} pausedSeconds={Number(f.pausedSeconds ?? 0)} /> : null}
                       </div>
                     ))}
                   </td>
@@ -79,14 +79,19 @@ export function TeeSheetPage() {
 
 // ── Booking create (FR-BKG-01..07) ─────────────────────────────────────────
 
-interface PlayerIn { playerType: string; memberNo: string; name: string; phone: string }
+export interface PlayerIn { playerType: string; memberNo: string; name: string; phone: string; memberId?: string }
 
-export function BookingForm({ slot, onClose, onDone, channel = 'back_office' }: { slot: R; onClose: () => void; onDone: (b: R) => void; channel?: 'back_office' | 'walk_in' }) {
+/** A rain rebooking: the players of the rained-off booking and their rain checks. */
+export interface BookingPrefill { bookingType: string; contactName: string; contactPhone: string; players: PlayerIn[]; rainCheckIds: string[] }
+
+export function BookingForm({ slot, onClose, onDone, channel = 'back_office', prefill }: {
+  slot: R; onClose: () => void; onDone: (b: R) => void; channel?: 'back_office' | 'walk_in'; prefill?: BookingPrefill;
+}) {
   const toast = useToast();
-  const [bookingType, setType] = useState(channel === 'walk_in' ? 'walk_in' : 'member');
-  const [players, setPlayers] = useState<PlayerIn[]>([{ playerType: channel === 'walk_in' ? 'non_member' : 'member', memberNo: '', name: '', phone: '' }]);
-  const [contactName, setContactName] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
+  const [bookingType, setType] = useState(prefill?.bookingType ?? (channel === 'walk_in' ? 'walk_in' : 'member'));
+  const [players, setPlayers] = useState<PlayerIn[]>(prefill?.players ?? [{ playerType: channel === 'walk_in' ? 'non_member' : 'member', memberNo: '', name: '', phone: '' }]);
+  const [contactName, setContactName] = useState(prefill?.contactName ?? '');
+  const [contactPhone, setContactPhone] = useState(prefill?.contactPhone ?? '');
   const [paymentMode, setPaymentMode] = useState('');
   const [carts, setCarts] = useState('');
   const [caddy, setCaddy] = useState('');
@@ -96,7 +101,9 @@ export function BookingForm({ slot, onClose, onDone, channel = 'back_office' }: 
   const submit = () => send.mutate({
     bookingType, channel, teeTimeId: slot.id, contactName: contactName || undefined, contactPhone: contactPhone || undefined,
     paymentMode: paymentMode || undefined, golfCartRequest: carts ? Number(carts) : undefined, caddyRequest: caddy || undefined,
-    players: players.map((p) => ({ playerType: p.playerType, memberNo: p.playerType === 'member' ? p.memberNo || undefined : undefined,
+    rainCheckIds: prefill?.rainCheckIds.length ? prefill.rainCheckIds : undefined,
+    players: players.map((p) => ({ playerType: p.playerType, memberId: p.playerType === 'member' ? p.memberId : undefined,
+      memberNo: p.playerType === 'member' && !p.memberId ? p.memberNo || undefined : undefined,
       name: p.name || undefined, phone: p.phone || undefined, tba: p.playerType !== 'member' && !p.name ? true : undefined,
       hostIndex: p.playerType === 'guest_of_member' ? 0 : undefined })),
   }, { onSuccess: (b) => { toast(`Booking ${b.code} created`); onDone(b); } });
@@ -118,7 +125,9 @@ export function BookingForm({ slot, onClose, onDone, channel = 'back_office' }: 
         <div className="oc-row-wrap" key={i}>
           <SelectField label="Player type" value={p.playerType} onChange={(v) => setP(i, 'playerType', v)}
             options={[{ value: 'member', label: 'Member' }, { value: 'guest_of_member', label: 'Guest of Member' }, { value: 'non_member', label: 'Non-Member' }, { value: 'reciprocal', label: 'Reciprocal' }]} />
-          {p.playerType === 'member'
+          {p.playerType === 'member' && p.memberId
+            ? <span style={{ alignSelf: 'center' }}><strong>{p.name}</strong> (member)</span>
+            : p.playerType === 'member'
             ? <><TextField label="Member No." value={p.memberNo} onChange={(v) => setP(i, 'memberNo', v)} error={errs[`players[${i}].memberNo`]} />
               <MemberNoTierBadge memberNo={p.memberNo} /></>
             : <TextField label="Name (empty = TBA)" value={p.name} onChange={(v) => setP(i, 'name', v)} error={errs[`players[${i}].name`]} />}
@@ -130,6 +139,7 @@ export function BookingForm({ slot, onClose, onDone, channel = 'back_office' }: 
         <button className="oc-btn oc-btn-text oc-btn-sm" onClick={() => setPlayers((ps) => [...ps, { playerType: bookingType === 'member' ? 'guest_of_member' : 'non_member', memberNo: '', name: '', phone: '' }])}>
           Add player</button>
       )}
+      {prefill && prefill.rainCheckIds.length > 0 && <p className="oc-alert oc-alert-info">{prefill.rainCheckIds.length} rain check(s) are applied: the new round is paid by the rained-off one.</p>}
       <ErrorAlert error={send.error} />
     </Modal>
   );
@@ -194,7 +204,7 @@ export function BookingDrawer({ id, onClose }: { id: string; onClose: () => void
               { key: 'priceTotal', header: 'Price', align: 'right', render: (p) => money(p.priceTotal) }, { key: 'status', header: 'Status', render: pill('status') },
               { key: 'flightId', header: 'Play time', render: (p) => {
                 const f = x.flights.find((fl) => fl.id === p.flightId);
-                return <PlayTime start={f?.teeOffAt as string} end={f?.roundFinishAt as string} label={false} fallback="—" />;
+                return <PlayTime start={f?.teeOffAt as string} end={f?.roundFinishAt as string} pausedAt={f?.pausedAt as string | null | undefined} pausedSeconds={Number(f?.pausedSeconds ?? 0)} label={false} fallback="—" />;
               } },
             ]} actions={(p) => (active && p.status === 'booked' && can('golf.booking.update') && x.players.length > 1
               ? <ActionButton label="Remove" method="DELETE" path={`/api/v1/golf/bookings/${id}/players/${p.id}`} invalidate={inv} danger confirm="Remove this player?" />
@@ -271,7 +281,7 @@ export function BookingsPage({ title = 'Bookings', preset, noDate }: { title?: s
         columns={[{ key: 'code', header: 'Booking' }, { key: 'playDate', header: 'Date' }, { key: 'localTime', header: 'Tee Time' }, { key: 'contactName', header: 'Booked by' },
           { key: 'bookingType', header: 'Type', render: (r) => String(r.bookingType).replace('_', ' ') }, { key: 'playerCount', header: 'Players', align: 'right' },
           { key: 'channel', header: 'Channel', render: (r) => String(r.channel).replace('_', ' ') }, { key: 'status', header: 'Status', render: pill('status') },
-          { key: 'teeOffAt', header: 'Play time', render: (r) => <PlayTime start={r.teeOffAt as string} end={r.roundFinishAt as string} label={false} fallback="—" /> }]} />
+          { key: 'teeOffAt', header: 'Play time', render: (r) => <PlayTime start={r.teeOffAt as string} end={r.roundFinishAt as string} pausedAt={r.pausedAt as string | null | undefined} pausedSeconds={Number(r.pausedSeconds ?? 0)} label={false} fallback="—" /> }]} />
       {open && <BookingDrawer id={open} onClose={() => setOpen(null)} />}
     </>
   );
@@ -286,7 +296,7 @@ export function FlightsPage() {
         { key: 'players', header: 'Players', render: (f) => ((f.players as R[]) ?? []).map((p) => String(p.name)).join(', ') },
         { key: 'readiness', header: 'Ready', render: (f) => { const rd = f.readiness as R; return `${String(rd?.checkedIn)}/${String(rd?.players)} checked-in${rd?.caddiesOk ? '' : ' · caddy'}${rd?.golfCartsOk ? '' : ' · golf cart'}`; } },
         { key: 'golfCarts', header: 'Golf Carts', render: (f) => ((f.golfCarts as string[]) ?? []).join(', ') }, { key: 'status', header: 'Status', render: pill('status') },
-        { key: 'teeOffAt', header: 'Play time', render: (f) => <PlayTime start={f.teeOffAt as string} end={f.roundFinishAt as string} label={false} fallback="—" /> }]} />
+        { key: 'teeOffAt', header: 'Play time', render: (f) => <PlayTime start={f.teeOffAt as string} end={f.roundFinishAt as string} pausedAt={f.pausedAt as string | null | undefined} pausedSeconds={Number(f.pausedSeconds ?? 0)} label={false} fallback="—" /> }]} />
   );
 }
 

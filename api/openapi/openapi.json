@@ -13672,12 +13672,33 @@
       },
       "BookingFlight": {
         "properties": {
+          "currentHole": {
+            "description": "Hole in progress on the caddy tablet (0 before tee-off)",
+            "type": "integer"
+          },
           "flightNo": {
+            "type": "integer"
+          },
+          "holesPlayed": {
+            "nullable": true,
             "type": "integer"
           },
           "id": {
             "format": "uuid",
             "type": "string"
+          },
+          "pauseReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedSeconds": {
+            "description": "Paused time already left out of the play time",
+            "type": "integer"
           },
           "readyAt": {
             "format": "date-time",
@@ -13715,7 +13736,9 @@
           "startAt",
           "startTee",
           "flightNo",
-          "status"
+          "status",
+          "pausedSeconds",
+          "currentHole"
         ],
         "type": "object"
       },
@@ -14032,6 +14055,16 @@
           "localTime": {
             "type": "string"
           },
+          "pausedAt": {
+            "description": "Set while the round is paused (rain): the play time stops",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedSeconds": {
+            "description": "Paused time left out of the play time",
+            "type": "integer"
+          },
           "paymentMode": {
             "nullable": true,
             "type": "string"
@@ -14079,7 +14112,8 @@
           "localTime",
           "playerCount",
           "contactName",
-          "createdAt"
+          "createdAt",
+          "pausedSeconds"
         ],
         "type": "object"
       },
@@ -18910,6 +18944,14 @@
             "description": "The balance can be charged to a member account",
             "type": "boolean"
           },
+          "pausedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedSeconds": {
+            "type": "integer"
+          },
           "paymentMode": {
             "nullable": true,
             "type": "string"
@@ -18957,7 +18999,8 @@
           "balance",
           "memberAccount",
           "lockers",
-          "bags"
+          "bags",
+          "pausedSeconds"
         ],
         "type": "object"
       },
@@ -41683,6 +41726,35 @@
         ],
         "type": "object"
       },
+      "FlightPause": {
+        "properties": {
+          "flightId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "pauseReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedSeconds": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "flightId",
+          "status",
+          "pausedSeconds"
+        ],
+        "type": "object"
+      },
       "FlightRef": {
         "properties": {
           "id": {
@@ -60174,6 +60246,27 @@
         },
         "type": "object"
       },
+      "MembershipPauseInput": {
+        "properties": {
+          "from": {
+            "description": "YYYY-MM-DD",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "until": {
+            "description": "YYYY-MM-DD",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "until",
+          "reason"
+        ],
+        "type": "object"
+      },
       "MembershipProgram": {
         "properties": {
           "archivedAt": {
@@ -70413,23 +70506,22 @@
       },
       "PauseInput": {
         "properties": {
-          "from": {
-            "description": "YYYY-MM-DD",
+          "at": {
+            "description": "When it happened on the tablet (offline replay)",
+            "format": "date-time",
+            "nullable": true,
             "type": "string"
           },
           "reason": {
-            "type": "string"
-          },
-          "until": {
-            "description": "YYYY-MM-DD",
+            "description": "Default rain",
+            "enum": [
+              "rain",
+              "lightning",
+              "other"
+            ],
             "type": "string"
           }
         },
-        "required": [
-          "from",
-          "until",
-          "reason"
-        ],
         "type": "object"
       },
       "PayFeeInput": {
@@ -90612,6 +90704,19 @@
             ],
             "type": "string"
           },
+          "pauseReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedAt": {
+            "description": "Paused (rain): the play time stops",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedSeconds": {
+            "type": "integer"
+          },
           "playDate": {
             "format": "date-time",
             "type": "string"
@@ -90676,6 +90781,7 @@
           "status",
           "currentSeq",
           "holes",
+          "pausedSeconds",
           "paceStatus",
           "behindMinutes",
           "players",
@@ -95630,6 +95736,15 @@
             "description": "Tee time in the club's time zone (HH:MM)",
             "type": "string"
           },
+          "pausedAt": {
+            "description": "Paused (rain): the play time stops",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedSeconds": {
+            "type": "integer"
+          },
           "players": {
             "items": {
               "$ref": "#/components/schemas/SheetPlayer"
@@ -95676,6 +95791,7 @@
           "flightNo",
           "localTime",
           "status",
+          "pausedSeconds",
           "players",
           "golfCarts",
           "golfCartsNeeded",
@@ -230692,6 +230808,190 @@
         "x-permission": "golf.flight.manage"
       }
     },
+    "/api/v1/golf/flights/{id}:pause": {
+      "post": {
+        "operationId": "postGolfFlightsByIdPause",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightPause"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Pause the round (rain): the play time stops",
+        "tags": [
+          "Check-in"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.flight.manage"
+      }
+    },
+    "/api/v1/golf/flights/{id}:resume": {
+      "post": {
+        "operationId": "postGolfFlightsByIdResume",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightPause"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Resume the round after the rain",
+        "tags": [
+          "Check-in"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.flight.manage"
+      }
+    },
     "/api/v1/golf/golf-cart-assignments": {
       "get": {
         "operationId": "getGolfGolfCartAssignments",
@@ -320635,7 +320935,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PauseInput"
+                "$ref": "#/components/schemas/MembershipPauseInput"
               }
             }
           },
@@ -327572,7 +327872,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PauseInput"
+                "$ref": "#/components/schemas/MembershipPauseInput"
               }
             }
           },

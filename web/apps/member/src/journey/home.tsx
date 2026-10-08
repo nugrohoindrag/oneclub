@@ -162,7 +162,7 @@ function UpcomingGolf({ b }: { b: Schemas['BookingSummary'] }) {
       </div>
       <div className="oc-row-wrap">
         <Chip tone={b.status === 'pending' ? 'warn' : 'ok'}>Tee Time {b.status === 'pending' ? 'awaiting payment' : b.status === 'checked_in' ? '✓ Checked in' : '✓ Confirmed'}</Chip>
-        {b.teeOffAt && <Chip tone="info"><PlayTime start={b.teeOffAt} end={b.roundFinishAt} /></Chip>}
+        {b.teeOffAt && <Chip tone="info"><PlayTime start={b.teeOffAt} end={b.roundFinishAt} pausedAt={b.pausedAt as string | null | undefined} pausedSeconds={Number(b.pausedSeconds ?? 0)} /></Chip>}
         {want.length > 0 && (assigned.length === want.length
           ? <Chip tone="ok">Caddy ✓ Assigned{assigned.length === 1 ? ` · ${assigned[0]!.caddy!.name}` : ''}</Chip>
           : <Chip tone="warn">Caddy pending assignment</Chip>)}

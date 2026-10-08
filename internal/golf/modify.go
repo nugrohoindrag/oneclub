@@ -916,6 +916,9 @@ func (m *Module) IssueRainChecks(ctx context.Context, tx pgx.Tx, property uuid.U
 				break
 			}
 		}
+		if pol.Weather.FullCreditBeforeHalf && holes*2 < holesTotal {
+			pct = hundred // before half of the round: reschedule at no cost
+		}
 		rows, err := tx.Query(ctx, `SELECT id, customer_id, coalesce(price_total, 0)::text FROM golf.booking_players WHERE flight_id = $1 AND status = 'checked_in'
 			AND NOT EXISTS (SELECT 1 FROM golf.rain_checks rc WHERE rc.booking_player_id = golf.booking_players.id)`, fid)
 		if err != nil {
@@ -989,7 +992,14 @@ func (m *Module) redeemRainCheck(ctx context.Context, tx pgx.Tx, property, rcID,
 		return errs.Conflict("rain_check_unusable", "rain check "+number+" is "+status+" or expired")
 	}
 	if owner != nil && customerID != nil && *owner != *customerID {
-		return errs.Conflict("rain_check_owner", "rain check "+number+" belongs to another customer")
+		// a rain rebooking carries every player's rain check: the owner plays in the new booking
+		var plays bool
+		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.booking_players WHERE booking_id = $1 AND customer_id = $2)`, bookingID, *owner).Scan(&plays); err != nil {
+			return err
+		}
+		if !plays {
+			return errs.Conflict("rain_check_owner", "rain check "+number+" belongs to another customer")
+		}
 	}
 	amt := dec(credit)
 	if amt.IsPositive() {
