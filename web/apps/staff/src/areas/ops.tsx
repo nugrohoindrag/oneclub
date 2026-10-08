@@ -12,6 +12,7 @@ import {
   FrontDeskPaymentsPage, GuestPage, LockersPage, OpsCheckInPage, OpsCheckOutPage, OpsTeeSheetPage, OpsTiles, StarterQueuePage,
 } from '../ops/golf';
 import { DeskNewBookingPage, FrontDeskPage } from '../ops/desk';
+import { CaddyHistoryPage } from '../ops/caddy';
 import { P2_OPS_ROUTES, P2Tiles } from '../ops/p2';
 import { P3_OPS_ROUTES, P3Tiles } from '../ops/p3';
 import { ConnectivityChip, OUTLET_KEY, SyncPage, read, write } from '../offline';
@@ -153,7 +154,7 @@ const routes = [
       { path: 'caddy/availability', element: <CaddyQueuePage /> },
       { path: 'caddy/rotation', element: <CaddyQueuePage /> },
       { path: 'caddy/assignment', element: <CaddyAssignmentPage /> },
-      { path: 'caddy/history', element: <CaddyAssignmentPage history /> },
+      { path: 'caddy/history', element: <CaddyHistoryPage /> },
       { path: 'front-desk', element: <FrontDeskPage /> },
       { path: 'front-desk/new', element: <DeskNewBookingPage /> },
       { path: 'front-desk/guest', element: <GuestPage /> },

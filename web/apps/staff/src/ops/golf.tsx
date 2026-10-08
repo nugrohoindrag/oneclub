@@ -310,6 +310,7 @@ function CheckOutModal({ entry, onClose, onDone }: { entry: R; onClose: () => vo
       <div className="oc-stack">
         <p style={{ margin: 0 }}>{((entry.players as string[] | undefined) ?? []).join(', ')}</p>
         {(b.data?.flights ?? []).map((f) => <CaddyTips key={String(f.id)} flightId={String(f.id)} onTip={() => void b.refetch()} />)}
+        {(b.data?.flights ?? []).map((f) => <CaddyRatings key={`r${String(f.id)}`} flightId={String(f.id)} />)}
         <p style={{ margin: 0 }}>Charges {money(b.data?.folio?.charges)} · paid {money(b.data?.folio?.payments)} · balance <strong>{money(b.data?.folio?.balance)}</strong></p>
         {due > 0 && (
           <div className="oc-row-wrap">
@@ -326,6 +327,38 @@ function CheckOutModal({ entry, onClose, onDone }: { entry: R; onClose: () => vo
         <ErrorAlert error={out.error} />
       </div>
     </Modal>
+  );
+}
+
+/** End of the session: each player rates their caddy 1–5. */
+function CaddyRatings({ flightId }: { flightId: string }) {
+  const toast = useToast();
+  const list = useGet<Page<R>>(`/api/v1/golf/caddy-assignments${qs({ flightId })}`);
+  const rate = useSend<Record<string, unknown>>('POST', (v) => `/api/v1/golf/caddy-assignments/${String(v.id)}:rate`, ['/api/v1/golf']);
+  const [done, setDone] = useState<Record<string, number>>({});
+  const caddies = (list.data?.items ?? []).filter((a) => ['completed', 'replaced'].includes(String(a.status)));
+  if (caddies.length === 0) return null;
+  return (
+    <div className="oc-stack">
+      <strong>Ask the players: how was your caddy?</strong>
+      {caddies.flatMap((a) => ((a.playerIds as string[]) ?? []).map((pid, i) => {
+        const key = `${a.id}:${pid}`;
+        return (
+          <div key={key} className="oc-row-wrap" style={{ alignItems: 'center' }}>
+            <span style={{ minWidth: 220 }}>{String(((a.playerNames as string[]) ?? [])[i] ?? 'Player')} → <strong>{String(a.caddyName)}</strong></span>
+            <div className="oc-row" role="group" aria-label={`Rating for ${String(a.caddyName)}`}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n} type="button" className="oc-icon-btn" aria-label={`${n} of 5`} aria-pressed={done[key] === n} disabled={!!done[key] || rate.isPending}
+                  onClick={() => rate.mutate({ id: a.id, playerId: pid, rating: n }, { onSuccess: () => { setDone({ ...done, [key]: n }); toast(`Rated ${n}/5`); } })}>
+                  <Icon name="star" filled={(done[key] ?? 0) >= n} size={24} />
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      }))}
+      <ErrorAlert error={rate.error} />
+    </div>
   );
 }
 

@@ -165,7 +165,7 @@ function DeskRangeBooking() {
 
 // ── one booking at the desk ────────────────────────────────────────────────
 
-const TABS = [['bill', 'Bill'], ['time', 'Tee Time'], ['players', 'Players'], ['caddy', 'Caddy & Cart']] as const;
+const TABS = [['bill', 'Bill'], ['time', 'Tee Time'], ['players', 'Players'], ['caddy', 'Caddy & Cart'], ['profile', 'Profile']] as const;
 type Tab = (typeof TABS)[number][0];
 
 function DeskBookingModal({ id, onClose }: { id: string; onClose: () => void }) {
@@ -190,6 +190,7 @@ function DeskBookingModal({ id, onClose }: { id: string; onClose: () => void }) 
           {tab === 'time' && <TimeTab b={x} onDone={() => void b.refetch()} />}
           {tab === 'players' && <PlayersTab b={x} onDone={() => void b.refetch()} />}
           {tab === 'caddy' && <CaddyTab b={x} />}
+          {tab === 'profile' && <ProfileTab b={x} />}
         </div>
       )}
     </Modal>
@@ -471,6 +472,76 @@ export function CaddyCartModal({ id, onClose }: { id: string; onClose: () => voi
       <ErrorAlert error={b.error} />
       {b.data && <CaddyTab b={b.data} />}
     </Modal>
+  );
+}
+
+// ── player profile (personalised service) ─────────────────────────────────
+
+/** What the desk needs for personalised service: the preferred / favourite
+ * caddies and the history with them, favourite food, recent F&B orders,
+ * preferences (diet, allergy …), handicap and notes. */
+function ProfileTab({ b }: { b: Booking }) {
+  const players = b.players.filter((p) => live(p) && p.customerId);
+  const [pick, setPick] = useState(String(players[0]?.customerId ?? ''));
+  if (!players.length) return <p className="oc-muted">No player of this booking has a customer profile (walk-in guests without contact details).</p>;
+  return (
+    <div className="oc-stack">
+      <div className="oc-row-wrap" role="tablist">
+        {players.map((p) => <Btn key={p.id} label={String(p.name)} kind={pick === p.customerId ? 'ink' : 'neutral'} onClick={() => setPick(String(p.customerId))} />)}
+      </div>
+      {pick && <PlayerProfile customerId={pick} />}
+    </div>
+  );
+}
+
+function PlayerProfile({ customerId }: { customerId: string }) {
+  const ctx = useGet<R & { preferences: R[]; highlights: string[] }>(`/api/v1/crm/customers/${customerId}/context`);
+  const c360 = useGet<R & { sections: Record<string, R> }>(`/api/v1/crm/customers/${customerId}/360`);
+  const caddies = useGet<Page<R>>(`/api/v1/golf/customers/${customerId}/caddies`);
+  const orders = useGet<Page<R>>(`/api/v1/commercial/orders${qs({ 'filter[customerId]': customerId, limit: 10 })}`);
+  const golf = c360.data?.sections?.golf as R | undefined;
+  const pos = c360.data?.sections?.pos as (R & { topProducts?: R[] }) | undefined;
+  const prefs = ctx.data?.preferences ?? [];
+  const food = prefs.filter((p) => ['food', 'beverage', 'favorite_food', 'diet', 'allergy'].includes(String(p.category)));
+  const other = prefs.filter((p) => !food.includes(p) && p.category !== 'favorite_caddy');
+  return (
+    <div className="oc-stack">
+      <ErrorAlert error={ctx.error ?? c360.error} />
+      {(ctx.data?.highlights ?? []).length > 0 && (
+        <div className="oc-alert oc-alert-info">{(ctx.data?.highlights ?? []).join(' · ')}</div>
+      )}
+      <div className="oc-row-wrap" style={{ alignItems: 'flex-start' }}>
+        <div className="oc-card" style={{ flex: 1, minWidth: 240 }}>
+          <strong>Golf</strong>
+          <p style={{ margin: '6px 0 0' }}>{String(golf?.rounds ?? 0)} rounds{golf?.handicapIndex ? ` · HI ${String(golf.handicapIndex)}` : ''}
+            {golf?.lastRound ? ` · last ${formatDateTime(String(golf.lastRound))}` : ''}</p>
+          {ctx.data?.notes ? <p className="oc-small oc-muted">Note: {String(ctx.data.notes)}</p> : null}
+        </div>
+        <div className="oc-card" style={{ flex: 1, minWidth: 240 }}>
+          <strong>Favourite food & drinks</strong>
+          <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+            {food.map((p) => <li key={String(p.id)}>{String(p.value)} <span className="oc-small oc-muted">({String(p.category).replace(/_/g, ' ')})</span></li>)}
+            {(pos?.topProducts ?? []).map((t) => <li key={String(t.productId)}>{String(t.name)} <span className="oc-small oc-muted">× {String(t.quantity)} ordered</span></li>)}
+            {!food.length && !(pos?.topProducts ?? []).length && <li className="oc-muted">Nothing recorded yet</li>}
+          </ul>
+        </div>
+      </div>
+      <h3 style={{ margin: '8px 0 0' }}>Caddies (preferred, favourite, history)</h3>
+      <DataTable rows={withId(caddies.data?.items, 'caddyId')} loading={caddies.isLoading} columns={[{ key: 'code', header: 'Caddy', render: (c) => `${String(c.code)} · ${String(c.name)}` },
+        { key: 'favourite', header: 'Favourite', render: (c) => (c.favourite ? '★ favourite' : '') }, { key: 'rounds', header: 'Times together', align: 'right' },
+        { key: 'requested', header: 'Asked for', align: 'right' }, { key: 'avgRating', header: 'Rating given', render: (c) => (c.avgRating ? `★ ${String(c.avgRating)}` : '—') },
+        { key: 'lastRound', header: 'Last', render: (c) => formatDateTime(String(c.lastRound)) }]} />
+      <h3 style={{ margin: '8px 0 0' }}>Recent food & drink orders</h3>
+      <DataTable rows={orders.data?.items} loading={orders.isLoading} columns={[{ key: 'createdAt', header: 'When', render: (o) => formatDateTime(String(o.createdAt)) },
+        { key: 'outletName', header: 'Outlet' }, { key: 'lines', header: 'Items', render: (o) => ((o.lines as R[] | undefined) ?? []).map((l) => `${String(l.quantity)}× ${String(l.name)}`).join(', ') || String(o.orderNo) },
+        { key: 'total', header: 'Total', align: 'right', render: (o) => money(o.total) }]} />
+      {other.length > 0 && (
+        <>
+          <h3 style={{ margin: '8px 0 0' }}>Other preferences</h3>
+          <div className="oc-row-wrap">{other.map((p) => <span key={String(p.id)} className="oc-chip">{String(p.category).replace(/_/g, ' ')}: {String(p.value)}</span>)}</div>
+        </>
+      )}
+    </div>
   );
 }
 

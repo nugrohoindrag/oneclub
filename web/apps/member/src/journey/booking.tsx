@@ -227,7 +227,7 @@ function PayAmount({ folioId, balance, onClose, onPayment }: { folioId: string; 
 }
 
 /** How was your caddy service? 1–5 stars (feeds Caddy Management). */
-function RateCaddy({ assignmentId, name }: { assignmentId: string; name: string }) {
+export function RateCaddy({ assignmentId, name }: { assignmentId: string; name: string }) {
   const toast = useToast();
   const qc = useQueryClient();
   const [rating, setRating] = useState(0);

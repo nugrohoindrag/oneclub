@@ -14427,6 +14427,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/caddies/{id}/wage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Caddy wage of a month: base salary, caddy fees per assignment, tips, deductions */
+        get: operations["getGolfCaddiesByIdWage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/caddies/{id}:favorite": {
         parameters: {
             query?: never;
@@ -14524,6 +14541,23 @@ export interface paths {
         put?: never;
         /** Cancel a caddy assignment */
         post: operations["postGolfCaddyAssignmentsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/caddy-assignments/{id}:rate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The player's 1–5 caddy rating at the end of the session (front desk) */
+        post: operations["postGolfCaddyAssignmentsByIdRate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -15186,6 +15220,23 @@ export interface paths {
         };
         /** Export Courses (CSV/XLSX) */
         get: operations["getGolfCoursesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/customers/{id}/caddies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caddies of a member: rounds together, ratings given, favourites */
+        get: operations["getGolfCustomersByIdCaddies"];
         put?: never;
         post?: never;
         delete?: never;
@@ -40918,6 +40969,7 @@ export interface components {
             playersPerCaddy: number;
         };
         CaddyProfile: {
+            baseSalary?: string | null;
             /** Format: uuid */
             caddyId: string;
             /** Format: date-time */
@@ -40932,6 +40984,8 @@ export interface components {
             userId?: string | null;
         };
         CaddyProfileInput: {
+            /** @description Monthly base salary (gaji pokok) */
+            baseSalary?: string;
             /** @description YYYY-MM-DD */
             joinedOn?: string;
             /**
@@ -40999,6 +41053,32 @@ export interface components {
             id: string;
             method: string;
             tipDate: string;
+        };
+        CaddyWage: {
+            /** @description Finished assignments in the month */
+            assignments: number;
+            averageRating?: string | null;
+            /** @description Monthly base salary (gaji pokok) */
+            baseSalary: string;
+            /** @description Caddy fee per assignment, summed: grows with the number of assignments */
+            caddyFees: string;
+            /** Format: uuid */
+            caddyId: string;
+            /** @description Caddy Policies deductions on the caddy fees */
+            deductions: string;
+            feeBands: components["schemas"]["FeeBand"][];
+            /** @description Different customers accompanied */
+            members: number;
+            /** @description YYYY-MM */
+            month: string;
+            /** @description Already in caddy fee settlements */
+            settled: string;
+            /** @description Received directly by the caddy */
+            tipsCash: string;
+            /** @description Paid through the settlement */
+            tipsNonCash: string;
+            /** @description Base salary + caddy fees + non-cash tips − deductions */
+            total: string;
         };
         CalculateRequest: {
             amount: string;
@@ -46467,6 +46547,16 @@ export interface components {
             /** @description YYYY-MM */
             period: string;
         };
+        DeskRatingInput: {
+            comment?: string;
+            /**
+             * Format: uuid
+             * @description The player of the flight who rates
+             */
+            playerId: string;
+            /** @description 1–5 */
+            rating: number;
+        };
         Device: {
             /** Format: date-time */
             createdAt: string;
@@ -49799,6 +49889,11 @@ export interface components {
             /** @enum {string} */
             status: "scheduled" | "due" | "paid" | "waived" | "postponed" | "cancelled";
         };
+        FeeBand: {
+            amount: string;
+            assignments: number;
+            total: string;
+        };
         FeeCalcInput: {
             /** Format: uuid */
             instructorId: string;
@@ -50480,6 +50575,22 @@ export interface components {
             days: number;
             unchanged: number;
             updated: number;
+        };
+        GolfMemberCaddy: {
+            code: string;
+            favorite: boolean;
+            gender?: string | null;
+            /** Format: uuid */
+            id: string;
+            level?: string | null;
+            name: string;
+            /** @description Present on the date (attendance); unknown for later days */
+            onDuty: boolean;
+            /** @description Average of the players' ratings (1–5) */
+            rating?: string | null;
+            ratings: number;
+            /** @description Completed rounds */
+            rounds: number;
         };
         GolfToday: {
             date: string;
@@ -56125,19 +56236,23 @@ export interface components {
             startDate: string;
         };
         MemberCaddy: {
-            code: string;
-            favorite: boolean;
-            gender?: string | null;
+            /** @description Average rating the customer gave this caddy */
+            avgRating?: string | null;
             /** Format: uuid */
-            id: string;
-            level?: string | null;
+            caddyId: string;
+            /** @description Overall average rating of the caddy */
+            caddyRating?: string | null;
+            code: string;
+            favourite: boolean;
+            /** Format: date-time */
+            firstRound: string;
+            lastRating?: number | null;
+            /** Format: date-time */
+            lastRound: string;
             name: string;
-            /** @description Present on the date (attendance); unknown for later days */
-            onDuty: boolean;
-            /** @description Average of the players' ratings (1–5) */
-            rating?: string | null;
-            ratings: number;
-            /** @description Completed rounds */
+            /** @description Times the customer asked for this caddy */
+            requested: number;
+            /** @description Times the caddy accompanied the customer */
             rounds: number;
         };
         MemberEvent: {
@@ -137513,6 +137628,61 @@ export interface operations {
             };
         };
     };
+    getGolfCaddiesByIdWage: {
+        parameters: {
+            query?: {
+                /** @description YYYY-MM (default this month) */
+                month?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaddyWage"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postGolfCaddiesByIdFavorite: {
         parameters: {
             query?: never;
@@ -137892,6 +138062,60 @@ export interface operations {
                         nextCursor?: string;
                     };
                 };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfCaddyAssignmentsByIdRate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeskRatingInput"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Not authenticated */
             401: {
@@ -141080,6 +141304,66 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfCustomersByIdCaddies: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MemberCaddy"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -190286,7 +190570,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: components["schemas"]["MemberCaddy"][];
+                        items: components["schemas"]["GolfMemberCaddy"][];
                         nextCursor?: string;
                     };
                 };
