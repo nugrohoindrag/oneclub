@@ -639,7 +639,7 @@ Tujuan: source code OneClub tidak dapat diambil atau diduplikasi dari artefak ya
 |---|---|---|
 | Distribusi | Klien hanya menerima akses aplikasi, **bukan** source code, binary, atau image | Paling efektif bila instance di-hosting OneClub (lihat Keputusan Terbuka #1). Untuk on-premise, image ditarik dari registry privat dengan kredensial per instance yang bisa dicabut |
 | Backend (Go) | Binary dikompilasi (bukan source), `-trimpath -ldflags="-s -w"`, lalu **obfuscation dengan `garble`** (`-literals -tiny`) untuk build Staging/Production | Nama package, fungsi, dan string literal diacak; stack trace production di-*reverse* lewat `garble reverse` dengan seed build yang disimpan privat |
-| Frontend (React) | Build production di-minify dan di-mangle; **source map tidak ikut di-deploy** (di-upload privat ke error tracker saja) | Kode JavaScript tetap bisa dibaca browser, jadi **logika bisnis dan otorisasi wajib di backend** (sudah menjadi prinsip §6.3) |
+| Frontend (React, Next.js) | Build production di-minify dan di-mangle; **source map tidak ikut di-deploy** (di-upload privat ke error tracker saja); pada build VPS seluruh JavaScript — Staff App, Member App, website sisi browser dan server — **di-obfuscate** (`web/scripts/obfuscate.mjs`: nama diacak, string ke string array; tanpa control-flow flattening/self-defending agar POS offline dan tablet tetap cepat) | JavaScript tetap dijalankan browser, jadi obfuscation hanya menghambat; **logika bisnis dan otorisasi wajib di backend** (sudah menjadi prinsip §6.3) |
 | Image | Base image distroless, tanpa shell; image ditandatangani (cosign) dan hanya registry privat | Mencegah penggantian image dan memperkecil permukaan ekstraksi |
 | Lisensi | Instance memvalidasi **license key** bertanda tangan (kode instance, masa berlaku, module yang dibeli) saat startup dan berkala | Selaras dengan Enabled Modules (PRD FR-INS-04) dan subscription/feature tier (P6) |
 | Hukum | Klausul HKI, larangan reverse engineering, dan kerahasiaan di kontrak klien | Obfuscation hanya menghambat, bukan mencegah; perlindungan hukum tetap diperlukan |
@@ -647,7 +647,8 @@ Tujuan: source code OneClub tidak dapat diambil atau diduplikasi dari artefak ya
 Waktu penerapan (keputusan: **obfuscation hanya saat deploy ke VPS**):
 
 - **Development, CI (PR), dan Dev:** build biasa tanpa obfuscation, agar debugging, stack trace, dan test tetap mudah.
-- **Deploy ke VPS (Staging/Production):** pipeline release membangun image terpisah dengan `garble` + frontend tanpa source map. Smoke test dan E2E dijalankan terhadap image hasil obfuscation sebelum dipromosikan. Seed `garble` per build disimpan privat untuk `garble reverse`.
+- **Deploy ke VPS:** hanya dari branch `production`. Workflow `vps` membangun image terpisah dengan `garble` + frontend ter-obfuscate tanpa source map. Smoke test dan E2E dijalankan terhadap image hasil obfuscation sebelum dipromosikan. Seed `garble` per build disimpan privat untuk `garble reverse`.
+- **Source di semua branch tetap asli** (`staging`, `main`, `production`). Obfuscation hanya terjadi di pipeline build; hasilnya tidak pernah di-commit, dan VPS hanya menerima image, bukan repository.
 - Kode sejak awal menghindari pola yang rusak oleh obfuscation (mis. bergantung pada nama fungsi/package lewat refleksi).
 - **P6:** license key penuh bersama subscription & feature tier.
 
@@ -854,26 +855,25 @@ Rilis memakai **semantic versioning**. Release note dihasilkan dari commit / PR.
 |---|---|---|
 | `ci` | Setiap PR, push ke `main` | `lint` (golangci-lint + depguard aturan arsitektur) · `backend` (unit + race, migration di DB kosong, acceptance test API di PostgreSQL 18, OpenAPI drift + breaking change) · `frontend` (drift API client, typecheck, lint, unit test, build) · `browser` (stack lengkap di runner + Playwright untuk semua shell) |
 | `ci` (khusus `main`) | Setelah semua check hijau | `images`: build → Trivy scan → push ke GitHub Container Registry (tag SHA) · `deploy-dev` |
-| `staging` | Push ke branch `staging` | Image VPS dibangun sekali: backend di-obfuscate (garble), frontend tanpa source map (§9.4), tag `<sha>-vps` → deploy ke Staging + browser test |
-| `release` | Tag `vX.Y.Z` pada commit `staging` | Image `<sha>-vps` yang sudah diuji di Staging dipromosikan menjadi `vX.Y.Z` tanpa build ulang → GitHub Release → Production per instance dengan approval manual |
+| `vps` | Push ke branch `production` | Image VPS dibangun sekali: backend di-obfuscate (garble), frontend di-obfuscate tanpa source map (§9.4), tag `<sha>-vps` → deploy ke VPS + browser test |
+| `release` | Tag `vX.Y.Z` pada commit `production` | Image `<sha>-vps` yang sudah diuji di VPS dipromosikan menjadi `vX.Y.Z` tanpa build ulang → GitHub Release → instance klien dengan approval manual |
 
-**Alur branch:**
+**Alur branch (sejak Oktober 2026, satu developer):**
 
 ```text
-develop ──PR──▶ main ──PR──▶ staging ──tag vX.Y.Z──▶ Production
-(kerja)         (Dev)        (Staging/UAT)           (approval manual)
+staging ──PR──▶ main ──PR──▶ production ──tag vX.Y.Z──▶ instance klien
+(kerja)         (CI hijau)   (VPS, ter-obfuscate)       (approval manual)
 ```
 
-Hanya ada tiga branch tetap:
+Hanya ada tiga branch tetap, semuanya berisi source asli:
 
-- `develop` → tempat semua commit. Saat sekumpulan perubahan siap, buka PR `develop → main`.
-- `main` → Dev otomatis. Hanya menerima PR dari `develop` dengan **merge commit** (bukan squash, agar riwayat
-  `develop` tetap sama dengan `main` dan PR berikutnya tidak conflict). Setelah merge, `develop` disamakan lagi
-  dengan `git merge --ff-only origin/main`.
-- `staging` → Staging otomatis. Hanya menerima PR `main → staging` saat sekumpulan fitur siap UAT; tidak ada commit
-  langsung. Perbaikan dari temuan UAT dibuat di `develop` → `main` → dipromosikan lagi ke `staging`.
-- Tag `vX.Y.Z` hanya boleh pada commit di `staging` (dicek otomatis). Production menjalankan image yang persis sama
-  dengan yang diuji di Staging.
+- `staging` → tempat semua commit. Saat sekumpulan perubahan siap, buka PR `staging → main`.
+- `main` → Dev otomatis (build biasa). Hanya menerima PR dari `staging` dengan **merge commit** (bukan squash, agar
+  PR berikutnya tidak conflict). Setelah merge, `staging` disamakan lagi dengan `git merge --ff-only origin/main`.
+- `production` → VPS otomatis (build ter-obfuscate, §9.4). Hanya menerima PR `main → production`; tidak ada commit
+  langsung. Perbaikan dari temuan di VPS dibuat di `staging` → `main` → dipromosikan lagi ke `production`.
+- Tag `vX.Y.Z` hanya boleh pada commit di `production` (dicek otomatis). Instance klien menjalankan image yang persis
+  sama dengan yang diuji di VPS.
 
 Penyesuaian dari rencana: OpenAPI di-generate dari kode (code-first) dan sqlc tidak dipakai, sehingga cek drift
 dilakukan pada `openapi.json` dan API client TypeScript. Job deploy otomatis dilewati sampai server Dev/Staging/
@@ -895,7 +895,7 @@ Sejak Oktober 2026 pengembangan dilanjutkan oleh **satu developer**, sehingga fa
 
 **Aturan kerja:**
 
-1. **Tiga branch tetap** (§12.2). Semua commit di `develop`; merge ke `main` hanya lewat Pull Request yang semua
+1. **Tiga branch tetap** (§12.2). Semua commit di `staging`; merge ke `main` hanya lewat Pull Request yang semua
    check CI-nya hijau (branch protection: wajib PR, wajib lulus `lint`, `backend`, `frontend`, `browser`, tidak
    boleh force push). Tidak ada approval wajib karena tidak ada developer kedua; CI menjadi gerbang utamanya.
 2. **Batas module.** Tiap module memegang kode Go dan schema-nya sendiri (§4.1). Kebutuhan lintas module dipenuhi
@@ -906,7 +906,7 @@ Sejak Oktober 2026 pengembangan dilanjutkan oleh **satu developer**, sehingga fa
    tetap zero-downtime.
 5. **Titik sentuh bersama** — wiring module (`internal/app`), katalog permission & role
    (`internal/platform/catalog`), navigasi shell — diubah secara aditif agar fase sebelumnya tidak rusak.
-6. **Rilis.** Satu tag `vX.Y.Z` dari `staging` dapat berisi pekerjaan beberapa fase. Fitur yang belum siap dirilis
+6. **Rilis.** Satu tag `vX.Y.Z` dari `production` dapat berisi pekerjaan beberapa fase. Fitur yang belum siap dirilis
    disembunyikan dengan feature flag/module flag instance (§9, FR-INS), bukan dengan menahan merge.
 
 ---
@@ -961,4 +961,4 @@ Target awal *(usulan, perlu divalidasi dengan club dan hasil load test)*:
 | 8 | Native mobile app | Tetap PWA vs native | Evaluasi setelah P2 |
 | 9 | Library yang ditandai *(usulan)* di dokumen ini | Dikonfirmasi tim engineering | P0 |
 | 10 | Accent default OneClub | Preset Morphic vs custom accent dari warna brand | P0 (M0) |
-| 11 | Perlindungan source code (§9.4) | **Diputuskan:** obfuscation `garble` + tanpa source map hanya pada build deploy VPS. Terbuka: license key sejak P0 atau P6 | Deploy VPS pertama |
+| 11 | Perlindungan source code (§9.4) | **Diputuskan:** obfuscation `garble` (backend) + JavaScript ter-obfuscate tanpa source map (frontend) hanya pada build deploy VPS dari branch `production` (Oktober 2026). Terbuka: license key sejak P0 atau P6 | Deploy VPS pertama |

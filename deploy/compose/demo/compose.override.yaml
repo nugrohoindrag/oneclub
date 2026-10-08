@@ -1,0 +1,68 @@
+# Single-VM demo (e.g. oneclub.web.id): the database, mail and file storage
+# run next to the app on one small host (2 vCPU / 2 GB). Not for client data:
+# production keeps the database on the DB Host (deploy/compose/db) with
+# WAL archiving and a replica.
+#
+# Copy to /srv/oneclub/instances/<code>/compose.override.yaml; deploy.sh adds
+# it to every compose command of that instance. Steps in
+# docs/runbooks/demo-vps.md.
+
+services:
+  # PostgreSQL only on the compose network (no published port), sized for 2 GB.
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/pg_superuser_password
+    secrets: [pg_superuser_password]
+    command: [postgres, -c, shared_buffers=256MB, -c, effective_cache_size=768MB, -c, max_connections=100, -c, work_mem=8MB]
+    volumes:
+      - pgdata:/var/lib/postgresql
+    shm_size: 256mb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "3" }
+
+  # Demo e-mails are delivered here and never leave the host.
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+
+  # Uploaded files (photos, documents) on a volume instead of S3; the backend
+  # runs as the distroless nonroot user (65532).
+  storage-init:
+    image: busybox:1.37
+    command: ["sh", "-c", "mkdir -p /data/storage && chown -R 65532:65532 /data"]
+    volumes:
+      - files:/data
+    restart: "no"
+
+  api:
+    volumes:
+      - files:/data
+    depends_on:
+      db: { condition: service_healthy }
+      storage-init: { condition: service_completed_successfully }
+
+  worker:
+    volumes:
+      - files:/data
+    depends_on:
+      db: { condition: service_healthy }
+      storage-init: { condition: service_completed_successfully }
+
+  migrate:
+    depends_on:
+      db: { condition: service_healthy }
+
+secrets:
+  pg_superuser_password: { file: "${INSTANCE_DIR}/secrets/pg_superuser_password" }
+
+volumes:
+  pgdata:
+  files:
