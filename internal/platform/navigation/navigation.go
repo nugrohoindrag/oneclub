@@ -434,6 +434,7 @@ var Trees = map[string][]Item{
 		{Key: "activity", Label: "My Activity", Path: "/activity", Icon: "history", Permission: catalog.ShellMemberPortal, Children: []Item{
 			s("my-bookings", "Bookings", "/activity", catalog.ShellMemberPortal),
 			inModule("golf", s("golf-history", "Golf History", "/activity/golf", catalog.ShellMemberPortal)),
+			inModule("golf", s("golf-leaderboard", "Leaderboard", "/activity/leaderboard", catalog.ShellMemberPortal)),
 			inModule("golf", s("scores-handicap", "Scores & Handicap", "/golf/scores", catalog.ShellMemberPortal)),
 			inModule("stay", s("stay-history", "Stay History", "/activity/stays", catalog.ShellMemberPortal)),
 			inModule("banquet", s("my-events", "My Events", "/events/my-events", catalog.ShellMemberPortal)),

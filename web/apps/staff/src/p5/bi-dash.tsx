@@ -372,3 +372,34 @@ export function GolfToday() {
     </>
   );
 }
+
+/** Weekly Hole Leader / Monthly Hole Record and the Top Players of the
+ * period, ranked on the score (never on the play time). */
+export function GolfLeaders() {
+  const [period, setPeriod] = useState('week');
+  const d = useGet<R & { holeLeaders: R[]; topPlayers: R[] }>(`/api/v1/golf/leaderboard${qs({ period })}`);
+  const pill = <PillSelect label="Period" value={period} onChange={setPeriod} options={[{ value: 'week', label: 'This week' }, { value: 'month', label: 'This month' }]} />;
+  const toPar = (v: unknown) => { const n = Number(v); return n === 0 ? 'E' : n > 0 ? `+${n}` : String(n); };
+  const range = d.data ? `${formatDate(String(d.data.from))} – ${formatDate(String(d.data.to))}` : '';
+  return (
+    <>
+      <DashTable<R> span={7} icon="flag" title={period === 'week' ? `Weekly Hole Leader · ${range}` : `Monthly Hole Record · ${range}`} action={pill}
+        rows={d.data?.holeLeaders ?? []} rowKey={(h) => String(h.holeId)} empty="No scores entered in this period yet."
+        columns={[
+          { key: 'hole', header: 'Hole', render: (h) => <DashName icon="flag" name={`${String(h.sectionCode)}-${String(h.holeNumber)}`} sub={`Par ${String(h.par)} · ${String(h.courseName)}`} /> },
+          { key: 'strokes', header: 'Best', render: (h) => <strong className="oc-dash-num">{String(h.strokes)} ({toPar(h.toPar)})</strong> },
+          { key: 'players', header: 'Player', render: (h) => ((h.players as R[]) ?? []).map((p) => String(p.name)).join(', ') },
+          { key: 'date', header: 'Date', render: (h) => formatDate(String(((h.players as R[]) ?? [])[0]?.playedOn ?? '')) },
+        ]} />
+      <DashTable<R> span={5} icon="emoji_events" title={period === 'week' ? 'Top Player of the Week' : 'Top Player of the Month'}
+        rows={d.data?.topPlayers ?? []} rowKey={(p) => `${String(p.rank)}-${String(p.name)}`} empty="No complete 18-hole round yet."
+        columns={[
+          { key: 'rank', header: '#', render: (p) => <strong>{String(p.rank)}</strong> },
+          { key: 'name', header: 'Player', render: (p) => <DashName icon="person" name={String(p.name)} sub={`${String(p.rounds)} round${Number(p.rounds) === 1 ? '' : 's'}`} /> },
+          { key: 'gross', header: 'Gross', render: (p) => <strong className="oc-dash-num">{String(p.gross)} ({toPar(p.toPar)})</strong> },
+          { key: 'date', header: 'Date', render: (p) => formatDate(String(p.playedOn)) },
+        ]} />
+      {d.error ? <ErrorAlert error={d.error} /> : null}
+    </>
+  );
+}

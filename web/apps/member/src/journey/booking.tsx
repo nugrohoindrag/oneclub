@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { qs, request, useGet, type Page, type Schemas } from '@oneclub/api-client';
 import { ErrorAlert, Icon, Modal, PlayTime, QRCode, SelectField, Skeleton, TextField, useToast } from '@oneclub/shell';
+import { HoleBests } from './leaderboard';
 import { MethodPicker, PaymentPanel } from './pay';
 import { Check, Chip, dayLabel, downloadICS, Head, initials, money, Rows, StatusChip } from './ui';
 
@@ -111,6 +112,7 @@ export function GolfBookingPage() {
       )}
 
       <PlayersCard booking={x} journey={j.data} finished={finished} />
+      {teedOff && <HoleBests bookingId={x.id} />}
 
       <div className="mj-card">
         <h2><Icon name="receipt_long" size={20} /> Payment</h2>

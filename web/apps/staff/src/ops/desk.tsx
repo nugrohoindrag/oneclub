@@ -403,7 +403,21 @@ function PlayersTab({ b, onDone }: { b: Booking; onDone: () => void }) {
           { onSuccess: () => { setAdd({ playerType: 'non_member', memberNo: '', name: '', phone: '' }); ok(); } })} />
       </div>
       <ErrorAlert error={create.error} />
+      <BookingHoleBests id={b.id} />
     </div>
+  );
+}
+
+/** Best score per hole among the players of the booking. */
+function BookingHoleBests({ id }: { id: string }) {
+  const d = useGet<Page<R>>(`/api/v1/golf/bookings/${id}/hole-bests`);
+  if (!(d.data?.items ?? []).length) return null;
+  return (
+    <>
+      <h3 style={{ margin: '8px 0 0' }}>Best per hole</h3>
+      <DataTable rows={withId(d.data?.items, 'seq')} columns={[{ key: 'hole', header: 'Hole', render: (h) => `${String(h.sectionCode)}-${String(h.holeNumber)} · par ${String(h.par)}` },
+        { key: 'strokes', header: 'Best', align: 'right' }, { key: 'players', header: 'Player', render: (h) => ((h.players as string[]) ?? []).join(', ') }]} />
+    </>
   );
 }
 

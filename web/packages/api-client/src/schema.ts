@@ -14218,6 +14218,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/bookings/{id}/hole-bests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Best score per hole among the players of a booking */
+        get: operations["getGolfBookingsByIdHoleBests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/bookings/{id}/players": {
         parameters: {
             query?: never;
@@ -16077,6 +16094,23 @@ export interface paths {
         put?: never;
         /** Issue an approved letter (PDF) */
         post: operations["postGolfIntroductionLettersByIdIssue"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Weekly Hole Leader / Monthly Hole Record and Top Players (by score) */
+        get: operations["getGolfLeaderboard"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -26168,6 +26202,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/bookings/{id}/hole-bests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Best score per hole in my booking */
+        get: operations["getMemberBookingsByIdHoleBests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/bookings/{id}/journey": {
         parameters: {
             query?: never;
@@ -26674,6 +26725,23 @@ export interface paths {
         put?: never;
         /** Request an introduction letter to a reciprocal club */
         post: operations["postMemberGolfIntroductionLetters"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Weekly Hole Leader / Monthly Hole Record and Top Players */
+        get: operations["getMemberGolfLeaderboard"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -51350,6 +51418,14 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        HoleBest: {
+            holeNumber: number;
+            par: number;
+            players: string[];
+            sectionCode: string;
+            seq: number;
+            strokes: number;
+        };
         HoleInput: {
             /** @description Code */
             code?: string;
@@ -51387,6 +51463,29 @@ export interface components {
              * @description Stroke Index
              */
             strokeIndex?: number | null;
+        };
+        HoleLeader: {
+            courseName: string;
+            /** Format: uuid */
+            holeId: string;
+            holeNumber: number;
+            par: number;
+            /** @description Everyone sharing the best score, earliest first */
+            players: components["schemas"]["HoleLeaderPlayer"][];
+            sectionCode: string;
+            /** @description Lowest strokes on the hole */
+            strokes: number;
+            /** @description Strokes − par (−2 eagle, −1 birdie …) */
+            toPar: number;
+        };
+        HoleLeaderPlayer: {
+            /** Format: uuid */
+            customerId?: string | null;
+            name: string;
+            /** Format: date-time */
+            playedOn: string;
+            /** Format: uuid */
+            scorecardId: string;
         };
         HoleTime: {
             /** Format: date-time */
@@ -67713,6 +67812,14 @@ export interface components {
             seq: number;
             source?: string | null;
         };
+        ScoreBoard: {
+            from: string;
+            holeLeaders: components["schemas"]["HoleLeader"][];
+            /** @enum {string} */
+            period: "week" | "month";
+            to: string;
+            topPlayers: components["schemas"]["TopPlayer"][];
+        };
         ScoreCriterion: {
             code: string;
             label: string;
@@ -71687,6 +71794,18 @@ export interface components {
             participants: components["schemas"]["EventParticipantStats"];
             schedule: components["schemas"]["RundownItem"][];
             venues: components["schemas"]["VenueHold"][];
+        };
+        TopPlayer: {
+            /** Format: uuid */
+            customerId?: string | null;
+            gross: number;
+            name: string;
+            /** Format: date-time */
+            playedOn: string;
+            rank: number;
+            /** @description 18-hole rounds in the period */
+            rounds: number;
+            toPar: number;
         };
         TopSpender: {
             banquet: string;
@@ -136774,6 +136893,66 @@ export interface operations {
             };
         };
     };
+    getGolfBookingsByIdHoleBests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["HoleBest"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postGolfBookingsByIdPlayers: {
         parameters: {
             query?: never;
@@ -145366,6 +145545,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Letter"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfLeaderboard: {
+        parameters: {
+            query?: {
+                period?: "week" | "month";
+                date?: string;
+                courseId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreBoard"];
                 };
             };
             /** @description Not authenticated */
@@ -189746,6 +189979,63 @@ export interface operations {
             };
         };
     };
+    getMemberBookingsByIdHoleBests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["HoleBest"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getMemberBookingsByIdJourney: {
         parameters: {
             query?: never;
@@ -191404,6 +191694,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Letter"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberGolfLeaderboard: {
+        parameters: {
+            query?: {
+                period?: "week" | "month";
+                date?: string;
+                courseId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreBoard"];
                 };
             };
             /** @description Not authenticated */

@@ -18,6 +18,7 @@ import { MemberHome } from './journey/home';
 import { ApplicationStatusPage, ApplyPage, JoinPage } from './journey/join';
 import { GuestsPage, MembershipOverviewPage, TransactionsPage } from './journey/membership';
 import { BungalowWizard, MeetingRoomWizard } from './journey/resort';
+import { LeaderboardPage } from './journey/leaderboard';
 import { RangeWizard } from './journey/range';
 import { TeeTimeWizard } from './journey/teetime';
 import { HubFrame } from './journey/ui';
@@ -65,6 +66,7 @@ const router = createBrowserRouter([
           // My Activity
           { path: 'activity', element: <ActivityPage /> },
           { path: 'activity/golf', element: <GolfHistoryPage /> },
+          { path: 'activity/leaderboard', element: <LeaderboardPage /> },
           { path: 'activity/stays', element: <StayHistoryPage /> },
           { path: 'golf/course-guide', element: <CourseGuidePage /> },
           // Membership

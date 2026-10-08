@@ -2,7 +2,7 @@ import { Navigate, useRoutes } from 'react-router';
 import { NotFoundPage, NotificationsPage, ProfilePage, RequirePermission, SidebarLayout } from '@oneclub/shell';
 import { KPIDashboardPage, P2_MANAGEMENT_ROUTES } from '../p2';
 import { BI_MANAGEMENT_ROUTES } from '../p5/bi';
-import { DomainDashboard, ExecutiveDashboard, GolfToday } from '../p5/bi-dash';
+import { DomainDashboard, ExecutiveDashboard, GolfLeaders, GolfToday } from '../p5/bi-dash';
 
 /** Management Dashboard area (`/management`): KPI dashboards with sidebar navigation. */
 const routes = [
@@ -12,7 +12,7 @@ const routes = [
       // PRD P5 EP-21: the Executive Overview across domains with targets (the P0 live counts stay under its Today tab).
       { index: true, element: <ExecutiveDashboard /> },
       { path: 'overview-today', element: <Navigate to="/management?view=today" replace /> },
-      { path: 'golf', element: <DomainDashboard domain="golf" title="Golf Performance" extra={<GolfToday />} /> },
+      { path: 'golf', element: <DomainDashboard domain="golf" title="Golf Performance" extra={<><GolfToday /><GolfLeaders /></>} /> },
       { path: 'membership', element: <DomainDashboard domain="membership" title="Membership Performance" /> },
       { path: 'booking', element: <DomainDashboard domain="booking" title="Booking Performance" /> },
       { path: 'hr-performance', element: <RequirePermission perm="reporting.hr_performance.view"><DomainDashboard domain="hr" title="HR Performance" /></RequirePermission> },
