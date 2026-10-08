@@ -527,6 +527,7 @@ var Trees = map[string][]Item{
 		// PRD P5 §7.2, FR-INS-HR-04: Honor Statement of partner instructors (payout runs).
 		{Key: "honor-statement", Label: "Honor Statement", Path: "/ops/instructor/honor", Icon: "request_quote", Module: "hris", Permission: "hris.payout.own"},
 		{Key: "pos", Label: "POS", Path: "/ops/pos", Icon: "point_of_sale", Module: "commercial", Permission: "commercial.order.create"},
+		{Key: "tee-houses", Label: "Tee Houses", Path: "/ops/tee-houses", Icon: "storefront", Module: "commercial", Permission: "commercial.order.view"},
 		{Key: "package-use", Label: "Package Use", Path: "/ops/packages", Icon: "card_travel", Module: "commercial", Permission: "commercial.package_booking.consume"},
 		{Key: "warehouse", Label: "Warehouse", Path: "/ops/warehouse", Icon: "warehouse", Module: "inventory", Permission: "inventory.stock_balance.view", Children: []Item{
 			s("warehouse-stock", "Stock Balance", "/ops/warehouse", "inventory.stock_balance.view"),

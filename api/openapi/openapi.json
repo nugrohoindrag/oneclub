@@ -28254,7 +28254,7 @@
       "CourseOrderInput": {
         "properties": {
           "deliver": {
-            "description": "Default: the next hole",
+            "description": "Default: the next hole; halfway_house = pick up at the outlet (tee house)",
             "enum": [
               "hole",
               "halfway_house"
@@ -28281,7 +28281,7 @@
             "type": "string"
           },
           "outletId": {
-            "description": "Halfway House / clubhouse outlet",
+            "description": "Tee house, Halfway House or clubhouse outlet",
             "format": "uuid",
             "type": "string"
           },
@@ -66597,6 +66597,71 @@
         },
         "type": "object"
       },
+      "OutletStockLine": {
+        "properties": {
+          "itemCode": {
+            "type": "string"
+          },
+          "itemId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "minStock": {
+            "nullable": true,
+            "type": "string"
+          },
+          "onHand": {
+            "type": "string"
+          },
+          "outletId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "parLevel": {
+            "nullable": true,
+            "type": "string"
+          },
+          "refill": {
+            "description": "Quantity to bring the item back to par",
+            "type": "string"
+          },
+          "status": {
+            "description": "low: at or under the minimum (or half the par); out: nothing left",
+            "enum": [
+              "ok",
+              "low",
+              "out"
+            ],
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "warehouse": {
+            "type": "string"
+          },
+          "warehouseId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "outletId",
+          "warehouseId",
+          "warehouse",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unit",
+          "onHand",
+          "status",
+          "refill"
+        ],
+        "type": "object"
+      },
       "OvertimeException": {
         "properties": {
           "approvedHours": {
@@ -103073,6 +103138,105 @@
           "direct",
           "certificationGaps"
         ],
+        "type": "object"
+      },
+      "TeeHouse": {
+        "properties": {
+          "area": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lowStock": {
+            "description": "Items at or under the minimum",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "open": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Open orders by service status: new, sent, preparing, ready, out_for_delivery",
+            "type": "object"
+          },
+          "ordersToday": {
+            "type": "integer"
+          },
+          "outOfStock": {
+            "type": "integer"
+          },
+          "salesToday": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "warehouseId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "group",
+          "area",
+          "status",
+          "ordersToday",
+          "salesToday",
+          "open",
+          "lowStock",
+          "outOfStock"
+        ],
+        "type": "object"
+      },
+      "TeeHouseGroup": {
+        "properties": {
+          "area": {
+            "description": "e.g. Front Nine",
+            "type": "string"
+          },
+          "code": {
+            "description": "e.g. A",
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "area",
+          "count"
+        ],
+        "type": "object"
+      },
+      "TeeHouseSetupInput": {
+        "properties": {
+          "groups": {
+            "description": "Default: A Front Nine × 3, B Back Nine × 3",
+            "items": {
+              "$ref": "#/components/schemas/TeeHouseGroup"
+            },
+            "type": "array"
+          },
+          "template": {
+            "description": "Outlet / warehouse code whose menu and par stock are copied (default HALFWAY)",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "TeeSet": {
@@ -181902,6 +182066,326 @@
         ],
         "x-module": "commercial",
         "x-permission": "commercial.tax_service.export"
+      }
+    },
+    "/api/v1/commercial/tee-houses": {
+      "get": {
+        "operationId": "getCommercialTeeHouses",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/TeeHouse"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Tee houses by group with today's orders, open orders by service status and stock alerts",
+        "tags": [
+          "Tee Houses"
+        ],
+        "x-module": "commercial",
+        "x-permission": "commercial.order.view"
+      }
+    },
+    "/api/v1/commercial/tee-houses/stock": {
+      "get": {
+        "operationId": "getCommercialTeeHousesStock",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/OutletStockLine"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Tee house stock monitoring: balance against par per item",
+        "tags": [
+          "Tee Houses"
+        ],
+        "x-module": "commercial",
+        "x-permission": "commercial.order.view"
+      }
+    },
+    "/api/v1/commercial/tee-houses:setup": {
+      "post": {
+        "operationId": "postCommercialTeeHousesSetup",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeeHouseSetupInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/TeeHouse"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Set up the tee houses: outlets by group, Halfway House menu, own warehouse with par stock",
+        "tags": [
+          "Tee Houses"
+        ],
+        "x-audited": true,
+        "x-module": "commercial",
+        "x-permission": "commercial.outlet.create"
       }
     },
     "/api/v1/commercial/time-bands": {
@@ -375233,6 +375717,9 @@
     },
     {
       "name": "Tax \u0026 Service"
+    },
+    {
+      "name": "Tee Houses"
     },
     {
       "name": "Tee Sheet"

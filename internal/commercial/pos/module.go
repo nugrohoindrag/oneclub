@@ -82,6 +82,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.registerTables(reg, eng)  // Table View: floor plan, reservations, table state
 	m.registerPromotions(reg)   // PRD P3 FR-OPS-P3-03
 	m.registerTierDiscount(reg) // PRD P5 tier F&B discount (offline benefit cache)
+	m.registerTeeHouses(reg)    // on-course tee houses (demo feedback 9 Oct 2026)
 }
 
 // ProductVariants, ModifierGroups, Modifiers and Menus (FR-POS-02).

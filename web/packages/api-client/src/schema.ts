@@ -8724,6 +8724,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/commercial/tee-houses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tee houses by group with today's orders, open orders by service status and stock alerts */
+        get: operations["getCommercialTeeHouses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/tee-houses/stock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tee house stock monitoring: balance against par per item */
+        get: operations["getCommercialTeeHousesStock"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/tee-houses:setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set up the tee houses: outlets by group, Halfway House menu, own warehouse with par stock */
+        post: operations["postCommercialTeeHousesSetup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/commercial/time-bands": {
         parameters: {
             query?: never;
@@ -45396,7 +45447,7 @@ export interface components {
         };
         CourseOrderInput: {
             /**
-             * @description Default: the next hole
+             * @description Default: the next hole; halfway_house = pick up at the outlet (tee house)
              * @enum {string}
              */
             deliver?: "hole" | "halfway_house";
@@ -45411,7 +45462,7 @@ export interface components {
             notes?: string;
             /**
              * Format: uuid
-             * @description Halfway House / clubhouse outlet
+             * @description Tee house, Halfway House or clubhouse outlet
              */
             outletId: string;
             /** Format: uuid */
@@ -58760,6 +58811,28 @@ export interface components {
             /** @description Weekdays */
             weekdays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
         };
+        OutletStockLine: {
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            minStock?: string | null;
+            onHand: string;
+            /** Format: uuid */
+            outletId: string;
+            parLevel?: string | null;
+            /** @description Quantity to bring the item back to par */
+            refill: string;
+            /**
+             * @description low: at or under the minimum (or half the par); out: nothing left
+             * @enum {string}
+             */
+            status: "ok" | "low" | "out";
+            unit: string;
+            warehouse: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
         OvertimeException: {
             approvedHours: string;
             /** Format: uuid */
@@ -71014,6 +71087,39 @@ export interface components {
             jobTitle?: string | null;
             orgUnit?: string | null;
             phone?: string | null;
+        };
+        TeeHouse: {
+            area: string;
+            code: string;
+            group: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Items at or under the minimum */
+            lowStock: number;
+            name: string;
+            /** @description Open orders by service status: new, sent, preparing, ready, out_for_delivery */
+            open: {
+                [key: string]: number;
+            };
+            ordersToday: number;
+            outOfStock: number;
+            salesToday: string;
+            status: string;
+            /** Format: uuid */
+            warehouseId?: string | null;
+        };
+        TeeHouseGroup: {
+            /** @description e.g. Front Nine */
+            area: string;
+            /** @description e.g. A */
+            code: string;
+            count: number;
+        };
+        TeeHouseSetupInput: {
+            /** @description Default: A Front Nine × 3, B Back Nine × 3 */
+            groups?: components["schemas"]["TeeHouseGroup"][];
+            /** @description Outlet / warehouse code whose menu and par stock are copied (default HALFWAY) */
+            template?: string;
         };
         TeeSet: {
             /** Format: date-time */
@@ -113381,6 +113487,184 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialTeeHouses: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TeeHouse"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialTeeHousesStock: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OutletStockLine"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialTeeHousesSetup: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeeHouseSetupInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TeeHouse"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
