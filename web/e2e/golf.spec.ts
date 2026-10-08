@@ -67,7 +67,7 @@ test('golf day: booking → payment → caddy & golf cart → check-in → tee-o
   // starter: tee-off moves the flight to In Play
   await gm.goto(`${DASHBOARD}/golf/starter?courseId=${mgc}&date=${day}`);
   const row = gm.getByRole('row', { name: new RegExp(code) });
-  await rowAction(row, 'Tee-Off');
+  await row.getByRole('button', { name: 'Tee-Off' }).click(); // the starter queue keeps its actions inline
   await expect(gm.getByText(/In Play \(\d+\)/)).toBeVisible();
   await expect(gm.locator('.oc-card', { hasText: 'In Play' }).getByText(code)).toBeVisible();
 });
