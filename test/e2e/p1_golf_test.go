@@ -11,6 +11,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"oneclub/internal/golf"
 )
 
 // FR-TEE-01/02 AC: the Modern Golf templates produce the right slots for a
@@ -377,8 +379,10 @@ func TestP1BookingChanges(t *testing.T) {
 	gm.Must(201, "POST", "/api/v1/golf/handicaps", map[string]any{"customerId": demoMemberCustomer(t, inst), "handicapIndex": "13.8", "notes": "Club handicap review"})
 }
 
-// FR-BKG-02 AC: 200 parallel holds on the last seat produce exactly one
-// hold; FR-BKG-03 AC: an expired hold frees the seat.
+// FR-BKG-02 AC: parallel holds never take more seats than there are. Since
+// the demo feedback (9 Oct 2026) a full slot takes extra flights, so 200
+// parallel holds take exactly the seats left in the slot plus the seats of its
+// overflow flights; FR-BKG-03 AC: an expired hold frees the seat.
 func TestP1ParallelHoldsAndExpiry(t *testing.T) {
 	gm := login(t, inst, "golf.manager@demo.oneclub.id", demoPassword)
 	course := demoCourse(t, inst)
@@ -405,7 +409,8 @@ func TestP1ParallelHoldsAndExpiry(t *testing.T) {
 		}(clients[i%len(clients)])
 	}
 	wg.Wait()
-	if codes[201] != 1 || codes[201]+codes[409] != 200 {
+	free := int(slot["remaining"].(float64)) - 3 + golf.OverflowFlights*int(slot["maxPlayers"].(float64))
+	if codes[201] != free || codes[201]+codes[409] != 200 {
 		t.Fatalf("parallel holds on the last seat: %v", codes)
 	}
 
