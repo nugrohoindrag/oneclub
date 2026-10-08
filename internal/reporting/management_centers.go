@@ -3,8 +3,8 @@ package reporting
 // Management Dashboard › Profit Centers and Incidents.
 //
 // Profit Centers: revenue, cost of sales, direct expenses and contribution
-// per profit center (golf, membership, F&B, pro shop, sport club, stay,
-// banquet, packages) of a month or year to date from the general ledger
+// per profit center of the club (Golf, Resto, Sport Club, Bungalow,
+// Wedding, Event MICE, VIP Suite) of a month or year to date from the general ledger
 // (reporting.acc_profit_center_lines), against the same days of the
 // previous period and over six months. What belongs to no center (salaries,
 // utilities, depreciation, other income and expenses) is the shared
@@ -56,10 +56,11 @@ func init() {
 
 var incidentSources = []string{"caddy", "golf_cart", "banquet"}
 
-// profitCenterOrder lists the profit centers in display order (shared last).
+// profitCenterOrder lists the profit centers of the club in display order
+// (product owner, 9 Oct 2026), the shared overhead last.
 var profitCenterOrder = []struct{ code, label string }{
-	{"golf", "Golf"}, {"membership", "Membership"}, {"fnb", "Food & Beverage"}, {"pro_shop", "Pro Shop"}, {"sportclub", "Sport Club"},
-	{"stay", "Stay"}, {"banquet", "Banquet & Events"}, {"package", "Packages"}, {"shared", "Shared & Unallocated"},
+	{"golf", "Golf"}, {"resto", "Resto"}, {"sportclub", "Sport Club"}, {"bungalow", "Bungalow"}, {"wedding", "Wedding"},
+	{"event_mice", "Event MICE"}, {"vip_suite", "VIP Suite"}, {"shared", "Shared & Unallocated"},
 }
 
 func registerManagementCenters(s *Service, reg *route.Registry) {
@@ -280,7 +281,8 @@ func profitCenters(ctx context.Context, tx pgx.Tx, _ *http.Request, rg managemen
 	}
 	for _, c := range profitCenterOrder {
 		s, p := cur[c.code], prev[c.code]
-		if s == (pcSums{}) && p == (pcSums{}) && trend[c.code] == nil {
+		// Every center is listed, even without activity; the shared line only when it has some.
+		if c.code == "shared" && s == (pcSums{}) && p == (pcSums{}) && trend[c.code] == nil {
 			continue
 		}
 		pc := ProfitCenter{Code: c.code, Label: c.label, Shared: c.code == "shared", Revenue: s.revenue.String(), CostOfSales: s.cogs.String(),

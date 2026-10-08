@@ -26,8 +26,8 @@ const label = (v: unknown) => String(v ?? '').replace(/_/g, ' ');
 const monthLabel = (m: string) => MONTHS[Number(m.slice(5, 7)) - 1] ?? m;
 
 const CENTER_ICON: Record<string, string> = {
-  golf: 'golf_course', membership: 'card_membership', fnb: 'restaurant', pro_shop: 'storefront', sportclub: 'sports_tennis', stay: 'hotel',
-  banquet: 'celebration', package: 'redeem', shared: 'apartment',
+  golf: 'golf_course', resto: 'restaurant', sportclub: 'sports_tennis', bungalow: 'cottage', wedding: 'favorite', event_mice: 'groups',
+  vip_suite: 'workspace_premium', shared: 'apartment',
 };
 
 /** Period (month / year to date) and month of the page, kept in the URL. */
