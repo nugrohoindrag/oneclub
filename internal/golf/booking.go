@@ -139,6 +139,7 @@ type Player struct {
 	PriceTotal         *string         `json:"priceTotal"`
 	HandicapIndex      *string         `json:"handicapIndex"`
 	Status             string          `json:"status" enum:"booked,checked_in,no_show,cancelled,removed"`
+	TeeSetID           *uuid.UUID      `json:"teeSetId" doc:"Tee the front desk gave the player (else by player category)"`
 	CheckedInAt        *time.Time      `json:"checkedInAt"`
 	CheckInMethod      *string         `json:"checkInMethod"`
 }
@@ -261,7 +262,7 @@ func GetBooking(ctx context.Context, q dbtx.Querier, bid uuid.UUID) (Booking, er
 	}
 	rows.Close()
 	pr, err := q.Query(ctx, `SELECT id, flight_id, seq, player_type, segment, customer_id, guest_id, member_id, host_player_id, name, phone, tba, reciprocal_club,
-		reciprocal_verified, eligibility, entitlement, pricing_snapshot_id, price_total::text, handicap_index::text, status, checked_in_at, check_in_method
+		reciprocal_verified, eligibility, entitlement, pricing_snapshot_id, price_total::text, handicap_index::text, status, checked_in_at, check_in_method, tee_set_id
 		FROM golf.booking_players WHERE booking_id = $1 ORDER BY seq`, bid)
 	if err != nil {
 		return b, err
@@ -271,7 +272,7 @@ func GetBooking(ctx context.Context, q dbtx.Querier, bid uuid.UUID) (Booking, er
 		var p Player
 		if err := pr.Scan(&p.ID, &p.FlightID, &p.Seq, &p.PlayerType, &p.Segment, &p.CustomerID, &p.GuestID, &p.MemberID, &p.HostPlayerID, &p.Name, &p.Phone,
 			&p.TBA, &p.ReciprocalClub, &p.ReciprocalVerified, &p.Eligibility, &p.Entitlement, &p.PricingSnapshotID, &p.PriceTotal, &p.HandicapIndex,
-			&p.Status, &p.CheckedInAt, &p.CheckInMethod); err != nil {
+			&p.Status, &p.CheckedInAt, &p.CheckInMethod, &p.TeeSetID); err != nil {
 			pr.Close()
 			return b, err
 		}

@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useNavigate, useParams, useRoutes } from 'react-
 import { request, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import { cacheGet, cachePut, enqueue, useOnline, useQueue } from '@oneclub/offline';
-import { DataTable, ErrorAlert, Icon, NotFoundPage, NotificationsPage, PlayTime, ProfilePage, Skeleton, StatusPill, logoOf, useAuth, useBootstrap, useToast } from '@oneclub/shell';
+import { DataTable, ErrorAlert, Icon, NotFoundPage, NotificationsPage, PlayTime, ProfilePage, Skeleton, StatusPill, TeeBadge, logoOf, useAuth, useBootstrap, useToast } from '@oneclub/shell';
 import { SyncPage, read, write } from '../offline';
 import { TabletTournamentCard, TabletTournamentPage } from '../p3/tournament';
 import { PAYOUTS_TABLET_ROUTES } from '../p5/payouts';
@@ -274,6 +274,7 @@ function RoundPage() {
               return (
                 <div key={sc.id} className="pos-score-row">
                   <div style={{ minWidth: 160 }}><strong>{sc.playerName}</strong><div className="pos-muted">Total {total}</div>
+                    <TeeBadge color={sc.teeColor} category={sc.teeCategory} name={sc.teeSetName} />
                     {pc?.courseHandicap != null && (
                       <div className="pos-muted" title="Course handicap from this player's tee; strokes received on this hole by stroke index">
                         CH {pc.courseHandicap}{got !== 0 ? ` · ${got > 0 ? '+' : ''}${got} stroke${Math.abs(got) > 1 ? 's' : ''} here` : ''}</div>

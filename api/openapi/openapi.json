@@ -43608,6 +43608,18 @@
           "name": {
             "type": "string"
           },
+          "playerCategory": {
+            "description": "Red women, blue / white general, black professional",
+            "enum": [
+              "women",
+              "general",
+              "professional",
+              "senior",
+              "junior"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
           "slope": {
             "nullable": true,
             "type": "integer"
@@ -75166,6 +75178,12 @@
           },
           "tba": {
             "type": "boolean"
+          },
+          "teeSetId": {
+            "description": "Tee the front desk gave the player (else by player category)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
           }
         },
         "required": [
@@ -75512,6 +75530,12 @@
           "reciprocalVerified": {
             "nullable": true,
             "type": "boolean"
+          },
+          "teeSetId": {
+            "description": "The tee the player plays (red women, blue / white general, black professional)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
           }
         },
         "type": "object"
@@ -94176,6 +94200,15 @@
             ],
             "type": "string"
           },
+          "teeCategory": {
+            "description": "Player category of the tee",
+            "nullable": true,
+            "type": "string"
+          },
+          "teeColor": {
+            "nullable": true,
+            "type": "string"
+          },
           "teeSetId": {
             "format": "uuid",
             "nullable": true,
@@ -103291,6 +103324,18 @@
             "maxLength": 160,
             "type": "string"
           },
+          "playerCategory": {
+            "description": "Player Category",
+            "enum": [
+              "women",
+              "general",
+              "professional",
+              "senior",
+              "junior"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
           "propertyId": {
             "format": "uuid",
             "type": "string"
@@ -103395,6 +103440,18 @@
           "name": {
             "description": "Name",
             "maxLength": 160,
+            "type": "string"
+          },
+          "playerCategory": {
+            "description": "Player Category",
+            "enum": [
+              "women",
+              "general",
+              "professional",
+              "senior",
+              "junior"
+            ],
+            "nullable": true,
             "type": "string"
           },
           "sequence": {
@@ -246578,6 +246635,13 @@
           },
           {
             "in": "query",
+            "name": "filter[playerCategory]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
             "name": "filter[status]",
             "schema": {
               "type": "string"
@@ -247041,6 +247105,13 @@
           {
             "in": "query",
             "name": "filter[courseId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[playerCategory]",
             "schema": {
               "type": "string"
             }

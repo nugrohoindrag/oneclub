@@ -69,6 +69,8 @@ var TeeSets = &resource.Def{
 		{Name: "courseRating", Column: "course_rating", Label: "Course Rating", Kind: resource.Decimal, Min: resource.Min(1), MaxN: resource.Max(99.9)},
 		{Name: "slope", Column: "slope", Label: "Slope", Kind: resource.Int, Min: resource.Min(55), MaxN: resource.Max(155)},
 		{Name: "gender", Column: "gender", Label: "Gender", Kind: resource.Enum, Enum: []string{"male", "female", "any"}},
+		// tee colour classification: red women, blue / white general, black professional
+		{Name: "playerCategory", Column: "player_category", Label: "Player Category", Kind: resource.Enum, Enum: []string{"women", "general", "professional", "senior", "junior"}, Filter: true},
 		{Name: "sequence", Column: "sequence", Label: "Sequence", Kind: resource.Int, Default: int64(1)},
 		resource.Status("active", "inactive")},
 }

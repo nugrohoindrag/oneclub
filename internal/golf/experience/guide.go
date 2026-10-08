@@ -106,6 +106,7 @@ type GuideTee struct {
 	Name            string    `json:"name"`
 	Color           *string   `json:"color"`
 	Gender          string    `json:"gender" enum:"male,female,any"`
+	PlayerCategory  *string   `json:"playerCategory" enum:"women,general,professional,senior,junior" doc:"Red women, blue / white general, black professional"`
 	CourseRating    *string   `json:"courseRating"`
 	Slope           *int      `json:"slope"`
 	LengthMeters    int       `json:"lengthMeters"`
@@ -294,14 +295,14 @@ func (m *Module) Guide(ctx context.Context, q dbtx.Querier, course uuid.UUID, in
 			g.Holes[i].Images = append(g.Holes[i].Images, GuideImage{Code: a.Code, Name: a.Name, URL: a.URL})
 		}
 	}
-	tees, err := q.Query(ctx, `SELECT id, code, name, color, coalesce(gender, 'any'), course_rating::text, slope FROM golf.tee_sets
+	tees, err := q.Query(ctx, `SELECT id, code, name, color, coalesce(gender, 'any'), player_category, course_rating::text, slope FROM golf.tee_sets
 		WHERE course_id = $1 AND status = 'active' AND archived_at IS NULL ORDER BY sequence, code`, course)
 	if err != nil {
 		return g, err
 	}
 	for tees.Next() {
 		var t GuideTee
-		if err := tees.Scan(&t.ID, &t.Code, &t.Name, &t.Color, &t.Gender, &t.CourseRating, &t.Slope); err != nil {
+		if err := tees.Scan(&t.ID, &t.Code, &t.Name, &t.Color, &t.Gender, &t.PlayerCategory, &t.CourseRating, &t.Slope); err != nil {
 			tees.Close()
 			return g, err
 		}

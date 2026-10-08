@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { qs, request, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
-import { Checkbox, CrowdLabel, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TextField, crowdClass, useToast } from '@oneclub/shell';
+import { Checkbox, CrowdLabel, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TEE_CATEGORY, TeeBadge, TextField, crowdClass, useToast } from '@oneclub/shell';
 import { BookingForm, type BookingPrefill } from '../p1/golf';
 import { Btn, Head, money, today, useCached } from './golf';
 
@@ -363,6 +363,8 @@ function PlayersTab({ b, onDone }: { b: Booking; onDone: () => void }) {
   const patch = useSend<Record<string, unknown>>('PATCH', (v) => `/api/v1/golf/bookings/${b.id}/players/${String(v.playerId)}`, inv);
   const remove = useSend<Record<string, unknown>>('DELETE', (v) => `/api/v1/golf/bookings/${b.id}/players/${String(v.playerId)}`, inv);
   const create = useSend<Record<string, unknown>>('POST', `/api/v1/golf/bookings/${b.id}/players`, inv);
+  const tees = useGet<Page<R>>(`/api/v1/golf/tee-sets${qs({ 'filter[courseId]': b.courseId, 'filter[status]': 'active', limit: 20 })}`);
+  const teeOptions = (tees.data?.items ?? []).map((t) => ({ value: t.id, label: `${String(t.name)}${t.playerCategory ? ` · ${TEE_CATEGORY[String(t.playerCategory)] ?? String(t.playerCategory)}` : ''}` }));
   const players = b.players.filter(live);
   const ok = () => { toast('Players updated'); setEdit({}); onDone(); };
   return (
@@ -381,6 +383,12 @@ function PlayersTab({ b, onDone }: { b: Booking; onDone: () => void }) {
               <span style={{ minWidth: 220 }}><strong>{String(p.name || 'Guest (TBA)')}</strong>
                 <span className="oc-small oc-muted"> · {String(p.playerType).replace(/_/g, ' ')} · {String(p.status).replace(/_/g, ' ')}</span>
                 <FlightPlayTime flights={b.flights} flightId={p.flightId} /></span>
+            )}
+            {!e && teeOptions.length > 0 && (
+              <div style={{ minWidth: 200 }}>
+                <SelectField label="Tee" value={String(p.teeSetId ?? '')} placeholder="By player category" options={teeOptions}
+                  onChange={(v) => patch.mutate({ playerId: p.id, teeSetId: v }, { onSuccess: ok })} />
+              </div>
             )}
             {!e && p.playerType !== 'member' && <Btn label="Edit" onClick={() => setEdit({ ...edit, [p.id]: { name: String(p.name ?? ''), phone: String(p.phone ?? '') } })} />}
             {!e && p.status === 'booked' && players.length > 1 && <Btn label="Remove" kind="danger" disabled={remove.isPending}

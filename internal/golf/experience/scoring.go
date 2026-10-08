@@ -48,6 +48,8 @@ type Scorecard struct {
 	RouteName    string      `json:"playingRouteName" db:"route_name"`
 	TeeSetID     *uuid.UUID  `json:"teeSetId" db:"tee_set_id"`
 	TeeSetName   *string     `json:"teeSetName" db:"tee_set_name"`
+	TeeColor     *string     `json:"teeColor" db:"tee_color"`
+	TeeCategory  *string     `json:"teeCategory" db:"tee_category" doc:"Player category of the tee"`
 	PlayedOn     time.Time   `json:"playedOn" db:"played_on"`
 	Holes        int         `json:"holes" db:"holes"`
 	Par          int         `json:"par" db:"par"`
@@ -64,7 +66,7 @@ type Scorecard struct {
 }
 
 const scorecardSelect = `SELECT s.id, s.property_id, s.flight_id, s.booking_player_id, s.customer_id, s.player_name, s.playing_route_id, r.name AS route_name, s.tee_set_id,
-	t.name AS tee_set_name, s.played_on, s.holes, s.par, s.course_rating::text AS course_rating, s.slope, s.gross, s.putts,
+	t.name AS tee_set_name, coalesce(t.color, t.code) AS tee_color, t.player_category AS tee_category, s.played_on, s.holes, s.par, s.course_rating::text AS course_rating, s.slope, s.gross, s.putts,
 	trim_scale(s.differential)::text AS differential, s.status, s.attested_by, s.flags, s.finalized_at
 	FROM golf.scorecards s JOIN golf.playing_routes r ON r.id = s.playing_route_id LEFT JOIN golf.tee_sets t ON t.id = s.tee_set_id`
 
@@ -108,9 +110,15 @@ func (m *Module) openScorecard(ctx context.Context, tx pgx.Tx, r Round, p RoundP
 			gender = &c.Gender
 		}
 	}
+	category := "general"
+	if gender != nil && *gender == "female" {
+		category = "women"
+	}
 	if err := tx.QueryRow(ctx, `SELECT t.id FROM golf.tee_sets t
 		WHERE t.course_id = $1 AND t.status = 'active' AND t.archived_at IS NULL
-		ORDER BY (t.gender IS NOT DISTINCT FROM $2) DESC, (t.gender = 'any') DESC, t.sequence, t.code LIMIT 1`, r.CourseID, gender).Scan(&tee); err != nil && !dbtx.IsNoRows(err) {
+		ORDER BY (t.id IS NOT DISTINCT FROM (SELECT tee_set_id FROM golf.booking_players WHERE id = $4)) DESC,
+		  (t.player_category IS NOT DISTINCT FROM $3) DESC, (t.gender IS NOT DISTINCT FROM $2) DESC, (t.gender = 'any') DESC, t.sequence, t.code LIMIT 1`,
+		r.CourseID, gender, category, p.ID).Scan(&tee); err != nil && !dbtx.IsNoRows(err) {
 		return err
 	}
 	par := 0

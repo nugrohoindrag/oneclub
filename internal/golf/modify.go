@@ -606,6 +606,7 @@ type PlayerPatch struct {
 	ReciprocalClub     *string    `json:"reciprocalClub,omitempty"`
 	ReciprocalVerified *bool      `json:"reciprocalVerified,omitempty"`
 	HandicapIndex      *string    `json:"handicapIndex,omitempty"`
+	TeeSetID           *uuid.UUID `json:"teeSetId,omitempty" doc:"The tee the player plays (red women, blue / white general, black professional)"`
 }
 
 // UpdatePlayer edits a player (FR-FLT-09 complete TBA before check-in).
@@ -662,6 +663,21 @@ func (m *Module) UpdatePlayer(ctx context.Context, tx pgx.Tx, property, bid, pid
 			return b, errs.Validation("invalid_handicap", "handicap index must be between -10 and 54", errs.Field("handicapIndex", "invalid", "-10 … 54"))
 		}
 		add("handicap_index", h.String())
+	}
+	if req.TeeSetID != nil {
+		var ok bool
+		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM golf.tee_sets WHERE id = $1 AND course_id = $2 AND status = 'active')`, *req.TeeSetID, b.CourseID).Scan(&ok); err != nil {
+			return b, err
+		}
+		if !ok {
+			return b, errs.Validation("invalid_tee", "choose a tee of the course", errs.Field("teeSetId", "invalid", "tee of the course"))
+		}
+		add("tee_set_id", *req.TeeSetID)
+		// an open scorecard follows the new tee (course rating and slope too)
+		if _, err := tx.Exec(ctx, `UPDATE golf.scorecards s SET tee_set_id = t.id, course_rating = t.course_rating, slope = t.slope
+			FROM golf.tee_sets t WHERE t.id = $2 AND s.booking_player_id = $1 AND s.status = 'draft'`, pid, *req.TeeSetID); err != nil {
+			return b, err
+		}
 	}
 	if len(sets) == 0 {
 		return b, nil

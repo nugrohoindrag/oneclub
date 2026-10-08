@@ -50903,6 +50903,11 @@ export interface components {
             id: string;
             lengthMeters: number;
             name: string;
+            /**
+             * @description Red women, blue / white general, black professional
+             * @enum {string|null}
+             */
+            playerCategory?: "women" | "general" | "professional" | "senior" | "junior" | null;
             slope?: number | null;
         };
         HIO: {
@@ -61670,6 +61675,11 @@ export interface components {
             /** @enum {string} */
             status: "booked" | "checked_in" | "no_show" | "cancelled" | "removed";
             tba: boolean;
+            /**
+             * Format: uuid
+             * @description Tee the front desk gave the player (else by player category)
+             */
+            teeSetId?: string | null;
         };
         PlayerCaddy: {
             accepted: boolean;
@@ -61765,6 +61775,11 @@ export interface components {
             phone?: string | null;
             reciprocalClub?: string | null;
             reciprocalVerified?: boolean | null;
+            /**
+             * Format: uuid
+             * @description The tee the player plays (red women, blue / white general, black professional)
+             */
+            teeSetId?: string | null;
         };
         PlayerRow: {
             bookingCode: string;
@@ -67967,6 +67982,9 @@ export interface components {
             slopeRating?: number | null;
             /** @enum {string} */
             status: "draft" | "submitted" | "finalized";
+            /** @description Player category of the tee */
+            teeCategory?: string | null;
+            teeColor?: string | null;
             /** Format: uuid */
             teeSetId?: string | null;
             teeSetName?: string | null;
@@ -71146,6 +71164,11 @@ export interface components {
             id: string;
             /** @description Name */
             name: string;
+            /**
+             * @description Player Category
+             * @enum {string|null}
+             */
+            playerCategory?: "women" | "general" | "professional" | "senior" | "junior" | null;
             /** Format: uuid */
             propertyId?: string;
             /**
@@ -71192,6 +71215,11 @@ export interface components {
             gender?: "male" | "female" | "any" | null;
             /** @description Name */
             name?: string;
+            /**
+             * @description Player Category
+             * @enum {string|null}
+             */
+            playerCategory?: "women" | "general" | "professional" | "senior" | "junior" | null;
             /**
              * Format: int64
              * @description Sequence
@@ -150967,6 +150995,7 @@ export interface operations {
                 /** @description Field name, prefix with - for descending */
                 sort?: string;
                 "filter[courseId]"?: string;
+                "filter[playerCategory]"?: string;
                 "filter[status]"?: string;
             };
             header: {
@@ -151243,6 +151272,7 @@ export interface operations {
                 /** @description Field name, prefix with - for descending */
                 sort?: string;
                 "filter[courseId]"?: string;
+                "filter[playerCategory]"?: string;
                 "filter[status]"?: string;
             };
             header: {

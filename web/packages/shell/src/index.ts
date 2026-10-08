@@ -19,3 +19,4 @@ export * from './components/qr';
 export * from './components/dash';
 export * from './components/playtime';
 export * from './components/crowd';
+export * from './components/tee';

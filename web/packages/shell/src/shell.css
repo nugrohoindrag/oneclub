@@ -651,3 +651,7 @@ body > .oc-popover {
 .oc-crowd[data-crowd='peak']::before { background: #dc2626; }
 .oc-crowd-peak { box-shadow: inset 4px 0 0 #dc2626; }
 .oc-crowd-quiet { box-shadow: inset 4px 0 0 #16a34a; }
+
+/* tee colour of a player (red women, blue / white general, black professional) */
+.oc-tee { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; }
+.oc-tee i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.35); }
