@@ -45908,6 +45908,136 @@
         ],
         "type": "object"
       },
+      "IncidentDashboard": {
+        "properties": {
+          "byCategory": {
+            "items": {
+              "$ref": "#/components/schemas/ReportingBreakdown"
+            },
+            "type": "array"
+          },
+          "bySeverity": {
+            "items": {
+              "$ref": "#/components/schemas/ReportingBreakdown"
+            },
+            "type": "array"
+          },
+          "bySource": {
+            "items": {
+              "$ref": "#/components/schemas/ReportingBreakdown"
+            },
+            "type": "array"
+          },
+          "byStatus": {
+            "items": {
+              "$ref": "#/components/schemas/ReportingBreakdown"
+            },
+            "type": "array"
+          },
+          "compareFrom": {
+            "type": "string"
+          },
+          "compareTo": {
+            "type": "string"
+          },
+          "damage": {
+            "description": "Damage recorded in the period (golf cart)",
+            "type": "string"
+          },
+          "damageCharged": {
+            "description": "Damage charged to a folio",
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "highSeverity": {
+            "description": "High or critical incidents of the period",
+            "type": "integer"
+          },
+          "items": {
+            "description": "Incidents of the period, latest first (up to 100)",
+            "items": {
+              "$ref": "#/components/schemas/IncidentItem"
+            },
+            "type": "array"
+          },
+          "month": {
+            "type": "string"
+          },
+          "open": {
+            "description": "Open incidents now (any date)",
+            "type": "integer"
+          },
+          "openItems": {
+            "description": "Open incidents, oldest first (up to 20)",
+            "items": {
+              "$ref": "#/components/schemas/IncidentItem"
+            },
+            "type": "array"
+          },
+          "openOver7Days": {
+            "description": "Open for more than 7 days",
+            "type": "integer"
+          },
+          "period": {
+            "enum": [
+              "month",
+              "year"
+            ],
+            "type": "string"
+          },
+          "previousTotal": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "string"
+          },
+          "total": {
+            "description": "Incidents of the period",
+            "type": "integer"
+          },
+          "totalChange": {
+            "nullable": true,
+            "type": "string"
+          },
+          "trend": {
+            "description": "Six months up to the period's month",
+            "items": {
+              "$ref": "#/components/schemas/IncidentMonth"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "period",
+          "month",
+          "from",
+          "to",
+          "compareFrom",
+          "compareTo",
+          "total",
+          "previousTotal",
+          "highSeverity",
+          "open",
+          "openOver7Days",
+          "damage",
+          "damageCharged",
+          "bySource",
+          "bySeverity",
+          "byCategory",
+          "byStatus",
+          "trend",
+          "openItems",
+          "items",
+          "generatedAt"
+        ],
+        "type": "object"
+      },
       "IncidentInput": {
         "properties": {
           "actionTaken": {
@@ -45983,6 +46113,102 @@
           "subjectType",
           "category",
           "description"
+        ],
+        "type": "object"
+      },
+      "IncidentItem": {
+        "properties": {
+          "actionTaken": {
+            "nullable": true,
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "damageAmount": {
+            "nullable": true,
+            "type": "string"
+          },
+          "damageStatus": {
+            "nullable": true,
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "caddy",
+              "golf_cart",
+              "banquet"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "closed",
+              "logged"
+            ],
+            "type": "string"
+          },
+          "subject": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "number",
+          "category",
+          "severity",
+          "status",
+          "description",
+          "occurredAt"
+        ],
+        "type": "object"
+      },
+      "IncidentMonth": {
+        "properties": {
+          "banquet": {
+            "type": "integer"
+          },
+          "caddy": {
+            "type": "integer"
+          },
+          "golfCart": {
+            "type": "integer"
+          },
+          "month": {
+            "description": "YYYY-MM",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "caddy",
+          "golfCart",
+          "banquet"
         ],
         "type": "object"
       },
@@ -78559,6 +78785,218 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "ProfitCenter": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "contribution": {
+            "description": "Revenue − cost of sales − direct expenses (for shared: its net)",
+            "type": "string"
+          },
+          "contributionChange": {
+            "nullable": true,
+            "type": "string"
+          },
+          "costOfSales": {
+            "type": "string"
+          },
+          "directExpense": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "margin": {
+            "description": "Contribution ÷ revenue",
+            "nullable": true,
+            "type": "string"
+          },
+          "previousContribution": {
+            "type": "string"
+          },
+          "previousRevenue": {
+            "type": "string"
+          },
+          "revenue": {
+            "type": "string"
+          },
+          "revenueChange": {
+            "description": "Change ratio against the previous period",
+            "nullable": true,
+            "type": "string"
+          },
+          "revenueShare": {
+            "description": "Share of the revenue of all centers",
+            "nullable": true,
+            "type": "string"
+          },
+          "shared": {
+            "description": "Overhead and other income / expenses that belong to no center",
+            "type": "boolean"
+          },
+          "trend": {
+            "description": "Six months up to the period's month",
+            "items": {
+              "$ref": "#/components/schemas/ProfitCenterMonth"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "shared",
+          "revenue",
+          "costOfSales",
+          "directExpense",
+          "contribution",
+          "previousRevenue",
+          "previousContribution",
+          "trend"
+        ],
+        "type": "object"
+      },
+      "ProfitCenterAccount": {
+        "properties": {
+          "account": {
+            "type": "string"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "profitCenter": {
+            "type": "string"
+          },
+          "section": {
+            "enum": [
+              "revenue",
+              "cogs",
+              "expense",
+              "other"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "profitCenter",
+          "section",
+          "account",
+          "accountName",
+          "amount"
+        ],
+        "type": "object"
+      },
+      "ProfitCenterMonth": {
+        "properties": {
+          "contribution": {
+            "type": "string"
+          },
+          "month": {
+            "description": "YYYY-MM",
+            "type": "string"
+          },
+          "revenue": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "revenue",
+          "contribution"
+        ],
+        "type": "object"
+      },
+      "ProfitCenters": {
+        "properties": {
+          "accounts": {
+            "items": {
+              "$ref": "#/components/schemas/ProfitCenterAccount"
+            },
+            "type": "array"
+          },
+          "centers": {
+            "description": "Profit centers with activity, the shared overhead last",
+            "items": {
+              "$ref": "#/components/schemas/ProfitCenter"
+            },
+            "type": "array"
+          },
+          "compareFrom": {
+            "type": "string"
+          },
+          "compareTo": {
+            "type": "string"
+          },
+          "contribution": {
+            "description": "Contribution of the centers",
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "margin": {
+            "nullable": true,
+            "type": "string"
+          },
+          "month": {
+            "type": "string"
+          },
+          "netIncome": {
+            "description": "Contribution + shared net = net income of the P\u0026L",
+            "type": "string"
+          },
+          "period": {
+            "enum": [
+              "month",
+              "year"
+            ],
+            "type": "string"
+          },
+          "previousContribution": {
+            "type": "string"
+          },
+          "previousNetIncome": {
+            "type": "string"
+          },
+          "revenue": {
+            "description": "Revenue of the centers",
+            "type": "string"
+          },
+          "sharedNet": {
+            "description": "Net of the shared lines (negative = overhead)",
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "period",
+          "month",
+          "from",
+          "to",
+          "compareFrom",
+          "compareTo",
+          "centers",
+          "revenue",
+          "contribution",
+          "sharedNet",
+          "netIncome",
+          "previousContribution",
+          "previousNetIncome",
+          "accounts",
+          "generatedAt"
+        ],
         "type": "object"
       },
       "ProfitabilityRecalcInput": {
@@ -360077,6 +360515,98 @@
         "x-permission": "reporting.hr_performance.view"
       }
     },
+    "/api/v1/reporting/incidents": {
+      "get": {
+        "operationId": "getReportingIncidents",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "enum": [
+                "month",
+                "year"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "YYYY-MM (default: this month)",
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentDashboard"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Incident dashboard: caddy, golf cart and banquet incidents by source, severity, category and month; open incidents",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dashboard.view"
+      }
+    },
     "/api/v1/reporting/kpi-definitions": {
       "get": {
         "operationId": "getReportingKpiDefinitions",
@@ -360768,6 +361298,98 @@
         "x-audited": true,
         "x-module": "reporting",
         "x-permission": "reporting.kpi_target.manage"
+      }
+    },
+    "/api/v1/reporting/profit-centers": {
+      "get": {
+        "operationId": "getReportingProfitCenters",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "enum": [
+                "month",
+                "year"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "YYYY-MM (default: this month)",
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfitCenters"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Profit centers: revenue, cost of sales, direct expenses and contribution per center with the previous period and six months",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dashboard.view"
       }
     },
     "/api/v1/reporting/reports": {

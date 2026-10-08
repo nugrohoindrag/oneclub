@@ -409,6 +409,8 @@ var Trees = map[string][]Item{
 		{Key: "banquet-performance", Label: "Banquet Performance", Path: "/management/banquet-performance", Icon: "celebration", Module: "banquet", Permission: catalog.ManagementView},
 		{Key: "procurement-performance", Label: "Procurement Performance", Path: "/management/procurement-performance", Icon: "request_quote", Module: "procurement", Permission: catalog.ManagementView},
 		{Key: "financial-performance", Label: "Financial Performance", Path: "/management/financial", Icon: "payments", Module: "accounting", Permission: catalog.ManagementView},
+		{Key: "profit-centers", Label: "Profit Centers", Path: "/management/profit-centers", Icon: "account_tree", Module: "accounting", Permission: catalog.ManagementView},
+		{Key: "incidents", Label: "Incidents", Path: "/management/incidents", Icon: "report", Module: "reporting", Permission: catalog.ManagementView},
 		// PRD P5 EP-21 / EP-27: HR Performance and the KPI targets of the Executive Overview.
 		{Key: "hr-performance", Label: "HR Performance", Path: "/management/hr-performance", Icon: "badge", Module: "reporting", Permission: "reporting.hr_performance.view"},
 		{Key: "kpi-targets", Label: "KPI Targets", Path: "/management/targets", Icon: "monitoring", Module: "reporting", Permission: "reporting.kpi_target.view"},

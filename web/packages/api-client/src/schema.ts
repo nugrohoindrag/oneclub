@@ -33839,6 +33839,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reporting/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Incident dashboard: caddy, golf cart and banquet incidents by source, severity, category and month; open incidents */
+        get: operations["getReportingIncidents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reporting/kpi-definitions": {
         parameters: {
             query?: never;
@@ -33921,6 +33938,23 @@ export interface paths {
         put?: never;
         /** Submit a KPI target plan for approval (approved at once without a workflow) */
         post: operations["postReportingKpiTargetsByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/profit-centers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Profit centers: revenue, cost of sales, direct expenses and contribution per center with the previous period and six months */
+        get: operations["getReportingProfitCenters"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -51692,6 +51726,41 @@ export interface components {
             status: "open" | "closed";
             subjectType: string;
         };
+        IncidentDashboard: {
+            byCategory: components["schemas"]["ReportingBreakdown"][];
+            bySeverity: components["schemas"]["ReportingBreakdown"][];
+            bySource: components["schemas"]["ReportingBreakdown"][];
+            byStatus: components["schemas"]["ReportingBreakdown"][];
+            compareFrom: string;
+            compareTo: string;
+            /** @description Damage recorded in the period (golf cart) */
+            damage: string;
+            /** @description Damage charged to a folio */
+            damageCharged: string;
+            from: string;
+            /** Format: date-time */
+            generatedAt: string;
+            /** @description High or critical incidents of the period */
+            highSeverity: number;
+            /** @description Incidents of the period, latest first (up to 100) */
+            items: components["schemas"]["IncidentItem"][];
+            month: string;
+            /** @description Open incidents now (any date) */
+            open: number;
+            /** @description Open incidents, oldest first (up to 20) */
+            openItems: components["schemas"]["IncidentItem"][];
+            /** @description Open for more than 7 days */
+            openOver7Days: number;
+            /** @enum {string} */
+            period: "month" | "year";
+            previousTotal: number;
+            to: string;
+            /** @description Incidents of the period */
+            total: number;
+            totalChange?: string | null;
+            /** @description Six months up to the period's month */
+            trend: components["schemas"]["IncidentMonth"][];
+        };
         IncidentInput: {
             actionTaken?: string;
             /** @description File URLs (uploaded through /api/v1/files) */
@@ -51720,6 +51789,31 @@ export interface components {
             severity?: "low" | "medium" | "high" | "critical";
             /** @enum {string} */
             subjectType: "caddy" | "golf_cart";
+        };
+        IncidentItem: {
+            actionTaken?: string | null;
+            category: string;
+            damageAmount?: string | null;
+            damageStatus?: string | null;
+            description: string;
+            id: string;
+            number: string;
+            /** Format: date-time */
+            occurredAt: string;
+            /** @enum {string} */
+            severity: "low" | "medium" | "high" | "critical";
+            /** @enum {string} */
+            source: "caddy" | "golf_cart" | "banquet";
+            /** @enum {string} */
+            status: "open" | "closed" | "logged";
+            subject?: string | null;
+        };
+        IncidentMonth: {
+            banquet: number;
+            caddy: number;
+            golfCart: number;
+            /** @description YYYY-MM */
+            month: string;
         };
         Indicators: {
             averageRating?: string | null;
@@ -62775,6 +62869,67 @@ export interface components {
             consent?: boolean | null;
             marketingOptIn?: boolean | null;
             phone?: string | null;
+        };
+        ProfitCenter: {
+            code: string;
+            /** @description Revenue − cost of sales − direct expenses (for shared: its net) */
+            contribution: string;
+            contributionChange?: string | null;
+            costOfSales: string;
+            directExpense: string;
+            label: string;
+            /** @description Contribution ÷ revenue */
+            margin?: string | null;
+            previousContribution: string;
+            previousRevenue: string;
+            revenue: string;
+            /** @description Change ratio against the previous period */
+            revenueChange?: string | null;
+            /** @description Share of the revenue of all centers */
+            revenueShare?: string | null;
+            /** @description Overhead and other income / expenses that belong to no center */
+            shared: boolean;
+            /** @description Six months up to the period's month */
+            trend: components["schemas"]["ProfitCenterMonth"][];
+        };
+        ProfitCenterAccount: {
+            account: string;
+            accountName: string;
+            amount: string;
+            profitCenter: string;
+            /** @enum {string} */
+            section: "revenue" | "cogs" | "expense" | "other";
+        };
+        ProfitCenterMonth: {
+            contribution: string;
+            /** @description YYYY-MM */
+            month: string;
+            revenue: string;
+        };
+        ProfitCenters: {
+            accounts: components["schemas"]["ProfitCenterAccount"][];
+            /** @description Profit centers with activity, the shared overhead last */
+            centers: components["schemas"]["ProfitCenter"][];
+            compareFrom: string;
+            compareTo: string;
+            /** @description Contribution of the centers */
+            contribution: string;
+            from: string;
+            /** Format: date-time */
+            generatedAt: string;
+            margin?: string | null;
+            month: string;
+            /** @description Contribution + shared net = net income of the P&L */
+            netIncome: string;
+            /** @enum {string} */
+            period: "month" | "year";
+            previousContribution: string;
+            previousNetIncome: string;
+            /** @description Revenue of the centers */
+            revenue: string;
+            /** @description Net of the shared lines (negative = overhead) */
+            sharedNet: string;
+            to: string;
         };
         ProfitabilityRecalcInput: {
             /** @description Start dates from (YYYY-MM-DD) */
@@ -217606,6 +217761,60 @@ export interface operations {
             };
         };
     };
+    getReportingIncidents: {
+        parameters: {
+            query?: {
+                period?: "month" | "year";
+                /** @description YYYY-MM (default: this month) */
+                month?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentDashboard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getReportingKpiDefinitions: {
         parameters: {
             query?: {
@@ -218005,6 +218214,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KPITargetPlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingProfitCenters: {
+        parameters: {
+            query?: {
+                period?: "month" | "year";
+                /** @description YYYY-MM (default: this month) */
+                month?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfitCenters"];
                 };
             };
             /** @description Not authenticated */
