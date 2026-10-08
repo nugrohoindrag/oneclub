@@ -239,6 +239,8 @@ function RoundPage() {
               const total = sc.scores.filter((h) => h.strokes || scores[sc.id]?.[h.seq]).reduce((s, h) => s + (scores[sc.id]?.[h.seq] ?? h.strokes ?? 0), 0);
               const pc = playerOf(sc.id);
               const got = seq > 0 ? pc?.holeStrokes?.[seq - 1] ?? 0 : 0;
+              const current = scores[sc.id]?.[seq] ?? sc.scores.find((h) => h.seq === seq)?.strokes ?? undefined;
+              const quick = hole ? [hole.par - 1, hole.par, hole.par + 1, hole.par + 2].filter((n) => n > 0) : [];
               return (
                 <div key={sc.id} className="pos-score-row">
                   <div style={{ minWidth: 160 }}><strong>{sc.playerName}</strong><div className="pos-muted">Total {total}</div>
@@ -247,11 +249,10 @@ function RoundPage() {
                         CH {pc.courseHandicap}{got !== 0 ? ` · ${got > 0 ? '+' : ''}${got} stroke${Math.abs(got) > 1 ? 's' : ''} here` : ''}</div>
                     )}</div>
                   <div className="pos-guests" role="group" aria-label={`Score for ${sc.playerName}`}>
-                    {hole && [hole.par - 1, hole.par, hole.par + 1, hole.par + 2].filter((n) => n > 0).map((n) => (
-                      <button key={n} type="button" className="pos-guest pos-score" aria-pressed={scores[sc.id]?.[seq] === n} onClick={() => score(sc.id, n)}>{n}</button>
+                    {quick.map((n) => (
+                      <button key={n} type="button" className="pos-guest pos-score" aria-pressed={current === n} onClick={() => score(sc.id, n)}>{n}</button>
                     ))}
-                    <input className="pos-input pos-score" inputMode="numeric" aria-label={`Other score for ${sc.playerName}`} placeholder="…"
-                      onBlur={(e) => { const n = Number(e.target.value); if (n > 0) { score(sc.id, n); e.target.value = ''; } }} />
+                    {seq > 0 && <ManualScore name={sc.playerName} current={current} quick={quick} onSave={(n) => score(sc.id, n)} />}
                   </div>
                 </div>
               );
@@ -429,20 +430,42 @@ function CartView({ round, seq, scores, onScore }: {
         {round.scorecards.length === 0 ? <div className="pos-empty"><Icon name="scoreboard" size={32} />The scorecards open when the round starts (tee-off).</div> : (
           <div className="pos-stack">
             <strong>Hole {hole.number} · Par {hole.par}</strong>
-            {round.scorecards.map((sc) => (
-              <div key={sc.id} className="pos-score-row" style={{ padding: 0 }}>
-                <span style={{ minWidth: 110 }}>{sc.playerName}</span>
-                <div className="pos-guests" role="group" aria-label={`Score for ${sc.playerName}`}>
-                  {[hole.par - 1, hole.par, hole.par + 1, hole.par + 2].filter((x) => x > 0).map((x) => (
-                    <button key={x} type="button" className="pos-guest pos-score" aria-pressed={strokes(sc, seq) === x} onClick={() => onScore(sc.id, x)}>{x}</button>
-                  ))}
+            {round.scorecards.map((sc) => {
+              const quick = [hole.par - 1, hole.par, hole.par + 1, hole.par + 2].filter((x) => x > 0);
+              return (
+                <div key={sc.id} className="pos-score-row" style={{ padding: 0 }}>
+                  <span style={{ minWidth: 110 }}>{sc.playerName}</span>
+                  <div className="pos-guests" role="group" aria-label={`Score for ${sc.playerName}`}>
+                    {quick.map((x) => (
+                      <button key={x} type="button" className="pos-guest pos-score" aria-pressed={strokes(sc, seq) === x} onClick={() => onScore(sc.id, x)}>{x}</button>
+                    ))}
+                    <ManualScore name={sc.playerName} current={strokes(sc, seq)} quick={quick} onSave={(n) => onScore(sc.id, n)} />
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+/** Any other number of strokes: type it, then Save (or Enter). A saved
+ * score that is not one of the quick buttons stays shown in the box. */
+function ManualScore({ name, current, quick, onSave }: { name: string; current?: number; quick: number[]; onSave: (n: number) => void }) {
+  const [typed, setTyped] = useState('');
+  useEffect(() => setTyped(''), [current]);
+  const other = current != null && !quick.includes(current) ? current : undefined;
+  const n = Number(typed);
+  const ok = typed !== '' && n >= 1 && n <= 20 && n !== current;
+  return (
+    <form className="pos-guests" style={{ gap: 8 }} onSubmit={(e) => { e.preventDefault(); if (ok) onSave(n); }}>
+      <input className="pos-input pos-score" inputMode="numeric" enterKeyHint="done" aria-label={`Other score for ${name}`} placeholder="…"
+        data-saved={typed === '' && other != null ? true : undefined} value={typed !== '' ? typed : other != null ? String(other) : ''}
+        onFocus={(e) => e.target.select()} onChange={(e) => setTyped(e.target.value.replace(/\D/g, '').slice(0, 2))} />
+      <button type="submit" className="pos-btn" style={{ height: 56 }} disabled={!ok} aria-label={`Save score for ${name}`}><Icon name="check" size={20} />Save</button>
+    </form>
   );
 }
 
