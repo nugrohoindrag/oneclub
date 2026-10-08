@@ -643,3 +643,10 @@ body > .oc-popover {
 .oc-playtime[data-live]::before { background: #16a34a; box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2); animation: oc-playtime-pulse 2s ease-in-out infinite; }
 @keyframes oc-playtime-pulse { 50% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); } }
 @media (prefers-reduced-motion: reduce) { .oc-playtime[data-live]::before { animation: none; } }
+
+/* crowd of a tee time / range time: red peak (expect to queue), green quiet */
+.oc-crowd { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.oc-crowd::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #16a34a; }
+.oc-crowd[data-crowd='peak']::before { background: #dc2626; }
+.oc-crowd-peak { box-shadow: inset 4px 0 0 #dc2626; }
+.oc-crowd-quiet { box-shadow: inset 4px 0 0 #16a34a; }

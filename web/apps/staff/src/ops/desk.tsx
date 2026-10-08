@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { qs, request, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
-import { Checkbox, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TextField, useToast } from '@oneclub/shell';
+import { Checkbox, CrowdLabel, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TextField, crowdClass, useToast } from '@oneclub/shell';
 import { BookingForm } from '../p1/golf';
 import { Btn, Head, money, today, useCached } from './golf';
 
@@ -80,7 +80,8 @@ function DeskTeeTimeBooking() {
   const [walkIn, setWalkIn] = useState(true);
   const slots = useGet<Page<R>>(course ? `/api/v1/golf/tee-times${qs({ courseId: course, date })}` : null);
   const [slot, setSlot] = useState<R | null>(null);
-  const open = (slots.data?.items ?? []).filter((s) => Number(s.remaining) > 0 && s.status !== 'blocked');
+  // never refused when busy (FIFO): red peak, green quiet
+  const open = (slots.data?.items ?? []).filter((s) => s.status !== 'blocked');
   return (
     <div className="oc-stack">
       <Head title="New Booking" help="Pick a tee time, then the players: members by member no., guests and walk-ins by name — no account needed."
@@ -93,12 +94,13 @@ function DeskTeeTimeBooking() {
         <Btn label="Phone / reservation" kind={walkIn ? 'neutral' : 'ink'} onClick={() => setWalkIn(false)} />
       </div>
       <ErrorAlert error={slots.error} />
-      {slots.data && open.length === 0 && <p className="oc-muted">No tee time with free places on this date.</p>}
+      {slots.data && open.length === 0 && <p className="oc-muted">No tee times on this date.</p>}
+      {open.length > 0 && <p className="oc-small oc-muted" style={{ margin: 0 }}>Red: peak (full or peak time) — the flight joins the starter queue, first come first served. Green: quiet.</p>}
       <div className="oc-row-wrap">
         {open.map((s) => (
-          <button key={s.id} type="button" className="oc-btn oc-btn-neutral" style={{ minHeight: 56, minWidth: 104, flexDirection: 'column' }} onClick={() => setSlot(s)}>
+          <button key={s.id} type="button" className={`oc-btn oc-btn-neutral ${crowdClass(s.crowd as string)}`} style={{ minHeight: 56, minWidth: 104, flexDirection: 'column' }} onClick={() => setSlot(s)}>
             <strong>{String(s.localTime)}</strong>
-            <span className="oc-small">{String(s.remaining)} left{Number(s.startTee) > 1 ? ` · T${String(s.startTee)}` : ''}</span>
+            <span className="oc-small"><CrowdLabel crowd={s.crowd as string} />{Number(s.startTee) > 1 ? ` · T${String(s.startTee)}` : ''}</span>
           </button>
         ))}
       </div>
@@ -120,7 +122,7 @@ function DeskRangeBooking() {
   const [guest, setGuest] = useState({ name: '', phone: '', players: '1' });
   const slots = useGet<Page<R>>(`/api/v1/golf/range-availability${qs({ date, area, minutes })}`);
   const book = useSend<Record<string, unknown>, R>('POST', '/api/v1/golf/range-bookings', ['/api/v1/golf/range-bookings']);
-  const list = (slots.data?.items ?? []).filter((s) => !bay || Number(s.freeBays) > 0);
+  const list = slots.data?.items ?? [];
   const picked = list.find((s) => s.time === time);
   return (
     <div className="oc-stack">
@@ -137,9 +139,10 @@ function DeskRangeBooking() {
       <ErrorAlert error={slots.error} />
       <div className="oc-row-wrap">
         {list.map((s) => (
-          <button key={String(s.time)} type="button" className={`oc-btn ${time === s.time ? 'oc-btn-ink' : 'oc-btn-neutral'}`} style={{ minHeight: 56, minWidth: 92, flexDirection: 'column' }}
-            onClick={() => { setTime(String(s.time)); setBayId(''); }}>
-            <strong>{String(s.time)}</strong>{bay && <span className="oc-small">{String(s.freeBays)} bays</span>}
+          <button key={String(s.time)} type="button" className={`oc-btn ${time === s.time ? 'oc-btn-ink' : 'oc-btn-neutral'} ${crowdClass(s.crowd as string)}`}
+            style={{ minHeight: 56, minWidth: 92, flexDirection: 'column' }} onClick={() => { setTime(String(s.time)); setBayId(''); }}>
+            <strong>{String(s.time)}</strong>
+            <span className="oc-small"><CrowdLabel crowd={s.crowd as string} quiet={bay ? `${String(s.freeBays)} bays` : 'Quiet'} /></span>
           </button>
         ))}
       </div>
@@ -270,14 +273,14 @@ function TimeTab({ b, onDone }: { b: Booking; onDone: () => void }) {
   const [reason, setReason] = useState('');
   const move = useSend<Record<string, unknown>>('POST', `/api/v1/golf/bookings/${b.id}:reschedule`, ['/api/v1/golf']);
   const n = b.players.filter((p) => p.status === 'booked' || p.status === 'checked_in').length;
-  const free = (slots.data?.items ?? []).filter((s) => s.id !== b.teeTimeId && s.status !== 'blocked' && Number(s.remaining) >= n);
+  const free = (slots.data?.items ?? []).filter((s) => s.id !== b.teeTimeId && s.status !== 'blocked' && n <= Number(s.maxPlayers || 4));
   return (
     <div className="oc-stack">
       <p style={{ margin: 0 }}>Now {String(b.playDate)} {String(b.localTime)}. Late or early? Move the flight to the next free tee time.</p>
       <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
         <TextField label="Date" type="date" value={date} onChange={(v) => { setDate(v); setSlot(''); }} />
         <SelectField label="New tee time" value={slot} onChange={setSlot} placeholder="Choose"
-          options={free.map((s) => ({ value: s.id, label: `${String(s.localTime)}${Number(s.startTee) > 1 ? ` · tee ${String(s.startTee)}` : ''} · ${String(s.remaining)} free` }))} />
+          options={free.map((s) => ({ value: s.id, label: `${String(s.localTime)}${Number(s.startTee) > 1 ? ` · tee ${String(s.startTee)}` : ''} · ${s.crowd === 'peak' ? '🔴 peak' : '🟢 quiet'}` }))} />
         <TextField label="Reason" value={reason} onChange={setReason} placeholder="FIFO at the front desk" />
       </div>
       <Checkbox label="Keep the price (time change only)" checked={keep} onChange={setKeep} />

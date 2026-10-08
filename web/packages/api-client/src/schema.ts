@@ -37702,6 +37702,11 @@ export interface components {
             capacity: number;
             /** Format: uuid */
             courseId: string;
+            /**
+             * @description peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)
+             * @enum {string}
+             */
+            crowd: "quiet" | "peak";
             dayTypeCode: string;
             flightCapacity: number;
             /** Format: uuid */
@@ -37725,7 +37730,10 @@ export interface components {
             /** Format: date-time */
             startAt: string;
             startTee: number;
-            /** @enum {string} */
+            /**
+             * @description A full slot still takes bookings (extra flights, first come first served)
+             * @enum {string}
+             */
             status: "available" | "reserved" | "full" | "blocked";
             used: number;
         };
@@ -64384,6 +64392,11 @@ export interface components {
         };
         RangeSlot: {
             bays: components["schemas"]["RangeBayRef"][];
+            /**
+             * @description peak (red): every bay is taken by bookings at this time — expect to queue; quiet (green)
+             * @enum {string}
+             */
+            crowd: "quiet" | "peak";
             freeBays: number;
             /** Format: date-time */
             startAt: string;
@@ -68137,6 +68150,11 @@ export interface components {
             capacity: number;
             /** Format: uuid */
             courseId: string;
+            /**
+             * @description peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)
+             * @enum {string}
+             */
+            crowd: "quiet" | "peak";
             dayTypeCode: string;
             flightCapacity: number;
             flights: components["schemas"]["SheetFlight"][];
@@ -68157,7 +68175,10 @@ export interface components {
             /** Format: date-time */
             startAt: string;
             startTee: number;
-            /** @enum {string} */
+            /**
+             * @description A full slot still takes bookings (extra flights, first come first served)
+             * @enum {string}
+             */
             status: "available" | "reserved" | "full" | "blocked";
             used: number;
         };
@@ -68591,6 +68612,11 @@ export interface components {
             capacity: number;
             /** Format: uuid */
             courseId: string;
+            /**
+             * @description peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)
+             * @enum {string}
+             */
+            crowd: "quiet" | "peak";
             dayTypeCode: string;
             flightCapacity: number;
             /** Format: uuid */
@@ -68610,7 +68636,10 @@ export interface components {
             /** Format: date-time */
             startAt: string;
             startTee: number;
-            /** @enum {string} */
+            /**
+             * @description A full slot still takes bookings (extra flights, first come first served)
+             * @enum {string}
+             */
             status: "available" | "reserved" | "full" | "blocked";
             used: number;
         };

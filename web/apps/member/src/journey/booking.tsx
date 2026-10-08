@@ -285,7 +285,8 @@ function ChangeBooking({ booking, mode, onClose }: { booking: Booking; mode: 'ca
       <div className="oc-stack">
         {mode === 'cancel' && <p className="mj-muted" style={{ margin: 0 }}>Free cancellation until the time set by the club's Cancellation Policy; after that a fee applies.</p>}
         {mode === 'move' && <SelectField label="New tee time (same day)" value={slot} onChange={setSlot} placeholder="Choose"
-          options={(slots.data?.items ?? []).filter((s) => s.remaining >= booking.playerCount && s.id !== booking.teeTimeId).map((s) => ({ value: s.id, label: `${s.localTime}${s.startTee > 1 ? ` · tee ${s.startTee}` : ''}` }))} />}
+          options={(slots.data?.items ?? []).filter((s) => s.status !== 'blocked' && s.id !== booking.teeTimeId)
+            .map((s) => ({ value: s.id, label: `${s.localTime}${s.startTee > 1 ? ` · tee ${s.startTee}` : ''} · ${s.crowd === 'peak' ? '🔴 peak' : '🟢 quiet'}` }))} />}
         <TextField label="Reason" value={reason} onChange={setReason} />
         <ErrorAlert error={error} />
       </div>

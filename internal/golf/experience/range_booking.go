@@ -92,11 +92,14 @@ type RangeBookingInput struct {
 }
 
 // RangeSlot is a start time with the bays free for the requested length.
+// A busy time never refuses a booking (first come first served): the guest
+// books the visit and queues for the next free bay.
 type RangeSlot struct {
 	Time     string        `json:"time"`
 	StartAt  time.Time     `json:"startAt"`
 	FreeBays int           `json:"freeBays"`
 	Bays     []RangeBayRef `json:"bays"`
+	Crowd    string        `json:"crowd" enum:"quiet,peak" doc:"peak (red): every bay is taken by bookings at this time — expect to queue; quiet (green)"`
 }
 
 // RangeBayRef is a free bay.
@@ -175,6 +178,16 @@ func (m *Module) RangeAvailability(ctx context.Context, q dbtx.Querier, property
 	if err != nil {
 		return nil, err
 	}
+	// announced visits without a bay also fill the range
+	type visit struct {
+		Start time.Time `db:"start_at"`
+		End   time.Time `db:"end_at"`
+	}
+	visits, err := handle.List[visit](q.Query(ctx, `SELECT start_at, end_at FROM golf.range_bookings WHERE property_id = $1 AND area = $2
+		AND play_date = $3::date AND status = 'booked' AND (reservation_id IS NULL OR bay_released_at IS NOT NULL)`, property, area, date))
+	if err != nil {
+		return nil, err
+	}
 	now := clock.Now()
 	out := []RangeSlot{}
 	length := time.Duration(minutes) * time.Minute
@@ -186,7 +199,17 @@ func (m *Module) RangeAvailability(ctx context.Context, q dbtx.Querier, property
 		if err != nil {
 			return nil, err
 		}
-		s := RangeSlot{Time: t.Format("15:04"), StartAt: t, FreeBays: len(free), Bays: []RangeBayRef{}}
+		taken := len(bays) - len(free)
+		for _, v := range visits {
+			if v.Start.Before(t.Add(length)) && v.End.After(t) {
+				taken++
+			}
+		}
+		crowd := "quiet"
+		if taken >= len(bays) {
+			crowd = "peak"
+		}
+		s := RangeSlot{Time: t.Format("15:04"), StartAt: t, FreeBays: len(free), Bays: []RangeBayRef{}, Crowd: crowd}
 		for _, b := range free {
 			s.Bays = append(s.Bays, RangeBayRef{ID: b.ID, Code: b.Code, Name: b.Name})
 		}
@@ -261,16 +284,17 @@ func (m *Module) BookRange(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 				break
 			}
 		}
-		if pick == nil {
-			return RangeBooking{}, errs.Conflict("no_bay_free", "no bay is free in the "+area+" area at this time; choose another time or book the visit only")
+		if pick != nil {
+			r, err := m.Reservations.Book(ctx, tx, property, reservation.BookRequest{Lines: []reservation.LineRequest{{ResourceID: *pick.ResourceID, Start: start, End: end,
+				Description: "Driving range " + pick.Code}}, BusinessLine: "golf", CustomerID: in.CustomerID, GuestName: name, GuestPhone: in.GuestPhone,
+				GuestEmail: in.GuestEmail, Channel: channel, SourceType: "golf.range_booking", SourceID: &bid, Confirm: true, Notes: in.Notes})
+			if err != nil {
+				return RangeBooking{}, err
+			}
+			bayID, rid = &pick.ID, &r.ID
 		}
-		r, err := m.Reservations.Book(ctx, tx, property, reservation.BookRequest{Lines: []reservation.LineRequest{{ResourceID: *pick.ResourceID, Start: start, End: end,
-			Description: "Driving range " + pick.Code}}, BusinessLine: "golf", CustomerID: in.CustomerID, GuestName: name, GuestPhone: in.GuestPhone,
-			GuestEmail: in.GuestEmail, Channel: channel, SourceType: "golf.range_booking", SourceID: &bid, Confirm: true, Notes: in.Notes})
-		if err != nil {
-			return RangeBooking{}, err
-		}
-		bayID, rid = &pick.ID, &r.ID
+		// every bay is taken: the booking stands without a bay hold and the
+		// guest queues for the next free bay (FIFO, never refused)
 	}
 	if _, err := tx.Exec(ctx, `INSERT INTO golf.range_bookings (id, property_id, number, play_date, start_at, end_at, area, bay_id, reservation_id, players,
 		customer_id, guest_name, guest_phone, guest_email, channel, notes, created_by) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,

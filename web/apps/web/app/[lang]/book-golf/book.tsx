@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import type { Lang } from '../../lib';
 
-interface Slot { id: string; localTime: string; startTee: number; remaining: number; minPlayers: number; session: string; prices: Record<string, string> }
+interface Slot { id: string; localTime: string; startTee: number; remaining: number; minPlayers: number; maxPlayers: number; session: string; status: string; crowd?: string; prices: Record<string, string> }
 interface Hold { id: string; holdToken: string; expiresAt: string; players: number }
 interface Problem { detail?: string; title?: string }
 
@@ -142,9 +142,12 @@ export function BookGolf({ lang }: { lang: Lang }) {
       {error && <p className="w-error" role="alert">{error}</p>}
       {slots === null && !error && <p className="w-muted">{id ? 'Memuat…' : 'Loading…'}</p>}
       {slots && slots.length === 0 && <p>{id ? 'Tidak ada tee time tersedia pada tanggal ini.' : 'No tee times available on this date.'}</p>}
+      {slots && slots.length > 0 && <p className="w-muted">{id ? 'Merah: jam sibuk (peak), mungkin antre. Hijau: sepi. Starter melepas flight sesuai urutan datang.'
+        : 'Red: peak time, you may queue. Green: quiet. The starter sends flights out first come, first served.'}</p>}
       <div className="w-slots" style={{ marginTop: 16 }}>
-        {slots?.filter((s) => s.remaining >= players && players >= (s.minPlayers ?? 1)).map((s) => (
-          <button key={s.id} className="w-slot" disabled={busy} onClick={() => void choose(s)}>
+        {slots?.filter((s) => s.status !== 'blocked' && players >= (s.minPlayers ?? 1) && players <= (s.maxPlayers || 4)).map((s) => (
+          <button key={s.id} className="w-slot" data-crowd={s.crowd} disabled={busy} onClick={() => void choose(s)}
+            title={s.crowd === 'peak' ? (id ? 'Jam sibuk: mungkin antre' : 'Peak time: you may queue') : (id ? 'Sepi' : 'Quiet')}>
             <strong>{s.localTime}</strong>
             <div className="w-muted" style={{ fontSize: 12 }}>{s.prices.guest ? fmt(s.prices.guest, lang) : ''}</div>
           </button>

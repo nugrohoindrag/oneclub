@@ -6838,6 +6838,14 @@
             "format": "uuid",
             "type": "string"
           },
+          "crowd": {
+            "description": "peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)",
+            "enum": [
+              "quiet",
+              "peak"
+            ],
+            "type": "string"
+          },
           "dayTypeCode": {
             "type": "string"
           },
@@ -6900,6 +6908,7 @@
             "type": "integer"
           },
           "status": {
+            "description": "A full slot still takes bookings (extra flights, first come first served)",
             "enum": [
               "available",
               "reserved",
@@ -6931,6 +6940,7 @@
           "memberOnly",
           "lighting",
           "status",
+          "crowd",
           "prices"
         ],
         "type": "object"
@@ -84507,6 +84517,14 @@
             },
             "type": "array"
           },
+          "crowd": {
+            "description": "peak (red): every bay is taken by bookings at this time — expect to queue; quiet (green)",
+            "enum": [
+              "quiet",
+              "peak"
+            ],
+            "type": "string"
+          },
           "freeBays": {
             "type": "integer"
           },
@@ -84522,7 +84540,8 @@
           "time",
           "startAt",
           "freeBays",
-          "bays"
+          "bays",
+          "crowd"
         ],
         "type": "object"
       },
@@ -95471,6 +95490,14 @@
             "format": "uuid",
             "type": "string"
           },
+          "crowd": {
+            "description": "peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)",
+            "enum": [
+              "quiet",
+              "peak"
+            ],
+            "type": "string"
+          },
           "dayTypeCode": {
             "type": "string"
           },
@@ -95532,6 +95559,7 @@
             "type": "integer"
           },
           "status": {
+            "description": "A full slot still takes bookings (extra flights, first come first served)",
             "enum": [
               "available",
               "reserved",
@@ -95563,6 +95591,7 @@
           "memberOnly",
           "lighting",
           "status",
+          "crowd",
           "flights"
         ],
         "type": "object"
@@ -96779,6 +96808,14 @@
             "format": "uuid",
             "type": "string"
           },
+          "crowd": {
+            "description": "peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)",
+            "enum": [
+              "quiet",
+              "peak"
+            ],
+            "type": "string"
+          },
           "dayTypeCode": {
             "type": "string"
           },
@@ -96834,6 +96871,7 @@
             "type": "integer"
           },
           "status": {
+            "description": "A full slot still takes bookings (extra flights, first come first served)",
             "enum": [
               "available",
               "reserved",
@@ -96864,7 +96902,8 @@
           "peak",
           "memberOnly",
           "lighting",
-          "status"
+          "status",
+          "crowd"
         ],
         "type": "object"
       },

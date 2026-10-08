@@ -156,7 +156,7 @@ export function TeeTimeWizard() {
               <span className="oc-spacer" />
               <div className="mj-seg" role="group" aria-label="Number of players">
                 {[1, 2, 3, 4].map((n) => (
-                  <button key={n} type="button" aria-pressed={count === n} onClick={() => { setCount(n); if (slot && slot.remaining < n) setSlot(null); }}>{n}</button>
+                  <button key={n} type="button" aria-pressed={count === n} onClick={() => { setCount(n); if (slot && (n < (slot.minPlayers || 1) || n > (slot.maxPlayers || 4))) setSlot(null); }}>{n}</button>
                 ))}
               </div>
             </div>
@@ -164,16 +164,19 @@ export function TeeTimeWizard() {
             {avail.isLoading && <Skeleton rows={4} />}
             <ErrorAlert error={avail.error} />
             {avail.data && avail.data.items.length === 0 && <p className="mj-muted">No tee times on this date. Try another day or session.</p>}
+            {(avail.data?.items.length ?? 0) > 0 && <p className="mj-small mj-muted" style={{ margin: 0 }}>Red: peak time, you may wait in the queue. Green: quiet. The starter sends flights out first come, first served.</p>}
             <div className="mj-slots">
               {(avail.data?.items ?? []).map((s) => {
-                // a slot fits when it has room for the players and its minimum is met
-                const full = s.remaining <= 0 || s.status === 'full' || s.status === 'blocked';
-                const fits = !full && s.remaining >= count && count >= (s.minPlayers || 1) && count <= (s.maxPlayers || 4);
+                // never refused when busy (first come first served): red = peak, green = quiet
+                const blocked = s.status === 'blocked';
+                const fits = !blocked && count >= (s.minPlayers || 1) && count <= (s.maxPlayers || 4);
+                const peak = s.crowd === 'peak';
                 return (
-                  <button key={s.id} type="button" className="mj-slot" data-full={!fits} data-few={fits && s.remaining < 4} aria-pressed={slot?.id === s.id} disabled={!fits}
-                    title={full ? 'Full' : !fits ? `Not available for ${count} ${count === 1 ? 'player' : 'players'}` : undefined} onClick={() => setSlot(s)}>
+                  <button key={s.id} type="button" className="mj-slot" data-full={!fits} data-peak={fits && peak} aria-pressed={slot?.id === s.id} disabled={!fits}
+                    title={blocked ? 'Blocked' : !fits ? `Not for ${count} ${count === 1 ? 'player' : 'players'}` : peak ? 'Peak time: you may wait in the queue' : 'Quiet'}
+                    onClick={() => setSlot(s)}>
                     <strong className="mj-num">{s.localTime}</strong>
-                    <span>{full ? 'Full' : `${s.remaining} left`}{s.startTee > 1 ? ` · T${s.startTee}` : ''}</span>
+                    <span>{blocked ? 'Blocked' : peak ? 'Peak' : 'Quiet'}{s.startTee > 1 ? ` · T${s.startTee}` : ''}</span>
                   </button>
                 );
               })}

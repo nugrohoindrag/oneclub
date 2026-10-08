@@ -6,9 +6,10 @@ import (
 
 // Demo feedback (9 Oct 2026): the driving range is booked from the Member
 // App, the website (no account) and the front desk — a bay and a time held
-// in the Reservation Engine, or only the visit. Full bays refuse a bay
-// booking but not a visit; a cancelled booking frees its bay; check-in
-// gives the booked bay when it is free.
+// in the Reservation Engine, or only the visit. A busy time is never
+// refused (FIFO): the booking stands without a bay hold and the time shows
+// as peak; a cancelled booking frees its bay; check-in gives the booked bay
+// when it is free.
 func TestRangeBookingChannels(t *testing.T) {
 	f := setupP2(t)
 	fd := login(t, inst, "front.desk@demo.oneclub.id", demoPassword)
@@ -18,17 +19,17 @@ func TestRangeBookingChannels(t *testing.T) {
 		f.SA.Must(201, "POST", "/api/v1/golf/range-bays", map[string]any{"code": c, "name": "Indoor " + c, "area": "indoor"})
 	}
 	day := clubDay(inst, 2, isWeekday)
-	free := func(c *Client, path string) int {
+	free := func(c *Client, path string) (int, any) {
 		for _, s := range c.Must(200, "GET", path, nil).Items() {
 			if s["time"] == "10:00" {
-				return int(s["freeBays"].(float64))
+				return int(s["freeBays"].(float64)), s["crowd"]
 			}
 		}
 		t.Fatalf("no 10:00 slot in %s", path)
-		return 0
+		return 0, nil
 	}
-	if n := free(m, "/api/v1/member/golf/range-availability?date="+day+"&area=indoor&minutes=60"); n < 2 {
-		t.Fatalf("indoor bays free at 10:00: %d", n)
+	if n, crowd := free(m, "/api/v1/member/golf/range-availability?date="+day+"&area=indoor&minutes=60"); n < 2 || crowd != "quiet" {
+		t.Fatalf("indoor bays free at 10:00: %d (%v)", n, crowd)
 	}
 	book := map[string]any{"date": day, "time": "10:00", "minutes": 60, "area": "indoor", "reserveBay": true}
 
@@ -42,14 +43,15 @@ func TestRangeBookingChannels(t *testing.T) {
 	if wb["holdsBay"] != true || wb["channel"] != "website" || wb["bayCode"] == mb["bayCode"] {
 		t.Fatalf("website range booking: %v", wb)
 	}
-	if n := free(pub, "/api/v1/public/golf/range-availability?propertyId="+str(inst.Main)+"&date="+day+"&area=indoor&minutes=60"); n != 0 {
-		t.Fatalf("both indoor bays are held at 10:00: %d free", n)
+	if n, crowd := free(pub, "/api/v1/public/golf/range-availability?propertyId="+str(inst.Main)+"&date="+day+"&area=indoor&minutes=60"); n != 0 || crowd != "peak" {
+		t.Fatalf("both indoor bays are held at 10:00: %d free (%v)", n, crowd)
 	}
 
-	// full: a bay booking is refused, a visit (balls at the counter) is not
+	// full: not refused (FIFO) — the booking stands without a bay hold
 	desk := merge(book, map[string]any{"time": "10:30", "guestName": "Rina Walk-in", "guestPhone": "+628129990072"})
-	if r := fd.Do("POST", "/api/v1/golf/range-bookings", desk); r.Status != 409 {
-		t.Fatalf("no bay free at 10:30: %s", r.String())
+	queued := fd.Must(201, "POST", "/api/v1/golf/range-bookings", desk).JSON()
+	if queued["holdsBay"] != false || queued["bayCode"] != nil {
+		t.Fatalf("busy range: booked without a bay: %v", queued)
 	}
 	visit := fd.Must(201, "POST", "/api/v1/golf/range-bookings", merge(desk, map[string]any{"reserveBay": false})).JSON()
 	if visit["holdsBay"] != false || visit["channel"] != "walk_in" {
@@ -69,7 +71,7 @@ func TestRangeBookingChannels(t *testing.T) {
 	if ci["status"] != "checked_in" || ci["sessionStatus"] != "active" || ci["bayNow"] != wb["bayCode"] || ci["holdsBay"] != false {
 		t.Fatalf("range check-in: %v", ci)
 	}
-	if n := len(fd.Must(200, "GET", "/api/v1/golf/range-bookings?date="+day, nil).Items()); n < 4 {
+	if n := len(fd.Must(200, "GET", "/api/v1/golf/range-bookings?date="+day, nil).Items()); n < 5 {
 		t.Fatalf("range bookings of the day: %d", n)
 	}
 	fd.Must(200, "POST", "/api/v1/golf/range-sessions/"+str(ci["sessionId"])+":end", nil)

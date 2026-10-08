@@ -347,8 +347,13 @@ func reservationEnsureSeat(ctx context.Context, tx pgx.Tx, property uuid.UUID, c
 }
 
 func (m *Module) seatIDs(ctx context.Context, tx pgx.Tx, property uuid.UUID, s slotRow) ([]uuid.UUID, error) {
+	return m.flightSeats(ctx, tx, property, s, 1, s.Flights)
+}
+
+// flightSeats are the seats of flights from..to of a slot.
+func (m *Module) flightSeats(ctx context.Context, tx pgx.Tx, property uuid.UUID, s slotRow, from, to int) ([]uuid.UUID, error) {
 	var out []uuid.UUID
-	for f := 1; f <= s.Flights; f++ {
+	for f := from; f <= to; f++ {
 		for seat := 1; seat <= s.MaxP; seat++ {
 			rid, err := reservationEnsureSeat(ctx, tx, property, s.CourseCode, s.VenueID, s.Tee, f, seat)
 			if err != nil {
@@ -363,8 +368,14 @@ func (m *Module) seatIDs(ctx context.Context, tx pgx.Tx, property uuid.UUID, s s
 // ErrSlotFull is returned when the slot has no capacity left (FR-BKG-02).
 var ErrSlotFull = errs.Conflict("slot_full", "this tee time does not have enough free places")
 
+// OverflowFlights is how many extra flights a full tee time takes. A full
+// slot does not refuse a booking (demo feedback 9 Oct 2026): the time is
+// flexible and the starter sends the flights out first come first served;
+// the slot is shown as peak (busy) instead.
+const OverflowFlights = 30
+
 // allocateSeats locks n seats of a slot for a booking (held with expiry or
-// confirmed).
+// confirmed); when the slot's flights are full, on its overflow flights.
 func (m *Module) allocateSeats(ctx context.Context, tx pgx.Tx, property uuid.UUID, s slotRow, bookingID uuid.UUID, n int, holdUntil *time.Time) ([]uuid.UUID, error) {
 	seats, err := m.seatIDs(ctx, tx, property, s)
 	if err != nil {
@@ -374,6 +385,30 @@ func (m *Module) allocateSeats(ctx context.Context, tx pgx.Tx, property uuid.UUI
 		return nil, err
 	}
 	start, end := s.period()
+	// add overflow flights until n seats are free (or the guard is reached)
+	for extra := 1; extra <= OverflowFlights; extra++ {
+		busy, err := reservation.Busy(ctx, tx, seats, start, end)
+		if err != nil {
+			return nil, err
+		}
+		free := 0
+		for _, seat := range seats {
+			if !busy[seat] {
+				free++
+			}
+		}
+		if free >= n {
+			break
+		}
+		more, err := m.flightSeats(ctx, tx, property, s, s.Flights+extra, s.Flights+extra)
+		if err != nil {
+			return nil, err
+		}
+		seats = append(seats, more...)
+	}
+	if err := reservation.ReleaseExpiredOn(ctx, tx, seats); err != nil {
+		return nil, err
+	}
 	busy, err := reservation.Busy(ctx, tx, seats, start, end)
 	if err != nil {
 		return nil, err

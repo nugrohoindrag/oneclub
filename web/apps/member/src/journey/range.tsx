@@ -100,12 +100,13 @@ export function RangeWizard() {
         {avail.data && slots.length === 0 && <p className="mj-muted">No times left on this date.</p>}
         <div className="mj-slots">
           {slots.map((s) => {
-            const full = bay && s.freeBays === 0;
+            // never refused when busy: red = peak (queue for a bay), green = quiet
+            const peak = s.crowd === 'peak';
             return (
-              <button key={s.time} type="button" className="mj-slot" data-full={full} data-few={!full && s.freeBays < 3} aria-pressed={slot?.time === s.time} disabled={full}
+              <button key={s.time} type="button" className="mj-slot" data-peak={peak} aria-pressed={slot?.time === s.time}
                 onClick={() => { setSlot(s); setBayId(''); }}>
                 <strong className="mj-num">{s.time}</strong>
-                <span>{bay ? (full ? 'Full' : `${s.freeBays} bays`) : 'Open'}</span>
+                <span>{peak ? 'Peak' : bay ? `${s.freeBays} bays` : 'Quiet'}</span>
               </button>
             );
           })}
@@ -118,7 +119,7 @@ export function RangeWizard() {
           </div>
         )}
         <TextField label="Notes (optional)" value={notes} onChange={setNotes} />
-        <p className="mj-small mj-muted" style={{ margin: 0 }}>The time is flexible: a booked bay is kept 15 minutes; arrive later and you get the next free bay or a place in the queue. Balls are paid at the counter.</p>
+        <p className="mj-small mj-muted" style={{ margin: 0 }}>Red: peak, every bay is booked — you queue for the next free bay. Green: quiet. A booked bay is kept 15 minutes; arrive later and you get the next free bay or a place in the queue. Balls are paid at the counter.</p>
         <div className="mj-actions mj-sticky">
           <button className="oc-btn oc-btn-primary" disabled={!slot || busy} onClick={() => void book()}><Icon name="check" size={18} /> Confirm Booking</button>
         </div>

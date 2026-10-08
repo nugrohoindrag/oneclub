@@ -7,7 +7,7 @@ import { BookGolf } from './book';
 // 2026). The range is a bay and a time, or just the visit; no account is
 // needed and balls are bought at the Driving Range Counter.
 
-interface Slot { time: string; freeBays: number; bays: { id: string; code: string }[] }
+interface Slot { time: string; freeBays: number; bays: { id: string; code: string }[]; crowd?: string }
 interface Booked { number: string; bayCode?: string | null; holdsBay: boolean; startAt: string; endAt: string }
 interface Problem { detail?: string; title?: string }
 
@@ -110,12 +110,13 @@ function BookRange({ lang, propertyId }: { lang: Lang; propertyId: string }) {
       </div>
       {slots === null && !error && <p className="w-muted">{id ? 'Memuat…' : 'Loading…'}</p>}
       {slots && slots.length === 0 && <p>{id ? 'Tidak ada jam tersedia pada tanggal ini.' : 'No times left on this date.'}</p>}
+      {slots && slots.length > 0 && <p className="w-muted">{id ? 'Merah: peak, semua bay terpesan — Anda antre bay berikutnya. Hijau: sepi.'
+        : 'Red: peak, every bay is booked — you queue for the next free bay. Green: quiet.'}</p>}
       <div className="w-slots" style={{ margin: '16px 0' }}>
-        {slots?.filter((s) => !bay || s.freeBays > 0).map((s) => (
-          <button key={s.time} type="button" className="w-slot" aria-pressed={slot?.time === s.time} onClick={() => setSlot(s)}
-            style={slot?.time === s.time ? { outline: '2px solid currentColor' } : undefined}>
+        {slots?.map((s) => (
+          <button key={s.time} type="button" className="w-slot" data-crowd={s.crowd} aria-pressed={slot?.time === s.time} onClick={() => setSlot(s)}>
             <strong>{s.time}</strong>
-            {bay && <div className="w-muted" style={{ fontSize: 12 }}>{s.freeBays} bay</div>}
+            <div style={{ fontSize: 12 }}>{s.crowd === 'peak' ? 'Peak' : bay ? `${s.freeBays} bay` : (id ? 'Sepi' : 'Quiet')}</div>
           </button>
         ))}
       </div>

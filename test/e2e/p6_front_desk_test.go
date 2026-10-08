@@ -93,4 +93,16 @@ func TestFrontDeskBookingAndBill(t *testing.T) {
 			t.Fatalf("merged bill settles every booking: %v", r)
 		}
 	}
+
+	// a full tee time is not refused (FIFO): the party goes on an extra
+	// flight and the slot shows as peak (red)
+	over := walk(pm[11], "Fajar Walk-in", "Gilang Walk-in", "Hadi Walk-in", "Indra Walk-in")
+	if over["status"] != "confirmed" {
+		t.Fatalf("booking on a full tee time: %v", over["status"])
+	}
+	for _, sl := range fd.Must(200, "GET", "/api/v1/golf/availability?date="+day+"&courseId="+course, nil).Items() {
+		if sl["id"] == pm[11]["id"] && sl["crowd"] != "peak" {
+			t.Fatalf("full tee time shows as peak: %v", sl["crowd"])
+		}
+	}
 }

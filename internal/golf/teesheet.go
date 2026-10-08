@@ -402,8 +402,9 @@ type Slot struct {
 	Peak           bool       `json:"peak"`
 	MemberOnly     bool       `json:"memberOnly"`
 	Lighting       bool       `json:"lighting"`
-	Status         string     `json:"status" enum:"available,reserved,full,blocked"`
+	Status         string     `json:"status" enum:"available,reserved,full,blocked" doc:"A full slot still takes bookings (extra flights, first come first served)"`
 	BlockReason    *string    `json:"blockReason"`
+	Crowd          string     `json:"crowd" enum:"quiet,peak" doc:"peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)"`
 }
 
 func slotStatus(raw string, used, capacity int) string {
@@ -416,6 +417,15 @@ func slotStatus(raw string, used, capacity int) string {
 		return "reserved"
 	}
 	return "available"
+}
+
+// slotCrowd is the colour of a slot: a booking is never refused for a full
+// slot (FIFO), the player sees it is busy instead.
+func slotCrowd(peak bool, used, capacity int) string {
+	if peak || used >= capacity {
+		return "peak"
+	}
+	return "quiet"
 }
 
 // slotUsage counts seats in use per tee time: players of active bookings
@@ -450,6 +460,7 @@ func loadSlots(ctx context.Context, q dbtx.Querier, loc *time.Location, where st
 			s.Remaining = 0
 		}
 		s.Status = slotStatus(raw, s.Used, s.Capacity)
+		s.Crowd = slotCrowd(s.Peak, s.Used, s.Capacity)
 		out = append(out, s)
 	}
 	return out, rows.Err()
@@ -519,7 +530,7 @@ func (m *Module) availability(ctx context.Context, tx pgx.Tx, property uuid.UUID
 			continue
 		}
 		if players > 0 && s.Remaining < players {
-			s.Status = "full"
+			s.Crowd = "peak" // the party goes on an extra flight
 		}
 		as := AvailableSlot{Slot: s, Prices: map[string]string{}}
 		ck := s.Session + "|" + s.DayTypeCode + "|" + fmt.Sprint(s.Peak) + "|" + fmt.Sprint(s.PlayingRouteID)

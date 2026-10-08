@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import {
-  Card, Checkbox, CoursesPage, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, PlayTime, ResourcePage, SelectField, Skeleton, StatusPill,
+  Card, Checkbox, CoursesPage, CrowdLabel, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, PlayTime, ResourcePage, SelectField, Skeleton, StatusPill,
   TextField, fieldErrors, statusCol, useAuth, useToast, type ResourceConfig,
 } from '@oneclub/shell';
 import { ActionButton, CourseDateBar, KV, ListPage, Tabs, money, today, useCourseDate, useStream, type R } from './common';
@@ -48,7 +48,7 @@ export function TeeSheetPage() {
                   <td>{String(s.startTee)}</td>
                   <td>{SESSION[String(s.session)]}</td>
                   <td><StatusPill status={String(s.status)} />{s.blockReason ? <div className="oc-muted">{String(s.blockReason)}</div> : null}</td>
-                  <td>{String(s.remaining)} / {String(s.capacity)}</td>
+                  <td>{String(s.used)} / {String(s.capacity)} <CrowdLabel crowd={s.crowd as string} /></td>
                   <td>
                     {(s.flights ?? []).map((f) => (
                       <div key={String(f.id)} className="oc-row-wrap" style={{ marginBottom: 4 }}>
@@ -61,7 +61,7 @@ export function TeeSheetPage() {
                     ))}
                   </td>
                   <td className="oc-actions">
-                    {Number(s.remaining) > 0 && s.status !== 'blocked' && can('golf.booking.create') && (
+                    {s.status !== 'blocked' && can('golf.booking.create') && (
                       <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setBooking(s)}>Book</button>
                     )}
                   </td>
@@ -113,7 +113,7 @@ export function BookingForm({ slot, onClose, onDone, channel = 'back_office' }: 
         <TextField label="Golf carts requested" type="number" min={0} value={carts} onChange={setCarts} help="Above the buggy sharing rule adds a surcharge" />
         <TextField label="Caddy request" value={caddy} onChange={setCaddy} help="Caddy number or name" />
       </div>
-      <h3>Players ({players.length}/{String(slot.remaining)})</h3>
+      <h3>Players ({players.length}/{String(slot.maxPlayers || 4)})</h3>
       {players.map((p, i) => (
         <div className="oc-row-wrap" key={i}>
           <SelectField label="Player type" value={p.playerType} onChange={(v) => setP(i, 'playerType', v)}
@@ -126,7 +126,7 @@ export function BookingForm({ slot, onClose, onDone, channel = 'back_office' }: 
           {players.length > 1 && <button className="oc-icon-btn" aria-label="Remove player" onClick={() => setPlayers((ps) => ps.filter((_, j) => j !== i))}><Icon name="close" size={18} /></button>}
         </div>
       ))}
-      {players.length < Number(slot.remaining) && (
+      {players.length < Number(slot.maxPlayers || 4) && (
         <button className="oc-btn oc-btn-text oc-btn-sm" onClick={() => setPlayers((ps) => [...ps, { playerType: bookingType === 'member' ? 'guest_of_member' : 'non_member', memberNo: '', name: '', phone: '' }])}>
           Add player</button>
       )}
@@ -145,9 +145,10 @@ export function BookingNewPage() {
     <div className="oc-stack">
       <PageHeader title="New Booking" help="Choose a tee time, then add the players." />
       <CourseDateBar cd={cd} />
-      <DataTable rows={(slots.data?.items ?? []).filter((s) => Number(s.remaining) > 0 && s.status !== 'blocked')} loading={slots.isLoading} error={slots.error}
+      <DataTable rows={(slots.data?.items ?? []).filter((s) => s.status !== 'blocked')} loading={slots.isLoading} error={slots.error}
         columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'startTee', header: 'Tee' }, { key: 'session', header: 'Session' },
-          { key: 'remaining', header: 'Places', align: 'right' }, { key: 'status', header: 'Status', render: pill('status') }]}
+          { key: 'used', header: 'Booked', align: 'right', render: (s) => `${String(s.used)} / ${String(s.capacity)}` },
+          { key: 'crowd', header: 'Crowd', render: (s) => <CrowdLabel crowd={s.crowd as string} /> }, { key: 'status', header: 'Status', render: pill('status') }]}
         onRowClick={setSlot} />
       {slot && <BookingForm slot={slot} onClose={() => setSlot(null)} onDone={(b) => { setSlot(null); setDone(String(b.id)); }} />}
       {done && <BookingDrawer id={done} onClose={() => setDone(null)} />}
@@ -225,8 +226,8 @@ function RescheduleModal({ booking, onClose }: { booking: R; onClose: () => void
       <div className="oc-form">
         <TextField label="Date" type="date" value={date} onChange={setDate} />
         <SelectField label="Tee time" value={slot} onChange={setSlot} required
-          options={(slots.data?.items ?? []).filter((s) => Number(s.remaining) >= Number(booking.playerCount) && s.id !== booking.teeTimeId)
-            .map((s) => ({ value: s.id, label: `${String(s.localTime)} · tee ${String(s.startTee)} · ${String(s.remaining)} places` }))} />
+          options={(slots.data?.items ?? []).filter((s) => s.status !== 'blocked' && s.id !== booking.teeTimeId)
+            .map((s) => ({ value: s.id, label: `${String(s.localTime)} · tee ${String(s.startTee)} · ${s.crowd === 'peak' ? '🔴 peak' : '🟢 quiet'}` }))} />
         <TextField label="Reason" value={reason} onChange={setReason} required span />
       </div>
       <ErrorAlert error={send.error} />
