@@ -21,6 +21,7 @@ import (
 	"oneclub/internal/platform/catalog"
 	"oneclub/internal/platform/provision"
 	"oneclub/internal/platform/storage"
+	"oneclub/internal/reporting"
 )
 
 // p4Accounting holds the services of the area.
@@ -44,6 +45,9 @@ func (a *App) buildP4Accounting(reg *route.Registry, cfg *config.Config, db *dbt
 	m := &accounting.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Files: files, Engine: a.Engine, Integrations: a.Integrations}
 	m.Register(reg, a.Engine)
 	m.RegisterP4FixFinance(reg) // P4 gap fixes: drill-down, e-Faktur on invoices, Excel TB comparison
+	m.RegisterDashboard(reg)    // Finance Dashboard of the Back Office (budget from the KPI target plan)
+	m.RegisterFollowUps(reg)    // Collections (AR) and Vendor Follow-up (AP)
+	m.Targets = reporting.MonthTargets
 	a.Approvals.RegisterDocumentType(accounting.ManualJournalDocumentType, m.ManualJournalDecision)
 	a.Approvals.RegisterDocumentType(accounting.ReopenDocumentType, m.ReopenDecision)
 	a.Approvals.RegisterDocumentType(accounting.PaymentRunDocumentType, m.PaymentRunDecision)

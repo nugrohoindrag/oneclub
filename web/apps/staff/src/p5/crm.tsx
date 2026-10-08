@@ -8,6 +8,7 @@ import {
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
+import { CRMOverviewPage } from './crm_overview';
 import { CustomerTierBadge, CustomerTierCard, TierClassesPanel, TierOverridesPanel } from './tiers';
 
 // PRD P5 — advanced segmentation, loyalty, journeys and CRM analytics (EP-17–20). Back Office routes, ops tiles and ops routes of the area
@@ -802,6 +803,7 @@ export function VIPLookupPage() {
 }
 
 export const CRM_P5_ROUTES: AreaRoute[] = [
+  { path: 'crm/overview', perm: 'crm.analytics.view', element: <CRMOverviewPage /> },
   { path: 'crm/journeys', perm: 'crm.journey.view', element: <JourneysPage /> },
   { path: 'crm/journeys/:id', perm: 'crm.journey.view', element: <JourneyDetailPage /> },
   { path: 'crm/vip', perm: 'crm.vip.view', element: <VIPPage /> },

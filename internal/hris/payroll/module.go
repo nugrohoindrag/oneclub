@@ -36,6 +36,7 @@ import (
 	"oneclub/internal/platform/notify"
 	"oneclub/internal/platform/org"
 	"oneclub/internal/platform/resource"
+	"oneclub/internal/platform/storage"
 )
 
 // Approvals is the approval engine (P0 EP-06).
@@ -52,6 +53,8 @@ type Module struct {
 	Approvals Approvals
 	Notify    notify.Sender
 	StaffURL  func() string
+	// Files stores receipts (reimbursement).
+	Files *storage.Files
 	// Logo returns the branding logo printed on payslips (nil = name only).
 	Logo func(ctx context.Context, q dbtx.Querier) []byte
 }
@@ -66,6 +69,10 @@ func (m *Module) Register(reg *route.Registry) {
 	m.registerStatutory(reg)
 	m.registerRuns(reg)
 	m.registerAdjustments(reg)
+	m.registerLoans(reg)
+	m.registerExceptions(reg)
+	m.registerReimbursements(reg)
+	m.registerBenefits(reg)
 	m.registerPayslips(reg)
 	m.registerExports(reg)
 	m.registerImports(reg)

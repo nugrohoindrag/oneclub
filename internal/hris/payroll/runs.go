@@ -87,6 +87,10 @@ type PayrollRun struct {
 	CancelledAt        *time.Time       `json:"cancelledAt" db:"cancelled_at"`
 	CancelReason       *string          `json:"cancelReason" db:"cancel_reason"`
 	ParallelSignOffs   []PayrollSignOff `json:"parallelSignOffs" db:"parallel_signoffs"`
+	FinanceStatus      string           `json:"financeStatus" db:"finance_status" enum:"not_posted,pending,posted,failed" doc:"Outcome of the posting in Finance & Accounting"`
+	FinanceMessage     *string          `json:"financeMessage" db:"finance_message" doc:"Why the posting failed"`
+	FinanceJournals    []string         `json:"financeJournals" db:"finance_journals" doc:"Journal numbers booked by Accounting"`
+	FinanceUpdatedAt   *time.Time       `json:"financeUpdatedAt" db:"finance_updated_at"`
 	Notes              *string          `json:"notes" db:"notes"`
 	CreatedAt          time.Time        `json:"createdAt" db:"created_at"`
 	UpdatedAt          time.Time        `json:"updatedAt" db:"updated_at"`
@@ -130,8 +134,8 @@ const runSelect = `SELECT r.id, r.number, r.name, r.run_type, r.period_code, r.p
 	r.other_deductions::text AS other_deductions, r.net::text AS net, r.employer_cost::text AS employer_cost, r.warnings, r.currency, r.policy_refs,
 	r.statutory_rate_set_id, srs.code AS statutory_rate_code, (srs.verification_status = 'verified') AS statutory_verified, r.time_lock_id,
 	tl.status AS time_lock_status, r.approval_request_id, r.calculated_at, r.submitted_at, r.approved_at, r.decision_note, r.posted_at, r.paid_on, r.paid_at,
-	r.payment_reference, r.bank_account_code, r.bank_file_count, r.bank_file_at, r.cancelled_at, r.cancel_reason, r.parallel_signoffs, r.notes,
-	r.created_at, r.updated_at
+	r.payment_reference, r.bank_account_code, r.bank_file_count, r.bank_file_at, r.cancelled_at, r.cancel_reason, r.parallel_signoffs, r.finance_status,
+	r.finance_message, r.finance_journals, r.finance_updated_at, r.notes, r.created_at, r.updated_at
 	FROM hris.payroll_runs r
 	LEFT JOIN hris.org_units ou ON ou.id = r.org_unit_id
 	LEFT JOIN hris.statutory_rate_sets srs ON srs.id = r.statutory_rate_set_id
@@ -492,6 +496,9 @@ func (m *Module) approveHTTP(ctx context.Context, tx pgx.Tx, r *http.Request, re
 	if run.Status != hris.RunCalculated {
 		return PayrollRun{}, errs.Conflict("run_not_calculated", "only a calculated run can be submitted for approval")
 	}
+	if err := m.blockingExceptions(ctx, tx, rid); err != nil {
+		return PayrollRun{}, err
+	}
 	cur, err := m.run(ctx, tx, rid)
 	if err != nil {
 		return cur, err
@@ -642,10 +649,12 @@ func (m *Module) Post(ctx context.Context, tx pgx.Tx, rid uuid.UUID) error {
 	}
 	if m.Events != nil {
 		p := run.PropertyID
-		if _, err := m.Events.Publish(ctx, tx, hris.EventPayrollPosted, "hris.payroll_run", &rid, &p, hris.PayrollPosted{RunID: rid, Number: run.Number,
-			PropertyID: run.PropertyID, RunType: run.RunType, PeriodCode: run.PeriodCode, PeriodStart: ymd(run.PeriodStart), PeriodEnd: ymd(run.PeriodEnd),
-			PaymentDate: ymd(run.PaymentDate), PostingDate: ymd(run.PeriodEnd), Currency: run.Currency, Totals: totalsOf(cur), JournalLines: jl,
-			PolicyRefs: cur.PolicyRefs}); err != nil {
+		if err := m.financePending(ctx, tx, rid, "posting_event_id", func() (uuid.UUID, error) {
+			return m.Events.Publish(ctx, tx, hris.EventPayrollPosted, "hris.payroll_run", &rid, &p, hris.PayrollPosted{RunID: rid, Number: run.Number,
+				PropertyID: run.PropertyID, RunType: run.RunType, PeriodCode: run.PeriodCode, PeriodStart: ymd(run.PeriodStart), PeriodEnd: ymd(run.PeriodEnd),
+				PaymentDate: ymd(run.PaymentDate), PostingDate: ymd(run.PeriodEnd), Currency: run.Currency, Totals: totalsOf(cur), JournalLines: jl,
+				PolicyRefs: cur.PolicyRefs})
+		}); err != nil {
 			return err
 		}
 	}
@@ -728,12 +737,13 @@ func (m *Module) MarkPaid(ctx context.Context, tx pgx.Tx, rid uuid.UUID, req Pay
 		return nil
 	}
 	p := run.PropertyID
-	_, err = m.Events.Publish(ctx, tx, hris.EventPayrollPaid, "hris.payroll_run", &rid, &p, hris.PayrollPaid{RunID: rid, Number: run.Number,
-		PropertyID: run.PropertyID, RunType: run.RunType, PeriodCode: run.PeriodCode, PaidOn: ymd(paid), Reference: strings.TrimSpace(req.Reference),
-		BankAccountCode: strings.TrimSpace(req.BankAccountCode), Currency: run.Currency, Net: cur.Net, Employees: cur.Headcount,
-		JournalLines: []hris.PayrollJournalLine{{Part: hris.PartNetPay, ComponentCode: "NET", ComponentName: "Net pay", Category: "net_pay", Amount: cur.Net,
-			DebitRole: "salaries_payable", CreditRole: "bank", Description: "Net pay " + run.Number + " (" + strings.TrimSpace(req.Reference) + ")"}}})
-	return err
+	return m.financePending(ctx, tx, rid, "payment_event_id", func() (uuid.UUID, error) {
+		return m.Events.Publish(ctx, tx, hris.EventPayrollPaid, "hris.payroll_run", &rid, &p, hris.PayrollPaid{RunID: rid, Number: run.Number,
+			PropertyID: run.PropertyID, RunType: run.RunType, PeriodCode: run.PeriodCode, PaidOn: ymd(paid), Reference: strings.TrimSpace(req.Reference),
+			BankAccountCode: strings.TrimSpace(req.BankAccountCode), Currency: run.Currency, Net: cur.Net, Employees: cur.Headcount,
+			JournalLines: []hris.PayrollJournalLine{{Part: hris.PartNetPay, ComponentCode: "NET", ComponentName: "Net pay", Category: "net_pay", Amount: cur.Net,
+				DebitRole: "salaries_payable", CreditRole: "bank", Description: "Net pay " + run.Number + " (" + strings.TrimSpace(req.Reference) + ")"}}})
+	})
 }
 
 func (m *Module) markPaidHTTP(ctx context.Context, tx pgx.Tx, r *http.Request, req PayrollPaymentInput) (PayrollRun, error) {

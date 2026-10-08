@@ -64,10 +64,15 @@ func TestP2MembershipLifecycle(t *testing.T) {
 	}
 	// P1 application flow; P2 sets the first annual fee due a year after the start.
 	msID := activeMembership(t, sa, parent, famRes, famResPkg, family(child10))
-	if _, err := inst.App.Dispatcher.DispatchPending(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-	ms := sa.Must(200, "GET", "/api/v1/membership/memberships/"+msID, nil).JSON()
+	// membership.activated may be in the hands of the worker (SKIP LOCKED): wait for the subscriber
+	var ms map[string]any
+	waitFor(t, 20*time.Second, "first annual fee due", func() bool {
+		if _, err := inst.App.Dispatcher.DispatchPending(t.Context()); err != nil {
+			t.Logf("dispatch: %v", err)
+		}
+		ms = sa.Must(200, "GET", "/api/v1/membership/memberships/"+msID, nil).JSON()
+		return ms["nextFeeDue"] != nil
+	})
 	if ms["status"] != "active" || ms["typeCode"] != "SC-FAM-RES" || ms["nextFeeDue"] == nil {
 		t.Fatalf("membership: %v", ms)
 	}

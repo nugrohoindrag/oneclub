@@ -42,12 +42,21 @@
 
 :root {
   --oc-sidebar-collapsed: 68px;
-  --oc-sidebar-expanded: 196px;
+  --oc-sidebar-expanded: 232px;
+  --oc-content-gutter: 16px; /* office shell side padding: narrow so tables get more columns */
   --oc-header-height: 64px;
   --oc-control-height: 44px;
   --oc-ink: var(--md-sys-color-inverse-surface);
   --oc-on-ink: var(--md-sys-color-inverse-on-surface);
+  --oc-table-head-bg: #000;
+  --oc-table-head-fg: #fff;
+  /* Soft brand tint of the dashboard reference: active menu item, tile icons. */
+  --oc-tint: color-mix(in srgb, var(--md-sys-color-primary) 10%, var(--md-sys-color-surface));
+  /* Two-series charts (cash in / cash out): validated for CVD and the lightness band (dataviz validator). */
+  --oc-chart-a: #6FAF39;
+  --oc-chart-b: #2F73B8;
 }
+[data-theme='dark'], .dark { --oc-chart-a: #62A332; --oc-chart-b: #4F8FD0; }
 
 /* Ops / caddy: large touch targets (Technical Doc §6.5) */
 [data-density='touch'] {
@@ -171,6 +180,112 @@ a { color: inherit; }
 .oc-delta[data-tone='up'] { background: var(--md-sys-color-success-container); color: var(--md-sys-color-on-success-container); }
 .oc-delta[data-tone='down'] { background: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container); }
 
+/* ── KPI tiles (Management Dashboard; StatTile) ────────────────────────── */
+/* Stat tile: the dashboard kit card (icon circle and title, amount with a small fraction, change chip, breakdown rows). */
+.oc-stat {
+  display: flex; flex-direction: column; gap: 12px; min-width: 0; container-type: inline-size;
+  background: var(--dash-card); border: 1px solid var(--dash-line); border-radius: 22px; padding: 20px; color: var(--dash-text);
+}
+.oc-stat[data-clickable='true'] { cursor: pointer; transition: border-color 120ms ease, background 120ms ease; }
+.oc-stat[data-clickable='true']:hover { border-color: var(--dash-grey); }
+.oc-stat[data-clickable='true']:focus-visible { outline: 2px solid var(--dash-blue); outline-offset: 2px; }
+.oc-stat[data-muted='true'] { opacity: .6; }
+.oc-stat-head { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+.oc-stat-label { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--dash-text); }
+.oc-stat-icon { order: -1; width: 40px; height: 40px; border-radius: 50%; flex: none; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--dash-line); background: var(--dash-card); color: var(--dash-blue); }
+/* Sized by the tile, not the viewport: "Rp 527.757.000" stays on one line inside a narrow tile. */
+.oc-stat-value { font-variant-numeric: tabular-nums; font-size: clamp(20px, 12cqi, 32px); white-space: nowrap; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1;
+  color: var(--dash-text); overflow-wrap: anywhere; }
+.oc-stat-value .oc-dash-amount, .oc-stat-value .oc-dash-amount[data-size] { font-size: inherit; }
+.oc-stat-meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--md-sys-spacing-2); font-size: var(--md-sys-typescale-meta-size); }
+.oc-stat-head .oc-status { height: 22px; padding: 0 10px; flex: none; }
+.oc-stat-head .oc-status[data-tone='error'] { background: var(--md-sys-color-error-container); color: var(--md-sys-color-on-error-container); }
+.oc-stat-head .oc-status[data-tone='success'] { background: var(--md-sys-color-success-container); color: var(--md-sys-color-on-success-container); }
+.oc-stat-head .oc-nav-soon { flex: none; }
+.oc-stat-bar { height: 6px; border-radius: 999px; background: var(--dash-line); overflow: hidden; }
+.oc-stat-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--dash-blue); }
+.oc-stat-foot { display: flex; flex-direction: column; gap: 0; font-size: 13px; color: var(--dash-sub); }
+.oc-stat-foot > * { padding: 8px 0; border-bottom: 1px solid var(--dash-line); }
+.oc-stat-foot > *:last-child { border-bottom: 0; }
+.oc-stat-foot .oc-row { gap: var(--md-sys-spacing-2); }
+.oc-stat-foot strong, .oc-stat-foot .oc-num { color: var(--dash-text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.oc-stat-grid { display: grid; gap: var(--md-sys-gap-card); grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+/* Steps of a document's life (payroll run): done, current, to do. */
+.oc-steps { display: flex; flex-wrap: wrap; gap: var(--md-sys-spacing-2) var(--md-sys-spacing-4); margin: 0; padding: 0; list-style: none; }
+.oc-steps li { display: inline-flex; align-items: center; gap: var(--md-sys-spacing-2); font-size: var(--md-sys-typescale-meta-size); color: var(--md-sys-color-on-surface-variant); }
+.oc-steps li + li::before { content: ''; width: 24px; height: 1px; background: var(--md-sys-color-outline-variant); margin-right: var(--md-sys-spacing-2); }
+.oc-steps-dot { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--md-sys-color-outline-variant); background: var(--md-sys-color-surface); }
+.oc-steps li[data-state='done'] .oc-steps-dot { background: var(--oc-tint); color: var(--md-sys-color-primary); border-color: transparent; }
+.oc-steps li[data-state='current'] { color: var(--md-sys-color-on-surface); font-weight: 600; }
+.oc-steps li[data-state='current'] .oc-steps-dot { background: var(--oc-ink); color: var(--oc-on-ink); border-color: transparent; }
+/* A drill-down row of a stat tile (Billing: Pending / Ready / Exceptions of a business). */
+.oc-stat-foot > .oc-stat-row { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 36px; padding: 8px 8px; margin: 0 -8px; box-sizing: content-box;
+  border: 0; border-bottom: 1px solid var(--dash-line); border-radius: 0; background: transparent; color: var(--dash-text); font: inherit; font-size: 13px; text-align: left; cursor: pointer; }
+.oc-stat-foot > .oc-stat-row:last-child { border-bottom: 0; }
+.oc-stat-row:hover, .oc-stat-row[aria-pressed='true'] { background: var(--dash-muted); border-radius: 10px; }
+.oc-stat-row[aria-pressed='true'] { font-weight: 600; }
+.oc-stat-row:focus-visible { outline: 2px solid var(--dash-blue); outline-offset: 1px; }
+.oc-stat-dot { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--dash-grey); }
+.oc-stat-dot[data-status='pending_billing'] { background: var(--dash-blue); } .oc-stat-dot[data-status='ready_to_invoice'] { background: var(--dash-green); }
+.oc-stat-dot[data-status='exception'] { background: var(--dash-red); }
+.oc-stat-row .oc-dash-chip { height: 22px; padding: 0 10px; font-size: 12px; }
+
+/* Bulk actions of the selected rows of a table. */
+.oc-bulkbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--md-sys-spacing-2); padding: var(--md-sys-spacing-2) var(--md-sys-spacing-4);
+  border-radius: var(--radius-card-nested); background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);
+  position: sticky; top: 0; z-index: 5; }
+.oc-row-menu { min-width: 220px; }
+/* Row ⋮ menu of a data table: the row's buttons and links as menu items. */
+.oc-row-menu-anchor { display: inline-block; }
+.oc-kebab { width: 32px; padding: 0; justify-content: center; }
+.oc-kebab-dots { font-size: 20px; font-weight: 700; line-height: 1; }
+.oc-row-actions { display: flex; flex-direction: column; align-items: stretch; gap: 2px; padding: 6px; }
+.oc-row-actions > .oc-btn, .oc-row-actions > a, .oc-row-actions > span > .oc-btn {
+  width: 100%; justify-content: flex-start; min-height: 38px; height: auto; padding: 8px 12px; border: 0; border-radius: var(--radius-sm);
+  background: transparent; color: var(--md-sys-color-on-surface); font-weight: 500; text-decoration: none; box-shadow: none; }
+.oc-row-actions > .oc-btn:hover:not(:disabled), .oc-row-actions > a:hover { background: var(--md-sys-color-surface-container); }
+.oc-row-actions > .oc-btn-danger { color: var(--md-sys-color-error); }
+/* After an action is chosen the menu hides; its dialog stays visible. */
+.oc-row-actions[data-used] { visibility: hidden; pointer-events: none; }
+.oc-row-actions[data-used] .oc-modal, .oc-row-actions[data-used] .oc-scrim, .oc-row-actions[data-used] .oc-drawer { visibility: visible; pointer-events: auto; }
+.oc-table th.oc-th-actions, .oc-table td.oc-actions:has(> .oc-row-menu-anchor) { width: 1%; text-align: right; }
+.oc-table th.oc-th-go, .oc-table td.oc-go { width: 1%; padding-left: 0; text-align: right; color: var(--md-sys-color-on-surface-variant); }
+.oc-th-unit { font-weight: 400; opacity: .75; }
+.oc-th-hint { text-decoration: underline dotted; text-underline-offset: 3px; cursor: help; }
+/* Wide work tables keep their Action column in view while scrolling sideways. */
+.oc-sticky-actions .oc-table td.oc-actions, .oc-sticky-actions .oc-table thead th:last-child { position: sticky; right: 0; z-index: 1; }
+.oc-sticky-actions .oc-table td.oc-actions { background: var(--md-sys-color-surface); box-shadow: -8px 0 8px -8px rgb(0 0 0 / .18); }
+.oc-sticky-actions .oc-table td.oc-actions > * { vertical-align: middle; }
+.oc-sticky-actions .oc-table td.oc-actions > * + * { margin-left: 4px; }
+.oc-nowrap { white-space: nowrap; }
+.oc-stat-foot strong.oc-text-error { color: var(--md-sys-color-error); }
+.oc-link-btn { border: 0; padding: 0; background: transparent; color: var(--md-sys-color-primary); font: inherit; cursor: pointer; text-align: left; }
+.oc-link-btn:hover { text-decoration: underline; }
+.oc-text-error { color: var(--md-sys-color-error); }
+.oc-text-warning { color: var(--md-sys-color-on-warning-container); }
+.oc-checklist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.oc-checklist li { display: flex; align-items: flex-start; gap: var(--md-sys-spacing-2); }
+.oc-checklist li[data-ok='true'] > :first-child { color: var(--md-sys-color-success); }
+.oc-checklist li[data-ok='false'] > :first-child { color: var(--md-sys-color-error); }
+.oc-timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--md-sys-spacing-3); }
+.oc-timeline li { display: flex; align-items: flex-start; gap: var(--md-sys-spacing-3); }
+.oc-timeline li > :first-child { color: var(--md-sys-color-on-surface-variant); margin-top: 2px; flex: none; }
+
+/* Compact filter controls in a page header (month, date range). */
+.oc-filter { height: 40px; width: auto; min-width: 150px; padding: 0 var(--md-sys-spacing-4); }
+
+/* ── Management Dashboard (dashboard reference: section cards, soft table header) ─ */
+.oc-app[data-shell='management'] .oc-content > .oc-stack { gap: var(--md-sys-gap-section, var(--md-sys-spacing-5)); }
+.oc-app[data-shell='management'] .oc-card { box-shadow: var(--md-sys-elevation-level1); }
+.oc-app[data-shell='management'] a.oc-btn { text-decoration: none; }
+.oc-app[data-shell='management'] .oc-card-head h2 { font-size: var(--md-sys-typescale-section-title-size); }
+
+.oc-user-name { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.2; max-width: 180px; text-align: left; }
+.oc-user-name > span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oc-user-name > span:first-child { font-weight: 600; }
+
 /* ── tables ────────────────────────────────────────────────────────────── */
 .oc-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--md-sys-spacing-2); margin-bottom: var(--md-sys-spacing-4); }
 .oc-search { position: relative; min-width: 220px; flex: 1; max-width: 360px; }
@@ -178,9 +293,40 @@ a { color: inherit; }
 .oc-search .material-symbols-rounded { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--md-sys-color-on-surface-variant); }
 .oc-table-wrap { overflow-x: auto; }
 .oc-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-.oc-table th { text-align: left; font-size: var(--md-sys-typescale-meta-size-sm, 11px); letter-spacing: .06em; text-transform: uppercase;
-  color: var(--md-sys-color-on-surface-variant); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--md-sys-color-outline-variant); white-space: nowrap; }
-.oc-table td { padding: 12px; border-bottom: 1px solid var(--md-sys-color-outline-variant); vertical-align: middle; }
+.oc-table th { text-align: left; font-size: var(--md-sys-typescale-meta-size); color: var(--md-sys-color-on-surface-variant); font-weight: 600;
+  padding: 10px; background: var(--md-sys-color-surface-container-low); white-space: nowrap; }
+/* Header row: black with white text in light and dark mode (every .oc-table / DataTable). */
+.oc-table thead th { background: var(--oc-table-head-bg); color: var(--oc-table-head-fg); }
+.oc-table thead th a, .oc-table thead th button { color: inherit; }
+.oc-table th:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.oc-table th:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.oc-table tbody tr:last-child td { border-bottom: 0; }
+/* Pagination under a table (10 rows per page). */
+.oc-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--md-sys-spacing-2);
+  padding: var(--md-sys-spacing-3) var(--md-sys-spacing-1) var(--md-sys-spacing-1); border-top: 1px solid var(--md-sys-color-outline-variant); }
+.oc-pager-btn { min-width: 32px; height: 32px; padding: 0 8px; border-radius: var(--radius-pill); border: 1px solid transparent; background: transparent;
+  color: var(--md-sys-color-on-surface); font: inherit; font-size: var(--md-sys-typescale-meta-size); font-variant-numeric: tabular-nums; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; }
+.oc-pager-btn:hover:not([disabled]) { background: var(--md-sys-color-surface-container); }
+.oc-pager-btn[aria-current='page'] { background: var(--oc-ink); color: var(--oc-on-ink); font-weight: 600; }
+.oc-pager-btn[disabled] { opacity: .4; cursor: default; }
+.oc-pager-btn:focus-visible { outline: 2px solid var(--md-sys-color-primary); outline-offset: 2px; }
+.oc-pager-gap { padding: 0 4px; color: var(--md-sys-color-on-surface-variant); }
+.oc-table td:first-child { white-space: nowrap; } /* numbers and codes (JV-…, INV-…) stay on one line */
+/* A table straight on the page canvas sits in a card; inside a card, modal or drawer it stays plain. */
+.oc-datatable { background: var(--md-sys-color-surface); border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--radius-card);
+  padding: var(--md-sys-spacing-3) var(--md-sys-spacing-4); box-shadow: var(--md-sys-elevation-level1); }
+.oc-card .oc-datatable, .oc-modal .oc-datatable, .oc-drawer .oc-datatable, .oc-datatable .oc-datatable { background: none; border: 0; border-radius: 0; padding: 0; box-shadow: none; }
+/* Tabs (role=tablist) as a segmented control. */
+.oc-row-wrap[role='tablist'] { display: inline-flex; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; align-self: flex-start; max-width: 100%; gap: 4px; padding: 4px; border-radius: var(--radius-pill);
+  background: var(--md-sys-color-surface); border: 1px solid var(--md-sys-color-outline-variant); }
+.oc-row-wrap[role='tablist'] .oc-chip { flex: none; white-space: nowrap; border-color: transparent; background: transparent; height: 32px; padding: 0 14px; font-weight: 500; color: var(--md-sys-color-on-surface-variant); }
+.oc-row-wrap[role='tablist'] .oc-chip:hover { background: var(--md-sys-color-surface-container-low); }
+.oc-row-wrap[role='tablist'] .oc-chip[aria-pressed='true'] { background: var(--oc-ink); color: var(--oc-on-ink); }
+/* A page header repeated inside a tab (ListPage in a tab) reads as a section title. */
+.oc-page-head ~ .oc-stack .oc-page-head, .oc-page-head ~ * .oc-stack .oc-page-head { margin: 0; }
+.oc-page-head ~ .oc-stack .oc-page-head h1, .oc-page-head ~ * .oc-stack .oc-page-head h1 { font-size: var(--md-sys-typescale-section-title-size); font-weight: var(--md-sys-typescale-section-title-weight); letter-spacing: 0; }
+.oc-table td { padding: 12px 10px; border-bottom: 1px solid var(--md-sys-color-outline-variant); vertical-align: middle; }
 .oc-table tbody tr:hover td { background: var(--md-sys-color-surface-container-low); }
 .oc-table tbody tr[data-clickable='true'] { cursor: pointer; }
 .oc-table td.oc-actions { text-align: right; white-space: nowrap; }
@@ -189,39 +335,65 @@ a { color: inherit; }
 @keyframes oc-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 @media (prefers-reduced-motion: reduce) { .oc-skel { animation: none; } .oc-btn { transition: none; } }
 
-/* ── layout: sidebar (Back Office) ─────────────────────────────────────── */
+/* ── layout: sidebar (Back Office, Management Dashboard, Platform) ─────── */
 .oc-app { display: flex; min-height: 100vh; }
 .oc-sidebar {
   width: var(--oc-sidebar-expanded); flex: none; position: sticky; top: 0; height: 100vh; overflow-y: auto;
-  background: var(--md-sys-color-surface); border-right: 1px solid var(--md-sys-color-outline-variant);
-  padding: var(--md-sys-spacing-4) var(--md-sys-spacing-3); display: flex; flex-direction: column; gap: var(--md-sys-spacing-1);
+  background: var(--oc-sidebar-bg, #FFFFFF); border-right: 1px solid var(--dash-line);
+  /* neutral thin scrollbar, shown on hover (the theme outline is tinted green) */
+  scrollbar-width: thin; scrollbar-color: transparent transparent;
+  padding: var(--md-sys-spacing-5) var(--md-sys-spacing-3); display: flex; flex-direction: column; gap: var(--md-sys-spacing-1);
   transition: width 160ms ease;
 }
+[data-theme='dark'] .oc-sidebar, .dark .oc-sidebar { --oc-sidebar-bg: var(--md-sys-color-surface); }
+.oc-sidebar:hover { scrollbar-color: var(--dash-grey) transparent; }
+.oc-sidebar > * { flex: none; }
 .oc-sidebar[data-collapsed='true'] { width: var(--oc-sidebar-collapsed); }
 .oc-sidebar[data-collapsed='true'] .oc-nav-label, .oc-sidebar[data-collapsed='true'] .oc-brand-name, .oc-sidebar[data-collapsed='true'] .oc-nav-sub { display: none; }
-.oc-brand { display: flex; align-items: center; gap: var(--md-sys-spacing-2); padding: 0 var(--md-sys-spacing-2) var(--md-sys-spacing-4); font-weight: 700; font-size: 16px; text-decoration: none; }
-.oc-brand img { width: 32px; height: 32px; object-fit: contain; border-radius: var(--radius-sm); }
-.oc-brand-mark { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); display: flex; align-items: center; justify-content: center; font-weight: 800; flex: none; }
+.oc-sidebar-top { display: flex; align-items: center; gap: var(--md-sys-spacing-2); padding: 0 0 var(--md-sys-spacing-5) var(--md-sys-spacing-2); }
+.oc-sidebar-top .oc-brand { padding: 0; flex: 1; min-width: 0; }
+.oc-sidebar-toggle { width: 32px; height: 32px; border-radius: var(--radius-sm); border-color: transparent; color: var(--md-sys-color-on-surface-variant); }
+.oc-sidebar-toggle:hover { background: var(--md-sys-color-surface-container); }
+.oc-sidebar[data-collapsed='true'] .oc-sidebar-top { flex-direction: column; padding-left: 0; }
+.oc-nav-caption { padding: 0 var(--md-sys-spacing-3) var(--md-sys-spacing-2); font-size: var(--md-sys-typescale-meta-size-sm, 11px); font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase; color: var(--md-sys-color-on-surface-variant); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.oc-nav-caret { flex: none; margin-left: auto; color: var(--md-sys-color-on-surface-variant); }
+.oc-sidebar[data-collapsed='true'] .oc-nav-caret { display: none; }
+.oc-nav a.oc-nav-parent { color: var(--md-sys-color-on-surface); font-weight: 600; }
+.oc-nav-tree { margin-left: 22px; padding-left: 10px; border-left: 1px solid var(--md-sys-color-outline-variant); }
+.oc-nav-tree a .material-symbols-rounded { font-size: 18px !important; }
+.oc-nav-section { padding: var(--md-sys-spacing-4) var(--md-sys-spacing-3) var(--md-sys-spacing-1); }
+.oc-sidebar[data-collapsed='true'] .oc-nav-section { display: block; height: 1px; padding: 0; margin: var(--md-sys-spacing-2) var(--md-sys-spacing-2); background: var(--md-sys-color-outline-variant); font-size: 0; }
+.oc-brand { display: flex; align-items: center; gap: var(--md-sys-spacing-2); padding: 0 var(--md-sys-spacing-2) var(--md-sys-spacing-4); font-weight: 700; font-size: 15px; line-height: 1.25; text-decoration: none; }
+.oc-brand img { width: 40px; height: 40px; object-fit: contain; border-radius: var(--radius-sm); }
 .oc-nav { display: flex; flex-direction: column; gap: 2px; }
 .oc-nav a, .oc-nav button.oc-nav-group {
-  display: flex; align-items: center; gap: var(--md-sys-spacing-3); height: 40px; padding: 0 var(--md-sys-spacing-3);
-  border-radius: var(--radius-pill); text-decoration: none; color: var(--md-sys-color-on-surface-variant);
+  display: flex; align-items: center; gap: var(--md-sys-spacing-3); min-height: 40px; padding: 0 var(--md-sys-spacing-3);
+  border-radius: var(--radius-md); text-decoration: none; color: var(--md-sys-color-on-surface-variant);
   font-size: var(--md-sys-typescale-nav-size); font-weight: var(--md-sys-typescale-nav-weight); border: 0; background: transparent; cursor: pointer; width: 100%; text-align: left;
 }
-.oc-nav a:hover, .oc-nav button.oc-nav-group:hover { background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface); }
-.oc-nav a.active { background: var(--oc-ink); color: var(--oc-on-ink); }
+.oc-nav a .oc-nav-label:not(.oc-nav-soon) { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.oc-nav a .material-symbols-rounded { flex: none; }
+.oc-nav a:hover, .oc-nav button.oc-nav-group:hover { background: var(--md-sys-color-surface-container-low); color: var(--md-sys-color-on-surface); }
+.oc-nav a.active { background: var(--oc-tint); color: var(--md-sys-color-primary); font-weight: 600; }
 .oc-nav-sub { display: flex; flex-direction: column; gap: 2px; margin-left: var(--md-sys-spacing-6); }
-.oc-nav-sub a { height: 34px; font-size: var(--md-sys-typescale-meta-size); }
+.oc-nav-sub a { min-height: 34px; font-size: var(--md-sys-typescale-meta-size); }
 .oc-nav-soon { margin-left: auto; font-size: 10px; padding: 1px 6px; border-radius: var(--radius-pill); background: var(--md-sys-color-surface-container-high); color: var(--md-sys-color-on-surface-variant); }
 .oc-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .oc-header {
   position: sticky; top: 0; z-index: 20; height: var(--oc-header-height); display: flex; align-items: center; gap: var(--md-sys-spacing-3);
-  padding: 0 var(--md-sys-padding-page); background: color-mix(in srgb, var(--md-sys-color-background) 88%, transparent); backdrop-filter: blur(10px);
+  padding: 0 var(--oc-content-gutter); background: color-mix(in srgb, var(--md-sys-color-background) 88%, transparent); backdrop-filter: blur(10px);
 }
-.oc-content { padding: var(--md-sys-spacing-2) var(--md-sys-padding-page) var(--md-sys-spacing-12); flex: 1; }
+.oc-content { padding: var(--md-sys-spacing-2) var(--oc-content-gutter) var(--md-sys-spacing-12); flex: 1; }
 .oc-page-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--md-sys-spacing-4); margin: var(--md-sys-spacing-4) 0 var(--md-sys-spacing-5); }
 .oc-page-head h1 { margin: 0; font-size: var(--md-sys-typescale-page-title-size); font-weight: var(--md-sys-typescale-page-title-weight); letter-spacing: var(--md-sys-typescale-page-title-tracking); }
 .oc-page-head p { margin: 4px 0 0; color: var(--md-sys-color-on-surface-variant); max-width: 760px; }
+/* Header of a person's workspace (Employee Detail): avatar, name, identity line, status pills, actions. */
+.oc-profile-head { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--md-sys-spacing-4); margin: var(--md-sys-spacing-4) 0 var(--md-sys-spacing-2); }
+.oc-profile-id { flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 6px; }
+.oc-profile-id h1 { margin: 0; font-size: var(--md-sys-typescale-page-title-size); font-weight: var(--md-sys-typescale-page-title-weight); letter-spacing: var(--md-sys-typescale-page-title-tracking); }
+.oc-profile-id p { margin: 0; }
+.oc-avatar-lg { width: 56px; height: 56px; font-size: 20px; }
 
 /* ── layout: top pill nav (Management Dashboard, Member Portal) ────────── */
 .oc-topnav-frame { max-width: 1320px; margin: 0 auto; padding: var(--md-sys-spacing-4) var(--md-sys-padding-page) var(--md-sys-spacing-12); }
@@ -242,6 +414,7 @@ a { color: inherit; }
 .oc-menu-item { display: flex; align-items: center; gap: var(--md-sys-spacing-3); width: 100%; min-height: 40px; padding: 8px 12px; border: 0; background: transparent;
   border-radius: var(--radius-sm); cursor: pointer; color: inherit; font: inherit; text-align: left; text-decoration: none; }
 .oc-menu-item:hover { background: var(--md-sys-color-surface-container); }
+.oc-menu-item[data-danger] { color: var(--md-sys-color-error); }
 .oc-menu-sep { height: 1px; background: var(--md-sys-color-outline-variant); margin: 6px 0; }
 .oc-user { display: flex; align-items: center; gap: var(--md-sys-spacing-2); border: 0; background: transparent; cursor: pointer; color: inherit; font: inherit; padding: 4px; border-radius: var(--radius-pill); }
 .oc-avatar { width: 36px; height: 36px; border-radius: var(--radius-pill); background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container);
@@ -274,7 +447,7 @@ a { color: inherit; }
 .oc-login-visual img.oc-login-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .oc-login-visual::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, color-mix(in srgb, var(--oc-ink) 70%, transparent)); }
 .oc-login-visual > * { position: relative; z-index: 1; }
-.oc-login-logo { width: 56px; height: 56px; object-fit: contain; }
+.oc-login-logo { width: 76px; height: 76px; object-fit: contain; padding: 6px; border-radius: var(--radius-card-nested); background: #fff; box-shadow: var(--md-sys-elevation-level1); }
 .oc-login-form { display: flex; flex-direction: column; justify-content: center; padding: var(--md-sys-spacing-8) var(--md-sys-spacing-10) var(--md-sys-spacing-8) var(--md-sys-spacing-4); gap: var(--md-sys-spacing-4); }
 .oc-login-form h1 { margin: 0; font-size: 40px; font-weight: 500; letter-spacing: -0.02em; }
 .oc-login-form .oc-btn-ink { height: 48px; }
@@ -284,6 +457,8 @@ a { color: inherit; }
 @media (max-width: 1100px) {
   .oc-sidebar { width: var(--oc-sidebar-collapsed); }
   .oc-sidebar .oc-nav-label, .oc-sidebar .oc-brand-name, .oc-sidebar .oc-nav-sub { display: none; }
+  .oc-sidebar .oc-sidebar-top { flex-direction: column; padding-left: 0; }
+  .oc-sidebar .oc-nav-caret { display: none; }
 }
 @media (max-width: 860px) {
   .oc-login { grid-template-columns: 1fr; min-height: auto; }
@@ -313,3 +488,151 @@ a { color: inherit; }
 .oc-screen-menu { position: absolute; top: var(--md-sys-spacing-4); right: var(--md-sys-spacing-4); opacity: 0; transition: opacity 0.2s;
   color: var(--md-sys-color-on-surface); background: var(--md-sys-color-surface); border-radius: var(--md-sys-shape-corner-full); }
 .oc-screen-menu:hover, .oc-screen-menu:focus-within { opacity: 1; }
+
+/* ── Finance Dashboard (Back Office, Accountant home) ───────────────────── */
+.oc-fin-grid { display: grid; gap: var(--md-sys-gap-card); grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); align-items: start; }
+.oc-fin-line { display: flex; align-items: center; justify-content: space-between; gap: var(--md-sys-spacing-3); padding: 10px 0;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant); }
+.oc-fin-line:last-child { border-bottom: 0; }
+.oc-fin-line > span:first-child { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+@media (max-width: 720px) { .oc-fin-grid { grid-template-columns: 1fr; } }
+
+/* Create Invoice workspace (Revenue & Billing): the form beside a sticky summary. */
+.oc-workspace { display: grid; gap: var(--md-sys-gap-card); grid-template-columns: minmax(0, 1fr) 340px; align-items: start; }
+.oc-workspace-aside { position: sticky; top: var(--md-sys-spacing-4); }
+@media (max-width: 1100px) { .oc-workspace { grid-template-columns: minmax(0, 1fr); } .oc-workspace-aside { position: static; } }
+.oc-choice-grid { display: grid; gap: var(--md-sys-spacing-3); grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.oc-choice { display: flex; gap: var(--md-sys-spacing-3); align-items: flex-start; text-align: left; padding: var(--md-sys-spacing-3) var(--md-sys-spacing-4);
+  border-radius: var(--radius-card-nested); border: 1px solid var(--md-sys-color-outline-variant); background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface); font: inherit; cursor: pointer; }
+.oc-choice > span { display: flex; flex-direction: column; gap: 2px; }
+.oc-choice:hover { border-color: var(--md-sys-color-outline); }
+.oc-choice[aria-checked='true'] { border-color: var(--md-sys-color-primary); background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+.oc-readonly { min-height: var(--oc-control-height); display: flex; align-items: center; padding: 0 var(--md-sys-spacing-4); border-radius: var(--radius-pill);
+  background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); }
+.oc-line-item { padding: var(--md-sys-spacing-4); border-radius: var(--radius-card-nested); border: 1px solid var(--md-sys-color-outline-variant); }
+.oc-summary { display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; margin: 0; }
+.oc-summary dt { color: var(--md-sys-color-on-surface-variant); }
+.oc-summary dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.oc-summary .oc-summary-total { padding-top: 8px; border-top: 1px solid var(--md-sys-color-outline-variant); font-weight: 700; color: var(--md-sys-color-on-surface);
+  font-size: var(--md-sys-typescale-section-title-size, 1.125rem); }
+
+/* Link styled as a button (every shell): no link underline. */
+a.oc-btn { text-decoration: none; }
+/* "Filters" button of a list with its advanced filters in a panel. */
+.oc-filter-btn { height: 40px; padding: 0 var(--md-sys-spacing-4); }
+.oc-filter-count { min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--radius-pill); display: inline-flex; align-items: center; justify-content: center;
+  background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); font-size: 12px; font-weight: 600; }
+.oc-popover.oc-filter-panel { width: 460px; max-width: calc(100vw - 32px); padding: var(--md-sys-spacing-4); }
+.oc-filter-grid { grid-template-columns: 1fr 1fr; gap: var(--md-sys-spacing-3); }
+@media (max-width: 520px) { .oc-filter-grid { grid-template-columns: 1fr; } }
+/* The first page header sits right under the top bar (no empty band above the title). */
+.oc-content > .oc-page-head:first-child,
+.oc-content > :first-child > .oc-page-head:first-child,
+.oc-content > :first-child > :first-child > .oc-page-head:first-child { margin-top: 0; }
+/* Numbers and amounts in a table never wrap ("Rp 11.879.175", not "Rp" over "11.879.175"). */
+.oc-table td.oc-num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.oc-nowrap { white-space: nowrap; }
+
+/* Dashboard pages (design system dashboard kit, @oneclub/ui tokens/dashboard.css) sit on the kit canvas, header included. */
+.oc-main:has(.oc-dash-page), .oc-main:has(.oc-dash-page) .oc-header { background: var(--dash-canvas); }
+
+/* Photo of a master data record (image fields, e.g. the product photo on the POS menu) */
+.oc-image-preview { width: 72px; height: 72px; border-radius: 12px; overflow: hidden; flex: none; display: grid; place-items: center;
+  background: var(--md-sys-color-surface-container); color: var(--md-sys-color-on-surface-variant); }
+.oc-image-preview img { width: 100%; height: 100%; object-fit: cover; }
+.oc-image-thumb { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; display: block; }
+
+/* ── Office pages in the dashboard look (docs/product/dashboard-ui.webp) ──
+ * Every page of Back Office, Management Dashboard and Platform Administration
+ * (lists, tables, forms, detail pages, modals, drawers) takes the colours of
+ * the dashboard kit: the theme tokens are mapped onto the --dash-* palette
+ * inside the content area, so the components keep their markup. The app shell
+ * (sidebar, header) keeps the club theme; touch screens (POS, caddy, kitchen)
+ * keep their own look. */
+.oc-app:is([data-shell='backoffice'], [data-shell='management'], [data-shell='platform-admin']) .oc-content,
+body > .oc-popover {
+  --md-sys-color-primary: var(--dash-blue);
+  --md-sys-color-primary-strong: var(--dash-blue);
+  --md-sys-color-on-primary: #fff;
+  --md-sys-color-primary-container: color-mix(in srgb, var(--dash-blue) 14%, var(--dash-card));
+  --md-sys-color-on-primary-container: var(--dash-blue);
+  --md-sys-color-primary-soft: color-mix(in srgb, var(--dash-blue) 10%, var(--dash-card));
+  --md-sys-color-surface: var(--dash-card);
+  --md-sys-color-surface-container-lowest: var(--dash-card);
+  --md-sys-color-surface-container-low: color-mix(in srgb, var(--dash-muted) 60%, var(--dash-card));
+  --md-sys-color-surface-container: var(--dash-muted);
+  --md-sys-color-surface-container-high: var(--dash-line);
+  --md-sys-color-surface-container-highest: var(--dash-grey);
+  --md-sys-color-on-surface: var(--dash-text);
+  --md-sys-color-on-surface-variant: var(--dash-sub);
+  --md-sys-color-outline: color-mix(in srgb, var(--dash-sub) 45%, var(--dash-line));
+  --md-sys-color-outline-variant: var(--dash-line);
+  --md-sys-color-border: var(--dash-line);
+  --md-sys-color-inverse-surface: var(--dash-ink);
+  --md-sys-color-inverse-on-surface: var(--dash-card);
+  --md-sys-color-success: var(--dash-green);
+  --md-sys-color-on-success: #fff;
+  --md-sys-color-success-container: var(--dash-green-soft);
+  --md-sys-color-on-success-container: var(--dash-green);
+  --md-sys-color-error: var(--dash-red);
+  --md-sys-color-on-error: #fff;
+  --md-sys-color-error-container: var(--dash-red-soft);
+  --md-sys-color-on-error-container: var(--dash-red);
+  --md-sys-color-warning: var(--dash-amber);
+  --md-sys-color-on-warning: #fff;
+  --md-sys-color-warning-container: color-mix(in srgb, var(--dash-amber) 16%, var(--dash-card));
+  --md-sys-color-on-warning-container: color-mix(in srgb, var(--dash-amber) 65%, var(--dash-text));
+  --md-sys-color-info: var(--dash-blue);
+  --md-sys-color-on-info: #fff;
+  --md-sys-color-info-container: color-mix(in srgb, var(--dash-blue) 12%, var(--dash-card));
+  --md-sys-color-on-info-container: var(--dash-blue);
+  --oc-ink: var(--dash-ink);
+  --oc-on-ink: var(--dash-card);
+  --oc-tint: color-mix(in srgb, var(--dash-blue) 10%, var(--dash-card));
+  color: var(--dash-text);
+}
+.oc-app:is([data-shell='backoffice'], [data-shell='management'], [data-shell='platform-admin']) .oc-content {
+  /* Page title as on the dashboards. */
+  & .oc-page-head h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: var(--dash-text); }
+  & .oc-page-head p { color: var(--dash-sub); font-size: 13px; }
+  /* A page header inside a tab stays a section title. */
+  & :is(.oc-page-head ~ .oc-stack, .oc-page-head ~ * .oc-stack) .oc-page-head h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  /* White cards with the 22px radius, no shadow; card head as the kit's (icon circle + title). */
+  & .oc-card, & .oc-datatable { border-radius: 22px; border-color: var(--dash-line); box-shadow: none; }
+  & .oc-card-head h2, & .oc-card-head h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  & .oc-card-ink { background: var(--dash-dark); color: #fff; }
+  & .oc-icon-circle { background: var(--dash-card); border: 1px solid var(--dash-line); color: var(--dash-blue); }
+  /* Table: light uppercase header (the dashboard's transaction table), rounded hover rows. */
+  & .oc-table thead th { background: transparent; color: var(--dash-sub); font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+    padding: 10px 10px 8px; border-bottom: 1px solid var(--dash-line); }
+  & .oc-table th:first-child, & .oc-table th:last-child { border-radius: 0; }
+  & .oc-table td { border-bottom-color: var(--dash-line); }
+  & .oc-table tbody tr:hover td { background: var(--dash-muted); }
+  & .oc-table tbody tr:hover td:first-child { border-radius: 12px 0 0 12px; }
+  & .oc-table tbody tr:hover td:last-child { border-radius: 0 12px 12px 0; }
+  /* Status pills: solid like the dashboard's Complete / Canceled. */
+  & .oc-status { height: 26px; padding: 0 12px; font-size: 12px; }
+  & .oc-status[data-tone='success'] { background: var(--dash-green); color: #fff; }
+  & .oc-status[data-tone='error'] { background: var(--dash-red); color: #fff; }
+  & .oc-status[data-tone='warning'] { background: var(--dash-amber); color: #fff; }
+  & .oc-status[data-tone='info'] { background: var(--dash-blue); color: #fff; }
+  & .oc-status[data-tone='neutral'] { background: var(--dash-muted); color: var(--dash-sub); }
+  /* Filter pills and segmented tabs: white pills, the active one ink. */
+  & .oc-chip { border-color: var(--dash-line); background: var(--dash-card); color: var(--dash-text); font-weight: 600; }
+  & .oc-chip[aria-pressed='true'] { background: var(--dash-ink); color: var(--dash-card); }
+  & .oc-row-wrap[role='tablist'] { background: var(--dash-card); border-color: var(--dash-line); }
+  & .oc-row-wrap[role='tablist'] .oc-chip { border-color: transparent; background: transparent; color: var(--dash-sub); }
+  & .oc-row-wrap[role='tablist'] .oc-chip:hover { background: var(--dash-muted); }
+  & .oc-row-wrap[role='tablist'] .oc-chip[aria-pressed='true'] { background: var(--dash-ink); color: var(--dash-card); }
+  /* Buttons: blue primary, ink, grey neutral (the kit's three pill buttons). */
+  & .oc-btn { font-weight: 600; }
+  & .oc-btn-neutral { background: var(--dash-card); border-color: var(--dash-line); color: var(--dash-text); }
+  & :is(.oc-card, .oc-datatable, .oc-modal, .oc-drawer) .oc-btn-neutral { background: var(--dash-muted); border-color: transparent; }
+  & .oc-btn-outline { border-color: var(--dash-line); background: var(--dash-card); }
+  /* Fields: line borders, blue focus. */
+  & :is(.oc-input, .oc-select, .oc-textarea) { border-color: var(--dash-line); background: var(--dash-card); color: var(--dash-text); }
+  & :is(.oc-input, .oc-select, .oc-textarea):hover { border-color: var(--dash-grey); }
+  & :is(.oc-input, .oc-select, .oc-textarea):focus-visible { outline: 2px solid var(--dash-blue); outline-offset: 1px; }
+  & .oc-check input { accent-color: var(--dash-blue); }
+}

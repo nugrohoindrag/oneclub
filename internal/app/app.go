@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/google/uuid"
@@ -168,6 +169,15 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 		}
 	}
 	files := &storage.Files{DB: db, Blob: blob}
+	// photos of master data records (Image fields): whoever may add or edit the resource
+	files.CanUploadImage = func(ctx context.Context, key string) bool {
+		d, ok := a.Engine.Def(key)
+		if !ok || !slices.ContainsFunc(d.Fields, func(f resource.Field) bool { return f.Kind == resource.Image }) {
+			return false
+		}
+		p := authz.From(ctx)
+		return p.Can(d.Perm+".create", nil) || p.Can(d.Perm+".update", nil)
+	}
 	a.Reporting = &reporting.Service{DB: db, Files: files, Notify: a.Notification, Cfg: cfg, Location: a.Instance.Location}
 	for _, r := range Reports {
 		a.Reporting.Add(r)
@@ -179,7 +189,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 	a.Instance.Register(reg)
 	a.Org.Register(reg)
 	(&notification.HTTP{Svc: a.Notification}).Register(reg)
-	(&approval.HTTP{E: a.Approvals}).Register(reg)
+	(&approval.HTTP{E: a.Approvals, Files: files}).Register(reg)
 	(&audit.HTTP{DB: db}).Register(reg)
 	(&integration.HTTP{Svc: a.Integrations, Events: a.Bus}).Register(reg)
 	(&rules.Service{DB: db}).Register(reg)

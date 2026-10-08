@@ -96,6 +96,8 @@ type EmployeeDetail struct {
 	CertificationGaps []hris.CertificationGap `json:"certificationGaps"`
 	Offboarding       *OffboardingStatus      `json:"offboarding"`
 	ServiceMonths     int                     `json:"serviceMonths"`
+	WorkStatus        string                  `json:"workStatus" enum:"active,draft,on_leave,suspended,leaving,terminated,inactive" doc:"Work status today (HRIS phase B)"`
+	WorkStatusNote    *WorkStatus             `json:"workStatusNote" doc:"Since / until / note of a status other than active"`
 }
 
 // OffboardingStatus counts the checklist.
@@ -343,6 +345,16 @@ func (m *Module) Profile(ctx context.Context, tx pgx.Tx, eid uuid.UUID) (Employe
 			end = *e.TerminationDate
 		}
 		out.ServiceMonths = hris.ServiceMonths(*e.JoinDate, end)
+	}
+	out.WorkStatus = "active"
+	ws, err := WorkStatuses(ctx, tx, e.PropertyID, day)
+	if err != nil {
+		return out, err
+	}
+	for i := range ws {
+		if ws[i].EmployeeID == eid {
+			out.WorkStatus, out.WorkStatusNote = ws[i].WorkStatus, &ws[i]
+		}
 	}
 	return out, nil
 }

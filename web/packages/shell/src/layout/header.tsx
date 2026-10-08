@@ -167,7 +167,10 @@ export function UserMenu() {
     <div className="oc-popover-anchor" ref={ref}>
       <button className="oc-user" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen((o) => !o)}>
         <span className="oc-avatar">{initials(me.fullName)}</span>
-        <span style={{ fontWeight: 600, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} className="oc-hide-sm">{me.fullName}</span>
+        <span className="oc-user-name oc-hide-sm">
+          <span>{me.fullName}</span>
+          {me.roles[0] && <span className="oc-small oc-muted">{me.roles[0].name}</span>}
+        </span>
         <Icon name="expand_more" size={20} />
       </button>
       {open && (

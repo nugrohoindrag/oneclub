@@ -255,16 +255,16 @@ var PropertyAdminPermissions = cat(bo, ops, []string{
 // RoleTemplates seeds Product Overview §44 plus the System roles.
 var RoleTemplates = []RoleTemplate{
 	// System
-	{Code: "platform_admin", Name: "Platform Admin", Category: "System", Scope: "platform", MFARequired: true, AllPermissions: true, IncludePlatformOnly: true},
-	{Code: "super_admin", Name: "Super Admin", Category: "System", Scope: "instance", MFARequired: true, AllPermissions: true},
-	{Code: "property_admin", Name: "Property Admin", Category: "System", Scope: "property", MFARequired: true, Permissions: PropertyAdminPermissions},
+	{Code: "platform_admin", Name: "Platform Admin", Category: "System", Scope: "platform", AllPermissions: true, IncludePlatformOnly: true},
+	{Code: "super_admin", Name: "Super Admin", Category: "System", Scope: "instance", AllPermissions: true},
+	{Code: "property_admin", Name: "Property Admin", Category: "System", Scope: "property", Permissions: PropertyAdminPermissions},
 	// The clubhouse TV: signs in on the dashboard domain and opens only the Clubhouse Screen (Technical Doc §6.1).
 	{Code: "screen", Name: "Screen", Category: "System", Scope: "property", Permissions: []string{ShellScreen}},
 	// Management
 	{Code: "general_manager", Name: "General Manager", Category: "Management", Scope: "property", Permissions: cat(management, []string{"audit.log.view", "platform.approval.view_all"}, ma("golf", "sportclub", "membership", "reservation", "stay", "banquet", "crm", "commercial", "billing", "inventory", "procurement", "accounting", "hris", "reporting"))},
 	{Code: "club_manager", Name: "Club Manager", Category: "Management", Scope: "property", Permissions: cat(management, []string{"audit.log.view"}, ma("golf", "sportclub", "membership", "reservation", "crm", "commercial", "reporting"))},
 	{Code: "resort_manager", Name: "Resort Manager", Category: "Management", Scope: "property", Permissions: cat(management, ma("stay", "banquet", "reservation", "commercial", "reporting"))},
-	{Code: "finance_manager", Name: "Finance Manager", Category: "Management", Scope: "property", MFARequired: true, Permissions: cat(management, []string{"audit.log.view", "audit.log.export", "platform.approval.view_all"}, ma("billing", "accounting", "commercial", "procurement", "reporting"))},
+	{Code: "finance_manager", Name: "Finance Manager", Category: "Management", Scope: "property", Permissions: cat(management, []string{"audit.log.view", "audit.log.export", "platform.approval.view_all"}, ma("billing", "accounting", "commercial", "procurement", "reporting"))},
 	// Golf
 	{Code: "golf_manager", Name: "Golf Manager", Category: "Golf", Scope: "property", Permissions: cat(bo, ops, ma("golf", "reservation", "reporting"), []string{"reporting.report.view"})},
 	{Code: "golf_admin", Name: "Golf Admin", Category: "Golf", Scope: "property", Permissions: cat(bo, ma("golf", "reservation"))},
@@ -313,13 +313,14 @@ var RoleTemplates = []RoleTemplate{
 	// External auditor (PRD P4 FR-ACC-09, §16 #18): read-only Accounting &
 	// Reports, assigned for the audit period only (validUntil required) and
 	// every read logged in the audit log.
-	{Code: AuditorRole, Name: "Auditor", Category: "Finance", Scope: "property", MFARequired: true,
+	{Code: AuditorRole, Name: "Auditor", Category: "Finance", Scope: "property",
 		Permissions:     cat(bo, ma("accounting", "reporting"), []string{"reporting.report.view", "reporting.export.create", "audit.log.view"}),
 		ReadOnlyModules: []string{"accounting"}},
-	{Code: "accountant", Name: "Accountant", Category: "Finance", Scope: "property", MFARequired: true, Permissions: cat(bo, ma("accounting", "billing", "reporting"), []string{"reporting.report.view", "audit.log.view"})},
+	{Code: "accountant", Name: "Accountant", Category: "Finance", Scope: "property", Permissions: cat(bo, ma("accounting", "billing", "reporting"), []string{"reporting.report.view", "audit.log.view"})},
 	// HR
 	{Code: "hr_admin", Name: "HR Admin", Category: "HR", Scope: "property", Permissions: cat(bo, ma("hris"), []string{"platform.employee.view", "platform.department.view"})},
-	{Code: "hr_manager", Name: "HR Manager", Category: "HR", Scope: "property", Permissions: cat(bo, ma("hris", "reporting"), []string{"platform.employee.view", "platform.department.view", "reporting.report.view"})},
+	{Code: "hr_manager", Name: "HR Manager", Category: "HR", Scope: "property", Permissions: cat(bo, ma("hris", "reporting"), []string{"platform.employee.view", "platform.department.view", "reporting.report.view",
+		"platform.club_policy.view", "platform.approval_workflow.view"})}, // Settings: HR configuration, HR policies, approval workflows
 	// PRD P5 EP-16 / §16 #6: Employee Self Service is the personal-login area of the ops shell; department heads lead their
 	// team there (the HRIS permissions come from the hris contribution).
 	{Code: "employee_self_service", Name: "Employee (self-service)", Category: "HR", Scope: "property", Permissions: cat(ops, ma("hris"))},

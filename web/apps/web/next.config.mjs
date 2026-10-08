@@ -4,6 +4,8 @@ import path from 'node:path';
 const nextConfig = {
   output: 'standalone',
   outputFileTracingRoot: path.join(import.meta.dirname, '../..'),
+  // the captured pages of the live site are read at runtime (components/mgcc)
+  outputFileTracingIncludes: { '/[lang]/**': ['./mgcc/**'] },
   productionBrowserSourceMaps: process.env.SOURCEMAPS !== 'false',
   transpilePackages: ['@oneclub/ui'],
   async rewrites() {

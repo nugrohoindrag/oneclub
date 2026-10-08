@@ -1,0 +1,36 @@
+/* CRM Overview (p5/crm_overview.tsx): the page-specific blocks next to the dashboard kit. */
+.oc-crm-sub { margin: 4px 0 0; font-size: 14px; font-weight: 600; color: var(--dash-text); }
+
+/* Renewal this month: four figures on the dark card. */
+.oc-crm-renewal { flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.oc-crm-renewal > div { display: flex; flex-direction: column; justify-content: space-between; gap: 8px; padding: 14px; border-radius: 16px; background: rgb(255 255 255 / .08); }
+.oc-crm-renewal > div:first-child { background: var(--dash-blue); }
+.oc-crm-renewal span { font-size: 13px; color: rgb(255 255 255 / .75); }
+.oc-crm-renewal > div:first-child span { color: rgb(255 255 255 / .9); }
+.oc-crm-renewal strong { font-size: 32px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: #fff; }
+
+/* Expiring soon: 30 / 60 / 90 days on the red panel, each opening its list. */
+.oc-crm-expiry { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.oc-crm-expiry button { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px; border: 1px solid rgb(255 255 255 / .35); border-radius: 16px;
+  background: rgb(255 255 255 / .12); color: #fff; font: inherit; cursor: pointer; text-align: left; }
+.oc-crm-expiry button:hover { background: rgb(255 255 255 / .22); }
+.oc-crm-expiry strong { font-size: 30px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; }
+.oc-crm-expiry span { font-size: 12px; color: rgb(255 255 255 / .85); }
+
+/* Lists of people (at risk, follow-ups) and the upcoming counts. */
+.oc-crm-risk, .oc-crm-followups { display: flex; flex-direction: column; gap: 6px; }
+.oc-crm-risk button, .oc-crm-followups button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 14px;
+  background: var(--dash-muted); color: var(--dash-text); font: inherit; text-align: left; cursor: pointer; }
+.oc-crm-risk button:hover, .oc-crm-followups button:hover { box-shadow: inset 0 0 0 1px var(--dash-sky); }
+.oc-crm-risk button > span:nth-child(2), .oc-crm-followups button > span:nth-child(2) { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.oc-crm-risk strong, .oc-crm-followups strong { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oc-crm-risk small, .oc-crm-followups small { font-size: 12px; color: var(--dash-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oc-crm-followups { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.oc-crm-followups .oc-dash-icon { width: 34px; height: 34px; }
+.oc-crm-upcoming { display: flex; flex-direction: column; }
+.oc-crm-upcoming > div { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--dash-line); }
+.oc-crm-upcoming > div:last-child { border-bottom: 0; }
+.oc-crm-upcoming .oc-dash-icon { width: 34px; height: 34px; }
+.oc-crm-upcoming > div > span:not(.oc-dash-icon) { flex: 1; display: flex; flex-direction: column; font-size: 14px; font-weight: 600; }
+.oc-crm-upcoming small { font-size: 12px; font-weight: 400; color: var(--dash-sub); }
+.oc-crm-upcoming strong { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }

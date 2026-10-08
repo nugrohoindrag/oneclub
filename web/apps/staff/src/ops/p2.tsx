@@ -3,10 +3,8 @@ import { qs, request, uuidv7, useGet, useSend, type Page, type Schemas } from '@
 import { formatDateTime, formatNumber } from '@oneclub/i18n';
 import { enqueue } from '@oneclub/offline';
 import { Link } from 'react-router';
-import { useLive } from '../live';
-import { OUTLET_KEY, read } from '../offline';
-import { PosPromotionPanel, usePosPromotions } from '../p3/commercial';
-import { PosTierLine, posTierDiscount, usePosTierDiscount, useCustomerTiers } from '../p5/tiers';
+import { GOLF_STREAM, useLive } from '../live';
+import { CourseMonitorPage } from './marshal';
 import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
@@ -14,9 +12,6 @@ import {
 type Row = Record<string, unknown>;
 const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : `Rp ${formatNumber(Number(v))}`);
 const idem = () => ({ 'Idempotency-Key': uuidv7() });
-
-/** P1's golf stream carries every golf.* topic, P2's included. */
-const GOLF_STREAM = '/api/v1/golf/tee-sheet/stream';
 
 function Head({ title, help }: { title: string; help?: string }) {
   return <div className="oc-page-head"><div><h1>{title}</h1>{help && <p>{help}</p>}</div></div>;
@@ -311,157 +306,18 @@ export function StayDeskPage() {
   );
 }
 
-// ── POS (EP-20) — orders work offline through the sync queue ──────────────
-
-/** POS customer: search CRM customers (member price, personal promo codes, Redeem Points). */
-function PosCustomerPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const [q, setQ] = useState('');
-  const list = useGet<Page<Row>>(q.trim().length >= 2 ? `/api/v1/crm/customers${qs({ q, limit: 20, 'filter[status]': 'active' })}` : null);
-  const tiers = useCustomerTiers((list.data?.items ?? []).map((c) => String(c.id))); // PRD P5 tier class in the picker
-  return (
-    <>
-      <div style={{ width: 220 }}><TextField label="Find customer" value={q} onChange={setQ} placeholder="Name, phone or code" /></div>
-      <div style={{ width: 240 }}><SelectField label="Customer" value={value} onChange={onChange} placeholder="Walk-in guest"
-        options={(list.data?.items ?? []).map((c) => ({ value: String(c.id), label: `${String(c.name)} (${String(c.code)})${tiers.get(String(c.id))?.tierName
-          ? ` · ${String(tiers.get(String(c.id))?.tierName)}` : ''}` }))} /></div>
-    </>
-  );
-}
-
-const POS_METHODS = ['cash', 'qris', 'card', 'member_account'];
-
-export function POSPage() {
-  const toast = useToast();
-  const { propertyId, can } = useAuth();
-  const outlet = read(OUTLET_KEY);
-  // PRD P4 FR-CNS-07: stock-tracked retail items carry their outlet stock (K9) and Sold Out
-  const menu = useGet<Page<Schemas['MenuItem'] & { stockTracked?: boolean; available?: string | null; soldOut?: boolean }>>(
-    outlet ? `/api/v1/commercial/outlets/${outlet}/menu` : null, { refetchInterval: 60_000 });
-  const shifts = useGet<Page<Row>>(`/api/v1/commercial/shifts${qs({ 'filter[status]': 'open', 'filter[outletId]': outlet })}`);
-  const openShift = useSend<Row>('POST', '/api/v1/commercial/shifts:open', ['/api/v1/commercial/shifts']);
-  const [cart, setCart] = useState<Record<string, number>>({});
-  const [table, setTable] = useState('');
-  const [method, setMethod] = useState('cash');
-  const [customer, setCustomer] = useState('');
-  const [points, setPoints] = useState('');
-  const [rest, setRest] = useState('cash');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<unknown>(null);
-  const online = typeof navigator === 'undefined' || navigator.onLine;
-  // PRD P3 FR-LOY-05 / FR-OPS-P3-03: points of the customer as a tender
-  const acctQ = useGet<Page<Row>>(customer && can('crm.loyalty_account.view') ? `/api/v1/crm/loyalty/accounts${qs({ 'filter[customerId]': customer })}` : null);
-  const acct = acctQ.data?.items.find((a) => a.status === 'active');
-  const shift = shifts.data?.items.find((s) => s.outletId === outlet);
-  const items = menu.data?.items ?? [];
-  const total = items.reduce((s, p) => s + Number(p.price) * (cart[p.productId] ?? 0), 0);
-  // PRD P3 FR-OPS-P3-03: promotions of the cart (online and offline); the customer unlocks personal codes
-  const promo = usePosPromotions(outlet, items.filter((p) => (cart[p.productId] ?? 0) > 0)
-    .map((p) => ({ productId: p.productId, quantity: cart[p.productId], unitPrice: Number(p.price) })), customer);
-  // PRD P5: tier F&B discount of the member (cached with the member for offline sales)
-  const tierDisc = usePosTierDiscount(customer);
-  const tierAmount = posTierDiscount(tierDisc, items.filter((p) => (cart[p.productId] ?? 0) > 0)
-    .map((p) => ({ productType: String(p.productType), amount: Number(p.price) * (cart[p.productId] ?? 0) })), promo.discount);
-  if (!outlet) return <Empty title="Choose an outlet on the Home screen first" icon="storefront" />;
-  const due = Math.max(total - promo.discount - tierAmount, 0);
-  const pointValue = Number(acct?.redemptionValue ?? 0);
-  const maxPoints = acct && pointValue > 0 ? Math.min(Number(acct.balance ?? 0), Math.floor(due / pointValue)) : 0;
-  const usePoints = method === 'loyalty_points';
-  const methods = [...POS_METHODS, ...(acct && online ? ['loyalty_points'] : [])];
-  const reset = () => { setCart({}); setTable(''); setPoints(''); setMethod('cash'); };
-  const lines = () => Object.entries(cart).filter(([, n]) => n > 0).map(([productId, n]) => ({ productId, quantity: String(n) }));
-  const checkout = async () => {
-    const id = uuidv7();
-    const order = { id, outletId: outlet, shiftId: shift?.id, tableNo: table, send: true, offline: !navigator.onLine, customerId: customer || undefined,
-      lines: lines(), ...promo.orderFields(total - tierAmount) };
-    await enqueue('commercial.pos_order', { order, payment: { shiftId: shift?.id, tenders: [{ methodType: method }] } }, propertyId);
-    reset();
-    toast(navigator.onLine ? 'Order sent' : 'Offline: order queued and will sync automatically');
-  };
-  // Redeem Points needs the live balance: the sale goes online at once (never queued).
-  const checkoutWithPoints = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const fields = promo.orderFields(total);
-      const order = await request<Row>('POST', '/api/v1/commercial/orders', { outletId: outlet, shiftId: shift?.id, tableNo: table || undefined, send: true,
-        customerId: customer, lines: lines(), promoCodes: fields.promoCodes, promotionExclusions: fields.promotionExclusions }, idem());
-      const n = Math.min(Number(points || maxPoints), maxPoints);
-      await request<Row>('POST', `/api/v1/commercial/orders/${String(order.id)}:pay`, { shiftId: shift?.id, tenders: [
-        { methodType: 'loyalty_points', tender: { points: n } }, { methodType: rest }] }, idem());
-      reset();
-      toast(`Paid ${formatNumber(n)} points and ${rest.replace('_', ' ')}`);
-      void acctQ.refetch();
-    } catch (e) {
-      setError(e);
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <div className="oc-stack">
-      <Head title="POS" help={shift ? `Shift ${String(shift.shiftNo)} open` : 'Open a shift to start selling'} />
-      <ErrorAlert error={openShift.error ?? error} />
-      {!shift && (
-        <button className="oc-btn oc-btn-ink" onClick={() => {
-          const cash = window.prompt('Opening cash', '500000');
-          if (cash !== null) openShift.mutate({ outletId: outlet, openingCash: cash });
-        }}>Open shift</button>
-      )}
-      <div className="oc-grid">
-        {items.map((p) => (
-          <button key={p.productId} className="oc-card" disabled={p.soldOut} aria-label={p.soldOut ? `${p.name}, sold out` : undefined}
-            style={{ textAlign: 'left', cursor: p.soldOut ? 'not-allowed' : 'pointer', minHeight: 90, opacity: p.soldOut ? 0.6 : 1 }}
-            onClick={() => setCart({ ...cart, [p.productId]: (cart[p.productId] ?? 0) + 1 })}>
-            <strong>{p.name}</strong><div className="oc-small">{money(p.price)}</div>
-            {p.soldOut ? <span className="oc-status" data-tone="error">Sold Out</span>
-              : p.stockTracked && p.available != null ? <div className="oc-small oc-muted">{formatNumber(Number(p.available))} in stock</div> : null}
-            {cart[p.productId] ? <span className="oc-chip">× {cart[p.productId]}</span> : null}
-          </button>
-        ))}
-      </div>
-      <Card title="Current order" icon="receipt">
-        <div className="oc-row-wrap" aria-label="Customer">
-          <PosCustomerPicker value={customer} onChange={(v) => { setCustomer(v); setPoints(''); if (method === 'loyalty_points') setMethod('cash'); }} />
-          {acct && <span className="oc-chip" style={{ alignSelf: 'flex-end' }}>{formatNumber(Number(acct.balance))} points · {money(acct.balanceValue)}</span>}
-          {tierDisc && <span className="oc-chip" style={{ alignSelf: 'flex-end' }}>{tierDisc.label}</span>}
-          {customer && !acctQ.isLoading && !acct && can('crm.loyalty_account.view') && <span className="oc-small oc-muted" style={{ alignSelf: 'flex-end' }}>Not a loyalty member</span>}
-        </div>
-        <div className="oc-row-wrap">
-          <div style={{ width: 140 }}><TextField label="Table" value={table} onChange={setTable} /></div>
-          <div style={{ width: 200 }}><SelectField label="Payment" value={method} onChange={setMethod}
-            options={methods.map((m) => ({ value: m, label: m === 'loyalty_points' ? 'Redeem Points' : m.replace('_', ' ') }))} /></div>
-          {usePoints && <>
-            <div style={{ width: 160 }}><TextField label="Points" type="number" inputMode="numeric" min={1} max={maxPoints} value={points} onChange={setPoints}
-              placeholder={String(maxPoints)} help={`= ${money(Math.min(Number(points || maxPoints), maxPoints) * pointValue)}`} /></div>
-            <div style={{ width: 180 }}><SelectField label="Rest paid by" value={rest} onChange={setRest}
-              options={POS_METHODS.map((m) => ({ value: m, label: m.replace('_', ' ') }))} /></div>
-          </>}
-          <div className="oc-metric" style={{ alignSelf: 'flex-end' }}>{money(due)}</div>
-          <span className="oc-spacer" />
-          <button className="oc-btn oc-btn-neutral" style={{ alignSelf: 'flex-end' }} onClick={() => setCart({})}>Clear</button>
-          <button className="oc-btn oc-btn-ink" style={{ alignSelf: 'flex-end' }} disabled={total === 0 || !shift || busy || (usePoints && (maxPoints <= 0 || !online))}
-            onClick={() => void (usePoints ? checkoutWithPoints() : checkout())}>Pay & send</button>
-        </div>
-        {usePoints && !online && <div className="oc-small oc-muted" role="status">Redeem Points needs a connection; choose another payment while offline.</div>}
-        <PosPromotionPanel promo={promo} />
-        <PosTierLine t={tierDisc} amount={tierAmount} />
-      </Card>
-    </div>
-  );
-}
-
 // ── routes and home tiles (mounted by areas/ops.tsx) ───────────
 
 /** Ops routes of P2, at the paths of the server navigation. */
 export const P2_OPS_ROUTES = [
   { path: 'starter/pace', element: <PaceOfPlayPage /> },
+  { path: 'starter/monitor', element: <CourseMonitorPage /> }, // Marshal (FR-PLX-04/05)
   { path: 'caddy/incidents', element: <CaddyIncidentsPage /> },
   { path: 'golf-staff/inspection', element: <GolfCartInspectionPage /> },
   { path: 'stay-desk', element: <StayDeskPage /> },
   { path: 'driving-range', element: <DrivingRangePage /> },
   { path: 'sport-reception', element: <SportReceptionPage /> },
   { path: 'instructor', element: <InstructorPage /> },
-  { path: 'pos', element: <POSPage /> },
 ];
 
 /** Home tiles of the P2 workstations (P1's golf tiles come first). */

@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import {
-  Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, useToast,
+  Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, type StatusTone,
+  useDebounced, useToast,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import { ImportCorporateAR } from './ar_import';
+import { InvoiceDocuments, InvoiceWorkspacePage, invoiceWorkspaceUrl } from './invoice-workspace';
 
 // Billing & Payment P3 (PRD P3 EP-17/18, Naming Convention §18): Invoices,
 // Corporate Billing, Payment Schedules, Customer Folios, Cashier and Night
@@ -39,99 +41,152 @@ function EFaktur({ e }: { e?: R }) {
   );
 }
 
-export function InvoicesPage() {
-  const [params, setParams] = useSearchParams();
-  const { can } = useAuth();
-  const [creating, setCreating] = useState(false);
-  const [importing, setImporting] = useState(false);
-  const efaktur = useEFaktur();
-  const open = params.get('id');
+const SOURCE_LABEL: Record<string, string> = {
+  manual: 'Manual', folio: 'Folio', customer_folio: 'Customer folio', payment_schedule: 'Payment schedule', city_ledger: 'City ledger',
+};
+
+/** The source on one line ("Banquet event" for a folio) with its reference under it. */
+function InvoiceSource({ r }: { r: R }) {
+  const s = String(r.source ?? '');
+  const name = s === 'folio' && r.sourceType ? label(r.sourceType) : SOURCE_LABEL[s] ?? label(s);
   return (
-    <>
-      <ListPage title="Invoices" help="Invoices of folios, customer folios, the corporate city ledger and payment schedules (FR-BIL-P3-04)."
-        path="/api/v1/billing/invoices"
-        statuses={['draft', 'issued', 'partially_paid', 'paid', 'overdue', 'void'].map((s) => ({ value: s, label: label(s) }))}
-        actions={<>
-          {can('billing.invoice.import') && <button className="oc-btn oc-btn-neutral" onClick={() => setImporting(true)}>Import Corporate AR</button>}
-          {can('billing.invoice.create') && <button className="oc-btn oc-btn-primary" onClick={() => setCreating(true)}>Generate Invoice</button>}
-        </>}
-        onRowClick={(r) => setParams({ id: r.id })}
-        columns={[{ key: 'number', header: 'Invoice', render: (r) => String(r.number ?? 'Draft') }, { key: 'billToName', header: 'Bill To' },
-          { key: 'kind', header: 'Kind', render: (r) => label(r.kind) }, { key: 'issueDate', header: 'Issued', render: (r) => (r.issueDate ? formatDate(String(r.issueDate)) : '—') },
-          { key: 'dueDate', header: 'Due', render: (r) => (r.dueDate ? formatDate(String(r.dueDate)) : '—') },
-          { key: 'total', header: 'Total', align: 'right', render: (r) => money(r.total) }, { key: 'outstanding', header: 'Outstanding', align: 'right', render: (r) => money(r.outstanding) },
-          { key: 'status', header: 'Status', render: pill('status') }, { key: 'efaktur', header: 'e-Faktur', render: (r) => <EFaktur e={efaktur.get(String(r.id))} /> }]} />
-      {creating && <GenerateInvoice onClose={() => setCreating(false)} onDone={(id) => { setCreating(false); setParams({ id }); }} />}
-      {importing && <ImportCorporateAR onClose={() => setImporting(false)} />}
-      {open && <InvoiceDrawer id={open} onClose={() => setParams({})} />}
-    </>
+    <span className="oc-nowrap">
+      {name.charAt(0).toUpperCase() + name.slice(1)}
+      {r.sourceRef ? <div className="oc-small oc-muted">{String(r.sourceRef)}</div> : null}
+    </span>
   );
 }
 
-function GenerateInvoice({ onClose, onDone, preset }: { onClose: () => void; onDone: (id: string) => void; preset?: { source: string; ref: string } }) {
-  const [source, setSource] = useState(String(preset?.source ?? 'customerFolio'));
-  const [ref, setRef] = useState(String(preset?.ref ?? ''));
-  const [corporate, setCorporate] = useState('');
-  const [terms, setTerms] = useState('');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState(today());
-  const [issue, setIssue] = useState(true);
-  const corporates = useGet<Page<R>>('/api/v1/crm/corporate-accounts?limit=200&filter[status]=active');
-  const folios = useGet<Page<R>>(source === 'customerFolio' ? '/api/v1/billing/customer-folios?limit=200&filter[status]=open'
-    : source === 'folio' ? '/api/v1/billing/folios?limit=200&filter[status]=open' : null);
-  const send = useSend<R, R>('POST', '/api/v1/billing/invoices', BILLING, () => ({ 'Idempotency-Key': crypto.randomUUID() }));
-  const body: Record<string, unknown> = { issue, termsDays: terms ? Number(terms) : undefined };
-  if (source === 'customerFolio') body.customerFolioId = ref;
-  if (source === 'folio') body.folioId = ref;
-  if (source === 'account') Object.assign(body, { corporateAccountId: ref, from: from || undefined, to });
-  if (source !== 'account' && corporate) body.corporateAccountId = corporate;
-  const corpOptions = (corporates.data?.items ?? []).map((c) => ({ value: c.id, label: `${String(c.name)} (${String(c.code)})` }));
+const INVOICE_STATUS: Record<string, [string, StatusTone]> = {
+  draft: ['Draft', 'neutral'], issued: ['Issued', 'info'], partially_paid: ['Partially paid', 'warning'], paid: ['Paid', 'success'],
+  overdue: ['Overdue', 'error'], void: ['Void', 'neutral'],
+};
+
+/** Status of an invoice (the generic "issued" pill reads "Active", which is the voucher's). */
+export function InvoiceStatus({ status }: { status: unknown }) {
+  const s = String(status ?? '');
+  const [l, tone] = INVOICE_STATUS[s] ?? [label(s), 'neutral' as StatusTone];
+  return <StatusPill status={s} label={l} tone={tone} />;
+}
+const invoiceStatus = (r: R) => <InvoiceStatus status={r.status} />;
+const day = (v: unknown) => (v ? <span className="oc-nowrap">{formatDate(String(v))}</span> : '—');
+
+const FILTER_SOURCES = [{ value: '', label: 'All sources' }, ...Object.entries(SOURCE_LABEL).map(([value, l]) => ({ value, label: l }))];
+const NO_FILTERS = { source: '', payer: '', from: '', to: '', dueFrom: '', dueTo: '', minTotal: '', maxTotal: '' };
+type InvoiceFilters = typeof NO_FILTERS;
+
+/** "Filters" button with the advanced invoice filters in a panel (FR list filters of Invoice Management §21). */
+function InvoiceFilterPanel({ value, onChange }: { value: InvoiceFilters; onChange: (f: InvoiceFilters) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const out = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', out);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('mousedown', out); document.removeEventListener('keydown', esc); };
+  }, [open]);
+  const set = (k: keyof InvoiceFilters) => (v: string) => onChange({ ...value, [k]: v });
+  // A range counts once.
+  const active = [value.source, value.payer, value.from || value.to, value.dueFrom || value.dueTo, value.minTotal || value.maxTotal].filter(Boolean).length;
   return (
-    <Modal open onClose={onClose} title="Generate Invoice" wide actions={<><button className="oc-btn oc-btn-neutral" onClick={onClose}>Cancel</button>
-      <button className="oc-btn oc-btn-primary" disabled={!ref || send.isPending}
-        onClick={() => send.mutate(body as R, { onSuccess: (inv) => onDone(inv.id) })}>Generate</button></>}>
-      <div className="oc-form">
-        <SelectField label="Source" value={source} onChange={(v) => { setSource(v); setRef(''); }} options={[
-          { value: 'customerFolio', label: 'Customer folio (all lines)' }, { value: 'folio', label: 'One folio' },
-          { value: 'account', label: 'Corporate city ledger (period)' }]} />
-        {source === 'account'
-          ? <SelectField label="Corporate account" value={ref} onChange={setRef} options={corpOptions} required />
-          : <SelectField label={source === 'folio' ? 'Folio' : 'Customer folio'} value={ref} onChange={setRef} required
-            options={(folios.data?.items ?? []).map((f) => ({ value: f.id, label: `${String(f.number)} · ${String(f.holderName)} · ${money(f.balance)}` }))} />}
-        {source === 'account' && <><TextField label="From" type="date" value={from} onChange={setFrom} /><TextField label="To" type="date" value={to} onChange={setTo} /></>}
-        {source !== 'account' && <SelectField label="Bill to company (optional)" value={corporate} onChange={setCorporate} placeholder="Customer" options={corpOptions} />}
-        <TextField label="Payment term (days)" type="number" value={terms} onChange={setTerms} help="Default: Credit Policies term for companies, 0 for individuals" />
-        <Checkbox label="Issue immediately" checked={issue} onChange={setIssue} />
-      </div>
-      <ErrorAlert error={send.error} />
-    </Modal>
+    <div className="oc-popover-anchor" ref={ref}>
+      <button type="button" className="oc-btn oc-btn-outline oc-filter-btn" aria-expanded={open} aria-haspopup="dialog" onClick={() => setOpen((o) => !o)}>
+        <Icon name="tune" size={18} /> Filters{active > 0 && <span className="oc-filter-count">{active}</span>}
+      </button>
+      {open && (
+        <div className="oc-popover oc-filter-panel" role="dialog" aria-label="Invoice filters">
+          <div className="oc-form oc-filter-grid">
+            <SelectField label="Source" value={value.source} onChange={set('source')} options={FILTER_SOURCES} />
+            <SelectField label="Customer type" value={value.payer} onChange={set('payer')}
+              options={[{ value: '', label: 'Corporate & individual' }, { value: 'corporate', label: 'Corporate' }, { value: 'individual', label: 'Individual' }]} />
+            <TextField label="Invoice date from" type="date" value={value.from} max={value.to || undefined} onChange={set('from')} />
+            <TextField label="to" type="date" value={value.to} min={value.from || undefined} onChange={set('to')} />
+            <TextField label="Due date from" type="date" value={value.dueFrom} max={value.dueTo || undefined} onChange={set('dueFrom')} />
+            <TextField label="to" type="date" value={value.dueTo} min={value.dueFrom || undefined} onChange={set('dueTo')} />
+            <TextField label="Amount from" type="number" inputMode="decimal" value={value.minTotal} onChange={set('minTotal')} placeholder="Rp" />
+            <TextField label="to" type="number" inputMode="decimal" value={value.maxTotal} onChange={set('maxTotal')} placeholder="Rp" />
+          </div>
+          <div className="oc-row" style={{ marginTop: 12 }}>
+            <button type="button" className="oc-btn oc-btn-text oc-btn-sm" disabled={!active} onClick={() => onChange(NO_FILTERS)}>
+              <Icon name="restart_alt" size={18} /> Reset</button>
+            <span className="oc-spacer" />
+            <button type="button" className="oc-btn oc-btn-primary oc-btn-sm" onClick={() => setOpen(false)}>Done</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function InvoicesPage() {
+  const [params, setParams] = useSearchParams();
+  const { can } = useAuth();
+  const [importing, setImporting] = useState(false);
+  const [f, setF] = useState(NO_FILTERS);
+  const minTotal = useDebounced(f.minTotal);
+  const maxTotal = useDebounced(f.maxTotal);
+  const efaktur = useEFaktur();
+  const open = params.get('id');
+  // Keeps the other parameters (?tab= when the list sits in Accounts Receivable).
+  const openId = (id: string | null) => setParams((p) => { const n = new URLSearchParams(p); if (id) n.set('id', id); else n.delete('id'); return n; });
+  return (
+    <>
+      <ListPage title="Invoices" help="Invoices generated from folios, customer folios, the corporate city ledger and payment schedules, and manual invoices for exceptions."
+        path="/api/v1/billing/invoices"
+        statuses={['draft', 'issued', 'partially_paid', 'paid', 'overdue', 'void'].map((s) => ({ value: s, label: label(s) }))}
+        extraQuery={{ 'filter[source]': f.source, 'filter[payer]': f.payer, from: f.from, to: f.to, dueFrom: f.dueFrom, dueTo: f.dueTo, minTotal, maxTotal }}
+        filters={<InvoiceFilterPanel value={f} onChange={setF} />}
+        actions={<>
+          {can('billing.invoice.import') && <button className="oc-btn oc-btn-neutral" onClick={() => setImporting(true)}>Import Corporate AR</button>}
+          {can('billing.invoice.create') && <Link className="oc-btn oc-btn-primary" to={invoiceWorkspaceUrl()}>Create Invoice</Link>}
+        </>}
+        onRowClick={(r) => openId(String(r.id))}
+        columns={[{ key: 'number', header: 'Invoice', render: (r) => String(r.number ?? 'Draft') }, { key: 'billToName', header: 'Customer' },
+          { key: 'source', header: 'Source', render: (r) => <InvoiceSource r={r} /> },
+          { key: 'issueDate', header: 'Invoice date', render: (r) => day(r.issueDate) }, { key: 'dueDate', header: 'Due', render: (r) => day(r.dueDate) },
+          { key: 'total', header: 'Amount', align: 'right', render: (r) => money(r.total) }, { key: 'paidAmount', header: 'Paid', align: 'right', render: (r) => money(r.paidAmount) },
+          { key: 'outstanding', header: 'Outstanding', align: 'right', render: (r) => money(r.outstanding) },
+          { key: 'status', header: 'Status', render: invoiceStatus }, { key: 'efaktur', header: 'Tax status', render: (r) => <EFaktur e={efaktur.get(String(r.id))} /> }]} />
+      {importing && <ImportCorporateAR onClose={() => setImporting(false)} />}
+      {open && <InvoiceDrawer id={open} onClose={() => openId(null)} />}
+    </>
   );
 }
 
 function InvoiceDrawer({ id, onClose }: { id: string; onClose: () => void }) {
   const { can } = useAuth();
   const toast = useToast();
-  const d = useGet<R & { lines: R[]; allocations: R[]; creditNotes: R[]; writeOffs: R[] }>(`/api/v1/billing/invoices/${id}`);
+  const d = useGet<R & { lines: R[]; allocations: R[]; creditNotes: R[]; writeOffs: R[]; internal?: { notes?: string | null; attachments: R[] } }>(
+    `/api/v1/billing/invoices/${id}`);
   const ef = useEFaktur(id).get(id);
   const [modal, setModal] = useState<'' | 'pay' | 'credit' | 'writeoff' | 'send'>('');
   const x = d.data;
   const inv = [...BILLING, `/api/v1/billing/invoices/${id}`];
   const openInv = x && !['draft', 'void', 'paid'].includes(String(x.status));
+  const discount = (x?.lines ?? []).reduce((a, l) => a + Number(l.discountAmount ?? 0), 0);
+  const opt = (k: string, v: unknown): [string, React.ReactNode][] => (v ? [[k, String(v)]] : []);
   return (
     <Drawer open onClose={onClose} title={x ? `Invoice ${String(x.number ?? 'Draft')}` : 'Invoice'}>
       {d.isLoading && <Skeleton />}
       <ErrorAlert error={d.error} />
       {x && (
         <div className="oc-stack">
-          <KV items={[['Bill to', String(x.billToName)], ['NPWP', String(x.billToNpwp ?? '—')], ['Status', <StatusPill key="s" status={String(x.status)} />],
-            ['Issue date', x.issueDate ? formatDate(String(x.issueDate)) : '—'], ['Due date', x.dueDate ? formatDate(String(x.dueDate)) : '—'],
+          <KV items={[['Bill to', String(x.billToName)], ['NPWP', String(x.billToNpwp ?? '—')], ...opt('Address', x.billToAddress),
+            ['Status', <InvoiceStatus key="s" status={x.status} />], ['Source', <InvoiceSource key="src" r={x} />],
+            ...opt('Customer PO', x.customerPo), ...opt('Contract', x.contractRef), ...opt('Billing reference', x.billingRef),
+            ['Invoice date', x.issueDate ? formatDate(String(x.issueDate)) : '—'], ['Due date', x.dueDate ? formatDate(String(x.dueDate)) : '—'],
+            ['Sent', x.sentAt ? formatDateTime(String(x.sentAt)) : 'Not sent'],
+            ...(discount ? [['Discount', money(discount)] as [string, React.ReactNode]] : []),
             ['Subtotal', money(x.subtotal)], ['Service', money(x.serviceAmount)], ['Tax', money(x.taxAmount)], ['Total', <strong key="t">{money(x.total)}</strong>],
             ['Paid', money(x.paidAmount)], ['Credited', money(x.creditedAmount)], ['Written off', money(x.writtenOffAmount)],
             ['Outstanding', <strong key="o">{money(x.outstanding)}</strong>],
-            ['e-Faktur', <EFaktur key="ef" e={ef} />], ...(ef ? [['Tax period', String(ef.taxPeriod)] as [string, React.ReactNode]] : [])]} />
+            ['e-Faktur', <EFaktur key="ef" e={ef} />], ...(ef ? [['Tax period', String(ef.taxPeriod)] as [string, React.ReactNode]] : []),
+            ...opt('Customer notes', x.notes)]} />
           <div className="oc-row-wrap">
             {x.status === 'draft' && can('billing.invoice.issue') && <ActionButton label="Issue" kind="primary" path={`/api/v1/billing/invoices/${id}:issue`} invalidate={inv} />}
-            {openInv && can('billing.invoice.issue') && <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setModal('send')}>Send</button>}
+            {openInv && can('billing.invoice.issue') && <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setModal('send')}>{x.sentAt ? 'Resend' : 'Send'}</button>}
             {openInv && can('billing.payment.create') && <button className="oc-btn oc-btn-sm oc-btn-primary" onClick={() => setModal('pay')}>Take Payment</button>}
             {openInv && can('billing.invoice.credit') && <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setModal('credit')}>Credit Note</button>}
             {openInv && can('billing.invoice.write_off') && <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setModal('writeoff')}>Write Off</button>}
@@ -139,12 +194,16 @@ function InvoiceDrawer({ id, onClose }: { id: string; onClose: () => void }) {
               <ActionButton label="Void" path={`/api/v1/billing/invoices/${id}:void`} invalidate={inv} reason="required" danger />}
             {x.number != null && <a className="oc-btn oc-btn-sm oc-btn-text" href={`/api/v1/billing/invoices/${id}/pdf`} target="_blank" rel="noreferrer">PDF</a>}
             {typeof x.payLink === 'string' && <button className="oc-btn oc-btn-sm oc-btn-text"
-              onClick={() => { void navigator.clipboard?.writeText(String(x.payLink)); toast('Payment link copied'); }}>Copy payment link</button>}
+              onClick={() => { void navigator.clipboard?.writeText(String(x.payLink)); toast('Customer link copied'); }}>Copy customer link</button>}
           </div>
           <Card title="Lines" icon="receipt_long">
-            <DataTable rows={x.lines} columns={[{ key: 'description', header: 'Description' }, { key: 'businessLine', header: 'Line', render: (l) => label(l.businessLine) },
-              { key: 'quantity', header: 'Qty', align: 'right' }, { key: 'total', header: 'Total', align: 'right', render: (l) => money(l.total) }]} />
+            <DataTable rows={x.lines} pageSize={0} columns={[{ key: 'description', header: 'Description' }, { key: 'businessLine', header: 'Line', render: (l) => label(l.businessLine) },
+              { key: 'quantity', header: 'Qty', align: 'right', render: (l) => `${String(l.quantity)}${l.unit ? ` ${String(l.unit)}` : ''}` },
+              { key: 'unitPrice', header: 'Unit price', align: 'right', render: (l) => money(l.unitPrice) },
+              { key: 'discountAmount', header: 'Discount', align: 'right', render: (l) => (Number(l.discountAmount) ? money(l.discountAmount) : '—') },
+              { key: 'total', header: 'Total', align: 'right', render: (l) => money(l.total) }]} />
           </Card>
+          {x.internal && <InvoiceInternalCard id={id} internal={x.internal} invalidate={inv} editable={can('billing.invoice.create')} />}
           {x.allocations.length > 0 && <Card title="Payments" icon="payments">
             <DataTable rows={x.allocations} columns={[{ key: 'paymentNumber', header: 'Payment' }, { key: 'amount', header: 'Amount', align: 'right', render: (a) => money(a.amount) },
               { key: 'createdAt', header: 'Allocated', render: (a) => formatDateTime(String(a.createdAt)) }]} />
@@ -164,6 +223,39 @@ function InvoiceDrawer({ id, onClose }: { id: string; onClose: () => void }) {
         </div>
       )}
     </Drawer>
+  );
+}
+
+/** Internal notes and supporting documents of an invoice (staff only, never on the customer invoice). */
+function InvoiceInternalCard({ id, internal, invalidate, editable }: {
+  id: string; internal: { notes?: string | null; attachments: R[] }; invalidate: string[]; editable: boolean;
+}) {
+  const toast = useToast();
+  const [notes, setNotes] = useState(String(internal.notes ?? ''));
+  const docs = internal.attachments.map((a) => ({ id: String(a.fileId), filename: String(a.filename) }));
+  const save = useSend<Record<string, unknown>>('PATCH', `/api/v1/billing/invoices/${id}/internal`, invalidate);
+  return (
+    <Card title="Internal" icon="lock">
+      {docs.length > 0 && (
+        <div className="oc-row-wrap" style={{ marginBottom: 12 }}>
+          {docs.map((f) => (
+            <a key={f.id} className="oc-chip" href={`/api/v1/billing/invoices/${id}/attachments/${f.id}`} target="_blank" rel="noreferrer">
+              <Icon name="description" size={16} /> {f.filename}</a>
+          ))}
+        </div>
+      )}
+      {editable ? (
+        <>
+          <TextArea label="Internal notes" value={notes} onChange={setNotes} help="Never shown to the customer" />
+          <div className="oc-row-wrap" style={{ marginTop: 8 }}>
+            <button className="oc-btn oc-btn-sm oc-btn-neutral" disabled={save.isPending || notes === String(internal.notes ?? '')}
+              onClick={() => save.mutate({ notes }, { onSuccess: () => toast('Internal notes saved') })}>Save notes</button>
+          </div>
+          <InvoiceDocuments docs={docs} onChange={(next) => save.mutate({ attachmentFileIds: next.map((f) => f.id) })} />
+          <ErrorAlert error={save.error} />
+        </>
+      ) : <p style={{ margin: 0 }}>{internal.notes ? String(internal.notes) : <span className="oc-muted">No internal notes</span>}</p>}
+    </Card>
   );
 }
 
@@ -238,7 +330,7 @@ export function CorporateBillingPage() {
   );
 }
 
-function StatementDrawer({ corp, onClose }: { corp: R; onClose: () => void }) {
+export function StatementDrawer({ corp, onClose }: { corp: R; onClose: () => void }) {
   const { can } = useAuth();
   const t = today();
   const [from, setFrom] = useState(`${t.slice(0, 8)}01`);
@@ -262,7 +354,7 @@ function StatementDrawer({ corp, onClose }: { corp: R; onClose: () => void }) {
           </div>
           <Card title="Open Invoices" icon="receipt_long">
             <DataTable rows={x.openInvoices} columns={[{ key: 'number', header: 'Invoice' }, { key: 'dueDate', header: 'Due', render: (r) => formatDate(String(r.dueDate)) },
-              { key: 'outstanding', header: 'Outstanding', align: 'right', render: (r) => money(r.outstanding) }, { key: 'status', header: 'Status', render: pill('status') }]} />
+              { key: 'outstanding', header: 'Outstanding', align: 'right', render: (r) => money(r.outstanding) }, { key: 'status', header: 'Status', render: invoiceStatus }]} />
           </Card>
           <Card title="Movements" icon="swap_vert">
             <DataTable rows={x.entries} rowKey={(r) => `${String(r.occurredAt)}-${String(r.description)}`} columns={[
@@ -300,7 +392,7 @@ export function CustomerFoliosPage() {
 function CustomerFolioDrawer({ id, onClose }: { id: string; onClose: () => void }) {
   const { can } = useAuth();
   const d = useGet<R & { byLine: R[]; folioList: R[]; invoices: R[] }>(`/api/v1/billing/customer-folios/${id}`);
-  const [modal, setModal] = useState<'' | 'merge' | 'invoice' | 'split'>('');
+  const [modal, setModal] = useState<'' | 'merge' | 'split'>('');
   const x = d.data;
   return (
     <Drawer open onClose={onClose} title={x ? `Customer Folio ${String(x.number)}` : 'Customer Folio'}>
@@ -312,7 +404,7 @@ function CustomerFolioDrawer({ id, onClose }: { id: string; onClose: () => void 
           <div className="oc-row-wrap">
             {can('billing.customer_folio.manage') && <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setModal('merge')}>Merge Folios</button>}
             {can('billing.customer_folio.split') && <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setModal('split')}>Split Bill</button>}
-            {can('billing.invoice.create') && <button className="oc-btn oc-btn-sm oc-btn-primary" onClick={() => setModal('invoice')}>Generate Invoice</button>}
+            {can('billing.invoice.create') && <Link className="oc-btn oc-btn-sm oc-btn-primary" to={invoiceWorkspaceUrl('customerFolio', id)}>Create Invoice</Link>}
           </div>
           <Card title="By Business Line" icon="category">
             <DataTable rows={x.byLine} rowKey={(r) => String(r.businessLine)} columns={[{ key: 'businessLine', header: 'Line', render: (r) => label(r.businessLine) },
@@ -324,12 +416,10 @@ function CustomerFolioDrawer({ id, onClose }: { id: string; onClose: () => void 
           </Card>
           {x.invoices.length > 0 && <Card title="Invoices" icon="request_quote">
             <DataTable rows={x.invoices} columns={[{ key: 'number', header: 'Invoice' }, { key: 'total', header: 'Total', align: 'right', render: (r) => money(r.total) },
-              { key: 'status', header: 'Status', render: pill('status') }]} onRowClick={(r) => window.location.assign(`/billing/invoices?id=${r.id}`)} />
+              { key: 'status', header: 'Status', render: invoiceStatus }]} onRowClick={(r) => window.location.assign(`/billing/invoices?id=${r.id}`)} />
           </Card>}
           {modal === 'merge' && <MergeModal id={id} onClose={() => setModal('')} />}
           {modal === 'split' && <SplitModal folios={x.folioList} onClose={() => setModal('')} />}
-          {modal === 'invoice' && <GenerateInvoice preset={{ source: 'customerFolio', ref: id }} onClose={() => setModal('')}
-            onDone={(iid) => window.location.assign(`/billing/invoices?id=${iid}`)} />}
         </div>
       )}
     </Drawer>
@@ -599,6 +689,7 @@ export function NightAuditPage() {
 /** Back Office routes of Billing & Payment P3. */
 export const BILLING_P3_ROUTES: { path: string; perm: string; element: React.ReactNode }[] = [
   { path: 'billing/invoices', perm: 'billing.invoice.view', element: <InvoicesPage /> },
+  { path: 'billing/invoices/new', perm: 'billing.invoice.create', element: <InvoiceWorkspacePage /> },
   { path: 'billing/corporate-billing', perm: 'billing.invoice.view', element: <CorporateBillingPage /> },
   { path: 'billing/customer-folios', perm: 'billing.customer_folio.view', element: <CustomerFoliosPage /> },
   { path: 'billing/payment-schedules', perm: 'billing.payment_schedule.view', element: <PaymentSchedulesPage /> },

@@ -422,6 +422,7 @@ func trialPOSDay(ctx context.Context, t *Trial, day time.Time) error {
 				t.fail("pay order at %s: %d %s", o.code, st, raw)
 			}
 		})
+		trialKitchen(t, day, at)
 	}
 	t.At(day, "22:00")
 	t.Parallel(len(trialOutlets), trialWorkers, func(oi int) {
@@ -477,5 +478,24 @@ func trialReplenishOutlets(t *Trial, day time.Time) {
 				"notes": "Replenishment to par " + day.Format("Mon 2 Jan"), "lines": lines})
 			ws.Post("/api/v1/inventory/transfers/"+tr.S("id")+":receive", J{})
 		}
+	}
+}
+
+// trialKitchen works the tickets of a sales block on the Kitchen Display
+// (EP-21): cooking starts 10 minutes after the block, the dishes are ready
+// at 20 and served at 25, so the KDS of a trial instance shows only today.
+func trialKitchen(t *Trial, day time.Time, block string) {
+	at, err := time.ParseInLocation("15:04", block, t.Loc)
+	t.check(err)
+	kds := t.As(trialOutletManager)
+	tickets := kds.Items("/api/v1/commercial/kitchen-orders")
+	for _, step := range []struct {
+		state string
+		after time.Duration
+	}{{"preparing", 10 * time.Minute}, {"ready", 20 * time.Minute}, {"served", 25 * time.Minute}} {
+		t.At(day, at.Add(step.after).Format("15:04"))
+		t.Parallel(len(tickets), trialWorkers, func(i int) {
+			kds.Post("/api/v1/commercial/kitchen-orders/"+tickets[i].S("id")+":state", J{"state": step.state})
+		})
 	}
 }

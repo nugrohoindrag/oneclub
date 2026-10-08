@@ -1450,6 +1450,27 @@ Accounting
 - Shift kasir & end-of-day / night audit
 - Corporate billing (AR ke perusahaan)
 
+### Billing Workspace (Revenue & Billing → Billing)
+
+Billing adalah **ruang kerja aksi**, bukan laporan: Invoices mengelola siklus dokumen invoice, Accounts Receivable mengelola piutang dan pembayaran.
+
+```text
+Transaksi Golf / Resort / Event / F&B → Folio → BILLING WORKSPACE
+   Pending Billing → (Prepare Billing) → Ready to Invoice → Generate → Invoice → AR → Payment → GL
+                         ↘ Exception → Resolve ↗
+```
+
+- Ringkasan per bisnis (Golf, Resort, Events & Meetings, Membership, Sport Club, F&B & Retail): Total Billable, Pending, Ready, Exceptions — kartu membuka daftar terfilter
+- Tab **Pending Billing · Ready to Invoice · Exceptions · All**; baris yang sudah ter-invoice hanya menautkan ke Invoices
+- Setiap baris menjawab *"apa aksi berikutnya"*: Review + Prepare Billing, Review + Generate Invoice, Resolve + View Details, View Invoice, dan menu ••• (folio, sumber transaksi, customer, riwayat, catatan, split, owner)
+- **Exception otomatis** (hilang sendiri setelah data diperbaiki), dengan severity: Missing Customer, Missing Billing Entity, Missing Billing Address, Missing Tax Information, Invalid Tax Configuration, Pricing Mismatch, Unresolved Folio, Duplicate Charge, Missing Supporting Document, Invalid Payment Term, Revenue Allocation Error, Approval Required. High: perbaiki data atau override Finance Manager; Medium: acknowledge dengan alasan
+- **Prepare Billing**: bill-to (customer/perusahaan), alamat, NPWP, payment term, PO/kontrak/referensi, catatan, dokumen pendukung, checklist validasi, perhitungan (gross − deposit − pembayaran − diskon + service + pajak = amount to invoice), Save Billing dan Mark Ready to Invoice
+- **Adjustment** sebelum invoice (qty, harga, diskon, service charge, pajak, alokasi revenue): baris koreksi tertaut ke charge asli, mencatat nilai lama/baru, alasan, referensi, user dan waktu; adjustment accountant menunggu approval Finance Manager
+- **Generate Invoice** satu atau batch ("10 bisa di-invoice · 2 perlu perhatian"); record dengan exception blocking tidak pernah di-invoice. Invoice mendapat nomor, diposting ke AR & GL, tertaut ke folio, tampil di Customer Portal dengan PDF dan dikirim ke customer
+- **Konsolidasi** beberapa folio satu payer menjadi satu invoice (Finance Manager) dan **Split Billing** ke pihak lain dengan folio asli tetap utuh
+- **Approval berjenjang** (kebijakan *Billing validation & approval*): Finance Manager di atas ambang, General Manager / Director di atas ambang eksekutif
+- Owner per record, catatan, export, dan riwayat lengkap dari charge sampai invoice, kirim, void, dan credit note
+
 ### GolfOne Financial Evidence Baseline
 
 Financial transaction harus mempertahankan evidence:
@@ -1755,6 +1776,26 @@ Sebelumnya out of scope, kini masuk scope.
 
 - **Caddy (mitra):** absensi, rotasi, sertifikasi, rating, pembayaran caddy fee & tip
 - **Instruktur / pelatih:** jadwal mengajar, honor per sesi atau per murid
+
+### Menu Human Resources (Back Office)
+
+Di Back Office, HRIS tampil sebagai domain **Human Resources** *(diputuskan 7 Oktober 2026)*. Setiap grup membuka halaman pertama yang boleh dibuka user; grup tanpa item yang terlihat disembunyikan.
+
+```text
+Human Resources
+├── HR Dashboard          ← headcount, kehadiran hari ini, workforce gap, antrean HR
+├── Employees             → Employees · Recruitment · Documents
+├── Organization          → Organization · Workforce Planning
+├── Time & Attendance     → Attendance · Shift & Roster · Leave & Permission · Overtime · Timesheets · Partner Clock-in
+├── Payroll               → Payroll · Tax & BPJS · Service Charge · Commissions · Caddy · Instructors
+├── Performance           → Performance Review · Training & Certification
+└── Employee Services     → Loans & Advances · Reimbursement · Benefits · Data Changes
+```
+
+- **HR Reports** ada di menu global **Reports**; **HR Configuration, Payroll Configuration, Attendance Configuration, HR Policies, Approval Workflows, HR Migration** dan **Migration Reconciliation** ada di **Settings**
+- HR Manager dan HR Admin membuka **HR Dashboard** sebagai halaman awal Back Office
+- **Employee Self Service** tetap area tersendiri untuk karyawan (profil, jadwal, clock-in, cuti, lembur, slip gaji, pinjaman, reimbursement, benefit, timesheet, open shift, approval tim)
+- Transaksi keuangan HR (payroll, pinjaman, reimbursement) diposting ke Accounting; Finance yang membayar
 
 **Keputusan terbuka:** HRIS penuh sampai payroll, atau operasional saja (absensi, shift, caddy, instruktur, service charge) dengan payroll memakai software lokal (contoh: Talenta, Gadjian).
 
@@ -2243,6 +2284,7 @@ Digunakan oleh management dan back-office.
 
 ```text
 Dashboard
+├── Approvals                ← approval lintas domain
 ├── Golf
 ├── Sport Club
 ├── Membership
@@ -2255,10 +2297,13 @@ Dashboard
 ├── Inventory
 ├── Procurement
 ├── Accounting
-├── HRIS
+├── Human Resources          ← domain HR (§39)
+├── Employee Self Service    ← area karyawan
 ├── Reports
 └── Settings
 ```
+
+Menu difilter per enabled module dan permission: user hanya melihat domain yang boleh dibukanya (contoh: HR Manager melihat Dashboard, Approvals, Human Resources, Employee Self Service, Reports dan Settings).
 
 ## Member / Guest Portal
 

@@ -183,7 +183,7 @@ func (m *Module) recordEvent(ctx context.Context, tx pgx.Tx, ev Ev, out outcome,
 	if m.Events != nil {
 		p := ev.Property
 		if _, err := m.Events.Publish(ctx, tx, EventPostingException, "accounting.posting_exception", &eid, &p, map[string]any{"exceptionId": eid,
-			"eventId": ev.ID, "eventType": ev.Type, "reason": reason, "message": msg, "amount": amount.String()}); err != nil {
+			"eventId": ev.ID, "eventType": ev.Type, "reason": reason, "message": msg, "amount": amount.String(), "journalId": jid}); err != nil {
 			return err
 		}
 	}

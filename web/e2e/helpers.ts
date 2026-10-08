@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 import { TOTP } from 'otpauth';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -125,4 +125,17 @@ export function playDay(min: number) {
   d.setDate(d.getDate() + min);
   while (d.getDay() === 0 || d.getDay() === 6) d.setDate(d.getDate() + 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Opens the cashier shift of the outlet in POS Settings (opening cash 500,000); payments need one. */
+export async function openPosShift(page: Page) {
+  await page.getByRole('link', { name: 'Settings' }).click();
+  await page.getByRole('button', { name: 'Open Shift' }).click();
+  await expect(page.getByRole('heading', { name: /^Cashier shift \S/ })).toBeVisible();
+}
+
+/** Runs an action of a table row: the actions sit in the row's ⋮ menu (dashboard kit). */
+export async function rowAction(row: Locator, name: string) {
+  await row.getByRole('button', { name: 'Row actions' }).click();
+  await row.page().getByRole('menu').getByRole('button', { name, exact: true }).click();
 }

@@ -241,6 +241,94 @@ export function OpsCheckInPage() {
   );
 }
 
+// ── Check-out (FR-CHK-05): settle the day's charges, lockers, bags ─────────
+
+export function OpsCheckOutPage() {
+  const date = today();
+  const toast = useToast();
+  const desk = useGet<Page<R>>(`/api/v1/golf/check-outs${qs({ date })}`, { refetchInterval: 30000 });
+  const [q, setQ] = useState('');
+  const [open, setOpen] = useState<R | null>(null);
+  const [done, setDone] = useState(false);
+  const names = (v: unknown) => ((v as string[] | undefined) ?? []);
+  const rows = (desk.data?.items ?? []).filter((b) => Boolean(b.checkedOutAt) === done &&
+    (!q || `${String(b.code)} ${String(b.contactName)} ${names(b.players).join(' ')} ${names(b.bags).join(' ')}`.toLowerCase().includes(q.toLowerCase())));
+  const list = (v: unknown) => names(v).join(', ') || '—';
+  return (
+    <div className="oc-stack">
+      <Head title="Check-out" help="Settle what the day added (caddy tip, on-course F&B, golf cart, locker), then release the lockers and hand back the bags." />
+      <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+        <TextField label="Search name, booking or bag tag" value={q} onChange={setQ} />
+        <Btn label="To check out" kind={done ? 'neutral' : 'ink'} onClick={() => setDone(false)} />
+        <Btn label="Checked out" kind={done ? 'ink' : 'neutral'} onClick={() => setDone(true)} />
+      </div>
+      <ErrorAlert error={desk.error} />
+      <DataTable rows={rows} loading={desk.isLoading} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'code', header: 'Booking' },
+        { key: 'players', header: 'Players', render: (b) => list(b.players) },
+        { key: 'inPlay', header: 'Round', render: (b) => <StatusPill status={Number(b.inPlay) > 0 ? 'in-play' : String(b.status).replace(/_/g, '-')} /> },
+        { key: 'lockers', header: 'Lockers', render: (b) => list(b.lockers) }, { key: 'bags', header: 'Bags', render: (b) => list(b.bags) },
+        { key: 'balance', header: 'Balance', align: 'right', render: (b) => <strong>{money(b.balance)}</strong> }]}
+        actions={(b) => !b.checkedOutAt && <Btn label="Check-out" kind="primary" disabled={Number(b.inPlay) > 0} onClick={() => setOpen(b)} />} />
+      {open && <CheckOutModal entry={open} onClose={() => setOpen(null)} onDone={(code) => { setOpen(null); toast(`${code} checked out`); void desk.refetch(); }} />}
+    </div>
+  );
+}
+
+const SETTLE = [['cash', 'Cash'], ['card', 'Card (EDC)'], ['qris', 'QRIS'], ['bank_transfer', 'Bank transfer']];
+
+function CheckOutModal({ entry, onClose, onDone }: { entry: R; onClose: () => void; onDone: (code: string) => void }) {
+  const b = useGet<R & { folio?: R; flights?: R[] }>(`/api/v1/golf/bookings/${String(entry.bookingId)}`);
+  const due = Number(b.data?.folio?.balance ?? entry.balance ?? 0);
+  const [method, setMethod] = useState(entry.memberAccount ? 'member_account' : 'cash');
+  const [ref, setRef] = useState('');
+  const out = useSend<Record<string, unknown>>('POST', `/api/v1/golf/bookings/${String(entry.bookingId)}:check-out`, ['/api/v1/golf', '/api/v1/billing']);
+  const methods = [...(entry.memberAccount ? [['member_account', 'Member account']] : []), ...SETTLE];
+  const count = (v: unknown) => ((v as string[] | undefined) ?? []).length;
+  return (
+    <Modal open onClose={onClose} title={`Check-out ${String(entry.code)}`} actions={<><Btn label="Cancel" onClick={onClose} />
+      <Btn label={due > 0 ? `Settle ${money(due)} & check out` : 'Check out'} kind="primary" disabled={out.isPending || !b.data}
+        onClick={() => out.mutate({ methodType: due > 0 ? method : undefined, reference: ref || undefined }, { onSuccess: () => onDone(String(entry.code)) })} /></>}>
+      <div className="oc-stack">
+        <p style={{ margin: 0 }}>{((entry.players as string[] | undefined) ?? []).join(', ')}</p>
+        {(b.data?.flights ?? []).map((f) => <CaddyTips key={String(f.id)} flightId={String(f.id)} onTip={() => void b.refetch()} />)}
+        <p style={{ margin: 0 }}>Charges {money(b.data?.folio?.charges)} · paid {money(b.data?.folio?.payments)} · balance <strong>{money(b.data?.folio?.balance)}</strong></p>
+        {due > 0 && (
+          <div className="oc-row-wrap">
+            <SelectField label="Settle by" value={method} onChange={setMethod} options={methods.map(([value, label]) => ({ value, label }))} />
+            {method !== 'cash' && method !== 'member_account' && <TextField label="Reference" value={ref} onChange={setRef} />}
+          </div>
+        )}
+        <p className="oc-small oc-muted" style={{ margin: 0 }}>
+          Releases {count(entry.lockers)} locker(s) and hands back {count(entry.bags)} bag(s); the folio is closed.
+        </p>
+        <ErrorAlert error={out.error} />
+      </div>
+    </Modal>
+  );
+}
+
+/** Caddy return: a non-cash tip goes on the booking folio (FR-CAD-08). */
+function CaddyTips({ flightId, onTip }: { flightId: string; onTip: () => void }) {
+  const list = useGet<Page<R>>(`/api/v1/golf/caddy-assignments${qs({ flightId })}`);
+  const tip = useSend<Record<string, unknown>>('POST', '/api/v1/golf/caddy-tips', ['/api/v1/golf']);
+  const [amount, setAmount] = useState<Record<string, string>>({});
+  const caddies = (list.data?.items ?? []).filter((a) => a.status !== 'cancelled' && a.status !== 'replaced');
+  if (caddies.length === 0) return null;
+  return (
+    <div className="oc-stack">
+      {caddies.map((a) => (
+        <div key={a.id} className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+          <span style={{ minWidth: 160 }}><strong>{String(a.caddyName)}</strong><br /><span className="oc-small oc-muted">tips {money(a.tips)}</span></span>
+          <TextField label="Tip (non-cash)" value={amount[a.id] ?? ''} onChange={(v) => setAmount({ ...amount, [a.id]: v.replace(/\D/g, '') })} />
+          <Btn label="Add tip" disabled={!amount[a.id] || tip.isPending}
+            onClick={() => tip.mutate({ assignmentId: a.id, amount: amount[a.id], method: 'non_cash' }, { onSuccess: () => { setAmount({ ...amount, [a.id]: '' }); onTip(); } })} />
+        </div>
+      ))}
+      <ErrorAlert error={tip.error} />
+    </div>
+  );
+}
+
 // ── Caddy Master (EP-09) ───────────────────────────────────────────────────
 
 export function CaddyQueuePage() {
@@ -438,16 +526,18 @@ export function LockersPage() {
   const players = useGet<Page<R>>(`/api/v1/golf/players?date=${date}&limit=500`);
   const assign = useSend<Record<string, unknown>>('POST', '/api/v1/golf/locker-assignments', ['/api/v1/golf']);
   const release = useSend<{ id: string }>('POST', (v) => `/api/v1/golf/locker-assignments/${v.id}:release`, ['/api/v1/golf']);
-  const [v, setV] = useState({ lockerId: '', bookingPlayerId: '' });
+  const [v, setV] = useState({ lockerId: '', bookingPlayerId: '', fee: '' });
   return (
     <div className="oc-stack">
-      <Head title="Locker Assignment" />
+      <Head title="Locker Assignment" help="Daily lockers stay in use until the player checks out; a fee goes on the booking bill." />
       <div className="oc-row-wrap">
         <SelectField label="Locker" value={v.lockerId} onChange={(x) => setV({ ...v, lockerId: x })}
           options={(lockers.data?.items ?? []).filter((l) => l.lockerStatus === 'available').map((l) => ({ value: l.id, label: `${String(l.code)} (${String(l.area)})` }))} />
         <SelectField label="Player" value={v.bookingPlayerId} onChange={(x) => setV({ ...v, bookingPlayerId: x })}
           options={(players.data?.items ?? []).map((p) => ({ value: p.id, label: `${String(p.name)} (${String(p.bookingCode)})` }))} />
-        <Btn label="Assign" kind="ink" disabled={!v.lockerId || !v.bookingPlayerId} onClick={() => assign.mutate({ ...v, assignmentType: 'daily' }, { onSuccess: () => setV({ lockerId: '', bookingPlayerId: '' }) })} />
+        <TextField label="Fee (optional)" value={v.fee} onChange={(x) => setV({ ...v, fee: x.replace(/\D/g, '') })} />
+        <Btn label="Assign" kind="ink" disabled={!v.lockerId || !v.bookingPlayerId}
+          onClick={() => assign.mutate({ ...v, fee: v.fee || undefined, assignmentType: 'daily' }, { onSuccess: () => setV({ lockerId: '', bookingPlayerId: '', fee: '' }) })} />
       </div>
       <ErrorAlert error={assign.error ?? release.error} />
       <DataTable rows={assigned.data?.items} loading={assigned.isLoading} columns={[{ key: 'lockerCode', header: 'Locker' }, { key: 'holderName', header: 'Holder' },

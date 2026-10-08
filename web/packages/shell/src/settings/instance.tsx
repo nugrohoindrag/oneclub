@@ -398,7 +398,9 @@ export function CustomDomainPage() {
         <button className="oc-btn oc-btn-ink" onClick={() => add.mutate({ surface, hostname: host }, { onSuccess: () => { setOpen(false); setHost(''); saved(); } })}>Add</button></>}>
         <div className="oc-form">
           <SelectField label="Application" value={surface} onChange={setSurface} options={[
-            { value: 'web', label: 'Website' }, { value: 'member', label: 'Member Portal' }, { value: 'staff', label: 'Staff App' }, { value: 'api', label: 'API' }]} />
+            { value: 'web', label: 'Website' }, { value: 'member', label: 'Member Portal' }, { value: 'dashboard', label: 'Staff App · Dashboard' },
+            { value: 'cashier', label: 'Staff App · Cashier' }, { value: 'caddy', label: 'Staff App · Caddy Tablet' },
+            { value: 'kitchen', label: 'Staff App · Kitchen Display' }, { value: 'presence', label: 'Staff App · Attendance Form' }, { value: 'api', label: 'API' }]} />
           <TextField label="Hostname" value={host} onChange={setHost} placeholder="booking.club.com" error={fieldErrors(add.error).hostname} />
         </div>
       </Modal>

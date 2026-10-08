@@ -5,13 +5,14 @@ import type { Shell } from './context';
 export type AreaCode = 'management' | 'backoffice' | 'platform' | 'screen' | 'tablet' | 'kitchen' | 'ops';
 
 /**
- * Domain the Staff App is served on (Technical Doc §6.1): one build, four
+ * Domain the Staff App is served on (Technical Doc §6.1): one build, five
  * domains. The surface locks the areas that open and the way to log in;
- * permissions still decide what opens inside.
+ * permissions still decide what opens inside. The presence domain has no
+ * area: it serves only the Attendance Form (clock in / out with GPS).
  */
-export type Surface = 'dashboard' | 'cashier' | 'caddy' | 'kitchen';
+export type Surface = 'dashboard' | 'cashier' | 'caddy' | 'kitchen' | 'presence';
 
-export const SURFACES: readonly Surface[] = ['dashboard', 'cashier', 'caddy', 'kitchen'];
+export const SURFACES: readonly Surface[] = ['dashboard', 'cashier', 'caddy', 'kitchen', 'presence'];
 
 /** One area of the Staff App (Technical Doc §6.1). */
 export interface Area {
@@ -37,7 +38,7 @@ export interface Area {
  * holding every permission never lands on a device area.
  */
 export const AREAS: readonly Area[] = [
-  { code: 'management', label: 'Management Dashboard', icon: 'insights', path: '/management', shell: 'management', permission: 'reporting.dashboard.view', surface: 'dashboard', layout: 'top', offline: false },
+  { code: 'management', label: 'Management Dashboard', icon: 'insights', path: '/management', shell: 'management', permission: 'reporting.dashboard.view', surface: 'dashboard', layout: 'sidebar', offline: false },
   { code: 'backoffice', label: 'Back Office', icon: 'dashboard', path: '/', shell: 'backoffice', permission: 'platform.backoffice.access', surface: 'dashboard', layout: 'sidebar', offline: false },
   { code: 'platform', label: 'Platform Administration', icon: 'admin_panel_settings', path: '/platform', shell: 'platform-admin', permission: 'platform.platform_admin.access', surface: 'dashboard', layout: 'sidebar', offline: false },
   { code: 'screen', label: 'Clubhouse Screen', icon: 'tv', path: '/screen', shell: 'screen', permission: 'platform.screen.access', surface: 'dashboard', layout: 'fullscreen', offline: false },

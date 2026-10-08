@@ -1,7 +1,5 @@
 /**
- * Morphic Design System — Templates (§3.15)
- *
- * Screen-level compositions built from Patterns. Templates use only generic
- * business entities (§4); they are adaptable to multiple industries (§16).
+ * OneClub Design System — templates: screens composed from the components.
+ * DashboardOverview reproduces the dashboard reference (docs/product/dashboard-ui.webp).
  */
-export * from './ExecutiveDashboard.js';
+export * from './DashboardOverview.js';

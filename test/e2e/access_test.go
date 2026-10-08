@@ -10,41 +10,43 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/pquerna/otp/totp"
 
 	"oneclub/internal/app"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/route"
 )
 
-// EP-03 AC: a role that requires MFA is forced to set up MFA before anything else.
-func TestMFAEnforcedForAdminRoles(t *testing.T) {
-	c := anon(t, inst)
-	r := c.Must(200, "POST", "/api/v1/auth/login", map[string]any{"email": "property.admin@demo.oneclub.id", "password": demoPassword}).JSON()
-	if r["mfaRequired"] != true {
-		t.Fatalf("property admin must require MFA: %v", r)
+// No role requires an authenticator (removed from the role catalogue at the
+// club's request, deviating from FR-IAM-03); a user may still turn MFA on for
+// their own account, and is then asked for the code at every login.
+func TestMFAOptional(t *testing.T) {
+	for _, email := range []string{"property.admin@demo.oneclub.id", "finance@demo.oneclub.id", "gm@demo.oneclub.id"} {
+		if r := anon(t, inst).Must(200, "POST", "/api/v1/auth/login", map[string]any{"email": email, "password": demoPassword}).JSON(); r["mfaRequired"] != false {
+			t.Fatalf("%s should log in without MFA: %v", email, r)
+		}
 	}
-	// Before MFA: only MFA endpoints are reachable.
-	if got := c.Do("GET", "/api/v1/platform/venues", nil); got.Status != 403 || !strings.Contains(string(got.Body), "mfa_required") {
+	// Opt-in: enrolment with a wrong code is rejected (and audited), the right one enables MFA.
+	email := "property.admin2@demo.oneclub.id"
+	c := login(t, inst, email, demoPassword)
+	sec := c.Must(200, "POST", "/api/v1/auth/mfa/setup", nil).JSON()["secret"].(string)
+	secrets[inst.Code+"/"+email] = sec
+	c.Must(422, "POST", "/api/v1/auth/mfa/verify", map[string]any{"code": "000000"})
+	code, err := totp.GenerateCode(sec, time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.Must(204, "POST", "/api/v1/auth/mfa/verify", map[string]any{"code": code})
+	// The next login asks for the code before anything else.
+	next := anon(t, inst)
+	if r := next.Must(200, "POST", "/api/v1/auth/login", map[string]any{"email": email, "password": demoPassword}).JSON(); r["mfaRequired"] != true || r["mfaEnrolled"] != true {
+		t.Fatalf("opted-in user must be asked for MFA: %v", r)
+	}
+	if got := next.Do("GET", "/api/v1/platform/venues", nil); got.Status != 403 || !strings.Contains(string(got.Body), "mfa_required") {
 		t.Fatalf("expected mfa_required, got %s", got)
 	}
-	me := c.Must(200, "GET", "/api/v1/auth/me", nil).JSON()
-	if me["mfaPending"] != true || len(me["shells"].([]any)) != 0 {
-		t.Fatalf("me before MFA: %v", me)
-	}
-	// Wrong code is rejected and audited.
-	c.Must(200, "POST", "/api/v1/auth/mfa/setup", nil)
-	c.Must(422, "POST", "/api/v1/auth/mfa/verify", map[string]any{"code": "000000"})
-	// Full login with enrolment works and unlocks the API.
-	pa := login(t, inst, "property.admin@demo.oneclub.id", demoPassword)
-	pa.Must(200, "GET", "/api/v1/platform/venues", nil)
-	// Second login asks for the existing TOTP (no re-enrolment).
-	again := login(t, inst, "property.admin@demo.oneclub.id", demoPassword)
-	if m := again.Must(200, "GET", "/api/v1/auth/me", nil).JSON(); m["mfaEnabled"] != true || m["mfaPending"] != false {
+	if m := login(t, inst, email, demoPassword).Must(200, "GET", "/api/v1/auth/me", nil).JSON(); m["mfaEnabled"] != true || m["mfaPending"] != false {
 		t.Fatalf("me after MFA: %v", m)
-	}
-	// Roles without MFA requirement log in directly.
-	if r := anon(t, inst).Must(200, "POST", "/api/v1/auth/login", map[string]any{"email": "gm@demo.oneclub.id", "password": demoPassword}).JSON(); r["mfaRequired"] != false {
-		t.Fatalf("general manager should not require MFA: %v", r)
 	}
 }
 

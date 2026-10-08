@@ -15,3 +15,6 @@ export function useLive(path: string, topics: string[], onEvent: () => void) {
     return () => es.close();
   }, [path, key, propertyId, onEvent]);
 }
+
+/** P1's golf stream carries every golf.* topic, P2's included. */
+export const GOLF_STREAM = '/api/v1/golf/tee-sheet/stream';

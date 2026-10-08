@@ -396,7 +396,7 @@ func Contribution() catalog.Contribution {
 	add("range", "view", "operate")
 	add("reciprocal_visit", "view", "verify")
 	add("introduction_letter", "view", "request", "issue")
-	add("pace", "view")
+	add("pace", "view", "manage")
 	add("round", "view", "operate")
 	add("tablet", "use")
 	view := []string{"golf.caddy_level.view", "golf.range_bay.view", "golf.reciprocal_club.view", "golf.hall_of_fame.view", "golf.caddy_promotion.view",
@@ -413,7 +413,8 @@ func Contribution() catalog.Contribution {
 		"golf.caddy_promotion.request", "golf.caddy_incident.create", "golf.caddy_incident.manage", "golf.caddy_settlement.manage",
 		"golf.cart_inspection.create", "golf.cart_maintenance.manage", "golf.cart_incident.create", "golf.cart_incident.manage", "golf.scorecard.enter",
 		"golf.scorecard.finalize", "golf.scorecard.correct", "golf.scorecard.view_all", "golf.handicap.manage", "golf.hio.manage", "golf.hio.claim",
-		"golf.range.operate", "golf.reciprocal_visit.verify", "golf.introduction_letter.request", "golf.introduction_letter.issue", "golf.round.operate")
+		"golf.range.operate", "golf.reciprocal_visit.verify", "golf.introduction_letter.request", "golf.introduction_letter.issue", "golf.round.operate",
+		"golf.pace.manage")
 	return catalog.Contribution{
 		Permissions: perms,
 		RolePermissions: map[string][]string{
@@ -422,11 +423,11 @@ func Contribution() catalog.Contribution {
 			"golf_admin": with(view, "golf.range_bay.create", "golf.range_bay.update", "golf.reciprocal_club.create", "golf.reciprocal_club.update",
 				"golf.hall_of_fame.create", "golf.hall_of_fame.update", "golf.hall_of_fame.publish", "golf.scorecard.enter", "golf.scorecard.finalize",
 				"golf.scorecard.view_all", "golf.reciprocal_visit.verify", "golf.introduction_letter.request", "golf.introduction_letter.issue", "golf.hio.manage"),
-			"starter_marshal": with(view, "golf.scorecard.enter", "golf.round.operate"),
+			"starter_marshal": with(view, "golf.scorecard.enter", "golf.round.operate", "golf.pace.manage"),
 			"caddy_manager": with(view, "golf.caddy_promotion.request", "golf.caddy_incident.create", "golf.caddy_incident.manage",
 				"golf.caddy_settlement.manage"),
 			"caddy": {"golf.tablet.use", "golf.caddy_assignment.accept", "golf.round.view", "golf.round.operate", "golf.scorecard.view", "golf.scorecard.enter", "golf.caddy_incident.create",
-				"golf.cart_incident.create", "golf.pace.view"},
+				"golf.cart_incident.create", "golf.pace.view", "golf.course.view"}, // course.view: the hole map and Cart View of the tablet
 			"golf_staff": {"golf.cart_inspection.view", "golf.cart_inspection.create", "golf.cart_maintenance.view", "golf.cart_maintenance.manage",
 				"golf.cart_incident.view", "golf.cart_incident.create"},
 			"driving_range_staff": {"golf.range_bay.view", "golf.range.view", "golf.range.operate", "golf.range_bay.update"},

@@ -251,6 +251,13 @@ whose `eventId` matches). Billing folios of source `tournament` have `sourceId` 
 | `billing.payment_schedule_due` | `{ scheduleId, lineId, label, dueDate, amount, outstanding }` |
 | `billing.business_day_closed` | `DailyRevenue`: `{ businessDate, status, frozen, revenue: [{ businessLine, revenueComponent, liability, net, service, tax, total }], charges, net, service, tax, payments: [{ methodType, purpose, count, amount }], paymentTotal, refunds, shiftTotal, liabilities: { name: amount }, invoicesIssued, invoiceTotal, generatedAt }` |
 
+Manual invoices (Revenue & Billing, permission `billing.invoice.manual`, `billing/invoice_manual.go`) post their lines to a folio of
+their own (`source_type = manual_invoice`, business line and revenue component per line, Tax & Service rules of Commercial
+through `billing.TaxEngine`) and are invoiced from it like any folio invoice: K2 is unchanged, the revenue is posted from the folio
+lines of the business day and voiding the invoice voids those lines. Additive invoice fields: `source`, `sourceType`, `sourceRef`,
+`customerPo`, `contractRef`, `billingRef`, line `unit` and `discountAmount`; internal notes and supporting documents are staff-only
+(`internal`, never on member or public routes).
+
 Night audit actions (FR-EOD-03, §9.5): `billing.Service.RegisterNightAuditAction` plugs automatic, idempotent steps into the night
 audit; they run once the checks found no blocking exception, their findings (`severity = info`) are stored with the run and the
 checks run again before the day is frozen. `stay` posts the bungalow room charge of the night for in-house stays booked under Stay

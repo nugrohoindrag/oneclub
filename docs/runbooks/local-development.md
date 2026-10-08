@@ -83,6 +83,15 @@ the way Caddy does in production. Each domain keeps its own session, device regi
 device domain a shared device is registered once at `/login/device` with the token printed by `make seed-demo`;
 afterwards `/login` asks for e-mail + PIN.
 
+**POS Cashier** (`/ops/pos` on `cashier`): a full-screen app — Table View (floor plan with Available / Booked / Billed /
+Occupied), menu with photos and Current Order, Payment Method, Payment Confirm, Order History and Settings (outlet, shift,
+table reservations). Occupied tables show the kitchen state (KDS) and can be moved or joined (Move Table). Offline the POS keeps
+working on the last data it saw: new orders, items and cash / QRIS / card payments go to the sync queue and show as local orders
+(dashed tables, "Offline" lines) until the queue is sent. The floor plan of each outlet is laid out in Back Office → Commercial → Floor Plan; product photos are
+uploaded on the product form. `seed-demo --trial` adds the floor plans, the product photos (`internal/app/trialphotos`,
+open licenses in CREDITS.md) and a Clubhouse Restaurant in service today; on a completed trial dataset it runs only the
+steps of seeders added since.
+
 ## 4. Demo accounts (seed-demo)
 
 | E-mail | Role | Staff App areas | Notes |
@@ -92,6 +101,7 @@ afterwards `/login` asks for e-mail + PIN.
 | property.admin2@demo.oneclub.id | Property Admin (MDR) | as above | sees only MDR |
 | finance@demo.oneclub.id | Finance Manager | Management, Back Office | MFA, approves step 2 |
 | starter@demo.oneclub.id / cashier@… | Staff | Operational on `cashier` (device + PIN 246810) | |
+| caddy@demo.oneclub.id | Caddy (C001 Siti) | Caddy Tablet on `caddy` (device + PIN 246810) | My Assignments shows C001's assigned / in-play flights |
 | member@demo.oneclub.id | Member | — (Member App) | |
 
 Password for all: `Demo#Club2026`.

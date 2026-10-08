@@ -118,6 +118,9 @@ func (b *s3Blob) Get(ctx context.Context, key string) (io.ReadCloser, error) {
 type Files struct {
 	DB   *dbtx.DB
 	Blob Blob
+	// CanUploadImage tells whether the caller may upload a photo for a
+	// master data resource (key, e.g. commercial.product); wired by internal/app.
+	CanUploadImage func(ctx context.Context, resource string) bool
 }
 
 // File is a stored file record.
@@ -168,6 +171,23 @@ var allowedBranding = map[string]bool{"image/png": true, "image/jpeg": true, "im
 
 // upload accepts branding images (logo, favicon, login photo).
 func (f *Files) upload(w http.ResponseWriter, r *http.Request) {
+	f.saveImage(w, r, "branding", allowedBranding, "PNG, JPEG, WebP, SVG or ICO only")
+}
+
+var allowedPhotos = map[string]bool{"image/png": true, "image/jpeg": true, "image/webp": true}
+
+// uploadImage accepts a photo of a master data record (e.g. the product
+// photo on the POS menu) from a user who may create or edit that resource.
+func (f *Files) uploadImage(w http.ResponseWriter, r *http.Request) {
+	if f.CanUploadImage == nil || !f.CanUploadImage(r.Context(), r.URL.Query().Get("resource")) {
+		httpx.WriteError(w, r, errs.Forbidden("you may not change the photos of this resource"))
+		return
+	}
+	f.saveImage(w, r, "attachment", allowedPhotos, "PNG, JPEG or WebP only")
+}
+
+// saveImage stores one public image (multipart field "file", up to 5 MB).
+func (f *Files) saveImage(w http.ResponseWriter, r *http.Request, purpose string, allowed map[string]bool, allowedMsg string) {
 	r.Body = http.MaxBytesReader(w, r.Body, 5<<20+64<<10) // file + multipart envelope
 	if err := r.ParseMultipartForm(5 << 20); err != nil { //nolint:gosec // G120: body capped by MaxBytesReader above
 		httpx.WriteError(w, r, errs.BadRequest("invalid_upload", "upload must be multipart/form-data up to 5 MB"))
@@ -185,8 +205,8 @@ func (f *Files) upload(w http.ResponseWriter, r *http.Request) {
 	if strings.HasSuffix(strings.ToLower(hdr.Filename), ".svg") {
 		ctype = "image/svg+xml"
 	}
-	if !allowedBranding[ctype] {
-		httpx.WriteError(w, r, errs.Validation("file_type", "unsupported file type", errs.Field("file", "type", "PNG, JPEG, WebP, SVG or ICO only")))
+	if !allowed[ctype] {
+		httpx.WriteError(w, r, errs.Validation("file_type", "unsupported file type", errs.Field("file", "type", allowedMsg)))
 		return
 	}
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
@@ -197,7 +217,7 @@ func (f *Files) upload(w http.ResponseWriter, r *http.Request) {
 	var out File
 	err = f.DB.WithTx(ctx, func(tx pgx.Tx) error {
 		var err error
-		out, err = f.Save(ctx, tx, hdr.Filename, ctype, "branding", true, file, hdr.Size)
+		out, err = f.Save(ctx, tx, hdr.Filename, ctype, purpose, true, file, hdr.Size)
 		if err != nil {
 			return err
 		}
@@ -265,4 +285,7 @@ func (f *Files) Register(reg *route.Registry) {
 		Summary: "Upload a branding image (multipart: file)", Permission: "platform.branding.update", Response: File{}, Handler: f.upload})
 	reg.Add(route.Route{Method: http.MethodGet, Path: "/api/v1/files/{id}", Module: "platform", Tag: "Branding",
 		Summary: "Download a file (public branding files need no session)", Auth: route.AuthPublic, RawContent: "application/octet-stream", Handler: f.download})
+	reg.Add(route.Route{Method: http.MethodPost, Path: "/api/v1/platform/images", Module: "platform", Tag: "Master Data",
+		Summary: "Upload a photo of a master data record (multipart: file); allowed to whoever may create or edit the resource", Response: File{},
+		Query: []route.Param{{Name: "resource", Required: true, Description: "Resource key, e.g. commercial.product"}}, Handler: f.uploadImage})
 }

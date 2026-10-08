@@ -14,7 +14,8 @@ import { cacheableApiPattern } from './src/sw-cache';
 // last bootstrap, session and the data those areas read, so they open without
 // a connection; actions go to the IndexedDB sync queue (@oneclub/offline).
 
-const OFFLINE_AREAS = new RegExp(`[\\\\/]src[\\\\/]areas[\\\\/](${AREAS.filter((a) => a.offline).map((a) => a.code).join('|')})\\.tsx$`);
+// The POS Cashier (src/pos, loaded by the Operational area when opened) works offline too.
+const OFFLINE_AREAS = new RegExp(`[\\\\/]src[\\\\/](areas[\\\\/](${AREAS.filter((a) => a.offline).map((a) => a.code).join('|')})|pos[\\\\/]index)\\.tsx$`);
 
 /** Collects the files of the app shell and the offline areas, with their static imports and CSS. */
 function offlineAreaFiles(): Plugin & { files: Set<string> } {
@@ -53,9 +54,9 @@ const MANIFEST = {
   orientation: 'any' as const,
   background_color: '#F1F3F5',
   theme_color: '#254E09',
-  icons: [{ src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
+  icons: [{ src: '/favicon.png', sizes: '120x108', type: 'image/png', purpose: 'any' }],
 };
-const SURFACE_NAMES: Record<Surface, string> = { dashboard: 'OneClub', cashier: 'Cashier', caddy: 'Caddy', kitchen: 'Kitchen' };
+const SURFACE_NAMES: Record<Surface, string> = { dashboard: 'OneClub', cashier: 'Cashier', caddy: 'Caddy', kitchen: 'Kitchen', presence: 'Presence' };
 
 /**
  * Emits manifest-<surface>.webmanifest. In development and preview it also
@@ -66,7 +67,7 @@ const SURFACE_NAMES: Record<Surface, string> = { dashboard: 'OneClub', cashier: 
 function surfaces(): Plugin {
   const serve = (server: ViteDevServer | PreviewServer) => {
     server.middlewares.use((req, res, next) => {
-      const m = /^(dashboard|cashier|caddy|kitchen)\.localhost(:\d+)?$/.exec(req.headers.host ?? '');
+      const m = /^(dashboard|cashier|caddy|kitchen|presence)\.localhost(:\d+)?$/.exec(req.headers.host ?? '');
       if (!m) return next();
       const surface = m[1] as Surface;
       if (req.url === '/surface.json') {

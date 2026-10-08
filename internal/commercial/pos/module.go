@@ -44,6 +44,7 @@ var (
 		{Name: "comboItems", Column: "combo_items", Label: "Combo / Package Items", Kind: resource.JSONList, Default: "[]"},
 		{Name: "revenueComponent", Column: "revenue_component", Label: "Revenue Component (default: outlet)", Kind: resource.Enum, Enum: billing.RevenueComponents},
 		{Name: "voucherTypeId", Column: "voucher_type_id", Label: "Sells Voucher Type", Kind: resource.UUID, Ref: &resource.Ref{Table: "commercial.voucher_types", SameProperty: true, Label: "voucher type"}},
+		{Name: "imageUrl", Column: "image_url", Label: "Photo", Kind: resource.Image, Max: 500},
 	}
 	outletFields = []resource.Field{
 		{Name: "taxCodes", Column: "tax_codes", Label: "Tax & Service Codes (empty = all)", Kind: resource.StringList, Upper: true, Default: []string{}},
@@ -78,6 +79,7 @@ func insertBeforeStatus(fields, extra []resource.Field) []resource.Field {
 func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.registerMe(reg)
 	m.registerPOS(reg, eng)
+	m.registerTables(reg, eng)  // Table View: floor plan, reservations, table state
 	m.registerPromotions(reg)   // PRD P3 FR-OPS-P3-03
 	m.registerTierDiscount(reg) // PRD P5 tier F&B discount (offline benefit cache)
 }
@@ -130,7 +132,7 @@ var Menus = &resource.Def{
 func Contribution() catalog.Contribution {
 	// Tax & service, products, outlets and pricing permissions are P1's
 	// (commercial.Contribution); P2 adds roles to them only.
-	perms := resource.Permissions(voucher.VoucherTypes)
+	perms := resource.Permissions(voucher.VoucherTypes, DiningTables, TableReservations)
 	perms = append(perms, catalog.P("commercial", "order", "view", "create", "pay", "void", "refund")...)
 	perms = append(perms, catalog.P("commercial", "pos", "discount", "discount_override")...)
 	perms = append(perms, catalog.P("commercial", "shift", "view", "manage")...)
@@ -173,6 +175,14 @@ func Contribution() catalog.Contribution {
 	}
 	for _, role := range []string{"general_manager", "finance_manager", "accountant", "club_manager"} {
 		rp[role] = append(rp[role], "commercial.order.view", "commercial.shift.view")
+	}
+	// Table View: managers lay out the floor plan; the floor staff take table reservations
+	for _, role := range []string{"property_admin", "outlet_manager"} {
+		rp[role] = append(rp[role], resource.AllActions(DiningTables, TableReservations)...)
+	}
+	for _, role := range []string{"cashier", "pos_staff", "front_desk", "reservation_staff"} {
+		rp[role] = append(rp[role], "commercial.dining_table.view", "commercial.table_reservation.view", "commercial.table_reservation.create",
+			"commercial.table_reservation.update")
 	}
 	rp["marketing_staff"] = append(rp["marketing_staff"], "commercial.voucher.issue")
 	rp["crm_admin"] = append(rp["crm_admin"], "commercial.voucher.issue")

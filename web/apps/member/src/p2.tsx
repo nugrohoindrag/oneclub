@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { qs, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
+import { useQueryClient } from '@tanstack/react-query';
+import { uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, Modal, PageHeader, QRCode, SelectField, Skeleton, StatusPill, TextArea, TextField, useToast,
 } from '@oneclub/shell';
+import { PaymentPanel } from './journey/pay';
+import { MyCourseHandicap } from './journey/course';
 
 type Row = Record<string, unknown>;
 const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : `Rp ${formatNumber(Number(v))}`);
@@ -58,20 +61,13 @@ export function MembershipServicesPage() {
   );
 }
 
+/** Online payment of a fee, invoice, event or package (journey PaymentPanel, sandbox gateway included). */
 export function CheckoutModal({ checkout, onClose }: { checkout: Schemas['Payment'] | null; onClose: () => void }) {
-  const st = useGet<Schemas['Payment']>(checkout ? `/api/v1/member/payments/${checkout.id}` : null, { refetchInterval: 4000 });
+  const qc = useQueryClient();
   if (!checkout) return null;
-  const status = st.data?.status ?? checkout.status;
   return (
     <Modal open onClose={onClose} title="Online payment" actions={<button className="oc-btn oc-btn-ink" onClick={onClose}>Close</button>}>
-      <div className="oc-stack" style={{ alignItems: 'center' }}>
-        <div className="oc-metric">{money(checkout.amount)}</div>
-        <StatusPill status={status} />
-        {status === 'pending' && checkout.qrString && <QRCode value={checkout.qrString} size={220} label="QRIS payment code" />}
-        {status === 'pending' && checkout.vaNumber && <div className="oc-code">VA {checkout.vaNumber}</div>}
-        {status === 'pending' && checkout.checkoutUrl && <a className="oc-btn oc-btn-outline" href={checkout.checkoutUrl} target="_blank" rel="noreferrer">Open payment page</a>}
-        {status === 'completed' && <div className="oc-alert oc-alert-success">Payment received — thank you.</div>}
-      </div>
+      <PaymentPanel payment={checkout} onPaid={() => void qc.invalidateQueries()} />
     </Modal>
   );
 }
@@ -134,6 +130,7 @@ export function ScoresPage() {
         <div className="oc-card"><div className="oc-small oc-muted">Average gross</div><div className="oc-metric">{s?.averageGross ?? '—'}</div></div>
         <div className="oc-card"><div className="oc-small oc-muted">Birdies or better</div><div className="oc-metric">{s?.birdiesOrBetter ?? '—'}</div></div>
       </div>
+      <MyCourseHandicap />
       <Card title="Round History" icon="golf_course">
         <DataTable rows={s?.history as unknown as Row[]} loading={stats.isLoading} columns={[
           { key: 'playedOn', header: 'Date', render: (r) => formatDate(String(r.playedOn)) }, { key: 'playingRouteName', header: 'Route' },
@@ -231,45 +228,6 @@ export function SportClubPage() {
   );
 }
 
-// ── Stay & Venue (FR-APP-P2-04) ───────────────────────────────────────────
-
-export function StayPage() {
-  const toast = useToast();
-  const [from, setFrom] = useState(new Date(Date.now() + 86400_000).toISOString().slice(0, 10));
-  const [nights, setNights] = useState('1');
-  const avail = useGet<Page<Schemas['TypeAvailability']>>(`/api/v1/member/bungalow-availability${qs({ from, nights })}`);
-  const stays = useGet<Page<Schemas['Stay']>>('/api/v1/member/stays');
-  const book = useSend<Row, Schemas['StayResult']>('POST', '/api/v1/member/stays', ['/api/v1/member/stays'], idem);
-  const [ratePlan, setRatePlan] = useState('');
-  return (
-    <div className="oc-stack">
-      <PageHeader title="Stay & Venue" />
-      <Card title="Book Bungalow" icon="hotel">
-        <div className="oc-row-wrap">
-          <div style={{ width: 180 }}><TextField label="Arrival" type="date" value={from} onChange={setFrom} /></div>
-          <div style={{ width: 120 }}><TextField label="Nights" type="number" value={nights} onChange={setNights} /></div>
-          <div style={{ width: 200 }}><TextField label="Rate plan code" value={ratePlan} onChange={setRatePlan} placeholder="e.g. STAY_RO" /></div>
-        </div>
-        <ErrorAlert error={book.error} />
-        <DataTable rows={(avail.data?.items ?? []).map((t) => ({ ...t, available: Math.min(...t.nights.map((n) => n.available)) })) as unknown as Row[]} rowKey={(r) => String(r.typeId)}
-          columns={[{ key: 'typeName', header: 'Bungalow type' }, { key: 'available', header: 'Available' }, { key: 'units', header: 'Units' }]}
-          actions={(r) => Number(r.available) > 0 ? (
-            <button className="oc-btn oc-btn-primary oc-btn-sm" onClick={() => {
-              const dep = new Date(new Date(from).getTime() + Number(nights) * 86400_000).toISOString().slice(0, 10);
-              book.mutate({ kind: 'bungalow', bungalowTypeId: r.typeId, arrivalDate: from, departureDate: dep, ratePlan, adults: 2, memberCharge: true },
-                { onSuccess: (s) => toast(`Booked ${s.stay.stayNo}`) });
-            }}>Book</button>
-          ) : <span className="oc-small oc-muted">Full</span>} />
-      </Card>
-      <Card title="My Stay" icon="luggage">
-        <DataTable rows={stays.data?.items as unknown as Row[]} columns={[{ key: 'stayNo', header: 'Booking' }, { key: 'kind', header: 'Kind' },
-          { key: 'unitName', header: 'Unit' }, { key: 'start', header: 'From', render: (r) => formatDateTime(String(r.start)) },
-          { key: 'end', header: 'To', render: (r) => formatDateTime(String(r.end)) }, { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> }]} />
-      </Card>
-    </div>
-  );
-}
-
 // ── Order Food (FR-APP-P2-06) ─────────────────────────────────────────────
 
 export function OrderFoodPage() {
@@ -279,10 +237,15 @@ export function OrderFoodPage() {
   const menu = useGet<Page<Schemas['MenuItem']>>(outlet ? `/api/v1/member/outlets/${outlet}/menu` : null);
   const orders = useGet<Page<Schemas['Order']>>('/api/v1/member/orders', { refetchInterval: 10000 });
   const [cart, setCart] = useState<Record<string, number>>({});
+  const [dest, setDest] = useState('pickup');
+  const [hole, setHole] = useState('');
   const place = useSend<Row, Schemas['Order']>('POST', '/api/v1/member/orders', ['/api/v1/member/orders'], idem);
+  // FR-FNB-02 on-course order: delivered to the halfway house or the hole the flight is on
+  const where = dest === 'hole' ? { orderType: 'on_course', servingDestination: 'hole', destinationRef: `Hole ${hole}` }
+    : dest === 'halfway_house' ? { orderType: 'on_course', servingDestination: 'halfway_house', destinationRef: 'Halfway House' } : {};
   return (
     <div className="oc-stack">
-      <PageHeader title="Order Food" help="Pre-order to pick up, or have it delivered on course." />
+      <PageHeader title="Order Food" help="Pre-order to pick up, or have it delivered on course: at the halfway house or to your hole." />
       <div style={{ width: 320 }}><SelectField label="Outlet" value={outlet} onChange={setOutlet} placeholder="Choose outlet"
         options={(outlets.data?.items ?? []).map((o) => ({ value: o.id, label: o.name }))} /></div>
       <ErrorAlert error={place.error ?? menu.error} />
@@ -297,13 +260,19 @@ export function OrderFoodPage() {
               </div>
             ))}
           </div>
-          <button className="oc-btn oc-btn-ink" style={{ marginTop: 12 }} disabled={!Object.values(cart).some((n) => n > 0)}
-            onClick={() => place.mutate({ outletId: outlet, memberCharge: true, lines: Object.entries(cart).filter(([, n]) => n > 0).map(([productId, n]) => ({ productId, quantity: String(n) })) },
+          <div className="oc-row-wrap" style={{ marginTop: 12, alignItems: 'flex-end' }}>
+            <div style={{ width: 220 }}><SelectField label="Deliver to" value={dest} onChange={setDest}
+              options={[{ value: 'pickup', label: 'Pick up' }, { value: 'halfway_house', label: 'Halfway House' }, { value: 'hole', label: 'My hole (on course)' }]} /></div>
+            {dest === 'hole' && <div style={{ width: 120 }}><TextField label="Hole" value={hole} onChange={(v) => setHole(v.replace(/\D/g, '').slice(0, 2))} /></div>}
+          </div>
+          <button className="oc-btn oc-btn-ink" style={{ marginTop: 12 }} disabled={!Object.values(cart).some((n) => n > 0) || (dest === 'hole' && !hole)}
+            onClick={() => place.mutate({ outletId: outlet, memberCharge: true, ...where, lines: Object.entries(cart).filter(([, n]) => n > 0).map(([productId, n]) => ({ productId, quantity: String(n) })) },
               { onSuccess: (o) => { setCart({}); toast(`Order ${o.orderNo} sent to the kitchen`); } })}>Order (member charge)</button>
         </Card>
       )}
       <Card title="My orders" icon="receipt">
         <DataTable rows={orders.data?.items as unknown as Row[]} columns={[{ key: 'orderNo', header: 'Order' }, { key: 'outletName', header: 'Outlet' },
+          { key: 'destinationRef', header: 'Deliver to', render: (r) => String(r.destinationRef ?? 'Pick up') },
           { key: 'total', header: 'Total', render: (r) => money(r.total) }, { key: 'serviceStatus', header: 'Kitchen', render: (r) => <StatusPill status={String(r.serviceStatus)} /> }]} />
       </Card>
     </div>
@@ -355,7 +324,6 @@ export const P2_MEMBER_ROUTES = [
   { path: 'golf/scores', element: <ScoresPage /> },
   { path: 'golf/scores/:id', element: <ScorecardPage /> },
   { path: 'sport-club', element: <SportClubPage /> },
-  { path: 'stay', element: <StayPage /> },
   { path: 'vouchers', element: <VouchersPage /> },
   { path: 'membership/services', element: <MembershipServicesPage /> },
   { path: 'order-food', element: <OrderFoodPage /> },

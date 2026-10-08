@@ -40,6 +40,7 @@ func Permissions() []catalog.Permission {
 		catalog.P("accounting", "tax_invoice", "view", "manage"),
 		catalog.P("accounting", "revenue", "view", "manage"),
 		catalog.P("accounting", "report", "view"),
+		catalog.P("accounting", "dashboard", "view"),
 		catalog.P("accounting", "opening_balance", "view", "manage", "post"),
 	} {
 		out = append(out, g...)

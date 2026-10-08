@@ -395,6 +395,15 @@ func TestP5PayrollFullRun(t *testing.T) {
 		r.Header.Get("Cache-Control") != "private, no-store" {
 		t.Fatalf("payslip pdf: %d %s", r.Status, r.Header)
 	}
+	// the employee profile lists the payslips of the employee across the runs
+	listed := false
+	for _, s := range sa.Must(200, "GET", hrBase+"/payslips?employeeId="+str(sA["employeeId"]), nil).Items() {
+		listed = listed || s["id"] == sA["id"]
+	}
+	if !listed {
+		t.Fatal("employee payslips")
+	}
+	sa.Must(422, "GET", hrBase+"/payslips", nil)
 
 	// approval: Finance through the workflow
 	run = sa.Must(200, "POST", hrBase+"/payroll-runs/"+rid+":approve", map[string]any{"note": "please approve"}).JSON()

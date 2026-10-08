@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { download, request, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { currentLocale, formatDate, formatDateTime } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
+  ActionMenu, AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
   TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
@@ -12,6 +12,10 @@ import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
 import { TALENT_ESS, TALENT_ROUTES } from './hr_talent';
 // Gap closure (partner clock-in, migration reconciliation, push notifications) lives in gaps.tsx.
 import { GAPS_OPS_ROUTES, GAPS_OPS_TILES, GAPS_ROUTES, PushSettings } from './gaps';
+// The HR Dashboard (HRIS home) lives in hr-dashboard.tsx.
+import { HRDashboardPage } from './hr-dashboard';
+// The workspace tabs of the Employee Detail (attendance, leave, overtime, payroll, loans, reviews) live in hr-employee.tsx.
+import { EMPLOYEE_WORK_TABS, EmployeeWorkTab } from './hr-employee';
 
 // PRD P5 — core HR (EP-01 Organization & Employee, EP-02 Contracts & Documents, EP-04 Training & Certification, EP-24 HR Policies)
 // and Employee Self Service (EP-16). Back Office routes (HRIS → Employees, Organization, Training & Certification), the ESS area of
@@ -36,6 +40,15 @@ const PTKP = ['TK/0', 'TK/1', 'TK/2', 'TK/3', 'K/0', 'K/1', 'K/2', 'K/3'].map((v
 const DOC_TYPES = opts(['ktp', 'kk', 'npwp', 'passport', 'ijazah', 'cv', 'bpjs_kesehatan', 'bpjs_ketenagakerjaan', 'certificate', 'contract',
   'warning_letter', 'medical', 'reference_letter', 'photo', 'other']);
 const ROLES = opts(['lifeguard', 'caddy', 'instructor', 'food_handler', 'engineering', 'course_maintenance', 'security', 'sport_staff', 'starter', 'other']);
+
+/**
+ * The tab of a workspace page kept in the URL (?tab=), so the HR Dashboard
+ * and other links open it directly; switching tabs drops the other filters.
+ */
+export function useUrlTab(fallback: string): [string, (v: string) => void] {
+  const [params, setParams] = useSearchParams();
+  return [params.get('tab') ?? fallback, (v: string) => setParams({ tab: v }, { replace: true })];
+}
 
 function useOptions(path: string | null, text: (r: R) => string): Option[] {
   const l = useGet<Page<R>>(path);
@@ -128,22 +141,59 @@ export function EmployeesPage() {
   );
 }
 
+/** End date of the running contract per employee (active or expiring PKWT). */
+function useContractEnds(enabled: boolean): Record<string, string> {
+  const active = useGet<Page<R>>(enabled ? `${HR}/contracts?status=active&limit=500` : null);
+  const expiring = useGet<Page<R>>(enabled ? `${HR}/contracts?status=expiring&limit=500` : null);
+  return Object.fromEntries([...(active.data?.items ?? []), ...(expiring.data?.items ?? [])]
+    .filter((c) => c.endDate).map((c) => [String(c.employeeId), String(c.endDate)]));
+}
+
+/** Option label without its " (CODE)" suffix. */
+const nameOf = (list: Option[], id: unknown) => (id ? list.find((o) => o.value === id)?.label.replace(/ \([^)]*\)$/, '') ?? '—' : '—');
+
 function EmployeeList() {
   const nav = useNavigate();
   const { can } = useAuth();
+  // Filters open from the URL (HR Dashboard drill-downs by department and status).
+  const [params] = useSearchParams();
   const [open, setOpen] = useState(false);
-  const [emp, setEmp] = useState('');
+  const [emp, setEmp] = useState(params.get('employmentStatus') ?? '');
+  const [unit, setUnit] = useState(params.get('orgUnitId') ?? '');
+  const [pos, setPos] = useState(params.get('positionId') ?? '');
+  const leaving = params.get('terminationStatus') ?? '';
+  const drafts = params.get('status') === 'draft' ? 'draft' : '';
+  const units = useUnits();
+  const positions = usePositions();
+  const people = useEmployees();
+  const ends = useContractEnds(can('hris.contract.view'));
+  const ws = useGet<Page<R>>(`${HR}/employee-work-status`);
+  const work = Object.fromEntries((ws.data?.items ?? []).map((w) => [String(w.employeeId), w]));
   return (
     <>
       <ListPage title="Employees" help="Employee master (HRIS): organization, position, grade, employment status, contracts, documents and certifications. Identity numbers and salaries are masked by permission (UU PDP)."
-        path={`${HR}/employees`} statuses={[{ value: 'active', label: 'Active' }, { value: 'inactive', label: 'Left' }]}
-        extraQuery={emp ? { 'filter[employmentStatus]': emp } : {}}
-        filters={<FilterPills options={[{ value: '', label: 'All statuses' }, ...EMPLOYMENT]} value={emp} onChange={setEmp} />}
+        path={`${HR}/employees`} statuses={[{ value: 'active', label: 'Active' }, { value: 'draft', label: 'Draft' }, { value: 'inactive', label: 'Left' }]}
+        extraQuery={clean({ 'filter[employmentStatus]': emp, 'filter[orgUnitId]': unit, 'filter[positionId]': pos, 'filter[terminationStatus]': leaving, 'filter[status]': drafts }) as Record<string, string>}
+        filters={(
+          <>
+            <FilterPills options={[{ value: '', label: 'All statuses' }, ...EMPLOYMENT]} value={emp} onChange={setEmp} />
+            <SelectField label="Department" value={unit} onChange={setUnit} options={units} placeholder="All" />
+            <SelectField label="Position" value={pos} onChange={setPos} options={positions} placeholder="All" />
+            {leaving && <StatusPill status="warning" label="Leaving (scheduled)" />}
+            {drafts && <StatusPill status="draft" label="Draft employees" />}
+          </>
+        )}
         actions={can('hris.employee.create') && <button className="oc-btn oc-btn-ink" onClick={() => setOpen(true)}><Icon name="person_add" size={18} /> Add Employee</button>}
         onRowClick={(r) => nav(`/hris/employees/${r.id}`)}
         columns={[
-          { key: 'employeeNo', header: 'No.' }, { key: 'fullName', header: 'Name' }, { key: 'jobTitle', header: 'Job Title', render: (r) => val(r.jobTitle) },
-          { key: 'employmentStatus', header: 'Employment', render: pill('employmentStatus') }, { key: 'joinDate', header: 'Joined', render: (r) => date(r.joinDate) },
+          { key: 'employeeNo', header: 'No.' }, { key: 'fullName', header: 'Name' },
+          { key: 'orgUnitId', header: 'Department', render: (r) => nameOf(units, r.orgUnitId) },
+          { key: 'positionId', header: 'Position', render: (r) => (r.positionId ? nameOf(positions, r.positionId) : val(r.jobTitle)) },
+          { key: 'supervisorId', header: 'Supervisor', render: (r) => nameOf(people, r.supervisorId) },
+          { key: 'employmentStatus', header: 'Employment', render: pill('employmentStatus') },
+          { key: 'workStatus', header: 'Today', render: (r) => (work[String(r.id)] ? <WorkStatusPill w={work[String(r.id)]} /> : <span className='oc-muted'>Working</span>) },
+          { key: 'joinDate', header: 'Joined', render: (r) => date(r.joinDate) },
+          { key: 'contractEnd', header: 'Contract ends', render: (r) => date(ends[String(r.id)]) },
           { key: 'terminationDate', header: 'Leaves', render: (r) => date(r.terminationDate) },
         ]} />
       {open && <NewEmployee onClose={() => setOpen(false)} onDone={(r) => nav(`/hris/employees/${r.id}`)} />}
@@ -154,10 +204,12 @@ function EmployeeList() {
 function NewEmployee({ onClose, onDone }: { onClose: () => void; onDone: (r: R) => void }) {
   const positions = usePositions();
   const units = useUnits();
-  const [f, setF] = useState<Record<string, string>>({ employmentStatus: 'probation', workerCategory: 'regular', joinDate: today() });
+  const [f, setF] = useState<Record<string, string>>({ employmentStatus: 'probation', workerCategory: 'regular', joinDate: today(), status: 'active' });
   const set = (k: string) => (v: string) => setF({ ...f, [k]: v });
   return (
     <FormModal open onClose={onClose} title="Add Employee" path={`${HR}/employees`} body={() => clean(f)} onDone={onDone} wide>
+      <SelectField label="Record" value={f.status} onChange={set('status')} span
+        options={[{ value: 'active', label: 'Hire now (active)' }, { value: 'draft', label: 'Draft — prepare, activate on hire' }]} />
       <TextField label="Full name" value={f.fullName ?? ''} onChange={set('fullName')} required />
       <TextField label="Employee No." value={f.employeeNo ?? ''} onChange={set('employeeNo')} placeholder="Next number" />
       <SelectField label="Position" value={f.positionId ?? ''} onChange={set('positionId')} options={positions} placeholder="None" />
@@ -181,27 +233,50 @@ const DETAIL_TABS: Option[] = [
   { value: 'documents', label: 'Documents' }, { value: 'certifications', label: 'Certifications' }, { value: 'bank', label: 'Bank & Contacts' },
 ];
 
+const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('');
+
+/**
+ * Employee Detail: who the employee is and their state in one header
+ * (avatar, name, number, position, status pills, one Actions menu), then
+ * the tabs of the employee's records and transactions.
+ */
 export function EmployeeDetailPage() {
   const { id = '' } = useParams();
-  const [tab, setTab] = useState('profile');
+  const { can } = useAuth();
+  const [tab, setTab] = useUrlTab('profile');
+  const tabs = [...DETAIL_TABS, ...EMPLOYEE_WORK_TABS.filter((t) => can(t.perm))];
   const p = useGet<R>(`${HR}/employees/${id}/profile`);
+  const name = String((p.data?.employee as R | undefined)?.fullName ?? 'Employee');
+  useEffect(() => {
+    document.title = name;
+  }, [name]);
   if (p.isLoading) return <Skeleton rows={8} />;
   if (p.error || !p.data) return <ErrorAlert error={p.error} />;
   const d = p.data;
   const e = d.employee as R;
   return (
     <div className="oc-stack">
-      <PageHeader title={`${String(e.fullName)} · ${String(e.employeeNo)}`}
-        help={`${val(e.jobTitle)} — ${val(d.orgUnitName)}${d.gradeCode ? ` · ${String(d.gradeCode)}` : ''}`}
-        actions={<><Link className="oc-btn oc-btn-text" to="/hris/employees">All employees</Link><EmployeeActions d={d} /></>} />
-      <div className="oc-row-wrap">
-        <StatusPill status={String(e.employmentStatus)} label={label(e.employmentStatus)} />
-        {e.terminationStatus === 'scheduled' && <StatusPill status="warning" label={`Leaves ${date(e.terminationDate)}`} />}
-        {(d.certificationGaps as R[]).length > 0 && <StatusPill status="error" label="Certification gap" />}
-        {Number(d.expiringDocuments) > 0 && <StatusPill status="pending" label={`${String(d.expiringDocuments)} documents expiring`} />}
+      <div className="oc-profile-head">
+        <Link className="oc-btn oc-btn-text" to="/hris/employees" aria-label="Back to Employees"><Icon name="arrow_back" size={22} /></Link>
+        <span className="oc-avatar oc-avatar-lg" aria-hidden>{initials(String(e.fullName))}</span>
+        <div className="oc-profile-id">
+          <h1>{String(e.fullName)}</h1>
+          <p className="oc-muted">
+            {String(e.employeeNo)} · {val(d.positionName ?? e.jobTitle)} · {val(d.orgUnitName)}{d.gradeCode ? ` · ${String(d.gradeCode)}` : ''}
+          </p>
+          <div className="oc-row-wrap" style={{ gap: 6 }}>
+            <StatusPill status={String(e.employmentStatus)} label={label(e.employmentStatus)} />
+            {String(d.workStatus ?? 'active') !== 'active' && <WorkStatusPill w={(d.workStatusNote as Record<string, unknown> | null) ?? { workStatus: d.workStatus }} />}
+            {e.terminationStatus === 'scheduled' && <StatusPill status="warning" label={`Leaves ${date(e.terminationDate)}`} />}
+            {(d.certificationGaps as R[]).length > 0 && <StatusPill status="error" label="Certification gap" />}
+            {Number(d.expiringDocuments) > 0 && <StatusPill status="pending" label={`${String(d.expiringDocuments)} documents expiring`} />}
+          </div>
+        </div>
+        <div className="oc-row-wrap"><EmployeeActions d={d} /></div>
       </div>
-      <Tabs tabs={DETAIL_TABS} value={tab} onChange={setTab} />
+      <Tabs tabs={tabs} value={tab} onChange={setTab} />
       {tab === 'profile' && <ProfileTab d={d} />}
+      <EmployeeWorkTab tab={tab} id={id} />
       {tab === 'employment' && <EmploymentTab id={id} d={d} />}
       {tab === 'contracts' && <ContractsPanel employeeId={id} />}
       {tab === 'documents' && <DocumentsPanel employeeId={id} />}
@@ -211,46 +286,92 @@ export function EmployeeDetailPage() {
   );
 }
 
+/**
+ * Actions on an employee: the one the state calls for stays a button
+ * (Activate a draft, Reinstate, Withdraw Resignation); the others sit in
+ * the Actions menu, Offboard last.
+ */
 function EmployeeActions({ d }: { d: R }) {
   const { can } = useAuth();
   const e = d.employee as R;
   const id = String(e.id);
   const [open, setOpen] = useState('');
   const active = e.status === 'active';
+  const suspended = d.workStatus === 'suspended' || (!!e.suspendedFrom && (!e.suspendedUntil || String(e.suspendedUntil) >= today()));
   return (
     <>
-      {active && can('hris.employee.transfer') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setOpen('transfer')}>Transfer</button>}
-      {active && can('hris.employee.transfer') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setOpen('promote')}>Promote</button>}
-      {active && !d.account && can('hris.employee.manage_account') && <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setOpen('account')}>Create Login</button>}
-      {active && e.terminationStatus !== 'scheduled' && can('hris.employee.terminate') && <button className="oc-btn oc-btn-danger oc-btn-sm" onClick={() => setOpen('terminate')}>Offboard</button>}
+      {e.status === 'draft' && can('hris.employee.create') && <button className="oc-btn oc-btn-ink" onClick={() => setOpen('activate')}>Activate (hire)</button>}
+      {active && suspended && can('hris.employee.suspend') && (
+        <ActionButton label="Reinstate" path={`${HR}/employees/${id}:reinstate`} invalidate={INV} reason="optional" />
+      )}
       {e.terminationStatus === 'scheduled' && can('hris.employee.terminate') && (
         <ActionButton label="Withdraw Resignation" path={`${HR}/employees/${id}:cancel-termination`} invalidate={INV} reason="required" />
       )}
-      {can('hris.letter.generate') && <LetterButton id={id} />}
+      <ActionMenu label="Actions" items={[
+        { label: 'Transfer', icon: 'swap_horiz', onClick: () => setOpen('transfer'), hidden: !(active && can('hris.employee.transfer')) },
+        { label: 'Promote', icon: 'trending_up', onClick: () => setOpen('promote'), hidden: !(active && can('hris.employee.transfer')) },
+        { label: 'Create login', icon: 'key', onClick: () => setOpen('account'), hidden: !(active && !d.account && can('hris.employee.manage_account')) },
+        { label: 'HR letter…', icon: 'description', onClick: () => setOpen('letter'), hidden: !can('hris.letter.generate') },
+        { label: 'Suspend', icon: 'block', onClick: () => setOpen('suspend'), hidden: !(active && !suspended && can('hris.employee.suspend')), separator: true },
+        { label: 'Offboard', icon: 'logout', danger: true, onClick: () => setOpen('terminate'),
+          hidden: !(active && e.terminationStatus !== 'scheduled' && can('hris.employee.terminate')) },
+      ]} />
       {(open === 'transfer' || open === 'promote') && <ChangeModal id={id} kind={open} onClose={() => setOpen('')} />}
       {open === 'terminate' && <TerminateModal id={id} onClose={() => setOpen('')} />}
       {open === 'account' && <AccountModal id={id} email={String(e.email ?? '')} onClose={() => setOpen('')} />}
+      {open === 'letter' && <LetterModal id={id} onClose={() => setOpen('')} />}
+      {open === 'activate' && (
+        <FormModal open onClose={() => setOpen('')} title="Activate Employee" path={`${HR}/employees/${id}:activate`} submit="Activate"
+          body={() => clean({ joinDate: String(e.joinDate ?? '') })}>
+          <p className="oc-muted" style={{ margin: 0 }}>The draft becomes an active employee from the join date {date(e.joinDate)}: the hire is recorded and onboarding, attendance and payroll start.</p>
+        </FormModal>
+      )}
+      {open === 'suspend' && <SuspendModal id={id} onClose={() => setOpen('')} />}
     </>
   );
 }
 
-function LetterButton({ id }: { id: string }) {
-  const letters = useOptions(`${HR}/letter-templates?limit=100&filter[status]=active`, (x) => String(x.name));
+// Work status of the day (HRIS phase B §34): draft, on leave, suspended, leaving, terminated.
+const WORK_STATUS: Record<string, [string, string]> = {
+  draft: ['draft', 'Draft'], on_leave: ['pending', 'On leave'], suspended: ['error', 'Suspended'], leaving: ['warning', 'Leaving'],
+  terminated: ['inactive', 'Terminated'], inactive: ['inactive', 'Inactive'],
+};
+
+export function WorkStatusPill({ w }: { w: Record<string, unknown> }) {
+  const [tone, text] = WORK_STATUS[String(w.workStatus)] ?? ['approved', 'Active'];
+  const until = w.until ? ` until ${date(w.until)}` : '';
+  return <StatusPill status={tone} label={`${text}${until}${w.note ? ` · ${label(w.note)}` : ''}`} />;
+}
+
+function SuspendModal({ id, onClose }: { id: string; onClose: () => void }) {
+  const [f, setF] = useState<Record<string, string>>({ from: today() });
+  const set = (k: string) => (v: string) => setF({ ...f, [k]: v });
+  return (
+    <FormModal open onClose={onClose} title="Suspend Employee" path={`${HR}/employees/${id}:suspend`} body={() => clean(f)} submit="Suspend">
+      <TextField label="From" type="date" value={f.from} onChange={set('from')} required />
+      <TextField label="Until (empty = until reinstated)" type="date" value={f.until ?? ''} onChange={set('until')} />
+      <TextArea label="Reason" value={f.reason ?? ''} onChange={set('reason')} span required />
+    </FormModal>
+  );
+}
+
+/** HR letter of the employee from an active template, as PDF. */
+function LetterModal({ id, onClose }: { id: string; onClose: () => void }) {
+  const tpl = useGet<Page<R>>(`${HR}/letter-templates?limit=100&filter[status]=active`);
   const [code, setCode] = useState('');
   const toast = useToast();
-  const tpl = useGet<Page<R>>(`${HR}/letter-templates?limit=100&filter[status]=active`);
-  const codeOf = (tid: string) => String((tpl.data?.items ?? []).find((x) => x.id === tid)?.code ?? '');
-  if (letters.length === 0) return null;
+  const letters = (tpl.data?.items ?? []).map((x) => ({ value: String(x.code), label: String(x.name) }));
   return (
-    <span className="oc-row" style={{ gap: 4 }}>
-      <select className="oc-select" aria-label="HR letter" value={code} onChange={(e) => setCode(e.target.value)} style={{ height: 32 }}>
-        <option value="">HR letter…</option>
-        {letters.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
-      </select>
-      <button className="oc-btn oc-btn-neutral oc-btn-sm" disabled={!code} onClick={() => {
-        download('GET', `${HR}/employees/${id}/letters/${codeOf(code)}`, undefined, `${codeOf(code)}.pdf`).catch((e: Error) => toast(e.message, 'error'));
-      }}>PDF</button>
-    </span>
+    <Modal open onClose={onClose} title="HR Letter" actions={<>
+      <button className="oc-btn oc-btn-text" onClick={onClose}>Cancel</button>
+      <button className="oc-btn oc-btn-ink" disabled={!code} onClick={() => {
+        download('GET', `${HR}/employees/${id}/letters/${code}`, undefined, `${code}.pdf`).then(onClose, (e: Error) => toast(e.message, 'error'));
+      }}><Icon name="picture_as_pdf" size={18} /> Download PDF</button>
+    </>}>
+      {tpl.isLoading ? <Skeleton rows={2} /> : letters.length === 0
+        ? <Empty title="No active letter template" help="Add letter templates (employment certificate, warning letter…) in the HR letter templates." icon="description" />
+        : <SelectField label="Letter" value={code} onChange={setCode} options={letters} placeholder="Choose a letter" required />}
+    </Modal>
   );
 }
 
@@ -537,7 +658,8 @@ function RenewModal({ c, kind, onClose }: { c: R; kind: string; onClose: () => v
 
 function DocumentsPanel({ employeeId }: { employeeId?: string }) {
   const { can } = useAuth();
-  const [within, setWithin] = useState(employeeId ? '' : '60');
+  const [params] = useSearchParams();
+  const [within, setWithin] = useState(employeeId ? '' : params.get('within') ?? '60');
   const [open, setOpen] = useState(false);
   const toast = useToast();
   const l = useGet<Page<R>>(`${HR}/employee-documents?${employeeId ? `employeeId=${employeeId}&` : ''}${within ? `expiringWithin=${within}` : ''}`);
@@ -545,7 +667,7 @@ function DocumentsPanel({ employeeId }: { employeeId?: string }) {
     <div className="oc-stack">
       <PageHeader title="Documents" help="KTP, NPWP, BPJS, diplomas, certificates and warning letters with validity. Confidential documents (warning letters, medical) need their own permission."
         actions={employeeId && can('hris.employee_document.manage') && <button className="oc-btn oc-btn-ink" onClick={() => setOpen(true)}>Add Document</button>} />
-      {!employeeId && <FilterPills options={[{ value: '60', label: 'Expiring (60 days)' }, { value: '', label: 'All' }]} value={within} onChange={setWithin} />}
+      {!employeeId && <FilterPills options={[{ value: '0', label: 'Expired' }, { value: '60', label: 'Expiring (60 days)' }, { value: '', label: 'All' }]} value={within} onChange={setWithin} />}
       <DataTable rows={l.data?.items} loading={l.isLoading} error={l.error} columns={[
         ...(employeeId ? [] : [{ key: 'employeeName', header: 'Employee', render: (r: R) => <Link to={`/hris/employees/${String(r.employeeId)}`}>{String(r.employeeName)}</Link> }]),
         { key: 'title', header: 'Document', render: (r) => `${String(r.title)}${r.confidential ? ' 🔒' : ''}` }, { key: 'documentNo', header: 'No.', render: (r) => val(r.documentNo) },
@@ -1151,6 +1273,7 @@ function EssSectionPage({ base }: { base: string }) {
 // ── registrations ─────────────────────────────────────────────────────────
 
 export const HR_ROUTES: AreaRoute[] = [
+  { path: 'hris/dashboard', perm: 'hris.employee.view', element: <HRDashboardPage /> },
   { path: 'hris/employees', perm: 'hris.employee.view', element: <EmployeesPage /> },
   { path: 'hris/employees/:id', perm: 'hris.employee.view', element: <EmployeeDetailPage /> },
   { path: 'hris/contracts', perm: 'hris.contract.view', element: <div className="oc-stack"><ContractsPanel /></div> },

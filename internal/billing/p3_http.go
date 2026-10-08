@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/riverqueue/river"
+	"github.com/shopspring/decimal"
 
 	"oneclub/internal/crm"
 	"oneclub/internal/kernel/authz"
@@ -223,18 +225,35 @@ func (h *HTTP) RegisterP3(reg *route.Registry) {
 	// ── invoices ───────────────────────────────────────────────────────
 	add(tin, route.Route{Method: http.MethodGet, Path: "/api/v1/billing/invoices", Summary: "Invoices", Permission: "billing.invoice.view", Response: Invoice{},
 		List: true, Query: []route.Param{{Name: "q"}, {Name: "filter[status]"}, {Name: "filter[kind]"}, {Name: "filter[accountId]"},
-			{Name: "filter[corporateAccountId]"}, {Name: "filter[customerId]"}, {Name: "from"}, {Name: "to"}},
+			{Name: "filter[corporateAccountId]"}, {Name: "filter[customerId]"},
+			{Name: "filter[source]", Enum: []string{"manual", "folio", "customer_folio", "payment_schedule", "city_ledger"}},
+			{Name: "filter[payer]", Enum: []string{"corporate", "individual"}}, {Name: "from"}, {Name: "to"},
+			{Name: "dueFrom", Description: "Due date from (YYYY-MM-DD)"}, {Name: "dueTo"}, {Name: "minTotal"}, {Name: "maxTotal"}},
 		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (httpx.Page[Invoice], error) {
 			lp := httpx.ParseList(r)
+			q := r.URL.Query()
+			for _, k := range []string{"minTotal", "maxTotal"} {
+				if v := q.Get(k); v != "" {
+					if _, err := decimal.NewFromString(v); err != nil {
+						return httpx.Page[Invoice]{}, handle.Invalid(k, "invalid", "an amount")
+					}
+				}
+			}
 			return handle.Page(handle.List[Invoice](tx.Query(ctx, invoiceSelect+` WHERE i.property_id = $1
 				AND ($2 = '' OR i.status = ANY(string_to_array($2, ','))) AND ($3 = '' OR i.kind = $3) AND ($4 = '' OR i.account_id::text = $4)
 				AND ($5 = '' OR i.corporate_account_id::text = $5) AND ($6 = '' OR i.customer_id::text = $6)
-				AND ($7 = '' OR i.number ILIKE '%' || $7 || '%' OR i.bill_to_name ILIKE '%' || $7 || '%')
+				AND ($7 = '' OR i.number ILIKE '%' || $7 || '%' OR i.bill_to_name ILIKE '%' || $7 || '%'
+				  OR i.customer_po ILIKE '%' || $7 || '%' OR i.billing_ref ILIKE '%' || $7 || '%')
 				AND ($8 = '' OR i.issue_date >= $8::date) AND ($9 = '' OR i.issue_date <= $9::date)
+				AND ($11 = '' OR (`+invoiceSource+`) = $11)
+				AND ($12 = '' OR ($12 = 'corporate') = (i.corporate_account_id IS NOT NULL))
+				AND ($13 = '' OR i.due_date >= $13::date) AND ($14 = '' OR i.due_date <= $14::date)
+				AND ($15 = '' OR i.total >= $15::numeric) AND ($16 = '' OR i.total <= $16::numeric)
 				ORDER BY i.created_at DESC LIMIT $10`, handle.Property(ctx), lp.Filters["status"], lp.Filters["kind"], lp.Filters["accountId"],
-				lp.Filters["corporateAccountId"], lp.Filters["customerId"], lp.Q, r.URL.Query().Get("from"), r.URL.Query().Get("to"), lp.Limit)))
+				lp.Filters["corporateAccountId"], lp.Filters["customerId"], lp.Q, q.Get("from"), q.Get("to"), lp.Limit,
+				lp.Filters["source"], lp.Filters["payer"], q.Get("dueFrom"), q.Get("dueTo"), q.Get("minTotal"), q.Get("maxTotal"))))
 		})})
-	add(tin, route.Route{Method: http.MethodPost, Path: "/api/v1/billing/invoices", Summary: "Generate Invoice from a folio, customer folio, account or schedule line",
+	add(tin, route.Route{Method: http.MethodPost, Path: "/api/v1/billing/invoices", Summary: "Generate Invoice from a folio, customer folio, account, schedule line or manual lines",
 		Permission: "billing.invoice.create", Request: InvoiceInput{}, Response: InvoiceDetail{}, Idempotent: true,
 		Handler: handle.Write(db, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, in InvoiceInput) (InvoiceDetail, error) {
 			return h.CreateInvoice(ctx, tx, handle.Property(ctx), in)
@@ -246,7 +265,11 @@ func (h *HTTP) RegisterP3(reg *route.Registry) {
 			if err != nil {
 				return InvoiceDetail{}, err
 			}
-			return GetInvoice(ctx, tx, iid, h.publicBase())
+			d, err := GetInvoice(ctx, tx, iid, h.publicBase())
+			if err != nil {
+				return d, err
+			}
+			return WithInternal(ctx, tx, d)
 		})})
 	invAction := func(path, summary, perm string, req any, fn func(ctx context.Context, tx pgx.Tx, iid uuid.UUID, r *http.Request) (any, error), res any) {
 		add(tin, route.Route{Method: http.MethodPost, Path: "/api/v1/billing/invoices/{id}" + path, Summary: summary, Permission: perm, Request: req,
@@ -302,6 +325,40 @@ func (h *HTTP) RegisterP3(reg *route.Registry) {
 			}
 			if err := audit.Record(ctx, tx, audit.Entry{Module: "billing", Action: "send", EntityType: "billing.invoice", EntityID: iid.String(),
 				EntityLabel: deref(inv.Number), PropertyID: &p}); err != nil {
+				return nil, err
+			}
+			return GetInvoice(ctx, tx, iid, h.publicBase())
+		}, InvoiceDetail{})
+	// Collections: a reminder sent by the accountant now (the job sends the
+	// scheduled ones), with the same template as the automatic reminders.
+	invAction(":remind", "Send a payment reminder for the invoice now (Collections)", "billing.invoice.issue", SendInput{},
+		func(ctx context.Context, tx pgx.Tx, iid uuid.UUID, r *http.Request) (any, error) {
+			var in SendInput
+			if err := httpx.Decode(r, &in); err != nil {
+				return nil, err
+			}
+			inv, err := lockInvoice(ctx, tx, iid)
+			if err != nil {
+				return nil, err
+			}
+			if inv.Status != "issued" && inv.Status != "partially_paid" && inv.Status != "overdue" {
+				return nil, errs.Conflict("invoice_not_open", "only open invoices get a reminder")
+			}
+			if in.Email != "" {
+				inv.BillToEmail = &in.Email
+			}
+			p := handle.Property(ctx)
+			days := 0
+			if inv.DueDate != nil {
+				if due, err := time.Parse("2006-01-02", *inv.DueDate); err == nil {
+					days = int(due.Sub(localToday(ctx, tx, p, clock.Now())).Hours() / 24)
+				}
+			}
+			if err := h.sendInvoice(ctx, tx, p, inv, "billing.invoice_reminder", map[string]any{"days": days, "tag": "manual"}); err != nil {
+				return nil, err
+			}
+			if err := audit.Record(ctx, tx, audit.Entry{Module: "billing", Action: "reminder", EntityType: "billing.invoice",
+				EntityID: iid.String(), EntityLabel: deref(inv.Number), PropertyID: &p, Metadata: map[string]any{"tag": "manual"}}); err != nil {
 				return nil, err
 			}
 			return GetInvoice(ctx, tx, iid, h.publicBase())
@@ -379,6 +436,29 @@ func (h *HTTP) RegisterP3(reg *route.Registry) {
 		Permission: "billing.invoice.allocate", Request: AllocationInput{}, Response: Allocation{}, List: true, Status: http.StatusOK,
 		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in AllocationInput) (httpx.Page[Allocation], error) {
 			return handle.Page(s.AllocatePayment(ctx, tx, handle.Property(ctx), in))
+		})})
+	add(tin, route.Route{Method: http.MethodGet, Path: "/api/v1/billing/unallocated-payments",
+		Summary: "Completed payments on a customer account with an amount not yet allocated to invoices (AR reconciliation)", Permission: "billing.invoice.view",
+		Response: UnallocatedPayment{}, List: true,
+		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (httpx.Page[UnallocatedPayment], error) {
+			return handle.Page(handle.List[UnallocatedPayment](tx.Query(ctx, `SELECT p.id, p.number, p.account_id,
+				coalesce((SELECT i.bill_to_name FROM billing.invoices i WHERE i.account_id = a.id ORDER BY i.created_at DESC LIMIT 1),
+				  (SELECT c.name FROM crm.customers c WHERE c.id = a.customer_id), p.payer_name, a.number) AS account_name, p.method_type,
+				p.reference, p.payer_name, coalesce(p.paid_at, p.created_at) AS paid_at, trim_scale(p.amount - p.refunded_amount)::text AS amount,
+				trim_scale(p.amount - p.refunded_amount - coalesce((SELECT sum(x.amount) FROM billing.payment_allocations x WHERE x.payment_id = p.id), 0))::text AS unallocated
+				FROM billing.payments p JOIN billing.customer_accounts a ON a.id = p.account_id
+				WHERE p.property_id = $1 AND p.purpose = 'account_settlement' AND p.status = 'completed'
+				  AND p.amount - p.refunded_amount - coalesce((SELECT sum(x.amount) FROM billing.payment_allocations x WHERE x.payment_id = p.id), 0) > 0
+				ORDER BY coalesce(p.paid_at, p.created_at) DESC LIMIT $2`, handle.Property(ctx), httpx.ParseList(r).Limit)))
+		})})
+	add(tin, route.Route{Method: http.MethodGet, Path: "/api/v1/billing/write-offs", Summary: "Invoice write-offs (Allowance & Write-off)",
+		Permission: "billing.invoice.view", Response: WriteOffItem{}, List: true, Query: []route.Param{{Name: "filter[status]"}},
+		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (httpx.Page[WriteOffItem], error) {
+			lp := httpx.ParseList(r)
+			return handle.Page(handle.List[WriteOffItem](tx.Query(ctx, `SELECT w.id, w.number, w.invoice_id, i.number AS invoice_number, i.bill_to_name,
+				trim_scale(w.amount)::text AS amount, w.reason, w.status, w.approval_request_id, w.created_at
+				FROM billing.write_offs w JOIN billing.invoices i ON i.id = w.invoice_id
+				WHERE w.property_id = $1 AND ($2 = '' OR w.status = $2) ORDER BY w.created_at DESC LIMIT $3`, handle.Property(ctx), lp.Filters["status"], lp.Limit)))
 		})})
 	add(tin, route.Route{Method: http.MethodGet, Path: "/api/v1/billing/aging", Summary: "Receivable ageing (0–30, 31–60, 61–90, > 90 days)",
 		Permission: "billing.invoice.view", Response: Aging{}, Query: []route.Param{{Name: "asOf", Description: "YYYY-MM-DD"}, {Name: "accountId"}},
@@ -737,10 +817,13 @@ var publicLimiter = &handle.Limiter{N: 30, Period: time.Minute}
 func P3Contribution() catalog.Contribution {
 	perms := catalog.P("billing", "customer_folio", "view", "manage", "split")
 	perms = append(perms, catalog.P("billing", "payment_schedule", "view", "manage")...)
-	perms = append(perms, catalog.P("billing", "invoice", "view", "create", "issue", "void", "credit", "write_off", "allocate", "import")...)
+	perms = append(perms, catalog.P("billing", "invoice", "view", "create", "issue", "void", "credit", "write_off", "allocate", "import", "manual")...)
 	perms = append(perms, catalog.P("billing", "credit_override", "request")...)
 	perms = append(perms, catalog.P("billing", "cashier_shift", "view", "operate", "view_all")...)
 	perms = append(perms, catalog.P("billing", "night_audit", "view", "run", "reopen")...)
+	// billing workspace: prepare (Accountant), approve (Finance Manager),
+	// approve above the executive threshold (General Manager / Director)
+	perms = append(perms, catalog.P("billing", "billing", "prepare", "approve", "approve_executive")...)
 	all := make([]string, 0, len(perms))
 	for _, p := range perms {
 		all = append(all, p.Code)
@@ -752,14 +835,16 @@ func P3Contribution() catalog.Contribution {
 	view := []string{"billing.customer_folio.view", "billing.payment_schedule.view", "billing.invoice.view", "billing.cashier_shift.view",
 		"billing.cashier_shift.view_all", "billing.night_audit.view"}
 	accountant := append(append([]string{}, view...), "billing.invoice.create", "billing.invoice.issue", "billing.invoice.credit", "billing.invoice.allocate",
+		"billing.invoice.manual", PermBillingPrepare,
 		"billing.payment_schedule.manage", "billing.customer_folio.manage", "billing.credit_override.request")
 	return catalog.Contribution{
 		Permissions: perms,
 		RolePermissions: map[string][]string{
-			"property_admin":          all,
-			"finance_manager":         append(all, "billing.customer_account.charge"),
+			"property_admin": all,
+			"finance_manager": append(slices.DeleteFunc(slices.Clone(all), func(p string) bool { return p == PermBillingApproveExecutive }),
+				"billing.customer_account.charge"),
 			"accountant":              append(accountant, "billing.customer_account.charge", "billing.payment.create"),
-			"general_manager":         view,
+			"general_manager":         append(append([]string{}, view...), PermBillingApprove, PermBillingApproveExecutive),
 			"resort_manager":          append(append([]string{}, view...), "billing.night_audit.run"),
 			"club_manager":            append(append([]string{}, view...), "billing.night_audit.run"),
 			"front_desk":              append(append([]string{}, desk...), "billing.night_audit.view", "billing.night_audit.run"),

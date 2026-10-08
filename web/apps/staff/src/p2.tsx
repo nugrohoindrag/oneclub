@@ -5,6 +5,9 @@ import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
   AutoResourcePage, Card, DataTable, Empty, ErrorAlert, Icon, PageHeader, ResourceIndex, Skeleton, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
+import { DomainDashboard } from './p5/bi-dash';
+import { FloorPlanPage } from './pos/floorplan';
+import { CourseMonitorPage } from './ops/marshal';
 
 type Row = Record<string, unknown>;
 
@@ -147,7 +150,7 @@ export const HUBS: Hub[] = [
         ['status', 'Status', 'status']] },
   ] },
   { path: 'commercial/master', title: 'Outlets & Products', only: ['commercial.outlet', 'commercial.product', 'commercial.product_variant', 'commercial.menu',
-    'commercial.modifier_group', 'commercial.modifier', 'commercial.package_rate', 'commercial.day_type_set', 'commercial.line_day_type'], lists: [] },
+    'commercial.modifier_group', 'commercial.modifier', 'commercial.dining_table', 'commercial.table_reservation', 'commercial.package_rate', 'commercial.day_type_set', 'commercial.line_day_type'], lists: [] },
   { path: 'inventory', title: 'Inventory', modules: ['inventory'], lists: [] },
 ];
 
@@ -218,43 +221,16 @@ export const DASHBOARDS: [string, string][] = [
   ['booking-performance', 'Booking Performance'], ['commercial-performance', 'Commercial Performance'], ['crm-performance', 'CRM Performance'],
 ];
 
-function kpiValue(k: Schemas['KPI']) {
-  if (k.unit === 'idr') return money(k.value);
-  if (k.unit === 'ratio') return `${(Number(k.value) * 100).toFixed(1)}%`;
-  return formatNumber(Number(k.value));
-}
+/** Domain of the executive overview behind each KPI dashboard code. */
+const DOMAIN_OF: Record<string, string> = {
+  'golf-performance': 'golf', 'sport-club-performance': 'sportclub', 'membership-performance': 'membership', 'booking-performance': 'booking',
+  'commercial-performance': 'commercial', 'crm-performance': 'crm', 'inventory-performance': 'inventory', 'banquet-performance': 'banquet',
+  'procurement-performance': 'procurement', 'financial-performance': 'finance',
+};
 
+/** KPI dashboard of a domain (Back Office /dashboards/…, Management): the dashboard kit with targets and trend. */
 export function KPIDashboardPage({ code }: { code: string }) {
-  const today = new Date();
-  const [from, setFrom] = useState(new Date(today.getFullYear(), today.getMonth(), 1).toISOString().slice(0, 10));
-  const [to, setTo] = useState(today.toISOString().slice(0, 10));
-  const d = useGet<Schemas['PerformanceDashboard']>(`/api/v1/reporting/dashboards/${code}${qs({ from, to })}`);
-  return (
-    <div className="oc-stack">
-      <div className="oc-page-head"><div><h1>{d.data?.name ?? DASHBOARDS.find((x) => x[0] === code)?.[1]}</h1><p>{d.data ? `${formatDate(d.data.from)} – ${formatDate(d.data.to)}` : ''}</p></div>
-        <span className="oc-spacer" />
-        <div style={{ width: 170 }}><TextField label="From" type="date" value={from} onChange={setFrom} /></div>
-        <div style={{ width: 170 }}><TextField label="To" type="date" value={to} onChange={setTo} /></div>
-      </div>
-      <ErrorAlert error={d.error} />
-      {!d.data && <Skeleton rows={6} />}
-      <div className="oc-grid">
-        {d.data?.kpis.map((k, i) => (
-          <div key={k.key} className={`oc-card${i === 0 ? ' oc-card-ink' : ''}`} title={k.definition}>
-            <div className="oc-card-head"><span className="oc-icon-circle"><Icon name="insights" size={20} /></span><h3>{k.label}</h3></div>
-            <div className="oc-metric">{kpiValue(k)}</div>
-            {k.breakdown && k.breakdown.length > 0 && (
-              <div className="oc-stack" style={{ marginTop: 8, gap: 2 }}>
-                {k.breakdown.map((b) => <div key={b.label} className="oc-row oc-small"><span>{b.label.replace(/_/g, ' ')}</span><span className="oc-spacer" />
-                  <strong>{k.unit === 'idr' ? money(b.value) : formatNumber(Number(b.value))}</strong></div>)}
-              </div>
-            )}
-            {k.definition && <div className="oc-small oc-muted" style={{ marginTop: 6 }}>{k.definition}</div>}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return <DomainDashboard domain={DOMAIN_OF[code] ?? code} title={DASHBOARDS.find((x) => x[0] === code)?.[1]} />;
 }
 
 // ── Customer 360 (FR-CRM-01) ──────────────────────────────────────────────
@@ -307,6 +283,8 @@ export const P2_ROUTES = [
     ...h.lists.map((l) => ({ path: `${h.path}/${l.slug}`, element: <OpListPage hub={h} slug={l.slug} /> })),
   ]),
   { path: 'crm/customers/:id', element: <CustomerLines360Page /> },
+  { path: 'commercial/floor-plan', element: <FloorPlanPage /> }, // POS Table View floor plans
+  { path: 'golf/course-monitor', element: <CourseMonitorPage /> }, // Marshal (FR-PLX-04/05)
   ...DASHBOARDS.map(([code]) => ({ path: `dashboards/${code}`, element: <KPIDashboardPage key={code} code={code} /> })),
 ];
 

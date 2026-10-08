@@ -492,6 +492,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/accounting/collections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Collections worklist: parties with open items, overdue, last follow-up, next follow-up and the person responsible */
+        get: operations["getAccountingCollections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/collections/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Collections: open items and follow-up log of a party */
+        get: operations["getAccountingCollectionsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/collections/{id}/follow-ups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Collections: record a follow-up (reminder, call, promise to pay, dispute, note) */
+        post: operations["postAccountingCollectionsByIdFollowUps"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Finance Dashboard of a month: summary, cash & bank, receivables, payables, expenses, budget vs actual */
+        get: operations["getAccountingDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/accounting/deferred-revenue": {
         parameters: {
             query?: never;
@@ -1676,6 +1744,57 @@ export interface paths {
         put?: never;
         /** Record a service bill without purchase order (expense, VAT input, withholding tax) to AP */
         post: operations["postAccountingVendorBills"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/vendor-follow-ups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vendor Follow-up worklist: parties with open items, overdue, last follow-up, next follow-up and the person responsible */
+        get: operations["getAccountingVendorFollowUps"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/vendor-follow-ups/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Vendor Follow-up: open items and follow-up log of a party */
+        get: operations["getAccountingVendorFollowUpsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/accounting/vendor-follow-ups/{id}/follow-ups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Vendor Follow-up: record a follow-up (reminder, call, promise to pay, dispute, note) */
+        post: operations["postAccountingVendorFollowUpsByIdFollowUps"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3474,6 +3593,211 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/billing/billing-owners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Users who can prepare billing (owner of a billing record) */
+        get: operations["getBillingBillingOwners"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Billing workspace: folios to bill per business with status (pending billing, ready to invoice, exception, invoiced, cancelled), exceptions and next action */
+        get: operations["getBillingBillingQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Review / Prepare Billing of a folio: validations, calculation, charges, deposits, adjustments and history */
+        get: operations["getBillingBillingRecordsById"];
+        /** Save Billing: bill-to, payment term, references, notes and documents */
+        put: operations["putBillingBillingRecordsById"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}/adjustments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Adjust a charge before invoicing (quantity, price, discount, service charge, tax, revenue allocation) with a reason */
+        post: operations["postBillingBillingRecordsByIdAdjustments"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}/exceptions/{code}:resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve an exception: acknowledge (accountant) or override (Finance Manager) with a reason */
+        post: operations["postBillingBillingRecordsByIdExceptionsByCodeResolve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}/notes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a note to the billing of a folio */
+        post: operations["postBillingBillingRecordsByIdNotes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve high-value billing and its adjustments (Finance Manager; General Manager / Director above the executive threshold) */
+        post: operations["postBillingBillingRecordsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}:mark-ready": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark Ready to Invoice (every validation must pass) */
+        post: operations["postBillingBillingRecordsByIdMarkReady"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records/{id}:split": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Split Billing: move a share of the folio's uninvoiced charges to another company or customer (open folios) */
+        post: operations["postBillingBillingRecordsByIdSplit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records:assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign Owner of the billing of folios */
+        post: operations["postBillingBillingRecordsAssign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records:consolidate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Consolidate: one invoice for several folios of the same payer, each line linked to its folio (Finance Manager) */
+        post: operations["postBillingBillingRecordsConsolidate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/billing-records:generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Invoices: one issued invoice per folio without a blocking exception (the others are skipped with the reason) */
+        post: operations["postBillingBillingRecordsGenerate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/billing/business-days": {
         parameters: {
             query?: never;
@@ -4057,6 +4381,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/billing/invoice-files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload a supporting document of an invoice (multipart: file; PDF, JPEG, PNG or WebP up to 10 MB) for attachmentFileIds */
+        post: operations["postBillingInvoiceFiles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/invoice-tax-codes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tax & Service rules a manual invoice line can carry */
+        get: operations["getBillingInvoiceTaxCodes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/billing/invoices": {
         parameters: {
             query?: never;
@@ -4067,7 +4425,7 @@ export interface paths {
         /** Invoices */
         get: operations["getBillingInvoices"];
         put?: never;
-        /** Generate Invoice from a folio, customer folio, account or schedule line */
+        /** Generate Invoice from a folio, customer folio, account, schedule line or manual lines */
         post: operations["postBillingInvoices"];
         delete?: never;
         options?: never;
@@ -4090,6 +4448,40 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/invoices/{id}/attachments/{fileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a supporting document of an invoice */
+        get: operations["getBillingInvoicesByIdAttachmentsByFileId"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/invoices/{id}/internal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change the internal notes and supporting documents of an invoice */
+        patch: operations["patchBillingInvoicesByIdInternal"];
         trace?: never;
     };
     "/api/v1/billing/invoices/{id}/pdf": {
@@ -4137,6 +4529,23 @@ export interface paths {
         put?: never;
         /** Take a payment for the invoice (venue or payment link) */
         post: operations["postBillingInvoicesByIdPay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/invoices/{id}:remind": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send a payment reminder for the invoice now (Collections) */
+        post: operations["postBillingInvoicesByIdRemind"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4205,6 +4614,23 @@ export interface paths {
         put?: never;
         /** Import the open corporate invoices of the legacy system (Excel / CSV; preview or commit) with the AR reconciliation */
         post: operations["postBillingInvoicesImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/invoices:preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview the invoice a Generate Invoice request would create (nothing is saved) */
+        post: operations["postBillingInvoicesPreview"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4605,6 +5031,40 @@ export interface paths {
         put?: never;
         /** Process Refund (approval above the Refund Policy limit) */
         post: operations["postBillingRefunds"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/unallocated-payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Completed payments on a customer account with an amount not yet allocated to invoices (AR reconciliation) */
+        get: operations["getBillingUnallocatedPayments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/billing/write-offs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Invoice write-offs (Allowance & Write-off) */
+        get: operations["getBillingWriteOffs"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -6126,6 +6586,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/commercial/dining-tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Dining Tables */
+        get: operations["getCommercialDiningTables"];
+        put?: never;
+        /** Add Dining Table */
+        post: operations["postCommercialDiningTables"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/dining-tables/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Dining Table */
+        get: operations["getCommercialDiningTablesById"];
+        put?: never;
+        post?: never;
+        /** Delete Dining Table (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCommercialDiningTablesById"];
+        options?: never;
+        head?: never;
+        /** Edit Dining Table */
+        patch: operations["patchCommercialDiningTablesById"];
+        trace?: never;
+    };
+    "/api/v1/commercial/dining-tables:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Dining Tables (CSV/XLSX) */
+        get: operations["getCommercialDiningTablesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/commercial/kds/stream": {
         parameters: {
             query?: never;
@@ -6530,6 +7044,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/commercial/orders/{id}:bill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Print Bill: present the bill to the table (Table View: Billed) */
+        post: operations["postCommercialOrdersByIdBill"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/commercial/orders/{id}:charge": {
         parameters: {
             query?: never;
@@ -6666,6 +7197,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/commercial/orders/{id}:tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move Table: seat the order at other tables (move or join) */
+        post: operations["postCommercialOrdersByIdTables"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/commercial/orders/{id}:void": {
         parameters: {
             query?: never;
@@ -6731,6 +7279,40 @@ export interface paths {
         get: operations["getCommercialOutletsByIdMenu"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/outlets/{id}/tables": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Table View: the tables of an outlet with their state now */
+        get: operations["getCommercialOutletsByIdTables"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/outlets/{id}:quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Tax & service of an amount at the outlet now (cart estimate; nothing is stored) */
+        post: operations["postCommercialOutletsByIdQuote"];
         delete?: never;
         options?: never;
         head?: never;
@@ -8012,6 +8594,60 @@ export interface paths {
         put?: never;
         /** Open Shift (opening cash) */
         post: operations["postCommercialShiftsOpen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/table-reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Table Reservations */
+        get: operations["getCommercialTableReservations"];
+        put?: never;
+        /** Add Table Reservation */
+        post: operations["postCommercialTableReservations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/table-reservations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Table Reservation */
+        get: operations["getCommercialTableReservationsById"];
+        put?: never;
+        post?: never;
+        /** Delete Table Reservation (only when unused; otherwise set Inactive) */
+        delete: operations["deleteCommercialTableReservationsById"];
+        options?: never;
+        head?: never;
+        /** Edit Table Reservation */
+        patch: operations["patchCommercialTableReservationsById"];
+        trace?: never;
+    };
+    "/api/v1/commercial/table-reservations:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Table Reservations (CSV/XLSX) */
+        get: operations["getCommercialTableReservationsExport"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -9455,6 +10091,40 @@ export interface paths {
         put?: never;
         /** Merge two customer profiles */
         post: operations["postCrmCustomersMerge"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** CRM Dashboard Overview: members, engagement, membership, value and the action center */
+        get: operations["getCrmDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/crm/dashboard/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Members behind a CRM dashboard widget (expiring, at risk, high value) */
+        get: operations["getCrmDashboardMembers"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -12446,6 +13116,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ess/benefits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My benefits */
+        get: operations["getEssBenefits"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ess/clock-status": {
         parameters: {
             query?: never;
@@ -12583,6 +13270,58 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ess/loans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My loans and cash advances */
+        get: operations["getEssLoans"];
+        put?: never;
+        /** Request a loan or cash advance */
+        post: operations["postEssLoans"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/loans/{id}/statement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My loan statement */
+        get: operations["getEssLoansByIdStatement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/loans/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw my loan request */
+        post: operations["postEssLoansByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ess/me": {
         parameters: {
             query?: never;
@@ -12594,6 +13333,57 @@ export interface paths {
         get: operations["getEssMe"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/open-shift-claims/{id}:withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw my claim */
+        post: operations["postEssOpenShiftClaimsByIdWithdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/open-shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Open shifts of my unit I can claim */
+        get: operations["getEssOpenShifts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/open-shifts/{id}:claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Claim an open shift */
+        post: operations["postEssOpenShiftsByIdClaim"];
         delete?: never;
         options?: never;
         head?: never;
@@ -12750,6 +13540,75 @@ export interface paths {
         put?: never;
         /** Withdraw my data change */
         post: operations["postEssProfileChangesByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/reimbursement-files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload my receipt (multipart: file) */
+        post: operations["postEssReimbursementFiles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/reimbursements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My reimbursement claims */
+        get: operations["getEssReimbursements"];
+        put?: never;
+        /** Claim an expense */
+        post: operations["postEssReimbursements"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/reimbursements/{id}/receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My receipt */
+        get: operations["getEssReimbursementsByIdReceipt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/reimbursements/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw my claim */
+        post: operations["postEssReimbursementsByIdCancel"];
         delete?: never;
         options?: never;
         head?: never;
@@ -13048,6 +13907,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/ess/timesheets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My timesheets */
+        get: operations["getEssTimesheets"];
+        put?: never;
+        /** Create my timesheet (draft, or submitted) */
+        post: operations["postEssTimesheets"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/timesheets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My timesheet */
+        get: operations["getEssTimesheetsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit my draft or rejected timesheet */
+        patch: operations["patchEssTimesheetsById"];
+        trace?: never;
+    };
+    "/api/v1/ess/timesheets/{id}:submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit my timesheet for approval */
+        post: operations["postEssTimesheetsByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ess/timesheets/{id}:withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw my submitted timesheet (back to draft) */
+        post: operations["postEssTimesheetsByIdWithdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/ess/training": {
         parameters: {
             query?: never;
@@ -13267,6 +14196,23 @@ export interface paths {
         put?: never;
         /** Cancel Booking (Cancellation Policy, refund, waiver) */
         post: operations["postGolfBookingsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/bookings/{id}:check-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Golfer Check-out (settle and close the folio, release lockers, hand back bags) */
+        post: operations["postGolfBookingsByIdCheckOut"];
         delete?: never;
         options?: never;
         head?: never;
@@ -13847,6 +14793,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/charge-targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Golfers whose booking folio a POS order can be charged to */
+        get: operations["getGolfChargeTargets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/check-ins": {
         parameters: {
             query?: never;
@@ -13873,6 +14836,23 @@ export interface paths {
         };
         /** Find today's booking by member card, QR, code or name */
         get: operations["getGolfCheckInsLookup"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/check-outs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check-out desk: checked-in bookings with balance, lockers and bags */
+        get: operations["getGolfCheckOuts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -13979,6 +14959,23 @@ export interface paths {
         };
         /** Course map of a hole with GPS distances */
         get: operations["getGolfCourseMapsByHoleId"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/course-monitor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Course Monitor (Starter / Marshal): course map, flights in play, golf carts */
+        get: operations["getGolfCourseMonitor"];
         put?: never;
         post?: never;
         delete?: never;
@@ -14175,6 +15172,23 @@ export interface paths {
         put?: never;
         /** Create Flight */
         post: operations["postGolfFlights"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/flights/{id}/pace-interventions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Marshal: remind, warn, ask to skip a hole or let the flight behind play through (shown on the caddy tablet) */
+        post: operations["postGolfFlightsByIdPaceInterventions"];
         delete?: never;
         options?: never;
         head?: never;
@@ -15067,6 +16081,23 @@ export interface paths {
         put?: never;
         /** On-course F&B order charged to the booking folio */
         post: operations["postGolfOnCourseOrders"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/pace-interventions/{id}:acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Caddy tablet: the flight got the Marshal's message */
+        post: operations["postGolfPaceInterventionsByIdAcknowledge"];
         delete?: never;
         options?: never;
         head?: never;
@@ -17893,6 +18924,112 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/benefit-enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Benefit enrollments */
+        get: operations["getHrisBenefitEnrollments"];
+        put?: never;
+        /** Enroll an eligible employee in a benefit plan */
+        post: operations["postHrisBenefitEnrollments"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/benefit-enrollments/{id}:end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End an enrollment (last covered day; cancelled before it starts) */
+        post: operations["postHrisBenefitEnrollmentsByIdEnd"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/benefit-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Benefit Plans */
+        get: operations["getHrisBenefitPlans"];
+        put?: never;
+        /** Add Benefit Plan */
+        post: operations["postHrisBenefitPlans"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/benefit-plans/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Benefit Plan */
+        get: operations["getHrisBenefitPlansById"];
+        put?: never;
+        post?: never;
+        /** Delete Benefit Plan (only when unused; otherwise set Inactive) */
+        delete: operations["deleteHrisBenefitPlansById"];
+        options?: never;
+        head?: never;
+        /** Edit Benefit Plan */
+        patch: operations["patchHrisBenefitPlansById"];
+        trace?: never;
+    };
+    "/api/v1/hris/benefit-plans/{id}/eligibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Active employees checked against the plan's eligibility */
+        get: operations["getHrisBenefitPlansByIdEligibility"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/benefit-plans:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Benefit Plans (CSV/XLSX) */
+        get: operations["getHrisBenefitPlansExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/bonus-programmes": {
         parameters: {
             query?: never;
@@ -18449,6 +19586,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** HR Dashboard: headcount, attendance today, workforce coverage, movement, payroll status and the HR queues */
+        get: operations["getHrisDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/document-files": {
         parameters: {
             query?: never;
@@ -18609,6 +19763,74 @@ export interface paths {
         patch: operations["patchHrisEmployeeLoansById"];
         trace?: never;
     };
+    "/api/v1/hris/employee-loans/{id}/statement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Loan statement: payment, installments, repayments */
+        get: operations["getHrisEmployeeLoansByIdStatement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employee-loans/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a loan request not yet paid (a pending approval is withdrawn by its requester) */
+        post: operations["postHrisEmployeeLoansByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employee-loans/{id}:disburse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the payment of an approved loan / cash advance by Finance (active; payroll deducts the installments) */
+        post: operations["postHrisEmployeeLoansByIdDisburse"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employee-loans/{id}:repay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record a repayment outside payroll (cash returned, transfer) */
+        post: operations["postHrisEmployeeLoansByIdRepay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/employee-loans:export": {
         parameters: {
             query?: never;
@@ -18618,6 +19840,40 @@ export interface paths {
         };
         /** Export Employee Loans (CSV/XLSX) */
         get: operations["getHrisEmployeeLoansExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employee-loans:request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request a loan or cash advance for an employee (approval engine; approved at once without a workflow) */
+        post: operations["postHrisEmployeeLoansRequest"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employee-work-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Employees not plainly active today: draft, on leave, suspended, leaving, terminated */
+        get: operations["getHrisEmployeeWorkStatus"];
         put?: never;
         post?: never;
         delete?: never;
@@ -18799,6 +20055,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/employees/{id}:activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Hire a draft employee (employment history, onboarding) */
+        post: operations["postHrisEmployeesByIdActivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/employees/{id}:cancel-termination": {
         parameters: {
             query?: never;
@@ -18844,6 +20117,40 @@ export interface paths {
         put?: never;
         /** Promote or demote an employee (effective date) */
         post: operations["postHrisEmployeesByIdPromote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employees/{id}:reinstate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End the suspension of an employee */
+        post: operations["postHrisEmployeesByIdReinstate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/employees/{id}:suspend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Suspend an employee for a period (reason required) */
+        post: operations["postHrisEmployeesByIdSuspend"];
         delete?: never;
         options?: never;
         head?: never;
@@ -19751,6 +21058,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/loans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Loans and cash advances with the outstanding balance */
+        get: operations["getHrisLoans"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/migration-reconciliation-metrics": {
         parameters: {
             query?: never;
@@ -19954,6 +21278,74 @@ export interface paths {
         head?: never;
         /** Tick an onboarding checklist item */
         patch: operations["patchHrisOnboardingItemsById"];
+        trace?: never;
+    };
+    "/api/v1/hris/open-shift-claims/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a claim: the employee is assigned the shift */
+        post: operations["postHrisOpenShiftClaimsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/open-shift-claims/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a claim */
+        post: operations["postHrisOpenShiftClaimsByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/open-shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Open shifts with their claims */
+        get: operations["getHrisOpenShifts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/open-shifts/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Withdraw an open shift (pending claims declined) */
+        post: operations["postHrisOpenShiftsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/hris/org-chart": {
@@ -20668,6 +22060,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/payroll-runs/{id}/exceptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exception queue of the last calculation (errors block the submission for approval) */
+        get: operations["getHrisPayrollRunsByIdExceptions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/payroll-runs/{id}/journal": {
         parameters: {
             query?: never;
@@ -20830,6 +22239,23 @@ export interface paths {
         };
         /** Year-to-date payroll per employee (opening + OneClub runs) */
         get: operations["getHrisPayrollYtd"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/payslips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Payslips of an employee across the runs (employee profile) */
+        get: operations["getHrisPayslips"];
         put?: never;
         post?: never;
         delete?: never;
@@ -21040,6 +22466,163 @@ export interface paths {
         put?: never;
         /** Upload a candidate CV (multipart: file; PDF, DOC/DOCX, JPEG or PNG up to 10 MB) */
         post: operations["postHrisRecruitmentFiles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/reimbursement-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Reimbursement Categories */
+        get: operations["getHrisReimbursementCategories"];
+        put?: never;
+        /** Add Reimbursement Category */
+        post: operations["postHrisReimbursementCategories"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/reimbursement-categories/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View Reimbursement Category */
+        get: operations["getHrisReimbursementCategoriesById"];
+        put?: never;
+        post?: never;
+        /** Delete Reimbursement Category (only when unused; otherwise set Inactive) */
+        delete: operations["deleteHrisReimbursementCategoriesById"];
+        options?: never;
+        head?: never;
+        /** Edit Reimbursement Category */
+        patch: operations["patchHrisReimbursementCategoriesById"];
+        trace?: never;
+    };
+    "/api/v1/hris/reimbursement-categories:export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Reimbursement Categories (CSV/XLSX) */
+        get: operations["getHrisReimbursementCategoriesExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/reimbursement-files": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload a receipt (multipart: file; JPEG, PNG, WebP or PDF up to 10 MB) */
+        post: operations["postHrisReimbursementFiles"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/reimbursements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Reimbursement claims */
+        get: operations["getHrisReimbursements"];
+        put?: never;
+        /** Claim an expense for an employee (approval engine) */
+        post: operations["postHrisReimbursements"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/reimbursements/{id}/receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download the receipt of a claim */
+        get: operations["getHrisReimbursementsByIdReceipt"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/reimbursements/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a claim not yet sent to Finance */
+        post: operations["postHrisReimbursementsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/reimbursements/{id}:mark-paid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record the payment of a claim (Finance; journal) */
+        post: operations["postHrisReimbursementsByIdMarkPaid"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/reimbursements/{id}:send-to-finance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send an approved claim to Finance for payment */
+        post: operations["postHrisReimbursementsByIdSendToFinance"];
         delete?: never;
         options?: never;
         head?: never;
@@ -21462,6 +23045,23 @@ export interface paths {
         head?: never;
         /** Edit a shift schedule */
         patch: operations["patchHrisSchedulesById"];
+        trace?: never;
+    };
+    "/api/v1/hris/schedules/{id}/open-shifts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Post an open shift on a schedule */
+        post: operations["postHrisSchedulesByIdOpenShifts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/hris/schedules/{id}:apply-pattern": {
@@ -21967,6 +23567,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/hris/timesheets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Timesheets */
+        get: operations["getHrisTimesheets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/timesheets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Timesheet with entries, attendance and approval steps */
+        get: operations["getHrisTimesheetsById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/timesheets/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a timesheet (HR level, or on behalf of the manager) */
+        post: operations["postHrisTimesheetsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/timesheets/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject a timesheet (HR level, or on behalf of the manager) */
+        post: operations["postHrisTimesheetsByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/hris/training-matrix": {
         parameters: {
             query?: never;
@@ -22139,6 +23807,110 @@ export interface paths {
         get: operations["getHrisTrainingSessionsExport"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/workforce-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workforce plans */
+        get: operations["getHrisWorkforcePlans"];
+        put?: never;
+        /** Create a workforce plan of a department (draft) */
+        post: operations["postHrisWorkforcePlans"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/workforce-plans/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workforce plan with its lines */
+        get: operations["getHrisWorkforcePlansById"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Adjust a workforce plan (header, requirements) */
+        patch: operations["patchHrisWorkforcePlansById"];
+        trace?: never;
+    };
+    "/api/v1/hris/workforce-plans/{id}/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Planning result as CSV */
+        get: operations["getHrisWorkforcePlansByIdExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/workforce-plans/{id}/gap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Gap review: required, available and scheduled per day and line */
+        get: operations["getHrisWorkforcePlansByIdGap"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/workforce-plans/{id}:activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Activate a draft plan (shown on the HR Dashboard and the schedules) */
+        post: operations["postHrisWorkforcePlansByIdActivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/hris/workforce-plans/{id}:archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive a plan */
+        post: operations["postHrisWorkforcePlansByIdArchive"];
         delete?: never;
         options?: never;
         head?: never;
@@ -24157,6 +25929,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/bookings/{id}/caddy-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Caddy preference per player (No Caddy, Request, Preferred) */
+        put: operations["putMemberBookingsByIdCaddyRequests"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/bookings/{id}/journey": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My booking per player: caddy, check-in, scorecard */
+        get: operations["getMemberBookingsByIdJourney"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/bookings/{id}:cancel": {
         parameters: {
             query?: never;
@@ -24447,6 +26253,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/golf/caddies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Caddies I can prefer (rating, rounds, favourite) */
+        get: operations["getMemberGolfCaddies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/golf/caddies/{id}:favorite": {
         parameters: {
             query?: never;
@@ -24481,6 +26304,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/golf/course-guide": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Course Guide: Hole by Hole and my course handicap per tee */
+        get: operations["getMemberGolfCourseGuide"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/golf/courses": {
         parameters: {
             query?: never;
@@ -24490,6 +26330,23 @@ export interface paths {
         };
         /** Courses (Course Guide) */
         get: operations["getMemberGolfCourses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/guests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Guests (from my earlier bookings) */
+        get: operations["getMemberGolfGuests"];
         put?: never;
         post?: never;
         delete?: never;
@@ -24663,6 +26520,23 @@ export interface paths {
         put?: never;
         /** Withdraw my registration (until the policy cut-off) */
         post: operations["postMemberGolfMyTournamentsByIdWithdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Fee estimate of a tee time (Green Fee, Caddy, Golf Cart) */
+        get: operations["getMemberGolfQuote"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -25190,6 +27064,23 @@ export interface paths {
         put?: never;
         /** Join the loyalty programme (opt-in) */
         post: operations["postMemberLoyaltyJoin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/meeting-room-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Busy hours of each meeting room on a day */
+        get: operations["getMemberMeetingRoomAvailability"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -25779,6 +27670,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/stay-catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bungalow types, rate plans and meeting rooms I can book */
+        get: operations["getMemberStayCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/stays": {
         parameters: {
             query?: never;
@@ -25791,6 +27699,23 @@ export interface paths {
         put?: never;
         /** Book Bungalow, VIP Suite or Meeting Room */
         post: operations["postMemberStays"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/stays:quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Price my bungalow / meeting room booking (review step, nothing is kept) */
+        post: operations["postMemberStaysQuote"];
         delete?: never;
         options?: never;
         head?: never;
@@ -26922,6 +28847,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/platform/approvals/{id}/comments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Comment on a request, optionally with an attachment (JSON {body}, or multipart: body, file — JPEG, PNG, WebP or PDF up to 10 MB) */
+        post: operations["postPlatformApprovalsByIdComments"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/approvals/{id}/comments/{commentId}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download the attachment of a comment */
+        get: operations["getPlatformApprovalsByIdCommentsByCommentIdFile"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/approvals/{id}:approve": {
         parameters: {
             query?: never;
@@ -26967,6 +28926,23 @@ export interface paths {
         put?: never;
         /** Reject (reason required) */
         post: operations["postPlatformApprovalsByIdReject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/approvals/{id}:request-revision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Return to the requester for revision (reason required; back to draft, resubmitted with :submit) */
+        post: operations["postPlatformApprovalsByIdRequestRevision"];
         delete?: never;
         options?: never;
         head?: never;
@@ -27508,6 +29484,23 @@ export interface paths {
         get: operations["getPlatformHardwareProfiles"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload a photo of a master data record (multipart: file); allowed to whoever may create or edit the resource */
+        post: operations["postPlatformImages"];
         delete?: never;
         options?: never;
         head?: never;
@@ -29716,6 +31709,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/attendance:clock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Clock in / out from the login page (employee number, attendance PIN and GPS; rate limited) */
+        post: operations["postPublicAttendanceClock"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/availability": {
         parameters: {
             query?: never;
@@ -30533,6 +32543,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/membership-applications/{number}:pay-online": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pay the joining fee of my approved application online */
+        post: operations["postPublicMembershipApplicationsByNumberPayOnline"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/membership-applications/{number}:track": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Follow my membership application (number + e-mail) */
+        post: operations["postPublicMembershipApplicationsByNumberTrack"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/membership-types": {
         parameters: {
             query?: never;
@@ -30850,6 +32894,40 @@ export interface paths {
         get: operations["getPublicReciprocalClubs"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/sandbox-checkout/{number}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sandbox gateway: the hosted payment page of a mock payment */
+        get: operations["getPublicSandboxCheckoutByNumber"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/sandbox-checkout/{number}:complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sandbox gateway: pay (or fail) a mock payment, settled like a gateway webhook */
+        post: operations["postPublicSandboxCheckoutByNumberComplete"];
         delete?: never;
         options?: never;
         head?: never;
@@ -34397,6 +36475,11 @@ export interface components {
             rows: components["schemas"]["AgingRow"][];
             totals: components["schemas"]["AgingRow"];
         };
+        AgingBucket: {
+            amount: string;
+            key: string;
+            label: string;
+        };
         AgingRow: {
             /** Format: uuid */
             accountId?: string | null;
@@ -34586,6 +36669,21 @@ export interface components {
             screeningScore?: string;
             /** @enum {string} */
             stage: "screening" | "interview";
+        };
+        ApplicationTrack: {
+            applicationNo: string;
+            decisionReason?: string | null;
+            /** @description Joining fee + first period fee */
+            fee: string;
+            /** @description Set once the membership is active */
+            memberNo?: string | null;
+            /** @description Fee still to pay (approved applications) */
+            outstanding?: string | null;
+            packageName: string;
+            payment?: components["schemas"]["Payment"] | null;
+            /** @enum {string} */
+            status: "draft" | "pending" | "approved" | "rejected" | "cancelled" | "completed";
+            typeName: string;
         };
         AppliedPromotion: {
             code: string;
@@ -34798,8 +36896,15 @@ export interface components {
             bayId?: string | null;
         };
         AssignInput: {
-            /** Format: uuid */
-            unitId: string;
+            folioIds: string[];
+            /**
+             * Format: uuid
+             * @description null: unassign
+             */
+            ownerId?: string | null;
+        };
+        AssignResult: {
+            assigned: number;
         };
         Assignment: {
             /** Format: date-time */
@@ -35271,6 +37376,20 @@ export interface components {
         };
         AttendancePINResult: {
             pinSet: boolean;
+        };
+        AttendancePresenceRequest: {
+            accuracyMeters?: number | null;
+            /** @description Client UUID; a resubmission returns the recorded event */
+            clientEventId?: string;
+            /** @enum {string} */
+            direction: "in" | "out";
+            employeeNo: string;
+            latitude?: number | null;
+            longitude?: number | null;
+            /** @description Attendance PIN (6 digits, set in Employee Self Service) */
+            pin: string;
+            /** Format: uuid */
+            propertyId: string;
         };
         AttendanceProfile: {
             biometricConsent: boolean;
@@ -35786,6 +37905,23 @@ export interface components {
             /** @description Closing balance of the bank statement on that date */
             statementBalance: string;
             statementDate: string;
+        };
+        BankReconciliationStatus: {
+            /** Format: uuid */
+            bankAccountId: string;
+            bookBalance: string;
+            /** @description Statement date of the latest reconciliation */
+            lastStatementDate?: string | null;
+            /** @enum {string|null} */
+            lastStatus?: "in_progress" | "completed" | null;
+            name: string;
+            /**
+             * @description reconciled: latest completed within 35 days and nothing unmatched
+             * @enum {string}
+             */
+            status: "reconciled" | "in_progress" | "attention" | "never";
+            /** @description Imported statement lines not matched yet */
+            unmatchedLines: number;
         };
         BankResolveLineInput: {
             /**
@@ -36913,6 +39049,133 @@ export interface components {
                 [key: string]: components["schemas"]["Behavior"];
             };
         };
+        BenefitEligibility: {
+            eligible: boolean;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            enrolled: boolean;
+            reason?: string;
+        };
+        BenefitEndInput: {
+            effectiveTo: string;
+            reason: string;
+        };
+        BenefitEnrollment: {
+            benefitType: string;
+            /** @description Employee contributions deducted by posted payroll runs */
+            deducted: string;
+            /** Format: date-time */
+            effectiveFrom: string;
+            /** Format: date-time */
+            effectiveTo?: string | null;
+            employeeContribution: string;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            employerContribution: string;
+            endReason?: string | null;
+            /** Format: uuid */
+            id: string;
+            notes?: string | null;
+            planCode: string;
+            /** Format: uuid */
+            planId: string;
+            planName: string;
+            provider?: string | null;
+            /** @enum {string} */
+            status: "active" | "ended" | "cancelled";
+        };
+        BenefitEnrollmentInput: {
+            effectiveFrom: string;
+            /** @description Default: the plan */
+            employeeContribution?: string;
+            /** Format: uuid */
+            employeeId: string;
+            /** @description Default: the plan */
+            employerContribution?: string;
+            notes?: string;
+            /** Format: uuid */
+            planId: string;
+        };
+        BenefitPlan: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /**
+             * @description Type
+             * @enum {string|null}
+             */
+            benefitType?: "health_insurance" | "life_insurance" | "pension" | "allowance" | "facility" | "other" | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Description */
+            description?: string | null;
+            /** @description Eligible Worker Categories (empty = all) */
+            eligibleCategories?: ("regular" | "daily" | "intern")[] | null;
+            /** @description Eligible Employment Statuses (empty = all) */
+            eligibleStatuses?: ("probation" | "contract" | "permanent")[] | null;
+            /** @description Employee Contribution per Month (payroll deduction) */
+            employeeContribution?: string | null;
+            /** @description Employer Contribution per Month */
+            employerContribution?: string | null;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: int64
+             * @description Minimum Service (months)
+             */
+            minServiceMonths?: number | null;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Provider */
+            provider?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        BenefitPlanInput: {
+            /**
+             * @description Type
+             * @enum {string|null}
+             */
+            benefitType?: "health_insurance" | "life_insurance" | "pension" | "allowance" | "facility" | "other" | null;
+            /** @description Code */
+            code?: string;
+            /** @description Description */
+            description?: string | null;
+            /** @description Eligible Worker Categories (empty = all) */
+            eligibleCategories?: ("regular" | "daily" | "intern")[] | null;
+            /** @description Eligible Employment Statuses (empty = all) */
+            eligibleStatuses?: ("probation" | "contract" | "permanent")[] | null;
+            /** @description Employee Contribution per Month (payroll deduction) */
+            employeeContribution?: string | null;
+            /** @description Employer Contribution per Month */
+            employerContribution?: string | null;
+            /**
+             * Format: int64
+             * @description Minimum Service (months)
+             */
+            minServiceMonths?: number | null;
+            /** @description Name */
+            name?: string;
+            /** @description Provider */
+            provider?: string | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
         Bill: {
             billNo: number;
             /** Format: uuid */
@@ -36935,7 +39198,320 @@ export interface components {
             npwp?: string;
             phone?: string;
         };
+        BillingAdjustment: {
+            /** @description Change of the amount to invoice */
+            amount: string;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            approvedByName?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            createdByName?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "quantity" | "price" | "discount" | "service_charge" | "tax" | "revenue_allocation";
+            /** Format: uuid */
+            lineId: string;
+            lineLabel: string;
+            newValue: string;
+            previousValue: string;
+            reason: string;
+            reference?: string | null;
+        };
+        BillingAdjustmentInput: {
+            /** @description discount: the discount before tax; service_charge / tax: the new amount of the charge */
+            amount?: string;
+            /** @description revenue_allocation: the new business line */
+            businessLine?: string;
+            /** @enum {string} */
+            kind: "quantity" | "price" | "discount" | "service_charge" | "tax" | "revenue_allocation";
+            /** Format: uuid */
+            lineId: string;
+            /** @description quantity: the new quantity */
+            quantity?: string;
+            reason: string;
+            /** @description Supporting reference (approval memo, complaint, PO …) */
+            reference?: string;
+            /** @description revenue_allocation: the new revenue component */
+            revenueComponent?: string;
+            /** @description price: the new unit price */
+            unitPrice?: string;
+        };
+        BillingBreakdown: {
+            /** @description Deposits / advances held or applied */
+            deposit: string;
+            discount: string;
+            /** @description Net charges before discounts */
+            grossCharges: string;
+            payments: string;
+            serviceCharge: string;
+            tax: string;
+            toInvoice: string;
+            /** @description Already moved to an AR account (earlier invoices, charge to account) */
+            transferred: string;
+        };
+        BillingCheck: {
+            detail?: string;
+            key: string;
+            label: string;
+            ok: boolean;
+        };
+        BillingException: {
+            /** @enum {string} */
+            code: "missing_customer" | "missing_billing_entity" | "missing_billing_address" | "missing_tax_information" | "invalid_tax_configuration" | "pricing_mismatch" | "unresolved_folio" | "duplicate_charge" | "missing_supporting_document" | "invalid_payment_term" | "revenue_allocation_error" | "approval_required";
+            label: string;
+            message: string;
+            /** @enum {string} */
+            resolution: "fix" | "acknowledge" | "override" | "approve";
+            resolved?: components["schemas"]["BillingResolution"] | null;
+            /** @enum {string} */
+            severity: "high" | "medium";
+        };
+        BillingGenerateInput: {
+            folioIds: string[];
+            /** @description Send each invoice to the customer (e-mail / WhatsApp / in-app) once issued */
+            send?: boolean;
+        };
+        BillingGenerateResult: {
+            /** @description Why no invoice was generated */
+            error?: string;
+            /** Format: uuid */
+            folioId: string;
+            /** Format: uuid */
+            invoiceId?: string | null;
+            invoiceNumber?: string | null;
+            number: string;
+            sent: boolean;
+            total?: string;
+        };
+        BillingGenerateResults: {
+            generated: number;
+            results: components["schemas"]["BillingGenerateResult"][];
+            skipped: number;
+        };
+        BillingGroupSummary: {
+            exceptions: number;
+            invoiced: number;
+            key: string;
+            label: string;
+            pending: number;
+            ready: number;
+            readyAmount: string;
+            /** @description To invoice over pending, ready and exception folios */
+            totalBillable: string;
+        };
+        BillingHistoryEntry: {
+            actor?: string | null;
+            amount?: string | null;
+            /** Format: date-time */
+            at: string;
+            kind: string;
+            /**
+             * Format: uuid
+             * @description Invoice of invoice entries
+             */
+            ref?: string | null;
+            summary: string;
+        };
+        BillingItem: {
+            /** Format: date-time */
+            approvedAt?: string | null;
+            /** @description Who the invoice is addressed to; empty when nobody can be billed */
+            billTo: string;
+            /** @enum {string} */
+            billToKind: "company" | "customer" | "none";
+            /** @description Open exceptions that stop invoicing */
+            blocking: number;
+            /** @description No blocking exception: Generate Invoice is allowed */
+            canInvoice: boolean;
+            charges: string;
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            /** @description Deposits / advances held or applied */
+            deposit: string;
+            /**
+             * Format: date-time
+             * @description When the folio became due for billing (closed, marked ready, or opened)
+             */
+            dueSince: string;
+            exceptions: components["schemas"]["BillingException"][];
+            /** Format: uuid */
+            folioId: string;
+            /** @enum {string} */
+            folioStatus: "open" | "closed" | "cancelled";
+            /** @enum {string} */
+            group: "golf" | "resort" | "events" | "membership" | "sport" | "fnb" | "other";
+            holderName: string;
+            /** Format: uuid */
+            invoiceId?: string | null;
+            invoiceNumber?: string | null;
+            /** @enum {string|null} */
+            invoiceStatus?: "draft" | "issued" | "partially_paid" | "paid" | "overdue" | null;
+            markedReady: boolean;
+            number: string;
+            /** @description What the customer still owes on the invoice */
+            outstanding?: string | null;
+            /** Format: uuid */
+            ownerId?: string | null;
+            ownerName?: string | null;
+            /** @description Payments received on the folio and on its invoice (not the transfer to AR) */
+            paid: string;
+            /** @description A billing record exists (Prepare Billing was saved) */
+            prepared: boolean;
+            /** Format: uuid */
+            sourceId?: string | null;
+            sourceRef?: string | null;
+            sourceType: string;
+            /** @enum {string} */
+            status: "pending_billing" | "ready_to_invoice" | "exception" | "invoiced" | "cancelled" | "settled";
+            /** @description Payment term of the invoice (billing record or Credit Policies default) */
+            termsDays: number;
+            /** @description Gross charges less deposits, payments and AR transfers */
+            toInvoice: string;
+        };
+        BillingLine: {
+            businessLine: string;
+            chargeType: string;
+            description: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            invoiceId?: string | null;
+            netAmount: string;
+            /** Format: date-time */
+            postedAt: string;
+            quantity: string;
+            /** Format: uuid */
+            referenceId?: string | null;
+            referenceType?: string | null;
+            revenueComponent: string;
+            serviceAmount: string;
+            taxAmount: string;
+            total: string;
+            unitPrice: string;
+        };
+        BillingNoteInput: {
+            body: string;
+        };
+        BillingOwner: {
+            fullName: string;
+            /** Format: uuid */
+            id: string;
+        };
+        BillingQueue: {
+            /** @description Folios per status over every business (before the status filter) */
+            counts: {
+                [key: string]: number;
+            };
+            groups: components["schemas"]["BillingGroupSummary"][];
+            /** @description One page of the filtered folios */
+            items: components["schemas"]["BillingItem"][];
+            nextCursor?: string;
+            /** @description Folios matching the filters */
+            total: number;
+        };
         BillingReasonRequest: {
+            reason: string;
+        };
+        BillingRecord: {
+            approvedAmount?: string | null;
+            /** Format: date-time */
+            approvedAt?: string | null;
+            approvedByName?: string | null;
+            attachmentFileIds: string[];
+            billToAddress?: string | null;
+            billToEmail?: string | null;
+            billToName?: string | null;
+            billToNpwp?: string | null;
+            billToPhone?: string | null;
+            billingRef?: string | null;
+            contractRef?: string | null;
+            /**
+             * Format: uuid
+             * @description Bill to the company
+             */
+            corporateAccountId?: string | null;
+            /**
+             * Format: uuid
+             * @description Bill to another customer than the folio's
+             */
+            customerId?: string | null;
+            customerPo?: string | null;
+            internalNotes?: string | null;
+            /** @description Printed on the invoice */
+            notes?: string | null;
+            /** Format: date-time */
+            readyAt?: string | null;
+            readyByName?: string | null;
+            /** @description null: Credit Policies default */
+            termsDays?: number | null;
+            version: number;
+        };
+        BillingRecordDetail: {
+            adjustments: components["schemas"]["BillingAdjustment"][];
+            /**
+             * @description Approval level the amount needs
+             * @enum {string}
+             */
+            approval: "" | "manager" | "executive";
+            breakdown: components["schemas"]["BillingBreakdown"];
+            /** @description Invoice date if generated today */
+            businessDate: string;
+            checks: components["schemas"]["BillingCheck"][];
+            currency: string;
+            deposits: components["schemas"]["Deposit"][];
+            history: components["schemas"]["BillingHistoryEntry"][];
+            item: components["schemas"]["BillingItem"];
+            lines: components["schemas"]["BillingLine"][];
+            record: components["schemas"]["BillingRecord"];
+        };
+        BillingRecordInput: {
+            attachmentFileIds?: string[];
+            billToAddress?: string;
+            billToEmail?: string;
+            billToName?: string;
+            billToNpwp?: string;
+            billToPhone?: string;
+            billingRef?: string;
+            contractRef?: string;
+            /**
+             * Format: uuid
+             * @description Bill to the company
+             */
+            corporateAccountId?: string | null;
+            /**
+             * Format: uuid
+             * @description Bill to another customer than the folio's
+             */
+            customerId?: string | null;
+            customerPo?: string;
+            internalNotes?: string;
+            notes?: string;
+            /** @description null: Credit Policies default */
+            termsDays?: number | null;
+        };
+        BillingResolution: {
+            /** Format: date-time */
+            at: string;
+            /** Format: uuid */
+            by: string;
+            byName: string;
+            reason: string;
+        };
+        BillingSplitInput: {
+            /** @description Amount moved to the other party (or percent) */
+            amount?: string;
+            /** Format: uuid */
+            corporateAccountId?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            percent?: string;
             reason: string;
         };
         Block: {
@@ -37145,6 +39721,11 @@ export interface components {
             channel: "member_app" | "website" | "back_office" | "walk_in" | "import";
             /** Format: date-time */
             checkedInAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Golfer Check-out: settled and left the club
+             */
+            checkedOutAt?: string | null;
             code: string;
             /** Format: date-time */
             completedAt?: string | null;
@@ -37303,6 +39884,12 @@ export interface components {
             sourceType?: string;
             /** @description Local start date YYYY-MM-DD */
             startDate: string;
+        };
+        BookingJourney: {
+            /** Format: uuid */
+            bookingId: string;
+            caddy: components["schemas"]["CaddyPolicy"];
+            players: components["schemas"]["PlayerJourney"][];
         };
         BookingPayment: {
             /** @description Default: the down payment of the schedule, else the total */
@@ -37512,6 +40099,18 @@ export interface components {
             /** @enum {string} */
             source: "sale" | "prepaid" | "complimentary";
         };
+        BudgetLine: {
+            actual: string;
+            budget: string;
+            /** @description The variance goes the right way for this line */
+            favorable: boolean;
+            key: string;
+            label: string;
+            /** @description Flow line of a month in progress: the budget is the month's target × days elapsed ÷ days of the month */
+            prorated: boolean;
+            /** @description (actual − budget) ÷ budget */
+            variance?: string | null;
+        };
         BundleItem: {
             /** Format: uuid */
             productId: string;
@@ -37681,6 +40280,12 @@ export interface components {
             status: "open" | "closed";
             summary: Record<string, never>;
         };
+        BusySlot: {
+            /** Format: date-time */
+            end: string;
+            /** Format: date-time */
+            start: string;
+        };
         CLVAnalytics: {
             asOf?: string | null;
             avgClv: string;
@@ -37700,6 +40305,84 @@ export interface components {
         COATemplateInput: {
             /** @description First day posted by OneClub (go-live, normally the first day of a month) */
             cutOverDate: string;
+        };
+        CRMDashboard: {
+            acquisition: {
+                newCustomers: number;
+                /** @description Lead source of the new customers; direct when they came without a lead */
+                sources: components["schemas"]["DashCount"][];
+            };
+            /** @description Member activities in the period per kind */
+            activity: components["schemas"]["DashCount"][];
+            atRisk: {
+                declining: number;
+                expiring: number;
+                members: components["schemas"]["DashMember"][];
+                noVisit: number;
+                total: number;
+            };
+            byStatus: components["schemas"]["DashCount"][];
+            byType: components["schemas"]["DashCount"][];
+            /** @description Active members per RFM group (no_score when not scored yet) */
+            engagement: components["schemas"]["DashCount"][];
+            expiry: {
+                d30: number;
+                d60: number;
+                d90: number;
+            };
+            /** @description Mine */
+            followUps: {
+                dueToday: number;
+                items: components["schemas"]["DashFollowUp"][];
+                overdue: number;
+                upcoming: number;
+            };
+            /** Format: date-time */
+            from: string;
+            /** @description Last 12 months up to the period end */
+            growth: components["schemas"]["DashGrowth"][];
+            guests: {
+                /** @description Members joined in the period who played as a member's guest before */
+                converted: number;
+                repeat: number;
+                topReferrers: components["schemas"]["DashReferrer"][];
+                unique: number;
+                visits: number;
+            };
+            highValue: components["schemas"]["DashMember"][];
+            kpis: components["schemas"]["DashKPIs"];
+            /** @description This month */
+            renewal: {
+                due: number;
+                expired: number;
+                pending: number;
+                renewed: number;
+            };
+            /** @description Active members: expiring, active, occasional, inactive */
+            segments: components["schemas"]["DashCount"][];
+            thresholds: {
+                activeDays: number;
+                expiringDays: number;
+                occasionalDays: number;
+            };
+            /** Format: date-time */
+            to: string;
+            /** Format: date-time */
+            today: string;
+            /** @description Membership types (filter options) */
+            types: string[];
+            upcoming: {
+                /** @description Members, next 30 days */
+                birthdays: number;
+                /** @description Event registrations of members, next 30 days */
+                events: number;
+                /** @description Next 30 days */
+                expiring: number;
+                /** @description Open follow-ups due in the next 7 days */
+                followUps: number;
+                /** @description Tee times of VIPs, next 7 days */
+                vipArrivals: number;
+            };
         };
         Caddy: {
             /** Format: date-time */
@@ -37925,6 +40608,11 @@ export interface components {
             /** @description Caddy fee of finished rounds + non-cash tips */
             recorded: string;
         };
+        CaddyPolicy: {
+            allowRequest: boolean;
+            mandatory: boolean;
+            playersPerCaddy: number;
+        };
         CaddyProfile: {
             /** Format: uuid */
             caddyId: string;
@@ -37977,6 +40665,20 @@ export interface components {
             customerId?: string | null;
             /** @description 1–5 */
             rating: number;
+        };
+        CaddyRequestInput: {
+            /**
+             * Format: uuid
+             * @description Preferred caddy
+             */
+            caddyId?: string | null;
+            /** Format: uuid */
+            playerId: string;
+            /** @enum {string} */
+            preference: "none" | "any" | "preferred";
+        };
+        CaddyRequestsInput: {
+            players: components["schemas"]["CaddyRequestInput"][];
         };
         CaddyTip: {
             amount: string;
@@ -38501,6 +41203,12 @@ export interface components {
             inspections: components["schemas"]["Inspection"][];
             maintenance: components["schemas"]["Maintenance"][];
         };
+        CartPolicy: {
+            afterReturn: string;
+            mandatory: boolean;
+            playersPerCart: number;
+            singleRiderAllowed: boolean;
+        };
         CartProfile: {
             batteryPercent?: number | null;
             /** Format: uuid */
@@ -38523,6 +41231,22 @@ export interface components {
              */
             golfCartId?: string | null;
             reason: string;
+        };
+        CashBalance: {
+            /** Format: uuid */
+            accountId: string;
+            balance: string;
+            code: string;
+            /** @enum {string} */
+            kind: "cash" | "bank";
+            name: string;
+        };
+        CashFlowMonth: {
+            cashIn: string;
+            cashOut: string;
+            /** @description YYYY-MM */
+            month: string;
+            net: string;
         };
         CashMovementInput: {
             amount: string;
@@ -38615,6 +41339,17 @@ export interface components {
             totals: components["schemas"]["MethodTotal"][];
             variance?: string | null;
         };
+        CatalogBungalowType: {
+            bedrooms: number;
+            code: string;
+            description?: string | null;
+            facilities: string[];
+            /** Format: uuid */
+            id: string;
+            maxAdults: number;
+            maxChildren: number;
+            name: string;
+        };
         CatalogEntry: {
             category: string;
             code: string;
@@ -38627,6 +41362,22 @@ export interface components {
             propertyScoped: boolean;
             /** @description 0 = code default */
             version: number;
+        };
+        CatalogMeetingRoom: {
+            code: string;
+            facilities: string[];
+            /** Format: uuid */
+            id: string;
+            layouts: components["schemas"]["StayRoomLayout"][];
+            name: string;
+            sizeSqm?: string | null;
+        };
+        CatalogRatePlan: {
+            code: string;
+            description?: string | null;
+            includesBreakfast: boolean;
+            minNights: number;
+            name: string;
         };
         CertificationCheck: {
             gaps: components["schemas"]["CertificationGap"][];
@@ -38717,6 +41468,22 @@ export interface components {
              */
             folioId: string;
         };
+        ChargeTarget: {
+            bagTag?: string | null;
+            bookingCode: string;
+            /** Format: uuid */
+            bookingId: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            flightNo: number;
+            /** @enum {string} */
+            flightStatus: "checked_in" | "ready" | "on_hold" | "in_play" | "completed";
+            /** Format: uuid */
+            folioId: string;
+            localTime: string;
+            locker?: string | null;
+            playerName: string;
+        };
         ChargeToAccountInput: {
             /** Format: uuid */
             accountId?: string | null;
@@ -38769,12 +41536,48 @@ export interface components {
             checkedIn: string[];
             flightsReady: string[];
         };
+        CheckOutEntry: {
+            /** @description Bag tags not handed back yet */
+            bags: string[];
+            balance: string;
+            /** Format: uuid */
+            bookingId: string;
+            charges: string;
+            /** Format: date-time */
+            checkedOutAt?: string | null;
+            code: string;
+            contactName: string;
+            courseName: string;
+            /** Format: uuid */
+            folioId?: string | null;
+            /** @description Flights still on the course */
+            inPlay: number;
+            localTime: string;
+            /** @description Daily lockers still in use */
+            lockers: string[];
+            /** @description The balance can be charged to a member account */
+            memberAccount: boolean;
+            paymentMode?: string | null;
+            payments: string;
+            players: string[];
+            /** @enum {string} */
+            status: "checked_in" | "completed";
+        };
         CheckOutInput: {
             /**
              * Format: date-time
              * @description Actual departure / end; default now
              */
             at?: string | null;
+        };
+        CheckOutRequest: {
+            /**
+             * @description Pays the outstanding balance first; empty when nothing is due
+             * @enum {string}
+             */
+            methodType?: "cash" | "card" | "qris" | "bank_transfer" | "member_account";
+            /** @description EDC approval code, QRIS or transfer reference */
+            reference?: string;
         };
         CheckResult: {
             item: string;
@@ -40274,6 +43077,9 @@ export interface components {
             result?: Record<string, never>;
             success: boolean;
         };
+        CommentRequest: {
+            body: string;
+        };
         CommercialPackage: {
             /**
              * @description Revenue Allocation
@@ -41287,6 +44093,12 @@ export interface components {
             /** Format: uuid */
             warehouseId: string;
         };
+        ConsolidateInput: {
+            folioIds: string[];
+            send?: boolean;
+            /** @description Default: the first folio's billing, or Credit Policies */
+            termsDays?: number | null;
+        };
         ConsumeInput: {
             /** Format: uuid */
             bookingComponentId: string;
@@ -41914,6 +44726,8 @@ export interface components {
             holeId?: string | null;
             /** Format: uuid */
             id: string;
+            /** @description Picture (course map, hole layout) */
+            imageUrl?: string | null;
             /** @description Name */
             name: string;
             /** Format: uuid */
@@ -41951,6 +44765,8 @@ export interface components {
              * @description Hole
              */
             holeId?: string | null;
+            /** @description Picture (course map, hole layout) */
+            imageUrl?: string | null;
             /** @description Name */
             name?: string;
             /**
@@ -41958,6 +44774,23 @@ export interface components {
              * @enum {string|null}
              */
             status?: "active" | "inactive" | null;
+        };
+        CourseGuide: {
+            code: string;
+            /** Format: uuid */
+            courseId: string;
+            description?: string | null;
+            guide?: string | null;
+            /** @description Of the signed-in member */
+            handicapIndex?: string | null;
+            holes: components["schemas"]["GuideHole"][];
+            lengthMeters?: number | null;
+            /** @description Overview course map */
+            mapUrl?: string | null;
+            name: string;
+            par: number;
+            /** @description Longest first */
+            teeSets: components["schemas"]["GuideTee"][];
         };
         CourseInfo: {
             assets: components["schemas"]["AssetInfo"][];
@@ -42013,8 +44846,30 @@ export interface components {
             assets: components["schemas"]["AssetInfo"][];
             /** @description With lat & lng: distance to the green, hazards and POIs */
             distances: components["schemas"]["Distance"][];
+            greenX?: number | null;
+            greenY?: number | null;
+            /** @description With lat & lng inside the course map */
+            hereX?: number | null;
+            hereY?: number | null;
             /** Format: uuid */
             holeId: string;
+            overviewUrl?: string | null;
+        };
+        CourseMonitor: {
+            /** Format: uuid */
+            courseId: string;
+            courseName: string;
+            /** @description In play, most behind first */
+            flights: components["schemas"]["MonitorFlight"][];
+            /** Format: date-time */
+            generatedAt: string;
+            golfCarts: components["schemas"]["MonitorCart"][];
+            holes: components["schemas"]["MonitorHole"][];
+            inPlay: number;
+            /** @description Today's log, latest first */
+            interventions: components["schemas"]["PaceIntervention"][];
+            mapUrl?: string | null;
+            slow: number;
         };
         CourseOrderInput: {
             /**
@@ -42311,6 +45166,10 @@ export interface components {
             /** Format: uuid */
             userId?: string | null;
         };
+        CrmFollowUpInput: {
+            close?: boolean;
+            note: string;
+        };
         CrmPreference: {
             category: string;
             /** Format: date-time */
@@ -42448,6 +45307,7 @@ export interface components {
             preferences: components["schemas"]["OverviewPreference"][];
             profile: components["schemas"]["Profile"];
             recentHistory: components["schemas"]["HistoryItem"][];
+            relationship?: components["schemas"]["OverviewRelationship"] | null;
             relationships: components["schemas"]["OverviewRelation"][];
             /** @description golf, sportclub, stay, pos, vouchers, payments … contributed by each business line */
             sections: Record<string, never>;
@@ -42858,6 +45718,79 @@ export interface components {
             date: string;
             total: string;
         };
+        DashCount: {
+            count: number;
+            key: string;
+        };
+        DashFollowUp: {
+            /** Format: uuid */
+            customerId?: string | null;
+            customerName?: string | null;
+            /** Format: date-time */
+            dueAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            subject: string;
+            type: string;
+        };
+        DashGrowth: {
+            cancelled: number;
+            expired: number;
+            /** @description Members at the end of the month */
+            members: number;
+            /** @description YYYY-MM */
+            month: string;
+            /** @description New − expired − cancelled */
+            net: number;
+            new: number;
+            renewed: number;
+        };
+        DashKPIs: {
+            /** @description Active members with an activity in the period */
+            activeMembers: number;
+            /** @description Average lifetime value of active members (RFM store) */
+            avgClv: number;
+            /** @description Active memberships ending within the expiring threshold */
+            expiring: number;
+            /** @description Active members without an activity in the period */
+            inactiveMembers: number;
+            /** @description Joined in the period */
+            newMembers: number;
+            /** @description Joined in the previous period of the same length */
+            newMembersPrev: number;
+            /** @description Non-member customers who transacted in the period */
+            nonMembers: number;
+            /** @description Renewed ÷ (renewed + expired + cancelled) over the last 12 months */
+            retention?: number | null;
+            /** @description Active members */
+            totalMembers: number;
+        };
+        DashMember: {
+            action?: string;
+            clv: number;
+            code: string;
+            /** Format: uuid */
+            customerId: string;
+            /** Format: date-time */
+            endsOn?: string | null;
+            /** Format: date-time */
+            lastVisit?: string | null;
+            name: string;
+            /** @enum {string} */
+            reason?: "no_visit" | "declining" | "expiring";
+            recencyDays?: number | null;
+            typeName: string;
+            /** @description Spend (RFM monetary) */
+            value: number;
+            /** @description Visit days (RFM frequency) */
+            visits: number;
+        };
+        DashReferrer: {
+            /** Format: uuid */
+            customerId: string;
+            guests: number;
+            name: string;
+        };
         Dashboard: {
             code: string;
             /** Format: date-time */
@@ -43250,6 +46183,76 @@ export interface components {
             /** @enum {string|null} */
             status?: "active" | "inactive" | null;
         };
+        DiningTable: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Area */
+            area?: string | null;
+            /** @description Table */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Outlet
+             */
+            outletId: string;
+            /** @description Position X (%) */
+            posX?: string | null;
+            /** @description Position Y (%) */
+            posY?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: int64
+             * @description Seats
+             */
+            seats?: number | null;
+            /**
+             * @description Shape
+             * @enum {string|null}
+             */
+            shape?: "square" | "round" | "rect" | "seat" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        DiningTableInput: {
+            /** @description Area */
+            area?: string | null;
+            /** @description Table */
+            code?: string;
+            /**
+             * Format: uuid
+             * @description Outlet
+             */
+            outletId?: string;
+            /** @description Position X (%) */
+            posX?: string | null;
+            /** @description Position Y (%) */
+            posY?: string | null;
+            /**
+             * Format: int64
+             * @description Seats
+             */
+            seats?: number | null;
+            /**
+             * @description Shape
+             * @enum {string|null}
+             */
+            shape?: "square" | "round" | "rect" | "seat" | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
         DiscardRequest: {
             reason: string;
         };
@@ -43331,10 +46334,10 @@ export interface components {
             /** @enum {string} */
             status: "pending" | "verified" | "active" | "failed";
             /**
-             * @description Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces
+             * @description Staff App: dashboard, cashier, caddy, kitchen or presence (Attendance Form); backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces
              * @enum {string}
              */
-            surface: "web" | "member" | "dashboard" | "cashier" | "caddy" | "kitchen" | "api" | "backoffice" | "ops" | "platform-admin";
+            surface: "web" | "member" | "dashboard" | "cashier" | "caddy" | "kitchen" | "presence" | "api" | "backoffice" | "ops" | "platform-admin";
             /** @description DNS TXT record name to create */
             verificationRecordName: string;
             verificationRecordValue: string;
@@ -43344,10 +46347,10 @@ export interface components {
         DomainRequest: {
             hostname: string;
             /**
-             * @description Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces
+             * @description Staff App: dashboard, cashier, caddy, kitchen or presence (Attendance Form); backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces
              * @enum {string}
              */
-            surface: "web" | "member" | "dashboard" | "cashier" | "caddy" | "kitchen" | "api" | "backoffice" | "ops" | "platform-admin";
+            surface: "web" | "member" | "dashboard" | "cashier" | "caddy" | "kitchen" | "presence" | "api" | "backoffice" | "ops" | "platform-admin";
         };
         DrivingRangeBay: {
             /** Format: date-time */
@@ -43742,6 +46745,10 @@ export interface components {
             /** Format: uuid */
             userId: string;
         };
+        EmployeeActivateRequest: {
+            /** @description Default: the join date of the draft */
+            joinDate?: string;
+        };
         EmployeeBankAccount: {
             /** @description Account Name */
             accountName: string;
@@ -43981,6 +46988,12 @@ export interface components {
             scheduled: components["schemas"]["EmploymentChange"][];
             serviceMonths: number;
             supervisorName?: string | null;
+            /**
+             * @description Work status today (HRIS phase B)
+             * @enum {string}
+             */
+            workStatus: "active" | "draft" | "on_leave" | "suspended" | "leaving" | "terminated" | "inactive";
+            workStatusNote?: components["schemas"]["WorkStatus"] | null;
         };
         EmployeeDocument: {
             confidential: boolean;
@@ -44212,6 +47225,42 @@ export interface components {
             status?: "active" | "inactive" | null;
             /** @description Letter Title */
             title?: string;
+        };
+        EmployeeLoan: {
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt?: string | null;
+            decisionNote?: string | null;
+            /** Format: date-time */
+            disbursedOn?: string | null;
+            disbursementMethod?: string | null;
+            disbursementRef?: string | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            /** Format: uuid */
+            id: string;
+            installment: string;
+            /** @description Remaining installments (tenor left) */
+            installments: number;
+            /** @enum {string} */
+            loanType: "loan" | "cash_advance";
+            number?: string | null;
+            orgUnitName?: string | null;
+            outstanding: string;
+            principal: string;
+            purpose?: string | null;
+            reference?: string | null;
+            repaid: string;
+            /** @enum {string} */
+            requestSource: "hr" | "ess";
+            startPeriod: string;
+            /** @enum {string} */
+            status: "submitted" | "approved" | "rejected" | "active" | "settled" | "cancelled";
         };
         EmployeeOrgUnit: {
             /** Format: date-time */
@@ -44518,15 +47567,27 @@ export interface components {
             /** @description Religion */
             religion?: string | null;
             /**
-             * @description Status
+             * @description Status (draft = not yet hired)
              * @enum {string|null}
              */
-            status?: "active" | "inactive" | null;
+            status?: "active" | "draft" | "inactive" | null;
             /**
              * Format: uuid
              * @description Supervisor
              */
             supervisorId?: string | null;
+            /**
+             * Format: date
+             * @description Suspended From
+             */
+            suspendedFrom?: string | null;
+            /**
+             * Format: date
+             * @description Suspended Until
+             */
+            suspendedUntil?: string | null;
+            /** @description Suspension Reason */
+            suspensionReason?: string | null;
             /**
              * Format: date
              * @description Leaves On
@@ -44645,6 +47706,11 @@ export interface components {
             /** @description Religion */
             religion?: string | null;
             /**
+             * @description Status (draft = not yet hired)
+             * @enum {string|null}
+             */
+            status?: "active" | "draft" | "inactive" | null;
+            /**
              * Format: uuid
              * @description Supervisor
              */
@@ -44678,6 +47744,13 @@ export interface components {
             scheduledDays: number;
             /** @enum {string} */
             status: "approved" | "paid";
+        };
+        EmployeeSuspendRequest: {
+            /** @description First day (YYYY-MM-DD) */
+            from: string;
+            reason: string;
+            /** @description Last day; empty = until reinstated */
+            until?: string;
         };
         EmployeeTrainingProgram: {
             /** Format: date-time */
@@ -46078,6 +49151,14 @@ export interface components {
             target?: string | null;
             value?: string | null;
         };
+        ExpenseShare: {
+            /** Format: uuid */
+            accountId?: string | null;
+            amount: string;
+            name: string;
+            /** @description Ratio of the total expenses */
+            share: string;
+        };
         ExperienceConsentInput: {
             /** @enum {string} */
             consent: "granted" | "withdrawn";
@@ -46490,7 +49571,7 @@ export interface components {
             refPath?: string;
             required: boolean;
             /** @enum {string} */
-            type: "text" | "textarea" | "number" | "decimal" | "boolean" | "date" | "datetime" | "reference" | "select" | "email" | "json" | "time" | "intlist" | "list" | "jsonlist";
+            type: "text" | "textarea" | "number" | "decimal" | "boolean" | "date" | "datetime" | "reference" | "select" | "email" | "json" | "time" | "intlist" | "list" | "jsonlist" | "image";
         };
         File: {
             contentType: string;
@@ -46504,6 +49585,45 @@ export interface components {
             purpose: "branding" | "export" | "import" | "attachment";
             sizeBytes: number;
             url: string;
+        };
+        FinanceDashboard: {
+            banks: components["schemas"]["BankReconciliationStatus"][];
+            /** @description The property has an accounting book (Accounting → Setup) */
+            bookOpen: boolean;
+            /** @description Empty without an approved KPI target plan for the year */
+            budget: components["schemas"]["BudgetLine"][];
+            cash: components["schemas"]["CashBalance"][];
+            /** @description Last six months up to the period */
+            cashFlow: components["schemas"]["CashFlowMonth"][];
+            expenses: components["schemas"]["ExpenseShare"][];
+            from: string;
+            /** @description Overdue, due today, this week, this month, later */
+            payableDue: components["schemas"]["AgingBucket"][];
+            /** @description By days past due */
+            receivableAging: components["schemas"]["AgingBucket"][];
+            summary: components["schemas"]["FinanceSummary"];
+            to: string;
+            topReceivables: components["schemas"]["OpenItem"][];
+            upcomingPayables: components["schemas"]["OpenItem"][];
+        };
+        FinanceSummary: {
+            /** @description Cash and bank balances at the end of the period */
+            cashBank: string;
+            compareFrom: string;
+            compareTo: string;
+            /** @description Cost of sales, operating and other expenses of the period */
+            expenses: string;
+            expensesChange?: string | null;
+            /** @description Revenue − expenses (= net income of the P&L) */
+            netProfit: string;
+            netProfitChange?: string | null;
+            /** @description Open supplier items at the end of the period */
+            payables: string;
+            /** @description Open billing invoices at the end of the period */
+            receivables: string;
+            /** @description Revenue and other income of the period */
+            revenue: string;
+            revenueChange?: string | null;
         };
         FinancialPeriod: {
             canClose: boolean;
@@ -46651,12 +49771,111 @@ export interface components {
             /** Format: date-time */
             voidedAt?: string | null;
         };
+        FollowUp: {
+            /** @enum {string} */
+            action: "reminder" | "call" | "email" | "meeting" | "promise_to_pay" | "dispute" | "note";
+            /** Format: date-time */
+            createdAt: string;
+            createdByName?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            invoiceId?: string | null;
+            invoiceNumber?: string | null;
+            nextFollowUp?: string | null;
+            notes?: string | null;
+            /** Format: uuid */
+            partyId: string;
+            partyName: string;
+            /** @enum {string} */
+            partyType: "customer" | "supplier";
+            promisedAmount?: string | null;
+            promisedDate?: string | null;
+            /** Format: uuid */
+            responsibleId?: string | null;
+            responsibleName?: string | null;
+        };
         FollowUpCancelInput: {
             reason: string;
         };
         FollowUpInput: {
-            close?: boolean;
-            note: string;
+            /** @enum {string} */
+            action: "reminder" | "call" | "email" | "meeting" | "promise_to_pay" | "dispute" | "note";
+            /**
+             * Format: uuid
+             * @description Invoice or supplier item the follow-up is about
+             */
+            invoiceId?: string | null;
+            invoiceNumber?: string;
+            /** @description YYYY-MM-DD */
+            nextFollowUp?: string;
+            notes?: string;
+            /** @description Name shown in the log (the bill-to or supplier name) */
+            partyName: string;
+            promisedAmount?: string;
+            /** @description promise_to_pay: date the customer promised */
+            promisedDate?: string;
+            /**
+             * Format: uuid
+             * @description Default: the current user
+             */
+            responsibleId?: string | null;
+        };
+        FollowUpOpenItem: {
+            amount: string;
+            daysOverdue: number;
+            dueDate: string;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** @enum {string} */
+            status: "overdue" | "due_today" | "due_soon" | "current";
+        };
+        FollowUpParty: {
+            followUps: components["schemas"]["FollowUp"][];
+            openItems: components["schemas"]["FollowUpOpenItem"][];
+            /** Format: uuid */
+            partyId: string;
+            partyName: string;
+            /** @enum {string} */
+            partyType: "customer" | "supplier";
+        };
+        FollowUpRow: {
+            /** @description Days past due of the oldest overdue item (0 = nothing overdue) */
+            daysOverdue: number;
+            /** @description The next follow-up date is today or past */
+            followUpDue: boolean;
+            lastAction?: string | null;
+            /** Format: date-time */
+            lastActionAt?: string | null;
+            /** Format: date-time */
+            lastReminderAt?: string | null;
+            /** @description Earliest due date of the items not yet due */
+            nextDue?: string | null;
+            nextFollowUp?: string | null;
+            openItems: number;
+            outstanding: string;
+            overdue: string;
+            /** Format: uuid */
+            partyId: string;
+            partyName: string;
+            promisedAmount?: string | null;
+            promisedDate?: string | null;
+            /** Format: uuid */
+            responsibleId?: string | null;
+            responsibleName?: string | null;
+            /** @enum {string} */
+            status: "overdue" | "due_soon" | "current";
+        };
+        FollowUpWorklist: {
+            asOf: string;
+            /** @description Parties whose next follow-up is today or past */
+            dueToday: number;
+            outstanding: string;
+            overdue: string;
+            /** @enum {string} */
+            partyType: "customer" | "supplier";
+            rows: components["schemas"]["FollowUpRow"][];
         };
         FoodCostRow: {
             foodCostPercent?: string | null;
@@ -47033,6 +50252,45 @@ export interface components {
             skipped: string[];
             waitlisted: number;
         };
+        GuideHole: {
+            description?: string | null;
+            /** @description Meters per tee set code */
+            distances: {
+                [key: string]: number;
+            };
+            /** Format: uuid */
+            holeId: string;
+            images: components["schemas"]["GuideImage"][];
+            /** @description Position on the course map, 0–1 from the left */
+            mapX?: number | null;
+            /** @description Position on the course map, 0–1 from the top */
+            mapY?: number | null;
+            number: number;
+            par: number;
+            sectionCode: string;
+            strokeIndex?: number | null;
+        };
+        GuideImage: {
+            code: string;
+            name: string;
+            url: string;
+        };
+        GuideTee: {
+            code: string;
+            color?: string | null;
+            /** @description Course handicap of the signed-in member from this tee (18 holes) */
+            courseHandicap?: number | null;
+            /** @description Same for a nine-hole round */
+            courseHandicap9?: number | null;
+            courseRating?: string | null;
+            /** @enum {string} */
+            gender: "male" | "female" | "any";
+            /** Format: uuid */
+            id: string;
+            lengthMeters: number;
+            name: string;
+            slope?: number | null;
+        };
         HIO: {
             /** Format: date-time */
             achievedOn: string;
@@ -47104,6 +50362,22 @@ export interface components {
             notes?: string;
             witnesses: components["schemas"]["Witness"][];
         };
+        HRAttendanceToday: {
+            absent: number;
+            late: number;
+            /** @description Missing clock-in or clock-out */
+            missingClock: number;
+            onLeave: number;
+            /** @description Clocked in (on time, late or leaving early) */
+            present: number;
+            /** @description Employees with a shift today */
+            scheduled: number;
+        };
+        HRAttention: {
+            count: number;
+            /** @enum {string} */
+            key: "attendance_review" | "attendance_missing" | "attendance_corrections" | "leave_requests" | "permission_requests" | "overtime_requests" | "overtime_unapproved" | "shift_swaps" | "profile_changes" | "contracts_expiring" | "documents_expiring" | "documents_expired" | "certifications_expired" | "payroll_warnings" | "payroll_posting_failed" | "loan_requests" | "loans_to_pay" | "employees_draft" | "employees_suspended" | "reimbursements_to_send" | "reimbursements_to_pay" | "timesheets_pending" | "open_shift_claims";
+        };
         HRClockRequest: {
             /** @enum {string} */
             direction: "in" | "out";
@@ -47112,6 +50386,34 @@ export interface components {
             note: string;
             /** @description RFC 3339 */
             occurredAt: string;
+        };
+        HRDashboard: {
+            attendance?: components["schemas"]["HRAttendanceToday"] | null;
+            /** @description Open queues with at least one item, most urgent first */
+            attention: components["schemas"]["HRAttention"][];
+            /** @description Today at the property (YYYY-MM-DD) */
+            date: string;
+            departments: components["schemas"]["HRDepartment"][];
+            headcount: components["schemas"]["HRHeadcount"];
+            monthStart: string;
+            movement: components["schemas"]["HRMovement"];
+            payroll?: components["schemas"]["HRPayrollStatus"] | null;
+            workforce?: components["schemas"]["HRWorkforce"] | null;
+        };
+        HRDepartment: {
+            headcount: number;
+            name: string;
+            /** Format: uuid */
+            orgUnitId: string;
+        };
+        HRHeadcount: {
+            contract: number;
+            /** @description Resignation or termination scheduled */
+            leaving: number;
+            permanent: number;
+            probation: number;
+            /** @description Active employees who have joined */
+            total: number;
         };
         HRHoliday: {
             /** Format: date-time */
@@ -47177,6 +50479,28 @@ export interface components {
             /** @enum {string} */
             entity: "grades" | "org_units" | "positions" | "employees" | "contracts" | "documents" | "certifications";
         };
+        HRMovement: {
+            newJoiners: number;
+            /** @description Promotions and demotions */
+            promotions: number;
+            /** @description Resignations and terminations effective this month */
+            terminations: number;
+            /** @description Transfers and rotations */
+            transfers: number;
+        };
+        HRPayrollStatus: {
+            headcount: number;
+            net: string;
+            number: string;
+            paymentDate: string;
+            periodCode: string;
+            /** Format: uuid */
+            runId: string;
+            /** @enum {string} */
+            status: "draft" | "calculated" | "submitted" | "approved" | "posted" | "paid";
+            /** @description Employees with calculation warnings */
+            warnings: number;
+        };
         HRPerformanceDashboard: {
             code: string;
             from: string;
@@ -47201,6 +50525,23 @@ export interface components {
             /** @enum {string} */
             unit: "count" | "idr" | "ratio" | "hours" | "balls" | "points" | "days";
             value?: string | null;
+        };
+        HRWorkforce: {
+            gap: number;
+            required: number;
+            scheduled: number;
+            units: components["schemas"]["HRWorkforceUnit"][];
+        };
+        HRWorkforceUnit: {
+            /** @description Staff short (0 when covered) */
+            gap: number;
+            name: string;
+            /** Format: uuid */
+            orgUnitId: string;
+            /** @description Minimum staff of the staffing requirements of the day */
+            required: number;
+            /** @description Shifts assigned that count towards the requirements */
+            scheduled: number;
         };
         HallOfFameConsentInput: {
             /** @enum {string} */
@@ -47581,6 +50922,18 @@ export interface components {
             status: string;
             title: string;
             venues: string[];
+        };
+        HrtimeOpenShiftInput: {
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Only employees of this position may claim
+             */
+            positionId?: string | null;
+            /** Format: uuid */
+            shiftTemplateId: string;
+            slots: number;
+            workDate: string;
         };
         ImportEntity: {
             codeField: string;
@@ -48035,6 +51388,12 @@ export interface components {
             /** Format: date-time */
             occurredAt?: string | null;
             subject: string;
+        };
+        InterventionInput: {
+            /** @enum {string} */
+            kind: "reminder" | "warning" | "final_warning" | "skip_hole" | "play_through" | "note";
+            /** @description Required for a note; default text for the other kinds */
+            message?: string;
         };
         Interview: {
             /** Format: uuid */
@@ -49132,6 +52491,8 @@ export interface components {
             billToName: string;
             billToNpwp?: string | null;
             billToPhone?: string | null;
+            billingRef?: string | null;
+            contractRef?: string | null;
             /** Format: uuid */
             corporateAccountId?: string | null;
             /** Format: date-time */
@@ -49142,6 +52503,7 @@ export interface components {
             customerFolioId?: string | null;
             /** Format: uuid */
             customerId?: string | null;
+            customerPo?: string | null;
             daysOverdue: number;
             dueDate?: string | null;
             /** Format: uuid */
@@ -49153,6 +52515,7 @@ export interface components {
             issuedAt?: string | null;
             /** @enum {string} */
             kind: "standard" | "deposit" | "final";
+            /** @description Customer notes, printed on the invoice */
             notes?: string | null;
             /** @description Assigned at issue (gap-free per property and year) */
             number?: string | null;
@@ -49166,6 +52529,12 @@ export interface components {
             sentAt?: string | null;
             serviceAmount: string;
             /** @enum {string} */
+            source: "manual" | "folio" | "customer_folio" | "payment_schedule" | "city_ledger";
+            /** @description Folio / customer folio number or payment schedule title */
+            sourceRef?: string | null;
+            /** @description Folio source (golf_booking, banquet_event …) of a folio invoice */
+            sourceType?: string | null;
+            /** @enum {string} */
             status: "draft" | "issued" | "partially_paid" | "paid" | "overdue" | "void";
             subtotal: string;
             taxAmount: string;
@@ -49176,6 +52545,13 @@ export interface components {
             /** Format: date-time */
             voidedAt?: string | null;
             writtenOffAmount: string;
+        };
+        InvoiceAttachment: {
+            contentType: string;
+            /** Format: uuid */
+            fileId: string;
+            filename: string;
+            sizeBytes: number;
         };
         InvoiceDetail: {
             /**
@@ -49189,6 +52565,8 @@ export interface components {
             billToName: string;
             billToNpwp?: string | null;
             billToPhone?: string | null;
+            billingRef?: string | null;
+            contractRef?: string | null;
             /** Format: uuid */
             corporateAccountId?: string | null;
             /** Format: date-time */
@@ -49200,18 +52578,21 @@ export interface components {
             customerFolioId?: string | null;
             /** Format: uuid */
             customerId?: string | null;
+            customerPo?: string | null;
             daysOverdue: number;
             dueDate?: string | null;
             /** Format: uuid */
             folioId?: string | null;
             /** Format: uuid */
             id: string;
+            internal?: components["schemas"]["InvoiceInternal"] | null;
             issueDate?: string | null;
             /** Format: date-time */
             issuedAt?: string | null;
             /** @enum {string} */
             kind: "standard" | "deposit" | "final";
             lines: components["schemas"]["InvoiceLine"][];
+            /** @description Customer notes, printed on the invoice */
             notes?: string | null;
             /** @description Assigned at issue (gap-free per property and year) */
             number?: string | null;
@@ -49226,6 +52607,12 @@ export interface components {
             /** Format: date-time */
             sentAt?: string | null;
             serviceAmount: string;
+            /** @enum {string} */
+            source: "manual" | "folio" | "customer_folio" | "payment_schedule" | "city_ledger";
+            /** @description Folio / customer folio number or payment schedule title */
+            sourceRef?: string | null;
+            /** @description Folio source (golf_booking, banquet_event …) of a folio invoice */
+            sourceType?: string | null;
             /** @enum {string} */
             status: "draft" | "issued" | "partially_paid" | "paid" | "overdue" | "void";
             subtotal: string;
@@ -49259,7 +52646,11 @@ export interface components {
              * @description Account invoice: uninvoiced charges on the AR account
              */
             accountId?: string | null;
+            /** @description Supporting documents uploaded through /api/v1/billing/invoice-files */
+            attachmentFileIds?: string[];
             billTo?: components["schemas"]["BillTo"] | null;
+            billingRef?: string;
+            contractRef?: string;
             /**
              * Format: uuid
              * @description Account invoice of the corporate city ledger, or the payer of a folio invoice
@@ -49272,11 +52663,21 @@ export interface components {
             customerFolioId?: string | null;
             /**
              * Format: uuid
+             * @description Manual invoice: the customer billed (or the guest when a company pays)
+             */
+            customerId?: string | null;
+            customerPo?: string;
+            /**
+             * Format: uuid
              * @description Folio invoice: uninvoiced charges of one folio
              */
             folioId?: string | null;
+            /** @description Consolidated folio invoice: uninvoiced charges of several folios of the same payer */
+            folioIds?: string[];
             /** @description Account invoice period (YYYY-MM-DD) */
             from?: string;
+            /** @description Never printed on the invoice */
+            internalNotes?: string;
             /** @description Issue immediately */
             issue?: boolean;
             /**
@@ -49286,6 +52687,9 @@ export interface components {
             kind?: "standard" | "final";
             /** @description Folio invoice: only these charge lines */
             lineIds?: string[];
+            /** @description Manual invoice: the lines (billing.invoice.manual) */
+            lines?: components["schemas"]["ManualLine"][];
+            /** @description Customer notes, printed on the invoice */
             notes?: string;
             /**
              * Format: uuid
@@ -49296,11 +52700,23 @@ export interface components {
             termsDays?: number | null;
             to?: string;
         };
+        InvoiceInternal: {
+            attachments: components["schemas"]["InvoiceAttachment"][];
+            /** @description Internal notes, never printed */
+            notes?: string | null;
+        };
+        InvoiceInternalInput: {
+            /** @description The full list of supporting documents (replaces it) */
+            attachmentFileIds?: string[];
+            /** @description Internal notes; empty clears */
+            notes?: string | null;
+        };
         InvoiceLine: {
             /** Format: uuid */
             accountEntryId?: string | null;
             businessLine?: string | null;
             description: string;
+            discountAmount: string;
             /** Format: uuid */
             folioLineId?: string | null;
             /** Format: uuid */
@@ -49312,6 +52728,7 @@ export interface components {
             serviceAmount: string;
             taxAmount: string;
             total: string;
+            unit?: string | null;
             unitPrice: string;
         };
         IssueBEOInput: {
@@ -49346,6 +52763,8 @@ export interface components {
             module?: string;
             path: string;
             phase?: string;
+            /** @description Heading of a group of items (role menus); not a link */
+            section?: boolean;
         };
         ItemResult: {
             error?: string;
@@ -50777,6 +54196,55 @@ export interface components {
             created: number;
             total: number;
         };
+        LoanCancelInput: {
+            note: string;
+        };
+        LoanDisburseInput: {
+            /** @description GL cash / bank account code (empty: the default account of the method) */
+            bankAccountCode?: string;
+            disbursedOn: string;
+            /** @enum {string} */
+            method: "cash" | "bank_transfer";
+            reference?: string;
+        };
+        LoanMovement: {
+            amount: string;
+            /** @description Outstanding after the movement */
+            balance: string;
+            /** Format: date-time */
+            date: string;
+            /** @enum {string} */
+            kind: "disbursement" | "payroll" | "repayment";
+            reference?: string | null;
+        };
+        LoanRepayInput: {
+            amount: string;
+            bankAccountCode?: string;
+            /** @enum {string} */
+            method: "cash" | "bank_transfer";
+            notes?: string;
+            paidOn: string;
+            reference?: string;
+        };
+        LoanRequestInput: {
+            /**
+             * Format: uuid
+             * @description HR request: the employee (ESS: yourself)
+             */
+            employeeId?: string;
+            /** @description Per payroll period; default the principal (one deduction) */
+            installment?: string;
+            /** @enum {string} */
+            loanType: "loan" | "cash_advance";
+            principal: string;
+            purpose: string;
+            /** @description First deduction period YYYY-MM; default next month */
+            startPeriod?: string;
+        };
+        LoanStatement: {
+            loan: components["schemas"]["EmployeeLoan"];
+            movements: components["schemas"]["LoanMovement"][];
+        };
         LocalizationUpdate: {
             currency?: string | null;
             /** @enum {string|null} */
@@ -52157,6 +55625,25 @@ export interface components {
             /** @enum {string} */
             partnerType?: "supplier" | "customer" | "ar_account" | "employee" | "other";
         };
+        ManualLine: {
+            /** @description Default other; decides the revenue account with the revenue component */
+            businessLine?: string;
+            description: string;
+            /** @description Discount amount of the line */
+            discount?: string;
+            /** @description Or a discount percentage of the line */
+            discountPercent?: string;
+            /** @description Default 1 */
+            quantity?: string;
+            /** @description Default: the business line's (green_fee, fnb, venue_rental …) */
+            revenueComponent?: string;
+            /** @description Tax & Service rules added on top of the net (Settings → Tax & Service) */
+            taxCodes?: string[];
+            /** @description Unit of measure (pax, night, hour …) */
+            unit?: string;
+            /** @description Price before discount, tax and service */
+            unitPrice: string;
+        };
         MarkPaidInput: {
             /** @description Payroll batch / transfer reference */
             reference?: string;
@@ -52314,6 +55801,22 @@ export interface components {
             promoCodes?: string[];
             startDate: string;
         };
+        MemberCaddy: {
+            code: string;
+            favorite: boolean;
+            gender?: string | null;
+            /** Format: uuid */
+            id: string;
+            level?: string | null;
+            name: string;
+            /** @description Present on the date (attendance); unknown for later days */
+            onDuty: boolean;
+            /** @description Average of the players' ratings (1–5) */
+            rating?: string | null;
+            ratings: number;
+            /** @description Completed rounds */
+            rounds: number;
+        };
         MemberEvent: {
             capacity?: number | null;
             category: string;
@@ -52433,6 +55936,19 @@ export interface components {
             renewals: components["schemas"]["RenewalView"][];
             standing: components["schemas"]["Info"];
             status: string;
+        };
+        MemberQuote: {
+            caddy: components["schemas"]["CaddyPolicy"];
+            cart: components["schemas"]["CartPolicy"];
+            localTime: string;
+            playDate: string;
+            remaining: number;
+            /** @description member (or guest without Member Rate) and guest_of_member, with components */
+            segments: {
+                [key: string]: components["schemas"]["PriceResult"];
+            };
+            /** Format: uuid */
+            teeTimeId: string;
         };
         MemberTicketInput: {
             attachmentFileIds?: string[];
@@ -52879,6 +56395,8 @@ export interface components {
             available?: string | null;
             category?: string | null;
             code: string;
+            /** @description Product photo (POS menu) */
+            imageUrl?: string | null;
             kitchenStation?: string | null;
             memberPrice?: string | null;
             name: string;
@@ -53154,6 +56672,72 @@ export interface components {
                 enabled: boolean;
             }[];
         };
+        MonitorCart: {
+            /** Format: date-time */
+            at: string;
+            batteryPercent?: number | null;
+            code: string;
+            /** Format: uuid */
+            golfCartId: string;
+            lat: number;
+            lng: number;
+            mapX?: number | null;
+            mapY?: number | null;
+        };
+        MonitorFlight: {
+            aheadLabel?: string | null;
+            /** @description Positive: behind the target */
+            behindMinutes: number;
+            caddies: string[];
+            /** Format: uuid */
+            courseId: string;
+            currentSeq: number;
+            elapsedMinutes: number;
+            /** Format: uuid */
+            flightId: string;
+            /** @description Holes between this flight and the flight ahead */
+            gapHoles?: number | null;
+            /** @description Minutes since the flight ahead started this hole */
+            gapMinutes?: number | null;
+            golfCarts: string[];
+            hole: string;
+            /**
+             * Format: uuid
+             * @description Hole being played
+             */
+            holeId?: string | null;
+            holeNumber?: number | null;
+            /** Format: date-time */
+            holeStartedAt?: string | null;
+            holes: number;
+            /** @description Today's interventions on this flight, latest first */
+            interventions: components["schemas"]["PaceIntervention"][];
+            /** @description Booking code or flight number */
+            label: string;
+            mapX?: number | null;
+            mapY?: number | null;
+            players: string[];
+            playingRouteName?: string | null;
+            /** @description Behind more than the route tolerance */
+            slow: boolean;
+            /** @description Cumulative target through the current hole */
+            targetMinutes: number;
+            /** Format: date-time */
+            teeOffAt: string;
+            /** Format: date-time */
+            teeTime: string;
+        };
+        MonitorHole: {
+            /** @description Flights playing this hole now */
+            flights: number;
+            /** Format: uuid */
+            holeId: string;
+            mapX?: number | null;
+            mapY?: number | null;
+            number: number;
+            par: number;
+            sectionCode: string;
+        };
         MovePlayerRequest: {
             /** Format: uuid */
             playerId: string;
@@ -53238,6 +56822,12 @@ export interface components {
             /** Format: date-time */
             startAt: string;
             status: string;
+        };
+        MyGuest: {
+            lastPlayed: string;
+            name: string;
+            phone?: string | null;
+            rounds: number;
         };
         MyHallOfFame: {
             mine: components["schemas"]["MyEntry"][];
@@ -53768,10 +57358,69 @@ export interface components {
             /** Format: uuid */
             customerId: string;
         };
+        OpenItem: {
+            /** @description Open amount */
+            amount: string;
+            dueDate: string;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            /** @description Bill-to or supplier */
+            party: string;
+            /** @enum {string} */
+            status: "overdue" | "due_today" | "due_soon" | "current";
+        };
+        OpenShift: {
+            claims: components["schemas"]["OpenShiftClaim"][];
+            endTime: string;
+            filled: number;
+            /** Format: uuid */
+            id: string;
+            /** @description ESS: status of my claim */
+            myClaim?: string | null;
+            notes?: string | null;
+            /** Format: uuid */
+            orgUnitId: string;
+            orgUnitName: string;
+            /** Format: uuid */
+            positionId?: string | null;
+            positionName?: string | null;
+            /** Format: uuid */
+            scheduleId: string;
+            scheduleName: string;
+            shiftName: string;
+            /** Format: uuid */
+            shiftTemplateId: string;
+            slots: number;
+            startTime: string;
+            /** @enum {string} */
+            status: "open" | "filled" | "cancelled";
+            /** Format: date-time */
+            workDate: string;
+        };
+        OpenShiftClaim: {
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt?: string | null;
+            decisionNote?: string | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            /** Format: uuid */
+            id: string;
+            note?: string | null;
+            /** @enum {string} */
+            status: "requested" | "approved" | "rejected" | "withdrawn";
+        };
         OpenShiftInput: {
             openingFloat?: string;
             /** @enum {string} */
             station: "front_desk" | "sport_reception" | "banquet" | "golf" | "stay_desk" | "other";
+        };
+        OpenShiftNote: {
+            note?: string;
         };
         OpeningBalance: {
             balanceDate: string;
@@ -54104,6 +57753,8 @@ export interface components {
             venueResourceId?: string | null;
         };
         Order: {
+            /** Format: date-time */
+            billedAt?: string | null;
             bills: components["schemas"]["Bill"][];
             /** Format: uuid */
             chargeFolioId?: string | null;
@@ -54143,7 +57794,10 @@ export interface components {
             source: string;
             /** @enum {string} */
             status: "open" | "paid" | "charged" | "voided" | "refunded";
+            tableIds: string[];
             tableNo?: string | null;
+            /** Format: uuid */
+            tableReservationId?: string | null;
             tierCode?: string | null;
             /** @description Tier discount of the active lines */
             tierDiscount: string;
@@ -54199,7 +57853,14 @@ export interface components {
             shiftId?: string | null;
             /** @enum {string} */
             source?: "pos" | "member_app" | "caddy_tablet" | "vip_suite" | "meeting_catering" | "website" | "driving_range";
+            /** @description Dining tables the order seats (Table View); tableNo defaults to their codes */
+            tableIds?: string[];
             tableNo?: string;
+            /**
+             * Format: uuid
+             * @description Table reservation seated by this order
+             */
+            tableReservationId?: string | null;
         };
         OrderLine: {
             /** Format: uuid */
@@ -54597,6 +58258,7 @@ export interface components {
             preferences: components["schemas"]["OverviewPreference"][];
             profile: components["schemas"]["Profile"];
             recentHistory: components["schemas"]["HistoryItem"][];
+            relationship?: components["schemas"]["OverviewRelationship"] | null;
             relationships: components["schemas"]["OverviewRelation"][];
             stats: components["schemas"]["OverviewStats"];
         };
@@ -54608,6 +58270,26 @@ export interface components {
             creditLimit?: number | null;
             number: string;
             status: string;
+        };
+        OverviewBooking: {
+            /** Format: uuid */
+            bookingId: string;
+            code: string;
+            courseName: string;
+            /** Format: date-time */
+            playDate: string;
+            players: number;
+            /** Format: date-time */
+            startAt?: string | null;
+            status: string;
+        };
+        OverviewLine: {
+            /** @description Visit days */
+            frequency: number;
+            /** Format: date-time */
+            lastAt?: string | null;
+            line: string;
+            monetary: number;
         };
         OverviewMembership: {
             category: string;
@@ -54635,12 +58317,36 @@ export interface components {
             name: string;
             relationship: string;
         };
+        OverviewRelationship: {
+            clv?: number | null;
+            /** @description Guests brought on the customer's tee times */
+            guests: number;
+            interactions: number;
+            /** Format: date-time */
+            lastActivity?: string | null;
+            /** Format: date-time */
+            lastInteraction?: string | null;
+            lines: components["schemas"]["OverviewLine"][];
+            rfmGroup?: string | null;
+            /** @description RFM monetary */
+            spend?: number | null;
+            tasks: components["schemas"]["OverviewTask"][];
+            upcomingBookings: components["schemas"]["OverviewBooking"][];
+        };
         OverviewStats: {
             /** Format: date-time */
             lastVisit?: string | null;
             noShows: number;
             rounds: number;
             totalPayments: number;
+        };
+        OverviewTask: {
+            /** Format: date-time */
+            dueAt?: string | null;
+            /** Format: uuid */
+            id: string;
+            subject: string;
+            type: string;
         };
         POSCachedCode: {
             code: string;
@@ -54703,6 +58409,8 @@ export interface components {
             /** @description Positive: behind the target */
             behindMinutes: number;
             caddies: string[];
+            /** Format: uuid */
+            courseId: string;
             currentSeq: number;
             elapsedMinutes: number;
             /** Format: uuid */
@@ -54713,6 +58421,11 @@ export interface components {
             gapMinutes?: number | null;
             golfCarts: string[];
             hole: string;
+            /**
+             * Format: uuid
+             * @description Hole being played
+             */
+            holeId?: string | null;
             /** Format: date-time */
             holeStartedAt?: string | null;
             holes: number;
@@ -54728,6 +58441,24 @@ export interface components {
             teeOffAt: string;
             /** Format: date-time */
             teeTime: string;
+        };
+        PaceIntervention: {
+            /** Format: date-time */
+            acknowledgedAt?: string | null;
+            behindMinutes?: number | null;
+            /** Format: date-time */
+            createdAt: string;
+            createdByName?: string | null;
+            currentSeq?: number | null;
+            /** Format: uuid */
+            flightId: string;
+            flightLabel: string;
+            hole?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "reminder" | "warning" | "final_warning" | "skip_hole" | "play_through" | "note";
+            message: string;
         };
         PaceTargetInput: {
             /** @description 5–40 minutes */
@@ -56530,7 +60261,7 @@ export interface components {
              * @description Status
              * @enum {string|null}
              */
-            status?: "active" | "settled" | "cancelled" | null;
+            status?: "active" | "settled" | "cancelled" | "submitted" | "approved" | "rejected" | null;
             /** Format: date-time */
             updatedAt: string;
         };
@@ -56559,7 +60290,20 @@ export interface components {
              * @description Status
              * @enum {string|null}
              */
-            status?: "active" | "settled" | "cancelled" | null;
+            status?: "active" | "settled" | "cancelled" | "submitted" | "approved" | "rejected" | null;
+        };
+        PayrollException: {
+            /** @enum {string} */
+            code: "negative_net" | "duplicate_payroll" | "missing_salary" | "missing_contract" | "missing_tax_profile" | "missing_tax_id" | "missing_bpjs" | "missing_bank" | "attendance_exception" | "employee_suspended" | "other";
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            message: string;
+            /** @enum {string} */
+            severity: "error" | "warning";
+            /** Format: uuid */
+            slipId: string;
         };
         PayrollImportIssue: {
             key: string;
@@ -56765,6 +60509,17 @@ export interface components {
             decisionNote?: string | null;
             employeeIds: string[];
             employerCost: string;
+            /** @description Journal numbers booked by Accounting */
+            financeJournals: string[];
+            /** @description Why the posting failed */
+            financeMessage?: string | null;
+            /**
+             * @description Outcome of the posting in Finance & Accounting
+             * @enum {string}
+             */
+            financeStatus: "not_posted" | "pending" | "posted" | "failed";
+            /** Format: date-time */
+            financeUpdatedAt?: string | null;
             gross: string;
             headcount: number;
             /** Format: uuid */
@@ -57233,10 +60988,27 @@ export interface components {
             status: "booked" | "checked_in" | "no_show" | "cancelled" | "removed";
             tba: boolean;
         };
+        PlayerCaddy: {
+            accepted: boolean;
+            /** Format: uuid */
+            assignmentId: string;
+            /** Format: uuid */
+            caddyId: string;
+            code: string;
+            name: string;
+            /** @description I rated this caddy */
+            rated: boolean;
+            /** @enum {string} */
+            status: "assigned" | "in_play" | "completed";
+        };
         PlayerContext: {
+            /** @description From the scorecard's tee set (WHS) */
+            courseHandicap?: number | null;
             favoriteCaddyIsMe: boolean;
             handicap?: string | null;
             highlights: string[];
+            /** @description Handicap strokes received per hole, in route sequence */
+            holeStrokes: number[];
             /** Format: date-time */
             lastRoundWithMe?: string | null;
             name: string;
@@ -57275,6 +61047,17 @@ export interface components {
             /** @description To be announced; identity completed before check-in */
             tba?: boolean;
         };
+        PlayerJourney: {
+            caddy?: components["schemas"]["PlayerCaddy"] | null;
+            /** @enum {string|null} */
+            caddyPreference?: "none" | "any" | "preferred" | null;
+            /** Format: uuid */
+            playerId: string;
+            /** Format: uuid */
+            preferredCaddyId?: string | null;
+            preferredCaddyName?: string | null;
+            scorecard?: components["schemas"]["PlayerScore"] | null;
+        };
         PlayerPatch: {
             /** Format: uuid */
             customerId?: string | null;
@@ -57298,6 +61081,14 @@ export interface components {
             priceTotal?: string | null;
             segment: string;
             status: string;
+        };
+        PlayerScore: {
+            gross?: number | null;
+            holes: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "draft" | "submitted" | "finalized";
         };
         PlayingRoute: {
             /** Format: date-time */
@@ -58030,6 +61821,8 @@ export interface components {
             createdAt: string;
             /** Format: uuid */
             id: string;
+            /** @description Photo */
+            imageUrl?: string | null;
             /** @description Kitchen Station */
             kitchenStation?: string | null;
             /** @description Member Price */
@@ -58078,6 +61871,8 @@ export interface components {
             code?: string;
             /** @description Combo / Package Items */
             comboItems?: Record<string, never>[] | null;
+            /** @description Photo */
+            imageUrl?: string | null;
             /** @description Kitchen Station */
             kitchenStation?: string | null;
             /** @description Member Price */
@@ -60056,6 +63851,10 @@ export interface components {
             total: string;
             version: number;
         };
+        QuoteLine: {
+            description: string;
+            total: string;
+        };
         RFMCustomer: {
             asOf: string;
             clv: string;
@@ -60985,6 +64784,120 @@ export interface components {
         RegistrationWithdrawInput: {
             reason?: string;
         };
+        Reimbursement: {
+            amount: string;
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            categoryCode: string;
+            /** Format: uuid */
+            categoryId: string;
+            categoryName: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            decidedAt?: string | null;
+            decisionNote?: string | null;
+            description: string;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            /** Format: date-time */
+            expenseDate: string;
+            /** Format: uuid */
+            fileId?: string | null;
+            fileName?: string | null;
+            /** Format: uuid */
+            id: string;
+            number: string;
+            orgUnitName?: string | null;
+            /** Format: date-time */
+            paidOn?: string | null;
+            paymentMethod?: string | null;
+            paymentRef?: string | null;
+            /** @enum {string} */
+            requestSource: "hr" | "ess";
+            /** Format: date-time */
+            sentAt?: string | null;
+            /** @enum {string} */
+            status: "submitted" | "approved" | "rejected" | "sent_to_finance" | "paid" | "cancelled";
+        };
+        ReimbursementCategory: {
+            /** Format: date-time */
+            archivedAt?: string | null;
+            /** @description Code */
+            code: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Description */
+            description?: string | null;
+            /** @description GL Expense Account Code (empty = Employee Reimbursements) */
+            expenseAccountCode?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Maximum per Claim */
+            maxAmount?: string | null;
+            /** @description Name */
+            name: string;
+            /** Format: uuid */
+            propertyId?: string;
+            /** @description Receipt Required */
+            receiptRequired?: boolean | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ReimbursementCategoryInput: {
+            /** @description Code */
+            code?: string;
+            /** @description Description */
+            description?: string | null;
+            /** @description GL Expense Account Code (empty = Employee Reimbursements) */
+            expenseAccountCode?: string | null;
+            /** @description Maximum per Claim */
+            maxAmount?: string | null;
+            /** @description Name */
+            name?: string;
+            /** @description Receipt Required */
+            receiptRequired?: boolean | null;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "active" | "inactive" | null;
+        };
+        ReimbursementInput: {
+            amount: string;
+            /** Format: uuid */
+            categoryId: string;
+            description: string;
+            /**
+             * Format: uuid
+             * @description HR claim: the employee (ESS: yourself)
+             */
+            employeeId?: string;
+            expenseDate: string;
+            /**
+             * Format: uuid
+             * @description Receipt uploaded with POST …/reimbursement-files
+             */
+            fileId?: string | null;
+        };
+        ReimbursementNote: {
+            note?: string;
+        };
+        ReimbursementPayInput: {
+            /** @description GL cash / bank account code (empty: the default account of the method) */
+            bankAccountCode?: string;
+            /** @enum {string} */
+            method: "cash" | "bank_transfer";
+            paidOn: string;
+            reference?: string;
+        };
         RejectInput: {
             reason: string;
         };
@@ -61208,6 +65121,8 @@ export interface components {
             attributes: Record<string, never>;
             canCancel: boolean;
             canDecide: boolean;
+            /** @description Comments and attachments (detail only) */
+            comments?: components["schemas"]["RequestComment"][];
             /** Format: date-time */
             createdAt: string;
             currentStepNo?: number | null;
@@ -61219,6 +65134,8 @@ export interface components {
             documentName: string;
             documentRef: string;
             documentType: string;
+            /** @description Approval history (detail only) */
+            history?: components["schemas"]["RequestEvent"][];
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -61230,6 +65147,26 @@ export interface components {
             status: "draft" | "pending" | "approved" | "rejected" | "cancelled";
             steps?: components["schemas"]["RequestStep"][];
             title: string;
+        };
+        RequestComment: {
+            authorName: string;
+            body: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            fileId?: string | null;
+            fileName?: string | null;
+            /** Format: uuid */
+            id: string;
+        };
+        RequestEvent: {
+            /** @description create | approval_approved | approval_rejected | approval_revision_requested | approval_submitted | approval_cancelled | approver_reassigned */
+            action: string;
+            actorName?: string | null;
+            /** Format: date-time */
+            at: string;
+            reason?: string | null;
+            stepNo?: number | null;
         };
         RequestStep: {
             approverRoleName?: string | null;
@@ -62031,6 +65968,11 @@ export interface components {
             /** @enum {string|null} */
             status?: "active" | "inactive" | null;
         };
+        RoomDay: {
+            busy: components["schemas"]["BusySlot"][];
+            /** Format: uuid */
+            roomId: string;
+        };
         RoomLayout: {
             /**
              * Format: int64
@@ -62135,6 +66077,8 @@ export interface components {
         };
         RoundInfo: {
             holes: components["schemas"]["RouteHole"][];
+            /** @description Marshal messages not yet acknowledged */
+            interventions: components["schemas"]["PaceIntervention"][];
             players: components["schemas"]["PlayerContext"][];
             round: components["schemas"]["Round"];
             scorecards: components["schemas"]["Scorecard"][];
@@ -62866,6 +66810,29 @@ export interface components {
             /** Format: uuid */
             id: string;
             teams: string[];
+        };
+        SandboxCheckout: {
+            amount: string;
+            currency: string;
+            /** @description Folio number */
+            description?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            methodType: string;
+            number: string;
+            /** Format: date-time */
+            paidAt?: string | null;
+            qrString?: string | null;
+            /** @enum {string} */
+            status: "pending" | "completed" | "cancelled" | "refunded";
+            vaNumber?: string | null;
+        };
+        SandboxOutcome: {
+            /**
+             * @description Default: paid
+             * @enum {string}
+             */
+            outcome: "paid" | "failed";
         };
         SavedReport: {
             /** Format: date-time */
@@ -64700,9 +68667,18 @@ export interface components {
             /** Format: uuid */
             unitTypeId?: string | null;
         };
+        StayAssignInput: {
+            /** Format: uuid */
+            unitId: string;
+        };
         StayCancelInput: {
             reason: string;
             waiveFee?: boolean;
+        };
+        StayCatalog: {
+            bungalowTypes: components["schemas"]["CatalogBungalowType"][];
+            meetingRooms: components["schemas"]["CatalogMeetingRoom"][];
+            ratePlans: components["schemas"]["CatalogRatePlan"][];
         };
         StayExtendInput: {
             hours: number;
@@ -64764,6 +68740,12 @@ export interface components {
              */
             unitId?: string | null;
         };
+        StayQuote: {
+            depositRequired: string;
+            lines: components["schemas"]["QuoteLine"][];
+            total: string;
+            unitName: string;
+        };
         StayReasonInput: {
             reason?: string;
         };
@@ -64773,6 +68755,10 @@ export interface components {
             reservation: components["schemas"]["Reservation"];
             stay: components["schemas"]["Stay"];
             total: string;
+        };
+        StayRoomLayout: {
+            capacity: number;
+            layout: string;
         };
         StockAdjustment: {
             /** Format: uuid */
@@ -65814,6 +69800,144 @@ export interface components {
         SyncRequest: {
             items: components["schemas"]["SyncItem"][];
         };
+        TableBooking: {
+            /** Format: uuid */
+            customerId?: string | null;
+            guestCount: number;
+            guestName: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            reservedFor: string;
+            tableIds: string[];
+        };
+        TableOrder: {
+            /** Format: date-time */
+            billedAt?: string | null;
+            customerName?: string | null;
+            guestCount?: number | null;
+            /** Format: uuid */
+            id: string;
+            orderNo: string;
+            /** Format: date-time */
+            seatedAt: string;
+            /** @enum {string} */
+            serviceStatus: "new" | "sent" | "preparing" | "ready" | "out_for_delivery" | "served";
+            tableNo?: string | null;
+            total: string;
+        };
+        TableReservation: {
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: uuid
+             * @description Customer
+             */
+            customerId?: string | null;
+            /**
+             * Format: int64
+             * @description Duration (minutes)
+             */
+            durationMinutes?: number | null;
+            /**
+             * Format: int64
+             * @description Guests
+             */
+            guestCount?: number | null;
+            /** @description Guest Name */
+            guestName?: string | null;
+            /** Format: uuid */
+            id: string;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Order
+             */
+            orderId?: string | null;
+            /**
+             * Format: uuid
+             * @description Outlet
+             */
+            outletId: string;
+            /** @description Phone */
+            phone?: string | null;
+            /** Format: uuid */
+            propertyId?: string;
+            /**
+             * Format: date-time
+             * @description Reserved For
+             */
+            reservedFor: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "booked" | "seated" | "cancelled" | "no_show" | null;
+            /** @description Tables */
+            tableIds?: string[] | null;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        TableReservationInput: {
+            /**
+             * Format: uuid
+             * @description Customer
+             */
+            customerId?: string | null;
+            /**
+             * Format: int64
+             * @description Duration (minutes)
+             */
+            durationMinutes?: number | null;
+            /**
+             * Format: int64
+             * @description Guests
+             */
+            guestCount?: number | null;
+            /** @description Guest Name */
+            guestName?: string | null;
+            /** @description Notes */
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Outlet
+             */
+            outletId?: string;
+            /** @description Phone */
+            phone?: string | null;
+            /**
+             * Format: date-time
+             * @description Reserved For
+             */
+            reservedFor?: string;
+            /**
+             * @description Status
+             * @enum {string|null}
+             */
+            status?: "booked" | "seated" | "cancelled" | "no_show" | null;
+            /** @description Tables */
+            tableIds?: string[] | null;
+        };
+        TableState: {
+            area?: string | null;
+            code: string;
+            /** Format: uuid */
+            id: string;
+            order?: components["schemas"]["TableOrder"] | null;
+            posX: number;
+            posY: number;
+            reservation?: components["schemas"]["TableBooking"] | null;
+            seats: number;
+            /** @enum {string} */
+            shape: "square" | "round" | "rect" | "seat";
+            /** @enum {string} */
+            state: "available" | "booked" | "occupied" | "billed";
+        };
+        TablesInput: {
+            /** @description All the tables the order seats from now on */
+            tableIds: string[];
+        };
         TargetAchievement: {
             achievedDeals: number;
             /** @description Deals won and paid in the period (commission basis) */
@@ -65841,6 +69965,13 @@ export interface components {
         TaxBracket: {
             rate: string;
             upTo: string;
+        };
+        TaxCode: {
+            code: string;
+            /** @enum {string} */
+            kind: "tax" | "service";
+            name: string;
+            ratePercent: string;
         };
         TaxInvoiceCancelInput: {
             reason: string;
@@ -66780,6 +70911,71 @@ export interface components {
             days?: number[];
             end: string;
             start: string;
+        };
+        Timesheet: {
+            /** Format: date-time */
+            createdAt: string;
+            /** @description Timesheet hours against the attendance of each day (detail) */
+            days?: components["schemas"]["TimesheetDay"][];
+            /** Format: date-time */
+            decidedAt?: string | null;
+            decisionNote?: string | null;
+            /** Format: uuid */
+            employeeId: string;
+            employeeName: string;
+            employeeNo: string;
+            entries?: components["schemas"]["TimesheetEntry"][];
+            /** Format: uuid */
+            id: string;
+            notes?: string | null;
+            number: string;
+            orgUnitName?: string | null;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** Format: uuid */
+            propertyId: string;
+            /** @enum {string} */
+            status: "draft" | "submitted" | "approved" | "rejected" | "cancelled";
+            steps?: components["schemas"]["TimeApprovalStep"][];
+            /** Format: date-time */
+            submittedAt?: string | null;
+            totalHours: string;
+        };
+        TimesheetDay: {
+            /** @description Worked time recorded by attendance */
+            attendanceHours: string;
+            /** Format: date-time */
+            date: string;
+            hours: string;
+        };
+        TimesheetEntry: {
+            activity: string;
+            hours: string;
+            lineNo: number;
+            notes?: string | null;
+            reference?: string | null;
+            /** Format: date-time */
+            workDate: string;
+        };
+        TimesheetEntryInput: {
+            activity: string;
+            hours: string;
+            notes?: string;
+            /** @description Event, project or work order */
+            reference?: string;
+            workDate: string;
+        };
+        TimesheetInput: {
+            entries: components["schemas"]["TimesheetEntryInput"][];
+            notes?: string | null;
+            /** @description Create only; at most 31 days */
+            periodEnd?: string;
+            /** @description Create only */
+            periodStart?: string;
+            /** @description Submit for approval right away */
+            submit?: boolean;
         };
         TipRequest: {
             amount: string;
@@ -68691,6 +72887,11 @@ export interface components {
             /** Format: date-time */
             withdrawnAt?: string | null;
         };
+        TrackInput: {
+            email: string;
+            /** @enum {string} */
+            method?: "qris" | "virtual_account" | "card";
+        };
         TransferInput: {
             /** Format: uuid */
             customerId: string;
@@ -68835,6 +73036,21 @@ export interface components {
              * @enum {string|null}
              */
             status?: "active" | "inactive" | null;
+        };
+        UnallocatedPayment: {
+            /** Format: uuid */
+            accountId: string;
+            accountName: string;
+            amount: string;
+            /** Format: uuid */
+            id: string;
+            methodType: string;
+            number: string;
+            /** Format: date-time */
+            paidAt: string;
+            payerName?: string | null;
+            reference?: string | null;
+            unallocated: string;
         };
         UnreadCount: {
             unread: number;
@@ -69941,6 +74157,18 @@ export interface components {
             name: string;
             statement?: string;
         };
+        WorkStatus: {
+            /** Format: uuid */
+            employeeId: string;
+            /** @description Leave type, suspension reason or leaving type */
+            note?: string | null;
+            /** Format: date-time */
+            since?: string | null;
+            /** Format: date-time */
+            until?: string | null;
+            /** @enum {string} */
+            workStatus: "draft" | "on_leave" | "suspended" | "leaving" | "terminated" | "inactive";
+        };
         Workflow: {
             documentType: string;
             /** Format: uuid */
@@ -69986,6 +74214,97 @@ export interface components {
             status?: "active" | "inactive" | null;
             steps?: components["schemas"]["WorkflowStep"][] | null;
         };
+        WorkforceGap: {
+            gap: number;
+            plan: components["schemas"]["WorkforcePlan"];
+            /** @description Sum over days and lines */
+            required: number;
+            rows: components["schemas"]["WorkforceGapRow"][];
+            scheduled: number;
+            shortage: number;
+        };
+        WorkforceGapRow: {
+            /** @description Active employees of the department (and position) not on leave or suspended */
+            available: number;
+            /** Format: date-time */
+            date: string;
+            /** @description Required − scheduled (≥ 0): still to assign */
+            gap: number;
+            lineNo: number;
+            positionName?: string | null;
+            required: number;
+            /** @description Assigned in the shift schedules */
+            scheduled: number;
+            shiftName?: string | null;
+            /** @description Required − available (≥ 0): to hire, borrow or cover with overtime */
+            shortage: number;
+        };
+        WorkforcePlan: {
+            /** Format: uuid */
+            id: string;
+            lineCount: number;
+            lines?: components["schemas"]["WorkforcePlanLine"][];
+            name: string;
+            notes?: string | null;
+            number: string;
+            /** Format: uuid */
+            orgUnitId: string;
+            orgUnitName: string;
+            /** Format: date-time */
+            periodEnd: string;
+            /** Format: date-time */
+            periodStart: string;
+            /** @enum {string} */
+            scenario: "normal" | "weekend" | "holiday" | "peak_season" | "low_season" | "tournament" | "event";
+            /** @enum {string} */
+            status: "draft" | "active" | "archived";
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        WorkforcePlanInput: {
+            /** @description Create: copy the staffing requirements of the department when no lines are given */
+            fromRequirements?: boolean;
+            /** @description Replaces the lines */
+            lines?: components["schemas"]["WorkforcePlanLineInput"][] | null;
+            name?: string;
+            notes?: string | null;
+            /**
+             * Format: uuid
+             * @description Create only
+             */
+            orgUnitId?: string | null;
+            /** @description At most 93 days */
+            periodEnd?: string;
+            periodStart?: string;
+            /** @enum {string} */
+            scenario?: "normal" | "weekend" | "holiday" | "peak_season" | "low_season" | "tournament" | "event";
+        };
+        WorkforcePlanLine: {
+            lineNo: number;
+            notes?: string | null;
+            /** Format: uuid */
+            positionId?: string | null;
+            positionName?: string | null;
+            required: number;
+            shiftName?: string | null;
+            /** Format: uuid */
+            shiftTemplateId?: string | null;
+            /**
+             * Format: date-time
+             * @description Empty: every day of the period
+             */
+            workDate?: string | null;
+        };
+        WorkforcePlanLineInput: {
+            notes?: string;
+            /** Format: uuid */
+            positionId?: string | null;
+            required: number;
+            /** Format: uuid */
+            shiftTemplateId?: string | null;
+            /** @description YYYY-MM-DD within the period; empty = every day */
+            workDate?: string;
+        };
         WriteOff: {
             amount: string;
             /** Format: uuid */
@@ -70005,6 +74324,23 @@ export interface components {
             /** @description Default: the outstanding amount */
             amount?: string;
             reason: string;
+        };
+        WriteOffItem: {
+            amount: string;
+            /** Format: uuid */
+            approvalRequestId?: string | null;
+            billToName: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            invoiceId: string;
+            invoiceNumber?: string | null;
+            number: string;
+            reason: string;
+            /** @enum {string} */
+            status: "pending" | "approved" | "rejected" | "cancelled";
         };
         YearEndInput: {
             year: number;
@@ -72197,6 +76533,219 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CashTransaction"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getAccountingCollections: {
+        parameters: {
+            query?: {
+                asOf?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUpWorklist"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getAccountingCollectionsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUpParty"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postAccountingCollectionsByIdFollowUps: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FollowUpInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUp"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getAccountingDashboard: {
+        parameters: {
+            query?: {
+                /** @description YYYY-MM (default: this month, to date) */
+                month?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FinanceDashboard"];
                 };
             };
             /** @description Not authenticated */
@@ -76951,6 +81500,166 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["APItem"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getAccountingVendorFollowUps: {
+        parameters: {
+            query?: {
+                asOf?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUpWorklist"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getAccountingVendorFollowUpsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUpParty"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postAccountingVendorFollowUpsByIdFollowUps: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FollowUpInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FollowUp"];
                 };
             };
             /** @description Not authenticated */
@@ -84845,6 +89554,728 @@ export interface operations {
             };
         };
     };
+    getBillingBillingOwners: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BillingOwner"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBillingBillingQueue: {
+        parameters: {
+            query?: {
+                "filter[status]"?: "pending_billing" | "ready_to_invoice" | "exception" | "invoiced" | "cancelled";
+                "filter[group]"?: "golf" | "resort" | "events" | "membership" | "sport" | "fnb" | "other";
+                /** @description Owner user id, or me */
+                "filter[owner]"?: string;
+                /** @description Folio, customer, bill-to, source or invoice number */
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingQueue"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBillingBillingRecordsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    putBillingBillingRecordsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingRecordInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsByIdAdjustments: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingAdjustmentInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsByIdExceptionsByCodeResolve: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsByIdNotes: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingNoteInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsByIdMarkReady: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRecordDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsByIdSplit: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingSplitInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SplitResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsAssign: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssignResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsConsolidate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsolidateInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingGenerateResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingBillingRecordsGenerate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillingGenerateInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingGenerateResults"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getBillingBusinessDays: {
         parameters: {
             query?: {
@@ -87010,6 +92441,114 @@ export interface operations {
             };
         };
     };
+    postBillingInvoiceFiles: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["File"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBillingInvoiceTaxCodes: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TaxCode"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getBillingInvoices: {
         parameters: {
             query?: {
@@ -87023,8 +92562,15 @@ export interface operations {
                 "filter[accountId]"?: string;
                 "filter[corporateAccountId]"?: string;
                 "filter[customerId]"?: string;
+                "filter[source]"?: "manual" | "folio" | "customer_folio" | "payment_schedule" | "city_ledger";
+                "filter[payer]"?: "corporate" | "individual";
                 from?: string;
                 to?: string;
+                /** @description Due date from (YYYY-MM-DD) */
+                dueFrom?: string;
+                dueTo?: string;
+                minTotal?: string;
+                maxTotal?: string;
             };
             header: {
                 /** @description Active property chosen in the property switcher. */
@@ -87145,6 +92691,115 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBillingInvoicesByIdAttachmentsByFileId: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                fileId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchBillingInvoicesByIdInternal: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceInternalInput"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -87313,6 +92968,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Payment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingInvoicesByIdRemind: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceDetail"];
                 };
             };
             /** @description Not authenticated */
@@ -87535,6 +93246,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CorporateARImportResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postBillingInvoicesPreview: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvoiceDetail"];
                 };
             };
             /** @description Not authenticated */
@@ -88758,6 +94523,7 @@ export interface operations {
                 "filter[channel]"?: string;
                 "filter[folioId]"?: string;
                 "filter[accountId]"?: string;
+                "filter[purpose]"?: "settlement" | "deposit" | "account_settlement";
                 date?: string;
             };
             header: {
@@ -89334,6 +95100,123 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Refund"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBillingUnallocatedPayments: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["UnallocatedPayment"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getBillingWriteOffs: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WriteOffItem"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -96186,6 +102069,346 @@ export interface operations {
             };
         };
     };
+    getCommercialDiningTables: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[outletId]"?: string;
+                "filter[area]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DiningTable"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialDiningTables: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiningTableInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiningTable"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialDiningTablesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiningTable"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCommercialDiningTablesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCommercialDiningTablesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiningTableInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DiningTable"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialDiningTablesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[outletId]"?: string;
+                "filter[area]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCommercialKdsStream: {
         parameters: {
             query?: never;
@@ -98202,6 +104425,58 @@ export interface operations {
             };
         };
     };
+    postCommercialOrdersByIdBill: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postCommercialOrdersByIdCharge: {
         parameters: {
             query?: never;
@@ -98646,6 +104921,62 @@ export interface operations {
             };
         };
     };
+    postCommercialOrdersByIdTables: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TablesInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postCommercialOrdersByIdVoid: {
         parameters: {
             query?: never;
@@ -99011,6 +105342,122 @@ export interface operations {
                         items: components["schemas"]["MenuItem"][];
                         nextCursor?: string;
                     };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialOutletsByIdTables: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TableState"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialOutletsByIdQuote: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CalculateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Breakdown"];
                 };
             };
             /** @description Not authenticated */
@@ -105438,6 +111885,344 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Shift"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialTableReservations: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[outletId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TableReservation"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialTableReservations: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TableReservationInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableReservation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialTableReservationsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableReservation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteCommercialTableReservationsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchCommercialTableReservationsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TableReservationInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TableReservation"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialTableReservationsExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[outletId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
                 };
             };
             /** @description Not authenticated */
@@ -111935,6 +118720,129 @@ export interface operations {
             };
         };
     };
+    getCrmDashboard: {
+        parameters: {
+            query?: {
+                period?: "month" | "quarter" | "year";
+                /** @description Membership type name */
+                type?: string;
+                /** @description Active: an activity within N days (default 90) */
+                activeDays?: string;
+                /** @description Occasional: the last activity within N days (default 180) */
+                occasionalDays?: string;
+                /** @description Expiring: the membership ends within N days (default 30) */
+                expiringDays?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CRMDashboard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCrmDashboardMembers: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                list: "expiring" | "at_risk" | "high_value";
+                /** @description Expiring within N days (default 90) */
+                days?: string;
+                /** @description Membership type name */
+                type?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DashMember"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCrmDataRequests: {
         parameters: {
             query?: {
@@ -112181,7 +119089,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["FollowUpInput"];
+                "application/json": components["schemas"]["CrmFollowUpInput"];
             };
         };
         responses: {
@@ -125005,6 +131913,61 @@ export interface operations {
             };
         };
     };
+    getEssBenefits: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BenefitEnrollment"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getEssClockStatus: {
         parameters: {
             query?: never;
@@ -125483,6 +132446,217 @@ export interface operations {
             };
         };
     };
+    getEssLoans: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EmployeeLoan"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssLoans: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeLoan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssLoansByIdStatement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanStatement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssLoansByIdCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanCancelInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeLoan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getEssMe: {
         parameters: {
             query?: never;
@@ -125499,6 +132673,167 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ESSMe"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssOpenShiftClaimsByIdWithdraw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenShiftNote"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenShift"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssOpenShifts: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OpenShift"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssOpenShiftsByIdClaim: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenShiftNote"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenShift"];
                 };
             };
             /** @description Not authenticated */
@@ -126139,6 +133474,264 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProfileChange"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssReimbursementFiles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["File"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssReimbursements: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Reimbursement"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssReimbursements: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReimbursementInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reimbursement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssReimbursementsByIdReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssReimbursementsByIdCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReimbursementNote"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reimbursement"];
                 };
             };
             /** @description Not authenticated */
@@ -127228,6 +134821,323 @@ export interface operations {
             };
         };
     };
+    getEssTimesheets: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Timesheet"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssTimesheets: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimesheetInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timesheet"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getEssTimesheetsById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timesheet"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchEssTimesheetsById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimesheetInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timesheet"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssTimesheetsByIdSubmit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timesheet"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postEssTimesheetsByIdWithdraw: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timesheet"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getEssTraining: {
         parameters: {
             query?: never;
@@ -128130,6 +136040,64 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CancelResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfBookingsByIdCheckOut: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckOutRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Booking"];
                 };
             };
             /** @description Not authenticated */
@@ -130775,6 +138743,66 @@ export interface operations {
             };
         };
     };
+    getGolfChargeTargets: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                q?: string;
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ChargeTarget"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postGolfCheckIns: {
         parameters: {
             query?: never;
@@ -130859,6 +138887,65 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["CheckInCandidate"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfCheckOuts: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CheckOutEntry"][];
                         nextCursor?: string;
                     };
                 };
@@ -131424,6 +139511,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CourseMap"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfCourseMonitor: {
+        parameters: {
+            query?: {
+                /** @description Default: the first course with holes */
+                courseId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseMonitor"];
                 };
             };
             /** @description Not authenticated */
@@ -132438,6 +140578,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FlightRef"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfFlightsByIdPaceInterventions: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InterventionInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaceIntervention"];
                 };
             };
             /** @description Not authenticated */
@@ -136686,6 +144882,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Order"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfPaceInterventionsByIdAcknowledge: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaceIntervention"];
                 };
             };
             /** @description Not authenticated */
@@ -147105,6 +155353,8 @@ export interface operations {
                 orgUnitId?: string;
                 employeeId?: string;
                 status?: "scheduled" | "present" | "late" | "early_leave" | "absent" | "on_leave" | "off" | "holiday";
+                /** @description Days with this flag; missing = missing clock-in or clock-out, any = any flag (exception queue) */
+                flag?: string;
             };
             header: {
                 /** @description Active property chosen in the property switcher. */
@@ -148515,6 +156765,577 @@ export interface operations {
                 /** @description Field name, prefix with - for descending */
                 sort?: string;
                 "filter[employeeId]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisBenefitEnrollments: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                planId?: string;
+                employeeId?: string;
+                status?: "active" | "ended" | "cancelled";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BenefitEnrollment"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisBenefitEnrollments: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenefitEnrollmentInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenefitEnrollment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisBenefitEnrollmentsByIdEnd: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenefitEndInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenefitEnrollment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisBenefitPlans: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[benefitType]"?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BenefitPlan"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisBenefitPlans: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenefitPlanInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenefitPlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisBenefitPlansById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenefitPlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteHrisBenefitPlansById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchHrisBenefitPlansById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenefitPlanInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BenefitPlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisBenefitPlansByIdEligibility: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BenefitEligibility"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisBenefitPlansExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[benefitType]"?: string;
                 "filter[status]"?: string;
             };
             header: {
@@ -151038,6 +159859,56 @@ export interface operations {
             };
         };
     };
+    getHrisDashboard: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HRDashboard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postHrisDocumentFiles: {
         parameters: {
             query?: never;
@@ -151926,6 +160797,226 @@ export interface operations {
             };
         };
     };
+    getHrisEmployeeLoansByIdStatement: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanStatement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisEmployeeLoansByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanCancelInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeLoan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisEmployeeLoansByIdDisburse: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanDisburseInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeLoan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisEmployeeLoansByIdRepay: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanRepayInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeLoan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getHrisEmployeeLoansExport: {
         parameters: {
             query?: {
@@ -151955,6 +161046,121 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisEmployeeLoansRequest: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeLoan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisEmployeeWorkStatus: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                workStatus?: "draft" | "on_leave" | "suspended" | "leaving" | "terminated" | "inactive";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WorkStatus"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -152732,6 +161938,62 @@ export interface operations {
             };
         };
     };
+    postHrisEmployeesByIdActivate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmployeeActivateRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postHrisEmployeesByIdCancelTermination: {
         parameters: {
             query?: never;
@@ -152869,6 +162131,118 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EmploymentChange"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisEmployeesByIdReinstate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CorehrReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisEmployeesByIdSuspend: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmployeeSuspendRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmployeeDetail"];
                 };
             };
             /** @description Not authenticated */
@@ -156767,6 +166141,68 @@ export interface operations {
             };
         };
     };
+    getHrisLoans: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                status?: "submitted" | "approved" | "rejected" | "active" | "settled" | "cancelled";
+                loanType?: "loan" | "cash_advance";
+                employeeId?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EmployeeLoan"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getHrisMigrationReconciliationMetrics: {
         parameters: {
             query?: {
@@ -157455,6 +166891,234 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OnboardingTask"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisOpenShiftClaimsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenShiftNote"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenShift"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisOpenShiftClaimsByIdReject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenShiftNote"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenShift"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisOpenShifts: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                scheduleId?: string;
+                status?: "open" | "filled" | "cancelled";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OpenShift"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisOpenShiftsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OpenShiftNote"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenShift"];
                 };
             };
             /** @description Not authenticated */
@@ -160651,6 +170315,67 @@ export interface operations {
             };
         };
     };
+    getHrisPayrollRunsByIdExceptions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                severity?: "error" | "warning";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PayrollException"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getHrisPayrollRunsByIdJournal: {
         parameters: {
             query?: {
@@ -161187,6 +170912,66 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["PayrollYTD"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisPayslips: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                employeeId: string;
+                year?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PayrollSlip"][];
                         nextCursor?: string;
                     };
                 };
@@ -162085,6 +171870,730 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["File"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisReimbursementCategories: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ReimbursementCategory"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisReimbursementCategories: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReimbursementCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReimbursementCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisReimbursementCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReimbursementCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    deleteHrisReimbursementCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchHrisReimbursementCategoriesById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReimbursementCategoryInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReimbursementCategory"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisReimbursementCategoriesExport: {
+        parameters: {
+            query?: {
+                format?: "csv" | "xlsx";
+                /** @description Search */
+                q?: string;
+                includeArchived?: boolean;
+                /** @description Field name, prefix with - for descending */
+                sort?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisReimbursementFiles: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["File"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisReimbursements: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                status?: "submitted" | "approved" | "rejected" | "sent_to_finance" | "paid" | "cancelled";
+                employeeId?: string;
+                categoryId?: string;
+                q?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Reimbursement"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisReimbursements: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReimbursementInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reimbursement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisReimbursementsByIdReceipt: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisReimbursementsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReimbursementNote"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reimbursement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisReimbursementsByIdMarkPaid: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReimbursementPayInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reimbursement"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisReimbursementsByIdSendToFinance: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReimbursementNote"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Reimbursement"];
                 };
             };
             /** @description Not authenticated */
@@ -163992,6 +174501,64 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ShiftScheduleDetail"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisSchedulesByIdOpenShifts: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HrtimeOpenShiftInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenShift"];
                 };
             };
             /** @description Not authenticated */
@@ -166229,6 +176796,234 @@ export interface operations {
             };
         };
     };
+    getHrisTimesheets: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                status?: "draft" | "submitted" | "approved" | "rejected" | "cancelled";
+                employeeId?: string;
+                /** @description Periods ending on or after */
+                from?: string;
+                /** @description Periods starting on or before */
+                to?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Timesheet"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisTimesheetsById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timesheet"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisTimesheetsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timesheet"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisTimesheetsByIdReject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TimeDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Timesheet"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getHrisTrainingMatrix: {
         parameters: {
             query?: {
@@ -167222,6 +178017,448 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisWorkforcePlans: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                orgUnitId?: string;
+                status?: "draft" | "active" | "archived";
+                /** @description Plans covering the day */
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["WorkforcePlan"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisWorkforcePlans: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkforcePlanInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkforcePlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisWorkforcePlansById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkforcePlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    patchHrisWorkforcePlansById: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkforcePlanInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkforcePlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisWorkforcePlansByIdExport: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getHrisWorkforcePlansByIdGap: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkforceGap"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisWorkforcePlansByIdActivate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkforcePlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postHrisWorkforcePlansByIdArchive: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Empty"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkforcePlan"];
                 };
             };
             /** @description Not authenticated */
@@ -176965,6 +188202,108 @@ export interface operations {
             };
         };
     };
+    putMemberBookingsByIdCaddyRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CaddyRequestsInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingJourney"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberBookingsByIdJourney: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingJourney"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postMemberBookingsByIdCancel: {
         parameters: {
             query?: never;
@@ -177915,6 +189254,63 @@ export interface operations {
             };
         };
     };
+    getMemberGolfCaddies: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description YYYY-MM-DD: on duty that day */
+                date?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MemberCaddy"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postMemberGolfCaddiesByIdFavorite: {
         parameters: {
             query?: never;
@@ -178017,6 +189413,61 @@ export interface operations {
             };
         };
     };
+    getMemberGolfCourseGuide: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CourseGuide"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getMemberGolfCourses: {
         parameters: {
             query?: {
@@ -178039,6 +189490,61 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["CourseInfo"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberGolfGuests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MyGuest"][];
                         nextCursor?: string;
                     };
                 };
@@ -178626,6 +190132,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicTournamentRegistration"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberGolfQuote: {
+        parameters: {
+            query: {
+                teeTimeId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MemberQuote"];
                 };
             };
             /** @description Not authenticated */
@@ -180242,6 +191797,63 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MyLoyalty"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberMeetingRoomAvailability: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                /** @description YYYY-MM-DD */
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RoomDay"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -182315,6 +193927,53 @@ export interface operations {
             };
         };
     };
+    getMemberStayCatalog: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayCatalog"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getMemberStays: {
         parameters: {
             query?: {
@@ -182393,6 +194052,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StayResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberStaysQuote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MyStayInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StayQuote"];
                 };
             };
             /** @description Not authenticated */
@@ -187097,6 +198807,109 @@ export interface operations {
             };
         };
     };
+    postPlatformApprovalsByIdComments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CommentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestComment"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPlatformApprovalsByIdCommentsByCommentIdFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                commentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postPlatformApprovalsByIdApprove: {
         parameters: {
             query?: never;
@@ -187204,6 +199017,59 @@ export interface operations {
         };
     };
     postPlatformApprovalsByIdReject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Request"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPlatformApprovalsByIdRequestRevision: {
         parameters: {
             query?: never;
             header?: never;
@@ -189668,6 +201534,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HardwareProfilesView"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPlatformImages: {
+        parameters: {
+            query: {
+                /** @description Resource key, e.g. commercial.product */
+                resource: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["File"];
                 };
             };
             /** @description Not authenticated */
@@ -199418,6 +211334,39 @@ export interface operations {
             };
         };
     };
+    postPublicAttendanceClock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendancePresenceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceClockResult"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getPublicAvailability: {
         parameters: {
             query: {
@@ -201127,6 +213076,76 @@ export interface operations {
             };
         };
     };
+    postPublicMembershipApplicationsByNumberPayOnline: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrackInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationTrack"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicMembershipApplicationsByNumberTrack: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrackInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationTrack"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getPublicMembershipTypes: {
         parameters: {
             query: {
@@ -201773,6 +213792,72 @@ export interface operations {
                         items: components["schemas"]["PublicClub"][];
                         nextCursor?: string;
                     };
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicSandboxCheckoutByNumber: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SandboxCheckout"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicSandboxCheckoutByNumberComplete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                number: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SandboxOutcome"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SandboxCheckout"];
                 };
             };
             /** @description Problem Details (RFC 9457) */
@@ -211088,7 +223173,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["AssignInput"];
+                "application/json": components["schemas"]["StayAssignInput"];
             };
         };
         responses: {

@@ -177,7 +177,7 @@ func (h *HTTP) list(w http.ResponseWriter, r *http.Request) {
 	sensitive := authz.From(ctx).Can("audit.log.view_sensitive", nil)
 	var out []Log
 	err = h.DB.WithReadTx(ctx, func(tx pgx.Tx) error {
-		args = append(args, lp.Limit+1)
+		args = append(args, lp.PageSize+1)
 		rows, err := tx.Query(ctx, logSelect+" WHERE "+strings.Join(where, " AND ")+" ORDER BY occurred_at DESC, id DESC LIMIT $"+strconv.Itoa(len(args)), args...)
 		if err != nil {
 			return err
@@ -196,7 +196,7 @@ func (h *HTTP) list(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	httpx.JSON(w, http.StatusOK, httpx.BuildPage(out, lp.Limit, func(l Log) string {
+	httpx.JSON(w, http.StatusOK, httpx.BuildPage(out, lp.PageSize, func(l Log) string {
 		return l.OccurredAt.UTC().Format(time.RFC3339Nano) + "|" + l.ID.String()
 	}))
 }

@@ -12,7 +12,9 @@ package billing
 //   - account invoice: uninvoiced charges already on an AR account
 //     (corporate city ledger or member signing bill);
 //   - schedule invoice: one line of a payment schedule (DP, installment),
-//     paid as a deposit on the schedule's folio.
+//     paid as a deposit on the schedule's folio;
+//   - manual invoice (invoice_manual.go): the exceptions, posted to a folio of
+//     their own and then invoiced like a folio.
 // Payments settle invoices through allocations; numbers are gap-free per
 // property and year and assigned at issue.
 
@@ -21,6 +23,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -65,6 +68,9 @@ type Invoice struct {
 	CustomerFolioID    *uuid.UUID `json:"customerFolioId" db:"customer_folio_id"`
 	FolioID            *uuid.UUID `json:"folioId" db:"folio_id"`
 	ScheduleLineID     *uuid.UUID `json:"scheduleLineId" db:"schedule_line_id"`
+	Source             string     `json:"source" db:"source" enum:"manual,folio,customer_folio,payment_schedule,city_ledger"`
+	SourceType         *string    `json:"sourceType" db:"source_type" doc:"Folio source (golf_booking, banquet_event …) of a folio invoice"`
+	SourceRef          *string    `json:"sourceRef" db:"source_ref" doc:"Folio / customer folio number or payment schedule title"`
 	BillToName         string     `json:"billToName" db:"bill_to_name"`
 	BillToAddress      *string    `json:"billToAddress" db:"bill_to_address"`
 	BillToNPWP         *string    `json:"billToNpwp" db:"bill_to_npwp"`
@@ -84,7 +90,10 @@ type Invoice struct {
 	Outstanding        string     `json:"outstanding" db:"outstanding"`
 	Status             string     `json:"status" db:"status" enum:"draft,issued,partially_paid,paid,overdue,void"`
 	DaysOverdue        int        `json:"daysOverdue" db:"days_overdue"`
-	Notes              *string    `json:"notes" db:"notes"`
+	Notes              *string    `json:"notes" db:"notes" doc:"Customer notes, printed on the invoice"`
+	CustomerPO         *string    `json:"customerPo" db:"customer_po"`
+	ContractRef        *string    `json:"contractRef" db:"contract_ref"`
+	BillingRef         *string    `json:"billingRef" db:"billing_ref"`
 	IssuedAt           *time.Time `json:"issuedAt" db:"issued_at"`
 	SentAt             *time.Time `json:"sentAt" db:"sent_at"`
 	PaidAt             *time.Time `json:"paidAt" db:"paid_at"`
@@ -102,7 +111,9 @@ type InvoiceLine struct {
 	AccountEntryID   *uuid.UUID `json:"accountEntryId" db:"account_entry_id"`
 	Description      string     `json:"description" db:"description"`
 	Quantity         string     `json:"quantity" db:"quantity"`
+	Unit             *string    `json:"unit" db:"unit"`
 	UnitPrice        string     `json:"unitPrice" db:"unit_price"`
+	DiscountAmount   string     `json:"discountAmount" db:"discount_amount"`
 	NetAmount        string     `json:"netAmount" db:"net_amount"`
 	ServiceAmount    string     `json:"serviceAmount" db:"service_amount"`
 	TaxAmount        string     `json:"taxAmount" db:"tax_amount"`
@@ -146,6 +157,35 @@ type WriteOff struct {
 	CreatedAt         time.Time  `json:"createdAt" db:"created_at"`
 }
 
+// WriteOffItem is a write-off with its invoice.
+type WriteOffItem struct {
+	ID                uuid.UUID  `json:"id" db:"id"`
+	Number            string     `json:"number" db:"number"`
+	InvoiceID         uuid.UUID  `json:"invoiceId" db:"invoice_id"`
+	InvoiceNumber     *string    `json:"invoiceNumber" db:"invoice_number"`
+	BillToName        string     `json:"billToName" db:"bill_to_name"`
+	Amount            string     `json:"amount" db:"amount"`
+	Reason            string     `json:"reason" db:"reason"`
+	Status            string     `json:"status" db:"status" enum:"pending,approved,rejected,cancelled"`
+	ApprovalRequestID *uuid.UUID `json:"approvalRequestId" db:"approval_request_id"`
+	CreatedAt         time.Time  `json:"createdAt" db:"created_at"`
+}
+
+// UnallocatedPayment is a payment on a customer account with an amount not
+// yet allocated to invoices.
+type UnallocatedPayment struct {
+	ID          uuid.UUID `json:"id" db:"id"`
+	Number      string    `json:"number" db:"number"`
+	AccountID   uuid.UUID `json:"accountId" db:"account_id"`
+	AccountName string    `json:"accountName" db:"account_name"`
+	MethodType  string    `json:"methodType" db:"method_type"`
+	Reference   *string   `json:"reference" db:"reference"`
+	PayerName   *string   `json:"payerName" db:"payer_name"`
+	PaidAt      time.Time `json:"paidAt" db:"paid_at"`
+	Amount      string    `json:"amount" db:"amount"`
+	Unallocated string    `json:"unallocated" db:"unallocated"`
+}
+
 // InvoiceDetail is an invoice with lines, allocations, credits and write-offs.
 type InvoiceDetail struct {
 	Invoice
@@ -154,10 +194,30 @@ type InvoiceDetail struct {
 	CreditNotes []CreditNote  `json:"creditNotes"`
 	WriteOffs   []WriteOff    `json:"writeOffs"`
 	PayLink     *string       `json:"payLink" doc:"Public payment link (issued invoices)"`
+	// Internal is filled on the staff routes only (WithInternal), never on
+	// member or public ones.
+	Internal *InvoiceInternal `json:"internal,omitempty"`
 }
 
+// invoiceSource is Invoice.Source (also the filter of the invoice list).
+const invoiceSource = `CASE WHEN i.schedule_line_id IS NOT NULL THEN 'payment_schedule' WHEN i.customer_folio_id IS NOT NULL THEN 'customer_folio'
+	WHEN i.folio_id IS NOT NULL THEN CASE WHEN (SELECT f.source_type FROM billing.folios f WHERE f.id = i.folio_id) = 'manual_invoice'
+	  THEN 'manual' ELSE 'folio' END
+	-- consolidated (billing workspace): folio charges of several folios, not AR entries
+	WHEN EXISTS (SELECT 1 FROM billing.invoice_lines il WHERE il.invoice_id = i.id AND il.folio_line_id IS NOT NULL AND il.account_entry_id IS NULL) THEN 'folio'
+	ELSE 'city_ledger' END`
+
 const invoiceSelect = `SELECT i.id, i.number, i.kind, i.customer_id, i.corporate_account_id, i.account_id, i.customer_folio_id, i.folio_id,
-	i.schedule_line_id, i.bill_to_name, i.bill_to_address, i.bill_to_npwp, i.bill_to_email, i.bill_to_phone,
+	i.schedule_line_id, ` + invoiceSource + ` AS source,
+	CASE WHEN i.schedule_line_id IS NULL AND i.customer_folio_id IS NULL THEN (SELECT f.source_type FROM billing.folios f WHERE f.id = i.folio_id) END
+	  AS source_type,
+	CASE WHEN i.schedule_line_id IS NOT NULL THEN (SELECT s.title FROM billing.payment_schedule_lines l
+	    JOIN billing.payment_schedules s ON s.id = l.schedule_id WHERE l.id = i.schedule_line_id)
+	  WHEN i.customer_folio_id IS NOT NULL THEN (SELECT c.number FROM billing.customer_folios c WHERE c.id = i.customer_folio_id)
+	  WHEN i.folio_id IS NOT NULL THEN (SELECT f.number FROM billing.folios f WHERE f.id = i.folio_id)
+	  ELSE (SELECT string_agg(DISTINCT f.number, ', ') FROM billing.invoice_lines il JOIN billing.folio_lines fl ON fl.id = il.folio_line_id
+	    JOIN billing.folios f ON f.id = fl.folio_id WHERE il.invoice_id = i.id AND il.account_entry_id IS NULL) END AS source_ref,
+	i.bill_to_name, i.bill_to_address, i.bill_to_npwp, i.bill_to_email, i.bill_to_phone,
 	to_char(i.issue_date, 'YYYY-MM-DD') AS issue_date, to_char(i.due_date, 'YYYY-MM-DD') AS due_date, i.terms_days, i.currency,
 	trim_scale(i.subtotal)::text AS subtotal, trim_scale(i.service_amount)::text AS service_amount, trim_scale(i.tax_amount)::text AS tax_amount,
 	trim_scale(i.total)::text AS total, trim_scale(i.paid_amount)::text AS paid_amount, trim_scale(i.credited_amount)::text AS credited_amount,
@@ -165,7 +225,7 @@ const invoiceSelect = `SELECT i.id, i.number, i.kind, i.customer_id, i.corporate
 	trim_scale(CASE WHEN i.status IN ('draft', 'void') THEN 0 ELSE i.total - i.paid_amount - i.credited_amount - i.written_off_amount END)::text AS outstanding,
 	i.status, CASE WHEN i.status IN ('issued', 'partially_paid', 'overdue') AND i.due_date < billing.local_date(i.property_id)
 	  THEN billing.local_date(i.property_id) - i.due_date ELSE 0 END AS days_overdue,
-	i.notes, i.issued_at, i.sent_at, i.paid_at, i.voided_at, i.void_reason, i.version, i.created_at
+	i.notes, i.customer_po, i.contract_ref, i.billing_ref, i.issued_at, i.sent_at, i.paid_at, i.voided_at, i.void_reason, i.version, i.created_at
 	FROM billing.invoices i`
 
 func listInvoices(ctx context.Context, q dbtx.Querier, where string, args ...any) ([]Invoice, error) {
@@ -180,7 +240,7 @@ func GetInvoice(ctx context.Context, q dbtx.Querier, iid uuid.UUID, publicBase s
 	}
 	d := InvoiceDetail{Invoice: inv}
 	if d.Lines, err = handle.List[InvoiceLine](q.Query(ctx, `SELECT id, seq, folio_line_id, account_entry_id, description, trim_scale(quantity)::text AS quantity,
-		trim_scale(unit_price)::text AS unit_price, trim_scale(net_amount)::text AS net_amount, trim_scale(service_amount)::text AS service_amount,
+		unit, trim_scale(unit_price)::text AS unit_price, trim_scale(discount_amount)::text AS discount_amount, trim_scale(net_amount)::text AS net_amount, trim_scale(service_amount)::text AS service_amount,
 		trim_scale(tax_amount)::text AS tax_amount, trim_scale(total)::text AS total, business_line, revenue_component
 		FROM billing.invoice_lines WHERE invoice_id = $1 ORDER BY seq`, iid)); err != nil {
 		return d, err
@@ -219,19 +279,27 @@ type BillTo struct {
 
 // InvoiceInput generates an invoice (draft unless Issue).
 type InvoiceInput struct {
-	FolioID            *uuid.UUID  `json:"folioId,omitempty" doc:"Folio invoice: uninvoiced charges of one folio"`
-	CustomerFolioID    *uuid.UUID  `json:"customerFolioId,omitempty" doc:"Folio invoice: uninvoiced charges of every folio of the customer folio"`
-	LineIDs            []uuid.UUID `json:"lineIds,omitempty" doc:"Folio invoice: only these charge lines"`
-	AccountID          *uuid.UUID  `json:"accountId,omitempty" doc:"Account invoice: uninvoiced charges on the AR account"`
-	CorporateAccountID *uuid.UUID  `json:"corporateAccountId,omitempty" doc:"Account invoice of the corporate city ledger, or the payer of a folio invoice"`
-	ScheduleLineID     *uuid.UUID  `json:"scheduleLineId,omitempty" doc:"Schedule invoice: one payment schedule line (DP, installment)"`
-	From               string      `json:"from,omitempty" doc:"Account invoice period (YYYY-MM-DD)"`
-	To                 string      `json:"to,omitempty"`
-	Kind               string      `json:"kind,omitempty" enum:"standard,final" doc:"Folio invoices only; final = the closing invoice of an event"`
-	TermsDays          *int        `json:"termsDays,omitempty" doc:"Default: Credit Policies term for companies, 0 for individuals"`
-	BillTo             *BillTo     `json:"billTo,omitempty"`
-	Notes              string      `json:"notes,omitempty"`
-	Issue              bool        `json:"issue,omitempty" doc:"Issue immediately"`
+	FolioID            *uuid.UUID   `json:"folioId,omitempty" doc:"Folio invoice: uninvoiced charges of one folio"`
+	FolioIDs           []uuid.UUID  `json:"folioIds,omitempty" doc:"Consolidated folio invoice: uninvoiced charges of several folios of the same payer"`
+	CustomerFolioID    *uuid.UUID   `json:"customerFolioId,omitempty" doc:"Folio invoice: uninvoiced charges of every folio of the customer folio"`
+	LineIDs            []uuid.UUID  `json:"lineIds,omitempty" doc:"Folio invoice: only these charge lines"`
+	AccountID          *uuid.UUID   `json:"accountId,omitempty" doc:"Account invoice: uninvoiced charges on the AR account"`
+	CorporateAccountID *uuid.UUID   `json:"corporateAccountId,omitempty" doc:"Account invoice of the corporate city ledger, or the payer of a folio invoice"`
+	ScheduleLineID     *uuid.UUID   `json:"scheduleLineId,omitempty" doc:"Schedule invoice: one payment schedule line (DP, installment)"`
+	From               string       `json:"from,omitempty" doc:"Account invoice period (YYYY-MM-DD)"`
+	To                 string       `json:"to,omitempty"`
+	Kind               string       `json:"kind,omitempty" enum:"standard,final" doc:"Folio invoices only; final = the closing invoice of an event"`
+	TermsDays          *int         `json:"termsDays,omitempty" doc:"Default: Credit Policies term for companies, 0 for individuals"`
+	CustomerID         *uuid.UUID   `json:"customerId,omitempty" doc:"Manual invoice: the customer billed (or the guest when a company pays)"`
+	Lines              []ManualLine `json:"lines,omitempty" doc:"Manual invoice: the lines (billing.invoice.manual)"`
+	BillTo             *BillTo      `json:"billTo,omitempty"`
+	Notes              string       `json:"notes,omitempty" doc:"Customer notes, printed on the invoice"`
+	InternalNotes      string       `json:"internalNotes,omitempty" doc:"Never printed on the invoice"`
+	CustomerPO         string       `json:"customerPo,omitempty"`
+	ContractRef        string       `json:"contractRef,omitempty"`
+	BillingRef         string       `json:"billingRef,omitempty"`
+	AttachmentFileIDs  []uuid.UUID  `json:"attachmentFileIds,omitempty" doc:"Supporting documents uploaded through /api/v1/billing/invoice-files"`
+	Issue              bool         `json:"issue,omitempty" doc:"Issue immediately"`
 }
 
 type draftLine struct {
@@ -240,6 +308,8 @@ type draftLine struct {
 	qty, unit            decimal.Decimal
 	net, svc, tax, total decimal.Decimal
 	line, component      *string
+	uom                  *string         // manual lines: unit of measure
+	discount             decimal.Decimal // manual lines: discount before tax
 	folioOf              *uuid.UUID
 	depositOf            *uuid.UUID // a "less: received" line of a folio
 	isReceipt            bool
@@ -265,7 +335,7 @@ func (h *HTTP) CreateInvoice(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		billTo       BillTo
 	)
 	sources := 0
-	for _, x := range []bool{in.FolioID != nil, in.CustomerFolioID != nil, in.AccountID != nil, in.ScheduleLineID != nil} {
+	for _, x := range []bool{in.FolioID != nil || len(in.FolioIDs) > 0, in.CustomerFolioID != nil, in.AccountID != nil, in.ScheduleLineID != nil, len(in.Lines) > 0} {
 		if x {
 			sources++
 		}
@@ -277,11 +347,21 @@ func (h *HTTP) CreateInvoice(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 		}
 		in.AccountID, sources = &a.ID, 1
 	}
-	if sources != 1 {
-		return InvoiceDetail{}, errs.Validation("source_required", "choose one source: a folio, a customer folio, an account or a schedule line",
+	if sources != 1 || (in.FolioID != nil && len(in.FolioIDs) > 0) {
+		return InvoiceDetail{}, errs.Validation("source_required", "choose one source: a folio, a customer folio, an account, a schedule line or manual lines",
 			errs.Field("folioId", "required", "one source"))
 	}
+	files, err := invoiceFiles(ctx, tx, in.AttachmentFileIDs)
+	if err != nil {
+		return InvoiceDetail{}, err
+	}
 	switch {
+	case len(in.Lines) > 0:
+		m, err := h.manualLines(ctx, tx, property, in)
+		if err != nil {
+			return InvoiceDetail{}, err
+		}
+		lines, folioID, customerID, corporateID = m.lines, &m.folioID, in.CustomerID, in.CorporateAccountID
 	case in.ScheduleLineID != nil:
 		var l struct {
 			ScheduleID uuid.UUID
@@ -405,12 +485,56 @@ func (h *HTTP) CreateInvoice(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 					folios = append(folios, f.ID)
 				}
 			}
+		} else if len(in.FolioIDs) > 0 {
+			// consolidated: one payer for every folio (the given one, or the
+			// company / customer the folios share)
+			payer := ""
+			for _, fid := range in.FolioIDs {
+				if slices.Contains(folios, fid) {
+					continue
+				}
+				f, err := GetFolio(ctx, tx, fid)
+				if err != nil {
+					return InvoiceDetail{}, err
+				}
+				var corp *uuid.UUID
+				if err := tx.QueryRow(ctx, `SELECT corporate_account_id FROM billing.folios WHERE id = $1 AND property_id = $2`, f.ID, property).
+					Scan(&corp); err != nil {
+					return InvoiceDetail{}, err
+				}
+				key := ""
+				switch {
+				case corp != nil:
+					key = "company:" + corp.String()
+				case f.CustomerID != nil:
+					key = "customer:" + f.CustomerID.String()
+				}
+				if in.CorporateAccountID == nil && in.CustomerID == nil {
+					if len(folios) > 0 && key != payer {
+						return InvoiceDetail{}, errs.Conflict("payer_mismatch", "the folios of a consolidated invoice must have the same payer")
+					}
+					if corporateID == nil {
+						corporateID = corp
+					}
+				}
+				if customerID == nil {
+					customerID = f.CustomerID
+				}
+				payer = key
+				folios = append(folios, f.ID)
+			}
+			if in.CustomerID != nil {
+				customerID = in.CustomerID
+			}
 		} else {
 			f, err := GetFolio(ctx, tx, *in.FolioID)
 			if err != nil {
 				return InvoiceDetail{}, err
 			}
 			folioID, customerID, folios = &f.ID, f.CustomerID, []uuid.UUID{f.ID}
+			if in.CustomerID != nil {
+				customerID = in.CustomerID // billed to another customer (billing workspace)
+			}
 			var corp *uuid.UUID
 			_ = tx.QueryRow(ctx, `SELECT corporate_account_id FROM billing.folios WHERE id = $1`, f.ID).Scan(&corp)
 			if corporateID == nil {
@@ -496,19 +620,20 @@ func (h *HTTP) CreateInvoice(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	}
 	if _, err := tx.Exec(ctx, `INSERT INTO billing.invoices (id, property_id, kind, customer_id, corporate_account_id, account_id, customer_folio_id, folio_id,
 		schedule_line_id, bill_to_name, bill_to_address, bill_to_npwp, bill_to_email, bill_to_phone, terms_days, currency, subtotal, service_amount,
-		tax_amount, total, notes, created_by, updated_by)
-		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::numeric,$18::numeric,$19::numeric,$20::numeric,$21,$22,$22)`,
+		tax_amount, total, notes, internal_notes, customer_po, contract_ref, billing_ref, attachment_file_ids, created_by, updated_by)
+		VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17::numeric,$18::numeric,$19::numeric,$20::numeric,$21,$22,$23,$24,$25,$26,$27,$27)`,
 		iid, property, kind, customerID, corporateID, accountID, customerFol, folioID, scheduleLine, billTo.Name, nullStr(billTo.Address),
 		nullStr(billTo.NPWP), nullStr(billTo.Email), nullStr(billTo.Phone), terms, cur, sub.String(), svc.String(), tax.String(), tot.String(),
-		nullStr(in.Notes), id.Ptr(actor(ctx))); err != nil {
+		nullStr(in.Notes), nullStr(in.InternalNotes), nullStr(in.CustomerPO), nullStr(in.ContractRef), nullStr(in.BillingRef),
+		files, id.Ptr(actor(ctx))); err != nil {
 		return InvoiceDetail{}, err
 	}
 	for i, l := range lines {
 		if _, err := tx.Exec(ctx, `INSERT INTO billing.invoice_lines (id, property_id, invoice_id, seq, folio_line_id, account_entry_id, description, quantity,
-			unit_price, net_amount, service_amount, tax_amount, total, business_line, revenue_component)
-			VALUES ($1,$2,$3,$4,$5,$6,$7,$8::numeric,$9::numeric,$10::numeric,$11::numeric,$12::numeric,$13::numeric,$14,$15)`,
-			id.New(), property, iid, i+1, l.folioLine, l.entry, l.desc, l.qty.String(), l.unit.String(), l.net.String(), l.svc.String(), l.tax.String(),
-			l.total.String(), l.line, l.component); err != nil {
+			unit, unit_price, discount_amount, net_amount, service_amount, tax_amount, total, business_line, revenue_component)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8::numeric,$9,$10::numeric,$11::numeric,$12::numeric,$13::numeric,$14::numeric,$15::numeric,$16,$17)`,
+			id.New(), property, iid, i+1, l.folioLine, l.entry, l.desc, l.qty.String(), l.uom, l.unit.String(), l.discount.String(), l.net.String(),
+			l.svc.String(), l.tax.String(), l.total.String(), l.line, l.component); err != nil {
 			return InvoiceDetail{}, err
 		}
 		if l.folioLine != nil {
@@ -1100,6 +1225,9 @@ func (s *Service) VoidInvoice(ctx context.Context, tx pgx.Tx, iid uuid.UUID, rea
 			return Invoice{}, err
 		}
 	}
+	if err := s.voidManualCharges(ctx, tx, inv, reason); err != nil {
+		return Invoice{}, err
+	}
 	if _, err := tx.Exec(ctx, `UPDATE billing.invoices SET status = 'void', voided_at = now(), void_reason = $2, version = version + 1, updated_by = $3
 		WHERE id = $1`, iid, reason, id.Ptr(actor(ctx))); err != nil {
 		return Invoice{}, err
@@ -1367,22 +1495,46 @@ func InvoicePDF(ctx context.Context, q dbtx.Querier, d InvoiceDetail) ([]byte, e
 	doc.Row(10, false, "Issue Date / Tanggal", deref(d.IssueDate))
 	doc.Row(10, false, "Due Date / Jatuh Tempo", deref(d.DueDate))
 	doc.Row(10, false, "Bill To / Kepada", d.BillToName)
+	if d.BillToAddress != nil {
+		doc.Row(10, false, "Address / Alamat", *d.BillToAddress)
+	}
 	if d.BillToNPWP != nil {
 		doc.Row(10, false, "NPWP", *d.BillToNPWP)
 	}
-	doc.Space(6)
-	doc.Rule(doc.Y + 10)
-	for _, l := range d.Lines {
-		doc.Row(9, false, l.Description, d.Currency+" "+formatAmount(dec(l.Total), d.Currency))
+	for _, r := range []struct {
+		label string
+		v     *string
+	}{{"Customer PO", d.CustomerPO}, {"Contract / Kontrak", d.ContractRef}, {"Reference / Referensi", d.BillingRef}} {
+		if r.v != nil {
+			doc.Row(10, false, r.label, *r.v)
+		}
 	}
 	doc.Space(6)
 	doc.Rule(doc.Y + 10)
+	discount := decimal.Zero
+	for _, l := range d.Lines {
+		desc := l.Description
+		if q := dec(l.Quantity); !q.Equal(decimal.NewFromInt(1)) || l.Unit != nil {
+			desc += " (" + q.String() + strings.TrimSpace(" "+deref(l.Unit)) + " × " + formatAmount(dec(l.UnitPrice), d.Currency) + ")"
+		}
+		doc.Row(9, false, desc, d.Currency+" "+formatAmount(dec(l.Total), d.Currency))
+		discount = discount.Add(dec(l.DiscountAmount))
+	}
+	doc.Space(6)
+	doc.Rule(doc.Y + 10)
+	if discount.IsPositive() {
+		doc.Row(10, false, "Discount / Diskon", "-"+formatAmount(discount, d.Currency))
+	}
 	doc.Row(10, false, "Subtotal", formatAmount(dec(d.Subtotal), d.Currency))
 	doc.Row(10, false, "Service", formatAmount(dec(d.ServiceAmount), d.Currency))
 	doc.Row(10, false, "Tax / Pajak", formatAmount(dec(d.TaxAmount), d.Currency))
 	doc.Row(14, true, "Total", d.Currency+" "+formatAmount(dec(d.Total), d.Currency))
 	doc.Row(10, false, "Paid / Dibayar", formatAmount(dec(d.PaidAmount), d.Currency))
 	doc.Row(12, true, "Outstanding / Sisa", d.Currency+" "+formatAmount(dec(d.Outstanding), d.Currency))
+	if d.Notes != nil {
+		doc.Space(8)
+		doc.Row(9, false, "Notes / Catatan: "+*d.Notes)
+	}
 	return doc.Bytes(), nil
 }
 

@@ -38,7 +38,6 @@ export interface CmsList { language: string; items: CmsSummary[]; categories?: {
 export interface CmsBanner {
   id: string; placement: string; title: string; subtitle?: string; buttonLabel?: string; image?: CmsMedia | null; link?: CmsLink | null;
 }
-export interface CmsNavItem { id: string; label: string; href: string; external: boolean; newTab: boolean; type?: string; routeKey?: string; children: CmsNavItem[] }
 
 /** Appends the property of the website to a public API path. */
 async function withProperty(path: string): Promise<string> {
@@ -68,8 +67,6 @@ export const getNews = (lang: string, q: Record<string, string> = {}) =>
 export const getAlbums = (lang: string, cursor = '') => cmsGet<CmsList>(`/api/v1/public/cms/gallery?${new URLSearchParams({ lang, ...(cursor ? { cursor } : {}) }).toString()}`);
 export const getBanners = async (lang: string, placement: string, page = '') =>
   (await cmsGet<{ items: CmsBanner[] }>(`/api/v1/public/cms/banners?${new URLSearchParams({ lang, placement, ...(page ? { page } : {}) }).toString()}`))?.items ?? [];
-export const getNavigation = async (lang: string, location: string) =>
-  (await cmsGet<{ menus: { code: string; location: string; items: CmsNavItem[] }[] }>(`/api/v1/public/cms/navigation?lang=${lang}&location=${location}`))?.menus ?? [];
 
 /** Sitemap data of the website (FR-CMS-08): published CMS pages, news, albums and structured routes with hreflang alternates. */
 export interface CmsSitemapEntry { loc: string; path: string; language: string; lastmod: string; changefreq: string; priority: string; alternates: { language: string; href: string }[] }

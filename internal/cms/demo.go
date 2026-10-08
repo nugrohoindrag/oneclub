@@ -294,9 +294,9 @@ func SeedDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 			"id": {"note": "Reservasi WhatsApp dijawab pukul 07.00–20.00."}}); err != nil {
 		return err
 	}
-	// course guide texts (EAST holes 1–3)
+	// course guide texts (MGC holes 1–3)
 	for h := 1; h <= 3; h++ {
-		if _, err := tx.Exec(ctx, `INSERT INTO cms.course_guides (id, property_id, course_code, hole_number, title, translations, sort_order) VALUES ($1,$2,'EAST',$3,$4,$5,$3)`,
+		if _, err := tx.Exec(ctx, `INSERT INTO cms.course_guides (id, property_id, course_code, hole_number, title, translations, sort_order) VALUES ($1,$2,'MGC',$3,$4,$5,$3)`,
 			id.New(), property, h, fmt.Sprintf("Hole %d", h), map[string]map[string]string{
 				"id": {"title": fmt.Sprintf("Hole %d", h), "description": "<p>Pukulan pertama ke tengah fairway.</p>"},
 				"en": {"title": fmt.Sprintf("Hole %d", h), "description": "<p>Aim the tee shot at the centre of the fairway.</p>"}}); err != nil {

@@ -251,7 +251,7 @@ func TestCustomDomain(t *testing.T) {
 	}
 	// Staff App surfaces; the surfaces of the former staff apps stay accepted
 	// and are served as their Staff App surface.
-	for surface, served := range map[string]string{"dashboard": "dashboard", "cashier": "cashier", "caddy": "caddy", "kitchen": "kitchen",
+	for surface, served := range map[string]string{"dashboard": "dashboard", "cashier": "cashier", "caddy": "caddy", "kitchen": "kitchen", "presence": "presence",
 		"backoffice": "dashboard", "platform-admin": "dashboard", "ops": "cashier"} {
 		host := surface + ".moderngolf.example"
 		s := pa.Must(201, "POST", "/api/v1/platform/domains", map[string]any{"surface": surface, "hostname": host}).JSON()

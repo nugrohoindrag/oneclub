@@ -1,52 +1,102 @@
-import React, { useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router';
+import { useState } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
-import { formatDateTime, formatNumber, formatRelative, useTranslation } from '@oneclub/i18n';
+import { formatDateTime, formatNumber, formatRelative } from '@oneclub/i18n';
 import {
-  Card, ComingSoonPage, DataTable, ErrorAlert, Icon, PageHeader, SelectField, Skeleton, StatusPill, TextField, useAuth, useBootstrap, useToast,
+  Amount, CircleButton, ComingSoonPage, DashButton, DashCard, DashGrid, DashHead, DashIcon, DashName, DashStatusPill, DashTable, DataTable, ErrorAlert,
+  HeatBars, Icon, MiniCard, Note, PageHeader, PromoCard, ReportCard, SegmentBar, SelectField, Skeleton, SplitStats, StatusPill, TextField, useAuth,
+  useBootstrap, useToast, type DashStatus,
 } from '@oneclub/shell';
+import { FinanceDashboardPage } from './p4/finance-dashboard';
+import { HRDashboardPage } from './p5/hr-dashboard';
 
-/** Back Office home (dashboard-ui.webp style). */
+/**
+ * Back Office home: finance roles without the Management Dashboard (the
+ * Accountant) open the Finance Dashboard, HR roles (HR Manager, HR Admin)
+ * the HR Dashboard; everyone else the general home.
+ */
 export function DashboardPage() {
+  const { can } = useAuth();
+  if (can('reporting.dashboard.view')) return <HomeDashboard />;
+  if (can('accounting.dashboard.view')) return <FinanceDashboardPage />;
+  return can('hris.employee.create') ? <HRDashboardPage /> : <HomeDashboard />;
+}
+
+/** Count of a list page: "50+" when more pages follow. */
+const countOf = (p?: Page<unknown>) => (p ? `${p.total ?? p.items.length}${p.nextCursor && p.total == null ? '+' : ''}` : '—');
+
+const REQUEST_TONE: Record<string, DashStatus> = { approved: 'good', rejected: 'bad', cancelled: 'neutral', pending: 'warn', submitted: 'warn', revision: 'warn' };
+
+/** Back Office home of every role without a domain dashboard, on the dashboard kit. */
+function HomeDashboard() {
+  const nav = useNavigate();
   const { me, can } = useAuth();
   const boot = useBootstrap();
-  const inbox = useGet<Page<Schemas['Request']>>('/api/v1/platform/approvals?box=inbox&limit=5');
+  const [q, setQ] = useState('');
+  const inbox = useGet<Page<Schemas['Request']>>('/api/v1/platform/approvals?box=inbox&limit=50');
+  const mine = useGet<Page<Schemas['Request']>>('/api/v1/platform/approvals?box=mine&limit=50');
   const unread = useGet<{ unread: number }>('/api/v1/platform/notifications/unread-count');
   const overview = useGet<Schemas['Dashboard']>(can('reporting.dashboard.view') ? '/api/v1/reporting/dashboards/executive-overview' : null);
   const hour = new Date().getHours();
   const greet = hour < 11 ? 'Good morning' : hour < 15 ? 'Good afternoon' : 'Good evening';
   const live = overview.data?.widgets.filter((w) => w.status === 'available') ?? [];
+  const waiting = inbox.data?.items ?? [];
+  const sent = mine.data?.items ?? [];
+  const open = sent.filter((r) => !['approved', 'rejected', 'cancelled'].includes(String(r.status))).length;
+  const rows = waiting.filter((r) => !q || `${r.title} ${r.requesterName}`.toLowerCase().includes(q.toLowerCase()));
+  const oldest = waiting.reduce<string | null>((o, r) => (!o || String(r.createdAt) < o ? String(r.createdAt) : o), null);
   return (
-    <div className="oc-stack">
-      <PageHeader title={`${greet}, ${me?.fullName.split(' ')[0] ?? ''}`} help={`${boot.branding.appName} · ${boot.timezone}`} />
-      <div className="oc-grid">
-        <div className="oc-card oc-card-ink">
-          <div className="oc-card-head"><span className="oc-icon-circle"><Icon name="approval" size={20} /></span><h3>Approvals waiting</h3></div>
-          <div className="oc-metric">{inbox.data ? inbox.data.items.length : '—'}</div>
-          <Link to="/approvals" className="oc-btn oc-btn-primary" style={{ marginTop: 16 }}>Open Approvals</Link>
-        </div>
-        <div className="oc-card">
-          <div className="oc-card-head"><span className="oc-icon-circle"><Icon name="notifications" size={20} /></span><h3>Unread notifications</h3></div>
-          <div className="oc-metric">{unread.data?.unread ?? '—'}</div>
-          <Link to="/notifications" className="oc-btn oc-btn-neutral" style={{ marginTop: 16 }}>View all</Link>
-        </div>
-        {live.map((w) => (
-          <div className="oc-card" key={w.key}>
-            <div className="oc-card-head"><span className="oc-icon-circle"><Icon name="insights" size={20} /></span><h3>{w.label}</h3></div>
-            <div className="oc-metric">{formatNumber(w.value ?? 0)}</div>
+    <div className="oc-dash-page">
+      <DashHead title={`${greet}, ${me?.fullName.split(' ')[0] ?? ''}`} sub={`${boot.branding.appName} · ${boot.timezone}`} />
+      <DashGrid>
+        <DashCard span={5} icon="approval" title="Waiting for My Decision" action={<CircleButton arrow label="Open approvals" to="/approvals" />}>
+          <div className="oc-dash-hero">
+            <div>
+              <Amount text={countOf(inbox.data)} size="hero" />
+              <span className="oc-dash-delta">{oldest ? <>Oldest submitted <strong>{formatRelative(oldest)}</strong></> : 'Nothing waiting for you.'}</span>
+            </div>
+            <HeatBars values={live.slice(0, 8).map((w) => Number(w.value ?? 0))} />
           </div>
-        ))}
-      </div>
-      <Card title="Waiting for my decision" icon="pending_actions" actions={<Link to="/approvals" className="oc-btn oc-btn-text oc-btn-sm">All</Link>}>
-        <DataTable rows={inbox.data?.items as unknown as Record<string, unknown>[]} loading={inbox.isLoading}
-          empty={<div className="oc-empty"><Icon name="task_alt" size={32} /><div>Nothing waiting for you</div></div>}
-          columns={[
-            { key: 'title', header: 'Document', render: (r) => <Link to={`/approvals/${r.id}`}>{String(r.title)}</Link> },
-            { key: 'requesterName', header: 'Requested by' },
-            { key: 'createdAt', header: 'Submitted', render: (r) => formatRelative(String(r.createdAt)) },
-            { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> },
+          <div className="oc-dash-actions">
+            <DashButton tone="blue" icon="approval" to="/approvals">Approvals</DashButton>
+            <DashButton tone="dark" icon="notifications" to="/notifications">Notifications</DashButton>
+            <DashButton tone="grey" icon="person" to="/profile">Profile</DashButton>
+          </div>
+        </DashCard>
+        <DashCard span={3} icon="notifications" tone="green" title="Notifications" action={<CircleButton arrow label="View all" to="/notifications" />}>
+          <span className="oc-dash-amount" data-size="lg">{unread.data?.unread ?? '—'}</span>
+          <Note tone={unread.data?.unread ? 'bad' : 'good'}><b>{unread.data?.unread ?? 0}</b> unread notification(s).</Note>
+          <SplitStats items={[
+            { label: 'My requests', value: countOf(mine.data), color: 'var(--dash-blue)', to: '/approvals?box=mine' },
+            { label: 'Still open', value: open, color: 'var(--dash-lime)', to: '/approvals?box=mine' },
           ]} />
-      </Card>
+        </DashCard>
+        <DashCard span={4}>
+          <div className="oc-dash-inset">
+            <div className="oc-dash-card-head"><DashIcon name="today" tone="blue" /><h2>{live[0]?.label ?? 'Today'}</h2><span className="oc-spacer" />
+              {can('reporting.dashboard.view') && <CircleButton arrow label="Management" to="/management?view=today" />}</div>
+            <span className="oc-dash-amount" data-size="lg">{live[0] ? formatNumber(live[0].value ?? 0) : '—'}</span>
+            <span className="oc-dash-sub">{live.length ? 'Live figures of the property today' : 'Live figures show for management roles.'}</span>
+          </div>
+          {live.length > 1 && <SegmentBar parts={live.slice(1, 4).map((w) => ({ label: w.label, value: Number(w.value ?? 0) }))} format={(v) => formatNumber(v)} />}
+        </DashCard>
+
+        <DashTable<Schemas['Request']> span={8} title="Waiting for My Decision" icon="pending_actions" rows={rows} rowKey={(r) => String(r.id)} search={q} onSearch={setQ}
+          empty="Nothing waiting for you." onRow={(r) => nav(`/approvals/${r.id}`)} info={(r) => String(r.title)}
+          columns={[
+            { key: 'title', header: 'Name', render: (r) => <DashName icon="description" name={String(r.title)} /> },
+            { key: 'requesterName', header: 'Requested by', render: (r) => String(r.requesterName ?? '—') },
+            { key: 'createdAt', header: 'Submitted', render: (r) => formatRelative(String(r.createdAt)) },
+            { key: 'status', header: 'Status', align: 'center', render: (r) => <DashStatusPill tone={REQUEST_TONE[String(r.status)] ?? 'neutral'}>{String(r.status).replace(/_/g, ' ')}</DashStatusPill> },
+          ]} />
+        <div className="oc-dash-stack" data-span="4">
+          {can('reporting.dashboard.view')
+            ? <PromoCard span={4} badge="Management" title="Executive Overview" cta="Open" to="/management" />
+            : <PromoCard span={4} badge="Reports" title="Reports of my modules" cta="Open" to="/reports" />}
+          <MiniCard label="My open requests" value={<Amount text={String(open)} size="sm" />} to="/approvals?box=mine" />
+          <ReportCard label="Track & Print Report" title="Reports" to="/reports" />
+        </div>
+      </DashGrid>
     </div>
   );
 }
@@ -64,7 +114,7 @@ export const MODULE_PAGES: { path: string; title: string; phase: string; feature
   { path: 'inventory', title: 'Inventory', phase: 'P4', features: ['Stock Balance', 'Receiving', 'Issuing', 'Transfer', 'Stock Opname'] },
   { path: 'procurement', title: 'Procurement', phase: 'P4', features: ['Purchase Requisitions', 'Purchase Orders', 'Goods Receipt', 'Suppliers'] },
   { path: 'accounting', title: 'Accounting', phase: 'P2', features: ['General Accounting', 'Accounts Receivable', 'Accounts Payable', 'Cash & Bank', 'Financial Reports'] },
-  { path: 'hris', title: 'HRIS', phase: 'P5', features: ['Employees', 'Attendance', 'Payroll'] },
+  { path: 'hris', title: 'Human Resources', phase: 'P5', features: ['Employees', 'Attendance', 'Payroll'] },
 ];
 
 export function ModulePage({ path }: { path: string }) {
@@ -164,41 +214,6 @@ export function ExportsPage() {
 }
 
 // ── Management Dashboard (FR-REP-04) ─────────────────────────────────────
-
-export function ExecutiveOverviewPage() {
-  const { t } = useTranslation();
-  const d = useGet<Schemas['Dashboard']>('/api/v1/reporting/dashboards/executive-overview');
-  const [period, setPeriod] = useState('today');
-  if (!d.data) return <Skeleton rows={8} />;
-  const live = d.data.widgets.filter((w) => w.status === 'available');
-  const soon = d.data.widgets.filter((w) => w.status !== 'available');
-  return (
-    <div className="oc-stack">
-      <div className="oc-page-head"><div><h1>Executive Overview</h1><p>Updated {formatRelative(d.data.generatedAt)}</p></div><span className="oc-spacer" />
-        <div className="oc-row">{['today', 'week', 'month'].map((p) => <button key={p} className="oc-chip" aria-pressed={period === p} onClick={() => setPeriod(p)}>{p === 'today' ? 'Today' : p === 'week' ? 'This week' : 'This month'}</button>)}</div></div>
-      <div className="oc-grid">
-        {live.map((w, i) => (
-          <div key={w.key} className={`oc-card${i === 0 ? ' oc-card-ink' : ''}`}>
-            <div className="oc-card-head"><span className="oc-icon-circle"><Icon name={['group', 'apartment', 'location_on', 'pending'][i] ?? 'insights'} size={20} /></span><h3>{w.label}</h3></div>
-            <div className="oc-metric">{formatNumber(w.value ?? 0)}</div>
-          </div>
-        ))}
-      </div>
-      <Card title="Golf KPIs" icon="golf_course">
-        <p className="oc-muted oc-small" style={{ marginTop: 0 }}>{t('common.comingSoonHelp', { phase: 'P1' })}</p>
-        <div className="oc-grid">
-          {soon.map((w) => (
-            <div key={w.key} className="oc-card" style={{ background: 'var(--md-sys-color-surface-container-low)' }}>
-              <div className="oc-small oc-muted">{w.label}</div>
-              <div className="oc-metric" style={{ opacity: 0.35 }}>—</div>
-              <span className="oc-nav-soon">{w.phase}</span>
-            </div>
-          ))}
-        </div>
-      </Card>
-    </div>
-  );
-}
 
 export function SettingsHomePage() {
   const { can } = useAuth();

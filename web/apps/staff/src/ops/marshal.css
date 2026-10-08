@@ -1,0 +1,57 @@
+/* Course Monitor (ops/marshal.tsx): map + flight list, one column on a phone. */
+.mon { --mon-on: var(--md-sys-color-success); --mon-behind: var(--md-sys-color-warning); --mon-slow: var(--md-sys-color-error); }
+.mon-stats { display: grid; gap: var(--md-sys-gap-card); grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.mon-layout { display: grid; gap: var(--md-sys-gap-card); grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr); align-items: start; }
+@media (max-width: 1100px) { .mon-layout { grid-template-columns: minmax(0, 1fr); } }
+.mon-h2 { font-size: 16px; margin: 0 0 10px; }
+
+.mon-legend { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--md-sys-color-on-surface-variant); }
+.mon-legend i, .mon-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+[data-tone='on-pace'] { --mon-tone: var(--mon-on); }
+[data-tone='behind'] { --mon-tone: var(--mon-behind); }
+[data-tone='slow'] { --mon-tone: var(--mon-slow); }
+.mon-legend i, .mon-dot { background: var(--mon-tone); }
+
+/* map: the image with flights and golf carts placed in % of its size */
+.mon-map { position: relative; border-radius: 12px; background: var(--md-sys-color-surface-container-low); }
+.mon-map img { display: block; width: 100%; height: auto; border-radius: 12px; }
+.mon-pin { position: absolute; transform: translate(-50%, -120%); padding: 2px 8px; border-radius: 999px; border: 2px solid #fff;
+  background: var(--mon-tone); color: #fff; font: 600 11px/18px inherit; white-space: nowrap; cursor: pointer; box-shadow: 0 1px 4px rgb(0 0 0 / 35%); }
+.mon-pin[data-tone='behind'] { color: #1f1300; }
+.mon-pin[aria-pressed='true'] { outline: 3px solid var(--md-sys-color-primary); z-index: 2; }
+.mon-cart { position: absolute; transform: translate(-50%, -50%); display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--oc-ink, #1e2a1e); color: #fff; border: 1.5px solid #fff; }
+
+/* hole board when the course has no geo-referenced map */
+.mon-board { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
+.mon-hole { border: 1px solid var(--md-sys-color-outline-variant); border-radius: 10px; padding: 8px; min-height: 72px; display: flex; flex-direction: column; gap: 2px; }
+.mon-hole[data-busy] { background: var(--md-sys-color-surface-container-low); }
+.mon-hole-no { font-weight: 700; font-size: 18px; }
+.mon-hole-flights { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.mon-tag { border: 0; border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 600; background: var(--mon-tone); color: #fff; cursor: pointer; }
+.mon-tag[aria-pressed='true'] { outline: 2px solid var(--md-sys-color-primary); }
+
+/* flights */
+.mon-flights { display: flex; flex-direction: column; gap: 10px; }
+.mon-flight { border-left: 5px solid var(--mon-tone); display: flex; flex-direction: column; gap: 4px; }
+.mon-flight[aria-current='true'] { outline: 2px solid var(--md-sys-color-primary); }
+.mon-flight-head { display: flex; align-items: center; gap: 8px; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; text-align: left; }
+.mon-behind { color: var(--mon-tone); white-space: nowrap; }
+.mon-flight[data-tone='behind'] .mon-behind { color: var(--md-sys-color-on-warning-container); }
+.mon-last { display: inline-flex; align-items: center; gap: 4px; color: var(--md-sys-color-on-surface-variant); }
+.mon-actions { margin-top: 6px; }
+@media (max-width: 600px) {
+  .mon-actions .oc-btn { flex: 1 1 calc(50% - 8px); justify-content: center; }
+  .mon-pin { font-size: 10px; padding: 1px 6px; }
+}
+
+/* today's log: one line per intervention, wraps on a phone */
+.mon-log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.mon-log li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--md-sys-color-outline-variant); }
+.mon-log li:last-child { border-bottom: 0; }
+.mon-log-time { font-variant-numeric: tabular-nums; font-weight: 600; min-width: 44px; }
+.mon-log-body { flex: 1; min-width: 0; }
+@media (max-width: 600px) {
+  .mon-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mon-log li { flex-wrap: wrap; }
+}

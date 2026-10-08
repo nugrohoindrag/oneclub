@@ -122,6 +122,11 @@ type Order struct {
 	TierDiscountPercent *string `json:"tierDiscountPercent" db:"tier_discount_percent"`
 	TierDiscountLabel   *string `json:"tierDiscountLabel" db:"tier_discount_label" doc:"e.g. Gold member 5%"`
 	TierDiscount        string  `json:"tierDiscount" db:"tier_discount" doc:"Tier discount of the active lines"`
+	// POS Table View (additive): the tables the order seats, the
+	// reservation it seated and when the bill was presented.
+	TableIDs           []uuid.UUID `json:"tableIds" db:"table_ids"`
+	TableReservationID *uuid.UUID  `json:"tableReservationId" db:"table_reservation_id"`
+	BilledAt           *time.Time  `json:"billedAt" db:"billed_at"`
 }
 
 // LineInput is an item ordered.
@@ -161,6 +166,9 @@ type OrderInput struct {
 	// PromotionExclusions are promotions the cashier removed before sending
 	// the order (permission commercial.pos.promotion_override).
 	PromotionExclusions []uuid.UUID `json:"promotionExclusions,omitempty"`
+	// POS Table View (additive)
+	TableIDs           []uuid.UUID `json:"tableIds,omitempty" doc:"Dining tables the order seats (Table View); tableNo defaults to their codes"`
+	TableReservationID *uuid.UUID  `json:"tableReservationId,omitempty" doc:"Table reservation seated by this order"`
 }
 
 // Voucher is a voucher with its type.

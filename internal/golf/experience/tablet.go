@@ -28,6 +28,8 @@ import (
 // PaceFlight is one flight on the Starter / Marshal pace screen.
 type PaceFlight struct {
 	FlightID       uuid.UUID  `json:"flightId"`
+	CourseID       uuid.UUID  `json:"courseId"`
+	HoleID         *uuid.UUID `json:"holeId" doc:"Hole being played"`
 	Label          string     `json:"label" doc:"Booking code or flight number"`
 	RouteName      *string    `json:"playingRouteName"`
 	TeeTime        time.Time  `json:"teeTime"`
@@ -99,12 +101,14 @@ func (m *Module) Pace(ctx context.Context, q dbtx.Querier, property uuid.UUID) (
 			target += targets[holes[i].HoleID]
 		}
 		elapsed := int(now.Sub(*r.TeeOffAt).Minutes())
-		p := PaceFlight{FlightID: fid, Label: r.Label(), RouteName: r.RouteName, TeeTime: r.TeeTime, TeeOffAt: *r.TeeOffAt, CurrentSeq: r.CurrentSeq,
+		p := PaceFlight{FlightID: fid, CourseID: r.CourseID, Label: r.Label(), RouteName: r.RouteName, TeeTime: r.TeeTime, TeeOffAt: *r.TeeOffAt, CurrentSeq: r.CurrentSeq,
 			Holes: len(holes), ElapsedMinutes: elapsed, TargetMinutes: target, BehindMinutes: elapsed - target, Players: []string{}, Caddies: []string{},
 			GolfCarts: []string{}}
 		p.Slow = p.BehindMinutes > r.Tolerance
 		if r.CurrentSeq >= 1 && r.CurrentSeq <= len(holes) {
 			p.Hole = holes[r.CurrentSeq-1].SectionCode + "-" + itoa(holes[r.CurrentSeq-1].Number)
+			hid := holes[r.CurrentSeq-1].HoleID
+			p.HoleID = &hid
 		}
 		if t, ok := st[r.CurrentSeq]; ok {
 			p.HoleStartedAt = &t
@@ -281,16 +285,19 @@ type PlayerContext struct {
 	LastRoundWithMe *time.Time       `json:"lastRoundWithMe"`
 	FavoriteOfMine  bool             `json:"favoriteCaddyIsMe"`
 	ScorecardID     *uuid.UUID       `json:"scorecardId"`
+	CourseHandicap  *int             `json:"courseHandicap" doc:"From the scorecard's tee set (WHS)"`
+	HoleStrokes     []int            `json:"holeStrokes" doc:"Handicap strokes received per hole, in route sequence"`
 }
 
 // RoundInfo is everything the tablet needs for a round (cached offline).
 type RoundInfo struct {
-	Round      Round           `json:"round"`
-	Holes      []RouteHole     `json:"holes"`
-	Players    []PlayerContext `json:"players"`
-	Scorecards []Scorecard     `json:"scorecards"`
-	Times      RoundTimes      `json:"times"`
-	ServerTime time.Time       `json:"serverTime"`
+	Round         Round              `json:"round"`
+	Holes         []RouteHole        `json:"holes"`
+	Players       []PlayerContext    `json:"players"`
+	Scorecards    []Scorecard        `json:"scorecards"`
+	Times         RoundTimes         `json:"times"`
+	Interventions []PaceIntervention `json:"interventions" doc:"Marshal messages not yet acknowledged"`
+	ServerTime    time.Time          `json:"serverTime"`
 }
 
 func (m *Module) RoundInfo(ctx context.Context, q dbtx.Querier, fid uuid.UUID) (RoundInfo, error) {
@@ -339,9 +346,20 @@ func (m *Module) RoundInfo(ctx context.Context, q dbtx.Querier, fid uuid.UUID) (
 				return ri, err
 			}
 			pc.TeeSet = sc.TeeSetName
+			if pc.Handicap != nil {
+				ch := CourseHandicap(dec(*pc.Handicap), sc.CourseRating, sc.SlopeRating, sc.Par, sc.Holes)
+				si := make([]*int, len(sc.Scores))
+				for i, h := range sc.Scores {
+					si[i] = h.StrokeIndex
+				}
+				pc.CourseHandicap, pc.HoleStrokes = &ch, HoleStrokes(ch, si)
+			}
 			ri.Scorecards = append(ri.Scorecards, sc)
 		}
 		ri.Players = append(ri.Players, pc)
+	}
+	if ri.Interventions, err = openInterventions(ctx, q, fid); err != nil {
+		return ri, err
 	}
 	ri.Times, err = m.RoundTimes(ctx, q, fid)
 	return ri, err

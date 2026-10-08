@@ -22,6 +22,7 @@ func customPermissions() []catalog.Permission {
 	for _, g := range [][]catalog.Permission{
 		{{Code: "hris.employee.view_sensitive", Description: "See NIK, NPWP, BPJS numbers, bank accounts and health data of employees"}},
 		catalog.P("hris", "employee", "transfer", "terminate", "manage_account"),
+		{{Code: permSuspend, Description: "Suspend an employee for a period and reinstate them"}},
 		catalog.P("hris", "contract", "view", "create", "update", "activate", "renew", "end", "export"),
 		{{Code: "hris.contract.view_salary", Description: "See salaries and allowances of employment contracts"}},
 		catalog.P("hris", "employee_document", "view", "manage"),

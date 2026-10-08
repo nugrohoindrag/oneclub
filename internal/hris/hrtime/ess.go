@@ -389,7 +389,7 @@ func (m *Module) essPINHTTP(ctx context.Context, tx pgx.Tx, r *http.Request, req
 }
 
 // pendingSQL lists the pending manager steps of a set of employees.
-const pendingSQL = `SELECT a.request_kind AS kind, a.request_id, coalesce(lr.number, pr.number, orq.number, sw.number, co.number) AS number,
+const pendingSQL = `SELECT a.request_kind AS kind, a.request_id, coalesce(lr.number, pr.number, orq.number, sw.number, co.number, ts.number) AS number,
 	e.id AS employee_id, e.full_name AS employee_name, a.level, coalesce(a.approver_employee_id = $2, false) AS direct, a.created_at
 	FROM hris.request_approvals a
 	LEFT JOIN hris.leave_requests lr ON a.request_kind = 'leave' AND lr.id = a.request_id
@@ -397,7 +397,8 @@ const pendingSQL = `SELECT a.request_kind AS kind, a.request_id, coalesce(lr.num
 	LEFT JOIN hris.overtime_requests orq ON a.request_kind = 'overtime' AND orq.id = a.request_id
 	LEFT JOIN hris.shift_swaps sw ON a.request_kind = 'shift_swap' AND sw.id = a.request_id
 	LEFT JOIN hris.attendance_corrections co ON a.request_kind = 'attendance_correction' AND co.id = a.request_id
-	JOIN hris.employees e ON e.id = coalesce(lr.employee_id, pr.employee_id, orq.employee_id, sw.requester_employee_id, co.employee_id)
+	LEFT JOIN hris.timesheets ts ON a.request_kind = 'timesheet' AND ts.id = a.request_id
+	JOIN hris.employees e ON e.id = coalesce(lr.employee_id, pr.employee_id, orq.employee_id, sw.requester_employee_id, co.employee_id, ts.employee_id)
 	WHERE a.status = 'pending' AND a.level IN ('supervisor', 'department_head') AND (a.approver_employee_id = $2 OR e.id = ANY ($1))
 	ORDER BY a.created_at`
 

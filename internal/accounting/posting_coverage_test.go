@@ -49,6 +49,9 @@ var postingCoverage = map[string][]string{
 	"procurement.debit_note_issued":       {"TestP4AccountingAutomaticPosting"},
 	"hris.payroll_posted":                 {"TestP5PayrollFullRun"}, // PRD P5 EP-15: journal = run totals
 	"hris.payroll_paid":                   {"TestP5PayrollFullRun"},
+	"hris.loan_disbursed":                 {"TestP5LoanRequestsWithRevision"}, // HRIS phase B: Dr employee receivables / Cr bank
+	"hris.loan_repaid":                    {"TestP5LoanRequestsWithRevision"}, // cash returned: Dr cash / Cr receivables
+	"hris.reimbursement_paid":             {"TestP5ReimbursementClaims"},      // HRIS phase C: Dr category expense / Cr bank
 }
 
 // TestPostingCoverage: every consumed event has a handler and at least one

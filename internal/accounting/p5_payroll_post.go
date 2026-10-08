@@ -41,12 +41,15 @@ var payrollAccounts = []tplAccount{
 	a("2175", "2100", "BPJS Payable", "Utang BPJS", "liability", "accrued", "operating"),
 	a("6111", "6000", "Employee Benefits – BPJS", "Tunjangan BPJS Pemberi Kerja", "expense", "expense", "operating"),
 	a("6112", "6000", "Severance & Termination Pay", "Pesangon & Kompensasi", "expense", "expense", "operating"),
+	// HRIS phase C: employee contributions to benefit plans withheld by payroll, due to the provider
+	a("2177", "2100", "Benefit Contributions Payable", "Utang Iuran Benefit Karyawan", "liability", "accrued", "operating"),
 }
 
 // payrollRoles are the default-account roles of payroll.
 var payrollRoles = map[string]string{
 	"employee_receivable": "1145", "pph21_payable": "2134", "salaries_payable": "2176", "bpjs_payable": "2175", "salary_expense": "6110",
 	"employee_benefit_expense": "6111", "severance_expense": "6112", "service_charge_distribution_payable": "2126",
+	"benefit_payable": "2177",
 }
 
 func init() {
@@ -89,6 +92,8 @@ func payrollRuleSpecs() []ruleSpec {
 		r("DEF-PAYROLL-BPJS-EE", "Payroll – BPJS employee contributions withheld", evPayrollPosted, map[string]any{"part": "bpjs_employee"},
 			"@salaries_payable", "@bpjs_payable", 100),
 		r("DEF-PAYROLL-PPH21", "Payroll – PPh 21 withheld", evPayrollPosted, map[string]any{"part": "pph21"}, "@salaries_payable", "@pph21_payable", 100),
+		r("DEF-PAYROLL-BENEFIT", "Payroll – employee benefit contributions withheld", evPayrollPosted, map[string]any{"part": "deduction",
+			"component": "BENEFIT_EE"}, "@salaries_payable", "@benefit_payable", 50),
 		r("DEF-PAYROLL-DEDUCT", "Payroll – loan installments and other deductions", evPayrollPosted, map[string]any{"part": "deduction"},
 			"@salaries_payable", "@employee_receivable", 100),
 		r("DEF-PAYROLL-PAID", "Payroll – net pay transferred", evPayrollPaid, map[string]any{"part": "net_pay"}, "@salaries_payable", "@bank", 100),

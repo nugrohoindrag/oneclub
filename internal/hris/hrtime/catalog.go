@@ -48,6 +48,8 @@ const (
 	PermOvertimeApprove   = "hris.overtime_request.approve"
 	PermLockView          = "hris.time_lock.view"
 	PermLockManage        = "hris.time_lock.manage"
+	PermTimesheetView     = "hris.timesheet.view"
+	PermTimesheetApprove  = "hris.timesheet.approve"
 	// PermSalary (Core HR) shows the estimated overtime pay.
 	PermSalary = "hris.contract.view_salary"
 )
@@ -76,6 +78,9 @@ func customPermissions() []catalog.Permission {
 		d(PermLockView, "View payroll period locks and time summaries"), d(PermLockManage, "Lock and release payroll periods of attendance"),
 		d(PermPartnerView, "View the device clock-in of partner caddies and instructors"),
 		d(PermPartnerManage, "Enrol partner caddies and instructors for device clock-in (consent, device numbers)"),
+		d(PermTimesheetView, "View timesheets with the attendance of the same days"),
+		d(PermTimesheetApprove, "Approve or reject timesheets (HR level)"),
+		d(PermPlanView, "View workforce plans and their gap review"), d(PermPlanManage, "Create and adjust workforce plans of departments"),
 	}
 }
 
@@ -101,7 +106,7 @@ func (m *Module) Contribution() catalog.Contribution {
 	}
 	scheduling := []string{PermScheduleView, PermScheduleCreate, PermScheduleUpdate, PermSchedulePublish, PermSwapView, PermAttendanceView,
 		PermLeaveView, PermOvertimeView, PermPermissionView, PermCorrectionView, PermBalanceView, "hris.shift_template.view",
-		"hris.staffing_requirement.view", "hris.holiday.view", PermKiosk}
+		"hris.staffing_requirement.view", "hris.holiday.view", PermKiosk, PermPlanView, PermPlanManage, PermTimesheetView}
 	roles := map[string][]string{
 		"hr_admin":        all,
 		"hr_manager":      all,
@@ -152,11 +157,15 @@ var (
 		Attributes: []provision.DocumentAttribute{{Key: "orgUnit", Label: "Org Unit", Type: "string"}}}
 	CorrectionDocumentType = provision.DocumentType{Code: "hris.attendance_correction", Module: hris.Module, Name: "Attendance Correction",
 		Attributes: []provision.DocumentAttribute{{Key: "daysBack", Label: "Days Back", Type: "number"}, {Key: "orgUnit", Label: "Org Unit", Type: "string"}}}
+	// TimesheetDocumentType: timesheets after the supervisor (HRIS phase C).
+	TimesheetDocumentType = provision.DocumentType{Code: "hris.timesheet", Module: hris.Module, Name: "Timesheet",
+		Attributes: []provision.DocumentAttribute{{Key: "hours", Label: "Total Hours", Type: "number"}, {Key: "orgUnit", Label: "Org Unit", Type: "string"}}}
 )
 
 // DocumentTypes are the approval document types of the area.
 func DocumentTypes() []provision.DocumentType {
-	return []provision.DocumentType{LeaveDocumentType, PermissionDocumentType, OvertimeDocumentType, SwapDocumentType, CorrectionDocumentType}
+	return []provision.DocumentType{LeaveDocumentType, PermissionDocumentType, OvertimeDocumentType, SwapDocumentType, CorrectionDocumentType,
+		TimesheetDocumentType}
 }
 
 // Notification events.
@@ -167,6 +176,9 @@ const (
 	NotifyRequestDecided    = "hris.time_request_decided"
 	NotifySwapRequested     = "hris.shift_swap_requested"
 	NotifyOutOfArea         = "hris.attendance_review"
+	NotifyOpenShift         = "hris.open_shift_posted"
+	NotifyOpenShiftClaimed  = "hris.open_shift_claimed"
+	NotifyOpenShiftDecided  = "hris.open_shift_decided"
 )
 
 // Templates are the notification templates (ID/EN; in-app, e-mail and
@@ -192,6 +204,18 @@ func Templates() []provision.Template {
 		NotifySwapRequested: {
 			"en": {"{{.requesterName}} asks to swap a shift with you", "{{.requesterName}} asks you to take the shift of {{.date}} ({{.shift}}){{.giveBack}}. Accept or decline in My Schedule."},
 			"id": {"{{.requesterName}} meminta tukar shift dengan Anda", "{{.requesterName}} meminta Anda mengambil shift {{.date}} ({{.shift}}){{.giveBack}}. Terima atau tolak di Jadwal Saya."},
+		},
+		NotifyOpenShift: {
+			"en": {"Open shift {{.date}}: {{.shift}}", "An open shift is available in {{.unit}} on {{.date}} ({{.shift}} {{.time}}, {{.slots}} person(s)). Claim it in My Schedule."},
+			"id": {"Shift terbuka {{.date}}: {{.shift}}", "Tersedia shift terbuka di {{.unit}} pada {{.date}} ({{.shift}} {{.time}}, {{.slots}} orang). Ambil di Jadwal Saya."},
+		},
+		NotifyOpenShiftClaimed: {
+			"en": {"{{.employeeName}} claims the open shift of {{.date}}", "{{.employeeName}} claims the open shift {{.shift}} of {{.date}} in {{.unit}}. Approve or reject it in the schedule."},
+			"id": {"{{.employeeName}} mengambil shift terbuka {{.date}}", "{{.employeeName}} mengajukan diri untuk shift terbuka {{.shift}} tanggal {{.date}} di {{.unit}}. Setujui atau tolak di jadwal."},
+		},
+		NotifyOpenShiftDecided: {
+			"en": {"Open shift {{.date}} {{.decision}}", "Your claim of the open shift {{.shift}} ({{.time}}) on {{.date}} was {{.decision}}. {{.note}}"},
+			"id": {"Shift terbuka {{.date}} {{.decision}}", "Pengajuan shift terbuka {{.shift}} ({{.time}}) tanggal {{.date}} {{.decision}}. {{.note}}"},
 		},
 		NotifyOutOfArea: {
 			"en": {"Clock-in to review: {{.employeeName}}", "{{.employeeName}} clocked {{.direction}} at {{.time}} {{.distance}} m from {{.geofence}} ({{.reason}}). Review it in Team Attendance."},

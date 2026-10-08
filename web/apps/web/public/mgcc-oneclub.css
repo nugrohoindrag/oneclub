@@ -1,0 +1,127 @@
+/*
+ * OneClub pages (online booking, membership, news…) inside the
+ * moderngolf.co.id theme: the website's w-* classes take the live site's
+ * look — Poppins, navy #21325E / blue #285693, gold #D4AF34, square-ish
+ * cards, the theme's .btn-primary button.
+ */
+body { margin: 0; background: #fff; color: #4a4a4a; font-family: 'Poppins', sans-serif; }
+
+.oc-page { padding: 60px 0 80px; }
+.oc-page .container { padding: 0 24px; }
+.oc-page h1, .oc-page h2, .oc-page h3 { color: var(--blue4); font-weight: 700; float: none; width: auto; }
+.oc-page h1 { font-size: 30px; margin: 0 0 16px; }
+.oc-page h2 { font-size: 22px; margin: 0 0 12px; }
+.oc-page h3 { font-size: 18px; margin: 0 0 8px; }
+.oc-page p { float: none; width: auto; line-height: 1.8; }
+.oc-page a { color: var(--blue2); }
+.oc-page section { float: none; padding: 0; width: auto; }
+.oc-page figure { float: none; width: auto; }
+
+/* the OneClub hero inside a page becomes a plain intro (the page cover is the hero) */
+.oc-page .w-hero { min-height: 0; padding: 0 0 24px; background: none; color: inherit; border-radius: 0; }
+.oc-page .w-hero img, .oc-page .w-hero::after { display: none; }
+.oc-page .w-hero h1 { font-size: 30px; }
+
+.w-btn, .oc-page button[type='submit'], .oc-page .w-cta {
+  display: inline-block; min-width: 180px; height: auto; padding: 15px 45px 15px 30px; border: 0; border-radius: 6px; font: 600 14px 'Poppins', sans-serif;
+  text-align: center; text-decoration: none; color: #fff !important; cursor: pointer; background: url(/themes/modern-golf/assets/images/btn-primary-bg.png) no-repeat center right;
+  background-size: cover; margin-right: 8px;
+}
+.w-btn:hover, .oc-page button[type='submit']:hover { background-image: url(/themes/modern-golf/assets/images/btn-primary-bg-hover.png); }
+.oc-page button[type='submit']:disabled { opacity: 0.5; cursor: not-allowed; }
+.w-btn-ghost { background: url(/themes/modern-golf/assets/images/btn-secondary-bg.png) no-repeat center right; background-size: cover; color: var(--blue2) !important; }
+
+.w-grid { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 24px; }
+.w-card { background: #fff; border: 1px solid #dedede; border-radius: 6px; padding: 28px; box-shadow: 0 10px 30px rgba(33, 50, 94, 0.06); margin-bottom: 24px; }
+.w-card h2 { font-size: 20px; color: var(--blue4); }
+.w-muted { color: #8a8a8a; opacity: 1; }
+.w-error { color: #c0392b; }
+
+.w-sub { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; }
+.w-sub a { padding: 10px 18px; border-radius: 6px; border: 1px solid #dedede; text-decoration: none; color: var(--blue2); font-weight: 600; font-size: 14px; }
+.w-sub a[aria-current='page'] { background: var(--blue4); border-color: var(--blue4); color: #fff; }
+
+.w-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.w-table th { background: var(--blue4); color: #fff; font-weight: 600; text-align: left; padding: 12px; }
+.w-table td { padding: 12px; border-bottom: 1px solid #dedede; }
+
+.w-form { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.w-form label, .oc-page label { display: grid; gap: 6px; font-size: 13px; font-weight: 600; color: var(--blue4); }
+.oc-page input:not([type='checkbox']):not([type='radio']), .oc-page select, .oc-page textarea {
+  height: 50px; padding: 0 14px; border: 0; border-bottom: 1px solid #dedede; border-radius: 0; background: #f4f4f4; font: 14px 'Poppins', sans-serif; color: #333;
+}
+.oc-page textarea { height: auto; padding: 12px 14px; }
+.oc-page input:focus, .oc-page select:focus, .oc-page textarea:focus { outline: none; border-bottom-color: var(--blue2); background: var(--blue1); }
+
+.w-slots { display: flex; flex-wrap: wrap; gap: 10px; }
+.w-slot { min-width: 96px; height: 56px; border-radius: 6px; border: 1px solid #dedede; background: #fff; font: 600 15px 'Poppins', sans-serif; color: var(--blue4); cursor: pointer; }
+.w-slot:hover { border-color: var(--blue2); }
+.w-slot[aria-pressed='true'] { background: var(--blue4); border-color: var(--blue4); color: #fff; }
+.w-slot:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* the live site's header and footer stay as captured; the extra sub-menus use its .sub-menu */
+@media (max-width: 1023px) {
+  .oc-page { padding: 40px 0 60px; }
+}
+
+/* booking venue pages: the live site's inner page layout */
+.oc-venue .article > p { margin-bottom: 24px; }
+.oc-venue .wi-title { margin-bottom: 20px; }
+.oc-venue .left-sidebar figure { margin-bottom: 20px; }
+.oc-rates { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+.oc-rates td { padding: 10px 0; border-bottom: 1px solid #dedede; font-size: 13px; color: #333; vertical-align: top; }
+.oc-rates td:last-child { text-align: right; font-weight: 600; color: var(--blue4); white-space: nowrap; padding-left: 12px; }
+.oc-rates small { display: block; font-size: 11px; color: #8a8a8a; font-weight: 400; }
+.oc-venue-help { font-size: 12px !important; color: #8a8a8a !important; line-height: 1.6 !important; }
+.oc-units { margin-bottom: 12px !important; }
+.oc-unit { height: 100%; padding: 20px 22px; border: 1px solid #dedede; border-left: 4px solid var(--blue2); border-radius: 6px; background: #fff; }
+.oc-unit h4 { font-size: 17px !important; color: var(--blue4); margin: 0 0 6px; float: none; width: auto; }
+.oc-unit p { font-size: 13px !important; margin: 0 0 6px; line-height: 1.7 !important; text-align: left !important; }
+.oc-unit span { font-size: 12px; color: var(--blue2); font-weight: 600; text-transform: capitalize; }
+
+/* the booking form: the live site's dark "book-form" panel */
+.oc-venue form.w-card, .oc-page form.w-card.w-form {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 22px 28px; padding: 40px; border: 0; border-radius: 6px;
+  background: url(/themes/modern-golf/assets/images/dark-bg-2.jpg) no-repeat center; background-size: cover; color: #fff; box-shadow: none;
+}
+.oc-venue form.w-card h2, .oc-venue form.w-card h3, .oc-page form.w-card h2 { grid-column: 1 / -1; color: #fff !important; margin: 0; }
+.oc-venue form.w-card label, .oc-page form.w-card.w-form label { color: rgba(255, 255, 255, 0.75); font-weight: 400; font-size: 12px; letter-spacing: 0.02em; }
+.oc-venue form.w-card input:not([type='checkbox']):not([type='radio']), .oc-venue form.w-card select, .oc-venue form.w-card textarea,
+.oc-page form.w-card.w-form input:not([type='checkbox']):not([type='radio']), .oc-page form.w-card.w-form select, .oc-page form.w-card.w-form textarea {
+  background: none; border: 0; border-bottom: 1px solid rgba(255, 255, 255, 0.3); color: #fff; padding: 0 2px; color-scheme: dark;
+}
+.oc-venue form.w-card select option, .oc-page form.w-card select option { color: #333; }
+.oc-venue form.w-card input:focus, .oc-venue form.w-card select:focus, .oc-venue form.w-card textarea:focus,
+.oc-page form.w-card.w-form input:focus, .oc-page form.w-card.w-form select:focus { background: none; border-bottom-color: #fff; }
+.oc-venue form.w-card textarea, .oc-venue form.w-card button, .oc-venue form.w-card .w-error, .oc-venue form.w-card p,
+.oc-page form.w-card.w-form textarea, .oc-page form.w-card.w-form button, .oc-page form.w-card.w-form p { grid-column: 1 / -1; }
+.oc-venue form.w-card button { justify-self: start; }
+.oc-venue form.w-card a, .oc-page form.w-card a { color: #D4AF34; }
+.oc-venue form.w-card .w-error { color: #ffb4a8; }
+.oc-venue .w-card[role='status'] { border-left: 4px solid #D4AF34; }
+
+/* the weather widget iframe stays transparent (Chrome paints iframes opaque when color-scheme differs) */
+html:root, .hero .widget, .hero .widget * { color-scheme: normal !important; }
+
+/* Wedding & Banquet: packages, venues and menus inside the article */
+.oc-venue .oc-sec { font-size: 20px !important; color: var(--blue4); margin: 36px 0 16px !important; padding-bottom: 10px; border-bottom: 2px solid #D4AF34; float: none; width: auto; }
+.oc-tag { display: inline-block; margin-bottom: 8px; padding: 2px 10px; border-radius: 4px; background: var(--blue1); color: var(--blue2) !important; font-size: 11px !important;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.oc-price { font-size: 15px; font-weight: 700; color: var(--blue2); margin: 2px 0 4px; }
+.oc-unit ul { margin: 10px 0 0 18px; padding: 0; list-style: disc; }
+.oc-unit li { font-size: 13px; color: #333; line-height: 1.7; }
+.oc-table { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 8px; }
+.oc-table th { background: var(--blue4); color: #fff; font-size: 13px; font-weight: 600; text-align: left; padding: 12px 14px; }
+.oc-table td { padding: 14px; border-bottom: 1px solid #dedede; font-size: 13px; color: #333; vertical-align: top; overflow-wrap: anywhere; }
+.oc-table th:first-child, .oc-table td:first-child { width: 30%; }
+.oc-table td strong { display: block; color: var(--blue4); font-size: 14px; }
+.oc-table td small { display: block; color: #8a8a8a; text-transform: capitalize; }
+.oc-chipline { display: inline-block; margin: 0 6px 6px 0; padding: 3px 10px; border: 1px solid #dedede; border-radius: 4px; text-transform: capitalize; white-space: nowrap; }
+.oc-chipline b { color: var(--blue2); }
+.oc-venue form.w-card { margin-top: 36px; }
+@media (max-width: 768px) {
+  .oc-table thead { display: none; }
+  .oc-table, .oc-table tbody, .oc-table tr, .oc-table td { display: block; width: 100% !important; }
+  .oc-table tr { border: 1px solid #dedede; border-radius: 6px; margin-bottom: 12px; }
+  .oc-table td { border-bottom: 0; padding: 10px 14px; }
+}

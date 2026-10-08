@@ -617,16 +617,8 @@ func (m *Module) finishFlight(ctx context.Context, tx pgx.Tx, property, fid uuid
 		period = tstzrange(lower(period), greatest(lower(period) + interval '1 minute', now()), '[)') WHERE flight_id = $1 AND status IN ('assigned', 'in_use')`, fid); err != nil {
 		return err
 	}
-	// daily lockers return to Available when the round ends (FR-CHK-05)
-	if _, err := tx.Exec(ctx, `UPDATE golf.lockers SET locker_status = 'available' WHERE id IN (SELECT la.locker_id FROM golf.locker_assignments la
-		JOIN golf.booking_players bp ON bp.id = la.booking_player_id WHERE bp.flight_id = $1 AND la.status = 'active' AND la.assignment_type = 'daily')`, fid); err != nil {
-		return err
-	}
-	if _, err := tx.Exec(ctx, `UPDATE golf.locker_assignments SET status = 'released', released_at = now(),
-		period = tstzrange(lower(period), greatest(lower(period) + interval '1 minute', now()), '[)')
-		WHERE status = 'active' AND assignment_type = 'daily' AND booking_player_id IN (SELECT id FROM golf.booking_players WHERE flight_id = $1)`, fid); err != nil {
-		return err
-	}
+	// daily lockers stay in use after the round (shower, change): they return
+	// to Available at the Golfer Check-out (FR-CHK-05, checkout.go)
 	if bookingID != nil {
 		var open int
 		if err := tx.QueryRow(ctx, `SELECT count(*) FROM golf.flights WHERE booking_id = $1 AND status NOT IN ('completed', 'cancelled')`, *bookingID).Scan(&open); err != nil {
@@ -1125,9 +1117,15 @@ func (m *Module) AssignCaddies(ctx context.Context, tx pgx.Tx, property uuid.UUI
 	rows.Close()
 	inputs := req.Assignments
 	if req.Auto {
+		// the players' caddy preferences from the Member App: No Caddy is
+		// skipped (unless a caddy is mandatory), a Preferred Caddy goes first
+		pref, preferred, err := playerCaddyRequests(ctx, tx, fi.players)
+		if err != nil {
+			return nil, err
+		}
 		var open []uuid.UUID
 		for _, p := range fi.players {
-			if !assigned[p] {
+			if !assigned[p] && (pref[p] != "none" || pol.Caddy.Mandatory) {
 				open = append(open, p)
 			}
 		}
@@ -1150,6 +1148,40 @@ func (m *Module) AssignCaddies(ctx context.Context, tx pgx.Tx, property uuid.UUI
 			})
 		}
 		per := max(pol.Caddy.PlayersPerCaddy, 1)
+		if pol.Caddy.AllowRequest && len(preferred) > 0 {
+			var rest []uuid.UUID
+			byCaddy := map[uuid.UUID][]uuid.UUID{}
+			var order []uuid.UUID
+			for _, p := range open {
+				c, ok := preferred[p]
+				if !ok {
+					rest = append(rest, p)
+					continue
+				}
+				if _, seen := byCaddy[c]; !seen {
+					order = append(order, c)
+				}
+				byCaddy[c] = append(byCaddy[c], p)
+			}
+			for _, c := range order {
+				at := -1
+				for i := range avail {
+					if avail[i].CaddyID == c {
+						at = i
+						break
+					}
+				}
+				ps := byCaddy[c]
+				if at < 0 {
+					rest = append(rest, ps...) // not available: the queue serves them
+					continue
+				}
+				inputs = append(inputs, CaddyAssignInput{CaddyID: c, PlayerIDs: ps[:min(per, len(ps))]})
+				rest = append(rest, ps[min(per, len(ps)):]...)
+				avail = append(avail[:at], avail[at+1:]...)
+			}
+			open = rest
+		}
 		for i := 0; i < len(open); i += per {
 			if len(avail) == 0 {
 				return nil, errs.Conflict("no_caddy_available", "no caddy is available in the queue")
@@ -1158,6 +1190,9 @@ func (m *Module) AssignCaddies(ctx context.Context, tx pgx.Tx, property uuid.UUI
 			inputs = append(inputs, CaddyAssignInput{CaddyID: avail[0].CaddyID, PlayerIDs: open[i:end]})
 			avail = avail[1:]
 		}
+	}
+	if len(inputs) == 0 && req.Auto {
+		return nil, errs.Conflict("no_caddy_requested", "every player without a caddy asked for No Caddy")
 	}
 	if len(inputs) == 0 {
 		return nil, errs.Validation("assignments_required", "choose caddies or use auto", errs.Field("assignments", "required", "one or more"))
@@ -1789,11 +1824,20 @@ func (m *Module) AssignLocker(ctx context.Context, tx pgx.Tx, property uuid.UUID
 		return LockerAssignment{}, err
 	}
 	if fee := dec(req.Fee); fee.IsPositive() {
-		folio, err := m.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: property, CustomerID: cust, HolderName: holder, SourceType: "other", SourceRef: "Locker " + code})
-		if err != nil {
-			return LockerAssignment{}, err
+		// a player's locker goes on the booking folio (one bill at check-out)
+		var folioID *uuid.UUID
+		if req.BookingPlayerID != nil {
+			_ = tx.QueryRow(ctx, `SELECT b.folio_id FROM golf.booking_players bp JOIN golf.bookings b ON b.id = bp.booking_id JOIN billing.folios f ON f.id = b.folio_id
+				WHERE bp.id = $1 AND f.status = 'open' AND b.checked_out_at IS NULL`, *req.BookingPlayerID).Scan(&folioID)
 		}
-		lid, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: folio.ID, ChargeType: "locker", Description: "Locker rental " + code, UnitPrice: fee, Net: fee, Total: fee,
+		if folioID == nil {
+			folio, err := m.Billing.OpenFolio(ctx, tx, billing.FolioInput{Property: property, CustomerID: cust, HolderName: holder, SourceType: "other", SourceRef: "Locker " + code})
+			if err != nil {
+				return LockerAssignment{}, err
+			}
+			folioID = &folio.ID
+		}
+		lid, err := m.Billing.AddCharge(ctx, tx, billing.Charge{FolioID: *folioID, ChargeType: "locker", Description: "Locker rental " + code, UnitPrice: fee, Net: fee, Total: fee,
 			ReferenceType: "golf_locker", ReferenceID: &aid})
 		if err != nil {
 			return LockerAssignment{}, err

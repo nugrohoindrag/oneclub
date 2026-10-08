@@ -8,7 +8,7 @@ async function menuLabels(page: Page) {
   return nav.getByRole('link').evaluateAll((els) =>
     els.map((e) => {
       const c = e.cloneNode(true) as HTMLElement;
-      c.querySelectorAll('.material-symbols-rounded, .oc-nav-soon, .oc-brand-mark').forEach((x) => x.remove());
+      c.querySelectorAll('.material-symbols-rounded, .oc-nav-soon').forEach((x) => x.remove());
       return (c.textContent ?? '').trim();
     }),
   );
@@ -73,12 +73,10 @@ test('caddy domain: the caddy logs in with the PIN, lands on the tablet and cann
     await login(page, CADDY, email('caddy'));
   }
   await expect(page).toHaveURL(/\/tablet$/);
-  await expect(page.locator('.oc-bottom-nav')).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Caddy Tablet' })).toBeVisible();
   await page.goto(`${CADDY}/`);
   await expect(page).toHaveURL(/\/tablet$/); // the app root opens the caddy's own area
-  await page.locator('button.oc-user').click();
   await expect(page.getByText('Switch area')).toHaveCount(0); // a device domain has no area switcher
-  await page.keyboard.press('Escape');
   // The Back Office opens on the dashboard domain only.
   await page.goto(`${CADDY}/golf/tee-sheet`);
   await expect(page.getByText('403')).toBeVisible();
@@ -131,7 +129,7 @@ test('kitchen domain: kitchen staff get the Kitchen Display full width, other ar
   await login(page, KITCHEN, email('kitchen_staff'));
   await expect(page).toHaveURL(`${KITCHEN}/kitchen`);
   await expect(page.getByRole('heading', { name: 'Kitchen' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Preparing' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Preparing' })).toBeVisible();
   await expect(page.locator('.oc-bottom-nav')).toHaveCount(0); // no Operational menu
   await page.goto(`${KITCHEN}/ops`);
   await expect(page.getByText('403')).toBeVisible();
@@ -179,14 +177,18 @@ test('a module disabled for the instance disappears from the menu', async ({ pag
   const row = page.locator('tr', { hasText: 'Stay & Venue' });
   await expect(row).toBeVisible();
   // enable Stay & Venue, check it appears for GM, then disable again
-  const toggle = row.getByRole('checkbox');
-  // The switch is controlled: it flips after the server confirms.
+  // The switch sits in the row actions menu; it is controlled: it flips after the server confirms.
+  const menu = page.getByRole('menu');
+  const toggle = menu.getByRole('checkbox');
+  const openMenu = async () => { if (!(await menu.isVisible())) await row.getByRole('button', { name: 'Row actions' }).click(); };
+  await openMenu();
   if (!(await toggle.isChecked())) await toggle.click();
   await expect(row.locator('.oc-status')).toHaveText('Enabled');
   const gm = await page.context().browser()!.newContext();
   const gmPage = await gm.newPage();
   await login(gmPage, DASHBOARD, email('general_manager'), '/');
   expect(await menuLabels(gmPage)).toContain('Stay & Venue');
+  await openMenu();
   await toggle.click();
   await expect(row.locator('.oc-status')).toHaveText('Disabled');
   await gmPage.reload();
@@ -210,7 +212,7 @@ test('Platform Administration shows the §6.2 menu only to Platform Admin', asyn
 
 test('Member Portal: member logs in, top pill navigation, mobile bottom navigation', async ({ page }) => {
   await login(page, MEMBER, email('member'));
-  await expect(page.getByText('Digital Member Card').first()).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Member Card' })).toBeVisible(); // home: the Digital Member Card shortcut
   expect(await menuLabels(page)).toEqual(expect.arrayContaining(['Home', 'Profile']));
   await page.setViewportSize({ width: 390, height: 800 });
   await expect(page.locator('.oc-bottom-nav')).toBeVisible(); // FR-SH-06 mobile
@@ -269,19 +271,14 @@ test('cashier domain: registered device + PIN, works offline and syncs the queue
   await expect(row.locator('.oc-status')).toHaveText('Completed', { timeout: 20_000 });
 });
 
-test('public website renders branding in Indonesian and English', async ({ page }) => {
+test('public website renders in Indonesian and English', async ({ page }) => {
   await page.goto(WEB);
   await expect(page).toHaveURL(/\/id$/);
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Selamat datang');
-  await page.getByRole('link', { name: 'EN', exact: true }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Welcome');
-  // The header follows the CMS menu (FR-CMS-09): Contact may sit in a dropdown.
-  const nav = page.getByRole('navigation', { name: 'Main' });
-  const group = nav.getByRole('button', { name: 'Contact', exact: true });
-  if (await group.count()) {
-    await expect(nav).toHaveAttribute('data-ready', 'true'); // hydrated
-    await group.click();
-  }
-  await nav.getByRole('link', { name: 'Contact', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Contact' })).toBeVisible();
+  await expect(page.locator('.lang-bt a.active')).toHaveText('ID');
+  await expect(page.locator('header .sub-menu').getByRole('link', { name: 'Keanggotaan' })).toHaveAttribute('href', '/id/membership');
+  await page.locator('.lang-bt').getByRole('link', { name: 'EN', exact: true }).click();
+  await expect(page).toHaveURL(/\/en$/);
+  await expect(page.locator('header .sub-menu').getByRole('link', { name: 'Membership' })).toHaveAttribute('href', '/en/membership');
+  await page.locator('header .main-menu > li > a', { hasText: 'CONTACT US' }).click();
+  await expect(page).toHaveURL(/\/en\/contact$/);
 });

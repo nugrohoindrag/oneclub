@@ -304,6 +304,8 @@ never exercised successfully. Run at `28ead3a`: **1071/1071 mutating routes exer
 | FR-BIL-P3-02 | Cross-line split bill | Done | `p3_folio.go` | `TestP3BillingCorporateInvoices` |
 | FR-BIL-P3-03 | Generic payment schedule | Done | `billing/p3_schedule.go` | `TestP3BillingPaymentSchedules` |
 | FR-BIL-P3-04 | Invoice, gap-free numbering per property, statuses, credit note | Done | `billing/p3_invoice.go` | `TestP3BillingCorporateInvoices` |
+| FR-BIL-P3-04 (Invoice Management) | Create Invoice workspace: preview, manual invoice for exceptions, references, notes, documents, list filters | Done | `billing/invoice_manual.go`, `staff/p3/invoice-workspace.tsx` | `TestInvoiceManual` |
+| FR-BIL-P3-04 (Billing Workspace) | Revenue & Billing → Billing as an action workspace (`docs/Revenue_Billing_Billing_Workspace_Improvement_Requirements.md`): Pending / Ready / Exceptions / All with row actions, 12 derived exceptions with severity, Prepare Billing, adjustments with previous/new value and approval, batch generate (blocking exceptions skipped), consolidation, split, owner, notes, source-to-invoice history; thresholds in the `billing.workspace` policy | Done | `billing/workspace.go`, `db/migrations/billing/00008_billing_workspace.sql`, `staff/p3/billing-workspace.tsx` | `TestBillingWorkspace` |
 | FR-BIL-P3-05 | Corporate billing, credit limit, statement, aging | Done | `p3_invoice.go`, `p3_policy.go` | `TestP3BillingCorporateInvoices` |
 | FR-BIL-P3-06 | Payment allocation, DP applied at final billing | Done | `p3_invoice.go` | `TestP3BillingCorporateInvoices`, `TestP3BanquetCorporate` |
 | FR-BIL-P3-07 | Installments (DP ≥ 30 %, ≤ 12×) | Done | `p3_schedule.go` | `TestP3BillingPaymentSchedules` |

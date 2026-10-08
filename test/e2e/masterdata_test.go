@@ -34,7 +34,8 @@ func TestOrganizationStructure(t *testing.T) {
 		if n := len(c.Must(200, "GET", "/api/v1/platform/venues", nil).Items()); n < 2 {
 			t.Fatalf("property %s has %d venues", prop, n)
 		}
-		if n := len(c.Must(200, "GET", "/api/v1/golf/courses", nil).Items()); n < 2 {
+		// the demo club's championship course (the driving range has none)
+		if n := len(c.Must(200, "GET", "/api/v1/golf/courses", nil).Items()); prop == inst.Main.String() && n < 1 {
 			t.Fatalf("property %s has %d courses", prop, n)
 		}
 	}
@@ -344,5 +345,14 @@ func TestUnusedDeletesAndBrandingUpload(t *testing.T) {
 	bad, bctype := multipartBody(t, nil, "file", "evil.html", "<script>alert(1)</script>")
 	if r := sa.Do("POST", "/api/v1/platform/files", bad, "Content-Type", bctype); r.Status != 422 {
 		t.Fatalf("html upload must be rejected: %s", r)
+	}
+	// A photo of a master data record (product photo): allowed to whoever may edit the resource.
+	body, ctype = multipartBody(t, nil, "file", "product.png", string(png))
+	if r := sa.Do("POST", "/api/v1/platform/images?resource=commercial.product", body, "Content-Type", ctype); r.Status != 201 || str(r.JSON()["url"]) == "" {
+		t.Fatalf("product photo upload: %s", r)
+	}
+	body, ctype = multipartBody(t, nil, "file", "product.png", string(png))
+	if r := sa.Do("POST", "/api/v1/platform/images?resource=no.such_resource", body, "Content-Type", ctype); r.Status != 403 {
+		t.Fatalf("photo of an unknown resource must be refused: %s", r)
 	}
 }

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { download, qs, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
+import { download, qs, request, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime, formatMoney, formatRelative, useTranslation } from '@oneclub/i18n';
 import { useAuth, useBootstrap } from '../context';
 import {
@@ -71,19 +71,25 @@ export function ApprovalDetailPage() {
   const boot = useBootstrap();
   const toast = useToast();
   const req = useGet<ApprovalRequest>(`/api/v1/platform/approvals/${id}`);
-  const [action, setAction] = useState<'approve' | 'reject' | 'cancel' | 'submit' | null>(null);
+  const [action, setAction] = useState<ApprovalAction | null>(null);
   const act = useSend<{ reason?: string }>('POST', () => `/api/v1/platform/approvals/${id}:${action}`, ['/api/v1/platform/approvals']);
   if (req.error) return <ErrorAlert error={req.error} />;
   if (!req.data) return <Skeleton />;
   const r = req.data;
+  // a draft with a decision reason was returned by an approver for revision
+  const revision = r.status === 'draft' && !!r.decisionReason;
+  const titles: Record<ApprovalAction, string> = {
+    approve: 'Approve', reject: 'Reject', 'request-revision': 'Request revision', cancel: 'Cancel request', submit: revision ? 'Resubmit' : 'Submit',
+  };
   return (
     <div className="oc-stack">
       <PageHeader title={r.title} help={`${r.documentName} · ${r.documentRef}`} actions={<>
-        <StatusPill status={r.status} />
-        {r.status === 'draft' && r.canCancel && <button className="oc-btn oc-btn-ink" onClick={() => setAction('submit')}>Submit</button>}
+        <StatusPill status={revision ? 'pending' : r.status} label={revision ? 'Revision requested' : undefined} />
+        {r.status === 'draft' && r.canCancel && <button className="oc-btn oc-btn-ink" onClick={() => setAction('submit')}>{titles.submit}</button>}
         {r.canDecide && <><button className="oc-btn oc-btn-danger" onClick={() => setAction('reject')}>Reject</button>
+          <button className="oc-btn oc-btn-outline" onClick={() => setAction('request-revision')}>Request revision</button>
           <button className="oc-btn oc-btn-primary" onClick={() => setAction('approve')}>Approve</button></>}
-        {r.canCancel && r.status === 'pending' && <button className="oc-btn oc-btn-outline" onClick={() => setAction('cancel')}>Cancel</button>}
+        {r.canCancel && (r.status === 'pending' || revision) && <button className="oc-btn oc-btn-outline" onClick={() => setAction('cancel')}>Cancel</button>}
       </>} />
       <div className="oc-grid-2">
         <Card title="Document" icon="description">
@@ -93,10 +99,11 @@ export function ApprovalDetailPage() {
             {Object.entries(r.attributes ?? {}).filter(([k]) => k !== 'propertyId').map(([k, v]) => (
               <Labeled key={k} label={k}>{k === 'amount' ? formatMoney(String(v), boot.currency) : String(v)}</Labeled>
             ))}
-            {r.decisionReason && <Labeled label="Reason">{r.decisionReason}</Labeled>}
+            {r.decisionReason && <Labeled label={revision ? 'Revision requested' : 'Reason'}>{r.decisionReason}</Labeled>}
           </div>
         </Card>
         <Card title="Steps" icon="account_tree">
+          {revision && !(r.steps ?? []).length && <p className="oc-muted oc-small" style={{ margin: 0 }}>The steps are rebuilt from the workflow when the request is resubmitted.</p>}
           <ol style={{ margin: 0, paddingLeft: 18 }} className="oc-stack">
             {(r.steps ?? []).map((s) => (
               <li key={s.stepNo}>
@@ -112,14 +119,91 @@ export function ApprovalDetailPage() {
           </ol>
         </Card>
       </div>
+      <ApprovalComments id={String(id)} comments={r.comments ?? []} onDone={() => void req.refetch()} />
+      {(r.history ?? []).length > 0 && (
+        <Card title="Approval history" icon="history">
+          <DataTable rows={(r.history ?? []).map((h, i) => ({ ...h, id: String(i) })) as unknown as Record<string, unknown>[]} columns={[
+            { key: 'at', header: 'When', render: (h) => formatDateTime(String(h.at)) },
+            { key: 'action', header: 'Action', render: (h) => HISTORY_LABELS[String(h.action)] ?? String(h.action) },
+            { key: 'actorName', header: 'By', render: (h) => String(h.actorName ?? '—') },
+            { key: 'stepNo', header: 'Step', render: (h) => (h.stepNo ? String(h.stepNo) : '—') },
+            { key: 'reason', header: 'Reason / note', render: (h) => String(h.reason ?? '—') },
+          ]} />
+        </Card>
+      )}
       <ConfirmDialog open={!!action} onClose={() => { setAction(null); act.reset(); }} busy={act.isPending} error={act.error}
-        title={action === 'approve' ? 'Approve' : action === 'reject' ? 'Reject' : action === 'cancel' ? 'Cancel request' : 'Submit'}
-        confirmLabel={action === 'approve' ? 'Approve' : action === 'reject' ? 'Reject' : action === 'cancel' ? 'Cancel request' : 'Submit'}
-        danger={action === 'reject' || action === 'cancel'} reason={action === 'reject' ? 'required' : action === 'submit' ? undefined : 'optional'}
+        title={action ? titles[action] : ''} confirmLabel={action ? titles[action] : ''} danger={action === 'reject' || action === 'cancel'}
+        reason={action === 'reject' || action === 'request-revision' ? 'required' : action === 'submit' ? undefined : 'optional'}
         onConfirm={(reason) => act.mutate(reason ? { reason } : {}, { onSuccess: () => { setAction(null); toast('Saved'); void req.refetch(); } })} />
     </div>
   );
 }
+
+/** Comments with an optional attachment on a request (HRIS phase C, spec §27). */
+function ApprovalComments({ id, comments, onDone }: { id: string; comments: Schemas['RequestComment'][]; onDone: () => void }) {
+  const toast = useToast();
+  const [body, setBody] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<unknown>(null);
+  const send = async () => {
+    setBusy(true);
+    setErr(null);
+    const fd = new FormData();
+    fd.append('body', body);
+    if (file) fd.append('file', file);
+    try {
+      await request('POST', `/api/v1/platform/approvals/${id}/comments`, fd);
+      setBody('');
+      setFile(null);
+      toast('Comment added');
+      onDone();
+    } catch (e) {
+      setErr(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Card title="Comments" icon="forum">
+      <div className="oc-stack">
+        {comments.length === 0 && <p className="oc-muted oc-small" style={{ margin: 0 }}>No comment yet. Ask a question or attach a supporting document.</p>}
+        {comments.map((c) => (
+          <div key={c.id} className="oc-stack" style={{ gap: 2 }}>
+            <div className="oc-small oc-muted"><strong>{c.authorName}</strong> · {formatRelative(c.createdAt)}</div>
+            <div style={{ whiteSpace: 'pre-wrap' }}>{c.body}</div>
+            {c.fileId && (
+              <div>
+                <button className="oc-btn oc-btn-text oc-btn-sm" onClick={() => download('GET', `/api/v1/platform/approvals/${id}/comments/${c.id}/file`, undefined,
+                  c.fileName ?? 'attachment').catch((e: Error) => toast(e.message, 'error'))}>
+                  <Icon name="attach_file" size={16} /> {c.fileName ?? 'Attachment'}
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        <ErrorAlert error={err} />
+        <TextArea label="Comment" value={body} onChange={setBody} />
+        <div className="oc-row-wrap">
+          <label className="oc-btn oc-btn-neutral oc-btn-sm" style={{ cursor: 'pointer' }}>
+            <Icon name="attach_file" size={18} /> {file ? file.name : 'Attach photo or PDF'}
+            <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="oc-sr"
+              onChange={(e) => { setFile(e.target.files?.[0] ?? null); e.target.value = ''; }} />
+          </label>
+          <span className="oc-spacer" />
+          <button className="oc-btn oc-btn-ink oc-btn-sm" disabled={busy || !body.trim()} onClick={() => void send()}>{busy ? 'Sending…' : 'Add comment'}</button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+type ApprovalAction = 'approve' | 'reject' | 'request-revision' | 'cancel' | 'submit';
+
+const HISTORY_LABELS: Record<string, string> = {
+  create: 'Submitted', approval_submitted: 'Resubmitted', approval_approved: 'Approved', approval_rejected: 'Rejected',
+  approval_revision_requested: 'Revision requested', approval_cancelled: 'Cancelled', approver_reassigned: 'Approver reassigned',
+};
 
 // ── Approval Workflows (FR-APR-01/02) ─────────────────────────────────────
 

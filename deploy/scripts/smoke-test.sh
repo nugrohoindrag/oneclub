@@ -21,7 +21,7 @@ check "$BASE/api/v1/public/bootstrap" 200
 check "$BASE/api/v1/auth/me" 401
 check "$BASE/" 200
 # The Staff App domains each serve their surface (Technical Doc §6.1).
-for d in "$DOMAIN_DASHBOARD" "${DOMAIN_CASHIER:?}" "${DOMAIN_CADDY:?}" "${DOMAIN_KITCHEN:?}"; do check "https://$d/surface.json" 200; done
+for d in "$DOMAIN_DASHBOARD" "${DOMAIN_CASHIER:?}" "${DOMAIN_CADDY:?}" "${DOMAIN_KITCHEN:?}" "${DOMAIN_PRESENCE:?}"; do check "https://$d/surface.json" 200; done
 # 20 requests across replicas must all succeed while traffic is shifting.
 for i in $(seq 1 20); do check "$BASE/api/v1/public/bootstrap" 200 >/dev/null; done
 rm -f /tmp/smoke.$$

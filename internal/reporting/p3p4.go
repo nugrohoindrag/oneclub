@@ -62,8 +62,18 @@ var reportExtraRoles = map[string][]string{
 	"inventory.banquet_food_cost_lines": {"banquet_manager", "event_manager", "resort_manager"},
 }
 
-// P3P4Contribution adds one permission per P3 / P4 report and grants it
-// with the dashboards to the owning roles.
+// dashboardRoles also open the Management Dashboard with their reports. The
+// dashboard is for the GM and managers (Product Overview §45); staff roles
+// (accountant, auditor, admins, sales and marketing staff) read their reports
+// in the Back Office and land there.
+var dashboardRoles = map[string]bool{
+	"property_admin": true, "general_manager": true, "club_manager": true, "resort_manager": true, "finance_manager": true,
+	"golf_manager": true, "banquet_manager": true, "event_manager": true, "inventory_manager": true, "outlet_manager": true,
+	"procurement_manager": true,
+}
+
+// P3P4Contribution adds one permission per P3 / P4 report and grants it to
+// the owning roles, with the dashboards to the managers among them.
 func P3P4Contribution() catalog.Contribution {
 	var perms []catalog.Permission
 	roles := map[string][]string{}
@@ -75,8 +85,13 @@ func P3P4Contribution() catalog.Contribution {
 		seen[r.Permission] = true
 		perms = append(perms, catalog.Permission{Code: r.Permission, Description: r.Name})
 		for _, role := range append(append([]string{}, reportRoles[r.Module]...), reportExtraRoles[r.Code]...) {
-			roles[role] = append(roles[role], r.Permission, "reporting.report.view", "reporting.dashboard.view", "reporting.export.create")
+			roles[role] = append(roles[role], r.Permission, "reporting.report.view", "reporting.export.create")
+			if dashboardRoles[role] {
+				roles[role] = append(roles[role], catalog.ManagementView)
+			}
 		}
 	}
+	// Marketing Manager owns no report module; it inherits the marketing staff reports (catalog Includes).
+	roles["marketing_manager"] = append(roles["marketing_manager"], catalog.ManagementView)
 	return catalog.Contribution{Permissions: perms, RolePermissions: roles}
 }

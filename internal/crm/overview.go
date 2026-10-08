@@ -112,6 +112,8 @@ type Overview struct {
 	Preferences   []OverviewPreference `json:"preferences"`
 	Stats         OverviewStats        `json:"stats"`
 	RecentHistory []HistoryItem        `json:"recentHistory"`
+	// Relationship is filled by Customer 360 only (not in the personal data export).
+	Relationship *OverviewRelationship `json:"relationship,omitempty"`
 }
 
 func loadProfile(ctx context.Context, tx pgx.Tx, cid, pid uuid.UUID) (Profile, error) {
@@ -238,7 +240,11 @@ func (m *Module) overview(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return err
 		}
-		out, err = buildOverview(ctx, tx, cid, pid, 20)
+		if out, err = buildOverview(ctx, tx, cid, pid, 20); err != nil {
+			return err
+		}
+		rel, err := loadRelationship(ctx, tx, cid, pid)
+		out.Relationship = &rel
 		return err
 	})
 	if err != nil {

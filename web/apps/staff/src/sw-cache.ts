@@ -1,7 +1,7 @@
 // Runtime cache of the Staff App service worker (Technical Doc §6.4, PRD FR-SH-05), used by vite.config.ts.
 //
 // Only the API data the offline areas need is kept on the device: the app bootstrap, the session, the navigation, the outlets
-// and the Caddy Tablet data. PRD P5 FR-OPS-P5-05: Employee Self Service is installable as a PWA on personal phones, but payroll
+// and the Caddy Tablet and POS Cashier data. PRD P5 FR-OPS-P5-05: Employee Self Service is installable as a PWA on personal phones, but payroll
 // and salary data (payslips, payroll runs, salary structures, pay components, payouts) and personal HR data are never cached
 // offline — the deny-list wins over the allow-list, and sw-cache.test.ts guards both.
 
@@ -9,6 +9,8 @@
 export const STAFF_API_CACHE = [
   '/api/v1/public/bootstrap', '/api/v1/auth/me', '/api/v1/platform/navigation', '/api/v1/commercial/outlets', '/api/v1/golf/my-assignments',
   '/api/v1/golf/my-earnings', '/api/v1/golf/rounds', '/api/v1/golf/course-maps',
+  // POS Cashier offline: the open shift, the open orders and the product photos (menu and tables are under /commercial/outlets)
+  '/api/v1/commercial/shifts', '/api/v1/commercial/orders', '/api/v1/files/',
 ];
 
 /** Path fragments that are never cached, whatever the allow-list says (payroll, salary and personal HR data). */

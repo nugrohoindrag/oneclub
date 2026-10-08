@@ -37,6 +37,10 @@ const (
 	PermAdjApprove    = "hris.payroll_adjustment.approve"
 	PermImport        = "hris.payroll_import.create"
 	PermProfileView   = "hris.payroll_profile.view"
+	PermLoanPay       = "hris.employee_loan.pay"
+	PermReimbView     = "hris.reimbursement.view"
+	PermReimbManage   = "hris.reimbursement.manage"
+	PermReimbPay      = "hris.reimbursement.pay"
 )
 
 // Approval document types: the payroll run (FR-PAY-06, approved by Finance &
@@ -50,11 +54,19 @@ var (
 	AdjustmentDocumentType = provision.DocumentType{Code: "hris.payroll_adjustment", Module: hris.Module, Name: "Payroll Adjustment",
 		Attributes: []provision.DocumentAttribute{{Key: "amount", Label: "Amount", Type: "number"}, {Key: "componentCode", Label: "Component", Type: "string"},
 			{Key: "source", Label: "Source (manual / performance_review)", Type: "string"}}}
+	// LoanDocumentType: loan and cash advance requests of HR and ESS (phase B).
+	LoanDocumentType = provision.DocumentType{Code: "hris.employee_loan", Module: hris.Module, Name: "Loan / Cash Advance",
+		Attributes: []provision.DocumentAttribute{{Key: "amount", Label: "Amount", Type: "number"}, {Key: "loanType", Label: "Type (loan / cash_advance)", Type: "string"},
+			{Key: "source", Label: "Requested by (hr / ess)", Type: "string"}}}
+	// ReimbursementDocumentType: expense claims of HR and ESS (phase C).
+	ReimbursementDocumentType = provision.DocumentType{Code: "hris.reimbursement", Module: hris.Module, Name: "Reimbursement",
+		Attributes: []provision.DocumentAttribute{{Key: "amount", Label: "Amount", Type: "number"}, {Key: "category", Label: "Category code", Type: "string"},
+			{Key: "source", Label: "Requested by (hr / ess)", Type: "string"}}}
 )
 
 // DocumentTypes are the approval document types of payroll.
 func DocumentTypes() []provision.DocumentType {
-	return []provision.DocumentType{RunDocumentType, AdjustmentDocumentType}
+	return []provision.DocumentType{RunDocumentType, AdjustmentDocumentType, LoanDocumentType, ReimbursementDocumentType}
 }
 
 func customPermissions() []catalog.Permission {
@@ -77,6 +89,12 @@ func customPermissions() []catalog.Permission {
 			{Code: PermAdjApprove, Description: "Approve payroll adjustments (approval workflow)"}},
 		{{Code: PermImport, Description: "Import opening year-to-date payroll and legacy payroll for the parallel run"},
 			{Code: PermProfileView, Description: "See the payroll profiles (PTKP, TER category, BPJS, bank) of employees"}},
+		{{Code: PermLoanPay, Description: "Pay approved loans and cash advances and record repayments outside payroll (Finance)"}},
+		{{Code: PermReimbView, Description: "See reimbursement claims and receipts"},
+			{Code: PermReimbManage, Description: "Claim expenses for employees, send approved claims to Finance, cancel claims"},
+			{Code: PermReimbPay, Description: "Record the payment of reimbursement claims (Finance)"}},
+		{{Code: PermBenefitView, Description: "See benefit enrollments and the eligibility of employees"},
+			{Code: PermBenefitManage, Description: "Enroll employees in benefit plans and end enrollments"}},
 	} {
 		out = append(out, g...)
 	}
@@ -96,13 +114,15 @@ func (m *Module) Contribution() catalog.Contribution {
 	}
 	res := resource.AllActions(m.Defs()...)
 	roles := map[string][]string{
-		"hr_manager": withoutOf(all, PermRunPost, PermRunPay, PermRateActivate),
+		"hr_manager": withoutOf(all, PermRunPost, PermRunPay, PermRateActivate, PermLoanPay, PermReimbPay),
 		"hr_admin": append([]string{PermRunView, PermRunManage, PermRunExport, PermStructView, PermStructManage, PermRateView, PermAdjView, PermAdjManage,
-			PermImport, PermProfileView}, res...),
+			PermImport, PermProfileView, PermReimbView, PermReimbManage, PermBenefitView, PermBenefitManage}, res...),
 		"finance_manager": {PermRunView, PermRunApprove, PermRunPost, PermRunPay, PermRunExport, PermRunSignOff, PermStructView, PermStructApprove,
 			PermRateView, PermRateActivate, PermRateVerify, PermAdjView, PermAdjApprove, PermProfileView, "hris.pay_component.view",
-			"hris.employee_loan.view"},
-		"accountant":      {PermRunView, PermRunPost, PermRunPay, PermRunExport, PermRateView, "hris.pay_component.view"},
+			"hris.employee_loan.view", PermLoanPay, PermReimbView, PermReimbPay, "hris.reimbursement_category.view", PermBenefitView,
+			"hris.benefit_plan.view"},
+		"accountant": {PermRunView, PermRunPost, PermRunPay, PermRunExport, PermRateView, "hris.pay_component.view", "hris.employee_loan.view",
+			PermLoanPay, PermReimbView, PermReimbPay, "hris.reimbursement_category.view"},
 		"general_manager": {PermRunView, PermRunApprove, PermStructView, PermStructApprove, PermAdjView, PermAdjApprove, PermRateView},
 	}
 	return catalog.Contribution{Permissions: m.Permissions(), RolePermissions: roles}
@@ -120,10 +140,15 @@ func withoutOf(list []string, drop ...string) []string {
 
 // Notification events.
 const (
-	NotifyPayslip     = "hris.payslip_published"
-	NotifyRunDecided  = "hris.payroll_run_decided"
-	NotifyAdjDecided  = "hris.payroll_adjustment_decided"
-	NotifyRunApproved = "hris.payroll_run_approved"
+	NotifyPayslip          = "hris.payslip_published"
+	NotifyRunDecided       = "hris.payroll_run_decided"
+	NotifyAdjDecided       = "hris.payroll_adjustment_decided"
+	NotifyRunApproved      = "hris.payroll_run_approved"
+	NotifyRunPostingFailed = "hris.payroll_run_posting_failed"
+	NotifyLoanDecided      = "hris.employee_loan_decided"
+	NotifyLoanToPay        = "hris.employee_loan_to_pay"
+	NotifyReimbDecided     = "hris.reimbursement_decided"
+	NotifyReimbToPay       = "hris.reimbursement_to_pay"
 )
 
 // Templates are the notification templates of payroll (ID/EN).
@@ -144,6 +169,26 @@ func Templates() []provision.Template {
 		NotifyAdjDecided: {
 			"en": {"Payroll adjustment {{.number}} {{.decision}}", "The {{.component}} adjustment {{.number}} for {{.employeeName}} (period {{.period}}) was {{.decision}}. {{.reason}}"},
 			"id": {"Penyesuaian payroll {{.number}} {{.decision}}", "Penyesuaian {{.component}} {{.number}} untuk {{.employeeName}} (periode {{.period}}) {{.decision}}. {{.reason}}"},
+		},
+		NotifyRunPostingFailed: {
+			"en": {"Payroll {{.number}}: posting to Finance failed", "Accounting could not book the payroll {{.number}}: {{.message}}. Fix the mapping and retry the posting from the payroll run."},
+			"id": {"Payroll {{.number}}: posting ke Finance gagal", "Accounting tidak dapat membukukan payroll {{.number}}: {{.message}}. Perbaiki mapping lalu Retry posting dari payroll run."},
+		},
+		NotifyReimbDecided: {
+			"en": {"Reimbursement {{.number}} {{.decision}}", "Your reimbursement claim {{.number}} of {{.amount}} was {{.decision}}. {{.reason}}"},
+			"id": {"Reimbursement {{.number}} {{.decision}}", "Klaim reimbursement {{.number}} sebesar {{.amount}} {{.decision}}. {{.reason}}"},
+		},
+		NotifyReimbToPay: {
+			"en": {"Reimbursement {{.number}} to pay", "The {{.category}} claim {{.number}} of {{.employeeName}} ({{.amount}}) was sent to Finance. Record the payment in HRIS → Payroll → Reimbursement."},
+			"id": {"Reimbursement {{.number}} siap dibayar", "Klaim {{.category}} {{.number}} milik {{.employeeName}} ({{.amount}}) dikirim ke Finance. Catat pembayaran di HRIS → Payroll → Reimbursement."},
+		},
+		NotifyLoanDecided: {
+			"en": {"Your {{.loanType}} {{.number}} was {{.decision}}", "Your {{.loanType}} request {{.number}} of {{.amount}} was {{.decision}}. {{.reason}}"},
+			"id": {"Pengajuan {{.number}} {{.decision}}", "Pengajuan {{.loanType}} {{.number}} sebesar {{.amount}} {{.decision}}. {{.reason}}"},
+		},
+		NotifyLoanToPay: {
+			"en": {"{{.number}} approved: ready to pay", "The {{.loanType}} {{.number}} of {{.amount}} is approved. Record the payment to the employee in HRIS → Payroll → Loans & Advances."},
+			"id": {"{{.number}} disetujui: siap dibayarkan", "{{.loanType}} {{.number}} sebesar {{.amount}} telah disetujui. Catat pembayaran ke karyawan di HRIS → Payroll → Loans & Advances."},
 		},
 	}
 	whatsApp := map[string]bool{NotifyPayslip: true}

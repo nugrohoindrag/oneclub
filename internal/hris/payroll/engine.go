@@ -214,7 +214,7 @@ func (m *Module) employeesOf(ctx context.Context, tx pgx.Tx, c calcContext, adjs
 	}
 	var out []hris.Employee
 	for _, e := range all {
-		if e.JoinDate != nil && e.JoinDate.After(run.PeriodEnd) {
+		if e.Status == "draft" || (e.JoinDate != nil && e.JoinDate.After(run.PeriodEnd)) { // a draft is not hired yet
 			continue
 		}
 		left := e.TerminationDate != nil && !e.TerminationDate.After(run.PeriodStart)

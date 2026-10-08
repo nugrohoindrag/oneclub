@@ -183,7 +183,7 @@ func (e *Engine) list(d *Def) http.HandlerFunc {
 		var rows []map[string]any
 		err = e.DB.WithReadTx(ctx, func(tx pgx.Tx) error {
 			sql := fmt.Sprintf("SELECT %s FROM %s WHERE %s ORDER BY %s LIMIT %d OFFSET %d",
-				d.selectList(), d.Table, strings.Join(q.where, " AND "), order, lp.Limit+1, offset)
+				d.selectList(), d.Table, strings.Join(q.where, " AND "), order, lp.PageSize+1, offset)
 			rs, err := tx.Query(ctx, sql, q.args...)
 			if err != nil {
 				return err
@@ -200,9 +200,9 @@ func (e *Engine) list(d *Def) http.HandlerFunc {
 		if page.Items == nil {
 			page.Items = []map[string]any{}
 		}
-		if len(rows) > lp.Limit {
-			page.Items = rows[:lp.Limit]
-			page.NextCursor = httpx.EncodeCursor(strconv.Itoa(offset + lp.Limit))
+		if len(rows) > lp.PageSize {
+			page.Items = rows[:lp.PageSize]
+			page.NextCursor = httpx.EncodeCursor(strconv.Itoa(offset + lp.PageSize))
 		}
 		httpx.JSON(w, http.StatusOK, page)
 	}

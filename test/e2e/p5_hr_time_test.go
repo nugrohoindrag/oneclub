@@ -437,6 +437,23 @@ func TestP5HRTimeAttendance(t *testing.T) {
 	if kp["event"].(map[string]any)["method"] != "kiosk_pin" {
 		t.Fatalf("kiosk PIN: %v", kp)
 	}
+	// Presence Form on the login page: employee ID + attendance PIN + GPS, without a session
+	var pid string
+	sysQueryRow(t, inst, `SELECT property_id::text FROM hris.employees WHERE id = $1`, []any{tm.aID}, &pid)
+	presence := anon(t, inst)
+	pf := func(pin string, gps bool) map[string]any {
+		b := map[string]any{"propertyId": pid, "employeeNo": tm.aNo, "pin": pin, "direction": "out"}
+		if gps {
+			b["latitude"], b["longitude"], b["accuracyMeters"] = lat, lng+0.0005, 9
+		}
+		return b
+	}
+	presence.Must(422, "POST", "/api/v1/public/attendance:clock", pf("135790", false)) // GPS off
+	presence.Must(401, "POST", "/api/v1/public/attendance:clock", pf("111111", true))
+	pe := presence.Must(200, "POST", "/api/v1/public/attendance:clock", pf("135790", true)).JSON()["event"].(map[string]any)
+	if pe["method"] != "mobile_gps" || pe["direction"] != "out" || pe["withinGeofence"] != true || pe["employeeId"] != tm.aID {
+		t.Fatalf("presence form: %v", pe)
+	}
 	qr := tm.b.Must(200, "GET", "/api/v1/ess/attendance-qr", nil).JSON()
 	kiosk.Must(422, "POST", hrBase+"/attendance/kiosk:clock", map[string]any{"qrToken": str(qr["token"]) + "x"})
 	if kq := kiosk.Must(200, "POST", hrBase+"/attendance/kiosk:clock", map[string]any{"qrToken": qr["token"]}).JSON(); kq["event"].(map[string]any)["employeeId"] != tm.bID {

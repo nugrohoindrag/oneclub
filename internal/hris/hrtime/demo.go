@@ -3,6 +3,7 @@ package hrtime
 // Demo data of time & attendance (Modern Golf & Country Club): shift
 // templates per department, staffing requirements, the holiday calendar,
 // the club geofence (300 m, §16 #7), six mock biometric devices and a kiosk,
+// the mobile GPS clock-ins of the field staff (demo_presence.go),
 // attendance profiles with biometric consent, published rosters of the last
 // four weeks, this week and next week (F&B, Kitchen, Sport Club, Golf
 // Operations), 30 days of clock events (mostly on time, some late, a few
@@ -96,8 +97,11 @@ func SeedDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 		EXISTS (SELECT 1 FROM hris.employees WHERE property_id = $1 AND employee_no = 'EMP-00001')`, property).Scan(&seeded, &hr); err != nil {
 		return err
 	}
-	if seeded || !hr {
+	if !hr {
 		return nil
+	}
+	if seeded {
+		return seedPresenceDemo(ctx, tx, property) // added after the first demo seed (demo_presence.go)
 	}
 	ctx = reqctx.WithProperty(ctx, property)
 	loc := location(ctx, tx, property)
@@ -180,7 +184,7 @@ func SeedDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-	pinHash, err := password.Hash("246810")
+	pinHash, err := password.Hash(DemoAttendancePIN)
 	if err != nil {
 		return err
 	}
@@ -494,5 +498,5 @@ func SeedDemo(ctx context.Context, tx pgx.Tx, property uuid.UUID) error {
 			return err
 		}
 	}
-	return nil
+	return seedPresenceDemo(ctx, tx, property)
 }

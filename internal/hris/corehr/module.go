@@ -86,6 +86,8 @@ func (m *Module) Register(reg *route.Registry) {
 	m.registerImports(reg)
 	m.registerReconciliation(reg) // EP-28 FR-MIG-P5-05
 	m.registerLetters(reg)
+	m.registerDashboard(reg)
+	m.registerLifecycleStatus(reg)
 }
 
 // add registers a property-scoped hris route.

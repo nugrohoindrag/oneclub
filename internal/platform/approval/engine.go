@@ -62,9 +62,10 @@ type Engine struct {
 	Events Publisher
 	Cfg    *config.Config
 
-	mu    sync.RWMutex
-	types map[string]provision.DocumentType
-	hooks map[string]DecisionHook
+	mu        sync.RWMutex
+	types     map[string]provision.DocumentType
+	hooks     map[string]DecisionHook
+	revisions map[string]DecisionHook // p5_revision.go
 }
 
 func New(db *dbtx.DB, n notify.Sender, ev Publisher, cfg *config.Config) *Engine {

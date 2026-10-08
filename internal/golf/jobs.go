@@ -295,18 +295,38 @@ func (w *ReminderWorker) Work(ctx context.Context, _ *river.Job[ReminderArgs]) e
 	return err
 }
 
+type LockerArgs struct{}
+
+func (LockerArgs) Kind() string { return "golf_release_daily_lockers" }
+func (LockerArgs) InsertOpts() river.InsertOpts {
+	return river.InsertOpts{Queue: jobs.QueueMaintenance, MaxAttempts: 3}
+}
+
+type LockerWorker struct {
+	river.WorkerDefaults[LockerArgs]
+	M *Module
+}
+
+func (w *LockerWorker) Work(ctx context.Context, _ *river.Job[LockerArgs]) error {
+	_, err := w.M.ReleaseDailyLockers(ctx)
+	return err
+}
+
 // RegisterJobs adds the golf workers and schedules.
 func (m *Module) RegisterJobs(reg *jobs.Registrar, loc func() *time.Location) {
 	river.AddWorker(reg.Workers, &HoldsWorker{M: m})
 	river.AddWorker(reg.Workers, &NoShowWorker{M: m})
 	river.AddWorker(reg.Workers, &TeeSheetWorker{M: m})
 	river.AddWorker(reg.Workers, &ReminderWorker{M: m})
+	river.AddWorker(reg.Workers, &LockerWorker{M: m})
 	reg.Periodic = append(reg.Periodic,
 		river.NewPeriodicJob(river.PeriodicInterval(time.Minute), func() (river.JobArgs, *river.InsertOpts) { return HoldsArgs{}, nil }, nil),
 		river.NewPeriodicJob(river.PeriodicInterval(10*time.Minute), func() (river.JobArgs, *river.InsertOpts) { return NoShowArgs{}, nil }, nil),
 		river.NewPeriodicJob(jobs.DailyAt{Hour: 0, Minute: 15, Location: loc}, func() (river.JobArgs, *river.InsertOpts) { return TeeSheetArgs{}, nil },
 			&river.PeriodicJobOpts{RunOnStart: true}),
-		river.NewPeriodicJob(jobs.DailyAt{Hour: 8, Minute: 0, Location: loc}, func() (river.JobArgs, *river.InsertOpts) { return ReminderArgs{}, nil }, nil))
+		river.NewPeriodicJob(jobs.DailyAt{Hour: 8, Minute: 0, Location: loc}, func() (river.JobArgs, *river.InsertOpts) { return ReminderArgs{}, nil }, nil),
+		// daily lockers of players who left without a check-out
+		river.NewPeriodicJob(jobs.DailyAt{Hour: 0, Minute: 5, Location: loc}, func() (river.JobArgs, *river.InsertOpts) { return LockerArgs{}, nil }, nil))
 }
 
 // ── subscribers ───────────────────────────────────────────────────────────

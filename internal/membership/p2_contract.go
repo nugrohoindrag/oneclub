@@ -62,6 +62,7 @@ func (m *Module) RegisterP2(reg *route.Registry) {
 	m.registerLifecycle(reg)
 	m.registerMe(reg)
 	m.registerPublic(reg)
+	m.registerJoinJourney(reg)
 }
 
 // RegisterP2Jobs adds the daily P2 lifecycle job (annual fee, pause end,

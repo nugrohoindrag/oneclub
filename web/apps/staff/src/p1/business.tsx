@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
-  Card, DataTable, Drawer, ErrorAlert, Icon, Modal, PageHeader, ResourcePage, SearchBox, SelectField, Skeleton, StatusPill, TextArea, TextField,
-  statusCol, useAuth, useDebounced, useToast, type ResourceConfig,
+  Card, DataTable, Drawer, ErrorAlert, Icon, Modal, PageHeader, ResourcePage, SelectField, Skeleton, StatusPill, TextArea, TextField,
+  statusCol, useAuth, useDebounced, type ResourceConfig,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from './common';
 import { CustomerTierBadge, TierBadge, TierFilter } from '../p5/tiers';
@@ -257,80 +257,7 @@ export function CustomersPage() {
   return <ResourcePage cfg={customerCfg} />;
 }
 
-export function Customer360Page() {
-  const [params, setParams] = useSearchParams();
-  const id = params.get('id');
-  const { can } = useAuth();
-  const [q, setQ] = useState('');
-  const query = useDebounced(q);
-  const search = useGet<Page<R>>(!id && query ? `/api/v1/crm/customers${qs({ q: query, limit: 20 })}` : null);
-  const ov = useGet<R & { profile: R; memberships: R[]; accounts: R[]; relationships: R[]; preferences: R[]; stats: R; recentHistory: R[] }>(id ? `/api/v1/crm/customers/${id}/overview` : null);
-  const x = ov.data;
-  const toast = useToast();
-  const exp = useSend<Record<string, unknown>, R>('POST', `/api/v1/crm/customers/${id}:export-personal-data`, ['/api/v1/crm']);
-  if (!id) {
-    return (
-      <div className="oc-stack">
-        <PageHeader title="Customer 360" help="Profile, membership, bookings, balance and handicap in one page." />
-        <SearchBox value={q} onChange={setQ} placeholder="Search customer by name, phone or e-mail" />
-        <DataTable rows={search.data?.items} loading={search.isLoading && !!query} onRowClick={(r) => setParams({ id: r.id })}
-          columns={[{ key: 'code', header: 'Code' }, { key: 'name', header: 'Name' }, { key: 'phone', header: 'Phone' }, { key: 'email', header: 'E-mail' }, statusCol]} />
-      </div>
-    );
-  }
-  return (
-    <div className="oc-stack">
-      <PageHeader title={x ? String(x.profile.name) : 'Customer 360'} help={x ? `${String(x.profile.code)} · ${String(x.profile.phone ?? '')}` : undefined}
-        actions={<>
-          <CustomerTierBadge customerId={id} />
-          <button className="oc-btn oc-btn-neutral" onClick={() => setParams({})}>Search</button>
-          {can('crm.customer.view') && <Link className="oc-btn oc-btn-outline" to={`/crm/customers/${id}`}>View all business lines</Link>}
-          {can('crm.customer.export_personal_data') && <button className="oc-btn oc-btn-neutral" disabled={exp.isPending}
-            onClick={() => exp.mutate({}, { onSuccess: (r) => { toast('Personal data exported'); window.open(String((r.file as R).url), '_blank'); } })}>Export personal data</button>}
-          {can('crm.customer.erase') && <ActionButton label="Erase personal data" path={`/api/v1/crm/customers/${id}:erase`} invalidate={['/api/v1/crm']} reason="required" danger
-            confirm="Identifiers are anonymised; financial records keep their amounts. This cannot be undone." />}
-        </>} />
-      {ov.isLoading && <Skeleton rows={8} />}
-      <ErrorAlert error={ov.error ?? exp.error} />
-      {x && (
-        <>
-          <div className="oc-grid">
-            <Card title="Rounds" icon="golf_course"><div className="oc-metric">{formatNumber(Number(x.stats.rounds ?? 0))}</div></Card>
-            <Card title="Last visit" icon="event"><div className="oc-metric" style={{ fontSize: 22 }}>{x.stats.lastVisit ? formatDate(String(x.stats.lastVisit)) : '—'}</div></Card>
-            <Card title="Total payments" icon="payments"><div className="oc-metric" style={{ fontSize: 22 }}>{money(x.stats.totalPayments)}</div></Card>
-            <Card title="Handicap Index" icon="sports_golf"><div className="oc-metric">{x.handicapIndex ? String(x.handicapIndex) : '—'}</div></Card>
-          </div>
-          <div className="oc-grid-2">
-            <Card title="Profile" icon="person">
-              <KV items={[['Gender', String(x.profile.gender ?? '—')], ['Date of Birth', x.profile.birthDate ? formatDate(String(x.profile.birthDate)) : '—'],
-                ['E-mail', String(x.profile.email ?? '—')], ['ID Number', String(x.profile.idNumber ?? '—')], ['City', String(x.profile.city ?? '—')],
-                ['Consent', x.profile.consentAt ? formatDateTime(String(x.profile.consentAt)) : '—'], ['Status', <StatusPill key="s" status={String(x.profile.status)} />]]} />
-            </Card>
-            <Card title="Membership" icon="card_membership">
-              <DataTable rows={x.memberships} rowKey={(m) => String(m.membershipId)} columns={[{ key: 'memberNo', header: 'Member No.' }, { key: 'typeName', header: 'Type' }, { key: 'role', header: 'Role' },
-                { key: 'endsOn', header: 'Ends', render: (m) => (m.endsOn ? formatDate(String(m.endsOn)) : '—') }, { key: 'status', header: 'Status', render: pill('status') }]} />
-            </Card>
-            <Card title="Accounts" icon="account_balance_wallet">
-              <DataTable rows={x.accounts} rowKey={(a) => String(a.accountId)} columns={[{ key: 'number', header: 'Account' }, { key: 'accountType', header: 'Type' },
-                { key: 'balance', header: 'Balance', align: 'right', render: (a) => money(a.balance) }, { key: 'creditLimit', header: 'Credit limit', align: 'right', render: (a) => money(a.creditLimit) }]} />
-            </Card>
-            <Card title="Family & preferences" icon="family_restroom">
-              <DataTable rows={x.relationships} rowKey={(r) => String(r.customerId)} columns={[{ key: 'name', header: 'Name', render: (r) => <Link to={`/crm/customer-360?id=${String(r.customerId)}`}>{String(r.name)}</Link> },
-                { key: 'relationship', header: 'Relationship' }]} />
-              <DataTable rows={x.preferences} rowKey={(p) => `${String(p.category)}-${String(p.key)}`} columns={[{ key: 'category', header: 'Category' }, { key: 'key', header: 'Preference' }, { key: 'value', header: 'Value' }]} />
-            </Card>
-          </div>
-          <Card title="Customer History" icon="history">
-            <DataTable rows={x.recentHistory} rowKey={(h) => `${String(h.kind)}-${String(h.reference)}-${String(h.occurredAt)}`}
-              columns={[{ key: 'occurredAt', header: 'When', render: (h) => formatDateTime(String(h.occurredAt)) }, { key: 'kind', header: 'Kind', render: (h) => String(h.kind).replace('_', ' ') },
-                { key: 'reference', header: 'Reference' }, { key: 'description', header: 'Description' }, { key: 'amount', header: 'Amount', align: 'right', render: (h) => money(h.amount) },
-                { key: 'status', header: 'Status', render: pill('status') }]} />
-          </Card>
-        </>
-      )}
-    </div>
-  );
-}
+export { Customer360Page } from './customer360';
 
 const corporateCfg: ResourceConfig = {
   title: 'Corporate Accounts', singular: 'Corporate Account', path: '/api/v1/crm/corporate-accounts', perm: 'crm.corporate_account',
@@ -718,69 +645,3 @@ export function ReconciliationPage() {
 
 // ── Management (EP-16) ──────────────────────────────────────────────────────
 
-export function GolfPerformancePage() {
-  const [date, setDate] = useState(today());
-  const d = useGet<{ widgets: R[] }>(`/api/v1/reporting/dashboards/golf-today?date=${date}`);
-  return (
-    <div className="oc-stack">
-      <PageHeader title="Golf Performance" help="Live golf operation of the day." />
-      <TextField label="Date" type="date" value={date} onChange={setDate} />
-      <ErrorAlert error={d.error} />
-      <div className="oc-grid">
-        {(d.data?.widgets ?? []).map((w) => (
-          <div className="oc-card" key={String(w.key)}>
-            <div className="oc-card-head"><h3>{String(w.label)}</h3></div>
-            <div className="oc-metric">{formatNumber(Number(w.value ?? 0))}{w.key === 'avg_check_in_to_tee_off' ? ' min' : ''}</div>
-          </div>
-        ))}
-      </div>
-      <ReportLinks module="golf" />
-    </div>
-  );
-}
-
-export function ReportLinks({ module }: { module: string }) {
-  const reports = useGet<Page<R>>('/api/v1/reporting/reports');
-  return (
-    <Card title="Reports" icon="monitoring">
-      <div className="oc-row-wrap">
-        {(reports.data?.items ?? []).filter((r) => r.module === module || (module === 'booking' && r.code === 'golf.bookings')).map((r) => (
-          <Link key={String(r.code)} className="oc-btn oc-btn-neutral oc-btn-sm" to={`/reports/${String(r.code)}`}>{String(r.name)}</Link>
-        ))}
-      </div>
-    </Card>
-  );
-}
-
-export function MembershipPerformancePage() {
-  const active = useGet<{ rows: R[] }>('/api/v1/reporting/reports/membership.active_members');
-  const expiring = useGet<{ rows: R[] }>('/api/v1/reporting/reports/membership.expiring?params[days]=30');
-  return (
-    <div className="oc-stack">
-      <PageHeader title="Membership Performance" />
-      <div className="oc-grid">
-        <div className="oc-card"><div className="oc-card-head"><h3>Active Members</h3></div><div className="oc-metric">{active.data ? formatNumber(active.data.rows.length) : '—'}</div></div>
-        <div className="oc-card"><div className="oc-card-head"><h3>Expiring in 30 days</h3></div><div className="oc-metric">{expiring.data ? formatNumber(expiring.data.rows.length) : '—'}</div></div>
-      </div>
-      <ReportLinks module="membership" />
-    </div>
-  );
-}
-
-export function BookingPerformancePage() {
-  const [date, setDate] = useState(today());
-  const b = useGet<{ rows: R[] }>(`/api/v1/reporting/reports/golf.bookings?params[from]=${date}&params[to]=${date}`);
-  const rows = b.data?.rows ?? [];
-  const by = (k: string) => rows.reduce<Record<string, number>>((m, r) => ({ ...m, [String(r[k])]: (m[String(r[k])] ?? 0) + 1 }), {});
-  return (
-    <div className="oc-stack">
-      <PageHeader title="Booking Performance" />
-      <TextField label="Date" type="date" value={date} onChange={setDate} />
-      <div className="oc-grid">
-        <div className="oc-card"><div className="oc-card-head"><h3>Bookings</h3></div><div className="oc-metric">{formatNumber(rows.length)}</div></div>
-        {Object.entries(by('channel')).map(([k, n]) => <div className="oc-card" key={k}><div className="oc-card-head"><h3>{k.replace('_', ' ')}</h3></div><div className="oc-metric">{formatNumber(n)}</div></div>)}
-      </div>
-      <ReportLinks module="booking" />
-    </div>
-  );
-}

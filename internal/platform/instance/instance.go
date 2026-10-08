@@ -168,7 +168,7 @@ type FeatureFlagUpdate struct {
 
 type Domain struct {
 	ID                uuid.UUID  `json:"id"`
-	Surface           string     `json:"surface" enum:"web,member,dashboard,cashier,caddy,kitchen,api,backoffice,ops,platform-admin" doc:"Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces"`
+	Surface           string     `json:"surface" enum:"web,member,dashboard,cashier,caddy,kitchen,presence,api,backoffice,ops,platform-admin" doc:"Staff App: dashboard, cashier, caddy, kitchen or presence (Attendance Form); backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces"`
 	Hostname          string     `json:"hostname"`
 	Status            string     `json:"status" enum:"pending,verified,active,failed"`
 	VerificationName  string     `json:"verificationRecordName" doc:"DNS TXT record name to create"`
@@ -180,7 +180,7 @@ type Domain struct {
 }
 
 type DomainRequest struct {
-	Surface  string `json:"surface" enum:"web,member,dashboard,cashier,caddy,kitchen,api,backoffice,ops,platform-admin" doc:"Staff App: dashboard, cashier, caddy or kitchen; backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces"`
+	Surface  string `json:"surface" enum:"web,member,dashboard,cashier,caddy,kitchen,presence,api,backoffice,ops,platform-admin" doc:"Staff App: dashboard, cashier, caddy, kitchen or presence (Attendance Form); backoffice, platform-admin (served as dashboard) and ops (as cashier) are the former staff surfaces"`
 	Hostname string `json:"hostname"`
 }
 
@@ -842,10 +842,10 @@ func (s *Service) deleteDomain(w http.ResponseWriter, r *http.Request) {
 }
 
 // domainSurfaces are the application surfaces a custom domain can serve.
-// The Staff App is one build on four surfaces (Technical Doc §6.1); the
+// The Staff App is one build on five surfaces (Technical Doc §6.1); the
 // surfaces of the former staff apps stay valid for domains registered
 // before (expand-only).
-var domainSurfaces = []string{"web", "member", "dashboard", "cashier", "caddy", "kitchen", "api", "backoffice", "ops", "platform-admin"}
+var domainSurfaces = []string{"web", "member", "dashboard", "cashier", "caddy", "kitchen", "presence", "api", "backoffice", "ops", "platform-admin"}
 
 // servedSurface is the surface Caddy serves for a domain's surface.
 func servedSurface(surface string) string {

@@ -8,7 +8,7 @@ self.addEventListener('push', (event) => {
     d = { title: 'OneClub', body: event.data ? event.data.text() : '' };
   }
   event.waitUntil(self.registration.showNotification(d.title || 'OneClub', {
-    body: d.body || '', tag: d.tag || undefined, icon: '/favicon.svg', badge: '/favicon.svg', data: { link: d.link || '/' },
+    body: d.body || '', tag: d.tag || undefined, icon: '/favicon.png', badge: '/favicon.png', data: { link: d.link || '/' },
   }));
 });
 

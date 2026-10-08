@@ -6,6 +6,7 @@ import { useTranslation } from '@oneclub/i18n';
 import { useAuth, useBootstrap, type Me, type Shell } from '../context';
 import { ErrorAlert, Icon, PasswordField, TextField, fieldErrors } from '../components/ui';
 import { landingPath, useArea } from '../areas';
+import { loginPhotoOf, logoOf } from '../theme';
 
 type LoginResponse = Schemas['LoginResponse'];
 type Step = 'credentials' | 'mfa-setup' | 'mfa-verify' | 'password' | 'denied';
@@ -17,11 +18,9 @@ export function AuthFrame({ children }: { children: React.ReactNode }) {
     <div className="oc-login-bg">
       <div className="oc-login">
         <div className="oc-login-visual" aria-hidden="true">
-          {b.branding.loginImageUrl && <img className="oc-login-photo" src={b.branding.loginImageUrl} alt="" />}
+          <img className="oc-login-photo" src={loginPhotoOf(b.branding)} alt="" />
           <div>
-            {b.branding.logoUrl ? <img className="oc-login-logo" src={b.branding.logoUrl} alt="" /> : (
-              <span className="oc-brand-mark" style={{ width: 56, height: 56, fontSize: 24 }}>{b.branding.appName.slice(0, 1)}</span>
-            )}
+            <img className="oc-login-logo" src={logoOf(b.branding)} alt="" />
           </div>
           <div>
             <div style={{ fontSize: 28, fontWeight: 600, lineHeight: 1.2 }}>{b.branding.appName}</div>

@@ -68,6 +68,8 @@ type Module struct {
 	Integrations interface {
 		Resolve(ctx context.Context, capability string) (any, string, error)
 	}
+	// Targets gives the Finance Dashboard its budget (approved KPI target plan); nil = no budget.
+	Targets TargetSource
 }
 
 // PeriodStatus returns the status (open, soft_closed, closed) of the

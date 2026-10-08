@@ -59,7 +59,12 @@ func TestP5LeisurePackageAdvanced(t *testing.T) {
 	rs := roleUser(t, inst, "reservation_staff")
 	fm := roleUser(t, inst, "finance_manager")
 	sfx := fmt.Sprint(time.Now().UnixNano() % 1e6)
-	days := pcWeekdays(30, 6)
+	// d1–d3 are consecutive days (the availability below reads d1 and the next day): start on a Monday–Wednesday
+	off := 30
+	for wd := time.Now().In(clubLoc(inst)).AddDate(0, 0, off).Weekday(); wd < time.Monday || wd > time.Wednesday; wd = (wd + 1) % 7 {
+		off++
+	}
+	days := pcWeekdays(off, 6)
 	d1, d2, d3 := days[0], days[1], days[2]
 
 	// BOM of the dinner (P4 inventory): 2 portions of beef per guest

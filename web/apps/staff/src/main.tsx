@@ -1,14 +1,16 @@
 import React, { Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, Outlet, RouterProvider } from 'react-router';
+import { createBrowserRouter, Outlet, RouterProvider, type RouteObject } from 'react-router';
 import '@oneclub/shell/shell.css';
-import { AppProviders, ErrorBoundary, RequireArea, ResetPasswordPage, Skeleton, StaffAreas, loadSurface, type AreaCode } from '@oneclub/shell';
+import { AppProviders, ErrorBoundary, RequireArea, ResetPasswordPage, Skeleton, StaffAreas, currentSurface, loadSurface, type AreaCode } from '@oneclub/shell';
 import { DeviceEnrollPage, PasswordLoginPage, StaffLoginPage } from './login';
 import { clearOfflineData } from './offline';
+import { PresencePage } from './presence';
 
 /*
  * Staff App (Technical Doc §6.1): one login, one session, one build for every
- * staff area, served on four domains (dashboard, cashier, caddy, kitchen).
+ * staff area, served on five domains (dashboard, cashier, caddy, kitchen and
+ * presence, which serves only the Attendance Form).
  * The domain's surface is read before the first render. Each area is loaded
  * lazily, so a caddy tablet only downloads the tablet code; the area guard
  * runs before the download.
@@ -35,7 +37,7 @@ function AreaRoute({ code }: { code: AreaCode }) {
   );
 }
 
-const router = createBrowserRouter([
+const STAFF_ROUTES: RouteObject[] = [
   {
     element: <ErrorBoundary><StaffAreas><Outlet /></StaffAreas></ErrorBoundary>,
     children: [
@@ -43,6 +45,7 @@ const router = createBrowserRouter([
       { path: '/login/password', element: <PasswordLoginPage /> },
       { path: '/login/device', element: <DeviceEnrollPage /> },
       { path: '/reset-password', element: <ResetPasswordPage /> },
+      { path: '/presence', element: <PresencePage /> },
       { path: '/management/*', element: <AreaRoute code="management" /> },
       { path: '/platform/*', element: <AreaRoute code="platform" /> },
       { path: '/screen/*', element: <AreaRoute code="screen" /> },
@@ -52,14 +55,18 @@ const router = createBrowserRouter([
       { path: '/*', element: <AreaRoute code="backoffice" /> },
     ],
   },
-]);
+];
 
-void loadSurface().then(() =>
+/** The presence domain: every path is the Attendance Form. */
+const PRESENCE_ROUTES: RouteObject[] = [{ path: '*', element: <ErrorBoundary><PresencePage /></ErrorBoundary> }];
+
+void loadSurface().then(() => {
+  const router = createBrowserRouter(currentSurface() === 'presence' ? PRESENCE_ROUTES : STAFF_ROUTES);
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <AppProviders onLogout={clearOfflineData}>
         <RouterProvider router={router} />
       </AppProviders>
     </React.StrictMode>,
-  ),
-);
+  );
+});
