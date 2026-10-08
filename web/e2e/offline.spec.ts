@@ -47,7 +47,7 @@ test('POS: a sale without connection is queued and synced as one order', async (
   await login(page, CASHIER, email('cashier'));
   await expect(page).toHaveURL(/\/ops$/);
   await page.getByRole('button', { name: outlet.name }).click();
-  await page.getByRole('link', { name: 'POS' }).click();
+  await page.getByRole('navigation', { name: 'Operational' }).getByRole('link', { name: 'POS' }).click(); // the rail (Home also has a POS tile)
   await openPosShift(page);
   await page.getByRole('link', { name: 'Table View' }).click();
   await page.getByRole('button', { name: 'Manual Order' }).first().click();
