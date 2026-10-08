@@ -13806,6 +13806,10 @@
             "nullable": true,
             "type": "string"
           },
+          "depositAmount": {
+            "description": "Deposit: the amount paid now (any amount up to the total); default the policy percentage",
+            "type": "string"
+          },
           "golfCartRequest": {
             "description": "Requested golf carts (above the sharing rule adds a surcharge)",
             "nullable": true,
@@ -79009,6 +79013,10 @@
           "contact": {
             "$ref": "#/components/schemas/PublicContact"
           },
+          "depositAmount": {
+            "description": "Deposit: the amount paid now",
+            "type": "string"
+          },
           "golfCartRequest": {
             "nullable": true,
             "type": "integer"
@@ -79021,10 +79029,20 @@
             "type": "string"
           },
           "paymentMethod": {
+            "description": "Required when paying now",
             "enum": [
               "qris",
               "virtual_account",
               "card"
+            ],
+            "type": "string"
+          },
+          "paymentMode": {
+            "description": "Pay in full now, pay part now or pay at the club (default: Payment Policy)",
+            "enum": [
+              "prepaid",
+              "deposit",
+              "pay_at_venue"
             ],
             "type": "string"
           },
@@ -79040,8 +79058,7 @@
           "holdId",
           "holdToken",
           "contact",
-          "consent",
-          "paymentMethod"
+          "consent"
         ],
         "type": "object"
       },
@@ -350123,6 +350140,68 @@
         "x-module": "golf"
       }
     },
+    "/api/v1/public/bookings/{token}:pay": {
+      "post": {
+        "operationId": "postPublicBookingsByTokenPay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Property code (default: the golf club)",
+            "in": "query",
+            "name": "property",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayOnlineInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicBooking"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Pay the balance, or part of it, online from the secure link",
+        "tags": [
+          "Website"
+        ],
+        "x-audited": true,
+        "x-module": "golf"
+      }
+    },
     "/api/v1/public/bootstrap": {
       "get": {
         "operationId": "getPublicBootstrap",
@@ -352172,7 +352251,7 @@
           }
         },
         "security": [],
-        "summary": "Book and pay online (prepaid, Payment Policy)",
+        "summary": "Book: pay in full, pay part now or pay at the club (Payment Policy)",
         "tags": [
           "Website"
         ],

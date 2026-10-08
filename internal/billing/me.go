@@ -10,6 +10,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/shopspring/decimal"
 
@@ -44,6 +45,16 @@ func (s *Service) payOnline(ctx context.Context, tx pgx.Tx, folio FolioDetail, i
 	}
 	return s.TakePayment(ctx, tx, PaymentInput{FolioID: &folio.ID, MethodType: method, Channel: "online", Amount: amt,
 		Description: folio.Number, PayerName: payer})
+}
+
+// PayOnline opens a gateway payment for (part of) a folio balance for
+// another module's own channel (the website's manage-booking link).
+func (s *Service) PayOnline(ctx context.Context, tx pgx.Tx, folioID uuid.UUID, in PayOnlineInput) (Payment, error) {
+	f, err := GetFolio(ctx, tx, folioID)
+	if err != nil {
+		return Payment{}, err
+	}
+	return s.payOnline(ctx, tx, f, in, f.HolderName)
 }
 
 func (s *Service) registerOnline(reg *route.Registry) {

@@ -281,23 +281,37 @@ function CheckOutModal({ entry, onClose, onDone }: { entry: R; onClose: () => vo
   const due = Number(b.data?.folio?.balance ?? entry.balance ?? 0);
   const [method, setMethod] = useState(entry.memberAccount ? 'member_account' : 'cash');
   const [ref, setRef] = useState('');
+  const [amount, setAmount] = useState('');
   const out = useSend<Record<string, unknown>>('POST', `/api/v1/golf/bookings/${String(entry.bookingId)}:check-out`, ['/api/v1/golf', '/api/v1/billing']);
+  // a part payment first (split tenders); the last one settles and checks out
+  const part = useSend<Record<string, unknown>>('POST', '/api/v1/billing/payments', ['/api/v1/billing', '/api/v1/golf']);
+  const n = amount === '' ? due : Number(amount);
+  const partial = due > 0 && n > 0 && n < due;
   const methods = [...(entry.memberAccount ? [['member_account', 'Member account']] : []), ...SETTLE];
   const count = (v: unknown) => ((v as string[] | undefined) ?? []).length;
   return (
     <Modal open onClose={onClose} title={`Check-out ${String(entry.code)}`} actions={<><Btn label="Cancel" onClick={onClose} />
-      <Btn label={due > 0 ? `Settle ${money(due)} & check out` : 'Check out'} kind="primary" disabled={out.isPending || !b.data}
-        onClick={() => out.mutate({ methodType: due > 0 ? method : undefined, reference: ref || undefined }, { onSuccess: () => onDone(String(entry.code)) })} /></>}>
+      {partial ? (
+        <Btn label={`Receive ${money(n)}`} kind="primary" disabled={part.isPending || !b.data?.folioId || method === 'member_account'}
+          onClick={() => part.mutate({ folioId: b.data?.folioId, amount: String(n), methodType: method, channel: 'venue', reference: ref || undefined },
+            { onSuccess: () => { setAmount(''); setRef(''); void b.refetch(); } })} />
+      ) : (
+        <Btn label={due > 0 ? `Settle ${money(due)} & check out` : 'Check out'} kind="primary" disabled={out.isPending || !b.data || n > due}
+          onClick={() => out.mutate({ methodType: due > 0 ? method : undefined, reference: ref || undefined }, { onSuccess: () => onDone(String(entry.code)) })} />
+      )}</>}>
       <div className="oc-stack">
         <p style={{ margin: 0 }}>{((entry.players as string[] | undefined) ?? []).join(', ')}</p>
         {(b.data?.flights ?? []).map((f) => <CaddyTips key={String(f.id)} flightId={String(f.id)} onTip={() => void b.refetch()} />)}
         <p style={{ margin: 0 }}>Charges {money(b.data?.folio?.charges)} · paid {money(b.data?.folio?.payments)} · balance <strong>{money(b.data?.folio?.balance)}</strong></p>
         {due > 0 && (
           <div className="oc-row-wrap">
-            <SelectField label="Settle by" value={method} onChange={setMethod} options={methods.map(([value, label]) => ({ value, label }))} />
+            <TextField label="Amount (empty = all)" value={amount} onChange={(v) => setAmount(v.replace(/\D/g, ''))} inputMode="numeric" />
+            <SelectField label="Pay by" value={method} onChange={setMethod} options={methods.map(([value, label]) => ({ value, label }))} />
             {method !== 'cash' && method !== 'member_account' && <TextField label="Reference" value={ref} onChange={setRef} />}
           </div>
         )}
+        {partial && <p className="oc-small oc-muted" style={{ margin: 0 }}>Part payment: the rest ({money(due - n)}) stays on the bill for the next tender.</p>}
+        <ErrorAlert error={part.error} />
         <p className="oc-small oc-muted" style={{ margin: 0 }}>
           Releases {count(entry.lockers)} locker(s) and hands back {count(entry.bags)} bag(s); the folio is closed.
         </p>
@@ -415,7 +429,7 @@ export function FrontDeskPage() {
       <Head title="Reservations" help={`${date}${bookings.offline ? ' · offline copy' : ''}`} actions={<Link className="oc-btn oc-btn-ink" to="/ops/check-in">Check-in</Link>} />
       <DataTable rows={bookings.data?.items} loading={bookings.isLoading} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'code', header: 'Booking' },
         { key: 'contactName', header: 'Booked by' }, { key: 'playerCount', header: 'Players', align: 'right' }, { key: 'status', header: 'Status', render: pill('status') }]}
-        actions={(b) => !bookings.offline && ['confirmed', 'pending', 'checked_in'].includes(String(b.status)) && <Btn label="Folio" onClick={() => setPaying(b)} />} />
+        actions={(b) => !bookings.offline && ['confirmed', 'pending', 'checked_in', 'completed'].includes(String(b.status)) && <Btn label="Folio" onClick={() => setPaying(b)} />} />
       {paying && <FolioPayModal booking={paying} onClose={() => setPaying(null)} onPaid={() => toast('Payment recorded')} />}
     </div>
   );
@@ -424,14 +438,20 @@ export function FrontDeskPage() {
 function FolioPayModal({ booking, onClose, onPaid }: { booking: R; onClose: () => void; onPaid: () => void }) {
   const b = useGet<R & { folio?: R; folioId?: string }>(`/api/v1/golf/bookings/${booking.id}`);
   const [method, setMethod] = useState('cash');
+  const [amount, setAmount] = useState('');
   const pay = useSend<Record<string, unknown>>('POST', '/api/v1/billing/payments', ['/api/v1/billing', '/api/v1/golf']);
-  const bal = b.data?.folio?.balance;
+  const bal = Number(b.data?.folio?.balance ?? 0);
+  const n = amount === '' ? bal : Number(amount);
   return (
     <Modal open onClose={onClose} title={`Folio ${String(booking.code)}`} actions={<><Btn label="Close" onClick={onClose} />
-      <Btn label={`Pay ${money(bal)}`} kind="primary" disabled={!bal || Number(bal) <= 0 || pay.isPending}
-        onClick={() => pay.mutate({ folioId: b.data?.folioId, amount: String(bal), methodType: method, channel: 'venue' }, { onSuccess: () => { onPaid(); onClose(); } })} /></>}>
+      <Btn label={`Pay ${money(n)}`} kind="primary" disabled={!(n > 0 && n <= bal) || pay.isPending}
+        onClick={() => pay.mutate({ folioId: b.data?.folioId, amount: String(n), methodType: method, channel: 'venue' },
+          { onSuccess: () => { onPaid(); setAmount(''); void b.refetch(); } })} /></>}>
       <p>Charges {money(b.data?.folio?.charges)} · paid {money(b.data?.folio?.payments)} · balance <strong>{money(bal)}</strong></p>
-      <SelectField label="Method" value={method} onChange={setMethod} options={['cash', 'card', 'qris', 'bank_transfer'].map((m) => ({ value: m, label: m.replace('_', ' ') }))} />
+      <div className="oc-row-wrap">
+        <TextField label="Amount (empty = all)" value={amount} onChange={(v) => setAmount(v.replace(/\D/g, ''))} inputMode="numeric" />
+        <SelectField label="Method" value={method} onChange={setMethod} options={['cash', 'card', 'qris', 'bank_transfer'].map((m) => ({ value: m, label: m.replace('_', ' ') }))} />
+      </div>
       <ErrorAlert error={pay.error} />
     </Modal>
   );

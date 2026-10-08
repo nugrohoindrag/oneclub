@@ -109,6 +109,7 @@ type BookingRequest struct {
 	CaddyRequest       string        `json:"caddyRequest,omitempty"`
 	PaymentMode        string        `json:"paymentMode,omitempty" enum:"prepaid,deposit,pay_at_venue,member_charge" doc:"Default: Payment Policy"`
 	PaymentMethod      string        `json:"paymentMethod,omitempty" enum:"qris,virtual_account,card,payment_gateway" doc:"Online method for prepaid / deposit"`
+	DepositAmount      string        `json:"depositAmount,omitempty" doc:"Deposit: the amount paid now (any amount up to the total); default the policy percentage"`
 	RainCheckIDs       []uuid.UUID   `json:"rainCheckIds,omitempty"`
 	Notes              string        `json:"notes,omitempty"`
 	Consent            bool          `json:"consent,omitempty"`
@@ -1230,7 +1231,8 @@ func (m *Module) applyPaymentPolicy(ctx context.Context, tx pgx.Tx, property, bo
 	rule := pol.PaymentFor(req.Channel, req.BookingType)
 	mode := rule.Mode
 	if req.PaymentMode != "" {
-		allowed := staff || req.PaymentMode == mode || (req.Channel == "member_app" && (req.PaymentMode == "prepaid" || req.PaymentMode == "member_charge"))
+		allowed := staff || req.PaymentMode == mode || pol.Payment.CustomerMay(req.PaymentMode) ||
+			(req.Channel == "member_app" && (req.PaymentMode == "prepaid" || req.PaymentMode == "member_charge"))
 		if !allowed {
 			return errs.Validation("payment_mode_not_allowed", "this payment option is not allowed by the Payment Policy", errs.Field("paymentMode", "invalid", mode))
 		}
@@ -1284,6 +1286,14 @@ func (m *Module) applyPaymentPolicy(ctx context.Context, tx pgx.Tx, property, bo
 				pct = decimal.NewFromInt(30)
 			}
 			amount = balance.Mul(pct).Div(hundred).Round(0)
+			if strings.TrimSpace(req.DepositAmount) != "" {
+				// a partial payment of any amount (demo feedback 9 Oct 2026)
+				amount = dec(req.DepositAmount).Round(0)
+				if !amount.IsPositive() || amount.GreaterThan(balance) {
+					return errs.Validation("invalid_deposit", "the amount paid now must be above zero and at most the total",
+						errs.Field("depositAmount", "invalid", "1 – "+balance.StringFixed(0)))
+				}
+			}
 			purpose = "deposit"
 		}
 		if _, err := tx.Exec(ctx, `UPDATE golf.bookings SET payment_mode = $2, payment_due_at = $3, deposit_amount = CASE WHEN $2 = 'deposit' THEN $4::numeric END,

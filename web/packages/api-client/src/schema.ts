@@ -31777,6 +31777,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/bookings/{token}:pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pay the balance, or part of it, online from the secure link */
+        post: operations["postPublicBookingsByTokenPay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/bootstrap": {
         parameters: {
             query?: never;
@@ -32365,7 +32382,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Book and pay online (prepaid, Payment Policy) */
+        /** Book: pay in full, pay part now or pay at the club (Payment Policy) */
         post: operations["postPublicGolfBookings"];
         delete?: never;
         options?: never;
@@ -39915,6 +39932,8 @@ export interface components {
              * @description Person responsible (penanggung jawab)
              */
             customerId?: string | null;
+            /** @description Deposit: the amount paid now (any amount up to the total); default the policy percentage */
+            depositAmount?: string;
             /** @description Requested golf carts (above the sharing rule adds a surcharge) */
             golfCartRequest?: number | null;
             /** @description Group booking: consecutive slots, one flight each */
@@ -62454,12 +62473,22 @@ export interface components {
             /** @description UU PDP consent (required) */
             consent: boolean;
             contact: components["schemas"]["PublicContact"];
+            /** @description Deposit: the amount paid now */
+            depositAmount?: string;
             golfCartRequest?: number | null;
             /** Format: uuid */
             holdId: string;
             holdToken: string;
-            /** @enum {string} */
-            paymentMethod: "qris" | "virtual_account" | "card";
+            /**
+             * @description Required when paying now
+             * @enum {string}
+             */
+            paymentMethod?: "qris" | "virtual_account" | "card";
+            /**
+             * @description Pay in full now, pay part now or pay at the club (default: Payment Policy)
+             * @enum {string}
+             */
+            paymentMode?: "prepaid" | "deposit" | "pay_at_venue";
             /** @description Other players (the contact plays as player 1) */
             players?: components["schemas"]["PublicPlayer"][];
         };
@@ -211459,6 +211488,44 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ReasonBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicBooking"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicBookingsByTokenPay: {
+        parameters: {
+            query?: {
+                /** @description Property code (default: the golf club) */
+                property?: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayOnlineInput"];
             };
         };
         responses: {

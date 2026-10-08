@@ -93,10 +93,12 @@ func TestP1GolfDayOperation(t *testing.T) {
 			{"playerType": "non_member", "name": "Citra Walk-in", "phone": "+628129990003"}}}).JSON()
 	eqAmount(t, "booking B charges", b["folio"].(map[string]any)["charges"], 2*995000)
 
-	// FR-CHK-02: payment before check-in.
-	r := gm.Do("POST", "/api/v1/golf/check-ins", map[string]any{"method": "booking_code", "value": a["code"]})
-	if r.Status != 409 || !strings.Contains(string(r.Body), "payment_required") {
-		t.Fatalf("check-in before payment: %s", r.String())
+	// FR-CHK-02: pay at the end is the default (Payment Policy
+	// payBeforeCheckIn off), so nothing is due before check-in.
+	for _, c := range gm.Must(200, "GET", "/api/v1/golf/check-ins:lookup?method=booking_code&value="+str(a["code"])+"&date="+day, nil).Items() {
+		if c["paymentDue"] != "0" {
+			t.Fatalf("pay at the end: nothing due before check-in: %v", c)
+		}
 	}
 	payFolio(t, cashier, a)
 	payFolio(t, cashier, b)
