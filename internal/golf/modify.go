@@ -244,6 +244,7 @@ func (m *Module) WaiverDecision(ctx context.Context, tx pgx.Tx, d approval.Decis
 type RescheduleRequest struct {
 	TeeTimeID uuid.UUID `json:"teeTimeId"`
 	Reason    string    `json:"reason"`
+	KeepPrice bool      `json:"keepPrice,omitempty" doc:"Front desk FIFO: move the tee time without repricing (staff only)"`
 }
 
 // Reschedule moves every player to the new slot; prices are recomputed
@@ -254,14 +255,19 @@ func (m *Module) Reschedule(ctx context.Context, tx pgx.Tx, property, bid uuid.U
 	if err != nil {
 		return b, err
 	}
-	if b.Status != "confirmed" && b.Status != "pending" {
+	// the front desk also moves a checked-in flight (FIFO: late arrivals)
+	if b.Status != "confirmed" && b.Status != "pending" && (!staff || b.Status != "checked_in") {
 		return b, errs.Conflict("cannot_reschedule", "only pending or confirmed bookings can be rescheduled")
 	}
+	keep := staff && req.KeepPrice
 	if b.PackageBookingID != nil {
 		return b, errPackageBooking()
 	}
 	if len(b.Flights) != 1 {
 		return b, errs.Conflict("group_reschedule", "group bookings are rescheduled per flight by the reservation team")
+	}
+	if b.Flights[0].TeeOffAt != nil {
+		return b, errs.Conflict("teed_off", "the flight has teed off")
 	}
 	pol, err := LoadPoliciesAsOf(ctx, tx, property, b.CreatedAt)
 	if err != nil {
@@ -286,7 +292,7 @@ func (m *Module) Reschedule(ctx context.Context, tx pgx.Tx, property, bid uuid.U
 	var types []string
 	active := []Player{}
 	for _, p := range b.Players {
-		if p.Status == "booked" {
+		if p.Status == "booked" || p.Status == "checked_in" {
 			active = append(active, p)
 			types = append(types, p.PlayerType)
 		}
@@ -337,12 +343,15 @@ func (m *Module) Reschedule(ctx context.Context, tx pgx.Tx, property, bid uuid.U
 		return b, err
 	}
 	for _, p := range active {
+		if keep {
+			break
+		}
 		if err := m.repricePlayer(ctx, tx, property, bid, p.ID, nil, "rescheduled"); err != nil {
 			return b, err
 		}
 	}
 	// money: pay the difference or refund the excess
-	if b.FolioID != nil {
+	if b.FolioID != nil && !keep {
 		sum, err := billing.FolioSummary(ctx, tx, *b.FolioID)
 		if err != nil {
 			return b, err

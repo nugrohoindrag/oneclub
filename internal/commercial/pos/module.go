@@ -166,7 +166,8 @@ func Contribution() catalog.Contribution {
 		rp[role] = append(rp[role], posAll...)
 		rp[role] = append(rp[role], resource.AllActions(commercial.Products)...)
 	}
-	for _, role := range []string{"cashier", "pos_staff", "driving_range_staff", "sport_club_receptionist"} {
+	// the front desk also works the POS Cashier (demo feedback 9 Oct 2026)
+	for _, role := range []string{"cashier", "pos_staff", "driving_range_staff", "sport_club_receptionist", "front_desk"} {
 		rp[role] = append(rp[role], posCashier...)
 	}
 	rp["kitchen_staff"] = append(rp["kitchen_staff"], "commercial.kitchen.view", "commercial.kitchen.update", "commercial.order.view")

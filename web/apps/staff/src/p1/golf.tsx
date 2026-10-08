@@ -80,10 +80,10 @@ export function TeeSheetPage() {
 
 interface PlayerIn { playerType: string; memberNo: string; name: string; phone: string }
 
-export function BookingForm({ slot, onClose, onDone }: { slot: R; onClose: () => void; onDone: (b: R) => void }) {
+export function BookingForm({ slot, onClose, onDone, channel = 'back_office' }: { slot: R; onClose: () => void; onDone: (b: R) => void; channel?: 'back_office' | 'walk_in' }) {
   const toast = useToast();
-  const [bookingType, setType] = useState('member');
-  const [players, setPlayers] = useState<PlayerIn[]>([{ playerType: 'member', memberNo: '', name: '', phone: '' }]);
+  const [bookingType, setType] = useState(channel === 'walk_in' ? 'walk_in' : 'member');
+  const [players, setPlayers] = useState<PlayerIn[]>([{ playerType: channel === 'walk_in' ? 'non_member' : 'member', memberNo: '', name: '', phone: '' }]);
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [paymentMode, setPaymentMode] = useState('');
@@ -93,7 +93,7 @@ export function BookingForm({ slot, onClose, onDone }: { slot: R; onClose: () =>
   const errs = fieldErrors(send.error);
   const setP = (i: number, k: keyof PlayerIn, v: string) => setPlayers((ps) => ps.map((p, j) => (j === i ? { ...p, [k]: v } : p)));
   const submit = () => send.mutate({
-    bookingType, channel: 'back_office', teeTimeId: slot.id, contactName: contactName || undefined, contactPhone: contactPhone || undefined,
+    bookingType, channel, teeTimeId: slot.id, contactName: contactName || undefined, contactPhone: contactPhone || undefined,
     paymentMode: paymentMode || undefined, golfCartRequest: carts ? Number(carts) : undefined, caddyRequest: caddy || undefined,
     players: players.map((p) => ({ playerType: p.playerType, memberNo: p.playerType === 'member' ? p.memberNo || undefined : undefined,
       name: p.name || undefined, phone: p.phone || undefined, tba: p.playerType !== 'member' && !p.name ? true : undefined,
@@ -106,7 +106,7 @@ export function BookingForm({ slot, onClose, onDone }: { slot: R; onClose: () =>
       <div className="oc-form">
         <SelectField label="Booking type" value={bookingType} onChange={setType} options={['member', 'guest', 'non_member', 'walk_in', 'corporate'].map((v) => ({ value: v, label: v.replace('_', ' ') }))} />
         <SelectField label="Payment" value={paymentMode} onChange={setPaymentMode} placeholder="Payment Policy default"
-          options={[{ value: 'pay_at_venue', label: 'Pay at venue' }, { value: 'prepaid', label: 'Prepaid' }, { value: 'deposit', label: 'Deposit' }, { value: 'member_charge', label: 'Member charge' }]} />
+          options={[{ value: 'pay_at_venue', label: 'Pay later (at the end)' }, { value: 'prepaid', label: 'Prepaid' }, { value: 'deposit', label: 'Deposit' }, { value: 'member_charge', label: 'Member charge' }]} />
         <TextField label="Contact name" value={contactName} onChange={setContactName} />
         <TextField label="Contact phone" value={contactPhone} onChange={setContactPhone} />
         <TextField label="Golf carts requested" type="number" min={0} value={carts} onChange={setCarts} help="Above the buggy sharing rule adds a surcharge" />

@@ -14098,6 +14098,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/bills:pay-combined": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Merge several bookings into one bill and pay it with one tender */
+        post: operations["postGolfBillsPayCombined"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/bookings": {
         parameters: {
             query?: never;
@@ -14127,6 +14144,40 @@ export interface paths {
         get: operations["getGolfBookingsById"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/bookings/{id}/bill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Booking bill at the front desk: balance and the share of every player */
+        get: operations["getGolfBookingsByIdBill"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/bookings/{id}/bill:pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pay the bill in full, in part or per player (split bill) */
+        post: operations["postGolfBookingsByIdBillPay"];
         delete?: never;
         options?: never;
         head?: never;
@@ -39208,6 +39259,17 @@ export interface components {
             status: "open" | "paid" | "voided";
             total: string;
         };
+        BillPayRequest: {
+            /** @description Without players: any amount up to the balance (default the whole balance) */
+            amount?: string;
+            /** @enum {string} */
+            methodType: "cash" | "card" | "qris" | "bank_transfer";
+            payerName?: string;
+            /** @description Split bill: pay the share of these players (one payment per player) */
+            playerIds?: string[];
+            /** @description EDC approval / transfer reference */
+            reference?: string;
+        };
         BillTo: {
             address?: string;
             email?: string;
@@ -39806,6 +39868,22 @@ export interface components {
             status: "draft" | "pending" | "confirmed" | "checked_in" | "completed" | "cancelled" | "no_show";
             /** Format: uuid */
             teeTimeId: string;
+        };
+        BookingBill: {
+            balance: string;
+            /** Format: uuid */
+            bookingId: string;
+            charges: string;
+            code: string;
+            contactName: string;
+            /** Format: uuid */
+            folioId?: string | null;
+            lines: components["schemas"]["FolioLine"][];
+            localTime: string;
+            paid: string;
+            payments: components["schemas"]["Payment"][];
+            players: components["schemas"]["PlayerShare"][];
+            status: string;
         };
         BookingComponent: {
             allocatedNet: string;
@@ -43075,6 +43153,15 @@ export interface components {
             label: string;
             /** @enum {string} */
             type: "string" | "number" | "datetime" | "boolean";
+        };
+        CombinedPayRequest: {
+            /** @description The bookings merged into one bill */
+            bookingIds: string[];
+            /** @enum {string} */
+            methodType: "cash" | "card" | "qris" | "bank_transfer";
+            /** @description Who pays the merged bill */
+            payerName?: string;
+            reference?: string;
         };
         Command: {
             /** Format: uuid */
@@ -61114,6 +61201,15 @@ export interface components {
             /** @enum {string} */
             status: "draft" | "submitted" | "finalized";
         };
+        PlayerShare: {
+            due: string;
+            name: string;
+            paid: string;
+            /** Format: uuid */
+            playerId: string;
+            /** @description Own charges (round, caddy) plus an equal part of the shared ones (golf carts, F&B) */
+            share: string;
+        };
         PlayingRoute: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -65301,6 +65397,8 @@ export interface components {
             reason?: string;
         };
         RescheduleRequest: {
+            /** @description Front desk FIFO: move the tee time without repricing (staff only) */
+            keepPrice?: boolean;
             reason: string;
             /** Format: uuid */
             teeTimeId: string;
@@ -135648,6 +135746,70 @@ export interface operations {
             };
         };
     };
+    postGolfBillsPayCombined: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CombinedPayRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BookingBill"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfBookings: {
         parameters: {
             query?: {
@@ -135793,6 +135955,116 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Booking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfBookingsByIdBill: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingBill"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfBookingsByIdBillPay: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillPayRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingBill"];
                 };
             };
             /** @description Not authenticated */

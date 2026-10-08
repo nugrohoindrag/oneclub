@@ -1311,6 +1311,13 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 		Permission: "golf.check_in.perform", Response: CheckOutEntry{}, List: true, Query: []route.Param{{Name: "date"}}, Handler: m.checkOutDeskHTTP})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/bookings/{id}:check-out", Tag: tk, Summary: "Golfer Check-out (settle and close the folio, release lockers, hand back bags)",
 		Permission: "golf.check_in.perform", Request: CheckOutRequest{}, Response: Booking{}, Status: http.StatusOK, Idempotent: true, Handler: m.checkOutHTTP})
+	add(route.Route{Method: http.MethodGet, Path: "/api/v1/golf/bookings/{id}/bill", Tag: tk, Summary: "Booking bill at the front desk: balance and the share of every player",
+		Permission: "golf.booking.view", Response: BookingBill{}, Handler: m.billHTTP})
+	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/bookings/{id}/bill:pay", Tag: tk, Summary: "Pay the bill in full, in part or per player (split bill)",
+		Permission: "billing.payment.create", Request: BillPayRequest{}, Response: BookingBill{}, Status: http.StatusOK, Idempotent: true, Handler: m.payBillHTTP})
+	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/bills:pay-combined", Tag: tk, Summary: "Merge several bookings into one bill and pay it with one tender",
+		Permission: "billing.payment.create", Request: CombinedPayRequest{}, Response: BookingBill{}, List: true, Status: http.StatusOK, Idempotent: true,
+		Handler: m.payCombinedHTTP})
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/golf/charge-targets", Tag: tk, Summary: "Golfers whose booking folio a POS order can be charged to",
 		Permission: "commercial.order.pay", Response: ChargeTarget{}, List: true, Query: []route.Param{{Name: "q"}, {Name: "date"}}, Handler: m.chargeTargetsHTTP})
 	// golf carts

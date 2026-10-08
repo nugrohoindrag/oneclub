@@ -10,14 +10,14 @@ import {
 type R = Record<string, unknown> & { id: string };
 
 const pill = (k: string) => (r: R) => <StatusPill status={String(r[k] ?? '').replace(/_/g, '-')} />;
-const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : formatMoney(String(v)));
+export const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : formatMoney(String(v)));
 
 export function today(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function Head({ title, help, actions }: { title: string; help?: string; actions?: React.ReactNode }) {
+export function Head({ title, help, actions }: { title: string; help?: string; actions?: React.ReactNode }) {
   return (
     <div className="oc-page-head">
       <div><h1>{title}</h1>{help && <p>{help}</p>}</div>
@@ -29,7 +29,7 @@ function Head({ title, help, actions }: { title: string; help?: string; actions?
 
 /** GET with an offline copy per property (FR-OPS-05): online responses are
  * cached; offline the last copy is shown. */
-function useCached<T>(path: string | null, name: string) {
+export function useCached<T>(path: string | null, name: string) {
   const { propertyId } = useAuth();
   const online = useOnline();
   const live = useGet<T>(online ? path : null);
@@ -67,7 +67,7 @@ function CoursePicker({ c }: { c: ReturnType<typeof useCourse> }) {
 }
 
 /** Big touch button (44px+, Technical Doc §6.5). */
-function Btn({ label, onClick, kind = 'neutral', disabled }: { label: string; onClick: () => void; kind?: 'neutral' | 'primary' | 'ink' | 'danger'; disabled?: boolean }) {
+export function Btn({ label, onClick, kind = 'neutral', disabled }: { label: string; onClick: () => void; kind?: 'neutral' | 'primary' | 'ink' | 'danger'; disabled?: boolean }) {
   return <button className={`oc-btn oc-btn-${kind}`} style={{ minHeight: 48, minWidth: 96 }} disabled={disabled} onClick={onClick}>{label}</button>;
 }
 
@@ -418,44 +418,6 @@ export function CaddyAssignmentPage({ history }: { history?: boolean }) {
 }
 
 // ── Front Desk ─────────────────────────────────────────────────────────────
-
-export function FrontDeskPage() {
-  const date = today();
-  const toast = useToast();
-  const bookings = useCached<Page<R>>(`/api/v1/golf/bookings${qs({ date, limit: 500 })}`, `bookings:${date}`);
-  const [paying, setPaying] = useState<R | null>(null);
-  return (
-    <div className="oc-stack">
-      <Head title="Reservations" help={`${date}${bookings.offline ? ' · offline copy' : ''}`} actions={<Link className="oc-btn oc-btn-ink" to="/ops/check-in">Check-in</Link>} />
-      <DataTable rows={bookings.data?.items} loading={bookings.isLoading} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'code', header: 'Booking' },
-        { key: 'contactName', header: 'Booked by' }, { key: 'playerCount', header: 'Players', align: 'right' }, { key: 'status', header: 'Status', render: pill('status') }]}
-        actions={(b) => !bookings.offline && ['confirmed', 'pending', 'checked_in', 'completed'].includes(String(b.status)) && <Btn label="Folio" onClick={() => setPaying(b)} />} />
-      {paying && <FolioPayModal booking={paying} onClose={() => setPaying(null)} onPaid={() => toast('Payment recorded')} />}
-    </div>
-  );
-}
-
-function FolioPayModal({ booking, onClose, onPaid }: { booking: R; onClose: () => void; onPaid: () => void }) {
-  const b = useGet<R & { folio?: R; folioId?: string }>(`/api/v1/golf/bookings/${booking.id}`);
-  const [method, setMethod] = useState('cash');
-  const [amount, setAmount] = useState('');
-  const pay = useSend<Record<string, unknown>>('POST', '/api/v1/billing/payments', ['/api/v1/billing', '/api/v1/golf']);
-  const bal = Number(b.data?.folio?.balance ?? 0);
-  const n = amount === '' ? bal : Number(amount);
-  return (
-    <Modal open onClose={onClose} title={`Folio ${String(booking.code)}`} actions={<><Btn label="Close" onClick={onClose} />
-      <Btn label={`Pay ${money(n)}`} kind="primary" disabled={!(n > 0 && n <= bal) || pay.isPending}
-        onClick={() => pay.mutate({ folioId: b.data?.folioId, amount: String(n), methodType: method, channel: 'venue' },
-          { onSuccess: () => { onPaid(); setAmount(''); void b.refetch(); } })} /></>}>
-      <p>Charges {money(b.data?.folio?.charges)} · paid {money(b.data?.folio?.payments)} · balance <strong>{money(bal)}</strong></p>
-      <div className="oc-row-wrap">
-        <TextField label="Amount (empty = all)" value={amount} onChange={(v) => setAmount(v.replace(/\D/g, ''))} inputMode="numeric" />
-        <SelectField label="Method" value={method} onChange={setMethod} options={['cash', 'card', 'qris', 'bank_transfer'].map((m) => ({ value: m, label: m.replace('_', ' ') }))} />
-      </div>
-      <ErrorAlert error={pay.error} />
-    </Modal>
-  );
-}
 
 export function GuestPage() {
   const toast = useToast();

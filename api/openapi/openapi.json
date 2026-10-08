@@ -11482,6 +11482,42 @@
         ],
         "type": "object"
       },
+      "BillPayRequest": {
+        "properties": {
+          "amount": {
+            "description": "Without players: any amount up to the balance (default the whole balance)",
+            "type": "string"
+          },
+          "methodType": {
+            "enum": [
+              "cash",
+              "card",
+              "qris",
+              "bank_transfer"
+            ],
+            "type": "string"
+          },
+          "payerName": {
+            "type": "string"
+          },
+          "playerIds": {
+            "description": "Split bill: pay the share of these players (one payment per player)",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "reference": {
+            "description": "EDC approval / transfer reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "methodType"
+        ],
+        "type": "object"
+      },
       "BillTo": {
         "properties": {
           "address": {
@@ -13411,6 +13447,72 @@
           "flights",
           "players",
           "createdAt"
+        ],
+        "type": "object"
+      },
+      "BookingBill": {
+        "properties": {
+          "balance": {
+            "type": "string"
+          },
+          "bookingId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "charges": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "contactName": {
+            "type": "string"
+          },
+          "folioId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/FolioLine"
+            },
+            "type": "array"
+          },
+          "localTime": {
+            "type": "string"
+          },
+          "paid": {
+            "type": "string"
+          },
+          "payments": {
+            "items": {
+              "$ref": "#/components/schemas/Payment"
+            },
+            "type": "array"
+          },
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/PlayerShare"
+            },
+            "type": "array"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bookingId",
+          "code",
+          "localTime",
+          "contactName",
+          "status",
+          "charges",
+          "paid",
+          "balance",
+          "players",
+          "lines",
+          "payments"
         ],
         "type": "object"
       },
@@ -22987,6 +23089,39 @@
           "key",
           "label",
           "type"
+        ],
+        "type": "object"
+      },
+      "CombinedPayRequest": {
+        "properties": {
+          "bookingIds": {
+            "description": "The bookings merged into one bill",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "methodType": {
+            "enum": [
+              "cash",
+              "card",
+              "qris",
+              "bank_transfer"
+            ],
+            "type": "string"
+          },
+          "payerName": {
+            "description": "Who pays the merged bill",
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bookingIds",
+          "methodType"
         ],
         "type": "object"
       },
@@ -74876,6 +75011,35 @@
         ],
         "type": "object"
       },
+      "PlayerShare": {
+        "properties": {
+          "due": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "paid": {
+            "type": "string"
+          },
+          "playerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "share": {
+            "description": "Own charges (round, caddy) plus an equal part of the shared ones (golf carts, F\u0026B)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerId",
+          "name",
+          "share",
+          "paid",
+          "due"
+        ],
+        "type": "object"
+      },
       "PlayingRoute": {
         "properties": {
           "archivedAt": {
@@ -87521,6 +87685,10 @@
       },
       "RescheduleRequest": {
         "properties": {
+          "keepPrice": {
+            "description": "Front desk FIFO: move the tee time without repricing (staff only)",
+            "type": "boolean"
+          },
           "reason": {
             "type": "string"
           },
@@ -220233,6 +220401,128 @@
         "x-permission": "golf.bag.manage"
       }
     },
+    "/api/v1/golf/bills:pay-combined": {
+      "post": {
+        "operationId": "postGolfBillsPayCombined",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CombinedPayRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/BookingBill"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Merge several bookings into one bill and pay it with one tender",
+        "tags": [
+          "Check-in"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "billing.payment.create"
+      }
+    },
     "/api/v1/golf/bookings": {
       "get": {
         "operationId": "getGolfBookings",
@@ -220575,6 +220865,187 @@
         ],
         "x-module": "golf",
         "x-permission": "golf.booking.view"
+      }
+    },
+    "/api/v1/golf/bookings/{id}/bill": {
+      "get": {
+        "operationId": "getGolfBookingsByIdBill",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingBill"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Booking bill at the front desk: balance and the share of every player",
+        "tags": [
+          "Check-in"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.booking.view"
+      }
+    },
+    "/api/v1/golf/bookings/{id}/bill:pay": {
+      "post": {
+        "operationId": "postGolfBookingsByIdBillPay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillPayRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingBill"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Pay the bill in full, in part or per player (split bill)",
+        "tags": [
+          "Check-in"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "billing.payment.create"
       }
     },
     "/api/v1/golf/bookings/{id}/history": {

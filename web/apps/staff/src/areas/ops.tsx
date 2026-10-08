@@ -8,9 +8,10 @@ import {
   type NavItem,
 } from '@oneclub/shell';
 import {
-  BagDropPage, BagStoragePage, CaddyAssignmentPage, CaddyQueuePage, CartAssignmentPage, CartReadinessPage, FrontDeskFoliosPage, FrontDeskPage,
+  BagDropPage, BagStoragePage, CaddyAssignmentPage, CaddyQueuePage, CartAssignmentPage, CartReadinessPage, FrontDeskFoliosPage,
   FrontDeskPaymentsPage, GuestPage, LockersPage, OpsCheckInPage, OpsCheckOutPage, OpsTeeSheetPage, OpsTiles, StarterQueuePage,
 } from '../ops/golf';
+import { DeskNewBookingPage, FrontDeskPage } from '../ops/desk';
 import { P2_OPS_ROUTES, P2Tiles } from '../ops/p2';
 import { P3_OPS_ROUTES, P3Tiles } from '../ops/p3';
 import { ConnectivityChip, OUTLET_KEY, SyncPage, read, write } from '../offline';
@@ -154,6 +155,7 @@ const routes = [
       { path: 'caddy/assignment', element: <CaddyAssignmentPage /> },
       { path: 'caddy/history', element: <CaddyAssignmentPage history /> },
       { path: 'front-desk', element: <FrontDeskPage /> },
+      { path: 'front-desk/new', element: <DeskNewBookingPage /> },
       { path: 'front-desk/guest', element: <GuestPage /> },
       { path: 'front-desk/payments', element: <FrontDeskPaymentsPage /> },
       { path: 'front-desk/folios', element: <FrontDeskFoliosPage /> },

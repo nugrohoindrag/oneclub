@@ -499,6 +499,7 @@ var Trees = map[string][]Item{
 		}},
 		{Key: "front-desk", Label: "Front Desk", Path: "/ops/front-desk", Icon: "concierge", Module: "golf", Permission: "golf.check_in.perform", Children: []Item{
 			s("reservations", "Reservations", "/ops/front-desk", "golf.booking.view"),
+			s("fd-new-booking", "New Booking", "/ops/front-desk/new", "golf.booking.create"),
 			s("fd-check-in", "Check-in", "/ops/check-in", "golf.check_in.perform"),
 			s("fd-check-out", "Check-out", "/ops/check-out", "golf.check_in.perform"),
 			s("guest", "Guest", "/ops/front-desk/guest", "crm.guest.view"),
