@@ -162,7 +162,7 @@ function DeskRangeBooking() {
 
 // ── one booking at the desk ────────────────────────────────────────────────
 
-const TABS = [['bill', 'Bill'], ['time', 'Tee Time'], ['players', 'Players'], ['caddy', 'Caddy']] as const;
+const TABS = [['bill', 'Bill'], ['time', 'Tee Time'], ['players', 'Players'], ['caddy', 'Caddy & Cart']] as const;
 type Tab = (typeof TABS)[number][0];
 
 function DeskBookingModal({ id, onClose }: { id: string; onClose: () => void }) {
@@ -342,11 +342,52 @@ function PlayersTab({ b, onDone }: { b: Booking; onDone: () => void }) {
   );
 }
 
-/** The caddy is in the rate: the desk picks one per player (or from the queue). */
+/** The front desk is also the Caddy Master: the caddy (in the rate) per
+ * player, and the golf carts of each flight. */
 function CaddyTab({ b }: { b: Booking }) {
   return (
     <div className="oc-stack">
-      {b.flights.map((f) => <FlightCaddies key={String(f.id)} flightId={String(f.id)} date={b.playDate} players={b.players.filter(live)} />)}
+      {b.flights.filter((f) => f.status !== 'cancelled').map((f) => (
+        <div key={String(f.id)} className="oc-stack">
+          {b.flights.length > 1 && <strong>Flight {String(f.flightNo)}</strong>}
+          <FlightCaddies flightId={String(f.id)} date={b.playDate} players={b.players.filter((p) => live(p) && p.flightId === f.id)} />
+          <FlightCarts flightId={String(f.id)} date={b.playDate} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function FlightCarts({ flightId, date }: { flightId: string; date: string }) {
+  const toast = useToast();
+  const list = useGet<Page<R>>(`/api/v1/golf/golf-cart-assignments${qs({ date })}`);
+  const ready = useGet<Page<R>>('/api/v1/golf/golf-carts?filter[readiness]=ready&filter[status]=active&limit=200');
+  const inv = ['/api/v1/golf'];
+  const assign = useSend<Record<string, unknown>>('POST', '/api/v1/golf/golf-cart-assignments', inv);
+  const ret = useSend<{ id: string }>('POST', (v) => `/api/v1/golf/golf-cart-assignments/${v.id}:return`, inv);
+  const [pick, setPick] = useState('');
+  const mine = (list.data?.items ?? []).filter((a) => a.flightId === flightId && !['returned', 'cancelled'].includes(String(a.status)));
+  const ok = (what: string) => () => { toast(what); setPick(''); void list.refetch(); void ready.refetch(); };
+  return (
+    <div className="oc-stack">
+      <h3 style={{ margin: '8px 0 0' }}>Golf carts</h3>
+      {mine.length === 0 && <span className="oc-muted">No golf cart yet</span>}
+      {mine.map((a) => (
+        <div key={a.id} className="oc-row-wrap" style={{ alignItems: 'center' }}>
+          <strong style={{ minWidth: 200 }}>Cart {String(a.golfCartCode)}{a.extra ? ' · extra (surcharge)' : ''}</strong>
+          <StatusPill status={String(a.status).replace(/_/g, '-')} />
+          <Btn label="Return" disabled={ret.isPending} onClick={() => ret.mutate({ id: a.id }, { onSuccess: ok('Golf cart returned') })} />
+        </div>
+      ))}
+      <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+        <SelectField label="Ready golf cart" value={pick} onChange={setPick} placeholder="Choose"
+          options={(ready.data?.items ?? []).map((c) => ({ value: c.id, label: String(c.code) }))} />
+        <Btn label="Assign" kind="primary" disabled={!pick || assign.isPending}
+          onClick={() => assign.mutate({ flightId, golfCartIds: [pick] }, { onSuccess: ok('Golf cart assigned') })} />
+        <Btn label="Assign by sharing rule" disabled={assign.isPending}
+          onClick={() => assign.mutate({ flightId, auto: true }, { onSuccess: ok('Golf carts assigned') })} />
+      </div>
+      <ErrorAlert error={assign.error ?? ret.error} />
     </div>
   );
 }

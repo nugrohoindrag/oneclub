@@ -65,6 +65,10 @@ func TestFrontDeskBookingAndBill(t *testing.T) {
 	if ca := fd.Must(201, "POST", "/api/v1/golf/caddy-assignments", map[string]any{"flightId": firstFlight(moved), "auto": true}).Items(); len(ca) != 3 {
 		t.Fatalf("front desk caddy assignment: %v", ca)
 	}
+	// the front desk is also the Caddy Master: golf carts by the sharing rule
+	if gc := fd.Must(201, "POST", "/api/v1/golf/golf-cart-assignments", map[string]any{"flightId": firstFlight(moved), "auto": true}).Items(); len(gc) == 0 {
+		t.Fatal("front desk golf cart assignment: none")
+	}
 
 	// split bill: the first player pays their share
 	bill := fd.Must(200, "GET", "/api/v1/golf/bookings/"+str(w["id"])+"/bill", nil).JSON()

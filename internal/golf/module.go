@@ -318,10 +318,11 @@ func Contribution() catalog.Contribution {
 			"caddy_manager":     caddyMgr,
 			"golf_staff":        staff,
 			"reservation_staff": desk,
-			"front_desk":        append(append([]string{}, desk...), "golf.caddy_assignment.manage"), // the front desk assigns the caddies (demo feedback 9 Oct 2026)
-			"general_manager":   append(append([]string{}, view...), "golf.booking.export"),
-			"club_manager":      append(append([]string{}, view...), "golf.booking.export"),
-			"finance_manager":   {"golf.booking.view", "golf.course.view", "golf.tee_sheet.view"},
+			// the front desk assigns the caddies and golf carts (Caddy Master role merged in, demo feedback 9 Oct 2026)
+			"front_desk":      append(append([]string{}, desk...), "golf.caddy_assignment.manage", "golf.golf_cart_assignment.manage", "golf.golf_cart.update"),
+			"general_manager": append(append([]string{}, view...), "golf.booking.export"),
+			"club_manager":    append(append([]string{}, view...), "golf.booking.export"),
+			"finance_manager": {"golf.booking.view", "golf.course.view", "golf.tee_sheet.view"},
 		},
 	}
 }
