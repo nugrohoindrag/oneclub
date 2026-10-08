@@ -6,17 +6,15 @@ import { ErrorAlert, Icon, QRCode, SelectField, Skeleton, TextField, useAuth, us
 import { MethodPicker, PaymentPanel, type PayMethod } from './pay';
 import { Check, Chip, dayLabel, downloadICS, Head, initials, isoDay, money, Rows, Steps } from './ui';
 
-// Book Tee Time (member journey §3–4 and the caddy journey): date & time →
-// players (me, member, guest) → caddy per player → review with the fee
-// estimate → payment (member account or online) → booking confirmed with
-// the check-in QR.
+// Book Tee Time (member journey §3–4): date & time → players (me, member,
+// guest) → review with the fee estimate and golf carts → payment (member
+// account, pay in full or part online, or pay at the end) → booking
+// confirmed with the check-in QR. The caddy is part of the rate and the
+// front desk assigns one per player (demo feedback 9 Oct 2026).
 
 type Slot = Schemas['AvailableSlot'];
 type Quote = Schemas['MemberQuote'];
 type Booking = Schemas['Booking'];
-type Caddy = Schemas['MemberCaddy'];
-
-export type CaddyPref = 'none' | 'any' | 'preferred';
 
 interface Player {
   kind: 'self' | 'member' | 'guest';
@@ -24,12 +22,13 @@ interface Player {
   memberNo?: string;
   name: string;
   phone: string;
-  caddy: CaddyPref;
-  caddyId?: string;
-  caddyName?: string;
 }
 
-const STEPS = ['Date & Time', 'Players', 'Caddy', 'Review', 'Payment', 'Confirmed'];
+/** When the booking is paid: member account, in full now, part now or at the end. */
+type PayWhen = 'account' | 'now' | 'part' | 'later';
+type OnlineMethod = Exclude<PayMethod, 'member_charge'>;
+
+const STEPS = ['Date & Time', 'Players', 'Review', 'Payment', 'Confirmed'];
 const SESSIONS = [['', 'All day'], ['morning', 'Morning'], ['afternoon', 'Afternoon'], ['night', 'Night Golf']];
 
 export function TeeTimeWizard() {
@@ -53,12 +52,15 @@ export function TeeTimeWizard() {
   const [hold, setHold] = useState<Schemas['Hold'] | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [carts, setCarts] = useState('');
-  const [method, setMethod] = useState<PayMethod>('member_charge');
+  const [when, setWhen] = useState<PayWhen>('account');
+  const [method, setMethod] = useState<OnlineMethod>('qris');
+  const [part, setPart] = useState('');
   const [notes, setNotes] = useState('');
   const [booking, setBooking] = useState<Booking | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
   const quote = useGet<Quote>(slot && step >= 2 ? `/api/v1/member/golf/quote?teeTimeId=${slot.id}` : null);
+  const est = estimate(quote.data, players);
 
   // release the hold when the member leaves before booking
   const pending = useRef<{ hold: Schemas['Hold'] | null; booked: boolean }>({ hold: null, booked: false });
@@ -90,17 +92,19 @@ export function TeeTimeWizard() {
     const h = await request<Schemas['Hold']>('POST', '/api/v1/member/golf/holds', { teeTimeId: slot.id, players: count, channel: 'member_app' });
     setHold(h);
     setPlayers((ps) => Array.from({ length: count }, (_, i) => ps[i] ?? (i === 0
-      ? { kind: 'self', name: me?.fullName ?? 'Me', phone: '', caddy: 'any' }
-      : { kind: 'guest', name: '', phone: '', caddy: 'any' })));
+      ? { kind: 'self', name: me?.fullName ?? 'Me', phone: '' }
+      : { kind: 'guest', name: '', phone: '' })));
     setStep(1);
   });
 
   const confirm = () => run(async () => {
     if (!hold) return;
+    const online = when === 'now' || when === 'part';
     const body = {
       bookingType: 'member', holdId: hold.id,
-      paymentMode: method === 'member_charge' ? 'member_charge' : 'prepaid',
-      paymentMethod: method === 'member_charge' ? undefined : method,
+      paymentMode: ({ account: 'member_charge', now: 'prepaid', part: 'deposit', later: 'pay_at_venue' } as const)[when],
+      paymentMethod: online ? method : undefined,
+      depositAmount: when === 'part' ? part : undefined,
       golfCartRequest: carts === '' ? undefined : Number(carts),
       notes: notes || undefined,
       players: players.map((p) => (p.kind === 'self' ? { playerType: 'member' }
@@ -110,12 +114,7 @@ export function TeeTimeWizard() {
     const b = await request<Booking>('POST', '/api/v1/member/golf/bookings', body, { 'Idempotency-Key': uuidv7() });
     setBooking(b);
     void qc.invalidateQueries({ queryKey: ['/api/v1/member/bookings'] });
-    setStep(b.payment && b.payment.status === 'pending' ? 4 : 5);
-    // the caddy preference per player (the booking is kept even if this fails)
-    const ordered = [...b.players].sort((x, y) => x.seq - y.seq);
-    await request('PUT', `/api/v1/member/bookings/${b.id}/caddy-requests`, {
-      players: ordered.map((bp, i) => ({ playerId: bp.id, preference: players[i]?.caddy ?? 'any', caddyId: players[i]?.caddy === 'preferred' ? players[i]?.caddyId : undefined })),
-    });
+    setStep(b.payment && b.payment.status === 'pending' ? 3 : 4);
   });
 
   // the paid booking is confirmed by the club's worker a moment later
@@ -129,7 +128,7 @@ export function TeeTimeWizard() {
     }
     setBooking(b);
     void qc.invalidateQueries();
-    setStep(5);
+    setStep(4);
   };
 
   return (
@@ -157,7 +156,7 @@ export function TeeTimeWizard() {
               <span className="oc-spacer" />
               <div className="mj-seg" role="group" aria-label="Number of players">
                 {[1, 2, 3, 4].map((n) => (
-                  <button key={n} type="button" aria-pressed={count === n} onClick={() => { setCount(n); if (slot && slot.remaining < n) setSlot(null); }}>{n}</button>
+                  <button key={n} type="button" aria-pressed={count === n} onClick={() => { setCount(n); if (slot && (n < (slot.minPlayers || 1) || n > (slot.maxPlayers || 4))) setSlot(null); }}>{n}</button>
                 ))}
               </div>
             </div>
@@ -165,16 +164,19 @@ export function TeeTimeWizard() {
             {avail.isLoading && <Skeleton rows={4} />}
             <ErrorAlert error={avail.error} />
             {avail.data && avail.data.items.length === 0 && <p className="mj-muted">No tee times on this date. Try another day or session.</p>}
+            {(avail.data?.items.length ?? 0) > 0 && <p className="mj-small mj-muted" style={{ margin: 0 }}>Red: peak time, you may wait in the queue. Green: quiet. The starter sends flights out first come, first served.</p>}
             <div className="mj-slots">
               {(avail.data?.items ?? []).map((s) => {
-                // a slot fits when it has room for the players and its minimum is met
-                const full = s.remaining <= 0 || s.status === 'full' || s.status === 'blocked';
-                const fits = !full && s.remaining >= count && count >= (s.minPlayers || 1) && count <= (s.maxPlayers || 4);
+                // never refused when busy (first come first served): red = peak, green = quiet
+                const blocked = s.status === 'blocked';
+                const fits = !blocked && count >= (s.minPlayers || 1) && count <= (s.maxPlayers || 4);
+                const peak = s.crowd === 'peak';
                 return (
-                  <button key={s.id} type="button" className="mj-slot" data-full={!fits} data-few={fits && s.remaining < 4} aria-pressed={slot?.id === s.id} disabled={!fits}
-                    title={full ? 'Full' : !fits ? `Not available for ${count} ${count === 1 ? 'player' : 'players'}` : undefined} onClick={() => setSlot(s)}>
+                  <button key={s.id} type="button" className="mj-slot" data-full={!fits} data-peak={fits && peak} aria-pressed={slot?.id === s.id} disabled={!fits}
+                    title={blocked ? 'Blocked' : !fits ? `Not for ${count} ${count === 1 ? 'player' : 'players'}` : peak ? 'Peak time: you may wait in the queue' : 'Quiet'}
+                    onClick={() => setSlot(s)}>
                     <strong className="mj-num">{s.localTime}</strong>
-                    <span>{full ? 'Full' : `${s.remaining} left`}{s.startTee > 1 ? ` · T${s.startTee}` : ''}</span>
+                    <span>{blocked ? 'Blocked' : peak ? 'Peak' : 'Quiet'}{s.startTee > 1 ? ` · T${s.startTee}` : ''}</span>
                   </button>
                 );
               })}
@@ -189,31 +191,17 @@ export function TeeTimeWizard() {
 
       {step === 1 && <PlayersStep players={players} setPlayers={setPlayers} onBack={() => setStep(0)} onNext={() => setStep(2)} />}
 
-      {step === 2 && (
-        <CaddyStep players={players} setPlayers={setPlayers} quote={quote.data} date={date} carts={carts} setCarts={setCarts}
+      {step === 2 && slot && (
+        <ReviewStep slot={slot} date={date} players={players} quote={quote.data} est={est} carts={carts} setCarts={setCarts} notes={notes} setNotes={setNotes}
           onBack={() => setStep(1)} onNext={() => setStep(3)} />
       )}
 
-      {step === 3 && slot && (
-        <ReviewStep slot={slot} date={date} players={players} quote={quote.data} carts={carts} notes={notes} setNotes={setNotes}
-          onBack={() => setStep(2)} onNext={() => setStep(4)} />
+      {step === 3 && !booking && (
+        <PaymentStep when={when} setWhen={setWhen} method={method} setMethod={setMethod} part={part} setPart={setPart} total={est.total}
+          busy={busy} onBack={() => setStep(2)} onConfirm={() => void confirm()} />
       )}
 
-      {step === 4 && !booking && (
-        <div className="mj-card oc-stack">
-          <h2><Icon name="payments" size={20} /> Payment</h2>
-          <MethodPicker value={method} onChange={setMethod} />
-          <p className="mj-small mj-muted" style={{ margin: 0 }}>
-            {method === 'member_charge' ? 'The booking is confirmed now and charged to your member account.' : 'The booking is confirmed once the payment is received.'}
-          </p>
-          <div className="mj-actions mj-sticky">
-            <button className="oc-btn oc-btn-neutral" onClick={() => setStep(3)}>Back</button>
-            <button className="oc-btn oc-btn-primary" disabled={busy} onClick={() => void confirm()}><Icon name="check" size={18} /> Confirm Booking</button>
-          </div>
-        </div>
-      )}
-
-      {step === 4 && booking?.payment && (
+      {step === 3 && booking?.payment && (
         <div className="mj-card">
           <PaymentPanel payment={booking.payment} onPaid={() => void refreshBooking()} />
           <div className="mj-actions" style={{ marginTop: 14 }}>
@@ -222,7 +210,7 @@ export function TeeTimeWizard() {
         </div>
       )}
 
-      {step === 5 && booking && <Confirmed booking={booking} onView={() => nav(`/bookings/${booking.id}`)} />}
+      {step === 4 && booking && <Confirmed booking={booking} onView={() => nav(`/bookings/${booking.id}`)} />}
     </div>
   );
 }
@@ -324,86 +312,11 @@ function MemberPicker({ player, onPick }: { player: Player; onPick: (p: Partial<
   );
 }
 
-function CaddyStep({ players, setPlayers, quote, date, carts, setCarts, onBack, onNext }: {
-  players: Player[]; setPlayers: React.Dispatch<React.SetStateAction<Player[]>>; quote?: Quote; date: string; carts: string; setCarts: (v: string) => void;
-  onBack: () => void; onNext: () => void;
-}) {
-  const [picking, setPicking] = useState<number | null>(null);
-  const caddies = useGet<Page<Caddy>>(`/api/v1/member/golf/caddies?date=${date}`);
-  const pol = quote?.caddy;
-  const set = (i: number, p: Partial<Player>) => setPlayers((ps) => ps.map((x, j) => (j === i ? { ...x, ...p } : x)));
-  const taken = new Set(players.filter((p) => p.caddy === 'preferred').map((p) => p.caddyId));
-  const ok = players.every((p) => p.caddy !== 'preferred' || p.caddyId);
-  return (
-    <div className="mj-card oc-stack">
-      <h2><Icon name="hiking" size={20} /> Caddy Service</h2>
-      <p className="mj-small mj-muted" style={{ margin: 0 }}>
-        Choose per player. Request Caddy lets the club assign one; a preferred caddy is a request too — the club confirms the assignment before your tee time.
-        {pol?.mandatory ? ' A caddy is mandatory at this club.' : ''}
-      </p>
-      {players.map((p, i) => (
-        <div key={i} className="mj-player">
-          <div className="mj-player-head">
-            <span className="mj-avatar">{initials(p.name || `P ${i + 1}`)}</span>
-            <strong>{p.name || (p.kind === 'guest' ? 'Guest (TBA)' : `Player ${i + 1}`)}</strong>
-            <span className="oc-spacer" />
-            <div className="mj-seg" role="group" aria-label={`Caddy for player ${i + 1}`}>
-              <button type="button" aria-pressed={p.caddy === 'none'} disabled={pol?.mandatory} onClick={() => set(i, { caddy: 'none', caddyId: undefined, caddyName: undefined })}>No Caddy</button>
-              <button type="button" aria-pressed={p.caddy === 'any'} onClick={() => set(i, { caddy: 'any', caddyId: undefined, caddyName: undefined })}>Request Caddy</button>
-              <button type="button" aria-pressed={p.caddy === 'preferred'} disabled={pol ? !pol.allowRequest : false} onClick={() => { set(i, { caddy: 'preferred' }); setPicking(i); }}>Preferred</button>
-            </div>
-          </div>
-          {p.caddy === 'preferred' && (
-            <div className="oc-row-wrap">
-              {p.caddyName ? <Chip tone="info"><Icon name="person" size={14} /> {p.caddyName}</Chip> : <span className="mj-small mj-muted">No caddy chosen yet</span>}
-              <button type="button" className="oc-btn oc-btn-text oc-btn-sm" onClick={() => setPicking(picking === i ? null : i)}>{picking === i ? 'Close list' : 'Choose caddy'}</button>
-            </div>
-          )}
-          {picking === i && p.caddy === 'preferred' && (
-            <div className="mj-caddies" role="radiogroup" aria-label="Available caddies">
-              <button type="button" className="mj-choice" aria-pressed={false} onClick={() => { set(i, { caddy: 'any', caddyId: undefined, caddyName: undefined }); setPicking(null); }}>
-                <span className="mj-icon"><Icon name="shuffle" size={18} /></span><span><strong>No Preference</strong><small>The club assigns a caddy</small></span>
-              </button>
-              {caddies.isLoading && <Skeleton rows={2} />}
-              {(caddies.data?.items ?? []).map((c) => (
-                <button key={c.id} type="button" className="mj-choice" role="radio" aria-checked={p.caddyId === c.id} aria-pressed={p.caddyId === c.id}
-                  disabled={taken.has(c.id) && p.caddyId !== c.id} onClick={() => { set(i, { caddyId: c.id, caddyName: `${c.name} · ${c.code}` }); setPicking(null); }}>
-                  <span className="mj-avatar">{initials(c.name)}</span>
-                  <span>
-                    <strong>{c.name}{c.favorite ? ' ♥' : ''}</strong>
-                    <span className="mj-caddy-meta"><span>⭐ {c.rating ?? '—'}</span><span>{c.rounds} rounds</span><span>{c.code}</span></span>
-                    {c.level && <small>{c.level}{c.onDuty ? ' · on duty' : ''}</small>}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      ))}
-      <div className="oc-row-wrap">
-        <strong>Golf carts</strong>
-        <div className="mj-seg" role="group" aria-label="Golf carts">
-          {[['', 'Club rule'], ['0', 'None'], ['1', '1'], ['2', '2']].map(([v, l]) => (
-            <button key={v} type="button" aria-pressed={carts === v} disabled={v === '0' && quote?.cart.mandatory} onClick={() => setCarts(v)}>{l}</button>
-          ))}
-        </div>
-        {quote?.cart.playersPerCart ? <span className="mj-small mj-muted">{quote.cart.playersPerCart} players share a cart</span> : null}
-      </div>
-      <div className="mj-actions mj-sticky">
-        <button className="oc-btn oc-btn-neutral" onClick={onBack}>Back</button>
-        <button className="oc-btn oc-btn-primary" disabled={!ok} onClick={onNext}>Continue <Icon name="arrow_forward" size={18} /></button>
-      </div>
-    </div>
-  );
-}
-
-function ReviewStep({ slot, date, players, quote, carts, notes, setNotes, onBack, onNext }: {
-  slot: Slot; date: string; players: Player[]; quote?: Quote; carts: string; notes: string; setNotes: (v: string) => void; onBack: () => void; onNext: () => void;
-}) {
+/** The fee estimate per component (Green Fee, Caddy Fee, Golf Cart…) over the players. */
+function estimate(quote: Quote | undefined, players: Player[]) {
   const selfSeg = quote?.segments.member ? 'member' : 'guest';
   const memberCount = players.filter((p) => p.kind !== 'guest').length;
   const guestCount = players.length - memberCount;
-  // the estimate per component (Green Fee, Caddy Fee, Golf Cart…) over the players
   const lines = new Map<string, number>();
   const add = (seg: string, n: number) => {
     const r = quote?.segments[seg];
@@ -419,8 +332,14 @@ function ReviewStep({ slot, date, players, quote, carts, notes, setNotes, onBack
   };
   add(selfSeg, memberCount);
   add('guest_of_member', guestCount);
-  const total = [...lines.values()].reduce((a, b) => a + b, 0);
-  const caddyLabel = (p: Player) => (p.caddy === 'none' ? 'No Caddy' : p.caddy === 'any' ? 'No Preference' : p.caddyName ?? 'Preferred');
+  return { lines, memberCount, guestCount, total: [...lines.values()].reduce((a, b) => a + b, 0) };
+}
+
+function ReviewStep({ slot, date, players, quote, est, carts, setCarts, notes, setNotes, onBack, onNext }: {
+  slot: Slot; date: string; players: Player[]; quote?: Quote; est: ReturnType<typeof estimate>; carts: string; setCarts: (v: string) => void;
+  notes: string; setNotes: (v: string) => void; onBack: () => void; onNext: () => void;
+}) {
+  const { lines, memberCount, guestCount, total } = est;
   return (
     <>
       <div className="mj-card">
@@ -432,15 +351,24 @@ function ReviewStep({ slot, date, players, quote, carts, notes, setNotes, onBack
         ]} />
       </div>
       <div className="mj-card">
-        <h2><Icon name="hiking" size={20} /> Players & Caddy</h2>
+        <h2><Icon name="group" size={20} /> Players</h2>
         <div className="mj-list">
           {players.map((p, i) => (
             <div key={i} className="mj-item">
               <span className="mj-avatar">{initials(p.name || `P ${i + 1}`)}</span>
               <div className="mj-item-body"><strong>{p.name || 'Guest (TBA)'}</strong><span className="mj-small mj-muted">{p.kind === 'self' ? 'You' : p.kind === 'member' ? 'Member' : 'Guest'}</span></div>
-              <Chip tone={p.caddy === 'none' ? undefined : 'info'}>{caddyLabel(p)}</Chip>
             </div>
           ))}
+        </div>
+        <p className="mj-small mj-muted" style={{ marginBottom: 0 }}><Icon name="hiking" size={16} /> A caddy for every player is included in the rate; the front desk assigns them before your tee time.</p>
+        <div className="oc-row-wrap" style={{ marginTop: 12 }}>
+          <strong>Golf carts</strong>
+          <div className="mj-seg" role="group" aria-label="Golf carts">
+            {[['', 'Club rule'], ['0', 'None'], ['1', '1'], ['2', '2']].map(([v, l]) => (
+              <button key={v} type="button" aria-pressed={carts === v} disabled={v === '0' && quote?.cart.mandatory} onClick={() => setCarts(v)}>{l}</button>
+            ))}
+          </div>
+          {quote?.cart.playersPerCart ? <span className="mj-small mj-muted">{quote.cart.playersPerCart} players share a cart</span> : null}
         </div>
       </div>
       <div className="mj-card">
@@ -450,7 +378,7 @@ function ReviewStep({ slot, date, players, quote, carts, notes, setNotes, onBack
           <>
             <Rows rows={[...lines.entries()].map(([k, v]) => [k, <span className="mj-num">{money(v)}</span>])} />
             <div className="mj-total"><span>Total estimate</span><strong className="mj-num">{money(total)}</strong></div>
-            <p className="mj-small mj-muted">The final price is set by the club's Pricing Policy when you confirm{players.some((p) => p.caddy === 'none') ? '; players without a caddy may not pay the caddy fee' : ''}.</p>
+            <p className="mj-small mj-muted">The final price is set by the club's Pricing Policy when you confirm.</p>
           </>
         )}
         <TextField label="Notes for the club (optional)" value={notes} onChange={setNotes} />
@@ -460,6 +388,52 @@ function ReviewStep({ slot, date, players, quote, carts, notes, setNotes, onBack
         <button className="oc-btn oc-btn-primary" onClick={onNext}>Continue to payment <Icon name="arrow_forward" size={18} /></button>
       </div>
     </>
+  );
+}
+
+const WHEN: { value: PayWhen; label: string; help: string; icon: string }[] = [
+  { value: 'account', label: 'Member Account', help: 'Confirmed now, settled on your statement', icon: 'account_balance_wallet' },
+  { value: 'now', label: 'Pay in full now', help: 'QRIS, Virtual Account or card', icon: 'bolt' },
+  { value: 'part', label: 'Pay part now', help: 'Any amount now, the rest later in the app or at the front desk', icon: 'pie_chart' },
+  { value: 'later', label: 'Pay later', help: 'Confirmed now; pay in the app or at the front desk after your round', icon: 'schedule' },
+];
+
+function PaymentStep({ when, setWhen, method, setMethod, part, setPart, total, busy, onBack, onConfirm }: {
+  when: PayWhen; setWhen: (w: PayWhen) => void; method: OnlineMethod; setMethod: (m: OnlineMethod) => void; part: string; setPart: (v: string) => void;
+  total: number; busy: boolean; onBack: () => void; onConfirm: () => void;
+}) {
+  const amount = Number(part);
+  const partOk = when !== 'part' || (amount > 0 && (!total || amount <= total));
+  return (
+    <div className="mj-card oc-stack">
+      <h2><Icon name="payments" size={20} /> Payment</h2>
+      <div className="mj-choices" role="radiogroup" aria-label="When to pay">
+        {WHEN.map((w) => (
+          <button key={w.value} type="button" className="mj-choice" role="radio" aria-checked={when === w.value} aria-pressed={when === w.value} onClick={() => setWhen(w.value)}>
+            <span className="mj-icon"><Icon name={w.icon} size={20} /></span>
+            <span><strong>{w.label}</strong><small>{w.help}</small></span>
+          </button>
+        ))}
+      </div>
+      {when === 'part' && (
+        <TextField label={`Amount to pay now${total ? ` (of ${money(total)})` : ''}`} value={part} onChange={(v) => setPart(v.replace(/\D/g, ''))} inputMode="numeric" />
+      )}
+      {(when === 'now' || when === 'part') && (
+        <>
+          <strong>Pay with</strong>
+          <MethodPicker value={method} onChange={(m) => setMethod(m as OnlineMethod)} memberCharge={false} />
+        </>
+      )}
+      <p className="mj-small mj-muted" style={{ margin: 0 }}>
+        {when === 'account' ? 'The booking is confirmed now and charged to your member account.'
+          : when === 'later' ? 'The booking is confirmed now. The balance is paid at the end, in the app or at the front desk.'
+            : 'The tee time is held and confirmed once this payment is received; the rest can be paid later.'}
+      </p>
+      <div className="mj-actions mj-sticky">
+        <button className="oc-btn oc-btn-neutral" onClick={onBack}>Back</button>
+        <button className="oc-btn oc-btn-primary" disabled={busy || !partOk} onClick={onConfirm}><Icon name="check" size={18} /> Confirm Booking</button>
+      </div>
+    </div>
   );
 }
 
@@ -477,7 +451,7 @@ function Confirmed({ booking, onView }: { booking: Booking; onView: () => void }
       <div className="mj-checklist" style={{ alignItems: 'flex-start' }}>
         <Check done={confirmed}>Tee Time confirmed</Check>
         <Check done>Players confirmed</Check>
-        <Check done={false}>Caddy assignment by the club</Check>
+        <Check done={false}>Caddy assigned by the front desk</Check>
       </div>
       <div className="mj-actions" style={{ justifyContent: 'center' }}>
         <button className="oc-btn oc-btn-primary" onClick={onView}>View Booking</button>

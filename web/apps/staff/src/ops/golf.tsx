@@ -4,20 +4,21 @@ import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime, formatMoney } from '@oneclub/i18n';
 import { cacheGet, cachePut, enqueue, useOnline } from '@oneclub/offline';
 import {
-  Card, DataTable, ErrorAlert, Icon, Modal, SelectField, StatusPill, TextField, useAuth, useToast,
+  Card, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
+import { CaddyCartModal } from './desk';
 
 type R = Record<string, unknown> & { id: string };
 
 const pill = (k: string) => (r: R) => <StatusPill status={String(r[k] ?? '').replace(/_/g, '-')} />;
-const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : formatMoney(String(v)));
+export const money = (v: unknown) => (v === null || v === undefined || v === '' ? '—' : formatMoney(String(v)));
 
 export function today(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function Head({ title, help, actions }: { title: string; help?: string; actions?: React.ReactNode }) {
+export function Head({ title, help, actions }: { title: string; help?: string; actions?: React.ReactNode }) {
   return (
     <div className="oc-page-head">
       <div><h1>{title}</h1>{help && <p>{help}</p>}</div>
@@ -29,7 +30,7 @@ function Head({ title, help, actions }: { title: string; help?: string; actions?
 
 /** GET with an offline copy per property (FR-OPS-05): online responses are
  * cached; offline the last copy is shown. */
-function useCached<T>(path: string | null, name: string) {
+export function useCached<T>(path: string | null, name: string) {
   const { propertyId } = useAuth();
   const online = useOnline();
   const live = useGet<T>(online ? path : null);
@@ -67,7 +68,7 @@ function CoursePicker({ c }: { c: ReturnType<typeof useCourse> }) {
 }
 
 /** Big touch button (44px+, Technical Doc §6.5). */
-function Btn({ label, onClick, kind = 'neutral', disabled }: { label: string; onClick: () => void; kind?: 'neutral' | 'primary' | 'ink' | 'danger'; disabled?: boolean }) {
+export function Btn({ label, onClick, kind = 'neutral', disabled }: { label: string; onClick: () => void; kind?: 'neutral' | 'primary' | 'ink' | 'danger'; disabled?: boolean }) {
   return <button className={`oc-btn oc-btn-${kind}`} style={{ minHeight: 48, minWidth: 96 }} disabled={disabled} onClick={onClick}>{label}</button>;
 }
 
@@ -152,7 +153,8 @@ export function StarterQueuePage({ view = 'queue' }: { view?: 'queue' | 'ready' 
       {view === 'rounds' && (
         <DataTable rows={q.data?.dispatched} rowKey={(f) => String(f.flightId)}
           columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'players', header: 'Players', render: players },
-            { key: 'dispatchedAt', header: 'Tee-Off', render: (f) => formatDateTime(String(f.dispatchedAt)) }]}
+            { key: 'dispatchedAt', header: 'Tee-Off', render: (f) => formatDateTime(String(f.dispatchedAt)) },
+            { key: 'playTime', header: 'Play time', render: (f) => <PlayTime start={f.dispatchedAt as string} label={false} /> }]}
           actions={(f) => ctl && <Btn label="Round Finish" onClick={() => setFinishFor(f)} />} />
       )}
       <ReasonModal open={!!holdFor} title="Hold flight" label="Operational reason" onClose={() => setHoldFor(null)} onSubmit={(reason) => holdFor && run(holdFor, 'hold', { reason })} />
@@ -210,12 +212,15 @@ export function OpsCheckInPage() {
   const bookings = useCached<Page<R>>(`/api/v1/golf/bookings${qs({ date, limit: 500 })}`, `bookings:${date}`);
   const [q, setQ] = useState('');
   const [scan, setScan] = useState('');
+  const [caddyFor, setCaddyFor] = useState<string | null>(null);
   const lookup = useGet<Page<R>>(online && scan ? `/api/v1/golf/check-ins:lookup${qs({ method: scan.startsWith('oneclub:booking:') ? 'booking_qr' : 'member_card', value: scan, date })}` : null);
   const list = (bookings.data?.items ?? []).filter((b) => ['confirmed', 'checked_in'].includes(String(b.status)) &&
     (!q || `${String(b.code)} ${String(b.contactName)}`.toLowerCase().includes(q.toLowerCase())));
   const checkIn = async (b: R) => {
     await enqueue('golf.check_in', { method: 'booking_code', value: b.code, bookingId: b.bookingId ?? b.id, date }, propertyId);
     toast(online ? `Check-in sent for ${String(b.code)}` : `Saved offline: ${String(b.code)} will sync when online`);
+    // next: ask the players who their caddy is (or recommend one)
+    if (online) setCaddyFor(String(b.bookingId ?? b.id));
   };
   return (
     <div className="oc-stack">
@@ -236,7 +241,9 @@ export function OpsCheckInPage() {
       <TextField label="Search today's bookings" value={q} onChange={setQ} />
       <DataTable rows={list} loading={bookings.isLoading} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'code', header: 'Booking' },
         { key: 'contactName', header: 'Booked by' }, { key: 'playerCount', header: 'Players', align: 'right' }, { key: 'status', header: 'Status', render: pill('status') }]}
-        actions={(b) => b.status === 'confirmed' && <Btn label="Check-in" kind="primary" onClick={() => void checkIn(b)} />} />
+        actions={(b) => (b.status === 'confirmed' ? <Btn label="Check-in" kind="primary" onClick={() => void checkIn(b)} />
+          : b.status === 'checked_in' && online ? <Btn label="Caddy & Cart" onClick={() => setCaddyFor(b.id)} /> : null)} />
+      {caddyFor && <CaddyCartModal id={caddyFor} onClose={() => { setCaddyFor(null); void bookings.refetch(); }} />}
     </div>
   );
 }
@@ -266,6 +273,7 @@ export function OpsCheckOutPage() {
       <DataTable rows={rows} loading={desk.isLoading} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'code', header: 'Booking' },
         { key: 'players', header: 'Players', render: (b) => list(b.players) },
         { key: 'inPlay', header: 'Round', render: (b) => <StatusPill status={Number(b.inPlay) > 0 ? 'in-play' : String(b.status).replace(/_/g, '-')} /> },
+        { key: 'teeOffAt', header: 'Play time', render: (b) => <PlayTime start={b.teeOffAt as string} end={b.roundFinishAt as string} pausedAt={b.pausedAt as string | null | undefined} pausedSeconds={Number(b.pausedSeconds ?? 0)} label={false} fallback="—" /> },
         { key: 'lockers', header: 'Lockers', render: (b) => list(b.lockers) }, { key: 'bags', header: 'Bags', render: (b) => list(b.bags) },
         { key: 'balance', header: 'Balance', align: 'right', render: (b) => <strong>{money(b.balance)}</strong> }]}
         actions={(b) => !b.checkedOutAt && <Btn label="Check-out" kind="primary" disabled={Number(b.inPlay) > 0} onClick={() => setOpen(b)} />} />
@@ -281,29 +289,76 @@ function CheckOutModal({ entry, onClose, onDone }: { entry: R; onClose: () => vo
   const due = Number(b.data?.folio?.balance ?? entry.balance ?? 0);
   const [method, setMethod] = useState(entry.memberAccount ? 'member_account' : 'cash');
   const [ref, setRef] = useState('');
+  const [amount, setAmount] = useState('');
   const out = useSend<Record<string, unknown>>('POST', `/api/v1/golf/bookings/${String(entry.bookingId)}:check-out`, ['/api/v1/golf', '/api/v1/billing']);
+  // a part payment first (split tenders); the last one settles and checks out
+  const part = useSend<Record<string, unknown>>('POST', '/api/v1/billing/payments', ['/api/v1/billing', '/api/v1/golf']);
+  const n = amount === '' ? due : Number(amount);
+  const partial = due > 0 && n > 0 && n < due;
   const methods = [...(entry.memberAccount ? [['member_account', 'Member account']] : []), ...SETTLE];
   const count = (v: unknown) => ((v as string[] | undefined) ?? []).length;
   return (
     <Modal open onClose={onClose} title={`Check-out ${String(entry.code)}`} actions={<><Btn label="Cancel" onClick={onClose} />
-      <Btn label={due > 0 ? `Settle ${money(due)} & check out` : 'Check out'} kind="primary" disabled={out.isPending || !b.data}
-        onClick={() => out.mutate({ methodType: due > 0 ? method : undefined, reference: ref || undefined }, { onSuccess: () => onDone(String(entry.code)) })} /></>}>
+      {partial ? (
+        <Btn label={`Receive ${money(n)}`} kind="primary" disabled={part.isPending || !b.data?.folioId || method === 'member_account'}
+          onClick={() => part.mutate({ folioId: b.data?.folioId, amount: String(n), methodType: method, channel: 'venue', reference: ref || undefined },
+            { onSuccess: () => { setAmount(''); setRef(''); void b.refetch(); } })} />
+      ) : (
+        <Btn label={due > 0 ? `Settle ${money(due)} & check out` : 'Check out'} kind="primary" disabled={out.isPending || !b.data || n > due}
+          onClick={() => out.mutate({ methodType: due > 0 ? method : undefined, reference: ref || undefined }, { onSuccess: () => onDone(String(entry.code)) })} />
+      )}</>}>
       <div className="oc-stack">
         <p style={{ margin: 0 }}>{((entry.players as string[] | undefined) ?? []).join(', ')}</p>
         {(b.data?.flights ?? []).map((f) => <CaddyTips key={String(f.id)} flightId={String(f.id)} onTip={() => void b.refetch()} />)}
+        {(b.data?.flights ?? []).map((f) => <CaddyRatings key={`r${String(f.id)}`} flightId={String(f.id)} />)}
         <p style={{ margin: 0 }}>Charges {money(b.data?.folio?.charges)} · paid {money(b.data?.folio?.payments)} · balance <strong>{money(b.data?.folio?.balance)}</strong></p>
         {due > 0 && (
           <div className="oc-row-wrap">
-            <SelectField label="Settle by" value={method} onChange={setMethod} options={methods.map(([value, label]) => ({ value, label }))} />
+            <TextField label="Amount (empty = all)" value={amount} onChange={(v) => setAmount(v.replace(/\D/g, ''))} inputMode="numeric" />
+            <SelectField label="Pay by" value={method} onChange={setMethod} options={methods.map(([value, label]) => ({ value, label }))} />
             {method !== 'cash' && method !== 'member_account' && <TextField label="Reference" value={ref} onChange={setRef} />}
           </div>
         )}
+        {partial && <p className="oc-small oc-muted" style={{ margin: 0 }}>Part payment: the rest ({money(due - n)}) stays on the bill for the next tender.</p>}
+        <ErrorAlert error={part.error} />
         <p className="oc-small oc-muted" style={{ margin: 0 }}>
           Releases {count(entry.lockers)} locker(s) and hands back {count(entry.bags)} bag(s); the folio is closed.
         </p>
         <ErrorAlert error={out.error} />
       </div>
     </Modal>
+  );
+}
+
+/** End of the session: each player rates their caddy 1–5. */
+function CaddyRatings({ flightId }: { flightId: string }) {
+  const toast = useToast();
+  const list = useGet<Page<R>>(`/api/v1/golf/caddy-assignments${qs({ flightId })}`);
+  const rate = useSend<Record<string, unknown>>('POST', (v) => `/api/v1/golf/caddy-assignments/${String(v.id)}:rate`, ['/api/v1/golf']);
+  const [done, setDone] = useState<Record<string, number>>({});
+  const caddies = (list.data?.items ?? []).filter((a) => ['completed', 'replaced'].includes(String(a.status)));
+  if (caddies.length === 0) return null;
+  return (
+    <div className="oc-stack">
+      <strong>Ask the players: how was your caddy?</strong>
+      {caddies.flatMap((a) => ((a.playerIds as string[]) ?? []).map((pid, i) => {
+        const key = `${a.id}:${pid}`;
+        return (
+          <div key={key} className="oc-row-wrap" style={{ alignItems: 'center' }}>
+            <span style={{ minWidth: 220 }}>{String(((a.playerNames as string[]) ?? [])[i] ?? 'Player')} → <strong>{String(a.caddyName)}</strong></span>
+            <div className="oc-row" role="group" aria-label={`Rating for ${String(a.caddyName)}`}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n} type="button" className="oc-icon-btn" aria-label={`${n} of 5`} aria-pressed={done[key] === n} disabled={!!done[key] || rate.isPending}
+                  onClick={() => rate.mutate({ id: a.id, playerId: pid, rating: n }, { onSuccess: () => { setDone({ ...done, [key]: n }); toast(`Rated ${n}/5`); } })}>
+                  <Icon name="star" filled={(done[key] ?? 0) >= n} size={24} />
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      }))}
+      <ErrorAlert error={rate.error} />
+    </div>
   );
 }
 
@@ -386,7 +441,9 @@ export function CaddyAssignmentPage({ history }: { history?: boolean }) {
   const list = useGet<Page<R>>(`/api/v1/golf/caddy-assignments?date=${date}`);
   const flights = useGet<Page<R>>(history ? null : `/api/v1/golf/flights?date=${date}`);
   const auto = useSend<Record<string, unknown>>('POST', '/api/v1/golf/caddy-assignments', ['/api/v1/golf']);
-  const open = (flights.data?.items ?? []).filter((f) => !['completed', 'cancelled'].includes(String(f.status)) && !(f.readiness as R)?.caddiesOk).sort(byTeeTime);
+  // caddies are assigned after the players check in at the front desk
+  const open = (flights.data?.items ?? []).filter((f) => !['completed', 'cancelled'].includes(String(f.status)) && !(f.readiness as R)?.caddiesOk
+    && Number((f.readiness as R)?.checkedIn) > 0).sort(byTeeTime);
   return (
     <div className="oc-stack">
       <Head title={history ? 'Caddy History' : 'Caddy Assignment'} />
@@ -404,38 +461,6 @@ export function CaddyAssignmentPage({ history }: { history?: boolean }) {
 }
 
 // ── Front Desk ─────────────────────────────────────────────────────────────
-
-export function FrontDeskPage() {
-  const date = today();
-  const toast = useToast();
-  const bookings = useCached<Page<R>>(`/api/v1/golf/bookings${qs({ date, limit: 500 })}`, `bookings:${date}`);
-  const [paying, setPaying] = useState<R | null>(null);
-  return (
-    <div className="oc-stack">
-      <Head title="Reservations" help={`${date}${bookings.offline ? ' · offline copy' : ''}`} actions={<Link className="oc-btn oc-btn-ink" to="/ops/check-in">Check-in</Link>} />
-      <DataTable rows={bookings.data?.items} loading={bookings.isLoading} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'code', header: 'Booking' },
-        { key: 'contactName', header: 'Booked by' }, { key: 'playerCount', header: 'Players', align: 'right' }, { key: 'status', header: 'Status', render: pill('status') }]}
-        actions={(b) => !bookings.offline && ['confirmed', 'pending', 'checked_in'].includes(String(b.status)) && <Btn label="Folio" onClick={() => setPaying(b)} />} />
-      {paying && <FolioPayModal booking={paying} onClose={() => setPaying(null)} onPaid={() => toast('Payment recorded')} />}
-    </div>
-  );
-}
-
-function FolioPayModal({ booking, onClose, onPaid }: { booking: R; onClose: () => void; onPaid: () => void }) {
-  const b = useGet<R & { folio?: R; folioId?: string }>(`/api/v1/golf/bookings/${booking.id}`);
-  const [method, setMethod] = useState('cash');
-  const pay = useSend<Record<string, unknown>>('POST', '/api/v1/billing/payments', ['/api/v1/billing', '/api/v1/golf']);
-  const bal = b.data?.folio?.balance;
-  return (
-    <Modal open onClose={onClose} title={`Folio ${String(booking.code)}`} actions={<><Btn label="Close" onClick={onClose} />
-      <Btn label={`Pay ${money(bal)}`} kind="primary" disabled={!bal || Number(bal) <= 0 || pay.isPending}
-        onClick={() => pay.mutate({ folioId: b.data?.folioId, amount: String(bal), methodType: method, channel: 'venue' }, { onSuccess: () => { onPaid(); onClose(); } })} /></>}>
-      <p>Charges {money(b.data?.folio?.charges)} · paid {money(b.data?.folio?.payments)} · balance <strong>{money(bal)}</strong></p>
-      <SelectField label="Method" value={method} onChange={setMethod} options={['cash', 'card', 'qris', 'bank_transfer'].map((m) => ({ value: m, label: m.replace('_', ' ') }))} />
-      <ErrorAlert error={pay.error} />
-    </Modal>
-  );
-}
 
 export function GuestPage() {
   const toast = useToast();

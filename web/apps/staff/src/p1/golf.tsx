@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import {
-  Card, Checkbox, CoursesPage, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, ResourcePage, SelectField, Skeleton, StatusPill,
+  Card, Checkbox, CoursesPage, CrowdLabel, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, PlayTime, ResourcePage, SelectField, Skeleton, StatusPill,
   TextField, fieldErrors, statusCol, useAuth, useToast, type ResourceConfig,
 } from '@oneclub/shell';
 import { ActionButton, CourseDateBar, KV, ListPage, Tabs, money, today, useCourseDate, useStream, type R } from './common';
@@ -48,7 +48,7 @@ export function TeeSheetPage() {
                   <td>{String(s.startTee)}</td>
                   <td>{SESSION[String(s.session)]}</td>
                   <td><StatusPill status={String(s.status)} />{s.blockReason ? <div className="oc-muted">{String(s.blockReason)}</div> : null}</td>
-                  <td>{String(s.remaining)} / {String(s.capacity)}</td>
+                  <td>{String(s.used)} / {String(s.capacity)} <CrowdLabel crowd={s.crowd as string} /></td>
                   <td>
                     {(s.flights ?? []).map((f) => (
                       <div key={String(f.id)} className="oc-row-wrap" style={{ marginBottom: 4 }}>
@@ -56,11 +56,12 @@ export function TeeSheetPage() {
                         {f.bookingId ? <button className="oc-btn oc-btn-text oc-btn-sm" onClick={() => setOpen(String(f.bookingId))}>
                           {((f.players as R[]) ?? []).map((p) => String(p.name)).join(', ')}</button> : <span className="oc-muted">open</span>}
                         {(f.golfCarts as string[] | undefined)?.length ? <span className="oc-muted">· {(f.golfCarts as string[]).join(', ')}</span> : null}
+                        {f.teeOffAt ? <PlayTime start={f.teeOffAt as string} end={f.roundFinishAt as string} pausedAt={f.pausedAt as string | null | undefined} pausedSeconds={Number(f.pausedSeconds ?? 0)} /> : null}
                       </div>
                     ))}
                   </td>
                   <td className="oc-actions">
-                    {Number(s.remaining) > 0 && s.status !== 'blocked' && can('golf.booking.create') && (
+                    {s.status !== 'blocked' && can('golf.booking.create') && (
                       <button className="oc-btn oc-btn-sm oc-btn-neutral" onClick={() => setBooking(s)}>Book</button>
                     )}
                   </td>
@@ -78,14 +79,19 @@ export function TeeSheetPage() {
 
 // ── Booking create (FR-BKG-01..07) ─────────────────────────────────────────
 
-interface PlayerIn { playerType: string; memberNo: string; name: string; phone: string }
+export interface PlayerIn { playerType: string; memberNo: string; name: string; phone: string; memberId?: string }
 
-export function BookingForm({ slot, onClose, onDone }: { slot: R; onClose: () => void; onDone: (b: R) => void }) {
+/** A rain rebooking: the players of the rained-off booking and their rain checks. */
+export interface BookingPrefill { bookingType: string; contactName: string; contactPhone: string; players: PlayerIn[]; rainCheckIds: string[] }
+
+export function BookingForm({ slot, onClose, onDone, channel = 'back_office', prefill }: {
+  slot: R; onClose: () => void; onDone: (b: R) => void; channel?: 'back_office' | 'walk_in'; prefill?: BookingPrefill;
+}) {
   const toast = useToast();
-  const [bookingType, setType] = useState('member');
-  const [players, setPlayers] = useState<PlayerIn[]>([{ playerType: 'member', memberNo: '', name: '', phone: '' }]);
-  const [contactName, setContactName] = useState('');
-  const [contactPhone, setContactPhone] = useState('');
+  const [bookingType, setType] = useState(prefill?.bookingType ?? (channel === 'walk_in' ? 'walk_in' : 'member'));
+  const [players, setPlayers] = useState<PlayerIn[]>(prefill?.players ?? [{ playerType: channel === 'walk_in' ? 'non_member' : 'member', memberNo: '', name: '', phone: '' }]);
+  const [contactName, setContactName] = useState(prefill?.contactName ?? '');
+  const [contactPhone, setContactPhone] = useState(prefill?.contactPhone ?? '');
   const [paymentMode, setPaymentMode] = useState('');
   const [carts, setCarts] = useState('');
   const [caddy, setCaddy] = useState('');
@@ -93,9 +99,11 @@ export function BookingForm({ slot, onClose, onDone }: { slot: R; onClose: () =>
   const errs = fieldErrors(send.error);
   const setP = (i: number, k: keyof PlayerIn, v: string) => setPlayers((ps) => ps.map((p, j) => (j === i ? { ...p, [k]: v } : p)));
   const submit = () => send.mutate({
-    bookingType, channel: 'back_office', teeTimeId: slot.id, contactName: contactName || undefined, contactPhone: contactPhone || undefined,
+    bookingType, channel, teeTimeId: slot.id, contactName: contactName || undefined, contactPhone: contactPhone || undefined,
     paymentMode: paymentMode || undefined, golfCartRequest: carts ? Number(carts) : undefined, caddyRequest: caddy || undefined,
-    players: players.map((p) => ({ playerType: p.playerType, memberNo: p.playerType === 'member' ? p.memberNo || undefined : undefined,
+    rainCheckIds: prefill?.rainCheckIds.length ? prefill.rainCheckIds : undefined,
+    players: players.map((p) => ({ playerType: p.playerType, memberId: p.playerType === 'member' ? p.memberId : undefined,
+      memberNo: p.playerType === 'member' && !p.memberId ? p.memberNo || undefined : undefined,
       name: p.name || undefined, phone: p.phone || undefined, tba: p.playerType !== 'member' && !p.name ? true : undefined,
       hostIndex: p.playerType === 'guest_of_member' ? 0 : undefined })),
   }, { onSuccess: (b) => { toast(`Booking ${b.code} created`); onDone(b); } });
@@ -106,18 +114,20 @@ export function BookingForm({ slot, onClose, onDone }: { slot: R; onClose: () =>
       <div className="oc-form">
         <SelectField label="Booking type" value={bookingType} onChange={setType} options={['member', 'guest', 'non_member', 'walk_in', 'corporate'].map((v) => ({ value: v, label: v.replace('_', ' ') }))} />
         <SelectField label="Payment" value={paymentMode} onChange={setPaymentMode} placeholder="Payment Policy default"
-          options={[{ value: 'pay_at_venue', label: 'Pay at venue' }, { value: 'prepaid', label: 'Prepaid' }, { value: 'deposit', label: 'Deposit' }, { value: 'member_charge', label: 'Member charge' }]} />
+          options={[{ value: 'pay_at_venue', label: 'Pay later (at the end)' }, { value: 'prepaid', label: 'Prepaid' }, { value: 'deposit', label: 'Deposit' }, { value: 'member_charge', label: 'Member charge' }]} />
         <TextField label="Contact name" value={contactName} onChange={setContactName} />
         <TextField label="Contact phone" value={contactPhone} onChange={setContactPhone} />
         <TextField label="Golf carts requested" type="number" min={0} value={carts} onChange={setCarts} help="Above the buggy sharing rule adds a surcharge" />
         <TextField label="Caddy request" value={caddy} onChange={setCaddy} help="Caddy number or name" />
       </div>
-      <h3>Players ({players.length}/{String(slot.remaining)})</h3>
+      <h3>Players ({players.length}/{String(slot.maxPlayers || 4)})</h3>
       {players.map((p, i) => (
         <div className="oc-row-wrap" key={i}>
           <SelectField label="Player type" value={p.playerType} onChange={(v) => setP(i, 'playerType', v)}
             options={[{ value: 'member', label: 'Member' }, { value: 'guest_of_member', label: 'Guest of Member' }, { value: 'non_member', label: 'Non-Member' }, { value: 'reciprocal', label: 'Reciprocal' }]} />
-          {p.playerType === 'member'
+          {p.playerType === 'member' && p.memberId
+            ? <span style={{ alignSelf: 'center' }}><strong>{p.name}</strong> (member)</span>
+            : p.playerType === 'member'
             ? <><TextField label="Member No." value={p.memberNo} onChange={(v) => setP(i, 'memberNo', v)} error={errs[`players[${i}].memberNo`]} />
               <MemberNoTierBadge memberNo={p.memberNo} /></>
             : <TextField label="Name (empty = TBA)" value={p.name} onChange={(v) => setP(i, 'name', v)} error={errs[`players[${i}].name`]} />}
@@ -125,10 +135,11 @@ export function BookingForm({ slot, onClose, onDone }: { slot: R; onClose: () =>
           {players.length > 1 && <button className="oc-icon-btn" aria-label="Remove player" onClick={() => setPlayers((ps) => ps.filter((_, j) => j !== i))}><Icon name="close" size={18} /></button>}
         </div>
       ))}
-      {players.length < Number(slot.remaining) && (
+      {players.length < Number(slot.maxPlayers || 4) && (
         <button className="oc-btn oc-btn-text oc-btn-sm" onClick={() => setPlayers((ps) => [...ps, { playerType: bookingType === 'member' ? 'guest_of_member' : 'non_member', memberNo: '', name: '', phone: '' }])}>
           Add player</button>
       )}
+      {prefill && prefill.rainCheckIds.length > 0 && <p className="oc-alert oc-alert-info">{prefill.rainCheckIds.length} rain check(s) are applied: the new round is paid by the rained-off one.</p>}
       <ErrorAlert error={send.error} />
     </Modal>
   );
@@ -144,9 +155,10 @@ export function BookingNewPage() {
     <div className="oc-stack">
       <PageHeader title="New Booking" help="Choose a tee time, then add the players." />
       <CourseDateBar cd={cd} />
-      <DataTable rows={(slots.data?.items ?? []).filter((s) => Number(s.remaining) > 0 && s.status !== 'blocked')} loading={slots.isLoading} error={slots.error}
+      <DataTable rows={(slots.data?.items ?? []).filter((s) => s.status !== 'blocked')} loading={slots.isLoading} error={slots.error}
         columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'startTee', header: 'Tee' }, { key: 'session', header: 'Session' },
-          { key: 'remaining', header: 'Places', align: 'right' }, { key: 'status', header: 'Status', render: pill('status') }]}
+          { key: 'used', header: 'Booked', align: 'right', render: (s) => `${String(s.used)} / ${String(s.capacity)}` },
+          { key: 'crowd', header: 'Crowd', render: (s) => <CrowdLabel crowd={s.crowd as string} /> }, { key: 'status', header: 'Status', render: pill('status') }]}
         onRowClick={setSlot} />
       {slot && <BookingForm slot={slot} onClose={() => setSlot(null)} onDone={(b) => { setSlot(null); setDone(String(b.id)); }} />}
       {done && <BookingDrawer id={done} onClose={() => setDone(null)} />}
@@ -190,6 +202,10 @@ export function BookingDrawer({ id, onClose }: { id: string; onClose: () => void
               { key: 'name', header: 'Player', render: (p) => <>{String(p.name)}{p.tba ? <span className="oc-muted"> (TBA)</span> : null}</> },
               { key: 'playerType', header: 'Type', render: (p) => String(p.playerType).replace(/_/g, ' ') }, { key: 'segment', header: 'Segment' },
               { key: 'priceTotal', header: 'Price', align: 'right', render: (p) => money(p.priceTotal) }, { key: 'status', header: 'Status', render: pill('status') },
+              { key: 'flightId', header: 'Play time', render: (p) => {
+                const f = x.flights.find((fl) => fl.id === p.flightId);
+                return <PlayTime start={f?.teeOffAt as string} end={f?.roundFinishAt as string} pausedAt={f?.pausedAt as string | null | undefined} pausedSeconds={Number(f?.pausedSeconds ?? 0)} label={false} fallback="—" />;
+              } },
             ]} actions={(p) => (active && p.status === 'booked' && can('golf.booking.update') && x.players.length > 1
               ? <ActionButton label="Remove" method="DELETE" path={`/api/v1/golf/bookings/${id}/players/${p.id}`} invalidate={inv} danger confirm="Remove this player?" />
               : null)} />
@@ -220,8 +236,8 @@ function RescheduleModal({ booking, onClose }: { booking: R; onClose: () => void
       <div className="oc-form">
         <TextField label="Date" type="date" value={date} onChange={setDate} />
         <SelectField label="Tee time" value={slot} onChange={setSlot} required
-          options={(slots.data?.items ?? []).filter((s) => Number(s.remaining) >= Number(booking.playerCount) && s.id !== booking.teeTimeId)
-            .map((s) => ({ value: s.id, label: `${String(s.localTime)} · tee ${String(s.startTee)} · ${String(s.remaining)} places` }))} />
+          options={(slots.data?.items ?? []).filter((s) => s.status !== 'blocked' && s.id !== booking.teeTimeId)
+            .map((s) => ({ value: s.id, label: `${String(s.localTime)} · tee ${String(s.startTee)} · ${s.crowd === 'peak' ? '🔴 peak' : '🟢 quiet'}` }))} />
         <TextField label="Reason" value={reason} onChange={setReason} required span />
       </div>
       <ErrorAlert error={send.error} />
@@ -264,7 +280,8 @@ export function BookingsPage({ title = 'Bookings', preset, noDate }: { title?: s
         onRowClick={(r) => setOpen(r.id)}
         columns={[{ key: 'code', header: 'Booking' }, { key: 'playDate', header: 'Date' }, { key: 'localTime', header: 'Tee Time' }, { key: 'contactName', header: 'Booked by' },
           { key: 'bookingType', header: 'Type', render: (r) => String(r.bookingType).replace('_', ' ') }, { key: 'playerCount', header: 'Players', align: 'right' },
-          { key: 'channel', header: 'Channel', render: (r) => String(r.channel).replace('_', ' ') }, { key: 'status', header: 'Status', render: pill('status') }]} />
+          { key: 'channel', header: 'Channel', render: (r) => String(r.channel).replace('_', ' ') }, { key: 'status', header: 'Status', render: pill('status') },
+          { key: 'teeOffAt', header: 'Play time', render: (r) => <PlayTime start={r.teeOffAt as string} end={r.roundFinishAt as string} pausedAt={r.pausedAt as string | null | undefined} pausedSeconds={Number(r.pausedSeconds ?? 0)} label={false} fallback="—" /> }]} />
       {open && <BookingDrawer id={open} onClose={() => setOpen(null)} />}
     </>
   );
@@ -278,7 +295,8 @@ export function FlightsPage() {
       columns={[{ key: 'flightNo', header: 'Flight' }, { key: 'bookingStatus', header: 'Booking', render: pill('bookingStatus') },
         { key: 'players', header: 'Players', render: (f) => ((f.players as R[]) ?? []).map((p) => String(p.name)).join(', ') },
         { key: 'readiness', header: 'Ready', render: (f) => { const rd = f.readiness as R; return `${String(rd?.checkedIn)}/${String(rd?.players)} checked-in${rd?.caddiesOk ? '' : ' · caddy'}${rd?.golfCartsOk ? '' : ' · golf cart'}`; } },
-        { key: 'golfCarts', header: 'Golf Carts', render: (f) => ((f.golfCarts as string[]) ?? []).join(', ') }, { key: 'status', header: 'Status', render: pill('status') }]} />
+        { key: 'golfCarts', header: 'Golf Carts', render: (f) => ((f.golfCarts as string[]) ?? []).join(', ') }, { key: 'status', header: 'Status', render: pill('status') },
+        { key: 'teeOffAt', header: 'Play time', render: (f) => <PlayTime start={f.teeOffAt as string} end={f.roundFinishAt as string} pausedAt={f.pausedAt as string | null | undefined} pausedSeconds={Number(f.pausedSeconds ?? 0)} label={false} fallback="—" /> }]} />
   );
 }
 

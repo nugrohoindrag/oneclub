@@ -62,5 +62,8 @@ body { margin: 0; background: var(--md-sys-color-background); color: var(--md-sy
 .w-slots { display: flex; flex-wrap: wrap; gap: 8px; }
 .w-slot { min-width: 96px; height: 56px; border-radius: 14px; border: 1px solid var(--md-sys-color-outline-variant); background: var(--md-sys-color-surface); font: inherit; cursor: pointer; }
 .w-slot[aria-pressed='true'] { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+/* crowd: red peak (expect to queue), green quiet — never refused (FIFO) */
+.w-slot[data-crowd='peak'] { border: 2px solid #dc2626; }
+.w-slot[data-crowd='quiet'] { border: 2px solid #16a34a; }
 .w-error { color: var(--md-sys-color-error); }
 .w-muted { opacity: .7; }

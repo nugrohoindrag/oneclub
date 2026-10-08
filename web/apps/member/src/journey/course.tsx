@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router';
 import { useGet, type Page, type Schemas } from '@oneclub/api-client';
 import { formatNumber } from '@oneclub/i18n';
-import { Empty, ErrorAlert, Icon, Skeleton } from '@oneclub/shell';
+import { Empty, ErrorAlert, Icon, Skeleton, TEE_CATEGORY } from '@oneclub/shell';
 import { Head } from './ui';
 
 /*
@@ -44,7 +44,7 @@ export function CourseHandicapCard({ guide, compact }: { guide: Guide; compact?:
         </div>
         {guide.teeSets.map((t) => (
           <div key={t.id} role="row" className="mj-tee-row">
-            <span role="cell"><TeeDot tee={t} /> {t.name}</span>
+            <span role="cell"><TeeDot tee={t} /> {t.name}{t.playerCategory ? <span className="mj-small mj-muted"> · {TEE_CATEGORY[t.playerCategory] ?? t.playerCategory}</span> : null}</span>
             <span role="cell" className="mj-num">{formatNumber(t.lengthMeters)} m</span>
             {!compact && <span role="cell" className="mj-num">{t.courseRating ?? '—'} / {t.slope ?? '—'}</span>}
             <span role="cell"><strong className="mj-num">{t.courseHandicap ?? '—'}</strong></span>
@@ -52,7 +52,34 @@ export function CourseHandicapCard({ guide, compact }: { guide: Guide; compact?:
           </div>
         ))}
       </div>
+      {!compact && <TeeTables guide={guide} />}
     </section>
+  );
+}
+
+const TEE_TABLES = ['red', 'blue', 'white', 'black'];
+
+/** Tee classification: red women, blue / white general, black professional,
+ * each with the club's Handicap Index → Course Handicap table. */
+function TeeTables({ guide }: { guide: Guide }) {
+  const [open, setOpen] = useState('');
+  const tees = guide.teeSets.filter((t) => TEE_TABLES.includes((t.color ?? t.code).toLowerCase()));
+  if (!tees.length) return null;
+  return (
+    <div className="oc-stack" style={{ marginTop: 12 }}>
+      <strong>Tee classification</strong>
+      <div className="mj-guests">
+        {tees.map((t) => {
+          const c = (t.color ?? t.code).toLowerCase();
+          return (
+            <button key={t.id} type="button" className="oc-chip" aria-pressed={open === c} onClick={() => setOpen(open === c ? '' : c)}>
+              <TeeDot tee={t} /> {t.name} · {TEE_CATEGORY[t.playerCategory ?? ''] ?? '—'}
+            </button>
+          );
+        })}
+      </div>
+      {open && <img src={`/tees/${open}.jpg`} alt={`Handicap table of the ${open} tee`} style={{ maxWidth: '100%', borderRadius: 12 }} loading="lazy" />}
+    </div>
   );
 }
 

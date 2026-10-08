@@ -402,9 +402,9 @@ type CourseOrderInput struct {
 	ID       *uuid.UUID             `json:"id,omitempty" doc:"Client UUIDv7 (offline)"`
 	FlightID uuid.UUID              `json:"flightId"`
 	PlayerID uuid.UUID              `json:"playerId"`
-	OutletID uuid.UUID              `json:"outletId" doc:"Halfway House / clubhouse outlet"`
+	OutletID uuid.UUID              `json:"outletId" doc:"Tee house, Halfway House or clubhouse outlet"`
 	Lines    []commercial.LineInput `json:"lines"`
-	Deliver  string                 `json:"deliver,omitempty" enum:"hole,halfway_house" doc:"Default: the next hole"`
+	Deliver  string                 `json:"deliver,omitempty" enum:"hole,halfway_house" doc:"Default: the next hole; halfway_house = pick up at the outlet (tee house)"`
 	Notes    string                 `json:"notes,omitempty"`
 }
 
@@ -431,7 +431,12 @@ func (m *Module) CourseOrder(ctx context.Context, tx pgx.Tx, in CourseOrderInput
 	}
 	dest, ref := "hole", itoa(min(f.CurrentSeq+1, max(f.Holes, 1)))
 	if in.Deliver == "halfway_house" {
-		dest, ref = "halfway_house", "Halfway House"
+		// pick-up at the outlet itself: the Halfway House or a tee house
+		ref = "Halfway House"
+		if name, err := commercial.OutletName(ctx, tx, in.OutletID); err == nil {
+			ref = name
+		}
+		dest = "halfway_house"
 	}
 	return m.POS.CreateOrder(ctx, tx, f.PropertyID, commercial.OrderInput{ID: in.ID, OutletID: in.OutletID, OrderType: "on_course", Source: "caddy_tablet",
 		CustomerID: player.CustomerID, ServingDestination: dest, DestinationRef: ref, ChargeFolioID: f.FolioID, Lines: in.Lines, Send: true, Notes: in.Notes})
@@ -521,7 +526,8 @@ func (m *Module) Earnings(ctx context.Context, q dbtx.Querier, property, caddy u
 
 // RoundSync is one queued tablet action.
 type RoundSync struct {
-	Op           string       `json:"op" enum:"accept,tee_off,hole,finish,score"`
+	Op           string       `json:"op" enum:"accept,tee_off,hole,finish,score,pause,resume"`
+	Reason       string       `json:"reason,omitempty" doc:"pause: rain, lightning, other"`
 	FlightID     uuid.UUID    `json:"flightId"`
 	AssignmentID *uuid.UUID   `json:"assignmentId,omitempty"`
 	ScorecardID  *uuid.UUID   `json:"scorecardId,omitempty"`
@@ -568,6 +574,10 @@ func (m *Module) SyncHandler(ctx context.Context, tx pgx.Tx, payload json.RawMes
 	case "finish":
 		out, err := m.FinishRound(ctx, tx, in.FlightID, RoundEvent{At: in.At, DeviceID: in.DeviceID})
 		return map[string]any{"status": out.Status}, err
+	case "pause":
+		return m.Golf.PauseRound(ctx, tx, in.FlightID, golf.PauseInput{Reason: in.Reason, At: in.At})
+	case "resume":
+		return m.Golf.ResumeRound(ctx, tx, in.FlightID, golf.PauseInput{At: in.At})
 	case "score":
 		if in.ScorecardID == nil {
 			return nil, errs.Validation("scorecard_required", "scorecardId is required")

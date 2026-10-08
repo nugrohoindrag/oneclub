@@ -88,6 +88,9 @@ type WeatherRule struct {
 type WeatherPolicy struct {
 	Rules        []WeatherRule `json:"rules"`
 	ValidityDays int           `json:"validityDays"`
+	// FullCreditBeforeHalf: rain before half of the holes gives a 100% rain
+	// check — the players reschedule (demo feedback 9 Oct 2026).
+	FullCreditBeforeHalf bool `json:"fullCreditBeforeHalf"`
 }
 
 // CaddyPolicy (FR-POL-06).
@@ -119,6 +122,20 @@ type PaymentPolicy struct {
 	Rules            []PaymentRule `json:"rules"`
 	Default          string        `json:"default"`
 	PayBeforeCheckIn bool          `json:"payBeforeCheckIn"`
+	// CustomerModes are the options a player may choose on the website or
+	// the Member App besides the rule's mode: pay in full now (prepaid),
+	// pay part now (deposit, any amount) or pay at the end (pay_at_venue).
+	CustomerModes []string `json:"customerModes"`
+}
+
+// CustomerMay reports whether a player may choose mode online.
+func (p PaymentPolicy) CustomerMay(mode string) bool {
+	for _, m := range p.CustomerModes {
+		if m == mode {
+			return true
+		}
+	}
+	return false
 }
 
 // EligibilityPolicy (FR-FLT-04) defines the special segments.
@@ -146,10 +163,10 @@ var (
 	DefaultCancellation = CancellationPolicy{FreeCancelHours: 24, LateCancelFeePercent: "50", NoShowFeePercent: "100", NoShowBlockAfter: 3, NoShowBlockWindowDays: 90,
 		WaiverRequiresApproval: true}
 	DefaultWeather = WeatherPolicy{Rules: []WeatherRule{{MaxHolesPlayed: 0, CreditPercent: "100"}, {MaxHolesPlayed: 9, CreditPercent: "50"},
-		{MaxHolesPlayed: 36, CreditPercent: "0"}}, ValidityDays: 90}
+		{MaxHolesPlayed: 36, CreditPercent: "0"}}, ValidityDays: 90, FullCreditBeforeHalf: true}
 	DefaultCaddy   = CaddyPolicy{PlayersPerCaddy: 1, Mandatory: true, AllowRequest: true}
 	DefaultCart    = CartPolicy{PlayersPerCart: 2, Mandatory: true, SingleRiderAllowed: true, AfterReturn: "charging"}
-	DefaultPayment = PaymentPolicy{Default: "pay_at_venue", PayBeforeCheckIn: true, Rules: []PaymentRule{
+	DefaultPayment = PaymentPolicy{Default: "pay_at_venue", CustomerModes: []string{"prepaid", "deposit", "pay_at_venue"}, Rules: []PaymentRule{
 		{Channel: "website", Mode: "prepaid", DueMinutes: 15},
 		{Channel: "member_app", Mode: "member_charge"},
 		{BookingType: "group", Mode: "deposit", DepositPercent: "30", DueMinutes: 4320},

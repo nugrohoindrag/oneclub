@@ -4,6 +4,7 @@ import { request } from '@oneclub/api-client';
 import { useTranslation } from '@oneclub/i18n';
 import { AuthFrame, ErrorAlert, LoginPage, PasswordField, TextField, currentSurface, landingPath, useAuth, type Me } from '@oneclub/shell';
 import { DEVICE_KEY, read, write } from './offline';
+import { DemoLink } from './demo';
 import { PresenceLink } from './presence';
 
 /*
@@ -25,11 +26,12 @@ export function StaffLoginPage() {
 
 /** /login/password: e-mail + password, also on a registered device. */
 export function PasswordLoginPage() {
-  if (!deviceMode()) return <LoginPage footer={<PresenceLink />} />;
+  if (!deviceMode()) return <LoginPage footer={<><PresenceLink /><DemoLink /></>} />;
   return (
     <LoginPage footer={
       <>
         <PresenceLink />
+        <DemoLink />
         <p className="oc-small oc-muted" style={{ margin: 0 }}>
           {read(DEVICE_KEY) ? <Link to="/login">PIN login</Link> : <Link to="/login/device">Register this device</Link>}
         </p>
@@ -63,7 +65,7 @@ function DevicePinPage() {
   const nav = useNavigate();
   const [params] = useSearchParams();
   const { refresh } = useAuth();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => params.get('email') ?? '');
   const [pin, setPin] = useState('');
   const [error, setError] = useState<unknown>(null);
   const [denied, setDenied] = useState(false);

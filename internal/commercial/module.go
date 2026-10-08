@@ -97,6 +97,13 @@ var Outlets = &resource.Def{
 		resource.Status("active", "inactive"), resource.Attributes()},
 }
 
+// OutletName is the name of an outlet (public API for the business lines).
+func OutletName(ctx context.Context, q dbtx.Querier, id uuid.UUID) (string, error) {
+	var name string
+	err := q.QueryRow(ctx, `SELECT name FROM commercial.outlets WHERE id = $1`, id).Scan(&name)
+	return name, err
+}
+
 // ── calculation ───────────────────────────────────────────────────────────
 
 // Rule is one rule version in force.

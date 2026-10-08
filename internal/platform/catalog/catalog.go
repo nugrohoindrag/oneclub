@@ -283,7 +283,9 @@ var RoleTemplates = []RoleTemplate{
 	{Code: "membership_manager", Name: "Membership Manager", Category: "Membership", Scope: "property", Permissions: cat(bo, ma("membership", "crm", "reporting"), []string{"reporting.report.view"})},
 	// Reservation
 	{Code: "reservation_staff", Name: "Reservation Staff", Category: "Reservation", Scope: "property", Permissions: cat(bo, ma("reservation"))},
-	{Code: "front_desk", Name: "Front Desk", Category: "Reservation", Scope: "property", Permissions: cat(ops, ma("reservation", "stay"))},
+	// the front desk also works as Caddy Master (caddies and golf carts; demo feedback 9 Oct 2026)
+	{Code: "front_desk", Name: "Front Desk", Category: "Reservation", Scope: "property", Permissions: cat(ops, ma("reservation", "stay", "golf")),
+		Includes: []string{"caddy_manager"}},
 	// Banquet & Event
 	{Code: "banquet_manager", Name: "Banquet Manager", Category: "Banquet & Event", Scope: "property", Permissions: cat(bo, ma("banquet", "reservation", "reporting"), []string{"reporting.report.view"})},
 	{Code: "banquet_sales", Name: "Banquet Sales", Category: "Banquet & Event", Scope: "property", Permissions: cat(bo, ma("banquet", "crm"))},

@@ -28,7 +28,7 @@ test('POS: the cashier picks the customer and pays part of the bill with loyalty
   const page = await context.newPage();
   await login(page, CASHIER, email('cashier'));
   await page.getByRole('button', { name: outlet.name }).click();
-  await page.getByRole('link', { name: 'POS' }).click();
+  await page.getByRole('navigation', { name: 'Operational' }).getByRole('link', { name: 'POS' }).click(); // the rail (Home also has a POS tile)
   await openPosShift(page);
   await page.getByRole('link', { name: 'Table View' }).click();
   await page.getByRole('button', { name: 'Manual Order' }).first().click();

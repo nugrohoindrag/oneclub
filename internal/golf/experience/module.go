@@ -436,7 +436,8 @@ func Contribution() catalog.Contribution {
 			"finance_manager":     {"golf.caddy_settlement.view", "golf.caddy_settlement.manage", "golf.caddy_settlement.pay", "golf.cart_incident.view", "golf.hio.view"},
 			"accountant":          {"golf.caddy_settlement.view", "golf.caddy_settlement.pay"},
 			"membership_admin":    {"golf.reciprocal_club.view", "golf.introduction_letter.view", "golf.introduction_letter.request", "golf.introduction_letter.issue", "golf.reciprocal_visit.view"},
-			"front_desk":          {"golf.reciprocal_visit.view", "golf.reciprocal_visit.verify", "golf.reciprocal_club.view"},
+			"front_desk": {"golf.reciprocal_visit.view", "golf.reciprocal_visit.verify", "golf.reciprocal_club.view",
+				"golf.range_bay.view", "golf.range.view", "golf.range.operate"}, // range bookings at the desk (demo feedback 9 Oct 2026)
 		},
 	}
 }

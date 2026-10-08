@@ -8724,6 +8724,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/commercial/tee-houses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tee houses by group with today's orders, open orders by service status and stock alerts */
+        get: operations["getCommercialTeeHouses"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/tee-houses/stock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tee house stock monitoring: balance against par per item */
+        get: operations["getCommercialTeeHousesStock"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/commercial/tee-houses:setup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set up the tee houses: outlets by group, Halfway House menu, own warehouse with par stock */
+        post: operations["postCommercialTeeHousesSetup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/commercial/time-bands": {
         parameters: {
             query?: never;
@@ -14098,6 +14149,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/bills:pay-combined": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Merge several bookings into one bill and pay it with one tender */
+        post: operations["postGolfBillsPayCombined"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/bookings": {
         parameters: {
             query?: never;
@@ -14133,6 +14201,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/bookings/{id}/bill": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Booking bill at the front desk: balance and the share of every player */
+        get: operations["getGolfBookingsByIdBill"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/bookings/{id}/bill:pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pay the bill in full, in part or per player (split bill) */
+        post: operations["postGolfBookingsByIdBillPay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/bookings/{id}/caddy-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Caddy choice per player at the front desk: assigned, requested, favourites, usual caddies and a recommendation */
+        get: operations["getGolfBookingsByIdCaddySuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/bookings/{id}/history": {
         parameters: {
             query?: never;
@@ -14142,6 +14261,23 @@ export interface paths {
         };
         /** Booking History */
         get: operations["getGolfBookingsByIdHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/bookings/{id}/hole-bests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Best score per hole among the players of a booking */
+        get: operations["getGolfBookingsByIdHoleBests"];
         put?: never;
         post?: never;
         delete?: never;
@@ -14359,6 +14495,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/caddies/{id}/wage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Caddy wage of a month: base salary, caddy fees per assignment, tips, deductions */
+        get: operations["getGolfCaddiesByIdWage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/caddies/{id}:favorite": {
         parameters: {
             query?: never;
@@ -14456,6 +14609,23 @@ export interface paths {
         put?: never;
         /** Cancel a caddy assignment */
         post: operations["postGolfCaddyAssignmentsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/caddy-assignments/{id}:rate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The player's 1–5 caddy rating at the end of the session (front desk) */
+        post: operations["postGolfCaddyAssignmentsByIdRate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -15126,6 +15296,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/customers/{id}/caddies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caddies of a member: rounds together, ratings given, favourites */
+        get: operations["getGolfCustomersByIdCaddies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/customers/{id}/preferences": {
         parameters: {
             query?: never;
@@ -15206,6 +15393,40 @@ export interface paths {
         put?: never;
         /** Move a player to this flight */
         post: operations["postGolfFlightsByIdPlayers"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/flights/{id}:pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pause the round (rain): the play time stops */
+        post: operations["postGolfFlightsByIdPause"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/flights/{id}:resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume the round after the rain */
+        post: operations["postGolfFlightsByIdResume"];
         delete?: never;
         options?: never;
         head?: never;
@@ -15930,6 +16151,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Weekly Hole Leader / Monthly Hole Record and Top Players (by score) */
+        get: operations["getGolfLeaderboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/locker-assignments": {
         parameters: {
             query?: never;
@@ -16312,6 +16550,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/range-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Driving range start times with free bays */
+        get: operations["getGolfRangeAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/range-bays": {
         parameters: {
             query?: never;
@@ -16360,6 +16615,58 @@ export interface paths {
         get: operations["getGolfRangeBaysExport"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/range-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Driving range bookings of a day */
+        get: operations["getGolfRangeBookings"];
+        put?: never;
+        /** Book the range at the front desk (bay and time, or the visit) */
+        post: operations["postGolfRangeBookings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/range-bookings/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a range booking (no fee) */
+        post: operations["postGolfRangeBookingsByIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/range-bookings/{id}:check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Check in: the booked bay when free, else another bay or the queue */
+        post: operations["postGolfRangeBookingsByIdCheckIn"];
         delete?: never;
         options?: never;
         head?: never;
@@ -25946,6 +26253,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/bookings/{id}/hole-bests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Best score per hole in my booking */
+        get: operations["getMemberBookingsByIdHoleBests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/bookings/{id}/journey": {
         parameters: {
             query?: never;
@@ -26458,6 +26782,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/golf/leaderboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Weekly Hole Leader / Monthly Hole Record and Top Players */
+        get: operations["getMemberGolfLeaderboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/golf/members": {
         parameters: {
             query?: never;
@@ -26537,6 +26878,58 @@ export interface paths {
         get: operations["getMemberGolfQuote"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/range-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Driving range start times with free bays */
+        get: operations["getMemberGolfRangeAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/range-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My driving range bookings */
+        get: operations["getMemberGolfRangeBookings"];
+        put?: never;
+        /** Book the driving range (bay and time, or the visit) */
+        post: operations["postMemberGolfRangeBookings"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/range-bookings/{id}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel my driving range booking */
+        post: operations["postMemberGolfRangeBookingsByIdCancel"];
         delete?: never;
         options?: never;
         head?: never;
@@ -31777,6 +32170,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/bookings/{token}:pay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Pay the balance, or part of it, online from the secure link */
+        post: operations["postPublicBookingsByTokenPay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/bootstrap": {
         parameters: {
             query?: never;
@@ -32236,6 +32646,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/public/demo-access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Demo accounts for the demo access page (404 on production or without the demo seed) */
+        get: operations["getPublicDemoAccess"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/public/domains/allowed": {
         parameters: {
             query?: never;
@@ -32365,7 +32792,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Book and pay online (prepaid, Payment Policy) */
+        /** Book: pay in full, pay part now or pay at the club (Payment Policy) */
         post: operations["postPublicGolfBookings"];
         delete?: never;
         options?: never;
@@ -32401,6 +32828,40 @@ export interface paths {
         get: operations["getPublicGolfInfo"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/golf/range-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Driving range start times with free bays */
+        get: operations["getPublicGolfRangeAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/golf/range-bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Book the driving range from the website (no account) */
+        post: operations["postPublicGolfRangeBookings"];
         delete?: never;
         options?: never;
         head?: never;
@@ -33395,6 +33856,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reporting/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Incident dashboard: caddy, golf cart and banquet incidents by source, severity, category and month; open incidents */
+        get: operations["getReportingIncidents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reporting/kpi-definitions": {
         parameters: {
             query?: never;
@@ -33477,6 +33955,23 @@ export interface paths {
         put?: never;
         /** Submit a KPI target plan for approval (approved at once without a workflow) */
         post: operations["postReportingKpiTargetsByIdSubmit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reporting/profit-centers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Profit centers: revenue, cost of sales, direct expenses and contribution per center with the previous period and six months */
+        get: operations["getReportingProfitCenters"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -37479,6 +37974,11 @@ export interface components {
             capacity: number;
             /** Format: uuid */
             courseId: string;
+            /**
+             * @description peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)
+             * @enum {string}
+             */
+            crowd: "quiet" | "peak";
             dayTypeCode: string;
             flightCapacity: number;
             /** Format: uuid */
@@ -37502,7 +38002,10 @@ export interface components {
             /** Format: date-time */
             startAt: string;
             startTee: number;
-            /** @enum {string} */
+            /**
+             * @description A full slot still takes bookings (extra flights, first come first served)
+             * @enum {string}
+             */
             status: "available" | "reserved" | "full" | "blocked";
             used: number;
         };
@@ -39191,6 +39694,17 @@ export interface components {
             status: "open" | "paid" | "voided";
             total: string;
         };
+        BillPayRequest: {
+            /** @description Without players: any amount up to the balance (default the whole balance) */
+            amount?: string;
+            /** @enum {string} */
+            methodType: "cash" | "card" | "qris" | "bank_transfer";
+            payerName?: string;
+            /** @description Split bill: pay the share of these players (one payment per player) */
+            playerIds?: string[];
+            /** @description EDC approval / transfer reference */
+            reference?: string;
+        };
         BillTo: {
             address?: string;
             email?: string;
@@ -39790,6 +40304,22 @@ export interface components {
             /** Format: uuid */
             teeTimeId: string;
         };
+        BookingBill: {
+            balance: string;
+            /** Format: uuid */
+            bookingId: string;
+            charges: string;
+            code: string;
+            contactName: string;
+            /** Format: uuid */
+            folioId?: string | null;
+            lines: components["schemas"]["FolioLine"][];
+            localTime: string;
+            paid: string;
+            payments: components["schemas"]["Payment"][];
+            players: components["schemas"]["PlayerShare"][];
+            status: string;
+        };
         BookingComponent: {
             allocatedNet: string;
             allocatedService: string;
@@ -39835,9 +40365,17 @@ export interface components {
             status: "unused" | "consumed" | "expired" | "cancelled";
         };
         BookingFlight: {
+            /** @description Hole in progress on the caddy tablet (0 before tee-off) */
+            currentHole: number;
             flightNo: number;
+            holesPlayed?: number | null;
             /** Format: uuid */
             id: string;
+            pauseReason?: string | null;
+            /** Format: date-time */
+            pausedAt?: string | null;
+            /** @description Paused time already left out of the play time */
+            pausedSeconds: number;
             /** Format: date-time */
             readyAt?: string | null;
             /** Format: date-time */
@@ -39915,6 +40453,8 @@ export interface components {
              * @description Person responsible (penanggung jawab)
              */
             customerId?: string | null;
+            /** @description Deposit: the amount paid now (any amount up to the total); default the policy percentage */
+            depositAmount?: string;
             /** @description Requested golf carts (above the sharing rule adds a surcharge) */
             golfCartRequest?: number | null;
             /** @description Group booking: consecutive slots, one flight each */
@@ -39960,12 +40500,29 @@ export interface components {
             /** Format: uuid */
             id: string;
             localTime: string;
+            /**
+             * Format: date-time
+             * @description Set while the round is paused (rain): the play time stops
+             */
+            pausedAt?: string | null;
+            /** @description Paused time left out of the play time */
+            pausedSeconds: number;
             paymentMode?: string | null;
             playDate: string;
             playerCount: number;
+            /**
+             * Format: date-time
+             * @description Round finish of the last flight (empty while any flight is still playing)
+             */
+            roundFinishAt?: string | null;
             /** Format: date-time */
             startAt: string;
             status: string;
+            /**
+             * Format: date-time
+             * @description Actual tee-off (first flight dispatched)
+             */
+            teeOffAt?: string | null;
             total?: string | null;
         };
         Bookings: {
@@ -40613,12 +41170,25 @@ export interface components {
             /** @description Caddy fee of finished rounds + non-cash tips */
             recorded: string;
         };
+        CaddyOption: {
+            /** @description Present and free today */
+            available: boolean;
+            /** Format: uuid */
+            caddyId: string;
+            code: string;
+            name: string;
+            /** @enum {string} */
+            reason?: "requested" | "favourite" | "usual" | "queue";
+            /** @description Rounds with this player (usual caddies) */
+            rounds: number;
+        };
         CaddyPolicy: {
             allowRequest: boolean;
             mandatory: boolean;
             playersPerCaddy: number;
         };
         CaddyProfile: {
+            baseSalary?: string | null;
             /** Format: uuid */
             caddyId: string;
             /** Format: date-time */
@@ -40633,6 +41203,8 @@ export interface components {
             userId?: string | null;
         };
         CaddyProfileInput: {
+            /** @description Monthly base salary (gaji pokok) */
+            baseSalary?: string;
             /** @description YYYY-MM-DD */
             joinedOn?: string;
             /**
@@ -40700,6 +41272,32 @@ export interface components {
             id: string;
             method: string;
             tipDate: string;
+        };
+        CaddyWage: {
+            /** @description Finished assignments in the month */
+            assignments: number;
+            averageRating?: string | null;
+            /** @description Monthly base salary (gaji pokok) */
+            baseSalary: string;
+            /** @description Caddy fee per assignment, summed: grows with the number of assignments */
+            caddyFees: string;
+            /** Format: uuid */
+            caddyId: string;
+            /** @description Caddy Policies deductions on the caddy fees */
+            deductions: string;
+            feeBands: components["schemas"]["FeeBand"][];
+            /** @description Different customers accompanied */
+            members: number;
+            /** @description YYYY-MM */
+            month: string;
+            /** @description Already in caddy fee settlements */
+            settled: string;
+            /** @description Received directly by the caddy */
+            tipsCash: string;
+            /** @description Paid through the settlement */
+            tipsNonCash: string;
+            /** @description Base salary + caddy fees + non-cash tips − deductions */
+            total: string;
         };
         CalculateRequest: {
             amount: string;
@@ -41562,11 +42160,24 @@ export interface components {
             lockers: string[];
             /** @description The balance can be charged to a member account */
             memberAccount: boolean;
+            /** Format: date-time */
+            pausedAt?: string | null;
+            pausedSeconds: number;
             paymentMode?: string | null;
             payments: string;
             players: string[];
+            /**
+             * Format: date-time
+             * @description Round finish of the last flight
+             */
+            roundFinishAt?: string | null;
             /** @enum {string} */
             status: "checked_in" | "completed";
+            /**
+             * Format: date-time
+             * @description Actual tee-off (play time starts)
+             */
+            teeOffAt?: string | null;
         };
         CheckOutInput: {
             /**
@@ -43056,6 +43667,15 @@ export interface components {
             label: string;
             /** @enum {string} */
             type: "string" | "number" | "datetime" | "boolean";
+        };
+        CombinedPayRequest: {
+            /** @description The bookings merged into one bill */
+            bookingIds: string[];
+            /** @enum {string} */
+            methodType: "cash" | "card" | "qris" | "bank_transfer";
+            /** @description Who pays the merged bill */
+            payerName?: string;
+            reference?: string;
         };
         Command: {
             /** Format: uuid */
@@ -44878,7 +45498,7 @@ export interface components {
         };
         CourseOrderInput: {
             /**
-             * @description Default: the next hole
+             * @description Default: the next hole; halfway_house = pick up at the outlet (tee house)
              * @enum {string}
              */
             deliver?: "hole" | "halfway_house";
@@ -44893,7 +45513,7 @@ export interface components {
             notes?: string;
             /**
              * Format: uuid
-             * @description Halfway House / clubhouse outlet
+             * @description Tee house, Halfway House or clubhouse outlet
              */
             outletId: string;
             /** Format: uuid */
@@ -46078,6 +46698,13 @@ export interface components {
             /** Format: uuid */
             userId?: string | null;
         };
+        DemoAccess: {
+            accounts: components["schemas"]["DemoAccount"][];
+        };
+        DemoAccount: {
+            email: string;
+            name: string;
+        };
         Department: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -46148,6 +46775,16 @@ export interface components {
         DepreciationRunInput: {
             /** @description YYYY-MM */
             period: string;
+        };
+        DeskRatingInput: {
+            comment?: string;
+            /**
+             * Format: uuid
+             * @description The player of the flight who rates
+             */
+            playerId: string;
+            /** @description 1–5 */
+            rating: number;
         };
         Device: {
             /** Format: date-time */
@@ -49481,6 +50118,11 @@ export interface components {
             /** @enum {string} */
             status: "scheduled" | "due" | "paid" | "waived" | "postponed" | "cancelled";
         };
+        FeeBand: {
+            amount: string;
+            assignments: number;
+            total: string;
+        };
         FeeCalcInput: {
             /** Format: uuid */
             instructorId: string;
@@ -49692,6 +50334,15 @@ export interface components {
             netIncome: string;
             status: string;
             year: number;
+        };
+        FlightPause: {
+            /** Format: uuid */
+            flightId: string;
+            pauseReason?: string | null;
+            /** Format: date-time */
+            pausedAt?: string | null;
+            pausedSeconds: number;
+            status: string;
         };
         FlightRef: {
             /** Format: uuid */
@@ -50163,6 +50814,22 @@ export interface components {
             unchanged: number;
             updated: number;
         };
+        GolfMemberCaddy: {
+            code: string;
+            favorite: boolean;
+            gender?: string | null;
+            /** Format: uuid */
+            id: string;
+            level?: string | null;
+            name: string;
+            /** @description Present on the date (attendance); unknown for later days */
+            onDuty: boolean;
+            /** @description Average of the players' ratings (1–5) */
+            rating?: string | null;
+            ratings: number;
+            /** @description Completed rounds */
+            rounds: number;
+        };
         GolfToday: {
             date: string;
             /** Format: date-time */
@@ -50294,6 +50961,11 @@ export interface components {
             id: string;
             lengthMeters: number;
             name: string;
+            /**
+             * @description Red women, blue / white general, black professional
+             * @enum {string|null}
+             */
+            playerCategory?: "women" | "general" | "professional" | "senior" | "junior" | null;
             slope?: number | null;
         };
         HIO: {
@@ -50860,6 +51532,14 @@ export interface components {
             /** Format: date-time */
             updatedAt: string;
         };
+        HoleBest: {
+            holeNumber: number;
+            par: number;
+            players: string[];
+            sectionCode: string;
+            seq: number;
+            strokes: number;
+        };
         HoleInput: {
             /** @description Code */
             code?: string;
@@ -50897,6 +51577,29 @@ export interface components {
              * @description Stroke Index
              */
             strokeIndex?: number | null;
+        };
+        HoleLeader: {
+            courseName: string;
+            /** Format: uuid */
+            holeId: string;
+            holeNumber: number;
+            par: number;
+            /** @description Everyone sharing the best score, earliest first */
+            players: components["schemas"]["HoleLeaderPlayer"][];
+            sectionCode: string;
+            /** @description Lowest strokes on the hole */
+            strokes: number;
+            /** @description Strokes − par (−2 eagle, −1 birdie …) */
+            toPar: number;
+        };
+        HoleLeaderPlayer: {
+            /** Format: uuid */
+            customerId?: string | null;
+            name: string;
+            /** Format: date-time */
+            playedOn: string;
+            /** Format: uuid */
+            scorecardId: string;
         };
         HoleTime: {
             /** Format: date-time */
@@ -51047,6 +51750,41 @@ export interface components {
             status: "open" | "closed";
             subjectType: string;
         };
+        IncidentDashboard: {
+            byCategory: components["schemas"]["ReportingBreakdown"][];
+            bySeverity: components["schemas"]["ReportingBreakdown"][];
+            bySource: components["schemas"]["ReportingBreakdown"][];
+            byStatus: components["schemas"]["ReportingBreakdown"][];
+            compareFrom: string;
+            compareTo: string;
+            /** @description Damage recorded in the period (golf cart) */
+            damage: string;
+            /** @description Damage charged to a folio */
+            damageCharged: string;
+            from: string;
+            /** Format: date-time */
+            generatedAt: string;
+            /** @description High or critical incidents of the period */
+            highSeverity: number;
+            /** @description Incidents of the period, latest first (up to 100) */
+            items: components["schemas"]["IncidentItem"][];
+            month: string;
+            /** @description Open incidents now (any date) */
+            open: number;
+            /** @description Open incidents, oldest first (up to 20) */
+            openItems: components["schemas"]["IncidentItem"][];
+            /** @description Open for more than 7 days */
+            openOver7Days: number;
+            /** @enum {string} */
+            period: "month" | "year";
+            previousTotal: number;
+            to: string;
+            /** @description Incidents of the period */
+            total: number;
+            totalChange?: string | null;
+            /** @description Six months up to the period's month */
+            trend: components["schemas"]["IncidentMonth"][];
+        };
         IncidentInput: {
             actionTaken?: string;
             /** @description File URLs (uploaded through /api/v1/files) */
@@ -51075,6 +51813,31 @@ export interface components {
             severity?: "low" | "medium" | "high" | "critical";
             /** @enum {string} */
             subjectType: "caddy" | "golf_cart";
+        };
+        IncidentItem: {
+            actionTaken?: string | null;
+            category: string;
+            damageAmount?: string | null;
+            damageStatus?: string | null;
+            description: string;
+            id: string;
+            number: string;
+            /** Format: date-time */
+            occurredAt: string;
+            /** @enum {string} */
+            severity: "low" | "medium" | "high" | "critical";
+            /** @enum {string} */
+            source: "caddy" | "golf_cart" | "banquet";
+            /** @enum {string} */
+            status: "open" | "closed" | "logged";
+            subject?: string | null;
+        };
+        IncidentMonth: {
+            banquet: number;
+            caddy: number;
+            golfCart: number;
+            /** @description YYYY-MM */
+            month: string;
         };
         Indicators: {
             averageRating?: string | null;
@@ -55807,19 +56570,23 @@ export interface components {
             startDate: string;
         };
         MemberCaddy: {
-            code: string;
-            favorite: boolean;
-            gender?: string | null;
+            /** @description Average rating the customer gave this caddy */
+            avgRating?: string | null;
             /** Format: uuid */
-            id: string;
-            level?: string | null;
+            caddyId: string;
+            /** @description Overall average rating of the caddy */
+            caddyRating?: string | null;
+            code: string;
+            favourite: boolean;
+            /** Format: date-time */
+            firstRound: string;
+            lastRating?: number | null;
+            /** Format: date-time */
+            lastRound: string;
             name: string;
-            /** @description Present on the date (attendance); unknown for later days */
-            onDuty: boolean;
-            /** @description Average of the players' ratings (1–5) */
-            rating?: string | null;
-            ratings: number;
-            /** @description Completed rounds */
+            /** @description Times the customer asked for this caddy */
+            requested: number;
+            /** @description Times the caddy accompanied the customer */
             rounds: number;
         };
         MemberEvent: {
@@ -56179,6 +56946,13 @@ export interface components {
              * @description Membership Type
              */
             typeId?: string;
+        };
+        MembershipPauseInput: {
+            /** @description YYYY-MM-DD */
+            from: string;
+            reason: string;
+            /** @description YYYY-MM-DD */
+            until: string;
         };
         MembershipProgram: {
             /** Format: date-time */
@@ -58160,6 +58934,28 @@ export interface components {
             /** @description Weekdays */
             weekdays?: (1 | 2 | 3 | 4 | 5 | 6 | 7)[] | null;
         };
+        OutletStockLine: {
+            itemCode: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            minStock?: string | null;
+            onHand: string;
+            /** Format: uuid */
+            outletId: string;
+            parLevel?: string | null;
+            /** @description Quantity to bring the item back to par */
+            refill: string;
+            /**
+             * @description low: at or under the minimum (or half the par); out: nothing left
+             * @enum {string}
+             */
+            status: "ok" | "low" | "out";
+            unit: string;
+            warehouse: string;
+            /** Format: uuid */
+            warehouseId: string;
+        };
         OvertimeException: {
             approvedHours: string;
             /** Format: uuid */
@@ -59546,11 +60342,16 @@ export interface components {
             email: string;
         };
         PauseInput: {
-            /** @description YYYY-MM-DD */
-            from: string;
-            reason: string;
-            /** @description YYYY-MM-DD */
-            until: string;
+            /**
+             * Format: date-time
+             * @description When it happened on the tablet (offline replay)
+             */
+            at?: string | null;
+            /**
+             * @description Default rain
+             * @enum {string}
+             */
+            reason?: "rain" | "lightning" | "other";
         };
         PayFeeInput: {
             /** @enum {string} */
@@ -60992,6 +61793,11 @@ export interface components {
             /** @enum {string} */
             status: "booked" | "checked_in" | "no_show" | "cancelled" | "removed";
             tba: boolean;
+            /**
+             * Format: uuid
+             * @description Tee the front desk gave the player (else by player category)
+             */
+            teeSetId?: string | null;
         };
         PlayerCaddy: {
             accepted: boolean;
@@ -61005,6 +61811,22 @@ export interface components {
             rated: boolean;
             /** @enum {string} */
             status: "assigned" | "in_play" | "completed";
+        };
+        PlayerCaddySuggestion: {
+            /** Format: uuid */
+            assignmentId?: string | null;
+            /** @description The caddy is assigned once the player has checked in */
+            checkedIn: boolean;
+            current?: components["schemas"]["CaddyOption"] | null;
+            favourites: components["schemas"]["CaddyOption"][];
+            /** Format: uuid */
+            flightId: string;
+            name: string;
+            /** Format: uuid */
+            playerId: string;
+            recommended?: components["schemas"]["CaddyOption"] | null;
+            requested?: components["schemas"]["CaddyOption"] | null;
+            usual: components["schemas"]["CaddyOption"][];
         };
         PlayerContext: {
             /** @description From the scorecard's tee set (WHS) */
@@ -61071,6 +61893,11 @@ export interface components {
             phone?: string | null;
             reciprocalClub?: string | null;
             reciprocalVerified?: boolean | null;
+            /**
+             * Format: uuid
+             * @description The tee the player plays (red women, blue / white general, black professional)
+             */
+            teeSetId?: string | null;
         };
         PlayerRow: {
             bookingCode: string;
@@ -61094,6 +61921,15 @@ export interface components {
             id: string;
             /** @enum {string} */
             status: "draft" | "submitted" | "finalized";
+        };
+        PlayerShare: {
+            due: string;
+            name: string;
+            paid: string;
+            /** Format: uuid */
+            playerId: string;
+            /** @description Own charges (round, caddy) plus an equal part of the shared ones (golf carts, F&B) */
+            share: string;
         };
         PlayingRoute: {
             /** Format: date-time */
@@ -62058,6 +62894,67 @@ export interface components {
             marketingOptIn?: boolean | null;
             phone?: string | null;
         };
+        ProfitCenter: {
+            code: string;
+            /** @description Revenue − cost of sales − direct expenses (for shared: its net) */
+            contribution: string;
+            contributionChange?: string | null;
+            costOfSales: string;
+            directExpense: string;
+            label: string;
+            /** @description Contribution ÷ revenue */
+            margin?: string | null;
+            previousContribution: string;
+            previousRevenue: string;
+            revenue: string;
+            /** @description Change ratio against the previous period */
+            revenueChange?: string | null;
+            /** @description Share of the revenue of all centers */
+            revenueShare?: string | null;
+            /** @description Overhead and other income / expenses that belong to no center */
+            shared: boolean;
+            /** @description Six months up to the period's month */
+            trend: components["schemas"]["ProfitCenterMonth"][];
+        };
+        ProfitCenterAccount: {
+            account: string;
+            accountName: string;
+            amount: string;
+            profitCenter: string;
+            /** @enum {string} */
+            section: "revenue" | "cogs" | "expense" | "other";
+        };
+        ProfitCenterMonth: {
+            contribution: string;
+            /** @description YYYY-MM */
+            month: string;
+            revenue: string;
+        };
+        ProfitCenters: {
+            accounts: components["schemas"]["ProfitCenterAccount"][];
+            /** @description Profit centers with activity, the shared overhead last */
+            centers: components["schemas"]["ProfitCenter"][];
+            compareFrom: string;
+            compareTo: string;
+            /** @description Contribution of the centers */
+            contribution: string;
+            from: string;
+            /** Format: date-time */
+            generatedAt: string;
+            margin?: string | null;
+            month: string;
+            /** @description Contribution + shared net = net income of the P&L */
+            netIncome: string;
+            /** @enum {string} */
+            period: "month" | "year";
+            previousContribution: string;
+            previousNetIncome: string;
+            /** @description Revenue of the centers */
+            revenue: string;
+            /** @description Net of the shared lines (negative = overhead) */
+            sharedNet: string;
+            to: string;
+        };
         ProfitabilityRecalcInput: {
             /** @description Start dates from (YYYY-MM-DD) */
             from: string;
@@ -62454,12 +63351,22 @@ export interface components {
             /** @description UU PDP consent (required) */
             consent: boolean;
             contact: components["schemas"]["PublicContact"];
+            /** @description Deposit: the amount paid now */
+            depositAmount?: string;
             golfCartRequest?: number | null;
             /** Format: uuid */
             holdId: string;
             holdToken: string;
-            /** @enum {string} */
-            paymentMethod: "qris" | "virtual_account" | "card";
+            /**
+             * @description Required when paying now
+             * @enum {string}
+             */
+            paymentMethod?: "qris" | "virtual_account" | "card";
+            /**
+             * @description Pay in full now, pay part now or pay at the club (default: Payment Policy)
+             * @enum {string}
+             */
+            paymentMode?: "prepaid" | "deposit" | "pay_at_venue";
             /** @description Other players (the contact plays as player 1) */
             players?: components["schemas"]["PublicPlayer"][];
         };
@@ -62751,6 +63658,36 @@ export interface components {
             quantity: string;
             total: string;
             unitPrice: string;
+        };
+        PublicRangeBookingInput: {
+            /** @enum {string} */
+            area?: "indoor" | "outdoor";
+            /**
+             * Format: uuid
+             * @description A chosen bay (with reserveBay); default the first free bay
+             */
+            bayId?: string | null;
+            /**
+             * Format: uuid
+             * @description Front desk: the customer or member (empty for a walk-in guest)
+             */
+            customerId?: string | null;
+            /** @description Play date (YYYY-MM-DD) */
+            date: string;
+            guest: components["schemas"]["PublicGuest"];
+            guestEmail?: string;
+            guestName?: string;
+            guestPhone?: string;
+            /** @description Bay time 30–240 minutes (default 60) */
+            minutes?: number;
+            notes?: string;
+            players?: number;
+            /** Format: uuid */
+            propertyId: string;
+            /** @description Hold a bay for the time; false: only announce the visit (balls at the counter) */
+            reserveBay?: boolean;
+            /** @description Arrival time HH:MM (club time); flexible — a late guest queues */
+            time: string;
         };
         PublicRate: {
             currency: string;
@@ -63946,6 +64883,77 @@ export interface components {
             flightId: string;
             holesPlayed: number;
         };
+        RangeBayRef: {
+            code: string;
+            /** Format: uuid */
+            id: string;
+            name: string;
+        };
+        RangeBooking: {
+            /** @enum {string} */
+            area: "indoor" | "outdoor";
+            bayCode?: string | null;
+            /** Format: uuid */
+            bayId?: string | null;
+            /** @description The bay the guest plays on after check-in */
+            bayNow?: string | null;
+            /** @enum {string} */
+            channel: "member_app" | "website" | "back_office" | "walk_in";
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            customerId?: string | null;
+            /** Format: date-time */
+            endAt: string;
+            guestName: string;
+            guestPhone?: string | null;
+            /** @description The bay is held for the time (released when the guest is late or leaves) */
+            holdsBay: boolean;
+            /** Format: uuid */
+            id: string;
+            notes?: string | null;
+            number: string;
+            playDate: string;
+            players: number;
+            /** Format: uuid */
+            sessionId?: string | null;
+            /** @description Range session after check-in: waiting (queue), active (on a bay), finished */
+            sessionStatus?: string | null;
+            /** Format: date-time */
+            startAt: string;
+            /** @enum {string} */
+            status: "booked" | "checked_in" | "cancelled" | "no_show";
+        };
+        RangeBookingInput: {
+            /** @enum {string} */
+            area?: "indoor" | "outdoor";
+            /**
+             * Format: uuid
+             * @description A chosen bay (with reserveBay); default the first free bay
+             */
+            bayId?: string | null;
+            /**
+             * Format: uuid
+             * @description Front desk: the customer or member (empty for a walk-in guest)
+             */
+            customerId?: string | null;
+            /** @description Play date (YYYY-MM-DD) */
+            date: string;
+            guestEmail?: string;
+            guestName?: string;
+            guestPhone?: string;
+            /** @description Bay time 30–240 minutes (default 60) */
+            minutes?: number;
+            notes?: string;
+            players?: number;
+            /** @description Hold a bay for the time; false: only announce the visit (balls at the counter) */
+            reserveBay?: boolean;
+            /** @description Arrival time HH:MM (club time); flexible — a late guest queues */
+            time: string;
+        };
+        RangeCancelInput: {
+            reason?: string;
+        };
         RangeSession: {
             area: string;
             balls: number;
@@ -63980,6 +64988,18 @@ export interface components {
             /** Format: uuid */
             customerId?: string | null;
             guestName?: string;
+        };
+        RangeSlot: {
+            bays: components["schemas"]["RangeBayRef"][];
+            /**
+             * @description peak (red): every bay is taken by bookings at this time — expect to queue; quiet (green)
+             * @enum {string}
+             */
+            crowd: "quiet" | "peak";
+            freeBays: number;
+            /** Format: date-time */
+            startAt: string;
+            time: string;
         };
         RangeUsage: {
             balls: number;
@@ -65272,6 +66292,8 @@ export interface components {
             reason?: string;
         };
         RescheduleRequest: {
+            /** @description Front desk FIFO: move the tee time without repricing (staff only) */
+            keepPrice?: boolean;
             reason: string;
             /** Format: uuid */
             teeTimeId: string;
@@ -66052,6 +67074,13 @@ export interface components {
             holes: number;
             /** @enum {string} */
             paceStatus: "on_pace" | "slow" | "fast";
+            pauseReason?: string | null;
+            /**
+             * Format: date-time
+             * @description Paused (rain): the play time stops
+             */
+            pausedAt?: string | null;
+            pausedSeconds: number;
             /** Format: date-time */
             playDate: string;
             players: components["schemas"]["RoundPlayer"][];
@@ -67050,6 +68079,14 @@ export interface components {
             seq: number;
             source?: string | null;
         };
+        ScoreBoard: {
+            from: string;
+            holeLeaders: components["schemas"]["HoleLeader"][];
+            /** @enum {string} */
+            period: "week" | "month";
+            to: string;
+            topPlayers: components["schemas"]["TopPlayer"][];
+        };
         ScoreCriterion: {
             code: string;
             label: string;
@@ -67124,6 +68161,9 @@ export interface components {
             slopeRating?: number | null;
             /** @enum {string} */
             status: "draft" | "submitted" | "finalized";
+            /** @description Player category of the tee */
+            teeCategory?: string | null;
+            teeColor?: string | null;
             /** Format: uuid */
             teeSetId?: string | null;
             teeSetName?: string | null;
@@ -67684,6 +68724,12 @@ export interface components {
             id: string;
             /** @description Tee time in the club's time zone (HH:MM) */
             localTime: string;
+            /**
+             * Format: date-time
+             * @description Paused (rain): the play time stops
+             */
+            pausedAt?: string | null;
+            pausedSeconds: number;
             players: components["schemas"]["SheetPlayer"][];
             queueStatus?: string | null;
             readiness: components["schemas"]["Readiness"];
@@ -67727,6 +68773,11 @@ export interface components {
             capacity: number;
             /** Format: uuid */
             courseId: string;
+            /**
+             * @description peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)
+             * @enum {string}
+             */
+            crowd: "quiet" | "peak";
             dayTypeCode: string;
             flightCapacity: number;
             flights: components["schemas"]["SheetFlight"][];
@@ -67747,7 +68798,10 @@ export interface components {
             /** Format: date-time */
             startAt: string;
             startTee: number;
-            /** @enum {string} */
+            /**
+             * @description A full slot still takes bookings (extra flights, first come first served)
+             * @enum {string}
+             */
             status: "available" | "reserved" | "full" | "blocked";
             used: number;
         };
@@ -68181,6 +69235,11 @@ export interface components {
             capacity: number;
             /** Format: uuid */
             courseId: string;
+            /**
+             * @description peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)
+             * @enum {string}
+             */
+            crowd: "quiet" | "peak";
             dayTypeCode: string;
             flightCapacity: number;
             /** Format: uuid */
@@ -68200,7 +69259,10 @@ export interface components {
             /** Format: date-time */
             startAt: string;
             startTee: number;
-            /** @enum {string} */
+            /**
+             * @description A full slot still takes bookings (extra flights, first come first served)
+             * @enum {string}
+             */
             status: "available" | "reserved" | "full" | "blocked";
             used: number;
         };
@@ -70223,6 +71285,39 @@ export interface components {
             orgUnit?: string | null;
             phone?: string | null;
         };
+        TeeHouse: {
+            area: string;
+            code: string;
+            group: string;
+            /** Format: uuid */
+            id: string;
+            /** @description Items at or under the minimum */
+            lowStock: number;
+            name: string;
+            /** @description Open orders by service status: new, sent, preparing, ready, out_for_delivery */
+            open: {
+                [key: string]: number;
+            };
+            ordersToday: number;
+            outOfStock: number;
+            salesToday: string;
+            status: string;
+            /** Format: uuid */
+            warehouseId?: string | null;
+        };
+        TeeHouseGroup: {
+            /** @description e.g. Front Nine */
+            area: string;
+            /** @description e.g. A */
+            code: string;
+            count: number;
+        };
+        TeeHouseSetupInput: {
+            /** @description Default: A Front Nine × 3, B Back Nine × 3 */
+            groups?: components["schemas"]["TeeHouseGroup"][];
+            /** @description Outlet / warehouse code whose menu and par stock are copied (default HALFWAY) */
+            template?: string;
+        };
         TeeSet: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -70248,6 +71343,11 @@ export interface components {
             id: string;
             /** @description Name */
             name: string;
+            /**
+             * @description Player Category
+             * @enum {string|null}
+             */
+            playerCategory?: "women" | "general" | "professional" | "senior" | "junior" | null;
             /** Format: uuid */
             propertyId?: string;
             /**
@@ -70294,6 +71394,11 @@ export interface components {
             gender?: "male" | "female" | "any" | null;
             /** @description Name */
             name?: string;
+            /**
+             * @description Player Category
+             * @enum {string|null}
+             */
+            playerCategory?: "women" | "general" | "professional" | "senior" | "junior" | null;
             /**
              * Format: int64
              * @description Sequence
@@ -71002,6 +72107,18 @@ export interface components {
             participants: components["schemas"]["EventParticipantStats"];
             schedule: components["schemas"]["RundownItem"][];
             venues: components["schemas"]["VenueHold"][];
+        };
+        TopPlayer: {
+            /** Format: uuid */
+            customerId?: string | null;
+            gross: number;
+            name: string;
+            /** Format: date-time */
+            playedOn: string;
+            rank: number;
+            /** @description 18-hole rounds in the period */
+            rounds: number;
+            toPar: number;
         };
         TopSpender: {
             banquet: string;
@@ -112608,6 +113725,184 @@ export interface operations {
             };
         };
     };
+    getCommercialTeeHouses: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TeeHouse"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getCommercialTeeHousesStock: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OutletStockLine"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postCommercialTeeHousesSetup: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeeHouseSetupInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TeeHouse"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getCommercialTimeBands: {
         parameters: {
             query?: {
@@ -135619,6 +136914,70 @@ export interface operations {
             };
         };
     };
+    postGolfBillsPayCombined: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CombinedPayRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["BookingBill"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfBookings: {
         parameters: {
             query?: {
@@ -135795,6 +137154,176 @@ export interface operations {
             };
         };
     };
+    getGolfBookingsByIdBill: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingBill"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfBookingsByIdBillPay: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+                /** @description Repeating a request with the same key returns the original result (FR-JOB-06). */
+                "Idempotency-Key"?: string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BillPayRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BookingBill"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfBookingsByIdCaddySuggestions: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PlayerCaddySuggestion"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfBookingsByIdHistory: {
         parameters: {
             query?: {
@@ -135822,6 +137351,66 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["HistoryEntry"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfBookingsByIdHoleBests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["HoleBest"][];
                         nextCursor?: string;
                     };
                 };
@@ -136795,6 +138384,61 @@ export interface operations {
             };
         };
     };
+    getGolfCaddiesByIdWage: {
+        parameters: {
+            query?: {
+                /** @description YYYY-MM (default this month) */
+                month?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaddyWage"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postGolfCaddiesByIdFavorite: {
         parameters: {
             query?: never;
@@ -137174,6 +138818,60 @@ export interface operations {
                         nextCursor?: string;
                     };
                 };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfCaddyAssignmentsByIdRate: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeskRatingInput"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Not authenticated */
             401: {
@@ -140393,6 +142091,66 @@ export interface operations {
             };
         };
     };
+    getGolfCustomersByIdCaddies: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MemberCaddy"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postGolfCustomersByIdPreferences: {
         parameters: {
             query?: never;
@@ -140698,6 +142456,118 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Booking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfFlightsByIdPause: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PauseInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlightPause"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfFlightsByIdResume: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PauseInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlightPause"];
                 };
             };
             /** @description Not authenticated */
@@ -144197,6 +146067,60 @@ export interface operations {
             };
         };
     };
+    getGolfLeaderboard: {
+        parameters: {
+            query?: {
+                period?: "week" | "month";
+                date?: string;
+                courseId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreBoard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfLockerAssignments: {
         parameters: {
             query?: {
@@ -145882,6 +147806,67 @@ export interface operations {
             };
         };
     };
+    getGolfRangeAvailability: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                date: string;
+                area?: string;
+                minutes?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RangeSlot"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfRangeBays: {
         parameters: {
             query?: {
@@ -146191,6 +148176,228 @@ export interface operations {
                 };
                 content: {
                     "text/csv": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfRangeBookings: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                date?: string;
+                "filter[status]"?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RangeBooking"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfRangeBookings: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RangeBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeBooking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfRangeBookingsByIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RangeCancelInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeBooking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfRangeBookingsByIdCheckIn: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeBooking"];
                 };
             };
             /** @description Not authenticated */
@@ -148967,6 +151174,7 @@ export interface operations {
                 /** @description Field name, prefix with - for descending */
                 sort?: string;
                 "filter[courseId]"?: string;
+                "filter[playerCategory]"?: string;
                 "filter[status]"?: string;
             };
             header: {
@@ -149243,6 +151451,7 @@ export interface operations {
                 /** @description Field name, prefix with - for descending */
                 sort?: string;
                 "filter[courseId]"?: string;
+                "filter[playerCategory]"?: string;
                 "filter[status]"?: string;
             };
             header: {
@@ -188263,6 +190472,63 @@ export interface operations {
             };
         };
     };
+    getMemberBookingsByIdHoleBests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["HoleBest"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getMemberBookingsByIdJourney: {
         parameters: {
             query?: never;
@@ -189285,7 +191551,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        items: components["schemas"]["MemberCaddy"][];
+                        items: components["schemas"]["GolfMemberCaddy"][];
                         nextCursor?: string;
                     };
                 };
@@ -189952,6 +192218,57 @@ export interface operations {
             };
         };
     };
+    getMemberGolfLeaderboard: {
+        parameters: {
+            query?: {
+                period?: "week" | "month";
+                date?: string;
+                courseId?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScoreBoard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getMemberGolfMembers: {
         parameters: {
             query?: {
@@ -190189,6 +192506,223 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MemberQuote"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberGolfRangeAvailability: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                date: string;
+                area?: string;
+                minutes?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RangeSlot"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getMemberGolfRangeBookings: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RangeBooking"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberGolfRangeBookings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RangeBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeBooking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberGolfRangeBookingsByIdCancel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RangeCancelInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeBooking"];
                 };
             };
             /** @description Not authenticated */
@@ -192275,7 +194809,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PauseInput"];
+                "application/json": components["schemas"]["MembershipPauseInput"];
             };
         };
         responses: {
@@ -196575,7 +199109,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["PauseInput"];
+                "application/json": components["schemas"]["MembershipPauseInput"];
             };
         };
         responses: {
@@ -211482,6 +214016,44 @@ export interface operations {
             };
         };
     };
+    postPublicBookingsByTokenPay: {
+        parameters: {
+            query?: {
+                /** @description Property code (default: the golf club) */
+                property?: string;
+            };
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PayOnlineInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicBooking"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getPublicBootstrap: {
         parameters: {
             query?: never;
@@ -212427,6 +214999,35 @@ export interface operations {
             };
         };
     };
+    getPublicDemoAccess: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DemoAccess"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getPublicDomainsAllowed: {
         parameters: {
             query: {
@@ -212798,6 +215399,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PublicInfo"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicGolfRangeAvailability: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                propertyId: string;
+                date: string;
+                area?: string;
+                minutes?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RangeSlot"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicGolfRangeBookings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PublicRangeBookingInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RangeBooking"];
                 };
             };
             /** @description Problem Details (RFC 9457) */
@@ -215139,6 +217814,60 @@ export interface operations {
             };
         };
     };
+    getReportingIncidents: {
+        parameters: {
+            query?: {
+                period?: "month" | "year";
+                /** @description YYYY-MM (default: this month) */
+                month?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentDashboard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getReportingKpiDefinitions: {
         parameters: {
             query?: {
@@ -215538,6 +218267,60 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["KPITargetPlan"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getReportingProfitCenters: {
+        parameters: {
+            query?: {
+                period?: "month" | "year";
+                /** @description YYYY-MM (default: this month) */
+                month?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfitCenters"];
                 };
             };
             /** @description Not authenticated */

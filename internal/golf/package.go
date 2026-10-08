@@ -235,6 +235,9 @@ func (m *Module) OnPackageCancelled(ctx context.Context, tx pgx.Tx, ev outbox.Ev
 			AND NOT EXISTS (SELECT 1 FROM golf.booking_players bp WHERE bp.flight_id = f.id AND bp.status = 'checked_in')`, bid); err != nil {
 			return err
 		}
+		if err := releaseCancelledFlights(ctx, tx, property, bid, mustDay(b.PlayDate), reason); err != nil {
+			return err
+		}
 		status := b.Status
 		if b.Status != "checked_in" {
 			status = "cancelled"

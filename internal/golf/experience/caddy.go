@@ -241,6 +241,9 @@ type CaddyProfile struct {
 	Level    *string    `json:"level" db:"level"`
 	UserID   *uuid.UUID `json:"userId" db:"user_id" doc:"Caddy Tablet login"`
 	JoinedOn *time.Time `json:"joinedOn" db:"joined_on"`
+	// BaseSalary is the monthly base salary (gaji pokok); the caddy fee per
+	// assignment comes on top.
+	BaseSalary *string `json:"baseSalary" db:"base_salary"`
 }
 
 // CaddyProfileInput sets the tablet login and joined date (the level
@@ -249,9 +252,11 @@ type CaddyProfileInput struct {
 	UserID   *uuid.UUID `json:"userId,omitempty"`
 	JoinedOn string     `json:"joinedOn,omitempty" doc:"YYYY-MM-DD"`
 	LevelID  *uuid.UUID `json:"levelId,omitempty" doc:"Initial level only; later changes go through promotion"`
+	// BaseSalary sets the monthly base salary ("" keeps it).
+	BaseSalary string `json:"baseSalary,omitempty" doc:"Monthly base salary (gaji pokok)"`
 }
 
-const profileSelect = `SELECT c.id AS caddy_id, p.level_id, l.name AS level, p.user_id, p.joined_on FROM golf.caddies c
+const profileSelect = `SELECT c.id AS caddy_id, p.level_id, l.name AS level, p.user_id, p.joined_on, trim_scale(p.base_salary)::text AS base_salary FROM golf.caddies c
 	LEFT JOIN golf.caddy_profiles p ON p.caddy_id = c.id LEFT JOIN golf.caddy_levels l ON l.id = p.level_id`
 
 func (m *Module) CaddyProfile(ctx context.Context, q dbtx.Querier, property, caddy uuid.UUID) (CaddyProfile, error) {
@@ -271,13 +276,23 @@ func (m *Module) SetCaddyProfile(ctx context.Context, tx pgx.Tx, property, caddy
 		}
 		joined = &in.JoinedOn
 	}
+	var salary *string
+	if in.BaseSalary != "" {
+		v, err := decimal.NewFromString(in.BaseSalary)
+		if err != nil || v.IsNegative() {
+			return before, handle.Invalid("baseSalary", "invalid", "a non-negative amount")
+		}
+		s := v.String()
+		salary = &s
+	}
 	if in.LevelID != nil && before.LevelID != nil && *before.LevelID != *in.LevelID {
 		return before, errs.Conflict("level_change_needs_promotion", "the level changes through a promotion request")
 	}
-	if _, err := tx.Exec(ctx, `INSERT INTO golf.caddy_profiles (caddy_id, property_id, level_id, user_id, joined_on, created_by, updated_by)
-		VALUES ($1,$2,$3,$4,$5::date,$6,$6) ON CONFLICT (caddy_id) DO UPDATE SET level_id = coalesce(golf.caddy_profiles.level_id, EXCLUDED.level_id),
+	if _, err := tx.Exec(ctx, `INSERT INTO golf.caddy_profiles (caddy_id, property_id, level_id, user_id, joined_on, base_salary, created_by, updated_by)
+		VALUES ($1,$2,$3,$4,$5::date,$7::numeric,$6,$6) ON CONFLICT (caddy_id) DO UPDATE SET level_id = coalesce(golf.caddy_profiles.level_id, EXCLUDED.level_id),
 		user_id = coalesce(EXCLUDED.user_id, golf.caddy_profiles.user_id), joined_on = coalesce(EXCLUDED.joined_on, golf.caddy_profiles.joined_on),
-		updated_by = EXCLUDED.updated_by`, caddy, property, in.LevelID, in.UserID, joined, actorPtr(ctx)); err != nil {
+		base_salary = coalesce(EXCLUDED.base_salary, golf.caddy_profiles.base_salary), updated_by = EXCLUDED.updated_by`,
+		caddy, property, in.LevelID, in.UserID, joined, actorPtr(ctx), salary); err != nil {
 		if ok, _ := dbtx.IsUniqueViolation(err); ok {
 			return before, handle.Invalid("userId", "user_taken", "this user is already the tablet login of another caddy")
 		}

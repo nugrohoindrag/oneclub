@@ -69,6 +69,8 @@ var TeeSets = &resource.Def{
 		{Name: "courseRating", Column: "course_rating", Label: "Course Rating", Kind: resource.Decimal, Min: resource.Min(1), MaxN: resource.Max(99.9)},
 		{Name: "slope", Column: "slope", Label: "Slope", Kind: resource.Int, Min: resource.Min(55), MaxN: resource.Max(155)},
 		{Name: "gender", Column: "gender", Label: "Gender", Kind: resource.Enum, Enum: []string{"male", "female", "any"}},
+		// tee colour classification: red women, blue / white general, black professional
+		{Name: "playerCategory", Column: "player_category", Label: "Player Category", Kind: resource.Enum, Enum: []string{"women", "general", "professional", "senior", "junior"}, Filter: true},
 		{Name: "sequence", Column: "sequence", Label: "Sequence", Kind: resource.Int, Default: int64(1)},
 		resource.Status("active", "inactive")},
 }
@@ -318,10 +320,12 @@ func Contribution() catalog.Contribution {
 			"caddy_manager":     caddyMgr,
 			"golf_staff":        staff,
 			"reservation_staff": desk,
-			"front_desk":        desk,
-			"general_manager":   append(append([]string{}, view...), "golf.booking.export"),
-			"club_manager":      append(append([]string{}, view...), "golf.booking.export"),
-			"finance_manager":   {"golf.booking.view", "golf.course.view", "golf.tee_sheet.view"},
+			// the front desk assigns the caddies and golf carts (Caddy Master role merged in, demo feedback 9 Oct 2026)
+			"front_desk": append(append([]string{}, desk...), "golf.caddy_assignment.manage", "golf.golf_cart_assignment.manage", "golf.golf_cart.update",
+				"golf.rain_check.issue"),
+			"general_manager": append(append([]string{}, view...), "golf.booking.export"),
+			"club_manager":    append(append([]string{}, view...), "golf.booking.export"),
+			"finance_manager": {"golf.booking.view", "golf.course.view", "golf.tee_sheet.view"},
 		},
 	}
 }

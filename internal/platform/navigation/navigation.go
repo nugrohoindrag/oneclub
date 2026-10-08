@@ -409,6 +409,8 @@ var Trees = map[string][]Item{
 		{Key: "banquet-performance", Label: "Banquet Performance", Path: "/management/banquet-performance", Icon: "celebration", Module: "banquet", Permission: catalog.ManagementView},
 		{Key: "procurement-performance", Label: "Procurement Performance", Path: "/management/procurement-performance", Icon: "request_quote", Module: "procurement", Permission: catalog.ManagementView},
 		{Key: "financial-performance", Label: "Financial Performance", Path: "/management/financial", Icon: "payments", Module: "accounting", Permission: catalog.ManagementView},
+		{Key: "profit-centers", Label: "Profit Centers", Path: "/management/profit-centers", Icon: "account_tree", Module: "accounting", Permission: catalog.ManagementView},
+		{Key: "incidents", Label: "Incidents", Path: "/management/incidents", Icon: "report", Module: "reporting", Permission: catalog.ManagementView},
 		// PRD P5 EP-21 / EP-27: HR Performance and the KPI targets of the Executive Overview.
 		{Key: "hr-performance", Label: "HR Performance", Path: "/management/hr-performance", Icon: "badge", Module: "reporting", Permission: "reporting.hr_performance.view"},
 		{Key: "kpi-targets", Label: "KPI Targets", Path: "/management/targets", Icon: "monitoring", Module: "reporting", Permission: "reporting.kpi_target.view"},
@@ -420,6 +422,7 @@ var Trees = map[string][]Item{
 		{Key: "home", Label: "Home", Path: "/", Icon: "home", Permission: catalog.ShellMemberPortal},
 		{Key: "book", Label: "Book", Path: "/book", Icon: "calendar_add_on", Permission: catalog.ShellMemberPortal, Children: []Item{
 			inModule("golf", s("book-tee-time", "Tee Time", "/book/tee-time", catalog.ShellMemberPortal)),
+			inModule("golf", s("book-driving-range", "Driving Range", "/book/driving-range", catalog.ShellMemberPortal)),
 			inModule("golf", s("course-guide", "Course Guide", "/golf/course-guide", catalog.ShellMemberPortal)),
 			inModule("stay", s("book-bungalow", "Bungalow", "/book/bungalow", catalog.ShellMemberPortal)),
 			inModule("stay", s("book-meeting-room", "Meeting Room", "/book/meeting-room", catalog.ShellMemberPortal)),
@@ -433,6 +436,7 @@ var Trees = map[string][]Item{
 		{Key: "activity", Label: "My Activity", Path: "/activity", Icon: "history", Permission: catalog.ShellMemberPortal, Children: []Item{
 			s("my-bookings", "Bookings", "/activity", catalog.ShellMemberPortal),
 			inModule("golf", s("golf-history", "Golf History", "/activity/golf", catalog.ShellMemberPortal)),
+			inModule("golf", s("golf-leaderboard", "Leaderboard", "/activity/leaderboard", catalog.ShellMemberPortal)),
 			inModule("golf", s("scores-handicap", "Scores & Handicap", "/golf/scores", catalog.ShellMemberPortal)),
 			inModule("stay", s("stay-history", "Stay History", "/activity/stays", catalog.ShellMemberPortal)),
 			inModule("banquet", s("my-events", "My Events", "/events/my-events", catalog.ShellMemberPortal)),
@@ -499,6 +503,7 @@ var Trees = map[string][]Item{
 		}},
 		{Key: "front-desk", Label: "Front Desk", Path: "/ops/front-desk", Icon: "concierge", Module: "golf", Permission: "golf.check_in.perform", Children: []Item{
 			s("reservations", "Reservations", "/ops/front-desk", "golf.booking.view"),
+			s("fd-new-booking", "New Booking", "/ops/front-desk/new", "golf.booking.create"),
 			s("fd-check-in", "Check-in", "/ops/check-in", "golf.check_in.perform"),
 			s("fd-check-out", "Check-out", "/ops/check-out", "golf.check_in.perform"),
 			s("guest", "Guest", "/ops/front-desk/guest", "crm.guest.view"),
@@ -524,6 +529,7 @@ var Trees = map[string][]Item{
 		// PRD P5 §7.2, FR-INS-HR-04: Honor Statement of partner instructors (payout runs).
 		{Key: "honor-statement", Label: "Honor Statement", Path: "/ops/instructor/honor", Icon: "request_quote", Module: "hris", Permission: "hris.payout.own"},
 		{Key: "pos", Label: "POS", Path: "/ops/pos", Icon: "point_of_sale", Module: "commercial", Permission: "commercial.order.create"},
+		{Key: "tee-houses", Label: "Tee Houses", Path: "/ops/tee-houses", Icon: "storefront", Module: "commercial", Permission: "commercial.order.view"},
 		{Key: "package-use", Label: "Package Use", Path: "/ops/packages", Icon: "card_travel", Module: "commercial", Permission: "commercial.package_booking.consume"},
 		{Key: "warehouse", Label: "Warehouse", Path: "/ops/warehouse", Icon: "warehouse", Module: "inventory", Permission: "inventory.stock_balance.view", Children: []Item{
 			s("warehouse-stock", "Stock Balance", "/ops/warehouse", "inventory.stock_balance.view"),

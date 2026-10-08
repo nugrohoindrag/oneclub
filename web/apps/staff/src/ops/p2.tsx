@@ -172,6 +172,7 @@ export function DrivingRangePage() {
             onClick={() => start.mutate({ guestName: guest, area }, { onSuccess: () => { setGuest(''); toast('Checked in'); } })}>Assign bay / queue</button>
         </div>
       </Card>
+      <RangeBookingsCard onCheckIn={() => void sessions.refetch()} />
       {last && <div className="oc-alert oc-alert-info">Dispenser code <strong className="oc-code">{last.dispenserCode}</strong> · {last.balls} balls{last.dispenseMode === 'bridge' ? ' (sent to dispenser)' : ''}{last.remainingBalance ? ` · balance ${last.remainingBalance}` : ''}</div>}
       <div className="oc-card">
         <DataTable rows={sessions.data?.items as unknown as Row[]} columns={[{ key: 'number', header: 'Session' }, { key: 'bayCode', header: 'Bay' },
@@ -185,6 +186,33 @@ export function DrivingRangePage() {
           )} />
       </div>
     </div>
+  );
+}
+
+/** Today's range bookings: check-in gives the booked bay when free, else
+ * the next free bay or the queue (the time is flexible). */
+function RangeBookingsCard({ onCheckIn }: { onCheckIn: () => void }) {
+  const toast = useToast();
+  const list = useGet<Page<Schemas['RangeBooking']>>('/api/v1/golf/range-bookings', { refetchInterval: 30_000 });
+  const inv = ['/api/v1/golf/range-bookings', '/api/v1/golf/range-sessions'];
+  const checkIn = useSend<Row>('POST', (b) => `/api/v1/golf/range-bookings/${String(b.id)}:check-in`, inv);
+  const cancel = useSend<Row>('POST', (b) => `/api/v1/golf/range-bookings/${String(b.id)}:cancel`, inv);
+  const time = (v: unknown) => new Date(String(v)).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  return (
+    <Card title="Range bookings today" icon="event_available" actions={<Link className="oc-btn oc-btn-primary oc-btn-sm" to="/ops/front-desk/new?kind=range">Book range</Link>}>
+      <ErrorAlert error={checkIn.error ?? cancel.error} />
+      <DataTable rows={list.data?.items as unknown as Row[]} loading={list.isLoading} columns={[{ key: 'startAt', header: 'Time', render: (r) => `${time(r.startAt)}–${time(r.endAt)}` },
+        { key: 'number', header: 'Booking' }, { key: 'guestName', header: 'Guest' }, { key: 'players', header: 'Players' },
+        { key: 'bayCode', header: 'Bay', render: (r) => String(r.bayNow ?? r.bayCode ?? (r.holdsBay ? '' : 'counter')) + (r.status === 'booked' && r.bayCode && !r.holdsBay ? ' (released)' : '') },
+        { key: 'status', header: 'Status', render: (r) => <StatusPill status={r.sessionStatus === 'waiting' ? 'waiting' : String(r.status).replace(/_/g, '-')} /> }]}
+        actions={(r) => r.status === 'booked' && (
+          <div className="oc-row">
+            <button className="oc-btn oc-btn-ink oc-btn-sm" disabled={checkIn.isPending} onClick={() => checkIn.mutate({ id: r.id },
+              { onSuccess: () => { toast('Checked in'); onCheckIn(); } })}>Check-in</button>
+            <button className="oc-btn oc-btn-neutral oc-btn-sm" disabled={cancel.isPending} onClick={() => cancel.mutate({ id: r.id, reason: 'Cancelled at the desk' })}>Cancel</button>
+          </div>
+        )} />
+    </Card>
   );
 }
 

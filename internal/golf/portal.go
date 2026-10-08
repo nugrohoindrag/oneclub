@@ -737,7 +737,9 @@ type PublicBookingRequest struct {
 	Consent       bool           `json:"consent" doc:"UU PDP consent (required)"`
 	CartRequest   *int           `json:"golfCartRequest,omitempty"`
 	CaddyRequest  string         `json:"caddyRequest,omitempty"`
-	PaymentMethod string         `json:"paymentMethod" enum:"qris,virtual_account,card"`
+	PaymentMode   string         `json:"paymentMode,omitempty" enum:"prepaid,deposit,pay_at_venue" doc:"Pay in full now, pay part now or pay at the club (default: Payment Policy)"`
+	DepositAmount string         `json:"depositAmount,omitempty" doc:"Deposit: the amount paid now"`
+	PaymentMethod string         `json:"paymentMethod,omitempty" enum:"qris,virtual_account,card" doc:"Required when paying now"`
 	CaptchaToken  string         `json:"captchaToken,omitempty"`
 }
 
@@ -804,6 +806,11 @@ func (m *Module) publicBook(w http.ResponseWriter, r *http.Request) {
 	}
 	switch req.PaymentMethod {
 	case "qris", "virtual_account", "card":
+	case "":
+		if req.PaymentMode == "pay_at_venue" {
+			break
+		}
+		fallthrough
 	default:
 		httpx.WriteError(w, r, errs.Validation("invalid_payment_method", "choose QRIS, Virtual Account or Card", errs.Field("paymentMethod", "invalid", "qris, virtual_account or card")))
 		return
@@ -834,7 +841,7 @@ func (m *Module) publicBook(w http.ResponseWriter, r *http.Request) {
 		}
 		b, err := m.CreateBooking(ctx, tx, p, BookingRequest{HoldID: &req.HoldID, BookingType: "non_member", Channel: "website", CustomerID: ref.CustomerID,
 			ContactName: req.Contact.Name, ContactPhone: req.Contact.Phone, ContactEmail: req.Contact.Email, Players: players, CartRequest: req.CartRequest,
-			CaddyRequest: req.CaddyRequest, PaymentMethod: req.PaymentMethod, Consent: true}, false)
+			CaddyRequest: req.CaddyRequest, PaymentMode: req.PaymentMode, DepositAmount: req.DepositAmount, PaymentMethod: req.PaymentMethod, Consent: true}, false)
 		if err != nil {
 			return nil, err
 		}
@@ -868,6 +875,34 @@ func (m *Module) publicManage(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 		return toPublic(b, ""), nil
+	})
+}
+
+// publicPay pays (part of) the balance online from the secure link: a guest
+// who chose to pay later or paid part at booking.
+func (m *Module) publicPay(w http.ResponseWriter, r *http.Request) {
+	token := chiParam(r, "token")
+	req, ok := decode[billing.PayOnlineInput](w, r)
+	if !ok {
+		return
+	}
+	if err := m.limit(r, "public-pay", 10); err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	m.public(w, r, true, http.StatusOK, func(ctx context.Context, tx pgx.Tx, p uuid.UUID) (any, error) {
+		b, err := m.bookingByToken(ctx, tx, p, token)
+		if err != nil {
+			return nil, err
+		}
+		if b.FolioID == nil || b.Status == "cancelled" || b.Status == "no_show" {
+			return nil, errs.Conflict("nothing_due", "this booking has nothing to pay online")
+		}
+		if _, err := m.Billing.PayOnline(ctx, tx, *b.FolioID, req); err != nil {
+			return nil, err
+		}
+		nb, err := GetBooking(ctx, tx, b.ID)
+		return toPublic(nb, ""), err
 	})
 }
 
@@ -940,9 +975,11 @@ func (m *Module) registerPortal(reg *route.Registry) {
 		Response: AvailableSlot{}, List: true, Query: []route.Param{{Name: "date"}, {Name: "courseId"}, {Name: "players", Type: "integer"}, {Name: "session"}}, Handler: m.publicAvailability})
 	pub(route.Route{Method: http.MethodPost, Path: "/api/v1/public/golf/holds", Summary: "Hold a tee time (CAPTCHA, rate limited)", Request: HoldRequest{}, Response: Hold{},
 		Handler: m.publicHold})
-	pub(route.Route{Method: http.MethodPost, Path: "/api/v1/public/golf/bookings", Summary: "Book and pay online (prepaid, Payment Policy)",
+	pub(route.Route{Method: http.MethodPost, Path: "/api/v1/public/golf/bookings", Summary: "Book: pay in full, pay part now or pay at the club (Payment Policy)",
 		Request: PublicBookingRequest{}, Response: PublicBooking{}, Handler: m.publicBook})
 	pub(route.Route{Method: http.MethodGet, Path: "/api/v1/public/bookings/{token}", Summary: "Manage booking (secure link)", Response: PublicBooking{}, Handler: m.publicManage})
+	pub(route.Route{Method: http.MethodPost, Path: "/api/v1/public/bookings/{token}:pay", Summary: "Pay the balance, or part of it, online from the secure link",
+		Request: billing.PayOnlineInput{}, Response: PublicBooking{}, Status: http.StatusOK, Handler: m.publicPay})
 	pub(route.Route{Method: http.MethodPost, Path: "/api/v1/public/bookings/{token}:cancel", Summary: "Cancel from the secure link (Cancellation Policy)",
 		Request: ReasonBody{}, Response: PublicBooking{}, Status: http.StatusOK, Handler: m.publicCancel})
 }

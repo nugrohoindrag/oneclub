@@ -402,8 +402,9 @@ type Slot struct {
 	Peak           bool       `json:"peak"`
 	MemberOnly     bool       `json:"memberOnly"`
 	Lighting       bool       `json:"lighting"`
-	Status         string     `json:"status" enum:"available,reserved,full,blocked"`
+	Status         string     `json:"status" enum:"available,reserved,full,blocked" doc:"A full slot still takes bookings (extra flights, first come first served)"`
 	BlockReason    *string    `json:"blockReason"`
+	Crowd          string     `json:"crowd" enum:"quiet,peak" doc:"peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)"`
 }
 
 func slotStatus(raw string, used, capacity int) string {
@@ -416,6 +417,15 @@ func slotStatus(raw string, used, capacity int) string {
 		return "reserved"
 	}
 	return "available"
+}
+
+// slotCrowd is the colour of a slot: a booking is never refused for a full
+// slot (FIFO), the player sees it is busy instead.
+func slotCrowd(peak bool, used, capacity int) string {
+	if peak || used >= capacity {
+		return "peak"
+	}
+	return "quiet"
 }
 
 // slotUsage counts seats in use per tee time: players of active bookings
@@ -450,6 +460,7 @@ func loadSlots(ctx context.Context, q dbtx.Querier, loc *time.Location, where st
 			s.Remaining = 0
 		}
 		s.Status = slotStatus(raw, s.Used, s.Capacity)
+		s.Crowd = slotCrowd(s.Peak, s.Used, s.Capacity)
 		out = append(out, s)
 	}
 	return out, rows.Err()
@@ -519,7 +530,7 @@ func (m *Module) availability(ctx context.Context, tx pgx.Tx, property uuid.UUID
 			continue
 		}
 		if players > 0 && s.Remaining < players {
-			s.Status = "full"
+			s.Crowd = "peak" // the party goes on an extra flight
 		}
 		as := AvailableSlot{Slot: s, Prices: map[string]string{}}
 		ck := s.Session + "|" + s.DayTypeCode + "|" + fmt.Sprint(s.Peak) + "|" + fmt.Sprint(s.PlayingRouteID)
@@ -615,6 +626,8 @@ type SheetFlight struct {
 	ReadyAt       *time.Time    `json:"readyAt"`
 	TeeOffAt      *time.Time    `json:"teeOffAt"`
 	FinishAt      *time.Time    `json:"roundFinishAt"`
+	PausedAt      *time.Time    `json:"pausedAt" doc:"Paused (rain): the play time stops"`
+	PausedSeconds int           `json:"pausedSeconds"`
 	Players       []SheetPlayer `json:"players"`
 	Carts         []string      `json:"golfCarts"`
 	CartsNeeded   int           `json:"golfCartsNeeded"`
@@ -691,7 +704,7 @@ type flightRow struct {
 
 func (m *Module) loadFlights(ctx context.Context, q dbtx.Querier, pol Policies, where string, args ...any) ([]flightRow, error) {
 	rows, err := q.Query(ctx, `SELECT f.id, f.tee_time_id, f.flight_no, f.booking_id, b.code, b.status, b.booking_type, f.status, f.ready_at, f.tee_off_at,
-		f.round_finish_at, sq.status, b.folio_id, b.payment_mode, t.start_at, f.property_id
+		f.round_finish_at, sq.status, b.folio_id, b.payment_mode, t.start_at, f.property_id, f.paused_at, f.paused_seconds
 		FROM golf.flights f LEFT JOIN golf.bookings b ON b.id = f.booking_id LEFT JOIN golf.starter_queue sq ON sq.flight_id = f.id
 		LEFT JOIN golf.tee_times t ON t.id = f.tee_time_id
 		WHERE `+where+` ORDER BY f.flight_no`, args...)
@@ -711,7 +724,7 @@ func (m *Module) loadFlights(ctx context.Context, q dbtx.Querier, pol Policies, 
 		var start *time.Time
 		var property uuid.UUID
 		if err := rows.Scan(&f.ID, &f.teeTimeID, &f.FlightNo, &f.BookingID, &f.BookingCode, &f.BookingStatus, &f.BookingType, &f.Status, &f.ReadyAt, &f.TeeOffAt,
-			&f.FinishAt, &f.QueueStatus, &e.folio, &e.mode, &start, &property); err != nil {
+			&f.FinishAt, &f.QueueStatus, &e.folio, &e.mode, &start, &property, &f.PausedAt, &f.PausedSeconds); err != nil {
 			rows.Close()
 			return nil, err
 		}

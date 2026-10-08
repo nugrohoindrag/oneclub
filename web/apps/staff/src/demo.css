@@ -1,0 +1,69 @@
+/* Demo access page (/demo) on the dashboard kit tokens. */
+.oc-demo { min-height: 100%; background: var(--dash-canvas); color: var(--dash-text); padding: 24px 16px 48px; }
+.oc-demo > * { max-width: 1280px; margin-left: auto; margin-right: auto; }
+
+.oc-demo-head { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.oc-demo-logo { width: 52px; height: 52px; object-fit: contain; border-radius: 14px; background: var(--dash-card); padding: 6px; }
+.oc-demo-head h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+.oc-demo-head p { margin: 2px 0 0; color: var(--dash-sub); font-size: 14px; }
+
+.oc-demo-steps { display: flex; gap: 8px; list-style: none; padding: 0; margin: 0 auto 16px; counter-reset: step; flex-wrap: wrap; }
+.oc-demo-steps li { counter-increment: step; display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border-radius: 999px;
+  background: var(--dash-card); color: var(--dash-sub); font-size: 13px; font-weight: 600; }
+.oc-demo-steps li::before { content: counter(step); display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--dash-muted); color: var(--dash-sub); font-size: 12px; }
+.oc-demo-steps li[data-on] { color: var(--dash-text); }
+.oc-demo-steps li[data-on]::before { background: var(--dash-blue); color: #fff; }
+
+.oc-demo-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.oc-demo-card { position: relative; display: block; padding: 0; border: 0; border-radius: 22px; overflow: hidden; cursor: pointer; aspect-ratio: 3 / 4;
+  background: var(--dash-dark); color: #fff; text-align: left; font: inherit; outline: 3px solid transparent; outline-offset: 3px;
+  transition: transform .15s ease, outline-color .15s ease; }
+.oc-demo-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .3s ease; }
+.oc-demo-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.78) 100%); }
+.oc-demo-card:hover img { transform: scale(1.04); }
+.oc-demo-card:focus-visible, .oc-demo-card[data-on] { outline-color: var(--dash-blue); }
+.oc-demo-card[data-on] { transform: translateY(-4px); }
+.oc-demo-card-text { position: absolute; z-index: 1; left: 16px; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 4px; }
+.oc-demo-card-text strong { font-size: 20px; line-height: 1.15; font-weight: 700; }
+.oc-demo-card-text small { font-size: 12.5px; line-height: 1.35; opacity: .88; }
+.oc-demo-card-text em { align-self: flex-start; margin-top: 6px; font-style: normal; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+  background: rgba(255,255,255,.18); backdrop-filter: blur(6px); }
+.oc-demo-card[data-on] .oc-demo-card-text em { background: var(--dash-blue); }
+
+.oc-demo-people { margin-top: 24px; scroll-margin-top: 16px; }
+.oc-demo-people h2 { margin: 0 0 12px; font-size: 18px; font-weight: 700; }
+.oc-demo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.oc-demo-person { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 14px 16px;
+  border-radius: 18px; background: var(--dash-card); color: inherit; text-decoration: none; border: 1px solid var(--dash-line);
+  transition: border-color .15s ease, transform .15s ease; }
+.oc-demo-person:hover, .oc-demo-person:focus-visible { border-color: var(--dash-blue); transform: translateY(-2px); }
+.oc-demo-person > .material-symbols-rounded, .oc-demo-person > [class*='icon'] { color: var(--dash-sub); }
+.oc-demo-avatar { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; font-weight: 700; font-size: 15px;
+  background: var(--dash-blue); color: #fff; }
+.oc-demo-avatar[data-surface='cashier'] { background: var(--dash-ink); color: var(--dash-card); }
+.oc-demo-avatar[data-surface='caddy'] { background: var(--dash-lime); color: #161616; }
+.oc-demo-avatar[data-surface='member'] { background: var(--dash-amber); color: #161616; }
+.oc-demo-person-text { display: flex; flex-direction: column; min-width: 0; }
+.oc-demo-person-text strong { font-size: 15px; }
+.oc-demo-person-text span { font-size: 13px; font-weight: 600; color: var(--dash-blue); }
+.oc-demo-person-text small { font-size: 12px; color: var(--dash-sub); }
+.oc-demo-person-text code { font-size: 11.5px; color: var(--dash-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oc-demo-chip { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; padding: 4px 8px; border-radius: 999px;
+  background: var(--dash-muted); color: var(--dash-sub); white-space: nowrap; }
+
+.oc-demo-note { color: var(--dash-sub); font-size: 13px; margin: 14px 0 0; }
+.oc-demo-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 64px 16px; color: var(--dash-sub); text-align: center; }
+
+@media (max-width: 1100px) {
+  .oc-demo-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .oc-demo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .oc-demo-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .oc-demo-card { aspect-ratio: 4 / 5; }
+  .oc-demo-card-text small { display: none; }
+  .oc-demo-grid { grid-template-columns: minmax(0, 1fr); }
+  .oc-demo-person { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .oc-demo-chip { display: none; }
+}

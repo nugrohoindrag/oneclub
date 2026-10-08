@@ -6838,6 +6838,14 @@
             "format": "uuid",
             "type": "string"
           },
+          "crowd": {
+            "description": "peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)",
+            "enum": [
+              "quiet",
+              "peak"
+            ],
+            "type": "string"
+          },
           "dayTypeCode": {
             "type": "string"
           },
@@ -6900,6 +6908,7 @@
             "type": "integer"
           },
           "status": {
+            "description": "A full slot still takes bookings (extra flights, first come first served)",
             "enum": [
               "available",
               "reserved",
@@ -6931,6 +6940,7 @@
           "memberOnly",
           "lighting",
           "status",
+          "crowd",
           "prices"
         ],
         "type": "object"
@@ -11482,6 +11492,42 @@
         ],
         "type": "object"
       },
+      "BillPayRequest": {
+        "properties": {
+          "amount": {
+            "description": "Without players: any amount up to the balance (default the whole balance)",
+            "type": "string"
+          },
+          "methodType": {
+            "enum": [
+              "cash",
+              "card",
+              "qris",
+              "bank_transfer"
+            ],
+            "type": "string"
+          },
+          "payerName": {
+            "type": "string"
+          },
+          "playerIds": {
+            "description": "Split bill: pay the share of these players (one payment per player)",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "reference": {
+            "description": "EDC approval / transfer reference",
+            "type": "string"
+          }
+        },
+        "required": [
+          "methodType"
+        ],
+        "type": "object"
+      },
       "BillTo": {
         "properties": {
           "address": {
@@ -13414,6 +13460,72 @@
         ],
         "type": "object"
       },
+      "BookingBill": {
+        "properties": {
+          "balance": {
+            "type": "string"
+          },
+          "bookingId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "charges": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "contactName": {
+            "type": "string"
+          },
+          "folioId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/FolioLine"
+            },
+            "type": "array"
+          },
+          "localTime": {
+            "type": "string"
+          },
+          "paid": {
+            "type": "string"
+          },
+          "payments": {
+            "items": {
+              "$ref": "#/components/schemas/Payment"
+            },
+            "type": "array"
+          },
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/PlayerShare"
+            },
+            "type": "array"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bookingId",
+          "code",
+          "localTime",
+          "contactName",
+          "status",
+          "charges",
+          "paid",
+          "balance",
+          "players",
+          "lines",
+          "payments"
+        ],
+        "type": "object"
+      },
       "BookingComponent": {
         "properties": {
           "allocatedNet": {
@@ -13560,12 +13672,33 @@
       },
       "BookingFlight": {
         "properties": {
+          "currentHole": {
+            "description": "Hole in progress on the caddy tablet (0 before tee-off)",
+            "type": "integer"
+          },
           "flightNo": {
+            "type": "integer"
+          },
+          "holesPlayed": {
+            "nullable": true,
             "type": "integer"
           },
           "id": {
             "format": "uuid",
             "type": "string"
+          },
+          "pauseReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedSeconds": {
+            "description": "Paused time already left out of the play time",
+            "type": "integer"
           },
           "readyAt": {
             "format": "date-time",
@@ -13603,7 +13736,9 @@
           "startAt",
           "startTee",
           "flightNo",
-          "status"
+          "status",
+          "pausedSeconds",
+          "currentHole"
         ],
         "type": "object"
       },
@@ -13806,6 +13941,10 @@
             "nullable": true,
             "type": "string"
           },
+          "depositAmount": {
+            "description": "Deposit: the amount paid now (any amount up to the total); default the policy percentage",
+            "type": "string"
+          },
           "golfCartRequest": {
             "description": "Requested golf carts (above the sharing rule adds a surcharge)",
             "nullable": true,
@@ -13916,6 +14055,16 @@
           "localTime": {
             "type": "string"
           },
+          "pausedAt": {
+            "description": "Set while the round is paused (rain): the play time stops",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedSeconds": {
+            "description": "Paused time left out of the play time",
+            "type": "integer"
+          },
           "paymentMode": {
             "nullable": true,
             "type": "string"
@@ -13926,11 +14075,23 @@
           "playerCount": {
             "type": "integer"
           },
+          "roundFinishAt": {
+            "description": "Round finish of the last flight (empty while any flight is still playing)",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
           "startAt": {
             "format": "date-time",
             "type": "string"
           },
           "status": {
+            "type": "string"
+          },
+          "teeOffAt": {
+            "description": "Actual tee-off (first flight dispatched)",
+            "format": "date-time",
+            "nullable": true,
             "type": "string"
           },
           "total": {
@@ -13951,7 +14112,8 @@
           "localTime",
           "playerCount",
           "contactName",
-          "createdAt"
+          "createdAt",
+          "pausedSeconds"
         ],
         "type": "object"
       },
@@ -15780,6 +15942,45 @@
         ],
         "type": "object"
       },
+      "CaddyOption": {
+        "properties": {
+          "available": {
+            "description": "Present and free today",
+            "type": "boolean"
+          },
+          "caddyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "requested",
+              "favourite",
+              "usual",
+              "queue"
+            ],
+            "type": "string"
+          },
+          "rounds": {
+            "description": "Rounds with this player (usual caddies)",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "caddyId",
+          "code",
+          "name",
+          "rounds",
+          "available"
+        ],
+        "type": "object"
+      },
       "CaddyPolicy": {
         "properties": {
           "allowRequest": {
@@ -15801,6 +16002,10 @@
       },
       "CaddyProfile": {
         "properties": {
+          "baseSalary": {
+            "nullable": true,
+            "type": "string"
+          },
           "caddyId": {
             "format": "uuid",
             "type": "string"
@@ -15833,6 +16038,10 @@
       },
       "CaddyProfileInput": {
         "properties": {
+          "baseSalary": {
+            "description": "Monthly base salary (gaji pokok)",
+            "type": "string"
+          },
           "joinedOn": {
             "description": "YYYY-MM-DD",
             "type": "string"
@@ -16011,6 +16220,79 @@
           "method",
           "tipDate",
           "createdAt"
+        ],
+        "type": "object"
+      },
+      "CaddyWage": {
+        "properties": {
+          "assignments": {
+            "description": "Finished assignments in the month",
+            "type": "integer"
+          },
+          "averageRating": {
+            "nullable": true,
+            "type": "string"
+          },
+          "baseSalary": {
+            "description": "Monthly base salary (gaji pokok)",
+            "type": "string"
+          },
+          "caddyFees": {
+            "description": "Caddy fee per assignment, summed: grows with the number of assignments",
+            "type": "string"
+          },
+          "caddyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "deductions": {
+            "description": "Caddy Policies deductions on the caddy fees",
+            "type": "string"
+          },
+          "feeBands": {
+            "items": {
+              "$ref": "#/components/schemas/FeeBand"
+            },
+            "type": "array"
+          },
+          "members": {
+            "description": "Different customers accompanied",
+            "type": "integer"
+          },
+          "month": {
+            "description": "YYYY-MM",
+            "type": "string"
+          },
+          "settled": {
+            "description": "Already in caddy fee settlements",
+            "type": "string"
+          },
+          "tipsCash": {
+            "description": "Received directly by the caddy",
+            "type": "string"
+          },
+          "tipsNonCash": {
+            "description": "Paid through the settlement",
+            "type": "string"
+          },
+          "total": {
+            "description": "Base salary + caddy fees + non-cash tips − deductions",
+            "type": "string"
+          }
+        },
+        "required": [
+          "caddyId",
+          "month",
+          "baseSalary",
+          "assignments",
+          "members",
+          "caddyFees",
+          "feeBands",
+          "tipsNonCash",
+          "tipsCash",
+          "deductions",
+          "total",
+          "settled"
         ],
         "type": "object"
       },
@@ -18662,6 +18944,14 @@
             "description": "The balance can be charged to a member account",
             "type": "boolean"
           },
+          "pausedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedSeconds": {
+            "type": "integer"
+          },
           "paymentMode": {
             "nullable": true,
             "type": "string"
@@ -18675,11 +18965,23 @@
             },
             "type": "array"
           },
+          "roundFinishAt": {
+            "description": "Round finish of the last flight",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
           "status": {
             "enum": [
               "checked_in",
               "completed"
             ],
+            "type": "string"
+          },
+          "teeOffAt": {
+            "description": "Actual tee-off (play time starts)",
+            "format": "date-time",
+            "nullable": true,
             "type": "string"
           }
         },
@@ -18697,7 +18999,8 @@
           "balance",
           "memberAccount",
           "lockers",
-          "bags"
+          "bags",
+          "pausedSeconds"
         ],
         "type": "object"
       },
@@ -22983,6 +23286,39 @@
           "key",
           "label",
           "type"
+        ],
+        "type": "object"
+      },
+      "CombinedPayRequest": {
+        "properties": {
+          "bookingIds": {
+            "description": "The bookings merged into one bill",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "methodType": {
+            "enum": [
+              "cash",
+              "card",
+              "qris",
+              "bank_transfer"
+            ],
+            "type": "string"
+          },
+          "payerName": {
+            "description": "Who pays the merged bill",
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "bookingIds",
+          "methodType"
         ],
         "type": "object"
       },
@@ -27918,7 +28254,7 @@
       "CourseOrderInput": {
         "properties": {
           "deliver": {
-            "description": "Default: the next hole",
+            "description": "Default: the next hole; halfway_house = pick up at the outlet (tee house)",
             "enum": [
               "hole",
               "halfway_house"
@@ -27945,7 +28281,7 @@
             "type": "string"
           },
           "outletId": {
-            "description": "Halfway House / clubhouse outlet",
+            "description": "Tee house, Halfway House or clubhouse outlet",
             "format": "uuid",
             "type": "string"
           },
@@ -31253,6 +31589,35 @@
         ],
         "type": "object"
       },
+      "DemoAccess": {
+        "properties": {
+          "accounts": {
+            "items": {
+              "$ref": "#/components/schemas/DemoAccount"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "accounts"
+        ],
+        "type": "object"
+      },
+      "DemoAccount": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "name"
+        ],
+        "type": "object"
+      },
       "Department": {
         "properties": {
           "archivedAt": {
@@ -31433,6 +31798,27 @@
         },
         "required": [
           "period"
+        ],
+        "type": "object"
+      },
+      "DeskRatingInput": {
+        "properties": {
+          "comment": {
+            "type": "string"
+          },
+          "playerId": {
+            "description": "The player of the flight who rates",
+            "format": "uuid",
+            "type": "string"
+          },
+          "rating": {
+            "description": "1–5",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "playerId",
+          "rating"
         ],
         "type": "object"
       },
@@ -40605,6 +40991,25 @@
         ],
         "type": "object"
       },
+      "FeeBand": {
+        "properties": {
+          "amount": {
+            "type": "string"
+          },
+          "assignments": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "assignments",
+          "total"
+        ],
+        "type": "object"
+      },
       "FeeCalcInput": {
         "properties": {
           "instructorId": {
@@ -41347,6 +41752,35 @@
           "status",
           "netIncome",
           "closedAt"
+        ],
+        "type": "object"
+      },
+      "FlightPause": {
+        "properties": {
+          "flightId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "pauseReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedSeconds": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "flightId",
+          "status",
+          "pausedSeconds"
         ],
         "type": "object"
       },
@@ -42806,6 +43240,57 @@
         ],
         "type": "object"
       },
+      "GolfMemberCaddy": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "gender": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "level": {
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "onDuty": {
+            "description": "Present on the date (attendance); unknown for later days",
+            "type": "boolean"
+          },
+          "rating": {
+            "description": "Average of the players' ratings (1–5)",
+            "nullable": true,
+            "type": "string"
+          },
+          "ratings": {
+            "type": "integer"
+          },
+          "rounds": {
+            "description": "Completed rounds",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "ratings",
+          "rounds",
+          "favorite",
+          "onDuty"
+        ],
+        "type": "object"
+      },
       "GolfToday": {
         "properties": {
           "date": {
@@ -43150,6 +43635,18 @@
             "type": "integer"
           },
           "name": {
+            "type": "string"
+          },
+          "playerCategory": {
+            "description": "Red women, blue / white general, black professional",
+            "enum": [
+              "women",
+              "general",
+              "professional",
+              "senior",
+              "junior"
+            ],
+            "nullable": true,
             "type": "string"
           },
           "slope": {
@@ -44777,6 +45274,40 @@
         ],
         "type": "object"
       },
+      "HoleBest": {
+        "properties": {
+          "holeNumber": {
+            "type": "integer"
+          },
+          "par": {
+            "type": "integer"
+          },
+          "players": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "sectionCode": {
+            "type": "string"
+          },
+          "seq": {
+            "type": "integer"
+          },
+          "strokes": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "seq",
+          "holeNumber",
+          "sectionCode",
+          "par",
+          "strokes",
+          "players"
+        ],
+        "type": "object"
+      },
       "HoleInput": {
         "properties": {
           "code": {
@@ -44831,6 +45362,78 @@
             "type": "integer"
           }
         },
+        "type": "object"
+      },
+      "HoleLeader": {
+        "properties": {
+          "courseName": {
+            "type": "string"
+          },
+          "holeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "holeNumber": {
+            "type": "integer"
+          },
+          "par": {
+            "type": "integer"
+          },
+          "players": {
+            "description": "Everyone sharing the best score, earliest first",
+            "items": {
+              "$ref": "#/components/schemas/HoleLeaderPlayer"
+            },
+            "type": "array"
+          },
+          "sectionCode": {
+            "type": "string"
+          },
+          "strokes": {
+            "description": "Lowest strokes on the hole",
+            "type": "integer"
+          },
+          "toPar": {
+            "description": "Strokes − par (−2 eagle, −1 birdie …)",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "holeId",
+          "holeNumber",
+          "sectionCode",
+          "courseName",
+          "par",
+          "strokes",
+          "toPar",
+          "players"
+        ],
+        "type": "object"
+      },
+      "HoleLeaderPlayer": {
+        "properties": {
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "playedOn": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "scorecardId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "playedOn",
+          "scorecardId"
+        ],
         "type": "object"
       },
       "HoleTime": {
@@ -45334,6 +45937,136 @@
         ],
         "type": "object"
       },
+      "IncidentDashboard": {
+        "properties": {
+          "byCategory": {
+            "items": {
+              "$ref": "#/components/schemas/ReportingBreakdown"
+            },
+            "type": "array"
+          },
+          "bySeverity": {
+            "items": {
+              "$ref": "#/components/schemas/ReportingBreakdown"
+            },
+            "type": "array"
+          },
+          "bySource": {
+            "items": {
+              "$ref": "#/components/schemas/ReportingBreakdown"
+            },
+            "type": "array"
+          },
+          "byStatus": {
+            "items": {
+              "$ref": "#/components/schemas/ReportingBreakdown"
+            },
+            "type": "array"
+          },
+          "compareFrom": {
+            "type": "string"
+          },
+          "compareTo": {
+            "type": "string"
+          },
+          "damage": {
+            "description": "Damage recorded in the period (golf cart)",
+            "type": "string"
+          },
+          "damageCharged": {
+            "description": "Damage charged to a folio",
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "highSeverity": {
+            "description": "High or critical incidents of the period",
+            "type": "integer"
+          },
+          "items": {
+            "description": "Incidents of the period, latest first (up to 100)",
+            "items": {
+              "$ref": "#/components/schemas/IncidentItem"
+            },
+            "type": "array"
+          },
+          "month": {
+            "type": "string"
+          },
+          "open": {
+            "description": "Open incidents now (any date)",
+            "type": "integer"
+          },
+          "openItems": {
+            "description": "Open incidents, oldest first (up to 20)",
+            "items": {
+              "$ref": "#/components/schemas/IncidentItem"
+            },
+            "type": "array"
+          },
+          "openOver7Days": {
+            "description": "Open for more than 7 days",
+            "type": "integer"
+          },
+          "period": {
+            "enum": [
+              "month",
+              "year"
+            ],
+            "type": "string"
+          },
+          "previousTotal": {
+            "type": "integer"
+          },
+          "to": {
+            "type": "string"
+          },
+          "total": {
+            "description": "Incidents of the period",
+            "type": "integer"
+          },
+          "totalChange": {
+            "nullable": true,
+            "type": "string"
+          },
+          "trend": {
+            "description": "Six months up to the period's month",
+            "items": {
+              "$ref": "#/components/schemas/IncidentMonth"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "period",
+          "month",
+          "from",
+          "to",
+          "compareFrom",
+          "compareTo",
+          "total",
+          "previousTotal",
+          "highSeverity",
+          "open",
+          "openOver7Days",
+          "damage",
+          "damageCharged",
+          "bySource",
+          "bySeverity",
+          "byCategory",
+          "byStatus",
+          "trend",
+          "openItems",
+          "items",
+          "generatedAt"
+        ],
+        "type": "object"
+      },
       "IncidentInput": {
         "properties": {
           "actionTaken": {
@@ -45409,6 +46142,102 @@
           "subjectType",
           "category",
           "description"
+        ],
+        "type": "object"
+      },
+      "IncidentItem": {
+        "properties": {
+          "actionTaken": {
+            "nullable": true,
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "damageAmount": {
+            "nullable": true,
+            "type": "string"
+          },
+          "damageStatus": {
+            "nullable": true,
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "low",
+              "medium",
+              "high",
+              "critical"
+            ],
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "caddy",
+              "golf_cart",
+              "banquet"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "closed",
+              "logged"
+            ],
+            "type": "string"
+          },
+          "subject": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "number",
+          "category",
+          "severity",
+          "status",
+          "description",
+          "occurredAt"
+        ],
+        "type": "object"
+      },
+      "IncidentMonth": {
+        "properties": {
+          "banquet": {
+            "type": "integer"
+          },
+          "caddy": {
+            "type": "integer"
+          },
+          "golfCart": {
+            "type": "integer"
+          },
+          "month": {
+            "description": "YYYY-MM",
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "caddy",
+          "golfCart",
+          "banquet"
         ],
         "type": "object"
       },
@@ -58629,52 +59458,59 @@
       },
       "MemberCaddy": {
         "properties": {
-          "code": {
-            "type": "string"
-          },
-          "favorite": {
-            "type": "boolean"
-          },
-          "gender": {
+          "avgRating": {
+            "description": "Average rating the customer gave this caddy",
             "nullable": true,
             "type": "string"
           },
-          "id": {
+          "caddyId": {
             "format": "uuid",
             "type": "string"
           },
-          "level": {
+          "caddyRating": {
+            "description": "Overall average rating of the caddy",
             "nullable": true,
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "favourite": {
+            "type": "boolean"
+          },
+          "firstRound": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "lastRating": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "lastRound": {
+            "format": "date-time",
             "type": "string"
           },
           "name": {
             "type": "string"
           },
-          "onDuty": {
-            "description": "Present on the date (attendance); unknown for later days",
-            "type": "boolean"
-          },
-          "rating": {
-            "description": "Average of the players' ratings (1–5)",
-            "nullable": true,
-            "type": "string"
-          },
-          "ratings": {
+          "requested": {
+            "description": "Times the customer asked for this caddy",
             "type": "integer"
           },
           "rounds": {
-            "description": "Completed rounds",
+            "description": "Times the caddy accompanied the customer",
             "type": "integer"
           }
         },
         "required": [
-          "id",
+          "caddyId",
           "code",
           "name",
-          "ratings",
           "rounds",
-          "favorite",
-          "onDuty"
+          "firstRound",
+          "lastRound",
+          "favourite",
+          "requested"
         ],
         "type": "object"
       },
@@ -59781,6 +60617,27 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "MembershipPauseInput": {
+        "properties": {
+          "from": {
+            "description": "YYYY-MM-DD",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "until": {
+            "description": "YYYY-MM-DD",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "until",
+          "reason"
+        ],
         "type": "object"
       },
       "MembershipProgram": {
@@ -66007,6 +66864,71 @@
         },
         "type": "object"
       },
+      "OutletStockLine": {
+        "properties": {
+          "itemCode": {
+            "type": "string"
+          },
+          "itemId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "minStock": {
+            "nullable": true,
+            "type": "string"
+          },
+          "onHand": {
+            "type": "string"
+          },
+          "outletId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "parLevel": {
+            "nullable": true,
+            "type": "string"
+          },
+          "refill": {
+            "description": "Quantity to bring the item back to par",
+            "type": "string"
+          },
+          "status": {
+            "description": "low: at or under the minimum (or half the par); out: nothing left",
+            "enum": [
+              "ok",
+              "low",
+              "out"
+            ],
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "warehouse": {
+            "type": "string"
+          },
+          "warehouseId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "outletId",
+          "warehouseId",
+          "warehouse",
+          "itemId",
+          "itemCode",
+          "itemName",
+          "unit",
+          "onHand",
+          "status",
+          "refill"
+        ],
+        "type": "object"
+      },
       "OvertimeException": {
         "properties": {
           "approvedHours": {
@@ -70022,23 +70944,22 @@
       },
       "PauseInput": {
         "properties": {
-          "from": {
-            "description": "YYYY-MM-DD",
+          "at": {
+            "description": "When it happened on the tablet (offline replay)",
+            "format": "date-time",
+            "nullable": true,
             "type": "string"
           },
           "reason": {
-            "type": "string"
-          },
-          "until": {
-            "description": "YYYY-MM-DD",
+            "description": "Default rain",
+            "enum": [
+              "rain",
+              "lightning",
+              "other"
+            ],
             "type": "string"
           }
         },
-        "required": [
-          "from",
-          "until",
-          "reason"
-        ],
         "type": "object"
       },
       "PayFeeInput": {
@@ -74512,6 +75433,12 @@
           },
           "tba": {
             "type": "boolean"
+          },
+          "teeSetId": {
+            "description": "Tee the front desk gave the player (else by player category)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
           }
         },
         "required": [
@@ -74569,6 +75496,75 @@
           "status",
           "accepted",
           "rated"
+        ],
+        "type": "object"
+      },
+      "PlayerCaddySuggestion": {
+        "properties": {
+          "assignmentId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "checkedIn": {
+            "description": "The caddy is assigned once the player has checked in",
+            "type": "boolean"
+          },
+          "current": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CaddyOption"
+              }
+            ],
+            "nullable": true
+          },
+          "favourites": {
+            "items": {
+              "$ref": "#/components/schemas/CaddyOption"
+            },
+            "type": "array"
+          },
+          "flightId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "playerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "recommended": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CaddyOption"
+              }
+            ],
+            "nullable": true
+          },
+          "requested": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/CaddyOption"
+              }
+            ],
+            "nullable": true
+          },
+          "usual": {
+            "items": {
+              "$ref": "#/components/schemas/CaddyOption"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "playerId",
+          "flightId",
+          "name",
+          "checkedIn",
+          "favourites",
+          "usual"
         ],
         "type": "object"
       },
@@ -74789,6 +75785,12 @@
           "reciprocalVerified": {
             "nullable": true,
             "type": "boolean"
+          },
+          "teeSetId": {
+            "description": "The tee the player plays (red women, blue / white general, black professional)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
           }
         },
         "type": "object"
@@ -74869,6 +75871,35 @@
           "id",
           "holes",
           "status"
+        ],
+        "type": "object"
+      },
+      "PlayerShare": {
+        "properties": {
+          "due": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "paid": {
+            "type": "string"
+          },
+          "playerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "share": {
+            "description": "Own charges (round, caddy) plus an equal part of the shared ones (golf carts, F\u0026B)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "playerId",
+          "name",
+          "share",
+          "paid",
+          "due"
         ],
         "type": "object"
       },
@@ -77785,6 +78816,218 @@
         },
         "type": "object"
       },
+      "ProfitCenter": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "contribution": {
+            "description": "Revenue − cost of sales − direct expenses (for shared: its net)",
+            "type": "string"
+          },
+          "contributionChange": {
+            "nullable": true,
+            "type": "string"
+          },
+          "costOfSales": {
+            "type": "string"
+          },
+          "directExpense": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "margin": {
+            "description": "Contribution ÷ revenue",
+            "nullable": true,
+            "type": "string"
+          },
+          "previousContribution": {
+            "type": "string"
+          },
+          "previousRevenue": {
+            "type": "string"
+          },
+          "revenue": {
+            "type": "string"
+          },
+          "revenueChange": {
+            "description": "Change ratio against the previous period",
+            "nullable": true,
+            "type": "string"
+          },
+          "revenueShare": {
+            "description": "Share of the revenue of all centers",
+            "nullable": true,
+            "type": "string"
+          },
+          "shared": {
+            "description": "Overhead and other income / expenses that belong to no center",
+            "type": "boolean"
+          },
+          "trend": {
+            "description": "Six months up to the period's month",
+            "items": {
+              "$ref": "#/components/schemas/ProfitCenterMonth"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "shared",
+          "revenue",
+          "costOfSales",
+          "directExpense",
+          "contribution",
+          "previousRevenue",
+          "previousContribution",
+          "trend"
+        ],
+        "type": "object"
+      },
+      "ProfitCenterAccount": {
+        "properties": {
+          "account": {
+            "type": "string"
+          },
+          "accountName": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "string"
+          },
+          "profitCenter": {
+            "type": "string"
+          },
+          "section": {
+            "enum": [
+              "revenue",
+              "cogs",
+              "expense",
+              "other"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "profitCenter",
+          "section",
+          "account",
+          "accountName",
+          "amount"
+        ],
+        "type": "object"
+      },
+      "ProfitCenterMonth": {
+        "properties": {
+          "contribution": {
+            "type": "string"
+          },
+          "month": {
+            "description": "YYYY-MM",
+            "type": "string"
+          },
+          "revenue": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "month",
+          "revenue",
+          "contribution"
+        ],
+        "type": "object"
+      },
+      "ProfitCenters": {
+        "properties": {
+          "accounts": {
+            "items": {
+              "$ref": "#/components/schemas/ProfitCenterAccount"
+            },
+            "type": "array"
+          },
+          "centers": {
+            "description": "Profit centers with activity, the shared overhead last",
+            "items": {
+              "$ref": "#/components/schemas/ProfitCenter"
+            },
+            "type": "array"
+          },
+          "compareFrom": {
+            "type": "string"
+          },
+          "compareTo": {
+            "type": "string"
+          },
+          "contribution": {
+            "description": "Contribution of the centers",
+            "type": "string"
+          },
+          "from": {
+            "type": "string"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "margin": {
+            "nullable": true,
+            "type": "string"
+          },
+          "month": {
+            "type": "string"
+          },
+          "netIncome": {
+            "description": "Contribution + shared net = net income of the P\u0026L",
+            "type": "string"
+          },
+          "period": {
+            "enum": [
+              "month",
+              "year"
+            ],
+            "type": "string"
+          },
+          "previousContribution": {
+            "type": "string"
+          },
+          "previousNetIncome": {
+            "type": "string"
+          },
+          "revenue": {
+            "description": "Revenue of the centers",
+            "type": "string"
+          },
+          "sharedNet": {
+            "description": "Net of the shared lines (negative = overhead)",
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "period",
+          "month",
+          "from",
+          "to",
+          "compareFrom",
+          "compareTo",
+          "centers",
+          "revenue",
+          "contribution",
+          "sharedNet",
+          "netIncome",
+          "previousContribution",
+          "previousNetIncome",
+          "accounts",
+          "generatedAt"
+        ],
+        "type": "object"
+      },
       "ProfitabilityRecalcInput": {
         "properties": {
           "from": {
@@ -79009,6 +80252,10 @@
           "contact": {
             "$ref": "#/components/schemas/PublicContact"
           },
+          "depositAmount": {
+            "description": "Deposit: the amount paid now",
+            "type": "string"
+          },
           "golfCartRequest": {
             "nullable": true,
             "type": "integer"
@@ -79021,10 +80268,20 @@
             "type": "string"
           },
           "paymentMethod": {
+            "description": "Required when paying now",
             "enum": [
               "qris",
               "virtual_account",
               "card"
+            ],
+            "type": "string"
+          },
+          "paymentMode": {
+            "description": "Pay in full now, pay part now or pay at the club (default: Payment Policy)",
+            "enum": [
+              "prepaid",
+              "deposit",
+              "pay_at_venue"
             ],
             "type": "string"
           },
@@ -79040,8 +80297,7 @@
           "holdId",
           "holdToken",
           "contact",
-          "consent",
-          "paymentMethod"
+          "consent"
         ],
         "type": "object"
       },
@@ -80065,6 +81321,74 @@
           "unitPrice",
           "discount",
           "total"
+        ],
+        "type": "object"
+      },
+      "PublicRangeBookingInput": {
+        "properties": {
+          "area": {
+            "enum": [
+              "indoor",
+              "outdoor"
+            ],
+            "type": "string"
+          },
+          "bayId": {
+            "description": "A chosen bay (with reserveBay); default the first free bay",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerId": {
+            "description": "Front desk: the customer or member (empty for a walk-in guest)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "date": {
+            "description": "Play date (YYYY-MM-DD)",
+            "type": "string"
+          },
+          "guest": {
+            "$ref": "#/components/schemas/PublicGuest"
+          },
+          "guestEmail": {
+            "type": "string"
+          },
+          "guestName": {
+            "type": "string"
+          },
+          "guestPhone": {
+            "type": "string"
+          },
+          "minutes": {
+            "description": "Bay time 30–240 minutes (default 60)",
+            "type": "integer"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "players": {
+            "type": "integer"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reserveBay": {
+            "description": "Hold a bay for the time; false: only announce the visit (balls at the counter)",
+            "type": "boolean"
+          },
+          "time": {
+            "description": "Arrival time HH:MM (club time); flexible — a late guest queues",
+            "type": "string"
+          }
+        },
+        "required": [
+          "propertyId",
+          "guest",
+          "date",
+          "time"
         ],
         "type": "object"
       },
@@ -83925,6 +85249,206 @@
         ],
         "type": "object"
       },
+      "RangeBayRef": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "type": "object"
+      },
+      "RangeBooking": {
+        "properties": {
+          "area": {
+            "enum": [
+              "indoor",
+              "outdoor"
+            ],
+            "type": "string"
+          },
+          "bayCode": {
+            "nullable": true,
+            "type": "string"
+          },
+          "bayId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "bayNow": {
+            "description": "The bay the guest plays on after check-in",
+            "nullable": true,
+            "type": "string"
+          },
+          "channel": {
+            "enum": [
+              "member_app",
+              "website",
+              "back_office",
+              "walk_in"
+            ],
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "endAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "guestName": {
+            "type": "string"
+          },
+          "guestPhone": {
+            "nullable": true,
+            "type": "string"
+          },
+          "holdsBay": {
+            "description": "The bay is held for the time (released when the guest is late or leaves)",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "number": {
+            "type": "string"
+          },
+          "playDate": {
+            "type": "string"
+          },
+          "players": {
+            "type": "integer"
+          },
+          "sessionId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "sessionStatus": {
+            "description": "Range session after check-in: waiting (queue), active (on a bay), finished",
+            "nullable": true,
+            "type": "string"
+          },
+          "startAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "booked",
+              "checked_in",
+              "cancelled",
+              "no_show"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "number",
+          "playDate",
+          "startAt",
+          "endAt",
+          "area",
+          "holdsBay",
+          "players",
+          "guestName",
+          "channel",
+          "status",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "RangeBookingInput": {
+        "properties": {
+          "area": {
+            "enum": [
+              "indoor",
+              "outdoor"
+            ],
+            "type": "string"
+          },
+          "bayId": {
+            "description": "A chosen bay (with reserveBay); default the first free bay",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "customerId": {
+            "description": "Front desk: the customer or member (empty for a walk-in guest)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "date": {
+            "description": "Play date (YYYY-MM-DD)",
+            "type": "string"
+          },
+          "guestEmail": {
+            "type": "string"
+          },
+          "guestName": {
+            "type": "string"
+          },
+          "guestPhone": {
+            "type": "string"
+          },
+          "minutes": {
+            "description": "Bay time 30–240 minutes (default 60)",
+            "type": "integer"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "players": {
+            "type": "integer"
+          },
+          "reserveBay": {
+            "description": "Hold a bay for the time; false: only announce the visit (balls at the counter)",
+            "type": "boolean"
+          },
+          "time": {
+            "description": "Arrival time HH:MM (club time); flexible — a late guest queues",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "time"
+        ],
+        "type": "object"
+      },
+      "RangeCancelInput": {
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "RangeSession": {
         "properties": {
           "area": {
@@ -84024,6 +85548,42 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "RangeSlot": {
+        "properties": {
+          "bays": {
+            "items": {
+              "$ref": "#/components/schemas/RangeBayRef"
+            },
+            "type": "array"
+          },
+          "crowd": {
+            "description": "peak (red): every bay is taken by bookings at this time — expect to queue; quiet (green)",
+            "enum": [
+              "quiet",
+              "peak"
+            ],
+            "type": "string"
+          },
+          "freeBays": {
+            "type": "integer"
+          },
+          "startAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "time",
+          "startAt",
+          "freeBays",
+          "bays",
+          "crowd"
+        ],
         "type": "object"
       },
       "RangeUsage": {
@@ -87504,6 +89064,10 @@
       },
       "RescheduleRequest": {
         "properties": {
+          "keepPrice": {
+            "description": "Front desk FIFO: move the tee time without repricing (staff only)",
+            "type": "boolean"
+          },
           "reason": {
             "type": "string"
           },
@@ -89802,6 +91366,19 @@
             ],
             "type": "string"
           },
+          "pauseReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedAt": {
+            "description": "Paused (rain): the play time stops",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedSeconds": {
+            "type": "integer"
+          },
           "playDate": {
             "format": "date-time",
             "type": "string"
@@ -89866,6 +91443,7 @@
           "status",
           "currentSeq",
           "holes",
+          "pausedSeconds",
           "paceStatus",
           "behindMinutes",
           "players",
@@ -92815,6 +94393,43 @@
         ],
         "type": "object"
       },
+      "ScoreBoard": {
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "holeLeaders": {
+            "items": {
+              "$ref": "#/components/schemas/HoleLeader"
+            },
+            "type": "array"
+          },
+          "period": {
+            "enum": [
+              "week",
+              "month"
+            ],
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "topPlayers": {
+            "items": {
+              "$ref": "#/components/schemas/TopPlayer"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "period",
+          "from",
+          "to",
+          "holeLeaders",
+          "topPlayers"
+        ],
+        "type": "object"
+      },
       "ScoreCriterion": {
         "properties": {
           "code": {
@@ -93050,6 +94665,15 @@
               "submitted",
               "finalized"
             ],
+            "type": "string"
+          },
+          "teeCategory": {
+            "description": "Player category of the tee",
+            "nullable": true,
+            "type": "string"
+          },
+          "teeColor": {
+            "nullable": true,
             "type": "string"
           },
           "teeSetId": {
@@ -94820,6 +96444,15 @@
             "description": "Tee time in the club's time zone (HH:MM)",
             "type": "string"
           },
+          "pausedAt": {
+            "description": "Paused (rain): the play time stops",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedSeconds": {
+            "type": "integer"
+          },
           "players": {
             "items": {
               "$ref": "#/components/schemas/SheetPlayer"
@@ -94866,6 +96499,7 @@
           "flightNo",
           "localTime",
           "status",
+          "pausedSeconds",
           "players",
           "golfCarts",
           "golfCartsNeeded",
@@ -94967,6 +96601,14 @@
             "format": "uuid",
             "type": "string"
           },
+          "crowd": {
+            "description": "peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)",
+            "enum": [
+              "quiet",
+              "peak"
+            ],
+            "type": "string"
+          },
           "dayTypeCode": {
             "type": "string"
           },
@@ -95028,6 +96670,7 @@
             "type": "integer"
           },
           "status": {
+            "description": "A full slot still takes bookings (extra flights, first come first served)",
             "enum": [
               "available",
               "reserved",
@@ -95059,6 +96702,7 @@
           "memberOnly",
           "lighting",
           "status",
+          "crowd",
           "flights"
         ],
         "type": "object"
@@ -96275,6 +97919,14 @@
             "format": "uuid",
             "type": "string"
           },
+          "crowd": {
+            "description": "peak (red): peak time or the slot's flights are full — expect to queue; quiet (green)",
+            "enum": [
+              "quiet",
+              "peak"
+            ],
+            "type": "string"
+          },
           "dayTypeCode": {
             "type": "string"
           },
@@ -96330,6 +97982,7 @@
             "type": "integer"
           },
           "status": {
+            "description": "A full slot still takes bookings (extra flights, first come first served)",
             "enum": [
               "available",
               "reserved",
@@ -96360,7 +98013,8 @@
           "peak",
           "memberOnly",
           "lighting",
-          "status"
+          "status",
+          "crowd"
         ],
         "type": "object"
       },
@@ -101986,6 +103640,105 @@
         ],
         "type": "object"
       },
+      "TeeHouse": {
+        "properties": {
+          "area": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "lowStock": {
+            "description": "Items at or under the minimum",
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "open": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "description": "Open orders by service status: new, sent, preparing, ready, out_for_delivery",
+            "type": "object"
+          },
+          "ordersToday": {
+            "type": "integer"
+          },
+          "outOfStock": {
+            "type": "integer"
+          },
+          "salesToday": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "warehouseId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "group",
+          "area",
+          "status",
+          "ordersToday",
+          "salesToday",
+          "open",
+          "lowStock",
+          "outOfStock"
+        ],
+        "type": "object"
+      },
+      "TeeHouseGroup": {
+        "properties": {
+          "area": {
+            "description": "e.g. Front Nine",
+            "type": "string"
+          },
+          "code": {
+            "description": "e.g. A",
+            "type": "string"
+          },
+          "count": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "area",
+          "count"
+        ],
+        "type": "object"
+      },
+      "TeeHouseSetupInput": {
+        "properties": {
+          "groups": {
+            "description": "Default: A Front Nine × 3, B Back Nine × 3",
+            "items": {
+              "$ref": "#/components/schemas/TeeHouseGroup"
+            },
+            "type": "array"
+          },
+          "template": {
+            "description": "Outlet / warehouse code whose menu and par stock are copied (default HALFWAY)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "TeeSet": {
         "properties": {
           "archivedAt": {
@@ -102036,6 +103789,18 @@
           "name": {
             "description": "Name",
             "maxLength": 160,
+            "type": "string"
+          },
+          "playerCategory": {
+            "description": "Player Category",
+            "enum": [
+              "women",
+              "general",
+              "professional",
+              "senior",
+              "junior"
+            ],
+            "nullable": true,
             "type": "string"
           },
           "propertyId": {
@@ -102142,6 +103907,18 @@
           "name": {
             "description": "Name",
             "maxLength": 160,
+            "type": "string"
+          },
+          "playerCategory": {
+            "description": "Player Category",
+            "enum": [
+              "women",
+              "general",
+              "professional",
+              "senior",
+              "junior"
+            ],
+            "nullable": true,
             "type": "string"
           },
           "sequence": {
@@ -104206,6 +105983,44 @@
           "checklist",
           "participants",
           "incidents"
+        ],
+        "type": "object"
+      },
+      "TopPlayer": {
+        "properties": {
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "gross": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "playedOn": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "rank": {
+            "type": "integer"
+          },
+          "rounds": {
+            "description": "18-hole rounds in the period",
+            "type": "integer"
+          },
+          "toPar": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rank",
+          "name",
+          "gross",
+          "toPar",
+          "playedOn",
+          "rounds"
         ],
         "type": "object"
       },
@@ -180777,6 +182592,326 @@
         "x-permission": "commercial.tax_service.export"
       }
     },
+    "/api/v1/commercial/tee-houses": {
+      "get": {
+        "operationId": "getCommercialTeeHouses",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/TeeHouse"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Tee houses by group with today's orders, open orders by service status and stock alerts",
+        "tags": [
+          "Tee Houses"
+        ],
+        "x-module": "commercial",
+        "x-permission": "commercial.order.view"
+      }
+    },
+    "/api/v1/commercial/tee-houses/stock": {
+      "get": {
+        "operationId": "getCommercialTeeHousesStock",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/OutletStockLine"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Tee house stock monitoring: balance against par per item",
+        "tags": [
+          "Tee Houses"
+        ],
+        "x-module": "commercial",
+        "x-permission": "commercial.order.view"
+      }
+    },
+    "/api/v1/commercial/tee-houses:setup": {
+      "post": {
+        "operationId": "postCommercialTeeHousesSetup",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeeHouseSetupInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/TeeHouse"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Set up the tee houses: outlets by group, Halfway House menu, own warehouse with par stock",
+        "tags": [
+          "Tee Houses"
+        ],
+        "x-audited": true,
+        "x-module": "commercial",
+        "x-permission": "commercial.outlet.create"
+      }
+    },
     "/api/v1/commercial/time-bands": {
       "get": {
         "operationId": "getCommercialTimeBands",
@@ -220216,6 +222351,128 @@
         "x-permission": "golf.bag.manage"
       }
     },
+    "/api/v1/golf/bills:pay-combined": {
+      "post": {
+        "operationId": "postGolfBillsPayCombined",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CombinedPayRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/BookingBill"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Merge several bookings into one bill and pay it with one tender",
+        "tags": [
+          "Check-in"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "billing.payment.create"
+      }
+    },
     "/api/v1/golf/bookings": {
       "get": {
         "operationId": "getGolfBookings",
@@ -220560,6 +222817,298 @@
         "x-permission": "golf.booking.view"
       }
     },
+    "/api/v1/golf/bookings/{id}/bill": {
+      "get": {
+        "operationId": "getGolfBookingsByIdBill",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingBill"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Booking bill at the front desk: balance and the share of every player",
+        "tags": [
+          "Check-in"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.booking.view"
+      }
+    },
+    "/api/v1/golf/bookings/{id}/bill:pay": {
+      "post": {
+        "operationId": "postGolfBookingsByIdBillPay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillPayRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingBill"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Pay the bill in full, in part or per player (split bill)",
+        "tags": [
+          "Check-in"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "billing.payment.create"
+      }
+    },
+    "/api/v1/golf/bookings/{id}/caddy-suggestions": {
+      "get": {
+        "operationId": "getGolfBookingsByIdCaddySuggestions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/PlayerCaddySuggestion"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Caddy choice per player at the front desk: assigned, requested, favourites, usual caddies and a recommendation",
+        "tags": [
+          "Caddies"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.caddy_assignment.manage"
+      }
+    },
     "/api/v1/golf/bookings/{id}/history": {
       "get": {
         "operationId": "getGolfBookingsByIdHistory",
@@ -220666,6 +223215,117 @@
         "summary": "Booking History",
         "tags": [
           "Bookings"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.booking.view"
+      }
+    },
+    "/api/v1/golf/bookings/{id}/hole-bests": {
+      "get": {
+        "operationId": "getGolfBookingsByIdHoleBests",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/HoleBest"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Best score per hole among the players of a booking",
+        "tags": [
+          "Scoring"
         ],
         "x-module": "golf",
         "x-permission": "golf.booking.view"
@@ -222237,6 +224897,95 @@
         "x-permission": "golf.caddy.update"
       }
     },
+    "/api/v1/golf/caddies/{id}/wage": {
+      "get": {
+        "operationId": "getGolfCaddiesByIdWage",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "YYYY-MM (default this month)",
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaddyWage"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Caddy wage of a month: base salary, caddy fees per assignment, tips, deductions",
+        "tags": [
+          "Caddies"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.caddy_settlement.view"
+      }
+    },
     "/api/v1/golf/caddies/{id}:favorite": {
       "post": {
         "operationId": "postGolfCaddiesByIdFavorite",
@@ -222975,6 +225724,91 @@
           }
         ],
         "summary": "Cancel a caddy assignment",
+        "tags": [
+          "Caddies"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.caddy_assignment.manage"
+      }
+    },
+    "/api/v1/golf/caddy-assignments/{id}:rate": {
+      "post": {
+        "operationId": "postGolfCaddyAssignmentsByIdRate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeskRatingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "The player's 1–5 caddy rating at the end of the session (front desk)",
         "tags": [
           "Caddies"
         ],
@@ -228604,6 +231438,117 @@
         "x-permission": "golf.course.export"
       }
     },
+    "/api/v1/golf/customers/{id}/caddies": {
+      "get": {
+        "operationId": "getGolfCustomersByIdCaddies",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/MemberCaddy"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "The caddies of a member: rounds together, ratings given, favourites",
+        "tags": [
+          "Caddies"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.caddy.view"
+      }
+    },
     "/api/v1/golf/customers/{id}/preferences": {
       "post": {
         "operationId": "postGolfCustomersByIdPreferences",
@@ -229157,6 +232102,190 @@
         "summary": "Move a player to this flight",
         "tags": [
           "Flights"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.flight.manage"
+      }
+    },
+    "/api/v1/golf/flights/{id}:pause": {
+      "post": {
+        "operationId": "postGolfFlightsByIdPause",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightPause"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Pause the round (rain): the play time stops",
+        "tags": [
+          "Check-in"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.flight.manage"
+      }
+    },
+    "/api/v1/golf/flights/{id}:resume": {
+      "post": {
+        "operationId": "postGolfFlightsByIdResume",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FlightPause"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Resume the round after the rain",
+        "tags": [
+          "Check-in"
         ],
         "x-audited": true,
         "x-module": "golf",
@@ -235137,6 +238266,104 @@
         "x-permission": "golf.introduction_letter.issue"
       }
     },
+    "/api/v1/golf/leaderboard": {
+      "get": {
+        "operationId": "getGolfLeaderboard",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "enum": [
+                "week",
+                "month"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "courseId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScoreBoard"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Weekly Hole Leader / Monthly Hole Record and Top Players (by score)",
+        "tags": [
+          "Scoring"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.scorecard.view"
+      }
+    },
     "/api/v1/golf/locker-assignments": {
       "get": {
         "operationId": "getGolfLockerAssignments",
@@ -238059,6 +241286,131 @@
         "x-permission": "golf.rain_check.issue"
       }
     },
+    "/api/v1/golf/range-availability": {
+      "get": {
+        "operationId": "getGolfRangeAvailability",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "area",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "minutes",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/RangeSlot"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Driving range start times with free bays",
+        "tags": [
+          "Driving Range"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.range.view"
+      }
+    },
     "/api/v1/golf/range-bays": {
       "get": {
         "operationId": "getGolfRangeBays",
@@ -238667,6 +242019,379 @@
         ],
         "x-module": "golf",
         "x-permission": "golf.range_bay.export"
+      }
+    },
+    "/api/v1/golf/range-bookings": {
+      "get": {
+        "operationId": "getGolfRangeBookings",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/RangeBooking"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Driving range bookings of a day",
+        "tags": [
+          "Driving Range"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.range.view"
+      },
+      "post": {
+        "operationId": "postGolfRangeBookings",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RangeBookingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeBooking"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Book the range at the front desk (bay and time, or the visit)",
+        "tags": [
+          "Driving Range"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.range.operate"
+      }
+    },
+    "/api/v1/golf/range-bookings/{id}:cancel": {
+      "post": {
+        "operationId": "postGolfRangeBookingsByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RangeCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeBooking"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel a range booking (no fee)",
+        "tags": [
+          "Driving Range"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.range.operate"
+      }
+    },
+    "/api/v1/golf/range-bookings/{id}:check-in": {
+      "post": {
+        "operationId": "postGolfRangeBookingsByIdCheckIn",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeBooking"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Check in: the booked bay when free, else another bay or the queue",
+        "tags": [
+          "Driving Range"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.range.operate"
       }
     },
     "/api/v1/golf/range-buckets": {
@@ -243377,6 +247102,13 @@
           },
           {
             "in": "query",
+            "name": "filter[playerCategory]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
             "name": "filter[status]",
             "schema": {
               "type": "string"
@@ -243840,6 +247572,13 @@
           {
             "in": "query",
             "name": "filter[courseId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[playerCategory]",
             "schema": {
               "type": "string"
             }
@@ -311930,6 +315669,107 @@
         "x-permission": "platform.member_portal.access"
       }
     },
+    "/api/v1/member/bookings/{id}/hole-bests": {
+      "get": {
+        "operationId": "getMemberBookingsByIdHoleBests",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/HoleBest"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Best score per hole in my booking",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
     "/api/v1/member/bookings/{id}/journey": {
       "get": {
         "operationId": "getMemberBookingsByIdJourney",
@@ -313517,7 +317357,7 @@
                   "properties": {
                     "items": {
                       "items": {
-                        "$ref": "#/components/schemas/MemberCaddy"
+                        "$ref": "#/components/schemas/GolfMemberCaddy"
                       },
                       "type": "array"
                     },
@@ -314578,6 +318418,94 @@
         "x-permission": "platform.member_portal.access"
       }
     },
+    "/api/v1/member/golf/leaderboard": {
+      "get": {
+        "operationId": "getMemberGolfLeaderboard",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "enum": [
+                "week",
+                "month"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "courseId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScoreBoard"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Weekly Hole Leader / Monthly Hole Record and Top Players",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
     "/api/v1/member/golf/members": {
       "get": {
         "operationId": "getMemberGolfMembers",
@@ -315013,6 +318941,366 @@
         "tags": [
           "Member Portal"
         ],
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/golf/range-availability": {
+      "get": {
+        "operationId": "getMemberGolfRangeAvailability",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "area",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "minutes",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/RangeSlot"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Driving range start times with free bays",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/golf/range-bookings": {
+      "get": {
+        "operationId": "getMemberGolfRangeBookings",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/RangeBooking"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My driving range bookings",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      },
+      "post": {
+        "operationId": "postMemberGolfRangeBookings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RangeBookingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeBooking"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Book the driving range (bay and time, or the visit)",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/golf/range-bookings/{id}:cancel": {
+      "post": {
+        "operationId": "postMemberGolfRangeBookingsByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RangeCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeBooking"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel my driving range booking",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-audited": true,
         "x-module": "golf",
         "x-permission": "platform.member_portal.access"
       }
@@ -318248,7 +322536,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PauseInput"
+                "$ref": "#/components/schemas/MembershipPauseInput"
               }
             }
           },
@@ -325185,7 +329473,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/PauseInput"
+                "$ref": "#/components/schemas/MembershipPauseInput"
               }
             }
           },
@@ -350123,6 +354411,68 @@
         "x-module": "golf"
       }
     },
+    "/api/v1/public/bookings/{token}:pay": {
+      "post": {
+        "operationId": "postPublicBookingsByTokenPay",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Property code (default: the golf club)",
+            "in": "query",
+            "name": "property",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayOnlineInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicBooking"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Pay the balance, or part of it, online from the secure link",
+        "tags": [
+          "Website"
+        ],
+        "x-audited": true,
+        "x-module": "golf"
+      }
+    },
     "/api/v1/public/bootstrap": {
       "get": {
         "operationId": "getPublicBootstrap",
@@ -351656,6 +356006,39 @@
         "x-module": "sportclub"
       }
     },
+    "/api/v1/public/demo-access": {
+      "get": {
+        "operationId": "getPublicDemoAccess",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemoAccess"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Demo accounts for the demo access page (404 on production or without the demo seed)",
+        "tags": [
+          "Public"
+        ],
+        "x-module": "platform"
+      }
+    },
     "/api/v1/public/domains/allowed": {
       "get": {
         "operationId": "getPublicDomainsAllowed",
@@ -352172,7 +356555,7 @@
           }
         },
         "security": [],
-        "summary": "Book and pay online (prepaid, Payment Policy)",
+        "summary": "Book: pay in full, pay part now or pay at the club (Payment Policy)",
         "tags": [
           "Website"
         ],
@@ -352274,6 +356657,145 @@
         "tags": [
           "Website"
         ],
+        "x-module": "golf"
+      }
+    },
+    "/api/v1/public/golf/range-availability": {
+      "get": {
+        "operationId": "getPublicGolfRangeAvailability",
+        "parameters": [
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "propertyId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "area",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "minutes",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/RangeSlot"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Driving range start times with free bays",
+        "tags": [
+          "Public"
+        ],
+        "x-module": "golf"
+      }
+    },
+    "/api/v1/public/golf/range-bookings": {
+      "post": {
+        "operationId": "postPublicGolfRangeBookings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicRangeBookingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RangeBooking"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Book the driving range from the website (no account)",
+        "tags": [
+          "Public"
+        ],
+        "x-audited": true,
         "x-module": "golf"
       }
     },
@@ -356055,6 +360577,98 @@
         "x-permission": "reporting.hr_performance.view"
       }
     },
+    "/api/v1/reporting/incidents": {
+      "get": {
+        "operationId": "getReportingIncidents",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "enum": [
+                "month",
+                "year"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "YYYY-MM (default: this month)",
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentDashboard"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Incident dashboard: caddy, golf cart and banquet incidents by source, severity, category and month; open incidents",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dashboard.view"
+      }
+    },
     "/api/v1/reporting/kpi-definitions": {
       "get": {
         "operationId": "getReportingKpiDefinitions",
@@ -356746,6 +361360,98 @@
         "x-audited": true,
         "x-module": "reporting",
         "x-permission": "reporting.kpi_target.manage"
+      }
+    },
+    "/api/v1/reporting/profit-centers": {
+      "get": {
+        "operationId": "getReportingProfitCenters",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "schema": {
+              "enum": [
+                "month",
+                "year"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "YYYY-MM (default: this month)",
+            "in": "query",
+            "name": "month",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfitCenters"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Profit centers: revenue, cost of sales, direct expenses and contribution per center with the previous period and six months",
+        "tags": [
+          "Management \u0026 BI"
+        ],
+        "x-module": "reporting",
+        "x-permission": "reporting.dashboard.view"
       }
     },
     "/api/v1/reporting/reports": {
@@ -371766,6 +376472,9 @@
     },
     {
       "name": "Tax \u0026 Service"
+    },
+    {
+      "name": "Tee Houses"
     },
     {
       "name": "Tee Sheet"

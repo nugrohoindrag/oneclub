@@ -62,6 +62,9 @@ func (m *Module) RegisterJobs(reg *jobs.Registrar) {
 	river.AddWorker(reg.Workers, &PaceCheckWorker{M: m})
 	reg.Periodic = append(reg.Periodic, river.NewPeriodicJob(river.PeriodicInterval(time.Minute),
 		func() (river.JobArgs, *river.InsertOpts) { return PaceCheckArgs{}, nil }, &river.PeriodicJobOpts{RunOnStart: true}))
+	river.AddWorker(reg.Workers, &RangeHoldWorker{M: m})
+	reg.Periodic = append(reg.Periodic, river.NewPeriodicJob(river.PeriodicInterval(5*time.Minute),
+		func() (river.JobArgs, *river.InsertOpts) { return RangeHoldArgs{}, nil }, nil))
 }
 
 // Templates are the golf notification templates (FR-INT-P2-04).

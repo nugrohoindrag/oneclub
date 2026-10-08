@@ -47,6 +47,10 @@ type CheckOutEntry struct {
 	Lockers       []string   `json:"lockers" doc:"Daily lockers still in use"`
 	Bags          []string   `json:"bags" doc:"Bag tags not handed back yet"`
 	CheckedOutAt  *time.Time `json:"checkedOutAt"`
+	TeeOffAt      *time.Time `json:"teeOffAt" doc:"Actual tee-off (play time starts)"`
+	RoundFinishAt *time.Time `json:"roundFinishAt" doc:"Round finish of the last flight"`
+	PausedAt      *time.Time `json:"pausedAt"`
+	PausedSeconds int        `json:"pausedSeconds"`
 }
 
 // CheckOutDesk lists the checked-in bookings of a day with what is still
@@ -59,7 +63,11 @@ func (m *Module) CheckOutDesk(ctx context.Context, q dbtx.Querier, property uuid
 		coalesce((SELECT array_agg(l.code ORDER BY l.code) FROM golf.locker_assignments la JOIN golf.lockers l ON l.id = la.locker_id
 			JOIN golf.booking_players bp ON bp.id = la.booking_player_id WHERE bp.booking_id = b.id AND la.status = 'active' AND la.assignment_type = 'daily'), '{}'),
 		coalesce((SELECT array_agg(d.tag_number ORDER BY d.tag_number) FROM golf.bag_drops d JOIN golf.booking_players bp ON bp.id = d.booking_player_id
-			WHERE bp.booking_id = b.id AND d.status <> 'collected'), '{}')
+			WHERE bp.booking_id = b.id AND d.status <> 'collected'), '{}'),
+		(SELECT min(f.tee_off_at) FROM golf.flights f WHERE f.booking_id = b.id AND f.status <> 'cancelled'),
+		(SELECT CASE WHEN bool_and(f.round_finish_at IS NOT NULL) THEN max(f.round_finish_at) END FROM golf.flights f WHERE f.booking_id = b.id AND f.status <> 'cancelled'),
+		(SELECT max(f.paused_at) FROM golf.flights f WHERE f.booking_id = b.id),
+		(SELECT coalesce(max(f.paused_seconds), 0)::int FROM golf.flights f WHERE f.booking_id = b.id)
 		FROM golf.bookings b JOIN golf.courses c ON c.id = b.course_id
 		WHERE b.property_id = $1 AND b.play_date = $2::date AND b.status IN ('checked_in', 'completed') AND b.checked_in_at IS NOT NULL
 		ORDER BY b.checked_out_at NULLS FIRST, b.start_at, b.code`, property, day.Format("2006-01-02"))
@@ -72,7 +80,7 @@ func (m *Module) CheckOutDesk(ctx context.Context, q dbtx.Querier, property uuid
 		var e CheckOutEntry
 		var start time.Time
 		if err := rows.Scan(&e.BookingID, &e.Code, &start, &e.CourseName, &e.ContactName, &e.Status, &e.PaymentMode, &e.FolioID, &e.CheckedOutAt,
-			&e.Players, &e.InPlay, &e.Lockers, &e.Bags); err != nil {
+			&e.Players, &e.InPlay, &e.Lockers, &e.Bags, &e.TeeOffAt, &e.RoundFinishAt, &e.PausedAt, &e.PausedSeconds); err != nil {
 			return nil, err
 		}
 		e.LocalTime = start.In(loc).Format("15:04")

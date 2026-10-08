@@ -45,7 +45,7 @@ package app
 // (Rhapsody go-live migration, applications, renewals), golf 20, tournaments
 // 25, POS & recipes 30, promotions & packages 35, sport club & stay 40,
 // banquet 50, CRM sales 60, engagement & loyalty 70, purchasing &
-// inventory 80, receivables & month-end close 85, day close 900 (cashier
+// inventory 80, receivables & month-end close 85, incidents 88, day close 900 (cashier
 // shift, Night Audit).
 //
 // Extension point (P5 areas and later releases): an area registers its

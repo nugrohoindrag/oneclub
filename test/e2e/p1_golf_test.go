@@ -93,10 +93,12 @@ func TestP1GolfDayOperation(t *testing.T) {
 			{"playerType": "non_member", "name": "Citra Walk-in", "phone": "+628129990003"}}}).JSON()
 	eqAmount(t, "booking B charges", b["folio"].(map[string]any)["charges"], 2*995000)
 
-	// FR-CHK-02: payment before check-in.
-	r := gm.Do("POST", "/api/v1/golf/check-ins", map[string]any{"method": "booking_code", "value": a["code"]})
-	if r.Status != 409 || !strings.Contains(string(r.Body), "payment_required") {
-		t.Fatalf("check-in before payment: %s", r.String())
+	// FR-CHK-02: pay at the end is the default (Payment Policy
+	// payBeforeCheckIn off), so nothing is due before check-in.
+	for _, c := range gm.Must(200, "GET", "/api/v1/golf/check-ins:lookup?method=booking_code&value="+str(a["code"])+"&date="+day, nil).Items() {
+		if c["paymentDue"] != "0" {
+			t.Fatalf("pay at the end: nothing due before check-in: %v", c)
+		}
 	}
 	payFolio(t, cashier, a)
 	payFolio(t, cashier, b)
@@ -162,6 +164,19 @@ func TestP1GolfDayOperation(t *testing.T) {
 	// B plays its full round; rain stops A after 9 holes (50% credit). The
 	// rain check closes the round of A (FR-BKG-11).
 	gm.Must(200, "POST", sq+fb+":finish", map[string]any{"holesPlayed": 18})
+	// actual play time on the booking list: tee-off, then the finish of B only
+	for _, x := range gm.Must(200, "GET", "/api/v1/golf/bookings?date="+day, nil).Items() {
+		switch x["id"] {
+		case a["id"]:
+			if x["teeOffAt"] == nil || x["roundFinishAt"] != nil {
+				t.Fatalf("A is playing: %v / %v", x["teeOffAt"], x["roundFinishAt"])
+			}
+		case b["id"]:
+			if x["teeOffAt"] == nil || x["roundFinishAt"] == nil {
+				t.Fatalf("B has finished: %v / %v", x["teeOffAt"], x["roundFinishAt"])
+			}
+		}
+	}
 	rc := gm.Must(201, "POST", "/api/v1/golf/rain-checks", map[string]any{"flightId": fa, "holesPlayed": 9}).Items()
 	if len(rc) != 2 {
 		t.Fatalf("rain checks A: %v", rc)
@@ -321,9 +336,24 @@ func TestP1BookingChanges(t *testing.T) {
 		"contactName": "Gita NoShow", "contactPhone": "+628129990020",
 		"players": []map[string]any{{"playerType": "non_member", "name": "Gita NoShow", "phone": "+628129990020"},
 			{"playerType": "non_member", "name": "Joko NoShow", "phone": "+628129990021"}}}).JSON()
+	// The caddy and golf cart of a no-show flight are released (back to the queue and the fleet).
+	nsPlayers := ns["players"].([]any)
+	nsCaddy := gm.Must(201, "POST", "/api/v1/golf/caddy-assignments", map[string]any{"flightId": firstFlight(ns), "assignments": []map[string]any{
+		{"caddyId": caddies[1], "playerIds": []string{str(nsPlayers[0].(map[string]any)["id"])}}}}).Items()
+	nsCart := gm.Must(201, "POST", "/api/v1/golf/golf-cart-assignments", map[string]any{"flightId": firstFlight(ns), "golfCartIds": []string{str(carts[27]["id"])}}).Items()
 	ns = gm.Must(200, "POST", "/api/v1/golf/bookings/"+str(ns["id"])+":no-show", map[string]any{"reason": "Did not arrive"}).JSON()
 	if ns["status"] != "no_show" {
 		t.Fatalf("no-show: %v", ns["status"])
+	}
+	for _, a := range gm.Must(200, "GET", "/api/v1/golf/caddy-assignments?date="+day, nil).Items() {
+		if a["id"] == nsCaddy[0]["id"] && a["status"] != "cancelled" {
+			t.Fatalf("caddy of a no-show flight still %v", a["status"])
+		}
+	}
+	for _, a := range gm.Must(200, "GET", "/api/v1/golf/golf-cart-assignments?date="+day, nil).Items() {
+		if a["id"] == nsCart[0]["id"] && a["status"] != "cancelled" {
+			t.Fatalf("golf cart of a no-show flight still %v", a["status"])
+		}
 	}
 	rep := gm.Must(200, "GET", "/api/v1/reporting/reports/golf.no_show_cancellation?params[from]="+day+"&params[to]="+day, nil).JSON()
 	if len(rep["rows"].([]any)) < 2 {

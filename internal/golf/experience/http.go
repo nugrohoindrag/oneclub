@@ -174,6 +174,9 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	id := func(r *http.Request) (uuid.UUID, error) { return handle.ID(r) }
 	prop := handle.Property
 	m.registerGuide(reg, add)
+	m.registerRangeBookings(reg, add)
+	m.registerCaddyRelation(add)
+	m.registerLeaders(reg, add)
 
 	// ── P2 profiles of P1 master data ──
 	add("Caddies", route.Route{Method: http.MethodGet, Path: "/api/v1/golf/caddies/{id}/profile", Summary: "Caddy profile: level, tablet login, joined date",

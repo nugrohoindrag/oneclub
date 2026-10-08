@@ -594,6 +594,9 @@ func (m *Module) finishFlight(ctx context.Context, tx pgx.Tx, property, fid uuid
 	if status != "in_play" {
 		return errs.Conflict("not_in_play", "only flights In Play can finish")
 	}
+	if err := closePause(ctx, tx, fid); err != nil {
+		return err
+	}
 	if _, err := tx.Exec(ctx, `UPDATE golf.flights SET status = 'completed', round_finish_at = now(), holes_played = $2 WHERE id = $1`, fid, holes); err != nil {
 		return err
 	}
@@ -900,6 +903,31 @@ func realtimeBoards(ctx context.Context, tx pgx.Tx, property uuid.UUID, day time
 	return notifyRealtime(ctx, tx, property, "golf.boards", "changed", uuid.Nil, day, nil)
 }
 
+// releaseCancelledFlights frees what is still assigned to the cancelled
+// flights of a booking (cancellation, no-show, package cancellation): the
+// caddies go back to the queue, the golf carts to the fleet, the flight leaves
+// the starter queue and the caddy tablets stop listing it.
+func releaseCancelledFlights(ctx context.Context, tx pgx.Tx, property, bid uuid.UUID, day time.Time, reason string) error {
+	caddies, err := tx.Exec(ctx, `UPDATE golf.caddy_assignments a SET status = 'cancelled', replace_reason = coalesce(a.replace_reason, $2)
+		FROM golf.flights f WHERE f.id = a.flight_id AND f.booking_id = $1 AND f.status = 'cancelled' AND a.status = 'assigned'`, bid, reason)
+	if err != nil {
+		return err
+	}
+	carts, err := tx.Exec(ctx, `UPDATE golf.golf_cart_assignments a SET status = 'cancelled', updated_at = now()
+		FROM golf.flights f WHERE f.id = a.flight_id AND f.booking_id = $1 AND f.status = 'cancelled' AND a.status = 'assigned'`, bid)
+	if err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `UPDATE golf.starter_queue q SET status = 'removed'
+		FROM golf.flights f WHERE f.id = q.flight_id AND f.booking_id = $1 AND f.status = 'cancelled' AND q.status = 'waiting'`, bid); err != nil {
+		return err
+	}
+	if caddies.RowsAffected()+carts.RowsAffected() == 0 {
+		return nil
+	}
+	return realtimeBoards(ctx, tx, property, day)
+}
+
 // ReorderRequest sets the caddy rotation order manually.
 type ReorderRequest struct {
 	Date     string      `json:"date,omitempty"`
@@ -983,7 +1011,7 @@ func ListCaddyAssignments(ctx context.Context, q dbtx.Querier, loc *time.Locatio
 		(SELECT max(ac.accepted_at) FROM golf.caddy_assignment_acceptances ac WHERE ac.assignment_id = a.id)
 		FROM golf.caddy_assignments a JOIN golf.caddies c ON c.id = a.caddy_id JOIN golf.flights f ON f.id = a.flight_id
 		LEFT JOIN golf.bookings b ON b.id = f.booking_id LEFT JOIN golf.playing_routes pr ON pr.id = b.playing_route_id
-		WHERE `+where+` ORDER BY lower(a.period) DESC LIMIT 500`, args...)
+		WHERE `+where+` ORDER BY lower(a.period) DESC, a.id LIMIT 500`, args...)
 	if err != nil {
 		return nil, err
 	}

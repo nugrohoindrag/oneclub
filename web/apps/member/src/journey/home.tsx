@@ -2,7 +2,8 @@ import React from 'react';
 import { Link } from 'react-router';
 import { useGet, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
-import { Icon, Skeleton, useAuth, useBootstrap, useNavigation } from '@oneclub/shell';
+import { Icon, PlayTime, Skeleton, useAuth, useBootstrap, useNavigation } from '@oneclub/shell';
+import { RateCaddy } from './booking';
 import { Chip, dayLabel, money, StatusChip } from './ui';
 
 // Member Home: the starting point of the journey. It answers three
@@ -27,8 +28,8 @@ function greeting() {
 }
 
 const QUICK: [string, string, string][] = [
-  ['book-tee-time', 'sports_golf', 'Book Tee Time'], ['book-bungalow', 'cottage', 'Book Bungalow'],
-  ['book-meeting-room', 'meeting_room', 'Book Meeting Room'], ['upcoming-events', 'celebration', 'Join Event'],
+  ['book-tee-time', 'sports_golf', 'Book Tee Time'], ['book-driving-range', 'golf_course', 'Driving Range'],
+  ['book-bungalow', 'cottage', 'Book Bungalow'], ['upcoming-events', 'celebration', 'Join Event'],
 ];
 
 export function MemberHome() {
@@ -67,6 +68,7 @@ export function MemberHome() {
         </Link>
       )}
 
+      <RateLastRound />
       <Upcoming />
 
       <section>
@@ -124,6 +126,26 @@ function Upcoming() {
   );
 }
 
+/** End of the session: ask the member to rate the caddy of the last round (1–5). */
+function RateLastRound() {
+  const golf = useGet<Page<Schemas['BookingSummary']>>('/api/v1/member/bookings');
+  const last = (golf.data?.items ?? []).filter((b) => (b.status === 'completed' || b.roundFinishAt) && Date.now() - new Date(b.startAt).getTime() < 3 * 86400_000)
+    .sort((a, b) => b.startAt.localeCompare(a.startAt))[0];
+  const bk = useGet<Schemas['Booking']>(last ? `/api/v1/member/bookings/${last.id}` : null);
+  const j = useGet<Schemas['BookingJourney']>(last ? `/api/v1/member/bookings/${last.id}/journey` : null, { retry: false });
+  if (!last || !bk.data || !j.data) return null;
+  const mine = bk.data.players.find((p) => p.customerId && p.customerId === bk.data!.customerId) ?? bk.data.players[0];
+  const me = j.data.players.find((p) => p.playerId === mine?.id);
+  if (!me?.caddy || me.caddy.rated) return null;
+  return (
+    <div className="mj-card oc-stack" style={{ gap: 10, marginBottom: 16 }}>
+      <strong><Icon name="hiking" size={18} /> How was your caddy today?</strong>
+      <span className="mj-small mj-muted">{me.caddy.name} · caddy no. {me.caddy.code} · {last.courseName} {last.localTime}</span>
+      <RateCaddy assignmentId={me.caddy.assignmentId} name={me.caddy.name} />
+    </div>
+  );
+}
+
 function UpcomingGolf({ b }: { b: Schemas['BookingSummary'] }) {
   const j = useGet<Schemas['BookingJourney']>(`/api/v1/member/bookings/${b.id}/journey`, { retry: false });
   const want = (j.data?.players ?? []).filter((p) => p.caddyPreference !== 'none');
@@ -140,6 +162,7 @@ function UpcomingGolf({ b }: { b: Schemas['BookingSummary'] }) {
       </div>
       <div className="oc-row-wrap">
         <Chip tone={b.status === 'pending' ? 'warn' : 'ok'}>Tee Time {b.status === 'pending' ? 'awaiting payment' : b.status === 'checked_in' ? '✓ Checked in' : '✓ Confirmed'}</Chip>
+        {b.teeOffAt && <Chip tone="info"><PlayTime start={b.teeOffAt} end={b.roundFinishAt} pausedAt={b.pausedAt as string | null | undefined} pausedSeconds={Number(b.pausedSeconds ?? 0)} /></Chip>}
         {want.length > 0 && (assigned.length === want.length
           ? <Chip tone="ok">Caddy ✓ Assigned{assigned.length === 1 ? ` · ${assigned[0]!.caddy!.name}` : ''}</Chip>
           : <Chip tone="warn">Caddy pending assignment</Chip>)}

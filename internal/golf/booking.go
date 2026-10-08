@@ -109,6 +109,7 @@ type BookingRequest struct {
 	CaddyRequest       string        `json:"caddyRequest,omitempty"`
 	PaymentMode        string        `json:"paymentMode,omitempty" enum:"prepaid,deposit,pay_at_venue,member_charge" doc:"Default: Payment Policy"`
 	PaymentMethod      string        `json:"paymentMethod,omitempty" enum:"qris,virtual_account,card,payment_gateway" doc:"Online method for prepaid / deposit"`
+	DepositAmount      string        `json:"depositAmount,omitempty" doc:"Deposit: the amount paid now (any amount up to the total); default the policy percentage"`
 	RainCheckIDs       []uuid.UUID   `json:"rainCheckIds,omitempty"`
 	Notes              string        `json:"notes,omitempty"`
 	Consent            bool          `json:"consent,omitempty"`
@@ -138,6 +139,7 @@ type Player struct {
 	PriceTotal         *string         `json:"priceTotal"`
 	HandicapIndex      *string         `json:"handicapIndex"`
 	Status             string          `json:"status" enum:"booked,checked_in,no_show,cancelled,removed"`
+	TeeSetID           *uuid.UUID      `json:"teeSetId" doc:"Tee the front desk gave the player (else by player category)"`
 	CheckedInAt        *time.Time      `json:"checkedInAt"`
 	CheckInMethod      *string         `json:"checkInMethod"`
 }
@@ -153,6 +155,12 @@ type BookingFlight struct {
 	ReadyAt   *time.Time `json:"readyAt"`
 	TeeOffAt  *time.Time `json:"teeOffAt"`
 	FinishAt  *time.Time `json:"roundFinishAt"`
+	// rain pause: the play time stops while pausedAt is set
+	PausedAt      *time.Time `json:"pausedAt"`
+	PauseReason   *string    `json:"pauseReason"`
+	PausedSeconds int        `json:"pausedSeconds" doc:"Paused time already left out of the play time"`
+	HolesPlayed   *int       `json:"holesPlayed"`
+	CurrentHole   int        `json:"currentHole" doc:"Hole in progress on the caddy tablet (0 before tee-off)"`
 }
 
 // Booking is the API view of a booking.
@@ -236,7 +244,8 @@ func GetBooking(ctx context.Context, q dbtx.Querier, bid uuid.UUID) (Booking, er
 	var pid uuid.UUID
 	_ = q.QueryRow(ctx, `SELECT property_id FROM golf.bookings WHERE id = $1`, bid).Scan(&pid)
 	b.LocalTime = b.StartAt.In(location(ctx, q, pid)).Format("15:04")
-	rows, err := q.Query(ctx, `SELECT f.id, f.tee_time_id, t.start_at, t.start_tee, f.flight_no, f.status, f.ready_at, f.tee_off_at, f.round_finish_at
+	rows, err := q.Query(ctx, `SELECT f.id, f.tee_time_id, t.start_at, t.start_tee, f.flight_no, f.status, f.ready_at, f.tee_off_at, f.round_finish_at,
+		f.paused_at, f.pause_reason, f.paused_seconds, f.holes_played, coalesce((SELECT max(hp.seq) FROM golf.hole_progress hp WHERE hp.flight_id = f.id), 0)
 		FROM golf.flights f JOIN golf.tee_times t ON t.id = f.tee_time_id WHERE f.booking_id = $1 ORDER BY t.start_at, f.flight_no`, bid)
 	if err != nil {
 		return b, err
@@ -244,7 +253,8 @@ func GetBooking(ctx context.Context, q dbtx.Querier, bid uuid.UUID) (Booking, er
 	b.Flights = []BookingFlight{}
 	for rows.Next() {
 		var f BookingFlight
-		if err := rows.Scan(&f.ID, &f.TeeTimeID, &f.StartAt, &f.StartTee, &f.FlightNo, &f.Status, &f.ReadyAt, &f.TeeOffAt, &f.FinishAt); err != nil {
+		if err := rows.Scan(&f.ID, &f.TeeTimeID, &f.StartAt, &f.StartTee, &f.FlightNo, &f.Status, &f.ReadyAt, &f.TeeOffAt, &f.FinishAt,
+			&f.PausedAt, &f.PauseReason, &f.PausedSeconds, &f.HolesPlayed, &f.CurrentHole); err != nil {
 			rows.Close()
 			return b, err
 		}
@@ -252,7 +262,7 @@ func GetBooking(ctx context.Context, q dbtx.Querier, bid uuid.UUID) (Booking, er
 	}
 	rows.Close()
 	pr, err := q.Query(ctx, `SELECT id, flight_id, seq, player_type, segment, customer_id, guest_id, member_id, host_player_id, name, phone, tba, reciprocal_club,
-		reciprocal_verified, eligibility, entitlement, pricing_snapshot_id, price_total::text, handicap_index::text, status, checked_in_at, check_in_method
+		reciprocal_verified, eligibility, entitlement, pricing_snapshot_id, price_total::text, handicap_index::text, status, checked_in_at, check_in_method, tee_set_id
 		FROM golf.booking_players WHERE booking_id = $1 ORDER BY seq`, bid)
 	if err != nil {
 		return b, err
@@ -262,7 +272,7 @@ func GetBooking(ctx context.Context, q dbtx.Querier, bid uuid.UUID) (Booking, er
 		var p Player
 		if err := pr.Scan(&p.ID, &p.FlightID, &p.Seq, &p.PlayerType, &p.Segment, &p.CustomerID, &p.GuestID, &p.MemberID, &p.HostPlayerID, &p.Name, &p.Phone,
 			&p.TBA, &p.ReciprocalClub, &p.ReciprocalVerified, &p.Eligibility, &p.Entitlement, &p.PricingSnapshotID, &p.PriceTotal, &p.HandicapIndex,
-			&p.Status, &p.CheckedInAt, &p.CheckInMethod); err != nil {
+			&p.Status, &p.CheckedInAt, &p.CheckInMethod, &p.TeeSetID); err != nil {
 			pr.Close()
 			return b, err
 		}
@@ -346,8 +356,13 @@ func reservationEnsureSeat(ctx context.Context, tx pgx.Tx, property uuid.UUID, c
 }
 
 func (m *Module) seatIDs(ctx context.Context, tx pgx.Tx, property uuid.UUID, s slotRow) ([]uuid.UUID, error) {
+	return m.flightSeats(ctx, tx, property, s, 1, s.Flights)
+}
+
+// flightSeats are the seats of flights from..to of a slot.
+func (m *Module) flightSeats(ctx context.Context, tx pgx.Tx, property uuid.UUID, s slotRow, from, to int) ([]uuid.UUID, error) {
 	var out []uuid.UUID
-	for f := 1; f <= s.Flights; f++ {
+	for f := from; f <= to; f++ {
 		for seat := 1; seat <= s.MaxP; seat++ {
 			rid, err := reservationEnsureSeat(ctx, tx, property, s.CourseCode, s.VenueID, s.Tee, f, seat)
 			if err != nil {
@@ -362,8 +377,14 @@ func (m *Module) seatIDs(ctx context.Context, tx pgx.Tx, property uuid.UUID, s s
 // ErrSlotFull is returned when the slot has no capacity left (FR-BKG-02).
 var ErrSlotFull = errs.Conflict("slot_full", "this tee time does not have enough free places")
 
+// OverflowFlights is how many extra flights a full tee time takes. A full
+// slot does not refuse a booking (demo feedback 9 Oct 2026): the time is
+// flexible and the starter sends the flights out first come first served;
+// the slot is shown as peak (busy) instead.
+const OverflowFlights = 30
+
 // allocateSeats locks n seats of a slot for a booking (held with expiry or
-// confirmed).
+// confirmed); when the slot's flights are full, on its overflow flights.
 func (m *Module) allocateSeats(ctx context.Context, tx pgx.Tx, property uuid.UUID, s slotRow, bookingID uuid.UUID, n int, holdUntil *time.Time) ([]uuid.UUID, error) {
 	seats, err := m.seatIDs(ctx, tx, property, s)
 	if err != nil {
@@ -373,6 +394,30 @@ func (m *Module) allocateSeats(ctx context.Context, tx pgx.Tx, property uuid.UUI
 		return nil, err
 	}
 	start, end := s.period()
+	// add overflow flights until n seats are free (or the guard is reached)
+	for extra := 1; extra <= OverflowFlights; extra++ {
+		busy, err := reservation.Busy(ctx, tx, seats, start, end)
+		if err != nil {
+			return nil, err
+		}
+		free := 0
+		for _, seat := range seats {
+			if !busy[seat] {
+				free++
+			}
+		}
+		if free >= n {
+			break
+		}
+		more, err := m.flightSeats(ctx, tx, property, s, s.Flights+extra, s.Flights+extra)
+		if err != nil {
+			return nil, err
+		}
+		seats = append(seats, more...)
+	}
+	if err := reservation.ReleaseExpiredOn(ctx, tx, seats); err != nil {
+		return nil, err
+	}
 	busy, err := reservation.Busy(ctx, tx, seats, start, end)
 	if err != nil {
 		return nil, err
@@ -1230,7 +1275,8 @@ func (m *Module) applyPaymentPolicy(ctx context.Context, tx pgx.Tx, property, bo
 	rule := pol.PaymentFor(req.Channel, req.BookingType)
 	mode := rule.Mode
 	if req.PaymentMode != "" {
-		allowed := staff || req.PaymentMode == mode || (req.Channel == "member_app" && (req.PaymentMode == "prepaid" || req.PaymentMode == "member_charge"))
+		allowed := staff || req.PaymentMode == mode || pol.Payment.CustomerMay(req.PaymentMode) ||
+			(req.Channel == "member_app" && (req.PaymentMode == "prepaid" || req.PaymentMode == "member_charge"))
 		if !allowed {
 			return errs.Validation("payment_mode_not_allowed", "this payment option is not allowed by the Payment Policy", errs.Field("paymentMode", "invalid", mode))
 		}
@@ -1284,6 +1330,14 @@ func (m *Module) applyPaymentPolicy(ctx context.Context, tx pgx.Tx, property, bo
 				pct = decimal.NewFromInt(30)
 			}
 			amount = balance.Mul(pct).Div(hundred).Round(0)
+			if strings.TrimSpace(req.DepositAmount) != "" {
+				// a partial payment of any amount (demo feedback 9 Oct 2026)
+				amount = dec(req.DepositAmount).Round(0)
+				if !amount.IsPositive() || amount.GreaterThan(balance) {
+					return errs.Validation("invalid_deposit", "the amount paid now must be above zero and at most the total",
+						errs.Field("depositAmount", "invalid", "1 – "+balance.StringFixed(0)))
+				}
+			}
 			purpose = "deposit"
 		}
 		if _, err := tx.Exec(ctx, `UPDATE golf.bookings SET payment_mode = $2, payment_due_at = $3, deposit_amount = CASE WHEN $2 = 'deposit' THEN $4::numeric END,

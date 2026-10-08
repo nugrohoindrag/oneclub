@@ -82,6 +82,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.registerTables(reg, eng)  // Table View: floor plan, reservations, table state
 	m.registerPromotions(reg)   // PRD P3 FR-OPS-P3-03
 	m.registerTierDiscount(reg) // PRD P5 tier F&B discount (offline benefit cache)
+	m.registerTeeHouses(reg)    // on-course tee houses (demo feedback 9 Oct 2026)
 }
 
 // ProductVariants, ModifierGroups, Modifiers and Menus (FR-POS-02).
@@ -166,7 +167,8 @@ func Contribution() catalog.Contribution {
 		rp[role] = append(rp[role], posAll...)
 		rp[role] = append(rp[role], resource.AllActions(commercial.Products)...)
 	}
-	for _, role := range []string{"cashier", "pos_staff", "driving_range_staff", "sport_club_receptionist"} {
+	// the front desk also works the POS Cashier (demo feedback 9 Oct 2026)
+	for _, role := range []string{"cashier", "pos_staff", "driving_range_staff", "sport_club_receptionist", "front_desk"} {
 		rp[role] = append(rp[role], posCashier...)
 	}
 	rp["kitchen_staff"] = append(rp["kitchen_staff"], "commercial.kitchen.view", "commercial.kitchen.update", "commercial.order.view")

@@ -8,7 +8,8 @@ import { Head } from './ui';
 // navigation, so a disabled module hides its tiles.
 
 const TILES: Record<string, [string, string, string]> = {
-  'book-tee-time': ['golf', 'sports_golf', 'Saturday morning round? Pick a tee time, players and caddy'],
+  'book-tee-time': ['golf', 'sports_golf', 'Saturday morning round? Pick a tee time and the players'],
+  'book-driving-range': ['golf', 'golf_course', 'A bay and a time, or just drop by; balls at the counter'],
   tournaments: ['golf', 'emoji_events', 'Register for club tournaments'],
   'book-bungalow': ['resort', 'cottage', 'Stay the night: choose dates and a bungalow'],
   'book-meeting-room': ['resort', 'meeting_room', 'Rooms for meetings and private events'],

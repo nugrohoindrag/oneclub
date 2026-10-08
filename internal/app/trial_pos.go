@@ -269,6 +269,8 @@ func trialPOSSetup(ctx context.Context, t *Trial) error {
 	if res.S("status") != "completed" {
 		return fmt.Errorf("opening stock: %v", res["errors"])
 	}
+	// six tee houses in two groups, with the Halfway House menu and par stock
+	om.Post("/api/v1/commercial/tee-houses:setup", J{})
 	return nil
 }
 

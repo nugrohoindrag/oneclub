@@ -90,6 +90,12 @@ type BookingSummary struct {
 	PaymentMode *string   `json:"paymentMode"`
 	Total       *string   `json:"total"`
 	CreatedAt   time.Time `json:"createdAt"`
+	// Actual play time: from the tee-off (Starter Dispatch or the caddy's
+	// Start Round) until the last flight of the booking finishes.
+	TeeOffAt      *time.Time `json:"teeOffAt" doc:"Actual tee-off (first flight dispatched)"`
+	RoundFinishAt *time.Time `json:"roundFinishAt" doc:"Round finish of the last flight (empty while any flight is still playing)"`
+	PausedAt      *time.Time `json:"pausedAt" doc:"Set while the round is paused (rain): the play time stops"`
+	PausedSeconds int        `json:"pausedSeconds" doc:"Paused time left out of the play time"`
 }
 
 func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *http.Request, extraWhere string, extraArgs ...any) (httpx.Page[BookingSummary], error) {
@@ -142,7 +148,13 @@ func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *ht
 		order = "b.created_at DESC"
 	}
 	rows, err := q.Query(ctx, `SELECT b.id, b.code, b.booking_type, b.channel, b.status, b.course_id, c.name, b.play_date, b.start_at, b.player_count, b.contact_name,
-		b.payment_mode, b.folio_id, b.created_at FROM golf.bookings b JOIN golf.courses c ON c.id = b.course_id WHERE `+strings.Join(where, " AND ")+
+		b.payment_mode, b.folio_id, b.created_at, pt.tee_off_at, pt.round_finish_at, pt.paused_at, coalesce(pt.paused_seconds, 0)
+		FROM golf.bookings b JOIN golf.courses c ON c.id = b.course_id
+		LEFT JOIN LATERAL (SELECT min(f.tee_off_at) AS tee_off_at,
+		  CASE WHEN bool_and(f.round_finish_at IS NOT NULL) THEN max(f.round_finish_at) END AS round_finish_at,
+		  max(f.paused_at) AS paused_at, max(f.paused_seconds)::int AS paused_seconds
+		  FROM golf.flights f WHERE f.id IN (SELECT x.flight_id FROM golf.booking_players x WHERE x.booking_id = b.id AND x.status <> 'removed')
+		    AND f.status <> 'cancelled') pt ON true WHERE `+strings.Join(where, " AND ")+
 		fmt.Sprintf(" ORDER BY %s LIMIT %d OFFSET %d", order, lp.PageSize+1, offset), args...)
 	if err != nil {
 		return httpx.Page[BookingSummary]{}, err
@@ -154,7 +166,7 @@ func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *ht
 		var d time.Time
 		var folio *uuid.UUID
 		if err := rows.Scan(&b.ID, &b.Code, &b.BookingType, &b.Channel, &b.Status, &b.CourseID, &b.CourseName, &d, &b.StartAt, &b.PlayerCount, &b.ContactName,
-			&b.PaymentMode, &folio, &b.CreatedAt); err != nil {
+			&b.PaymentMode, &folio, &b.CreatedAt, &b.TeeOffAt, &b.RoundFinishAt, &b.PausedAt, &b.PausedSeconds); err != nil {
 			rows.Close()
 			return httpx.Page[BookingSummary]{}, err
 		}
@@ -1311,6 +1323,20 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 		Permission: "golf.check_in.perform", Response: CheckOutEntry{}, List: true, Query: []route.Param{{Name: "date"}}, Handler: m.checkOutDeskHTTP})
 	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/bookings/{id}:check-out", Tag: tk, Summary: "Golfer Check-out (settle and close the folio, release lockers, hand back bags)",
 		Permission: "golf.check_in.perform", Request: CheckOutRequest{}, Response: Booking{}, Status: http.StatusOK, Idempotent: true, Handler: m.checkOutHTTP})
+	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/flights/{id}:pause", Tag: tk, Summary: "Pause the round (rain): the play time stops",
+		Permission: "golf.flight.manage", Request: PauseInput{}, Response: FlightPause{}, Status: http.StatusOK, Handler: m.pauseHTTP(false)})
+	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/flights/{id}:resume", Tag: tk, Summary: "Resume the round after the rain",
+		Permission: "golf.flight.manage", Request: PauseInput{}, Response: FlightPause{}, Status: http.StatusOK, Handler: m.pauseHTTP(true)})
+	add(route.Route{Method: http.MethodGet, Path: "/api/v1/golf/bookings/{id}/caddy-suggestions", Tag: tcd,
+		Summary:    "Caddy choice per player at the front desk: assigned, requested, favourites, usual caddies and a recommendation",
+		Permission: "golf.caddy_assignment.manage", Response: PlayerCaddySuggestion{}, List: true, Handler: m.caddySuggestionsHTTP})
+	add(route.Route{Method: http.MethodGet, Path: "/api/v1/golf/bookings/{id}/bill", Tag: tk, Summary: "Booking bill at the front desk: balance and the share of every player",
+		Permission: "golf.booking.view", Response: BookingBill{}, Handler: m.billHTTP})
+	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/bookings/{id}/bill:pay", Tag: tk, Summary: "Pay the bill in full, in part or per player (split bill)",
+		Permission: "billing.payment.create", Request: BillPayRequest{}, Response: BookingBill{}, Status: http.StatusOK, Idempotent: true, Handler: m.payBillHTTP})
+	add(route.Route{Method: http.MethodPost, Path: "/api/v1/golf/bills:pay-combined", Tag: tk, Summary: "Merge several bookings into one bill and pay it with one tender",
+		Permission: "billing.payment.create", Request: CombinedPayRequest{}, Response: BookingBill{}, List: true, Status: http.StatusOK, Idempotent: true,
+		Handler: m.payCombinedHTTP})
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/golf/charge-targets", Tag: tk, Summary: "Golfers whose booking folio a POS order can be charged to",
 		Permission: "commercial.order.pay", Response: ChargeTarget{}, List: true, Query: []route.Param{{Name: "q"}, {Name: "date"}}, Handler: m.chargeTargetsHTTP})
 	// golf carts
