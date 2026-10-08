@@ -40437,6 +40437,11 @@ export interface components {
             flightId: string;
         };
         CaddyAssignment: {
+            /**
+             * Format: date-time
+             * @description When the caddy accepted the assignment on the tablet
+             */
+            acceptedAt?: string | null;
             /** Format: date-time */
             assignedAt: string;
             bookingCode?: string | null;
@@ -67666,6 +67671,7 @@ export interface components {
             visitIds: string[];
         };
         SheetFlight: {
+            bookingCode?: string | null;
             /** Format: uuid */
             bookingId?: string | null;
             bookingStatus?: string | null;
@@ -67676,6 +67682,8 @@ export interface components {
             golfCartsNeeded: number;
             /** Format: uuid */
             id: string;
+            /** @description Tee time in the club's time zone (HH:MM) */
+            localTime: string;
             players: components["schemas"]["SheetPlayer"][];
             queueStatus?: string | null;
             readiness: components["schemas"]["Readiness"];

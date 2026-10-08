@@ -76,8 +76,11 @@ function AssignmentsPage() {
   const toast = useToast();
   const { propertyId } = useAuth();
   const my = useGet<Schemas['MyAssignments']>('/api/v1/golf/my-assignments', { refetchInterval: 30_000 });
+  // accepted on this tablet: shown at once, also while the action waits in the offline queue
+  const [accepted, setAccepted] = useState<string[]>([]);
   const accept = async (id: string, flightId: string) => {
     await enqueue('golf.round', { op: 'accept', flightId, assignmentId: id }, propertyId);
+    setAccepted((a) => [...a, id]);
     toast('Assignment accepted');
     void my.refetch();
   };
@@ -116,7 +119,9 @@ function AssignmentsPage() {
               </div>
               <div className="pos-card-actions">
                 <Link className="pos-btn" data-variant="soft" data-size="sm" to={`/tablet/round/${n.flightId}`}>Open</Link>
-                {n.status === 'assigned' && <button className="pos-btn" data-size="sm" onClick={() => void accept(n.id, n.flightId)}>Accept</button>}
+                {n.status === 'assigned' && (n.acceptedAt || accepted.includes(n.id)
+                  ? <span className="pos-kitchen" data-kitchen="ready"><Icon name="check_circle" size={16} />Accepted</span>
+                  : <button className="pos-btn" data-size="sm" onClick={() => void accept(n.id, n.flightId)}>Accept</button>)}
               </div>
             </div>
           ))}

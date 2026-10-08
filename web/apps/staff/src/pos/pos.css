@@ -436,3 +436,124 @@
 .pos .oc-datatable { border: 0; box-shadow: none; background: none; padding: 0; }
 .pos .oc-table thead th { background: var(--pos-sunken); color: var(--pos-muted); }
 .pos .oc-table td { border-bottom-color: var(--pos-line); }
+
+/* ── Operational area (/ops): Front Desk, Starter / Marshal, Caddy Master, Golf
+ * Staff, ESS … in the POS look (product owner, 8 Oct 2026). The frame is the
+ * POS rail; the pages keep their OneClub components (.oc-*), whose theme
+ * tokens are mapped onto the POS palette here, like the dashboard kit does for
+ * the office pages. Popovers (row actions) are portalled to <body>. */
+:root:has(.pos-ops) body > .oc-popover {
+  --pos-primary: #4d80f0; --pos-primary-strong: #3a6de0; --pos-primary-soft: #e6edfd; --pos-green: #4caf68; --pos-red: #e5534b;
+  --pos-red-soft: #fde8e7; --pos-yellow: #f5b73b; --pos-bg: #f4f5f8; --pos-surface: #ffffff; --pos-sunken: #f1f2f5; --pos-line: #eceef3;
+  --pos-text: #1d1e24; --pos-muted: #8c90a0;
+}
+:root[data-theme='dark']:has(.pos-ops) body > .oc-popover, .dark:has(.pos-ops) body > .oc-popover {
+  --pos-primary: #6b95f5; --pos-primary-strong: #86a8f7; --pos-primary-soft: #23304f; --pos-red-soft: #3d2322; --pos-bg: #121318;
+  --pos-surface: #1b1d24; --pos-sunken: #23252d; --pos-line: #2c2f38; --pos-text: #eceef4; --pos-muted: #9a9eae;
+}
+.pos-ops, :root:has(.pos-ops) body > .oc-popover {
+  --md-sys-color-primary: var(--pos-primary);
+  --md-sys-color-primary-strong: var(--pos-primary-strong);
+  --md-sys-color-on-primary: #fff;
+  --md-sys-color-primary-container: var(--pos-primary-soft);
+  --md-sys-color-on-primary-container: var(--pos-primary);
+  --md-sys-color-primary-soft: var(--pos-primary-soft);
+  --md-sys-color-surface: var(--pos-surface);
+  --md-sys-color-surface-container-lowest: var(--pos-surface);
+  --md-sys-color-surface-container-low: var(--pos-sunken);
+  --md-sys-color-surface-container: var(--pos-sunken);
+  --md-sys-color-surface-container-high: var(--pos-line);
+  --md-sys-color-surface-container-highest: var(--pos-line);
+  --md-sys-color-on-surface: var(--pos-text);
+  --md-sys-color-on-surface-variant: var(--pos-muted);
+  --md-sys-color-outline: color-mix(in srgb, var(--pos-muted) 45%, var(--pos-line));
+  --md-sys-color-outline-variant: var(--pos-line);
+  --md-sys-color-border: var(--pos-line);
+  --md-sys-color-inverse-surface: var(--pos-text);
+  --md-sys-color-inverse-on-surface: var(--pos-surface);
+  --md-sys-color-success: var(--pos-green);
+  --md-sys-color-on-success: #fff;
+  --md-sys-color-success-container: color-mix(in srgb, var(--pos-green) 14%, var(--pos-surface));
+  --md-sys-color-on-success-container: color-mix(in srgb, var(--pos-green) 80%, var(--pos-text));
+  --md-sys-color-error: var(--pos-red);
+  --md-sys-color-on-error: #fff;
+  --md-sys-color-error-container: var(--pos-red-soft);
+  --md-sys-color-on-error-container: var(--pos-red);
+  --md-sys-color-warning: var(--pos-yellow);
+  --md-sys-color-on-warning: #fff;
+  --md-sys-color-warning-container: color-mix(in srgb, var(--pos-yellow) 18%, var(--pos-surface));
+  --md-sys-color-on-warning-container: color-mix(in srgb, var(--pos-yellow) 55%, var(--pos-text));
+  --md-sys-color-info: var(--pos-primary);
+  --md-sys-color-on-info: #fff;
+  --md-sys-color-info-container: var(--pos-primary-soft);
+  --md-sys-color-on-info-container: var(--pos-primary);
+  --oc-ink: var(--pos-primary);
+  --oc-on-ink: #fff;
+  --oc-tint: var(--pos-primary-soft);
+  color: var(--pos-text);
+}
+
+/* frame: labelled rail (one entry per area of the user), top bar, area tabs */
+.pos-ops .pos-rail { width: 96px; padding: 16px 0; gap: 4px; overflow: hidden; }
+.pos-ops .pos-rail-logo { flex: none; margin-bottom: 12px; }
+.pos-rail-items { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; overflow-y: auto;
+  scrollbar-width: none; }
+.pos-ops .pos-rail a, .pos-ops .pos-rail button {
+  flex: none; width: 82px; height: auto; min-height: 60px; padding: 8px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; font-size: 10.5px; font-weight: 500; line-height: 1.15; text-align: center;
+}
+.pos-ops .pos-rail a span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pos-ops-top { display: flex; align-items: center; gap: 12px; padding: 14px 28px 10px; }
+.pos-ops-top .oc-brand { padding: 0; font-size: 15px; }
+.pos-ops-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 0 28px 14px; scrollbar-width: none; }
+.pos-ops-tabs .pos-chip { height: 38px; padding: 0 14px; border-radius: 12px; font-size: 13px; text-decoration: none; }
+.pos-chip[aria-current='page'] { background: var(--pos-primary-soft); border-color: var(--pos-primary); color: var(--pos-primary); }
+.pos-ops .pos-body { padding-top: 6px; }
+
+/* pages: OneClub components in the POS look */
+.pos-ops .oc-page-head h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; color: var(--pos-text); }
+.pos-ops .oc-page-head p { color: var(--pos-muted); font-size: 13px; }
+.pos-ops :is(.oc-card, .oc-datatable) { border-radius: 18px; border: 1px solid var(--pos-line); background: var(--pos-surface); box-shadow: var(--pos-shadow); }
+.pos-ops .oc-card-head h2, .pos-ops .oc-card-head h3 { font-size: 16px; font-weight: 600; }
+.pos-ops .oc-icon-circle { background: var(--pos-primary-soft); color: var(--pos-primary); border: 0; }
+.pos-ops a.oc-card:hover { border-color: var(--pos-primary); }
+.pos-ops .oc-btn { border-radius: 12px; font-weight: 600; }
+.pos-ops :is(.oc-btn-primary, .oc-btn-ink) { background: var(--pos-primary); color: #fff; border-color: var(--pos-primary); }
+.pos-ops :is(.oc-btn-primary, .oc-btn-ink):hover:not(:disabled) { background: var(--pos-primary-strong); }
+.pos-ops .oc-btn-outline { border-color: var(--pos-primary); color: var(--pos-primary); background: var(--pos-surface); }
+.pos-ops .oc-btn-neutral { background: var(--pos-sunken); color: var(--pos-text); }
+.pos-ops :is(.oc-input, .oc-select, .oc-textarea) { border-radius: 12px; border-color: var(--pos-line); }
+.pos-ops :is(.oc-input, .oc-select, .oc-textarea):focus { border-color: var(--pos-primary); box-shadow: 0 0 0 3px var(--pos-primary-soft); }
+.pos-ops .oc-chip { border-radius: 12px; border-color: var(--pos-line); }
+.pos-ops .oc-chip[aria-pressed='true'] { background: var(--pos-primary-soft); border-color: var(--pos-primary); color: var(--pos-primary); }
+.pos-ops .oc-table thead th { background: var(--pos-sunken); color: var(--pos-muted); font-size: 12px; font-weight: 600; border-bottom: 0; }
+.pos-ops .oc-table th:first-child { border-radius: 12px 0 0 12px; }
+.pos-ops .oc-table th:last-child { border-radius: 0 12px 12px 0; }
+.pos-ops .oc-table td { border-bottom-color: var(--pos-line); }
+.pos-ops .oc-table tbody tr:hover td { background: var(--pos-sunken); }
+.pos-ops .oc-status { border-radius: 999px; font-weight: 600; }
+.pos-ops .oc-alert { border-radius: 12px; }
+
+/* phones (ESS on the employee's phone): the rail becomes a bottom bar */
+@media (max-width: 760px) {
+  .pos.pos-ops { flex-direction: column-reverse; padding: 0; }
+  .pos-ops .pos-rail { width: 100%; flex-direction: row; padding: 6px 8px; border-radius: 0; gap: 0; }
+  .pos-ops .pos-rail a.pos-rail-logo { display: none; }
+  .pos-ops-top { gap: 8px; padding-top: 10px; }
+  .pos-ops-top .oc-brand-name, .pos-ops-top .oc-user-name { display: none; }
+  .pos-rail-items { flex-direction: row; overflow-x: auto; overflow-y: hidden; justify-content: flex-start; }
+  .pos-ops .pos-rail a, .pos-ops .pos-rail button { width: 72px; min-height: 54px; }
+  .pos-ops .pos-rail > .pos-spacer, .pos-ops .pos-rail > button { display: none; }
+  .pos-ops .pos-main { border-radius: 0; }
+  .pos-ops-top, .pos-ops-tabs { padding-left: 16px; padding-right: 16px; }
+  .pos-ops .pos-body { padding: 6px 16px 16px; }
+}
+
+/* a flight waiting for caddies or golf carts (Caddy Master, Golf Staff) */
+.ops-flight { display: flex; align-items: center; gap: 16px; padding: 14px 18px; flex-wrap: wrap; }
+.ops-flight-time {
+  min-width: 76px; padding: 8px 12px; border-radius: 12px; text-align: center; font-size: 18px; font-weight: 700;
+  background: var(--md-sys-color-primary-container); color: var(--md-sys-color-primary);
+}
+.ops-flight-body { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 2px; }
+.ops-flight-body span { color: var(--md-sys-color-on-surface-variant); font-size: 13px; }

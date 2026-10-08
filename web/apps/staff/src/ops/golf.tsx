@@ -364,23 +364,38 @@ export function CaddyQueuePage() {
   );
 }
 
+/** A flight waiting for caddies or golf carts: tee time, booking and players, so the right flight is picked. */
+function FlightCard({ f, note, children }: { f: R; note?: string; children: React.ReactNode }) {
+  return (
+    <div className="oc-card ops-flight">
+      <span className="ops-flight-time">{String(f.localTime || '—')}</span>
+      <div className="ops-flight-body">
+        <strong>{String(f.bookingCode ?? `Flight ${String(f.flightNo)}`)}</strong>
+        <span>{((f.players as R[]) ?? []).map((p) => String(p.name)).join(', ')}{note ? ` · ${note}` : ''}</span>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+const byTeeTime = (a: R, b: R) => String(a.localTime ?? '').localeCompare(String(b.localTime ?? '')) || Number(a.flightNo) - Number(b.flightNo);
+
 export function CaddyAssignmentPage({ history }: { history?: boolean }) {
   const [date, setDate] = useState(today());
   const { can } = useAuth();
   const list = useGet<Page<R>>(`/api/v1/golf/caddy-assignments?date=${date}`);
   const flights = useGet<Page<R>>(history ? null : `/api/v1/golf/flights?date=${date}`);
   const auto = useSend<Record<string, unknown>>('POST', '/api/v1/golf/caddy-assignments', ['/api/v1/golf']);
-  const open = (flights.data?.items ?? []).filter((f) => !['completed', 'cancelled'].includes(String(f.status)) && !(f.readiness as R)?.caddiesOk);
+  const open = (flights.data?.items ?? []).filter((f) => !['completed', 'cancelled'].includes(String(f.status)) && !(f.readiness as R)?.caddiesOk).sort(byTeeTime);
   return (
     <div className="oc-stack">
       <Head title={history ? 'Caddy History' : 'Caddy Assignment'} />
       {history && <TextField label="Date" type="date" value={date} onChange={setDate} />}
       <ErrorAlert error={auto.error} />
       {!history && can('golf.caddy_assignment.manage') && open.map((f) => (
-        <div key={f.id} className="oc-card oc-row-wrap">
-          <strong>Flight {String(f.flightNo)}</strong><span>{((f.players as R[]) ?? []).map((p) => String(p.name)).join(', ')}</span>
+        <FlightCard key={f.id} f={f} note={`${String(f.caddiesNeeded)} caddies needed`}>
           <Btn label="Assign from queue" kind="primary" disabled={auto.isPending} onClick={() => auto.mutate({ flightId: f.id, auto: true })} />
-        </div>
+        </FlightCard>
       ))}
       <DataTable rows={list.data?.items} loading={list.isLoading} columns={[{ key: 'teeTime', header: 'Tee Time' }, { key: 'caddyCode', header: 'Caddy' },
         { key: 'caddyName', header: 'Name' }, { key: 'playerNames', header: 'Players', render: (a) => ((a.playerNames as string[]) ?? []).join(', ') }, { key: 'status', header: 'Status', render: pill('status') }]} />
@@ -577,16 +592,15 @@ export function CartAssignmentPage() {
   const list = useGet<Page<R>>(`/api/v1/golf/golf-cart-assignments?date=${date}`);
   const auto = useSend<Record<string, unknown>>('POST', '/api/v1/golf/golf-cart-assignments', ['/api/v1/golf']);
   const ret = useSend<{ id: string }>('POST', (v) => `/api/v1/golf/golf-cart-assignments/${v.id}:return`, ['/api/v1/golf']);
-  const open = (flights.data?.items ?? []).filter((f) => !['completed', 'cancelled'].includes(String(f.status)) && !(f.readiness as R)?.golfCartsOk);
+  const open = (flights.data?.items ?? []).filter((f) => !['completed', 'cancelled'].includes(String(f.status)) && !(f.readiness as R)?.golfCartsOk).sort(byTeeTime);
   return (
     <div className="oc-stack">
       <Head title="Golf Cart Assignment" />
       <ErrorAlert error={auto.error ?? ret.error} />
       {open.map((f) => (
-        <div key={f.id} className="oc-card oc-row-wrap">
-          <strong>Flight {String(f.flightNo)}</strong><span>{((f.players as R[]) ?? []).map((p) => String(p.name)).join(', ')} · needs {String(f.golfCartsNeeded)}</span>
+        <FlightCard key={f.id} f={f} note={`needs ${String(f.golfCartsNeeded)} golf cart${Number(f.golfCartsNeeded) === 1 ? '' : 's'}`}>
           <Btn label="Assign Ready carts" kind="primary" disabled={auto.isPending} onClick={() => auto.mutate({ flightId: f.id, auto: true })} />
-        </div>
+        </FlightCard>
       ))}
       <DataTable rows={list.data?.items} loading={list.isLoading} columns={[{ key: 'golfCartCode', header: 'Golf Cart' }, { key: 'bookingCode', header: 'Booking' },
         { key: 'status', header: 'Status', render: pill('status') }]}

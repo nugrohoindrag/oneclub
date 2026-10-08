@@ -15318,6 +15318,12 @@
       },
       "CaddyAssignment": {
         "properties": {
+          "acceptedAt": {
+            "description": "When the caddy accepted the assignment on the tablet",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
           "assignedAt": {
             "format": "date-time",
             "type": "string"
@@ -94774,6 +94780,10 @@
       },
       "SheetFlight": {
         "properties": {
+          "bookingCode": {
+            "nullable": true,
+            "type": "string"
+          },
           "bookingId": {
             "format": "uuid",
             "nullable": true,
@@ -94804,6 +94814,10 @@
           },
           "id": {
             "format": "uuid",
+            "type": "string"
+          },
+          "localTime": {
+            "description": "Tee time in the club's time zone (HH:MM)",
             "type": "string"
           },
           "players": {
@@ -94850,6 +94864,7 @@
         "required": [
           "id",
           "flightNo",
+          "localTime",
           "status",
           "players",
           "golfCarts",

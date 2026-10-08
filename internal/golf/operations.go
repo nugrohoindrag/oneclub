@@ -968,6 +968,7 @@ type CaddyAssignment struct {
 	Requested     bool        `json:"requested"`
 	ReplaceReason *string     `json:"replaceReason"`
 	AssignedAt    time.Time   `json:"assignedAt"`
+	AcceptedAt    *time.Time  `json:"acceptedAt" doc:"When the caddy accepted the assignment on the tablet"`
 	StartedAt     *time.Time  `json:"startedAt"`
 	FinishedAt    *time.Time  `json:"finishedAt"`
 	Route         *string     `json:"route"`
@@ -978,7 +979,8 @@ func ListCaddyAssignments(ctx context.Context, q dbtx.Querier, loc *time.Locatio
 	rows, err := q.Query(ctx, `SELECT a.id, a.caddy_id, c.code, c.name, a.flight_id, a.player_ids, b.code, a.play_date, lower(a.period), a.status, a.fee_amount::text,
 		coalesce((SELECT sum(amount) FROM golf.caddy_tips t WHERE t.assignment_id = a.id), 0)::text, a.requested, a.replace_reason, a.assigned_at, a.started_at,
 		a.finished_at, pr.name,
-		(SELECT array_agg(bp.name ORDER BY bp.seq) FROM golf.booking_players bp WHERE bp.id = ANY(a.player_ids))
+		(SELECT array_agg(bp.name ORDER BY bp.seq) FROM golf.booking_players bp WHERE bp.id = ANY(a.player_ids)),
+		(SELECT max(ac.accepted_at) FROM golf.caddy_assignment_acceptances ac WHERE ac.assignment_id = a.id)
 		FROM golf.caddy_assignments a JOIN golf.caddies c ON c.id = a.caddy_id JOIN golf.flights f ON f.id = a.flight_id
 		LEFT JOIN golf.bookings b ON b.id = f.booking_id LEFT JOIN golf.playing_routes pr ON pr.id = b.playing_route_id
 		WHERE `+where+` ORDER BY lower(a.period) DESC LIMIT 500`, args...)
@@ -993,7 +995,7 @@ func ListCaddyAssignments(ctx context.Context, q dbtx.Querier, loc *time.Locatio
 		var start time.Time
 		var names []string
 		if err := rows.Scan(&a.ID, &a.CaddyID, &a.CaddyCode, &a.CaddyName, &a.FlightID, &a.PlayerIDs, &a.BookingCode, &day, &start, &a.Status, &a.FeeAmount,
-			&a.Tips, &a.Requested, &a.ReplaceReason, &a.AssignedAt, &a.StartedAt, &a.FinishedAt, &a.Route, &names); err != nil {
+			&a.Tips, &a.Requested, &a.ReplaceReason, &a.AssignedAt, &a.StartedAt, &a.FinishedAt, &a.Route, &names, &a.AcceptedAt); err != nil {
 			return nil, err
 		}
 		a.PlayDate = day.Format("2006-01-02")

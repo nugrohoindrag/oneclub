@@ -1,9 +1,12 @@
 import React, { Suspense, lazy, useState } from 'react';
-import { Link, Navigate, Outlet, useRoutes } from 'react-router';
+import { Link, Navigate, Outlet, useLocation, useRoutes } from 'react-router';
 import { useGet, type Page } from '@oneclub/api-client';
 import { useTranslation } from '@oneclub/i18n';
 import { enqueue, useOnline } from '@oneclub/offline';
-import { Brand, Card, HeaderActions, Icon, NotFoundPage, NotificationsPage, ProfilePage, Skeleton, TextArea, useAuth, useToast } from '@oneclub/shell';
+import {
+  Brand, Card, HeaderActions, Icon, NotFoundPage, NotificationsPage, ProfilePage, Skeleton, TextArea, logoOf, useAuth, useBootstrap, useNavigation, useToast,
+  type NavItem,
+} from '@oneclub/shell';
 import {
   BagDropPage, BagStoragePage, CaddyAssignmentPage, CaddyQueuePage, CartAssignmentPage, CartReadinessPage, FrontDeskFoliosPage, FrontDeskPage,
   FrontDeskPaymentsPage, GuestPage, LockersPage, OpsCheckInPage, OpsCheckOutPage, OpsTeeSheetPage, OpsTiles, StarterQueuePage,
@@ -11,33 +14,71 @@ import {
 import { P2_OPS_ROUTES, P2Tiles } from '../ops/p2';
 import { P3_OPS_ROUTES, P3Tiles } from '../ops/p3';
 import { ConnectivityChip, OUTLET_KEY, SyncPage, read, write } from '../offline';
+import '../pos/pos.css';
 
 // Operational area (`/ops`): touch-first, offline-capable (Technical Doc §6.4, PRD FR-SH-05).
 
 /** POS Cashier: a full-screen app of its own (pos/), loaded when opened. */
 const PosApp = lazy(() => import('../pos'));
 
-/** Touch-first layout without dashboard chrome (Technical Doc §6.5). */
+/** Entries kept at the foot of the rail. */
+const RAIL_FOOT = new Set(['/ops/sync', '/ops/notifications']);
+
+/** The area of the current page: the menu entry whose own path or one of its pages is the longest match. */
+function currentArea(items: NavItem[], pathname: string) {
+  const hit = (p: string) => (p === '/ops' ? pathname === '/ops' : pathname === p || pathname.startsWith(`${p}/`));
+  let area: NavItem | undefined;
+  let best = -1;
+  for (const i of items) {
+    for (const p of [i.path, ...(i.children ?? []).filter((c) => !c.section).map((c) => c.path)]) {
+      if (hit(p) && p.length > best) { best = p.length; area = i; }
+    }
+  }
+  return area;
+}
+
+/**
+ * Touch-first frame in the POS look (product owner, 8 Oct 2026): the blue rail
+ * lists the user's areas (Front Desk, Starter / Marshal, Caddy Master, Golf
+ * Staff, ESS …) from the server menu, the top bar keeps the club, the
+ * connection chip and the user menu, and the pages of the current area sit
+ * in tabs above the content (Technical Doc §6.5).
+ */
 function OpsLayout() {
   const { t } = useTranslation();
   const online = useOnline();
+  const b = useBootstrap();
+  const { pathname } = useLocation();
+  const items = useNavigation('ops').data?.items ?? [];
+  const area = currentArea(items, pathname);
+  const tabs = (area?.children ?? []).filter((c, i, all) => !c.section && all.findIndex((x) => x.path === c.path) === i);
+  const entry = (i: NavItem) => (
+    <Link key={i.key} to={i.path} title={i.label} aria-current={area?.key === i.key ? 'page' : undefined}>
+      <Icon name={i.icon ?? 'apps'} size={24} /><span>{i.label}</span>
+    </Link>
+  );
   return (
-    <div className="oc-topnav-frame" style={{ maxWidth: 1100 }}>
-      <header className="oc-topbar">
-        <Brand />
-        <span className="oc-spacer" />
-        <ConnectivityChip />
-        <HeaderActions property={false} />
-      </header>
-      {!online && <div className="oc-alert oc-alert-warning" role="status" style={{ marginBottom: 12 }}>{t('common.offline')}</div>}
-      <Outlet />
-      <nav className="oc-bottom-nav" aria-label="Main">
-        <Link to="/ops"><Icon name="home" size={26} />Home</Link>
-        <Link to="/ops/check-in"><Icon name="how_to_reg" size={26} />Check-in</Link>
-        <Link to="/ops/sync"><Icon name="sync" size={26} />Sync Queue</Link>
-        <Link to="/ops/notifications"><Icon name="notifications" size={26} />Notifications</Link>
-        <Link to="/ops/profile"><Icon name="person" size={26} />Profile</Link>
+    <div className="pos pos-ops">
+      <nav className="pos-rail" aria-label="Operational">
+        <Link to="/ops" className="pos-rail-logo" aria-label="Home"><img src={logoOf(b.branding)} alt="" /></Link>
+        <div className="pos-rail-items">{items.filter((i) => !RAIL_FOOT.has(i.path)).map(entry)}</div>
+        {items.filter((i) => RAIL_FOOT.has(i.path)).map(entry)}
       </nav>
+      <main className="pos-main">
+        <header className="pos-ops-top">
+          <Brand />
+          <span className="pos-spacer" />
+          <ConnectivityChip />
+          <HeaderActions property={false} />
+        </header>
+        {tabs.length > 1 && (
+          <nav className="pos-ops-tabs" aria-label={area?.label}>
+            {tabs.map((c) => <Link key={c.key} to={c.path} className="pos-chip" aria-current={pathname === c.path ? 'page' : undefined}>{c.label}</Link>)}
+          </nav>
+        )}
+        {!online && <div className="pos-banner" data-tone="warn" role="status"><Icon name="cloud_off" size={20} />{t('common.offline')}</div>}
+        <div className="pos-body"><Outlet /></div>
+      </main>
     </div>
   );
 }

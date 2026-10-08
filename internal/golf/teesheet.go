@@ -607,6 +607,8 @@ type SheetFlight struct {
 	ID            uuid.UUID     `json:"id"`
 	FlightNo      int           `json:"flightNo"`
 	BookingID     *uuid.UUID    `json:"bookingId"`
+	BookingCode   *string       `json:"bookingCode"`
+	LocalTime     string        `json:"localTime" doc:"Tee time in the club's time zone (HH:MM)"`
 	BookingStatus *string       `json:"bookingStatus"`
 	BookingType   *string       `json:"bookingType"`
 	Status        string        `json:"status" enum:"confirmed,checked_in,ready,on_hold,in_play,completed,cancelled"`
@@ -683,12 +685,15 @@ func (m *Module) BuildTeeSheet(ctx context.Context, q dbtx.Querier, property, co
 type flightRow struct {
 	SheetFlight
 	teeTimeID uuid.UUID
+	teeStart  time.Time
+	property  uuid.UUID
 }
 
 func (m *Module) loadFlights(ctx context.Context, q dbtx.Querier, pol Policies, where string, args ...any) ([]flightRow, error) {
-	rows, err := q.Query(ctx, `SELECT f.id, f.tee_time_id, f.flight_no, f.booking_id, b.status, b.booking_type, f.status, f.ready_at, f.tee_off_at,
-		f.round_finish_at, sq.status, b.folio_id, b.payment_mode
+	rows, err := q.Query(ctx, `SELECT f.id, f.tee_time_id, f.flight_no, f.booking_id, b.code, b.status, b.booking_type, f.status, f.ready_at, f.tee_off_at,
+		f.round_finish_at, sq.status, b.folio_id, b.payment_mode, t.start_at, f.property_id
 		FROM golf.flights f LEFT JOIN golf.bookings b ON b.id = f.booking_id LEFT JOIN golf.starter_queue sq ON sq.flight_id = f.id
+		LEFT JOIN golf.tee_times t ON t.id = f.tee_time_id
 		WHERE `+where+` ORDER BY f.flight_no`, args...)
 	if err != nil {
 		return nil, err
@@ -697,15 +702,24 @@ func (m *Module) loadFlights(ctx context.Context, q dbtx.Querier, pol Policies, 
 		folio *uuid.UUID
 		mode  *string
 	}
+	locs := map[uuid.UUID]*time.Location{}
 	var out []flightRow
 	var ex []extra
 	for rows.Next() {
 		var f flightRow
 		var e extra
-		if err := rows.Scan(&f.ID, &f.teeTimeID, &f.FlightNo, &f.BookingID, &f.BookingStatus, &f.BookingType, &f.Status, &f.ReadyAt, &f.TeeOffAt,
-			&f.FinishAt, &f.QueueStatus, &e.folio, &e.mode); err != nil {
+		var start *time.Time
+		var property uuid.UUID
+		if err := rows.Scan(&f.ID, &f.teeTimeID, &f.FlightNo, &f.BookingID, &f.BookingCode, &f.BookingStatus, &f.BookingType, &f.Status, &f.ReadyAt, &f.TeeOffAt,
+			&f.FinishAt, &f.QueueStatus, &e.folio, &e.mode, &start, &property); err != nil {
 			rows.Close()
 			return nil, err
+		}
+		if start != nil {
+			if _, ok := locs[property]; !ok {
+				locs[property] = nil // resolved after the rows are read (one query per property)
+			}
+			f.teeStart, f.property = *start, property
 		}
 		f.Players, f.Carts = []SheetPlayer{}, []string{}
 		out = append(out, f)
@@ -714,6 +728,14 @@ func (m *Module) loadFlights(ctx context.Context, q dbtx.Querier, pol Policies, 
 	rows.Close()
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+	for p := range locs {
+		locs[p] = location(ctx, q, p)
+	}
+	for i := range out {
+		if !out[i].teeStart.IsZero() {
+			out[i].LocalTime = out[i].teeStart.In(locs[out[i].property]).Format("15:04")
+		}
 	}
 	if len(out) == 0 {
 		return out, nil
