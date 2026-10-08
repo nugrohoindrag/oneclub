@@ -6,10 +6,10 @@
 |---|---|
 | Pull request | Go lint + arch-lint, unit, migrations on empty DB, e2e on PostgreSQL, OpenAPI drift + breaking-change check, frontend typecheck/lint/test/build, Playwright browser tests |
 | Merge to `main` | Images `oneclub`, `oneclub-static`, `oneclub-web` tagged with the commit SHA → Trivy scan → push to GHCR → automatic deploy to **Dev** (once configured) |
-| Merge `main` → `staging` | Obfuscated backend (garble) + frontends without source maps, built once (`<sha>-vps`) → **Staging** + Playwright |
-| Tag `vX.Y.Z` on `staging` | The Staging-tested images are promoted to `vX.Y.Z` (no rebuild) → **Production** per instance after manual approval |
+| Merge `main` → `production` | Obfuscated backend (garble) + obfuscated frontends without source maps, built once (`<sha>-vps`) → **VPS** + Playwright |
+| Tag `vX.Y.Z` on `production` | The VPS-tested images are promoted to `vX.Y.Z` (no rebuild) → **client instances** after manual approval |
 
-Obfuscation is applied only to VPS builds (Technical Doc §9.4). Secrets, variables and branch protection:
+Obfuscation is applied only to VPS builds (Technical Doc §9.4); the source on every branch stays readable. Secrets, variables and branch protection:
 [ci-cd.md](ci-cd.md).
 
 ## Zero-downtime deploy (`deploy/scripts/deploy.sh <instance> <version>`)
@@ -45,8 +45,8 @@ domains (Technical Doc §6.1). Before deploying it to an instance that runs the 
    token when the old token is lost). The clubhouse TV signs in on `dashboard` with a user holding the role **Screen**.
 3. Custom domains (Platform Administration → Custom Domain) registered for `backoffice`, `platform-admin` or `ops`
    keep working: they are served as `dashboard`, `dashboard` and `cashier`.
-4. In GitHub, replace the Staging variables with `STAGING_DASHBOARD_URL`, `STAGING_CASHIER_URL`, `STAGING_CADDY_URL`
-   and `STAGING_KITCHEN_URL` ([ci-cd.md](ci-cd.md)).
+4. In GitHub, set the VPS variables `VPS_DASHBOARD_URL`, `VPS_CASHIER_URL`, `VPS_CADDY_URL`
+   and `VPS_KITCHEN_URL` ([ci-cd.md](ci-cd.md)).
 
 ## Checks after deploy
 

@@ -23,7 +23,12 @@ API_REPLICAS="${API_REPLICAS:-2}"
 export API_REPLICAS
 
 mkdir -p "$STATE"
-dc() { docker compose -p "oneclub-$INSTANCE" --env-file "$INSTANCE_DIR/.env" -f "$COMPOSE_FILE" "$@"; }
+# An instance may add services or settings in $INSTANCE_DIR/compose.override.yaml
+# (e.g. the single-VM demo: database, mail and file storage on the same host,
+# deploy/compose/demo/compose.override.yaml).
+COMPOSE_FILES=(-f "$COMPOSE_FILE")
+[[ -f "$INSTANCE_DIR/compose.override.yaml" ]] && COMPOSE_FILES+=(-f "$INSTANCE_DIR/compose.override.yaml")
+dc() { docker compose -p "oneclub-$INSTANCE" --env-file "$INSTANCE_DIR/.env" "${COMPOSE_FILES[@]}" "$@"; }
 log() { printf '%s [deploy %s] %s\n' "$(date -u +%FT%TZ)" "$INSTANCE" "$*"; }
 
 PREVIOUS="$(cat "$STATE/current_version" 2>/dev/null || true)"

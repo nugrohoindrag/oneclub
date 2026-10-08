@@ -1,0 +1,149 @@
+# VPS release (Technical Doc §9.4, §12.2). Work happens on `staging`, is
+# merged to `main` with green CI, and reaches the VPS through a pull request
+# main → production. Every push to `production` builds the VPS images once —
+# backend obfuscated with garble, Staff App, Member App and website without
+# source maps and with obfuscated JavaScript — tagged <sha>-vps, deploys them
+# to the VPS (demo instance) and runs the browser tests there. `main` and
+# `staging` keep readable builds; no obfuscated code is ever committed.
+# A release tag on a production commit later promotes exactly these images
+# (release.yml) without rebuilding.
+name: vps
+
+on:
+  push:
+    branches: [production]
+  workflow_dispatch:
+
+concurrency:
+  group: vps
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ${{ vars.REGISTRY || format('ghcr.io/{0}', github.repository_owner) }}
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.t.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: t
+        run: echo "tag=${GITHUB_SHA}-vps" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.REGISTRY_USER || github.actor }}
+          password: ${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}
+      - name: Backend (obfuscated with garble)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile
+          build-args: |
+            VERSION=${{ github.sha }}
+            OBFUSCATE=true
+            GARBLE_SEED=${{ secrets.GARBLE_SEED || 'random' }}
+          tags: ${{ env.REGISTRY }}/oneclub:${{ steps.t.outputs.tag }}
+          load: true
+      - name: Scan backend image (Trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/oneclub:${{ steps.t.outputs.tag }}
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
+      - name: Obfuscated binary starts
+        run: docker run --rm "$REGISTRY/oneclub:${{ steps.t.outputs.tag }}" version
+      - name: Push backend image
+        run: docker push "$REGISTRY/oneclub:${{ steps.t.outputs.tag }}"
+      - name: Static shells (obfuscated, no source maps)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.web
+          target: static
+          build-args: |
+            SOURCEMAPS=false
+            OBFUSCATE=true
+            OBFUSCATE_SEED=${{ secrets.OBFUSCATE_SEED || '0' }}
+          tags: ${{ env.REGISTRY }}/oneclub-static:${{ steps.t.outputs.tag }}
+          push: true
+          cache-from: type=gha,scope=web-vps
+          cache-to: type=gha,mode=max,scope=web-vps
+      - name: Pull the static image for the check
+        run: docker pull "$REGISTRY/oneclub-static:${{ steps.t.outputs.tag }}"
+      - name: No source maps or readable sources in the frontend images
+        run: |
+          id=$(docker create "$REGISTRY/oneclub-static:${{ steps.t.outputs.tag }}")
+          docker cp "$id:/srv" "$RUNNER_TEMP/static" && docker rm "$id" >/dev/null
+          if find "$RUNNER_TEMP/static" -name '*.map' | grep -q .; then echo "::error::source maps in the static image"; exit 1; fi
+          if grep -rlE 'sourceMappingURL|/src/[a-z0-9_/-]+\.tsx' "$RUNNER_TEMP/static" --include='*.js' | grep -q .; then
+            echo "::error::readable source references in the static image"; exit 1; fi
+      - name: Website (obfuscated, no source maps)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: deploy/docker/Dockerfile.web
+          target: web
+          build-args: |
+            SOURCEMAPS=false
+            OBFUSCATE=true
+            OBFUSCATE_SEED=${{ secrets.OBFUSCATE_SEED || '0' }}
+          tags: ${{ env.REGISTRY }}/oneclub-web:${{ steps.t.outputs.tag }}
+          push: true
+          cache-from: type=gha,scope=web-vps
+
+  deploy:
+    if: vars.VPS_INSTANCE != ''
+    needs: [images]
+    runs-on: ubuntu-latest
+    environment: vps
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to the VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: deploy
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: /srv/oneclub/scripts/deploy.sh ${{ vars.VPS_INSTANCE }} ${{ needs.images.outputs.tag }}
+      # The browser tests create e2e accounts with a known password: run them only
+      # when vars.VPS_RUN_E2E is "true" (a test VPS), never on a public demo.
+      - name: Prepare browser-test accounts on the VPS
+        if: vars.VPS_RUN_E2E == 'true'
+        env:
+          SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          install -m 600 /dev/null "$RUNNER_TEMP/key" && printf '%s\n' "$SSH_KEY" > "$RUNNER_TEMP/key"
+          ssh -i "$RUNNER_TEMP/key" -o StrictHostKeyChecking=accept-new "deploy@$HOST" \
+            /srv/oneclub/scripts/e2e-setup.sh "${{ vars.VPS_INSTANCE }}" < web/e2e/setup.sql
+          rm -f "$RUNNER_TEMP/key"
+      - uses: pnpm/action-setup@v4
+        if: vars.VPS_RUN_E2E == 'true'
+        with: { package_json_file: web/package.json }
+      - uses: actions/setup-node@v4
+        if: vars.VPS_RUN_E2E == 'true'
+        with: { node-version: 24, cache: pnpm, cache-dependency-path: web/pnpm-lock.yaml }
+      - name: Browser tests against the VPS (obfuscated build)
+        if: vars.VPS_RUN_E2E == 'true'
+        working-directory: web
+        env:
+          E2E_SKIP_SETUP: "1"
+          E2E_DASHBOARD: ${{ vars.VPS_DASHBOARD_URL }}
+          E2E_CASHIER: ${{ vars.VPS_CASHIER_URL }}
+          E2E_CADDY: ${{ vars.VPS_CADDY_URL }}
+          E2E_KITCHEN: ${{ vars.VPS_KITCHEN_URL }}
+          E2E_MEMBER: ${{ vars.VPS_MEMBER_URL }}
+          E2E_WEB: ${{ vars.VPS_WEB_URL }}
+          E2E_PASSWORD: ${{ secrets.VPS_DEMO_PASSWORD }}
+          DEMO_DEVICE_TOKEN: ${{ secrets.VPS_DEVICE_TOKEN }}
+        run: pnpm install --frozen-lockfile && pnpm e2e

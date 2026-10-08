@@ -45,6 +45,19 @@
 	}
 }
 
+# The public website (Next.js): its pages carry inline hydration scripts, and
+# the demo site embeds the weather widget (weatherwidget.io) and Google Maps.
+(web-security) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), geolocation=(), microphone=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://weatherwidget.io; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; frame-src https://www.google.com https://weatherwidget.io; frame-ancestors 'none'"
+		-Server
+	}
+}
+
 (spa) {
 	encode zstd gzip
 	@assets path /assets/*
@@ -125,8 +138,9 @@
 	}
 }
 
+# DOMAIN_WEB may list several hosts, e.g. "oneclub.web.id, www.oneclub.web.id".
 {$DOMAIN_WEB} {
-	import security ()
+	import web-security
 	import api
 	handle {
 		reverse_proxy web:3000

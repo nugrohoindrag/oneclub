@@ -1,6 +1,6 @@
-# Release (Technical Doc §12.2): tag vX.Y.Z on a commit of the `staging`
-# branch → the VPS images already built and tested on Staging for that commit
-# (<sha>-vps, staging.yml) are promoted to vX.Y.Z without rebuilding →
+# Release (Technical Doc §12.2): tag vX.Y.Z on a commit of the `production`
+# branch → the obfuscated VPS images already built and tested on the VPS for
+# that commit (<sha>-vps, vps.yml) are promoted to vX.Y.Z without rebuilding →
 # GitHub release → Production per instance after manual approval (GitHub
 # environment "production" with required reviewers). Production jobs run only
 # once vars.PRODUCTION_INSTANCES is set; see docs/runbooks/ci-cd.md.
@@ -27,22 +27,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      - name: Tag must point at a commit on the staging branch
+      - name: Tag must point at a commit on the production branch
         run: |
-          git merge-base --is-ancestor "$GITHUB_SHA" origin/staging || {
-            echo "::error::$GITHUB_REF_NAME is not on the staging branch — promote main → staging first"; exit 1; }
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/production || {
+            echo "::error::$GITHUB_REF_NAME is not on the production branch — promote main → production first"; exit 1; }
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ secrets.REGISTRY_USER || github.actor }}
           password: ${{ secrets.REGISTRY_PASSWORD || secrets.GITHUB_TOKEN }}
-      - name: Promote the Staging-tested images to ${{ github.ref_name }}
+      - name: Promote the VPS-tested images to ${{ github.ref_name }}
         run: |
           for img in oneclub oneclub-static oneclub-web; do
             src="$REGISTRY/$img:${GITHUB_SHA}-vps"
             docker buildx imagetools inspect "$src" >/dev/null || {
-              echo "::error::$src not found — wait for the staging workflow of this commit to finish"; exit 1; }
+              echo "::error::$src not found — wait for the vps workflow of this commit to finish"; exit 1; }
             docker buildx imagetools create -t "$REGISTRY/$img:$GITHUB_REF_NAME" "$src"
           done
       - name: Release notes from commits
