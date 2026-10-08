@@ -34,7 +34,8 @@ RUN if [ "$OBFUSCATE" = "true" ]; then \
       [ "$SOURCEMAPS" = "false" ] || { echo "OBFUSCATE=true needs SOURCEMAPS=false"; exit 1; }; \
       export OBFUSCATE_SEED; \
       node scripts/obfuscate.mjs browser apps/staff/dist apps/member/dist apps/web/.next/static && \
-      node scripts/obfuscate.mjs node apps/web/.next/standalone/apps/web/.next/server; \
+      node scripts/obfuscate.mjs node apps/web/.next/standalone/apps/web/.next/server && \
+      find apps/staff/dist apps/member/dist apps/web/.next/static apps/web/.next/standalone/apps -name '*.map' -delete; \
     fi
 
 FROM busybox:1.37 AS static

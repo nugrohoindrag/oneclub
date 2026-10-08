@@ -100,6 +100,12 @@ jobs:
           tags: ${{ env.REGISTRY }}/oneclub-web:${{ steps.t.outputs.tag }}
           push: true
           cache-from: type=gha,scope=web-vps
+      - name: No source maps in the website image
+        run: |
+          docker pull -q "$REGISTRY/oneclub-web:${{ steps.t.outputs.tag }}"
+          id=$(docker create "$REGISTRY/oneclub-web:${{ steps.t.outputs.tag }}")
+          docker cp "$id:/app/apps" "$RUNNER_TEMP/web" && docker rm "$id" >/dev/null
+          if find "$RUNNER_TEMP/web" -name '*.map' | grep -q .; then echo "::error::source maps in the website image"; exit 1; fi
 
   deploy:
     if: vars.VPS_INSTANCE != ''
