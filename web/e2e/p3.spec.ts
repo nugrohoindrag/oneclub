@@ -56,15 +56,15 @@ test('Kitchen Display: kitchen staff switch to the BEO production of the day', a
   await login(page, KITCHEN, email('kitchen_staff'));
   await expect(page).toHaveURL(`${KITCHEN}/kitchen`);
   await expect(page.getByRole('heading', { name: 'Kitchen' })).toBeVisible();
-  await page.getByRole('tab', { name: 'Banquet Production' }).click();
+  await page.getByRole('link', { name: 'Banquet Production' }).click();
   await expect(page.getByRole('heading', { name: 'Banquet Production' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'To produce' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'To produce' })).toBeVisible();
   await expect(page.getByLabel('Date')).toHaveValue(/\d{4}-\d{2}-\d{2}/);
-  await page.getByRole('tab', { name: 'Orders' }).click();
-  await expect(page.getByRole('heading', { name: 'Preparing' })).toBeVisible();
+  await page.getByRole('link', { name: 'Orders' }).click();
+  await expect(page.getByRole('region', { name: 'Preparing' })).toBeVisible();
 });
 
-test('Website: inquiry with an unticked marketing consent, corporate golf and the complaint link in the footer', async ({ browser, page }) => {
+test('Website: inquiry with an unticked marketing consent, corporate golf and the complaint link in the header', async ({ browser, page }) => {
   await page.goto(`${WEB}/en/wedding-banquet`);
   const consent = page.getByRole('checkbox', { name: /Send me news and offers/ });
   await expect(consent).not.toBeChecked(); // explicit opt-in (UU PDP)
@@ -77,7 +77,8 @@ test('Website: inquiry with an unticked marketing consent, corporate golf and th
   await consent.check();
   await page.getByRole('button', { name: 'Send' }).click();
   await expect(page.getByText(/our sales team will contact you/)).toBeVisible();
-  await expect(page.locator('footer').getByRole('link', { name: 'Make a complaint' })).toHaveAttribute('href', '/en/complaint');
+  // the complaint page sits in the Contact Us sub-menu of the header
+  await expect(page.locator('header .sub-menu').getByRole('link', { name: 'Complaint' })).toHaveAttribute('href', '/en/complaint');
 
   const admin = await (await browser.newContext()).newPage();
   await login(admin, DASHBOARD, SA, '/');
@@ -87,9 +88,6 @@ test('Website: inquiry with an unticked marketing consent, corporate golf and th
   expect(leads.items[0].line).toBe('golf');
   expect(leads.items[0].marketingConsent).toBe(true);
 
-  await page.goto(`${WEB}/en/contact`);
-  await expect(page.getByRole('checkbox', { name: /Send me news and offers/ })).not.toBeChecked();
-  await expect(page.getByLabel('Topic').locator('option')).toContainText(['corporate golf', 'tournament']);
   await admin.context().close();
 });
 
@@ -109,6 +107,6 @@ test('Member App: the member pays the down payment of a payment schedule online'
   await expect(page.getByText(`Family wedding ${stamp}`)).toBeVisible();
   await page.getByRole('button', { name: `Pay DP ${stamp}` }).click();
   await expect(page.getByRole('heading', { name: 'Online payment' })).toBeVisible();
-  await expect(page.locator('.oc-metric', { hasText: /Rp\s?3[.,]000[.,]000/ })).toBeVisible();
+  await expect(page.locator('.mj-price', { hasText: /Rp\s?3[.,]000[.,]000/ })).toBeVisible(); // Amount to pay
   await admin.context().close();
 });

@@ -11,30 +11,26 @@ const SA = email('super_admin');
 const stamp = String(Date.now()).slice(-6);
 
 /**
- * Cuts the connection: the browser goes offline and the app's own switch is
- * used as well, because Chrome on Windows keeps navigator.onLine true for
- * service-worker pages under network emulation.
+ * Cuts the connection on the Sync Queue page: the app's own switch, then the
+ * browser goes offline (Chrome on Windows keeps navigator.onLine true for
+ * service-worker pages under network emulation).
  */
-async function goOffline(page: Page, context: BrowserContext) {
-  await page.getByRole('link', { name: /pending/ }).click();
-  await simulateOffline(page, context);
-}
-
-/** The offline switch on the Sync Queue page, then the browser goes offline. */
 async function simulateOffline(page: Page, context: BrowserContext) {
   await page.getByRole('button', { name: 'Simulate offline' }).click();
-  await expect(page.getByRole('link', { name: /^Offline/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Go back online' })).toBeVisible();
   await context.setOffline(true);
 }
 
 /** Restores the connection on the sync queue page and waits until every action is synced. */
 async function syncAll(page: Page, context: BrowserContext, actions: number) {
   const rows = page.locator('table.oc-table tbody tr');
-  await expect(rows).toHaveCount(actions);
-  await expect(rows.locator('.oc-status', { hasText: 'Pending' })).toHaveCount(actions);
+  const shown = Math.min(actions, 10); // the table shows 10 rows per page
+  await expect(rows).toHaveCount(shown);
+  if (actions > shown) await expect(page.getByText(new RegExp(`^1.${shown} of ${actions}$`))).toBeVisible();
+  await expect(rows.locator('.oc-status', { hasText: 'Pending' })).toHaveCount(shown);
   await context.setOffline(false);
   await page.getByRole('button', { name: 'Go back online' }).click({ timeout: 3_000 }).catch(() => undefined);
-  await expect(rows.locator('.oc-status', { hasText: 'Completed' })).toHaveCount(actions, { timeout: 30_000 });
+  await expect(rows.locator('.oc-status', { hasText: 'Completed' })).toHaveCount(shown, { timeout: 30_000 });
 }
 
 test('POS: a sale without connection is queued and synced as one order', async ({ browser }) => {
@@ -91,7 +87,7 @@ test('Caddy Tablet: an 18-hole round without signal syncs once; the member rates
   const all = (await api.get('/api/v1/golf/caddies?limit=200')).items;
   const caddies = ['C001', 'C002', 'C003'].map((code) => all.find((c: { code: string }) => c.code === code).id as string);
   const ch18 = (await api.get(`/api/v1/golf/playing-routes?filter[courseId]=${mgc.id}&limit=100`)).items.find((r: { holeCount: number }) => r.holeCount === 18);
-  type Booking = { code: string; flights: { id: string }[]; players: { id: string }[]; folioId: string; folio: { balance: string } };
+  type Booking = { id: string; code: string; flights: { id: string }[]; players: { id: string }[]; folioId: string; folio: { balance: string } };
   let bk: Booking | undefined;
   let day = '';
   let refused = '';
@@ -130,15 +126,19 @@ test('Caddy Tablet: an 18-hole round without signal syncs once; the member rates
   const page = await context.newPage();
   await login(page, CADDY, email('caddy'));
   await expect(page).toHaveURL(/\/tablet$/);
-  await page.locator('.oc-row-wrap', { hasText: bk!.code }).getByRole('link', { name: 'Open' }).click();
+  await page.locator('.pos-card', { hasText: bk!.code }).getByRole('link', { name: 'Open' }).click();
   await expect(page.getByRole('heading', { name: bk!.code })).toBeVisible();
 
-  await goOffline(page, context);
+  await page.getByRole('link', { name: 'Sync' }).click();
+  await simulateOffline(page, context);
   await page.goBack(); // the round stays open from what the tablet already loaded
   await page.getByRole('button', { name: 'Start Round' }).click();
-  for (let hole = 2; hole <= 18; hole++) await page.getByRole('button', { name: `Next hole → ${hole}` }).click();
+  for (let hole = 2; hole <= 18; hole++) {
+    await page.getByRole('button', { name: 'Next hole' }).click();
+    await expect(page.getByText(`${hole} / 18`)).toBeVisible();
+  }
   await page.getByRole('button', { name: 'Complete Round' }).click();
-  await page.getByRole('link', { name: /pending/ }).click();
+  await page.getByRole('link', { name: 'Sync' }).click();
   await syncAll(page, context, 19); // tee-off, holes 2–18, finish
 
   const round = (await api.get(`/api/v1/golf/rounds/${flightId}`)).round;
@@ -149,9 +149,8 @@ test('Caddy Tablet: an 18-hole round without signal syncs once; the member rates
   // After the round the member rates the caddy in the Member App (My Caddy).
   const member = await (await browser.newContext()).newPage();
   await login(member, MEMBER, 'member@demo.oneclub.id');
-  await member.goto(`${MEMBER}/golf/my-caddy`);
-  const rate = member.locator('.oc-card', { hasText: bk!.code }).getByRole('group', { name: /^Rate caddy/ }).first();
-  await rate.getByRole('button', { name: '5 of 5' }).click();
-  await rate.getByRole('button', { name: 'Rate caddy' }).click();
-  await expect(member.getByText(/Thank you for rating/)).toBeVisible();
+  await member.goto(`${MEMBER}/bookings/${bk!.id}`); // the booking of a finished round asks for a review of each caddy
+  await member.getByRole('group', { name: /^Rate / }).first().getByRole('button', { name: '5 of 5' }).click();
+  await member.getByRole('button', { name: 'Submit Review' }).first().click();
+  await expect(member.getByText('Thank you for your review')).toBeVisible();
 });

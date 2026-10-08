@@ -23,7 +23,7 @@ test('Management: KPI dashboards show P2 figures', async ({ page }) => {
   for (const [path, title] of [['sport-club-performance', 'Sport Club Performance'], ['commercial-performance', 'Commercial Performance']]) {
     await page.goto(`${DASHBOARD}/management/${path}`);
     await expect(page.getByRole('heading', { name: title })).toBeVisible();
-    await expect(page.locator('.oc-metric').first()).toBeVisible();
+    await expect(page.locator('.oc-dash-hero').first()).toBeVisible(); // the lead KPI of the domain
   }
 });
 
@@ -41,7 +41,7 @@ test('Ops: Starter sees Pace of Play; Sport Reception validates access', async (
 
 test('Caddy Tablet: assignments, earnings and the offline queue', async ({ page }) => {
   await login(page, CADDY, email('caddy'));
-  await expect(page.locator('.oc-bottom-nav')).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Caddy Tablet' })).toBeVisible();
   await page.goto(`${CADDY}/tablet/earnings`);
   await expect(page.getByRole('heading', { name: 'Earnings' })).toBeVisible();
   await page.goto(`${CADDY}/tablet/sync`);
@@ -61,12 +61,14 @@ test('Member App: scores, sport club, vouchers, fees & requests and preferences'
 
 test('Website: Sport Club page, structured rates and the contact form', async ({ page }) => {
   await page.goto(`${WEB}/en/sport-club`);
-  await expect(page.getByRole('heading', { name: 'Sport Club', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Sports Club' }).first()).toBeVisible();
+  // the live site's contact form, posted to the contact API
   await page.goto(`${WEB}/en/contact`);
-  // exact: the Topic select's label also holds its options ("tournament" contains "name")
-  await page.getByLabel('Name', { exact: true }).fill('Playwright Visitor');
-  await page.getByLabel('E-mail', { exact: true }).fill('visitor@playwright.test');
-  await page.getByLabel('Message', { exact: true }).fill('Do you have a family package?');
-  await page.getByRole('button', { name: 'Send' }).click();
-  await expect(page.getByText(/we will get back to you/)).toBeVisible();
+  const form = page.locator('form.book-form').filter({ has: page.getByPlaceholder('Message') });
+  await form.getByPlaceholder('Player Name').fill('Playwright Visitor');
+  await form.getByPlaceholder('Email').fill('visitor@playwright.test');
+  await form.getByPlaceholder('Subject').fill('Family package');
+  await form.getByPlaceholder('Message').fill('Do you have a family package?');
+  await form.getByRole('button', { name: 'SUBMIT' }).click();
+  await expect(page.getByText('Thank you, we have received your message.')).toBeVisible();
 });
