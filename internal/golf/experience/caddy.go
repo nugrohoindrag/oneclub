@@ -131,7 +131,7 @@ func (m *Module) ClockOut(ctx context.Context, tx pgx.Tx, property uuid.UUID, in
 
 // RotationEntry is one available caddy in the rotation (Caddy Master board).
 type RotationEntry struct {
-	Position       int        `json:"position"`
+	Position       int        `json:"position" db:"-"`
 	CaddyID        uuid.UUID  `json:"caddyId" db:"caddy_id"`
 	Code           string     `json:"code" db:"code"`
 	Name           string     `json:"name" db:"name"`

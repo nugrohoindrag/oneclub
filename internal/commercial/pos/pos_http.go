@@ -65,9 +65,9 @@ type MenuItem struct {
 	ImageURL       *string   `json:"imageUrl" db:"image_url" doc:"Product photo (POS menu)"`
 	// PRD P4 FR-CNS-07 (additive): stock of retail items sold 1:1 in the
 	// warehouses of the outlet (K9 reporting.stock_availability).
-	StockTracked bool    `json:"stockTracked" doc:"The item is stocked in a warehouse of the outlet (inventory)"`
-	Available    *string `json:"available" doc:"Available quantity at the outlet (stock-tracked items)"`
-	SoldOut      bool    `json:"soldOut" doc:"No available stock at the outlet (POS Policies markSoldOut)"`
+	StockTracked bool    `json:"stockTracked" db:"-" doc:"The item is stocked in a warehouse of the outlet (inventory)"`
+	Available    *string `json:"available" db:"-" doc:"Available quantity at the outlet (stock-tracked items)"`
+	SoldOut      bool    `json:"soldOut" db:"-" doc:"No available stock at the outlet (POS Policies markSoldOut)"`
 }
 
 func (m *Module) registerPOS(reg *route.Registry, eng *resource.Engine) {

@@ -24,10 +24,10 @@ import (
 
 // RangeArea is a driving range area and whether it can be booked.
 type RangeArea struct {
-	Area    string `json:"area" enum:"outdoor,indoor"`
-	Enabled bool   `json:"enabled" doc:"Switched on by the front desk (default on)"`
-	Bays    int    `json:"bays" doc:"Active bays of the area"`
-	Offered bool   `json:"offered" doc:"Bookable: switched on and has a bay"`
+	Area    string `json:"area" db:"area" enum:"outdoor,indoor"`
+	Enabled bool   `json:"enabled" db:"enabled" doc:"Switched on by the front desk (default on)"`
+	Bays    int    `json:"bays" db:"bays" doc:"Active bays of the area"`
+	Offered bool   `json:"offered" db:"-" doc:"Bookable: switched on and has a bay"`
 }
 
 // RangeAreaInput switches an area on or off.
