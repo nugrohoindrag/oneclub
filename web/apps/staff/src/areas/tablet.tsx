@@ -77,6 +77,7 @@ function AssignmentsPage() {
   const toast = useToast();
   const { propertyId } = useAuth();
   const my = useGet<Schemas['MyAssignments']>('/api/v1/golf/my-assignments', { refetchInterval: 30_000 });
+  const clockIn = useSend<Record<string, never>>('POST', '/api/v1/golf/my-attendance:clock-in', ['/api/v1/golf/my-assignments']);
   // accepted on this tablet: shown at once, also while the action waits in the offline queue
   const [accepted, setAccepted] = useState<string[]>([]);
   const accept = async (id: string, flightId: string) => {
@@ -95,8 +96,15 @@ function AssignmentsPage() {
         <TodayLabel />
       </div>
       <div className="pos-body">
-        <ErrorAlert error={my.error} />
+        <ErrorAlert error={my.error ?? clockIn.error} />
         {my.isLoading && <Skeleton rows={4} />}
+        {a?.dutyStatus === 'off_duty' && (
+          <div className="pos-banner" role="status" style={{ margin: '0 0 14px' }}>
+            <Icon name="badge" size={22} /><div style={{ flex: 1 }}>You are not clocked in today. Clock in so the front desk can assign you to players.</div>
+            <button className="pos-btn" disabled={clockIn.isPending} onClick={() => clockIn.mutate({}, { onSuccess: () => { toast('Clocked in — you are in the caddy queue'); void my.refetch(); } })}>
+              <Icon name="login" size={20} />Clock in</button>
+          </div>
+        )}
         {a?.current && (
           <Link to={`/tablet/round/${a.current.flightId}`} className="pos-hole" style={{ textDecoration: 'none' }}>
             <span className="pos-muted-inverse">Current Round</span>

@@ -47,6 +47,15 @@ func TestSelfCheckIn(t *testing.T) {
 		t.Fatalf("self check-in waiting at the desk: %v", w)
 	}
 
+	// the caddy clocks in on the tablet (once a day)
+	caddy := roleUser(t, inst, "caddy")
+	if caddy.Do("GET", "/api/v1/golf/my-assignments", nil).Status == 404 { // no caddy linked to the user yet (run alone)
+		cid := idOf(sa.Must(201, "POST", "/api/v1/golf/caddies", map[string]any{"code": "C071", "name": "Caddy Clock", "gender": "female"}))
+		sa.Must(200, "PUT", "/api/v1/golf/caddies/"+cid+"/profile", map[string]any{"userId": userID(t, "caddy"), "joinedOn": "2024-01-10"})
+	}
+	caddy.Must(201, "POST", "/api/v1/golf/my-attendance:clock-in", nil)
+	caddy.Must(409, "POST", "/api/v1/golf/my-attendance:clock-in", nil) // once a day
+
 	// kiosk: the booking QR scanned by the golfer
 	bk2 := sa.Must(201, "POST", "/api/v1/golf/bookings", map[string]any{"bookingType": "non_member", "channel": "back_office", "teeTimeId": slots[1]["id"],
 		"contactName": "Kiki Kiosk", "contactPhone": "+628129990095", "players": []map[string]any{{"playerType": "non_member", "name": "Kiki Kiosk"},

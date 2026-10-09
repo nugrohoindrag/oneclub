@@ -158,6 +158,17 @@ func (m *Module) SelfCheckIns(ctx context.Context, q dbtx.Querier, property uuid
 
 func (m *Module) registerSelfCheckIn(reg *route.Registry, add func(tag string, rt route.Route)) {
 	db := m.DB
+	// the caddy clocks in on the tablet: present today, so the front desk
+	// can pick them (demo feedback 9 Oct 2026, item 11)
+	add("Caddy Tablet", route.Route{Method: http.MethodPost, Path: "/api/v1/golf/my-attendance:clock-in", Summary: "Caddy tablet: clock in (present today, joins the rotation)",
+		Permission: "golf.tablet.use", Response: Attendance{}, Status: http.StatusCreated,
+		Handler: handle.Write(db, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, _ handle.Empty) (Attendance, error) {
+			c, err := m.myCaddy(ctx, tx, handle.Property(ctx))
+			if err != nil {
+				return Attendance{}, err
+			}
+			return m.ClockIn(ctx, tx, handle.Property(ctx), ClockInput{CaddyID: c.ID})
+		})})
 	crm.MeRoute(reg, "golf", "Member Portal", route.Route{Method: http.MethodPost, Path: "/api/v1/member/bookings/{id}:self-check-in",
 		Summary: "Self check-in on arrival (GPS within the club's course area)", Request: SelfCheckInInput{}, Response: SelfCheckInResult{}, Status: http.StatusOK,
 		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in SelfCheckInInput) (SelfCheckInResult, error) {
