@@ -2,7 +2,9 @@
 # main runs lint, unit, integration, OpenAPI and frontend checks plus the
 # browser acceptance tests. Pushes to main additionally build and scan the
 # images (GitHub Container Registry unless vars.REGISTRY is set) and deploy to
-# Dev once the Dev server is configured (vars.DEV_INSTANCE).
+# Dev once the Dev server is configured (vars.DEV_INSTANCE). vps.yml calls
+# this workflow before building the VPS images, so a push to production only
+# deploys with green checks (images and deploy-dev stay main-only).
 name: ci
 
 on:
@@ -10,6 +12,7 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
   group: ci-${{ github.ref }}

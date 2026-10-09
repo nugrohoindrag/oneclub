@@ -7,12 +7,22 @@
 # `staging` keep readable builds; no obfuscated code is ever committed.
 # A release tag on a production commit later promotes exactly these images
 # (release.yml) without rebuilding.
+#
+# The repository that deploys has no main and no pull requests (pushes go
+# straight to production), so the CI checks (ci.yml) run here first and the
+# images are built only when they pass. A manual run can skip them for an
+# urgent demo fix (Run workflow → skip_ci).
 name: vps
 
 on:
   push:
     branches: [production]
   workflow_dispatch:
+    inputs:
+      skip_ci:
+        description: Deploy without running the CI checks (urgent fix only)
+        type: boolean
+        default: false
 
 concurrency:
   group: vps
@@ -25,7 +35,17 @@ env:
   REGISTRY: ${{ vars.REGISTRY || format('ghcr.io/{0}', github.repository_owner) }}
 
 jobs:
+  ci:
+    if: ${{ !inputs.skip_ci }}
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write # ci.yml's images job asks for it (skipped outside main)
+
   images:
+    needs: [ci]
+    if: ${{ !cancelled() && (needs.ci.result == 'success' || (needs.ci.result == 'skipped' && inputs.skip_ci)) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
