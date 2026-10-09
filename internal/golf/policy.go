@@ -55,6 +55,8 @@ type GolfPolicy struct {
 	RoundMinutes18         int            `json:"roundMinutes18"`
 	RoundMinutes9          int            `json:"roundMinutes9"`
 	ReminderHour           int            `json:"reminderHour"`
+	RangeOpenHour          int            `json:"rangeOpenHour"`  // driving range opening hour (0–23, club time)
+	RangeCloseHour         int            `json:"rangeCloseHour"` // closing hour (1–24); bay times end by then
 	DressCode              string         `json:"dressCode"`
 	ClubRules              string         `json:"clubRules"`
 }
@@ -158,6 +160,7 @@ var (
 		MemberPriorityDays:    7,
 		BookingCutoffMinutes:  map[string]int{"member_app": 60, "website": 120, "back_office": 0, "walk_in": 0, "import": 0},
 		RescheduleCutoffHours: 24, MaxReschedules: 2, AllowTBA: true, NoShowGraceMinutes: 30, RoundMinutes18: 300, RoundMinutes9: 150, ReminderHour: 8,
+		RangeOpenHour: 6, RangeCloseHour: 22,
 		DressCode: "Collared shirt, golf trousers or shorts, soft-spike golf shoes.", ClubRules: "Please arrive 30 minutes before your tee time."}
 	DefaultGuest        = GuestPolicy{MaxGuestsPerMember: 3, MemberMustPlay: true}
 	DefaultCancellation = CancellationPolicy{FreeCancelHours: 24, LateCancelFeePercent: "50", NoShowFeePercent: "100", NoShowBlockAfter: 3, NoShowBlockWindowDays: 90,
@@ -227,6 +230,9 @@ func LoadPolicies(ctx context.Context, q dbtx.Querier, property uuid.UUID, at ti
 	}
 	if p.Golf.HoldMinutes <= 0 {
 		p.Golf.HoldMinutes = 10
+	}
+	if p.Golf.RangeOpenHour < 0 || p.Golf.RangeCloseHour > 24 || p.Golf.RangeCloseHour <= p.Golf.RangeOpenHour {
+		p.Golf.RangeOpenHour, p.Golf.RangeCloseHour = DefaultGolf.RangeOpenHour, DefaultGolf.RangeCloseHour
 	}
 	if p.Cart.PlayersPerCart <= 0 {
 		p.Cart.PlayersPerCart = 2

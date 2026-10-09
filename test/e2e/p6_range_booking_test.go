@@ -87,3 +87,41 @@ func merge(a, b map[string]any) map[string]any {
 	}
 	return out
 }
+
+// The driving range opens by the Golf Policy (06:00 – 22:00 by default): a
+// version saved during the day opens it at once, e.g. 24 hours for a demo.
+func TestRangeHoursFromGolfPolicy(t *testing.T) {
+	f := setupP2(t)
+	fd := login(t, inst, "front.desk@demo.oneclub.id", demoPassword)
+	bay := f.SA.Must(201, "POST", "/api/v1/golf/range-bays", map[string]any{"code": "RH-I1", "name": "Indoor RH-I1", "area": "indoor"}).JSON()
+	t.Cleanup(func() {
+		f.SA.Must(200, "PATCH", "/api/v1/golf/range-bays/"+str(bay["id"]), map[string]any{"status": "inactive"})
+	})
+	day := clubDay(inst, 3, isWeekday)
+	early := map[string]any{"date": day, "time": "05:00", "minutes": 60, "area": "indoor", "reserveBay": false,
+		"guestName": "Early Bird", "guestPhone": "+628129990081"}
+	if r := fd.Do("POST", "/api/v1/golf/range-bookings", early); r.Status != 422 {
+		t.Fatalf("05:00 before the default opening: %s", r)
+	}
+
+	var golfPolicy map[string]any
+	for _, p := range f.SA.Must(200, "GET", "/api/v1/golf/policies", nil).Items() {
+		if p["code"] == "golf.booking" {
+			golfPolicy = p["value"].(map[string]any)
+		}
+	}
+	if golfPolicy["rangeOpenHour"] != float64(6) || golfPolicy["rangeCloseHour"] != float64(22) {
+		t.Fatalf("default range hours in the Golf Policy: %v – %v", golfPolicy["rangeOpenHour"], golfPolicy["rangeCloseHour"])
+	}
+	pcPolicy(t, f.SA, "Golf Policies", "golf.booking", merge(golfPolicy, map[string]any{"rangeOpenHour": 0, "rangeCloseHour": 24}))
+	t.Cleanup(func() { pcPolicy(t, f.SA, "Golf Policies", "golf.booking", golfPolicy) })
+
+	times := map[string]bool{}
+	for _, s := range fd.Must(200, "GET", "/api/v1/golf/range-availability?date="+day+"&area=indoor&minutes=60", nil).Items() {
+		times[str(s["time"])] = true
+	}
+	if !times["00:00"] || !times["23:00"] || times["23:30"] {
+		t.Fatalf("24-hour range slots (60 minutes, ending by midnight): 00:00 %v, 23:00 %v, 23:30 %v", times["00:00"], times["23:00"], times["23:30"])
+	}
+	fd.Must(201, "POST", "/api/v1/golf/range-bookings", early)
+}

@@ -20,6 +20,7 @@ import (
 	"github.com/riverqueue/river"
 
 	"oneclub/internal/crm"
+	"oneclub/internal/golf"
 	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
@@ -32,13 +33,26 @@ import (
 	"oneclub/internal/reservation"
 )
 
-// Range hours and booking grid (club time).
+// Range booking grid (club time); the opening hours come from the Golf Policy.
 const (
-	RangeOpenHour     = 6
-	RangeCloseHour    = 22
 	RangeStepMinutes  = 30
 	RangeGraceMinutes = 15
 )
+
+// rangeHours returns the opening hours of the driving range on a day: the
+// Golf Policy in force at the start of the day, or now for today (a version
+// saved during the day applies at once).
+func rangeHours(ctx context.Context, q dbtx.Querier, property uuid.UUID, day time.Time) (open, close time.Time, err error) {
+	at := day
+	if now := clock.Now(); now.After(at) {
+		at = now
+	}
+	pol, err := golf.LoadPolicies(ctx, q, property, at)
+	if err != nil {
+		return open, close, err
+	}
+	return day.Add(time.Duration(pol.Golf.RangeOpenHour) * time.Hour), day.Add(time.Duration(pol.Golf.RangeCloseHour) * time.Hour), nil
+}
 
 // RangeBooking is a booked bay time or an announced range visit.
 type RangeBooking struct {
@@ -178,10 +192,14 @@ func (m *Module) RangeAvailability(ctx context.Context, q dbtx.Querier, property
 	if err != nil {
 		return nil, err
 	}
+	opens, closes, err := rangeHours(ctx, q, property, day)
+	if err != nil {
+		return nil, err
+	}
 	now := clock.Now()
 	out := []RangeSlot{}
 	length := time.Duration(minutes) * time.Minute
-	for t := day.Add(RangeOpenHour * time.Hour); !t.Add(length).After(day.Add(RangeCloseHour * time.Hour)); t = t.Add(RangeStepMinutes * time.Minute) {
+	for t := opens; !t.Add(length).After(closes); t = t.Add(RangeStepMinutes * time.Minute) {
 		if t.Add(length).Before(now) {
 			continue
 		}
@@ -225,8 +243,12 @@ func (m *Module) BookRange(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 	}
 	end := start.Add(time.Duration(minutes) * time.Minute)
 	day := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, loc)
-	if start.Before(day.Add(RangeOpenHour*time.Hour)) || end.After(day.Add(RangeCloseHour*time.Hour)) {
-		return RangeBooking{}, handle.Invalid("time", "closed", fmt.Sprintf("the range is open %02d:00 – %02d:00", RangeOpenHour, RangeCloseHour))
+	opens, closes, err := rangeHours(ctx, tx, property, day)
+	if err != nil {
+		return RangeBooking{}, err
+	}
+	if start.Before(opens) || end.After(closes) {
+		return RangeBooking{}, handle.Invalid("time", "closed", fmt.Sprintf("the range is open %02.0f:00 – %02.0f:00", opens.Sub(day).Hours(), closes.Sub(day).Hours()))
 	}
 	if !end.After(clock.Now()) {
 		return RangeBooking{}, handle.Invalid("time", "in_the_past", "choose a time that has not passed")

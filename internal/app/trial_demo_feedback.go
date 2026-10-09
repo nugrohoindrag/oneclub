@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"oneclub/internal/golf/experience"
+	"oneclub/internal/golf"
 	"oneclub/internal/kernel/clock"
 )
 
@@ -59,7 +59,9 @@ func trialDemoFeedbackFinal(_ context.Context, t *Trial) error {
 		}
 		for range n {
 			minutes := []int{60, 60, 90, 120}[r.IntN(4)] // the bay time ends by closing
-			at := day.Add(time.Duration(2*experience.RangeOpenHour+r.IntN(2*(experience.RangeCloseHour-experience.RangeOpenHour)-minutes/30+1)) * 30 * time.Minute)
+			// the trial club keeps the default Golf Policy hours
+			opens, closes := golf.DefaultGolf.RangeOpenHour, golf.DefaultGolf.RangeCloseHour
+			at := day.Add(time.Duration(2*opens+r.IntN(2*(closes-opens)-minutes/30+1)) * 30 * time.Minute)
 			if !at.After(now.Add(30 * time.Minute)) {
 				continue
 			}
