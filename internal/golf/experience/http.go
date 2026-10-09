@@ -177,6 +177,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.registerRangeBookings(reg, add)
 	m.registerRangeAreas(reg, add)
 	m.registerScorecardSheets(reg, add)
+	m.registerSelfCheckIn(reg, add)
 	m.registerCaddyRelation(add)
 	m.registerLeaders(reg, add)
 

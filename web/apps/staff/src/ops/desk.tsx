@@ -30,6 +30,8 @@ export function FrontDeskPage() {
   const [merge, setMerge] = useState<string[] | null>(null);
   const [paying, setPaying] = useState(false);
   const toggle = (id: string, on: boolean) => setMerge((m) => (on ? [...(m ?? []), id] : (m ?? []).filter((x) => x !== id)));
+  // checked in from the Member App or the kiosk: the desk picks caddy and cart
+  const selfs = useGet<Page<R>>(`/api/v1/golf/self-check-ins${qs({ date })}`, { refetchInterval: 20_000 });
   return (
     <div className="oc-stack">
       <Head title="Reservations" help={`${date}${bookings.offline ? ' · offline copy' : ''}`} actions={<>
@@ -49,7 +51,21 @@ export function FrontDeskPage() {
         actions={(b) => (bookings.offline ? null : merge
           ? <Checkbox label="Merge" checked={merge.includes(b.id)} disabled={['cancelled', 'no_show'].includes(String(b.status))} onChange={(on) => toggle(b.id, on)} />
           : <Btn label="Manage" onClick={() => setOpen(b.id)} />)} />
-      {open && <DeskBookingModal id={open} onClose={() => { setOpen(null); void bookings.refetch(); }} />}
+      {(selfs.data?.items ?? []).length > 0 && (
+        <div className="oc-card oc-stack" style={{ gap: 8 }}>
+          <strong><Icon name="how_to_reg" size={18} /> Self check-in · waiting for caddy & golf cart</strong>
+          {(selfs.data?.items ?? []).map((s) => (
+            <div key={String(s.bookingId)} className="oc-row-wrap" style={{ alignItems: 'center' }}>
+              <strong style={{ minWidth: 60 }}>{String(s.localTime)}</strong>
+              <span style={{ flex: 1, minWidth: 200 }}>{String(s.code)} · {((s.players as string[]) ?? []).join(', ')}
+                <span className="oc-small oc-muted"> · {s.method === 'kiosk' ? 'kiosk' : 'Member App'} {new Date(String(s.checkedInAt)).toLocaleTimeString('en-GB', { timeStyle: 'short' })}
+                  {Number(s.waitingCaddy) > 0 ? ` · ${String(s.waitingCaddy)} without caddy` : ''}{s.waitingCart ? ' · no golf cart' : ''}</span></span>
+              <Btn label="Caddy & Cart" kind="primary" onClick={() => setOpen(String(s.bookingId))} />
+            </div>
+          ))}
+        </div>
+      )}
+      {open && <DeskBookingModal id={open} onClose={() => { setOpen(null); void bookings.refetch(); void selfs.refetch(); }} />}
       {paying && merge && <MergeBillModal ids={merge} onClose={() => setPaying(false)}
         onDone={() => { setPaying(false); setMerge(null); toast('Merged bill paid'); void bookings.refetch(); }} />}
     </div>

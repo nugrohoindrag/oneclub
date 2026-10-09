@@ -225,7 +225,8 @@ export function OpsCheckInPage() {
   };
   return (
     <div className="oc-stack">
-      <Head title="Check-in" help={online ? 'Scan a member card or booking QR, or pick the booking.' : 'Offline: check-ins are queued and synced in order.'} />
+      <Head title="Check-in" help={online ? 'Scan a member card or booking QR, or pick the booking.' : 'Offline: check-ins are queued and synced in order.'}
+        actions={<Link className="oc-btn oc-btn-neutral" to="/ops/kiosk"><Icon name="qr_code_scanner" size={18} /> Self check-in kiosk</Link>} />
       {online && (
         <div className="oc-row-wrap">
           <TextField label="Scan card / QR" value={scan} onChange={setScan} autoFocus />

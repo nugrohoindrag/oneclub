@@ -46,6 +46,7 @@ type CheckInRequest struct {
 	BookingID *uuid.UUID  `json:"bookingId,omitempty"`
 	PlayerIDs []uuid.UUID `json:"playerIds,omitempty" doc:"Players to check in (default: the card holder, or the whole booking)"`
 	Date      string      `json:"date,omitempty" doc:"Play date (default today)"`
+	Kiosk     bool        `json:"kiosk,omitempty" doc:"Scanned by the golfer at the self check-in kiosk"`
 }
 
 // CheckInCandidate is a booking found by a lookup.

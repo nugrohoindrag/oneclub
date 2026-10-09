@@ -18841,6 +18841,10 @@
             "description": "Play date (default today)",
             "type": "string"
           },
+          "kiosk": {
+            "description": "Scanned by the golfer at the self check-in kiosk",
+            "type": "boolean"
+          },
           "method": {
             "enum": [
               "member_card",
@@ -95230,6 +95234,109 @@
           "portionPerPax",
           "serveOffsetMinutes",
           "allergens"
+        ],
+        "type": "object"
+      },
+      "SelfCheckInInput": {
+        "properties": {
+          "accuracy": {
+            "description": "GPS accuracy in meters",
+            "type": "number"
+          },
+          "latitude": {
+            "type": "number"
+          },
+          "longitude": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude"
+        ],
+        "type": "object"
+      },
+      "SelfCheckInResult": {
+        "properties": {
+          "bookingId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "checkedIn": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "code": {
+            "type": "string"
+          },
+          "distanceMeters": {
+            "description": "From the middle of the course",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bookingId",
+          "code",
+          "checkedIn",
+          "distanceMeters"
+        ],
+        "type": "object"
+      },
+      "SelfCheckInWaiting": {
+        "properties": {
+          "bookingId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "checkedInAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "contactName": {
+            "type": "string"
+          },
+          "localTime": {
+            "type": "string"
+          },
+          "method": {
+            "enum": [
+              "self_app",
+              "kiosk"
+            ],
+            "type": "string"
+          },
+          "players": {
+            "description": "Checked in by themselves",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "waitingCaddy": {
+            "description": "Checked-in players without a caddy",
+            "type": "integer"
+          },
+          "waitingCart": {
+            "description": "A flight without a golf cart",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "bookingId",
+          "code",
+          "localTime",
+          "contactName",
+          "players",
+          "method",
+          "checkedInAt",
+          "waitingCaddy",
+          "waitingCart"
         ],
         "type": "object"
       },
@@ -245996,6 +246103,116 @@
         "x-permission": "golf.scorecard.enter"
       }
     },
+    "/api/v1/golf/self-check-ins": {
+      "get": {
+        "operationId": "getGolfSelfCheckIns",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/SelfCheckInWaiting"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Self check-ins (Member App, kiosk) waiting for the desk's caddy and golf cart",
+        "tags": [
+          "Check-in"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.check_in.perform"
+      }
+    },
     "/api/v1/golf/series-points-tables": {
       "get": {
         "operationId": "getGolfSeriesPointsTables",
@@ -316771,6 +316988,88 @@
           }
         ],
         "summary": "Reschedule my booking",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/bookings/{id}:self-check-in": {
+      "post": {
+        "operationId": "postMemberBookingsByIdSelfCheckIn",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelfCheckInInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SelfCheckInResult"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Self check-in on arrival (GPS within the club's course area)",
         "tags": [
           "Member Portal"
         ],

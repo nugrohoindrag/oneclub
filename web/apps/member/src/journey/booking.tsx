@@ -5,7 +5,7 @@ import { qs, request, useGet, type Page, type Schemas } from '@oneclub/api-clien
 import { ErrorAlert, Icon, Modal, PlayTime, QRCode, SelectField, Skeleton, TextField, useToast } from '@oneclub/shell';
 import { HoleBests } from './leaderboard';
 import { MethodPicker, PaymentPanel } from './pay';
-import { Check, Chip, dayLabel, downloadICS, Head, initials, money, Rows, StatusChip } from './ui';
+import { Check, Chip, dayLabel, downloadICS, Head, initials, isoDay, money, Rows, StatusChip } from './ui';
 
 // My booking (golf) across the journey: Before Arrival checklist, check-in
 // QR, Checked In, Round in progress / completed with the score, the caddy
@@ -77,7 +77,7 @@ export function GolfBookingPage() {
           <span className="mj-success-mark"><Icon name="how_to_reg" size={34} /></span>
           <h1>Checked In</h1>
           <Rows rows={[['Tee Time', x.localTime], ['Flight', flight ? `${flight.flightNo}${flight.startTee > 1 ? ` · tee ${flight.startTee}` : ''}` : '—'], ['Players', x.playerCount]]} />
-          <div className="mj-muted">Enjoy your round.</div>
+          <div className="mj-muted">The front desk picks your caddy and golf cart. Enjoy your round.</div>
         </div>
       ) : active ? (
         <div className="mj-grid-2">
@@ -96,8 +96,9 @@ export function GolfBookingPage() {
             <div className="mj-card mj-success">
               <h2 style={{ margin: 0 }}>Check-in QR</h2>
               <QRCode value={`oneclub:booking:${x.qrToken}`} size={180} label="Check-in QR" />
-              <div className="mj-small mj-muted">Arrive 30 minutes before your tee time and show this QR at the clubhouse.</div>
+              <div className="mj-small mj-muted">Arrive 30 minutes before your tee time and show this QR at the clubhouse or scan it at the kiosk.</div>
               <span className="mj-code">{x.code}</span>
+              {x.playDate === isoDay(0) && <SelfCheckIn bookingId={x.id} onDone={refresh} />}
             </div>
           ) : (
             <div className="mj-card">
@@ -191,6 +192,45 @@ function CaddyState({ pj, finished }: { pj?: PlayerJ; finished: boolean }) {
   }
   if (pj.caddyPreference === 'none') return <div className="mj-item-end"><Chip>No Caddy</Chip></div>;
   return <div className="mj-item-end"><Chip tone="warn">Assigned by the front desk</Chip></div>;
+}
+
+/** Self check-in on the day of play: the phone's location must be at the
+ * club; the front desk then picks the caddy and the golf cart. */
+function SelfCheckIn({ bookingId, onDone }: { bookingId: string; onDone: () => void }) {
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+  const go = () => {
+    setError(null);
+    if (!navigator.geolocation) {
+      setError(new Error('This phone cannot share its location; please check in at the front desk.'));
+      return;
+    }
+    setBusy(true);
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+      try {
+        await request('POST', `/api/v1/member/bookings/${bookingId}:self-check-in`,
+          { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy });
+        toast('Checked in — the front desk will call you for your caddy');
+        onDone();
+      } catch (e) {
+        setError(e);
+      } finally {
+        setBusy(false);
+      }
+    }, (e) => {
+      setBusy(false);
+      setError(new Error(e.code === 1 ? 'Allow the location to check in, or show the QR at the front desk.' : 'The location is not available; try again.'));
+    }, { enableHighAccuracy: true, timeout: 15_000, maximumAge: 60_000 });
+  };
+  return (
+    <>
+      <button className="oc-btn oc-btn-primary" disabled={busy} onClick={go}>
+        <Icon name="location_on" size={18} /> {busy ? 'Checking your location…' : "I'm at the club — check in"}
+      </button>
+      <ErrorAlert error={error} />
+    </>
+  );
 }
 
 /** Pay the balance or any part of it online (QRIS, VA, card). */

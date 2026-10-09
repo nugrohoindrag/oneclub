@@ -650,6 +650,9 @@ func (m *Module) checkInHTTP(w http.ResponseWriter, r *http.Request) {
 		if method == "" {
 			method = "booking_code"
 		}
+		if req.Kiosk {
+			method = "kiosk"
+		}
 		return m.CheckIn(ctx, tx, prop(ctx), req, method)
 	})
 }

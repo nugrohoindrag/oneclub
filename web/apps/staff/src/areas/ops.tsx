@@ -12,6 +12,7 @@ import {
   FrontDeskPaymentsPage, GuestPage, LockersPage, OpsCheckInPage, OpsCheckOutPage, OpsTeeSheetPage, OpsTiles, StarterQueuePage,
 } from '../ops/golf';
 import { DeskNewBookingPage, FrontDeskPage } from '../ops/desk';
+import { KioskCheckInPage } from '../ops/kiosk';
 import { CaddyHistoryPage } from '../ops/caddy';
 import { TeeHousesPage } from '../ops/teehouse';
 import { P2_OPS_ROUTES, P2Tiles } from '../ops/p2';
@@ -150,6 +151,7 @@ const routes = [
       { path: 'starter/rounds', element: <StarterQueuePage view="rounds" /> },
       { path: 'starter/tee-sheet', element: <OpsTeeSheetPage /> },
       { path: 'check-in', element: <OpsCheckInPage /> },
+      { path: 'kiosk', element: <KioskCheckInPage /> },
       { path: 'check-out', element: <OpsCheckOutPage /> },
       { path: 'caddy', element: <CaddyQueuePage /> },
       { path: 'caddy/availability', element: <CaddyQueuePage /> },

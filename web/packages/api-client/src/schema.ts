@@ -17172,6 +17172,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/self-check-ins": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Self check-ins (Member App, kiosk) waiting for the desk's caddy and golf cart */
+        get: operations["getGolfSelfCheckIns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/series-points-tables": {
         parameters: {
             query?: never;
@@ -26400,6 +26417,23 @@ export interface paths {
         put?: never;
         /** Reschedule my booking */
         post: operations["postMemberBookingsByIdReschedule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/bookings/{id}:self-check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Self check-in on arrival (GPS within the club's course area) */
+        post: operations["postMemberBookingsByIdSelfCheckIn"];
         delete?: never;
         options?: never;
         head?: never;
@@ -42268,6 +42302,8 @@ export interface components {
             bookingId?: string | null;
             /** @description Play date (default today) */
             date?: string;
+            /** @description Scanned by the golfer at the self check-in kiosk */
+            kiosk?: boolean;
             /** @enum {string} */
             method: "member_card" | "booking_qr" | "booking_code" | "name";
             /** @description Players to check in (default: the card holder, or the whole booking) */
@@ -68475,6 +68511,37 @@ export interface components {
             recipeId?: string | null;
             serveOffsetMinutes: number;
             station?: string | null;
+        };
+        SelfCheckInInput: {
+            /** @description GPS accuracy in meters */
+            accuracy?: number;
+            latitude: number;
+            longitude: number;
+        };
+        SelfCheckInResult: {
+            /** Format: uuid */
+            bookingId: string;
+            checkedIn: string[];
+            code: string;
+            /** @description From the middle of the course */
+            distanceMeters: number;
+        };
+        SelfCheckInWaiting: {
+            /** Format: uuid */
+            bookingId: string;
+            /** Format: date-time */
+            checkedInAt: string;
+            code: string;
+            contactName: string;
+            localTime: string;
+            /** @enum {string} */
+            method: "self_app" | "kiosk";
+            /** @description Checked in by themselves */
+            players: string[];
+            /** @description Checked-in players without a caddy */
+            waitingCaddy: number;
+            /** @description A flight without a golf cart */
+            waitingCart: boolean;
         };
         SelfProfile: {
             address?: string | null;
@@ -150615,6 +150682,65 @@ export interface operations {
             };
         };
     };
+    getGolfSelfCheckIns: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["SelfCheckInWaiting"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfSeriesPointsTables: {
         parameters: {
             query?: {
@@ -191170,6 +191296,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Booking"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberBookingsByIdSelfCheckIn: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelfCheckInInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SelfCheckInResult"];
                 };
             };
             /** @description Not authenticated */
