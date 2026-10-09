@@ -521,6 +521,9 @@
 .pos-ops .oc-page-head p { color: var(--pos-muted); font-size: 13px; }
 .pos-ops :is(.oc-card, .oc-datatable) { border-radius: 18px; border: 1px solid var(--pos-line); background: var(--pos-surface); box-shadow: var(--pos-shadow); }
 .pos-ops .oc-card-head h2, .pos-ops .oc-card-head h3 { font-size: 16px; font-weight: 600; }
+/* a highlighted (ink) card keeps its colour: white text on the POS blue */
+.pos-ops .oc-card.oc-card-ink { background: var(--pos-primary); color: #fff; border-color: transparent; }
+.pos-ops .oc-card-ink :is(.oc-label, .oc-field-help, .oc-muted) { color: rgba(255, 255, 255, 0.85); }
 .pos-ops .oc-icon-circle { background: var(--pos-primary-soft); color: var(--pos-primary); border: 0; }
 .pos-ops a.oc-card:hover { border-color: var(--pos-primary); }
 .pos-ops .oc-btn { border-radius: 12px; font-weight: 600; }

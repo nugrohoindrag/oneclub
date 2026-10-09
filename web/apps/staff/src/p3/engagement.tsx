@@ -902,7 +902,12 @@ export function RedeemPointsPage() {
   const folios = useGet<Page<R>>(cust ? `/api/v1/billing/folios?filter[customerId]=${cust}&filter[status]=open&limit=50` : null);
   const [key] = useState(() => crypto.randomUUID());
   const send = useSend<R, R>('POST', `/api/v1/crm/loyalty/accounts/${String(a?.id ?? '')}:redeem`, ['/api/v1/crm', '/api/v1/billing'], () => ({ 'Idempotency-Key': key }));
-  const value = a ? Number(points || 0) * Number(a.redemptionValue ?? 0) : 0;
+  const pointValue = Number(a?.redemptionValue ?? 0);
+  const value = a ? Number(points || 0) * pointValue : 0;
+  // at most the points of the account and the points that pay the folio's balance
+  const due = Number((folios.data?.items ?? []).find((f) => f.id === folio)?.balance ?? 0);
+  const max = a ? Math.min(Number(a.balance ?? 0), folio && pointValue > 0 ? Math.floor(due / pointValue) : Number(a.balance ?? 0)) : 0;
+  const tooMany = Number(points || 0) > max;
   return (
     <div className="oc-stack">
       <PageHeader title="Redeem Points" help="Pay an open folio with the customer's loyalty points (POS and Front Desk)." />
@@ -914,9 +919,12 @@ export function RedeemPointsPage() {
           <div className="oc-form" style={{ marginTop: 12 }}>
             <SelectField label="Open folio" value={folio} onChange={setFolio} required placeholder="Select"
               options={(folios.data?.items ?? []).map((f) => ({ value: f.id, label: `${String(f.number)} · ${String(f.holderName ?? '')} · ${money(f.balance)}` }))} />
-            <TextField label="Points to redeem" type="number" inputMode="numeric" value={points} onChange={setPoints} help={`= ${money(value)}`} />
+            <TextField label="Points to redeem" type="number" inputMode="numeric" value={points} onChange={setPoints}
+              help={`= ${money(value)} · at most ${pts(max)} points${folio ? ` (balance ${pts(a.balance)}, folio due ${money(due)})` : ''}`}
+              error={tooMany ? `At most ${pts(max)} points` : undefined} />
           </div>
-          <button className="oc-btn oc-btn-primary" style={{ minHeight: 56, marginTop: 12 }} disabled={!folio || !points || send.isPending || a.status !== 'active'}
+          {max > 0 && <button type="button" className="oc-btn oc-btn-neutral oc-btn-sm" style={{ marginTop: 8 }} onClick={() => setPoints(String(max))}>Use {pts(max)} points</button>}
+          <button className="oc-btn oc-btn-primary" style={{ minHeight: 56, marginTop: 12 }} disabled={!folio || !points || tooMany || send.isPending || a.status !== 'active'}
             onClick={() => send.mutate({ folioId: folio, points: Number(points) } as unknown as R, {
               onSuccess: (r) => { toast(`Paid ${money((r.payment as R).amount)} with points`); setPoints(''); },
             })}>Redeem</button>
