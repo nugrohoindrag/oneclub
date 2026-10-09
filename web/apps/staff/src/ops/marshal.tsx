@@ -92,6 +92,7 @@ export function CourseMonitorPage() {
                 <span className="mon-legend"><i data-tone="behind" />Behind</span>
                 <span className="mon-legend"><i data-tone="slow" />Slow</span>
                 <span className="mon-legend"><Icon name="electric_car" size={16} />Golf cart (caddy tablet GPS; faded: estimated on the hole)</span>
+                <span className="mon-legend"><Icon name="construction" size={16} />Maintenance</span>
               </div>
               <CourseMap m={m} selected={selected} onSelect={setSelected} />
             </section>
@@ -221,6 +222,7 @@ function CourseMap({ m, selected, onSelect }: { m: Monitor; selected: string; on
           return (
             <div key={h.holeId} className="mon-hole" data-busy={here.length > 0 || undefined}>
               <span className="mon-hole-no">{h.number}</span><span className="oc-small oc-muted">Par {h.par}</span>
+              {h.maintenance.length > 0 && <span className="oc-small mon-maint" title="Course maintenance now"><Icon name="construction" size={14} />{h.maintenance.map((x) => x.replace(/_/g, ' ')).join(', ')}</span>}
               <div className="mon-hole-flights">
                 {here.map((f) => <button key={f.flightId} className="mon-tag" data-tone={toneOf(f)} aria-pressed={f.flightId === selected}
                   onClick={() => onSelect(f.flightId)}>{f.label}</button>)}
@@ -236,6 +238,10 @@ function CourseMap({ m, selected, onSelect }: { m: Monitor; selected: string; on
   return (
     <div className="mon-map">
       <img src={m.mapUrl!} alt={`${m.courseName} course map`} />
+      {m.holes.filter((h) => h.maintenance.length > 0 && h.mapX != null).map((h) => (
+        <span key={`mnt-${h.holeId}`} className="mon-maint-pin" style={{ left: `${(h.mapX ?? 0) * 100}%`, top: `${(h.mapY ?? 0) * 100}%` }}
+          title={`Hole ${h.number}: ${h.maintenance.map((x) => x.replace(/_/g, ' ')).join(', ')}`}><Icon name="construction" size={14} /></span>
+      ))}
       {m.golfCarts.map((c) => (
         <span key={c.golfCartId} className="mon-cart" data-source={c.source} style={{ left: `${(c.mapX ?? 0) * 100}%`, top: `${(c.mapY ?? 0) * 100}%` }}
           title={`Golf cart ${c.code} · ${c.source === 'tablet' ? `GPS ${hhmm(c.at)}` : 'estimated on the hole'}`}>

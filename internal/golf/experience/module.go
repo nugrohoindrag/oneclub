@@ -133,7 +133,7 @@ var HallOfFame = &resource.Def{
 }
 
 // Defs are the P2 golf master data resources.
-var Defs = []*resource.Def{CaddyLevels, CartChecklists, RangeBays, ReciprocalClubs, HallOfFame}
+var Defs = []*resource.Def{CaddyLevels, CartChecklists, RangeBays, ReciprocalClubs, HallOfFame, MaintenanceTasks}
 
 // ── policies (FR-POL-P2-04/05/07) ─────────────────────────────────────────
 
@@ -381,7 +381,7 @@ func can(ctx context.Context, perm string, property uuid.UUID) bool {
 // Contribution is the P2 part of the golf catalogue (merged with P1's in
 // internal/app).
 func Contribution() catalog.Contribution {
-	perms := resource.Permissions(CaddyLevels, RangeBays, ReciprocalClubs, HallOfFame)
+	perms := resource.Permissions(CaddyLevels, RangeBays, ReciprocalClubs, HallOfFame, MaintenanceTasks)
 	add := func(obj string, actions ...string) { perms = append(perms, catalog.P("golf", obj, actions...)...) }
 	add("caddy_assignment", "accept")
 	add("caddy_promotion", "view", "request")
@@ -400,10 +400,11 @@ func Contribution() catalog.Contribution {
 	add("pace", "view", "manage")
 	add("round", "view", "operate")
 	add("tablet", "use")
+	add("maintenance_task", "work") // groundstaff: start and finish the work (demo feedback 9 Oct 2026)
 	view := []string{"golf.caddy_level.view", "golf.range_bay.view", "golf.reciprocal_club.view", "golf.hall_of_fame.view", "golf.caddy_promotion.view",
 		"golf.caddy_incident.view", "golf.caddy_rating.view", "golf.caddy_settlement.view", "golf.cart_inspection.view", "golf.cart_maintenance.view",
 		"golf.cart_incident.view", "golf.scorecard.view", "golf.handicap.view", "golf.hio.view", "golf.range.view", "golf.reciprocal_visit.view",
-		"golf.introduction_letter.view", "golf.pace.view", "golf.round.view"}
+		"golf.introduction_letter.view", "golf.pace.view", "golf.round.view", "golf.maintenance_task.view"}
 	all := make([]string, 0, len(perms))
 	for _, x := range perms {
 		all = append(all, x.Code)
@@ -415,7 +416,8 @@ func Contribution() catalog.Contribution {
 		"golf.cart_inspection.create", "golf.cart_maintenance.manage", "golf.cart_incident.create", "golf.cart_incident.manage", "golf.scorecard.enter",
 		"golf.scorecard.finalize", "golf.scorecard.correct", "golf.scorecard.view_all", "golf.handicap.manage", "golf.hio.manage", "golf.hio.claim",
 		"golf.range.operate", "golf.reciprocal_visit.verify", "golf.introduction_letter.request", "golf.introduction_letter.issue", "golf.round.operate",
-		"golf.pace.manage")
+		"golf.pace.manage", "golf.maintenance_task.create", "golf.maintenance_task.update", "golf.maintenance_task.delete", "golf.maintenance_task.export",
+		"golf.maintenance_task.work")
 	return catalog.Contribution{
 		Permissions: perms,
 		RolePermissions: map[string][]string{
@@ -430,7 +432,9 @@ func Contribution() catalog.Contribution {
 			"caddy": {"golf.tablet.use", "golf.caddy_assignment.accept", "golf.round.view", "golf.round.operate", "golf.scorecard.view", "golf.scorecard.enter", "golf.caddy_incident.create",
 				"golf.cart_incident.create", "golf.pace.view", "golf.course.view"}, // course.view: the hole map and Cart View of the tablet
 			"golf_staff": {"golf.cart_inspection.view", "golf.cart_inspection.create", "golf.cart_maintenance.view", "golf.cart_maintenance.manage",
-				"golf.cart_incident.view", "golf.cart_incident.create"},
+				"golf.cart_incident.view", "golf.cart_incident.create",
+				// groundstaff: the day's course maintenance (update: the photo of the work)
+				"golf.maintenance_task.view", "golf.maintenance_task.update", "golf.maintenance_task.work"},
 			"driving_range_staff": {"golf.range_bay.view", "golf.range.view", "golf.range.operate", "golf.range_bay.update"},
 			"general_manager":     view,
 			"club_manager":        view,
@@ -438,7 +442,8 @@ func Contribution() catalog.Contribution {
 			"accountant":          {"golf.caddy_settlement.view", "golf.caddy_settlement.pay"},
 			"membership_admin":    {"golf.reciprocal_club.view", "golf.introduction_letter.view", "golf.introduction_letter.request", "golf.introduction_letter.issue", "golf.reciprocal_visit.view"},
 			"front_desk": {"golf.reciprocal_visit.view", "golf.reciprocal_visit.verify", "golf.reciprocal_club.view",
-				"golf.range_bay.view", "golf.range.view", "golf.range.operate"}, // range bookings at the desk (demo feedback 9 Oct 2026)
+				"golf.range_bay.view", "golf.range.view", "golf.range.operate", // range bookings at the desk (demo feedback 9 Oct 2026)
+				"golf.maintenance_task.view"}, // the holes being worked, on the tee sheet
 		},
 	}
 }

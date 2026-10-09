@@ -13,6 +13,7 @@ import {
 } from '../ops/golf';
 import { DeskNewBookingPage, FrontDeskPage } from '../ops/desk';
 import { KioskCheckInPage } from '../ops/kiosk';
+import { MaintenancePage } from '../ops/maintenance';
 import { CaddyHistoryPage } from '../ops/caddy';
 import { TeeHousesPage } from '../ops/teehouse';
 import { P2_OPS_ROUTES, P2Tiles } from '../ops/p2';
@@ -169,6 +170,7 @@ const routes = [
       { path: 'golf-staff/lockers', element: <LockersPage /> },
       { path: 'golf-staff/golf-carts', element: <CartReadinessPage /> },
       { path: 'golf-staff/golf-cart-assignment', element: <CartAssignmentPage /> },
+      { path: 'golf-staff/maintenance', element: <MaintenancePage /> },
       ...P2_OPS_ROUTES,
       ...P3_OPS_ROUTES,
       { path: 'notifications', element: <NotificationsPage /> },

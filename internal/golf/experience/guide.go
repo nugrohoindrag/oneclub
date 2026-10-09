@@ -493,6 +493,7 @@ type MonitorHole struct {
 	MapX        *float64  `json:"mapX"`
 	MapY        *float64  `json:"mapY"`
 	Flights     int       `json:"flights" doc:"Flights playing this hole now"`
+	Maintenance []string  `json:"maintenance" doc:"Course maintenance being worked on the hole now"`
 }
 
 // CourseMonitor is the Marshal's live view of a course (FR-PLX-04/05).
@@ -522,9 +523,14 @@ func (m *Module) Monitor(ctx context.Context, q dbtx.Querier, property, course u
 	out := CourseMonitor{CourseID: course, CourseName: g.Name, MapURL: g.MapURL, Holes: []MonitorHole{}, Flights: []MonitorFlight{}, Carts: []MonitorCart{},
 		GeneratedAt: clock.Now()}
 	holeIdx := map[uuid.UUID]int{}
+	working, err := workingHoles(ctx, q, course)
+	if err != nil {
+		return out, err
+	}
 	for _, h := range g.Holes {
 		holeIdx[h.HoleID] = len(out.Holes)
-		out.Holes = append(out.Holes, MonitorHole{HoleID: h.HoleID, Number: h.Number, Par: h.Par, SectionCode: h.SectionCode, MapX: h.MapX, MapY: h.MapY})
+		out.Holes = append(out.Holes, MonitorHole{HoleID: h.HoleID, Number: h.Number, Par: h.Par, SectionCode: h.SectionCode, MapX: h.MapX, MapY: h.MapY,
+			Maintenance: append([]string{}, working[h.HoleID]...)})
 	}
 	pace, err := m.Pace(ctx, q, property)
 	if err != nil {

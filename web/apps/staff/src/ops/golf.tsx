@@ -8,6 +8,7 @@ import {
 } from '@oneclub/shell';
 import { BookingScorecards, CaddyCartModal } from './desk';
 import { DeskPayDialog, newPayments, type DeskTender } from './deskpay';
+import { MaintenanceBanner } from './maintenance';
 
 type R = Record<string, unknown> & { id: string };
 
@@ -197,6 +198,7 @@ export function OpsTeeSheetPage() {
     <div className="oc-stack">
       <Head title="Tee Sheet" help={`${date}${sheet.offline ? ' · offline copy' : ''}`} />
       <CoursePicker c={c} />
+      <MaintenanceBanner courseId={c.courseId || undefined} date={date} />
       <DataTable rows={booked} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'startTee', header: 'Tee' },
         { key: 'flights', header: 'Players', render: (s) => (s.flights as R[]).map((f) => `${((f.players as R[]) ?? []).map((p) => `${String(p.name)}${p.status === 'checked_in' ? ' ✓' : ''}`).join(', ')} [${String(f.status).replace('_', ' ')}]`).join(' / ') }]} />
     </div>

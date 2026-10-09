@@ -9,6 +9,7 @@ import {
 import { ActionButton, CourseDateBar, KV, ListPage, Tabs, money, today, useCourseDate, useStream, type R } from './common';
 import { MemberNoTierBadge } from '../p5/tiers';
 import { LiveWeather } from '../ops/weather';
+import { MaintenanceBanner } from '../ops/maintenance';
 
 const pill = (k: string) => (r: R) => <StatusPill status={String(r[k] ?? '').replace(/_/g, '-')} />;
 const SESSION: Record<string, string> = { morning: 'Morning', afternoon: 'Afternoon', night: 'Night' };
@@ -29,6 +30,7 @@ export function TeeSheetPage() {
     <div className="oc-stack">
       <PageHeader title="Tee Sheet" help="Live tee sheet; updates arrive in real time." actions={
         can('golf.booking.create') ? <Link className="oc-btn oc-btn-primary" to={`/golf/bookings/new${qs({ courseId: cd.courseId, date: cd.date })}`}>New Booking</Link> : null} />
+      <MaintenanceBanner courseId={cd.courseId || undefined} date={cd.date} />
       <div className="oc-row-wrap">
         <CourseDateBar cd={cd} />
         <Tabs tabs={[{ value: '', label: 'All sessions' }, { value: 'morning', label: 'Morning' }, { value: 'afternoon', label: 'Afternoon' }, { value: 'night', label: 'Night' }]}

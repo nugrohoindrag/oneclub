@@ -184,6 +184,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.registerTabletGPS(add)
 	m.registerMessages(add)
 	m.registerWeather(add)
+	m.registerMaintenance(add)
 	m.registerCaddyRelation(add)
 	m.registerLeaders(reg, add)
 

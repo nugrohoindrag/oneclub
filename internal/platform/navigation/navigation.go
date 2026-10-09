@@ -77,6 +77,7 @@ var Trees = map[string][]Item{
 			s("check-in", "Check-in", "/golf/check-in", "golf.check_in.perform"),
 			s("starter", "Starter", "/golf/starter", "golf.starter.view"),
 			s("course-monitor", "Course Monitor", "/golf/course-monitor", "golf.pace.view"), // PRD P2 FR-PLX-04/05 Marshal
+			s("course-maintenance", "Course Maintenance", "/golf/maintenance", "golf.maintenance_task.view"), // demo feedback 9 Oct 2026
 			s("rain-checks", "Rain Checks", "/golf/rain-checks", "golf.rain_check.view"),
 			s("golf-operations", "Round Operations", "/golf/operations", "golf.flight.view"),
 			s("golf-master", "Golf Master Data", "/golf/master", "golf.course.view"),
@@ -522,6 +523,7 @@ var Trees = map[string][]Item{
 			s("golf-cart-readiness", "Golf Cart Readiness", "/ops/golf-staff/golf-carts", "golf.golf_cart.update"),
 			s("golf-cart-assignment", "Golf Cart Assignment", "/ops/golf-staff/golf-cart-assignment", "golf.golf_cart_assignment.manage"),
 			s("golf-cart-inspection", "Golf Cart Inspection", "/ops/golf-staff/inspection", "golf.cart_inspection.create"),
+			s("ops-course-maintenance", "Course Maintenance", "/ops/golf-staff/maintenance", "golf.maintenance_task.view"),
 		}},
 		{Key: "driving-range", Label: "Driving Range", Path: "/ops/driving-range", Icon: "sports_golf", Module: "golf", Permission: "golf.range.operate"},
 		{Key: "sport-reception", Label: "Sport Reception", Path: "/ops/sport-reception", Icon: "sports_tennis", Module: "sportclub", Permission: "sportclub.access.validate"},

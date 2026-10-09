@@ -8,6 +8,7 @@ import {
 import { DomainDashboard } from './p5/bi-dash';
 import { FloorPlanPage } from './pos/floorplan';
 import { CourseMonitorPage } from './ops/marshal';
+import { MaintenancePage } from './ops/maintenance';
 
 type Row = Record<string, unknown>;
 
@@ -285,6 +286,7 @@ export const P2_ROUTES = [
   { path: 'crm/customers/:id', element: <CustomerLines360Page /> },
   { path: 'commercial/floor-plan', element: <FloorPlanPage /> }, // POS Table View floor plans
   { path: 'golf/course-monitor', element: <CourseMonitorPage /> }, // Marshal (FR-PLX-04/05)
+  { path: 'golf/maintenance', element: <MaintenancePage /> }, // course maintenance (demo feedback 9 Oct 2026)
   ...DASHBOARDS.map(([code]) => ({ path: `dashboards/${code}`, element: <KPIDashboardPage key={code} code={code} /> })),
 ];
 

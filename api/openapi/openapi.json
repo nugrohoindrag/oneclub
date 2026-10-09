@@ -58851,6 +58851,141 @@
         ],
         "type": "object"
       },
+      "MaintenanceBoard": {
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "done": {
+            "type": "integer"
+          },
+          "inProgress": {
+            "type": "integer"
+          },
+          "planned": {
+            "type": "integer"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceTask"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "date",
+          "tasks",
+          "planned",
+          "inProgress",
+          "done"
+        ],
+        "type": "object"
+      },
+      "MaintenanceCancelInput": {
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MaintenanceCopyInput": {
+        "properties": {
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "from": {
+            "description": "YYYY-MM-DD",
+            "type": "string"
+          },
+          "to": {
+            "description": "YYYY-MM-DD",
+            "type": "string"
+          }
+        },
+        "required": [
+          "courseId",
+          "from",
+          "to"
+        ],
+        "type": "object"
+      },
+      "MaintenanceCourse": {
+        "properties": {
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "holes": {
+            "items": {
+              "$ref": "#/components/schemas/MaintenanceHole"
+            },
+            "type": "array"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "courseId",
+          "name",
+          "holes"
+        ],
+        "type": "object"
+      },
+      "MaintenanceDoneInput": {
+        "properties": {
+          "doneNotes": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "description": "An uploaded photo (/api/v1/platform/images?resource=golf.maintenance_task)",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "MaintenanceHole": {
+        "properties": {
+          "holeId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "lastDone": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Work kind → last date done",
+            "type": "object"
+          },
+          "number": {
+            "type": "integer"
+          },
+          "par": {
+            "type": "integer"
+          },
+          "working": {
+            "description": "Work in progress now",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "holeId",
+          "number",
+          "label",
+          "par",
+          "lastDone",
+          "working"
+        ],
+        "type": "object"
+      },
       "MaintenanceInput": {
         "properties": {
           "category": {
@@ -58880,6 +59015,365 @@
           "category",
           "description"
         ],
+        "type": "object"
+      },
+      "MaintenancePlanInput": {
+        "properties": {
+          "area": {
+            "type": "string"
+          },
+          "assigneeName": {
+            "type": "string"
+          },
+          "closesHole": {
+            "type": "boolean"
+          },
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "holeIds": {
+            "description": "Empty: the area as a whole (no hole)",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "plannedStart": {
+            "description": "HH:MM",
+            "type": "string"
+          },
+          "taskType": {
+            "type": "string"
+          },
+          "workDate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "courseId",
+          "workDate",
+          "area",
+          "taskType"
+        ],
+        "type": "object"
+      },
+      "MaintenanceTask": {
+        "properties": {
+          "area": {
+            "type": "string"
+          },
+          "assigneeName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "closesHole": {
+            "type": "boolean"
+          },
+          "completedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "doneNotes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "holeId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "holeLabel": {
+            "nullable": true,
+            "type": "string"
+          },
+          "holeNumber": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "notes": {
+            "nullable": true,
+            "type": "string"
+          },
+          "photoUrl": {
+            "nullable": true,
+            "type": "string"
+          },
+          "plannedStart": {
+            "nullable": true,
+            "type": "string"
+          },
+          "startedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "planned",
+              "in_progress",
+              "done",
+              "cancelled"
+            ],
+            "type": "string"
+          },
+          "taskType": {
+            "type": "string"
+          },
+          "workDate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "courseId",
+          "courseName",
+          "area",
+          "taskType",
+          "workDate",
+          "closesHole",
+          "status"
+        ],
+        "type": "object"
+      },
+      "MaintenanceTaskRecord": {
+        "properties": {
+          "area": {
+            "description": "Area",
+            "enum": [
+              "green",
+              "fairway",
+              "tee",
+              "bunker",
+              "rough",
+              "irrigation",
+              "driving_range",
+              "whole_course",
+              "other"
+            ],
+            "type": "string"
+          },
+          "assigneeName": {
+            "description": "Groundstaff",
+            "maxLength": 120,
+            "nullable": true,
+            "type": "string"
+          },
+          "closesHole": {
+            "description": "Close the hole while worked",
+            "nullable": true,
+            "type": "boolean"
+          },
+          "completedAt": {
+            "description": "Done",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "courseId": {
+            "description": "Course",
+            "format": "uuid",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "doneNotes": {
+            "description": "Work notes",
+            "maxLength": 1000,
+            "nullable": true,
+            "type": "string"
+          },
+          "holeId": {
+            "description": "Hole",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "notes": {
+            "description": "Notes",
+            "maxLength": 1000,
+            "nullable": true,
+            "type": "string"
+          },
+          "photoUrl": {
+            "description": "Photo",
+            "maxLength": 500,
+            "nullable": true,
+            "type": "string"
+          },
+          "plannedStart": {
+            "description": "Start",
+            "nullable": true,
+            "pattern": "^\\d{2}:\\d{2}$",
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "startedAt": {
+            "description": "Started",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "status": {
+            "description": "Status",
+            "enum": [
+              "planned",
+              "in_progress",
+              "done",
+              "cancelled"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "taskType": {
+            "description": "Work",
+            "enum": [
+              "mowing_green",
+              "mowing_fairway",
+              "mowing_rough",
+              "bunker",
+              "irrigation",
+              "fertilizer",
+              "pin_position",
+              "aeration",
+              "top_dressing",
+              "repair",
+              "other"
+            ],
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "workDate": {
+            "description": "Date",
+            "format": "date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "updatedAt",
+          "courseId",
+          "area",
+          "taskType",
+          "workDate"
+        ],
+        "type": "object"
+      },
+      "MaintenanceTaskRecordInput": {
+        "properties": {
+          "area": {
+            "description": "Area",
+            "enum": [
+              "green",
+              "fairway",
+              "tee",
+              "bunker",
+              "rough",
+              "irrigation",
+              "driving_range",
+              "whole_course",
+              "other"
+            ],
+            "type": "string"
+          },
+          "assigneeName": {
+            "description": "Groundstaff",
+            "maxLength": 120,
+            "nullable": true,
+            "type": "string"
+          },
+          "closesHole": {
+            "description": "Close the hole while worked",
+            "nullable": true,
+            "type": "boolean"
+          },
+          "courseId": {
+            "description": "Course",
+            "format": "uuid",
+            "type": "string"
+          },
+          "doneNotes": {
+            "description": "Work notes",
+            "maxLength": 1000,
+            "nullable": true,
+            "type": "string"
+          },
+          "holeId": {
+            "description": "Hole",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "notes": {
+            "description": "Notes",
+            "maxLength": 1000,
+            "nullable": true,
+            "type": "string"
+          },
+          "photoUrl": {
+            "description": "Photo",
+            "maxLength": 500,
+            "nullable": true,
+            "type": "string"
+          },
+          "plannedStart": {
+            "description": "Start",
+            "nullable": true,
+            "pattern": "^\\d{2}:\\d{2}$",
+            "type": "string"
+          },
+          "taskType": {
+            "description": "Work",
+            "enum": [
+              "mowing_green",
+              "mowing_fairway",
+              "mowing_rough",
+              "bunker",
+              "irrigation",
+              "fertilizer",
+              "pin_position",
+              "aeration",
+              "top_dressing",
+              "repair",
+              "other"
+            ],
+            "type": "string"
+          },
+          "workDate": {
+            "description": "Date",
+            "format": "date",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "MaintenanceUpdate": {
@@ -62121,6 +62615,13 @@
             "format": "uuid",
             "type": "string"
           },
+          "maintenance": {
+            "description": "Course maintenance being worked on the hole now",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "mapX": {
             "nullable": true,
             "type": "number"
@@ -62144,7 +62645,8 @@
           "number",
           "par",
           "sectionCode",
-          "flights"
+          "flights",
+          "maintenance"
         ],
         "type": "object"
       },
@@ -240424,6 +240926,1473 @@
         "x-permission": "golf.locker.export"
       }
     },
+    "/api/v1/golf/maintenance-board": {
+      "get": {
+        "operationId": "getGolfMaintenanceBoard",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "courseId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceBoard"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Course maintenance of a day (plan, in progress, done)",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.view"
+      }
+    },
+    "/api/v1/golf/maintenance-courses": {
+      "get": {
+        "operationId": "getGolfMaintenanceCourses",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/MaintenanceCourse"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Courses and holes with the last maintenance done and the work in progress",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.view"
+      }
+    },
+    "/api/v1/golf/maintenance-history": {
+      "get": {
+        "operationId": "getGolfMaintenanceHistory",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "courseId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "holeId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/MaintenanceTask"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Maintenance history of the holes (work done)",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.view"
+      }
+    },
+    "/api/v1/golf/maintenance-tasks": {
+      "get": {
+        "operationId": "getGolfMaintenanceTasks",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Search",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeArchived",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Field name, prefix with - for descending",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[courseId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[holeId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[area]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[taskType]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[workDate]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/MaintenanceTaskRecord"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "List Course Maintenance",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.view"
+      },
+      "post": {
+        "operationId": "postGolfMaintenanceTasks",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Repeating a request with the same key returns the original result (FR-JOB-06).",
+            "in": "header",
+            "name": "Idempotency-Key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceTaskRecordInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceTaskRecord"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Add Maintenance Task",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.create"
+      }
+    },
+    "/api/v1/golf/maintenance-tasks/{id}": {
+      "delete": {
+        "operationId": "deleteGolfMaintenanceTasksById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Delete Maintenance Task (only when unused; otherwise set Inactive)",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.delete"
+      },
+      "get": {
+        "operationId": "getGolfMaintenanceTasksById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceTaskRecord"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "View Maintenance Task",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.view"
+      },
+      "patch": {
+        "operationId": "patchGolfMaintenanceTasksById",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceTaskRecordInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceTaskRecord"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Edit Maintenance Task",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.update"
+      }
+    },
+    "/api/v1/golf/maintenance-tasks/{id}:cancel": {
+      "post": {
+        "operationId": "postGolfMaintenanceTasksByIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceCancelInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceTask"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel a task (opens its hole again)",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.update"
+      }
+    },
+    "/api/v1/golf/maintenance-tasks/{id}:complete": {
+      "post": {
+        "operationId": "postGolfMaintenanceTasksByIdComplete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceDoneInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceTask"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Groundstaff: work done, with notes and a photo",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.work"
+      }
+    },
+    "/api/v1/golf/maintenance-tasks/{id}:start": {
+      "post": {
+        "operationId": "postGolfMaintenanceTasksByIdStart",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MaintenanceTask"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Groundstaff: start the work (closes the hole when set)",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.work"
+      }
+    },
+    "/api/v1/golf/maintenance-tasks:copy-day": {
+      "post": {
+        "operationId": "postGolfMaintenanceTasksCopyDay",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenanceCopyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/MaintenanceTask"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Plan a day like another one (the daily routine)",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.create"
+      }
+    },
+    "/api/v1/golf/maintenance-tasks:export": {
+      "get": {
+        "operationId": "getGolfMaintenanceTasksExport",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "format",
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "description": "Search",
+            "in": "query",
+            "name": "q",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "includeArchived",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Field name, prefix with - for descending",
+            "in": "query",
+            "name": "sort",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[courseId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[holeId]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[area]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[taskType]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[workDate]",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Export Course Maintenance (CSV/XLSX)",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.export"
+      }
+    },
+    "/api/v1/golf/maintenance-tasks:plan": {
+      "post": {
+        "operationId": "postGolfMaintenanceTasksPlan",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MaintenancePlanInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/MaintenanceTask"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Plan one kind of work on several holes",
+        "tags": [
+          "Course Maintenance"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.maintenance_task.create"
+      }
+    },
     "/api/v1/golf/my-assignments": {
       "get": {
         "operationId": "getGolfMyAssignments",
@@ -378566,6 +380535,9 @@
     },
     {
       "name": "Course"
+    },
+    {
+      "name": "Course Maintenance"
     },
     {
       "name": "Customer Accounts"
