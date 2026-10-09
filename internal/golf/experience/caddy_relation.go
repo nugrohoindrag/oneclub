@@ -84,7 +84,8 @@ type CaddyWage struct {
 
 // Wage computes a caddy's wage for a month.
 func (m *Module) Wage(ctx context.Context, q dbtx.Querier, property, caddy uuid.UUID, month string) (CaddyWage, error) {
-	start, err := time.Parse("2006-01", month)
+	loc := location(ctx, q, property)
+	start, err := time.ParseInLocation("2006-01", month, loc)
 	if err != nil {
 		return CaddyWage{}, handle.Invalid("month", "invalid", "YYYY-MM")
 	}
@@ -125,8 +126,8 @@ func (m *Module) Wage(ctx context.Context, q dbtx.Querier, property, caddy uuid.
 		WHERE s.caddy_id = $1 AND s.status <> 'rejected' AND s.period_start <= $3::date AND s.period_end >= $2::date`, caddy, from, to).Scan(&w.Settled); err != nil {
 		return w, err
 	}
-	if err := q.QueryRow(ctx, `SELECT trim_scale(round(avg(rating), 2))::text FROM golf.caddy_ratings WHERE caddy_id = $1 AND created_at >= $2::date
-		AND created_at < $3::date + 1`, caddy, from, to).Scan(&w.AverageRating); err != nil {
+	if err := q.QueryRow(ctx, `SELECT trim_scale(round(avg(rating), 2))::text FROM golf.caddy_ratings WHERE caddy_id = $1 AND created_at >= $2
+		AND created_at < $3`, caddy, start, start.AddDate(0, 1, 0)).Scan(&w.AverageRating); err != nil {
 		return w, err
 	}
 	pol, err := m.caddyPolicy(ctx, q, property)
