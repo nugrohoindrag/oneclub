@@ -168,13 +168,20 @@ function DeskRangeBooking() {
 
 // ── one booking at the desk ────────────────────────────────────────────────
 
-const TABS = [['bill', 'Bill'], ['time', 'Tee Time'], ['players', 'Players'], ['caddy', 'Caddy & Cart'], ['profile', 'Profile']] as const;
+// After the guests arrive the desk checks them in and picks caddies and carts;
+// the payment mostly comes at check-out.
+const TABS = [['bill', 'Bill'], ['caddy', 'Caddy & Cart'], ['time', 'Tee Time'], ['players', 'Players'], ['profile', 'Profile']] as const;
 type Tab = (typeof TABS)[number][0];
+const CLOSED = ['completed', 'cancelled', 'no_show'];
 
 function DeskBookingModal({ id, onClose }: { id: string; onClose: () => void }) {
   const b = useGet<Booking>(`/api/v1/golf/bookings/${id}`);
-  const [tab, setTab] = useState<Tab>('bill');
+  const sugg = useGet<Page<R>>(`/api/v1/golf/bookings/${id}/caddy-suggestions`);
+  const [picked, setTab] = useState<Tab | null>(null);
   const x = b.data;
+  // opens on Caddy & Cart while a player still waits for check-in or a caddy
+  const waiting = (sugg.data?.items ?? []).some((p) => p.checkedIn !== true || !p.current);
+  const tab: Tab | null = picked ?? (!x || (!sugg.data && !sugg.error) ? null : !CLOSED.includes(String(x.status)) && waiting ? 'caddy' : 'bill');
   return (
     <Modal open wide onClose={onClose} title={x ? `${String(x.code)} · ${String(x.localTime)} · ${String(x.contactName)}` : 'Booking'}
       actions={<Btn label="Close" onClick={onClose} />}>
@@ -354,10 +361,12 @@ function TimeTab({ b, onDone }: { b: Booking; onDone: () => void }) {
   );
 }
 
-/** Complete, edit, add or remove players. */
+/** Complete, edit, add or remove players: one row per player — name, tee,
+ * actions — and the add form in the same columns. */
 function PlayersTab({ b, onDone }: { b: Booking; onDone: () => void }) {
   const toast = useToast();
   const [edit, setEdit] = useState<Record<string, { name: string; phone: string }>>({});
+  const [removing, setRemoving] = useState<string | null>(null);
   const [add, setAdd] = useState({ playerType: 'non_member', memberNo: '', name: '', phone: '' });
   const inv = ['/api/v1/golf'];
   const patch = useSend<Record<string, unknown>>('PATCH', (v) => `/api/v1/golf/bookings/${b.id}/players/${String(v.playerId)}`, inv);
@@ -366,51 +375,97 @@ function PlayersTab({ b, onDone }: { b: Booking; onDone: () => void }) {
   const tees = useGet<Page<R>>(`/api/v1/golf/tee-sets${qs({ 'filter[courseId]': b.courseId, 'filter[status]': 'active', limit: 20 })}`);
   const teeOptions = (tees.data?.items ?? []).map((t) => ({ value: t.id, label: `${String(t.name)}${t.playerCategory ? ` · ${TEE_CATEGORY[String(t.playerCategory)] ?? String(t.playerCategory)}` : ''}` }));
   const players = b.players.filter(live);
-  const ok = () => { toast('Players updated'); setEdit({}); onDone(); };
+  const ok = () => { toast('Players updated'); setEdit({}); setRemoving(null); onDone(); };
+  const member = add.playerType === 'member';
   return (
     <div className="oc-stack">
-      {players.map((p) => {
-        const e = edit[p.id];
-        return (
-          <div key={p.id} className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
-            {e ? (
-              <>
-                <TextField label="Name" value={e.name} onChange={(v) => setEdit({ ...edit, [p.id]: { ...e, name: v } })} />
-                <TextField label="Phone" value={e.phone} onChange={(v) => setEdit({ ...edit, [p.id]: { ...e, phone: v } })} />
-                <Btn label="Save" kind="primary" disabled={patch.isPending} onClick={() => patch.mutate({ playerId: p.id, name: e.name, phone: e.phone || undefined }, { onSuccess: ok })} />
-              </>
-            ) : (
-              <span style={{ minWidth: 220 }}><strong>{String(p.name || 'Guest (TBA)')}</strong>
-                <span className="oc-small oc-muted"> · {String(p.playerType).replace(/_/g, ' ')} · {String(p.status).replace(/_/g, ' ')}</span>
-                <FlightPlayTime flights={b.flights} flightId={p.flightId} /></span>
-            )}
-            {!e && teeOptions.length > 0 && (
-              <div style={{ minWidth: 200 }}>
-                <SelectField label="Tee" value={String(p.teeSetId ?? '')} placeholder="By player category" options={teeOptions}
-                  onChange={(v) => patch.mutate({ playerId: p.id, teeSetId: v }, { onSuccess: ok })} />
-              </div>
-            )}
-            {!e && p.playerType !== 'member' && <Btn label="Edit" onClick={() => setEdit({ ...edit, [p.id]: { name: String(p.name ?? ''), phone: String(p.phone ?? '') } })} />}
-            {!e && p.status === 'booked' && players.length > 1 && <Btn label="Remove" kind="danger" disabled={remove.isPending}
-              onClick={() => remove.mutate({ playerId: p.id }, { onSuccess: ok })} />}
-          </div>
-        );
-      })}
-      <ErrorAlert error={patch.error ?? remove.error} />
-      <h3 style={{ margin: '8px 0 0' }}>Add player</h3>
-      <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
-        <SelectField label="Type" value={add.playerType} onChange={(v) => setAdd({ ...add, playerType: v })}
-          options={[{ value: 'non_member', label: 'Non-member' }, { value: 'guest_of_member', label: 'Guest of member' }, { value: 'member', label: 'Member' }]} />
-        {add.playerType === 'member'
-          ? <TextField label="Member No." value={add.memberNo} onChange={(v) => setAdd({ ...add, memberNo: v })} />
-          : <><TextField label="Name" value={add.name} onChange={(v) => setAdd({ ...add, name: v })} />
-            <TextField label="Phone" value={add.phone} onChange={(v) => setAdd({ ...add, phone: v })} /></>}
-        <Btn label="Add" kind="primary" disabled={create.isPending || (add.playerType === 'member' ? !add.memberNo : !add.name)}
-          onClick={() => create.mutate({ player: { playerType: add.playerType, memberNo: add.playerType === 'member' ? add.memberNo : undefined,
-            name: add.playerType === 'member' ? undefined : add.name, phone: add.phone || undefined } },
-          { onSuccess: () => { setAdd({ playerType: 'non_member', memberNo: '', name: '', phone: '' }); ok(); } })} />
+      <div className="oc-table-wrap">
+        <table className="oc-table desk-players">
+          <thead><tr><th>Player</th><th>Tee</th><th className="desk-players-actions" aria-label="Actions" /></tr></thead>
+          <tbody>
+            {players.map((p) => {
+              const e = edit[p.id];
+              const who = String(p.name || 'guest');
+              return (
+                <tr key={p.id}>
+                  <td>
+                    {e ? (
+                      <div className="desk-players-fields">
+                        <input className="oc-input" aria-label="Name" placeholder="Name" value={e.name} onChange={(v) => setEdit({ [p.id]: { ...e, name: v.target.value } })} />
+                        <input className="oc-input" aria-label="Phone" placeholder="Phone" value={e.phone} onChange={(v) => setEdit({ [p.id]: { ...e, phone: v.target.value } })} />
+                      </div>
+                    ) : (
+                      <><strong>{String(p.name || 'Guest (TBA)')}</strong>
+                        <div className="oc-small oc-muted">{String(p.playerType).replace(/_/g, ' ')} · {String(p.status).replace(/_/g, ' ')}<FlightPlayTime flights={b.flights} flightId={p.flightId} /></div></>
+                    )}
+                  </td>
+                  <td>
+                    {teeOptions.length > 0 ? (
+                      <select className="oc-select" aria-label={`Tee of ${who}`} value={String(p.teeSetId ?? '')} disabled={patch.isPending}
+                        onChange={(v) => { if (v.target.value) patch.mutate({ playerId: p.id, teeSetId: v.target.value }, { onSuccess: ok }); }}>
+                        <option value="">By player category</option>
+                        {teeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                      </select>
+                    ) : <span className="oc-muted">—</span>}
+                  </td>
+                  <td className="desk-players-actions">
+                    <div className="desk-players-buttons">
+                      {e ? (
+                        <>
+                          <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setEdit({})}>Cancel</button>
+                          <button className="oc-btn oc-btn-primary oc-btn-sm" disabled={patch.isPending || !e.name.trim()}
+                            onClick={() => patch.mutate({ playerId: p.id, name: e.name, phone: e.phone || undefined }, { onSuccess: ok })}>Save</button>
+                        </>
+                      ) : removing === p.id ? (
+                        <>
+                          <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setRemoving(null)}>Keep</button>
+                          <button className="oc-btn oc-btn-danger oc-btn-sm" disabled={remove.isPending} onClick={() => remove.mutate({ playerId: p.id }, { onSuccess: ok })}>Remove {who}?</button>
+                        </>
+                      ) : (
+                        <>
+                          {p.playerType !== 'member'
+                            ? <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setEdit({ [p.id]: { name: String(p.name ?? ''), phone: String(p.phone ?? '') } })}>Edit</button>
+                            : <span className="desk-players-slot" aria-hidden="true" />}
+                          {p.status === 'booked' && players.length > 1
+                            ? <button className="oc-btn oc-btn-outline oc-btn-sm" aria-label={`Remove ${who}`} onClick={() => setRemoving(p.id)}>Remove</button>
+                            : <span className="desk-players-slot" aria-hidden="true" />}
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+          <tbody className="desk-players-add">
+            <tr><td colSpan={3}><strong>Add player</strong></td></tr>
+            <tr>
+              <td>
+                <div className="desk-players-fields">
+                  {member
+                    ? <input className="oc-input" aria-label="Member No." placeholder="Member No." value={add.memberNo} onChange={(v) => setAdd({ ...add, memberNo: v.target.value })} />
+                    : <><input className="oc-input" aria-label="Name" placeholder="Name" value={add.name} onChange={(v) => setAdd({ ...add, name: v.target.value })} />
+                      <input className="oc-input" aria-label="Phone" placeholder="Phone" value={add.phone} onChange={(v) => setAdd({ ...add, phone: v.target.value })} /></>}
+                </div>
+              </td>
+              <td>
+                <select className="oc-select" aria-label="Player type" value={add.playerType} onChange={(v) => setAdd({ ...add, playerType: v.target.value })}>
+                  <option value="non_member">Non-member</option><option value="guest_of_member">Guest of member</option><option value="member">Member</option>
+                </select>
+              </td>
+              <td className="desk-players-actions">
+                <div className="desk-players-buttons">
+                  <button className="oc-btn oc-btn-primary oc-btn-sm" disabled={create.isPending || (member ? !add.memberNo : !add.name)}
+                    onClick={() => create.mutate({ player: { playerType: add.playerType, memberNo: member ? add.memberNo : undefined,
+                      name: member ? undefined : add.name, phone: add.phone || undefined } },
+                    { onSuccess: () => { setAdd({ playerType: 'non_member', memberNo: '', name: '', phone: '' }); ok(); } })}>Add</button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <ErrorAlert error={create.error} />
+      <ErrorAlert error={patch.error ?? remove.error ?? create.error} />
       <BookingHoleBests id={b.id} />
     </div>
   );
@@ -494,13 +549,27 @@ function FlightCaddies({ bookingId, code, flightId, date }: { bookingId: string;
   const checkIn = useSend<Record<string, unknown>>('POST', '/api/v1/golf/check-ins', inv);
   const [pick, setPick] = useState<Record<string, string>>({});
   const players = (sugg.data?.items ?? []).filter((p) => p.flightId === flightId);
+  // only a caddy who is present today and has no job can be picked
   const free = (board.data?.items ?? []).filter((c) => c.status === 'available').map((c) => ({ value: String(c.caddyId), label: `${String(c.code)} · ${String(c.name)}` }));
   const ok = (what: string) => () => { toast(what); setPick({}); void sugg.refetch(); void board.refetch(); };
   const REASON: Record<string, string> = { requested: 'asked for', favourite: 'favourite', usual: 'usual caddy', queue: 'next in queue' };
+  const onBoard = new Map((board.data?.items ?? []).map((c) => [String(c.caddyId), c]));
+  /** Why a known caddy cannot be picked: away today, or carrying a flight. */
+  const why = (caddyId: unknown) => {
+    const c = onBoard.get(String(caddyId));
+    if (c && ['assigned', 'in_play'].includes(String(c.status))) return `on duty${c.teeTime ? ` · flight ${String(c.teeTime)}` : ''}`;
+    return c?.attendance === 'present' ? 'not available' : 'not present';
+  };
+  const someoneWaits = players.some((p) => p.checkedIn === true && !p.current);
   return (
     <div className="oc-stack">
       <h3 style={{ margin: '8px 0 0' }}>Caddies <span className="oc-small oc-muted">· 1 caddy per player, assigned after check-in</span></h3>
-      <ErrorAlert error={sugg.error} />
+      <ErrorAlert error={sugg.error ?? board.error} />
+      {board.data && free.length === 0 && someoneWaits && (
+        <div className="oc-alert oc-alert-warning">
+          No caddy is present and free today — record the attendance first. <Link to="/ops/caddy/availability">Caddy Master → Caddy Availability</Link>
+        </div>
+      )}
       {players.map((p) => {
         const pid = String(p.playerId);
         const current = p.current as R | null;
@@ -522,15 +591,15 @@ function FlightCaddies({ bookingId, code, flightId, date }: { bookingId: string;
                   <div className="oc-row-wrap" aria-label="Known caddies">
                     {known.map((c, i) => (
                       <button key={`${String(c.caddyId)}-${i}`} type="button" className="oc-chip" aria-pressed={chosen === c.caddyId} disabled={!c.available}
-                        title={c.available ? undefined : 'Not free today'} onClick={() => setPick({ ...pick, [pid]: String(c.caddyId) })}>
-                        {String(c.code)} · {String(c.name)} · {REASON[String(c.reason)] ?? ''}{Number(c.rounds) > 0 ? ` (${String(c.rounds)} rounds)` : ''}{c.available ? '' : ' · busy'}
+                        onClick={() => setPick({ ...pick, [pid]: String(c.caddyId) })}>
+                        {String(c.code)} · {String(c.name)} · {REASON[String(c.reason)] ?? ''}{Number(c.rounds) > 0 ? ` (${String(c.rounds)} rounds)` : ''}{c.available ? '' : ` · ${why(c.caddyId)}`}
                       </button>
                     ))}
                   </div>
                 )}
                 <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
                   <SelectField label={current ? 'Replace with' : rec ? `Caddy (recommended: ${String(rec.code)}, ${REASON[String(rec.reason)] ?? ''})` : 'Caddy'}
-                    value={chosen} onChange={(v) => setPick({ ...pick, [pid]: v })} placeholder="Choose" options={free} />
+                    value={chosen} onChange={(v) => setPick({ ...pick, [pid]: v })} placeholder={free.length ? 'Choose' : 'No caddy present yet'} options={free} />
                   <Btn label={current ? 'Replace' : 'Assign'} kind="primary" disabled={!chosen || assign.isPending || replace.isPending}
                     onClick={() => (current && p.assignmentId
                       ? replace.mutate({ id: p.assignmentId, caddyId: chosen, reason: 'Changed at the front desk' }, { onSuccess: ok('Caddy replaced') })

@@ -416,7 +416,7 @@
   border-radius: 12px; overflow: hidden; }
 .pos-cart-table th, .pos-cart-table td { padding: 6px 4px; text-align: center; border: 1px solid var(--pos-line, #e3e8f0); }
 .pos-cart-table th:first-child { text-align: left; padding-left: 8px; white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
-.pos-cart-table thead th { background: #0f2a1d; color: #fff; }
+.pos-cart-table thead th { background: var(--oc-table-head-bg, #000); color: var(--oc-table-head-fg, #fff); }
 .pos-cart-par td, .pos-cart-par th { font-weight: 700; }
 .pos-cart-si td, .pos-cart-si th { color: var(--pos-muted, #64748b); font-size: 12px; }
 .pos-cart-table [data-current] { background: #fef3c7; }
@@ -440,7 +440,7 @@
 .pos-card .pos-btn { text-decoration: none; }
 /* shared data tables inside the POS frame (Caddy Tablet earnings, payouts) */
 .pos .oc-datatable { border: 0; box-shadow: none; background: none; padding: 0; }
-.pos .oc-table thead th { background: var(--pos-sunken); color: var(--pos-muted); }
+.pos .oc-table thead th { background: var(--oc-table-head-bg, #000); color: var(--oc-table-head-fg, #fff); font-weight: 600; }
 .pos .oc-table td { border-bottom-color: var(--pos-line); }
 
 /* ── Operational area (/ops): Front Desk, Starter / Marshal, Caddy Master, Golf
@@ -532,12 +532,18 @@
 .pos-ops :is(.oc-input, .oc-select, .oc-textarea):focus { border-color: var(--pos-primary); box-shadow: 0 0 0 3px var(--pos-primary-soft); }
 .pos-ops .oc-chip { border-radius: 12px; border-color: var(--pos-line); }
 .pos-ops .oc-chip[aria-pressed='true'] { background: var(--pos-primary-soft); border-color: var(--pos-primary); color: var(--pos-primary); }
-.pos-ops .oc-table thead th { background: var(--pos-sunken); color: var(--pos-muted); font-size: 12px; font-weight: 600; border-bottom: 0; }
+.pos-ops .oc-table thead th { background: var(--oc-table-head-bg, #000); color: var(--oc-table-head-fg, #fff); font-size: 12px; font-weight: 600; border-bottom: 0; }
 .pos-ops .oc-table th:first-child { border-radius: 12px 0 0 12px; }
 .pos-ops .oc-table th:last-child { border-radius: 0 12px 12px 0; }
 .pos-ops .oc-table td { border-bottom-color: var(--pos-line); }
 .pos-ops .oc-table tbody tr:hover td { background: var(--pos-sunken); }
 .pos-ops .oc-status { border-radius: 999px; font-weight: 600; }
+/* tabs (role=tablist) inside the tablet apps: plain buttons without a frame —
+ * the active one blue, the others grey (feedback 9 Oct 2026) */
+.pos .oc-row-wrap[role='tablist'] { border: 0; border-radius: 0; padding: 0; background: none; gap: 8px; }
+/* no white-and-blue double outline on a pressed or active button; the
+ * keyboard focus keeps a soft ring */
+.pos :is(.oc-btn, .oc-chip):focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--pos-primary) 40%, transparent); }
 .pos-ops .oc-alert { border-radius: 12px; }
 
 /* phones (ESS on the employee's phone): the rail becomes a bottom bar */
@@ -563,3 +569,25 @@
 }
 .ops-flight-body { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 2px; }
 .ops-flight-body span { color: var(--md-sys-color-on-surface-variant); font-size: 13px; }
+
+/* Front Desk › Manage Booking › Players: one row per player (name | tee |
+ * actions); the actions column has a fixed width so Edit / Remove line up
+ * even when a member has no Edit, and the add form uses the same columns. */
+.desk-players { table-layout: fixed; }
+.desk-players th:nth-child(2), .desk-players td:nth-child(2) { width: 260px; }
+.desk-players .desk-players-actions { width: 236px; }
+.desk-players td:first-child { white-space: normal; }
+.desk-players-fields { display: flex; gap: 8px; }
+.desk-players-fields .oc-input { min-width: 0; flex: 1; }
+.desk-players :is(.oc-input, .oc-select) { height: 40px; width: 100%; }
+.desk-players-buttons { display: flex; justify-content: flex-end; gap: 8px; }
+.desk-players-buttons > * { flex: 0 0 104px; }
+.desk-players-buttons > .oc-btn-danger { flex-basis: auto; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+.desk-players-add td { border-bottom: 0; }
+.desk-players-add tr:first-child td { padding-top: 20px; padding-bottom: 0; }
+@media (max-width: 760px) {
+  .desk-players th:nth-child(2), .desk-players td:nth-child(2) { width: 160px; }
+  .desk-players .desk-players-actions { width: 120px; }
+  .desk-players-fields, .desk-players-buttons { flex-direction: column; }
+  .desk-players-buttons > * { flex-basis: auto; }
+}
