@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router';
 import { qs, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import {
   Empty, ErrorAlert, Icon, Modal, PageHeader, PlayTime, SelectField, Skeleton, StatTile, StatusPill, TextArea, useAuth, useToast,
 } from '@oneclub/shell';
 import { GOLF_STREAM, useLive } from '../live';
+import { LiveWeather } from './weather';
 import './marshal.css';
 
 /*
@@ -75,12 +77,13 @@ export function CourseMonitorPage() {
             <StatTile label="In play" value={m.inPlay} icon="golf_course" />
             <StatTile label="Slow" value={m.slow} icon="hourglass_bottom" />
             <StatTile label="Interventions today" value={m.interventions.length} icon="flag" />
-            <StatTile label="Golf carts on GPS" value={m.golfCarts.length} icon="electric_car" />
+            <StatTile label="Golf carts on GPS" value={m.golfCarts.filter((c) => c.source === 'tablet').length} icon="electric_car" />
           </div>
           <div className="mon-layout">
             <section className="oc-card mon-map-card" aria-label="Course map">
               <div className="oc-row-wrap" style={{ marginBottom: 4 }}>
                 <strong>{m.courseName}</strong>
+                <LiveWeather courseId={m.courseId} />
                 <span className="oc-spacer" />
                 <span className="oc-small oc-muted">Updated {hhmm(m.generatedAt)}</span>
               </div>
@@ -88,7 +91,7 @@ export function CourseMonitorPage() {
                 <span className="mon-legend"><i data-tone="on-pace" />On pace</span>
                 <span className="mon-legend"><i data-tone="behind" />Behind</span>
                 <span className="mon-legend"><i data-tone="slow" />Slow</span>
-                <span className="mon-legend"><Icon name="electric_car" size={16} />Golf cart</span>
+                <span className="mon-legend"><Icon name="electric_car" size={16} />Golf cart (caddy tablet GPS; faded: estimated on the hole)</span>
               </div>
               <CourseMap m={m} selected={selected} onSelect={setSelected} />
             </section>
@@ -100,6 +103,10 @@ export function CourseMonitorPage() {
               ))}
             </section>
           </div>
+          <section className="oc-card">
+            <h2 className="mon-h2">Messages with the caddy tablets</h2>
+            <CourseMessenger courseId={m.courseId} flights={m.flights} selected={selected} onSelect={setSelected} canSend={manage} />
+          </section>
           <section className="oc-card">
             <h2 className="mon-h2">Today's log</h2>
             {m.interventions.length === 0 && <p className="oc-small oc-muted" style={{ margin: 0 }}>No intervention today.</p>}
@@ -135,6 +142,71 @@ export function CourseMonitorPage() {
   );
 }
 
+type Msg = Schemas['CourseMessage'];
+
+/** Messenger of course control (OneClub replaces Smartscore's cart
+ * messenger): one conversation per flight with its caddy tablet, and a
+ * message to every flight on the course. The Marshal writes from
+ * Operational, the back office from Golf › Course Monitor. */
+function CourseMessenger({ courseId, flights, selected, onSelect, canSend }: {
+  courseId: string; flights: Flight[]; selected: string; onSelect: (id: string) => void; canSend: boolean;
+}) {
+  const desk = useLocation().pathname.startsWith('/ops') ? 'marshal' : 'office';
+  const path = `/api/v1/golf/course-messages${qs({ courseId })}`;
+  const list = useGet<Page<Msg>>(path, { refetchInterval: 20_000 });
+  useLive(GOLF_STREAM, ['golf.pace'], useMemo(() => () => void list.refetch(), [list]));
+  const send = useSend<Row, Page<Msg>>('POST', '/api/v1/golf/course-messages', [path]);
+  const read = useSend<{ flightId: string }, Page<Msg>>('POST', '/api/v1/golf/course-messages:read', [path]);
+  const [text, setText] = useState('');
+  const items = list.data?.items ?? [];
+  const unreadOf = (fid: string) => items.filter((x) => x.flightId === fid && x.sender === 'tablet' && !x.readByCourseAt).length;
+  // flights in play and flights that wrote today
+  const threads = [...flights.map((f) => ({ id: f.flightId, label: f.label })),
+    ...[...new Map(items.map((x) => [x.flightId, x.flightLabel])).entries()].filter(([fid]) => !flights.some((f) => f.flightId === fid)).map(([id, label]) => ({ id, label }))];
+  const thread = items.filter((x) => x.flightId === selected);
+  const broadcasts = [...new Map(items.filter((x) => x.broadcast).map((x) => [`${x.body}|${x.createdAt.slice(0, 16)}`, x])).values()];
+  useEffect(() => {
+    if (selected && unreadOf(selected) > 0 && !read.isPending) read.mutate({ flightId: selected });
+  }, [selected, items.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  const post = () => {
+    if (!text.trim()) return;
+    send.mutate({ courseId, flightId: selected || undefined, body: text.trim(), desk }, { onSuccess: () => setText('') });
+  };
+  return (
+    <div className="mon-msg-layout">
+      <div className="mon-threads" role="list">
+        <button className="mon-thread" aria-pressed={!selected} onClick={() => onSelect('')}><Icon name="campaign" size={18} /><span style={{ flex: 1 }}>Every flight on the course</span></button>
+        {threads.map((t) => (
+          <button key={t.id} className="mon-thread" aria-pressed={t.id === selected} onClick={() => onSelect(t.id)}>
+            <Icon name="forum" size={18} /><span style={{ flex: 1 }}>{t.label}</span>
+            {unreadOf(t.id) > 0 && <span className="mon-unread" aria-label={`${unreadOf(t.id)} unread`}>{unreadOf(t.id)}</span>}
+          </button>
+        ))}
+      </div>
+      <div className="oc-stack" style={{ gap: 10 }}>
+        <div className="mon-chat" aria-live="polite">
+          {(selected ? thread : broadcasts).length === 0 && <span className="oc-small oc-muted">{selected ? 'No message with this flight yet.' : 'No message to every flight today.'}</span>}
+          {(selected ? thread : broadcasts).map((x) => (
+            <div key={x.id} className="mon-bubble" data-mine={x.sender !== 'tablet' || undefined}>
+              {x.body}
+              <small>{x.senderName ?? x.sender} · {x.sender === 'tablet' ? 'caddy tablet' : x.sender === 'marshal' ? 'Marshal' : 'back office'} · {hhmm(x.createdAt)}
+                {selected && x.sender !== 'tablet' ? (x.readByTabletAt ? ' · read' : ' · not yet read') : ''}</small>
+            </div>
+          ))}
+        </div>
+        {canSend && (
+          <div className="oc-row-wrap" onKeyDown={(e) => { if (e.key === 'Enter') post(); }}>
+            <input className="oc-input" style={{ flex: 1, minWidth: 200 }} maxLength={500} value={text} onChange={(e) => setText(e.target.value)}
+              placeholder={selected ? `Message to ${threads.find((t) => t.id === selected)?.label ?? 'the flight'}` : 'Message to every flight on the course'} aria-label="Message" />
+            <button className="oc-btn oc-btn-ink" disabled={send.isPending || !text.trim()} onClick={post}><Icon name="send" size={16} /> Send</button>
+          </div>
+        )}
+        <ErrorAlert error={send.error ?? list.error} />
+      </div>
+    </div>
+  );
+}
+
 /** A pin near the left or right edge of the map opens inwards. */
 const pinAnchor = (x: number) => (x > 0.85 ? '-100%' : x < 0.15 ? '0%' : '-50%');
 
@@ -165,13 +237,15 @@ function CourseMap({ m, selected, onSelect }: { m: Monitor; selected: string; on
     <div className="mon-map">
       <img src={m.mapUrl!} alt={`${m.courseName} course map`} />
       {m.golfCarts.map((c) => (
-        <span key={c.golfCartId} className="mon-cart" style={{ left: `${(c.mapX ?? 0) * 100}%`, top: `${(c.mapY ?? 0) * 100}%` }} title={`Golf cart ${c.code}`}>
+        <span key={c.golfCartId} className="mon-cart" data-source={c.source} style={{ left: `${(c.mapX ?? 0) * 100}%`, top: `${(c.mapY ?? 0) * 100}%` }}
+          title={`Golf cart ${c.code} · ${c.source === 'tablet' ? `GPS ${hhmm(c.at)}` : 'estimated on the hole'}`}>
           <Icon name="electric_car" size={14} />
         </span>
       ))}
       {m.flights.filter((f) => f.mapX != null).map((f) => {
-        const n = perHole.get(f.holeNumber ?? 0) ?? 0;
-        perHole.set(f.holeNumber ?? 0, n + 1);
+        // a flight on its tablet's GPS stands where it is; the others fan out on their hole
+        const n = f.live ? 0 : perHole.get(f.holeNumber ?? 0) ?? 0;
+        if (!f.live) perHole.set(f.holeNumber ?? 0, n + 1);
         return (
           <button key={f.flightId} className="mon-pin" data-tone={toneOf(f)} aria-pressed={f.flightId === selected}
             style={{ left: `${(f.mapX ?? 0) * 100}%`, top: `calc(${(f.mapY ?? 0) * 100}% + ${n * 26}px)`, transform: `translate(${pinAnchor(f.mapX ?? 0.5)}, -120%)` }}
@@ -192,6 +266,7 @@ function FlightCard({ f, selected, onSelect, onAct }: { f: Flight; selected: boo
         <span className="mon-dot" data-tone={toneOf(f)} />
         <strong>{f.label}</strong>
         <span className="oc-muted">{f.holeNumber ? `Hole ${f.holeNumber}` : '—'} · {f.currentSeq}/{f.holes}</span>
+        {f.live && <span className="oc-small mon-gps" title="Placed by the caddy tablet's GPS"><Icon name="gps_fixed" size={14} />GPS</span>}
         <span className="oc-spacer" />
         <strong className="mon-behind" data-tone={toneOf(f)}>{behindText(f)}</strong>
       </button>

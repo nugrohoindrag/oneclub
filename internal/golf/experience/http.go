@@ -164,7 +164,10 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 		eng.Register(reg, d)
 	}
 	if m.GPS == nil {
-		m.GPS = MockGPS{}
+		m.GPS = TabletGPS{}
+	}
+	if m.Weather == nil {
+		m.Weather = NewOpenMeteo()
 	}
 	db := m.DB
 	add := func(tag string, rt route.Route) {
@@ -178,6 +181,9 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.registerRangeAreas(reg, add)
 	m.registerScorecardSheets(reg, add)
 	m.registerSelfCheckIn(reg, add)
+	m.registerTabletGPS(add)
+	m.registerMessages(add)
+	m.registerWeather(add)
 	m.registerCaddyRelation(add)
 	m.registerLeaders(reg, add)
 
@@ -614,7 +620,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 			h.Incidents, err = handle.List[Incident](tx.Query(ctx, incidentSelect+` WHERE golf_cart_id = $1 ORDER BY occurred_at DESC`, cid))
 			return h, err
 		})})
-	add("Golf Carts", route.Route{Method: http.MethodGet, Path: "/api/v1/golf/golf-cart-positions", Summary: "Golf cart positions (GPS adapter; mock until a vendor is chosen)",
+	add("Golf Carts", route.Route{Method: http.MethodGet, Path: "/api/v1/golf/golf-cart-positions", Summary: "Golf cart positions (the caddy tablets' GPS, else estimated)",
 		Permission: "golf.golf_cart.view", Response: Position{}, List: true,
 		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (httpx.Page[Position], error) {
 			return handle.Page(m.GPS.Positions(ctx, tx, prop(ctx)))

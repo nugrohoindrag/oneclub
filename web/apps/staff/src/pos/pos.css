@@ -608,3 +608,12 @@
 .kiosk-exit { position: absolute; top: 16px; right: 16px; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
   color: var(--pos-muted); background: var(--pos-surface); opacity: 0.5; }
 .kiosk-exit:hover, .kiosk-exit:focus-visible { opacity: 1; }
+
+/* caddy tablet messenger with course control */
+.pos-msg-head { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: none; padding: 0; cursor: pointer; text-align: left; }
+.pos-msg-thread { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow: auto; padding: 12px 0 4px; }
+.pos-msg { max-width: 80%; padding: 8px 12px; border-radius: 14px; background: var(--pos-sunken); align-self: flex-start; }
+.pos-msg[data-mine] { align-self: flex-end; background: var(--pos-primary-soft); }
+.pos-msg small { display: block; margin-top: 2px; color: var(--pos-muted); font-size: 11px; }
+.pos-badge-count { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; display: inline-grid; place-items: center; background: var(--pos-red);
+  color: #fff; font-size: 12px; font-weight: 700; }

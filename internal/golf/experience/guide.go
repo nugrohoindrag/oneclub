@@ -467,6 +467,7 @@ type MonitorFlight struct {
 	HoleNumber    *int               `json:"holeNumber"`
 	MapX          *float64           `json:"mapX"`
 	MapY          *float64           `json:"mapY"`
+	Live          bool               `json:"live" doc:"Placed by the caddy tablet's GPS (else on the hole being played)"`
 	Interventions []PaceIntervention `json:"interventions" doc:"Today's interventions on this flight, latest first"`
 }
 
@@ -480,6 +481,7 @@ type MonitorCart struct {
 	MapY       *float64  `json:"mapY"`
 	Battery    *int      `json:"batteryPercent"`
 	At         time.Time `json:"at"`
+	Source     string    `json:"source" enum:"tablet,estimated"`
 }
 
 // MonitorHole is a hole marker of the course monitor.
@@ -587,10 +589,19 @@ func (m *Module) Monitor(ctx context.Context, q dbtx.Querier, property, course u
 		}
 		rows.Close()
 		for _, p := range ps {
-			c := MonitorCart{GolfCartID: p.GolfCartID, Code: codes[p.GolfCartID], Lat: p.Lat, Lng: p.Lng, Battery: p.Battery, At: p.At}
+			c := MonitorCart{GolfCartID: p.GolfCartID, Code: codes[p.GolfCartID], Lat: p.Lat, Lng: p.Lng, Battery: p.Battery, At: p.At, Source: p.Source}
 			c.MapX, c.MapY = cm.project(p.Lat, p.Lng)
-			if c.MapX != nil {
-				out.Carts = append(out.Carts, c)
+			if c.MapX == nil {
+				continue
+			}
+			out.Carts = append(out.Carts, c)
+			// the flight is where its caddy's tablet is
+			if p.Source == "tablet" && p.FlightID != nil {
+				for i := range out.Flights {
+					if out.Flights[i].FlightID == *p.FlightID && !out.Flights[i].Live {
+						out.Flights[i].MapX, out.Flights[i].MapY, out.Flights[i].Live = c.MapX, c.MapY, true
+					}
+				}
 			}
 		}
 	}

@@ -28206,6 +28206,95 @@
         ],
         "type": "object"
       },
+      "CourseMessage": {
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "broadcast": {
+            "description": "Sent to every flight on the course",
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "flightId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "flightLabel": {
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "readByCourseAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "readByTabletAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "sender": {
+            "enum": [
+              "tablet",
+              "marshal",
+              "office"
+            ],
+            "type": "string"
+          },
+          "senderName": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "flightId",
+          "flightLabel",
+          "sender",
+          "body",
+          "broadcast",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "CourseMessageInput": {
+        "properties": {
+          "body": {
+            "type": "string"
+          },
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "desk": {
+            "description": "Who writes: the Marshal (Operational) or the back office",
+            "enum": [
+              "marshal",
+              "office"
+            ],
+            "type": "string"
+          },
+          "flightId": {
+            "description": "Empty: every flight playing on the course",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "courseId",
+          "body",
+          "desk"
+        ],
+        "type": "object"
+      },
       "CourseMonitor": {
         "properties": {
           "courseId": {
@@ -61279,6 +61368,18 @@
         ],
         "type": "object"
       },
+      "MessageReadInput": {
+        "properties": {
+          "flightId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "flightId"
+        ],
+        "type": "object"
+      },
       "MethodTotal": {
         "properties": {
           "amount": {
@@ -61853,6 +61954,13 @@
           "mapY": {
             "nullable": true,
             "type": "number"
+          },
+          "source": {
+            "enum": [
+              "tablet",
+              "estimated"
+            ],
+            "type": "string"
           }
         },
         "required": [
@@ -61860,7 +61968,8 @@
           "code",
           "lat",
           "lng",
-          "at"
+          "at",
+          "source"
         ],
         "type": "object"
       },
@@ -61942,6 +62051,10 @@
             "description": "Booking code or flight number",
             "type": "string"
           },
+          "live": {
+            "description": "Placed by the caddy tablet's GPS (else on the hole being played)",
+            "type": "boolean"
+          },
           "mapX": {
             "nullable": true,
             "type": "number"
@@ -61993,6 +62106,7 @@
           "players",
           "caddies",
           "golfCarts",
+          "live",
           "interventions"
         ],
         "type": "object"
@@ -76178,6 +76292,12 @@
           "deviceId": {
             "type": "string"
           },
+          "flightId": {
+            "description": "The flight using the cart",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
           "golfCartId": {
             "format": "uuid",
             "type": "string"
@@ -76187,6 +76307,14 @@
           },
           "lng": {
             "type": "number"
+          },
+          "source": {
+            "description": "tablet: the caddy tablet's GPS; estimated: the green of the hole being played (no fix in the last 10 minutes)",
+            "enum": [
+              "tablet",
+              "estimated"
+            ],
+            "type": "string"
           }
         },
         "required": [
@@ -103274,6 +103402,61 @@
         ],
         "type": "object"
       },
+      "TabletFix": {
+        "properties": {
+          "accuracy": {
+            "description": "Meters; rougher than 150 m is ignored",
+            "type": "number"
+          },
+          "at": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "batteryPercent": {
+            "description": "Of the tablet",
+            "nullable": true,
+            "type": "integer"
+          },
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ],
+        "type": "object"
+      },
+      "TabletFixResult": {
+        "properties": {
+          "code": {
+            "nullable": true,
+            "type": "string"
+          },
+          "golfCartId": {
+            "description": "Empty: no golf cart (walking) or the fix was too rough",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "TabletMessageInput": {
+        "properties": {
+          "body": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "body"
+        ],
+        "type": "object"
+      },
       "TargetAchievement": {
         "properties": {
           "achievedDeals": {
@@ -116254,6 +116437,93 @@
           "warehouseId",
           "reason",
           "lines"
+        ],
+        "type": "object"
+      },
+      "Weather": {
+        "properties": {
+          "at": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "available": {
+            "description": "False when the course has no map position or the weather service did not answer",
+            "type": "boolean"
+          },
+          "condition": {
+            "enum": [
+              "clear",
+              "partly_cloudy",
+              "cloudy",
+              "fog",
+              "drizzle",
+              "rain",
+              "heavy_rain",
+              "thunderstorm",
+              "other"
+            ],
+            "type": "string"
+          },
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          },
+          "precipitationMm": {
+            "type": "number"
+          },
+          "rainChanceNextHour": {
+            "description": "Percent",
+            "nullable": true,
+            "type": "integer"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "open-meteo"
+            ],
+            "type": "string"
+          },
+          "suggestedStatus": {
+            "description": "Weather status of Course Status it suggests",
+            "enum": [
+              "normal",
+              "rain",
+              "lightning_warning",
+              "heat_warning"
+            ],
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "temperatureC": {
+            "type": "number"
+          },
+          "weatherCode": {
+            "description": "WMO weather code",
+            "type": "integer"
+          },
+          "windKmh": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "available",
+          "source",
+          "lat",
+          "lng",
+          "at",
+          "temperatureC",
+          "condition",
+          "weatherCode",
+          "precipitationMm",
+          "windKmh",
+          "suggestedStatus",
+          "summary"
         ],
         "type": "object"
       },
@@ -230444,6 +230714,343 @@
         "x-permission": "golf.course.view"
       }
     },
+    "/api/v1/golf/course-messages": {
+      "get": {
+        "operationId": "getGolfCourseMessages",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "courseId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CourseMessage"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Course control: today's messages with the caddy tablets of a course",
+        "tags": [
+          "Pace of Play"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.pace.view"
+      },
+      "post": {
+        "operationId": "postGolfCourseMessages",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseMessageInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CourseMessage"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Course control: message to a flight's caddy tablet or to every flight on the course",
+        "tags": [
+          "Pace of Play"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.pace.manage"
+      }
+    },
+    "/api/v1/golf/course-messages:read": {
+      "post": {
+        "operationId": "postGolfCourseMessagesRead",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageReadInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CourseMessage"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Course control: a flight's tablet messages were read",
+        "tags": [
+          "Pace of Play"
+        ],
+        "x-audited": false,
+        "x-module": "golf",
+        "x-permission": "golf.pace.view"
+      }
+    },
     "/api/v1/golf/course-monitor": {
       "get": {
         "operationId": "getGolfCourseMonitor",
@@ -231788,6 +232395,87 @@
         "x-audited": true,
         "x-module": "golf",
         "x-permission": "golf.course.update"
+      }
+    },
+    "/api/v1/golf/courses/{id}/weather": {
+      "get": {
+        "operationId": "getGolfCoursesByIdWeather",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Weather"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Live weather at the course (Open-Meteo, 10-minute cache)",
+        "tags": [
+          "Course"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.course.view"
       }
     },
     "/api/v1/golf/courses:export": {
@@ -234864,7 +235552,7 @@
             "apiKey": []
           }
         ],
-        "summary": "Golf cart positions (GPS adapter; mock until a vendor is chosen)",
+        "summary": "Golf cart positions (the caddy tablets' GPS, else estimated)",
         "tags": [
           "Golf Carts"
         ],
@@ -244798,6 +245486,441 @@
         ],
         "x-module": "golf",
         "x-permission": "golf.round.view"
+      }
+    },
+    "/api/v1/golf/rounds/{id}/messages": {
+      "get": {
+        "operationId": "getGolfRoundsByIdMessages",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CourseMessage"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Messages between the flight's tablet and course control",
+        "tags": [
+          "Caddy Tablet"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.round.operate"
+      },
+      "post": {
+        "operationId": "postGolfRoundsByIdMessages",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TabletMessageInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CourseMessage"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Caddy tablet: message to the Marshal and the back office",
+        "tags": [
+          "Caddy Tablet"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.round.operate"
+      }
+    },
+    "/api/v1/golf/rounds/{id}/messages:read": {
+      "post": {
+        "operationId": "postGolfRoundsByIdMessagesRead",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CourseMessage"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Caddy tablet: the course control messages were read",
+        "tags": [
+          "Caddy Tablet"
+        ],
+        "x-audited": false,
+        "x-module": "golf",
+        "x-permission": "golf.round.operate"
+      }
+    },
+    "/api/v1/golf/rounds/{id}/position": {
+      "post": {
+        "operationId": "postGolfRoundsByIdPosition",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TabletFix"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TabletFixResult"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Caddy tablet GPS: the position of the cart the caddy rides (sent every 30 s while playing)",
+        "tags": [
+          "Caddy Tablet"
+        ],
+        "x-audited": false,
+        "x-module": "golf",
+        "x-permission": "golf.round.operate"
       }
     },
     "/api/v1/golf/rounds/{id}/times": {

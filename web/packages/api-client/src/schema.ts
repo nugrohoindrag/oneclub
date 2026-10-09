@@ -15154,6 +15154,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/course-messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Course control: today's messages with the caddy tablets of a course */
+        get: operations["getGolfCourseMessages"];
+        put?: never;
+        /** Course control: message to a flight's caddy tablet or to every flight on the course */
+        post: operations["postGolfCourseMessages"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/course-messages:read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Course control: a flight's tablet messages were read */
+        post: operations["postGolfCourseMessagesRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/course-monitor": {
         parameters: {
             query?: never;
@@ -15294,6 +15329,23 @@ export interface paths {
         head?: never;
         /** Edit Course */
         patch: operations["patchGolfCoursesById"];
+        trace?: never;
+    };
+    "/api/v1/golf/courses/{id}/weather": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Live weather at the course (Open-Meteo, 10-minute cache) */
+        get: operations["getGolfCoursesByIdWeather"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/golf/courses:export": {
@@ -15685,7 +15737,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Golf cart positions (GPS adapter; mock until a vendor is chosen) */
+        /** Golf cart positions (the caddy tablets' GPS, else estimated) */
         get: operations["getGolfGolfCartPositions"];
         put?: never;
         /** Ingest golf cart GPS fixes (vendor adapter / bridge agent) */
@@ -16944,6 +16996,58 @@ export interface paths {
         get: operations["getGolfRoundsById"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/rounds/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Messages between the flight's tablet and course control */
+        get: operations["getGolfRoundsByIdMessages"];
+        put?: never;
+        /** Caddy tablet: message to the Marshal and the back office */
+        post: operations["postGolfRoundsByIdMessages"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/rounds/{id}/messages:read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Caddy tablet: the course control messages were read */
+        post: operations["postGolfRoundsByIdMessagesRead"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/rounds/{id}/position": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Caddy tablet GPS: the position of the cart the caddy rides (sent every 30 s while playing) */
+        post: operations["postGolfRoundsByIdPosition"];
         delete?: never;
         options?: never;
         head?: never;
@@ -45662,6 +45766,40 @@ export interface components {
             holeId: string;
             overviewUrl?: string | null;
         };
+        CourseMessage: {
+            body: string;
+            /** @description Sent to every flight on the course */
+            broadcast: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: uuid */
+            flightId: string;
+            flightLabel: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            readByCourseAt?: string | null;
+            /** Format: date-time */
+            readByTabletAt?: string | null;
+            /** @enum {string} */
+            sender: "tablet" | "marshal" | "office";
+            senderName?: string | null;
+        };
+        CourseMessageInput: {
+            body: string;
+            /** Format: uuid */
+            courseId: string;
+            /**
+             * @description Who writes: the Marshal (Operational) or the back office
+             * @enum {string}
+             */
+            desk: "marshal" | "office";
+            /**
+             * Format: uuid
+             * @description Empty: every flight playing on the course
+             */
+            flightId?: string | null;
+        };
         CourseMonitor: {
             /** Format: uuid */
             courseId: string;
@@ -57400,6 +57538,10 @@ export interface components {
             /** Format: uuid */
             targetId: string;
         };
+        MessageReadInput: {
+            /** Format: uuid */
+            flightId: string;
+        };
         MethodTotal: {
             /** @description Decimal amount as string (never float). */
             amount: string;
@@ -57644,6 +57786,8 @@ export interface components {
             lng: number;
             mapX?: number | null;
             mapY?: number | null;
+            /** @enum {string} */
+            source: "tablet" | "estimated";
         };
         MonitorFlight: {
             aheadLabel?: string | null;
@@ -57675,6 +57819,8 @@ export interface components {
             interventions: components["schemas"]["PaceIntervention"][];
             /** @description Booking code or flight number */
             label: string;
+            /** @description Placed by the caddy tablet's GPS (else on the hole being played) */
+            live: boolean;
             mapX?: number | null;
             mapY?: number | null;
             players: string[];
@@ -62210,10 +62356,20 @@ export interface components {
             at: string;
             batteryPercent?: number | null;
             deviceId?: string;
+            /**
+             * Format: uuid
+             * @description The flight using the cart
+             */
+            flightId?: string | null;
             /** Format: uuid */
             golfCartId: string;
             lat: number;
             lng: number;
+            /**
+             * @description tablet: the caddy tablet's GPS; estimated: the green of the hole being played (no fix in the last 10 minutes)
+             * @enum {string}
+             */
+            source?: "tablet" | "estimated";
         };
         PostingExceptionResolveInput: {
             /** @description What was done (e.g. adjustment SAJ-…, outlet mapped) */
@@ -71299,6 +71455,27 @@ export interface components {
             /** @description All the tables the order seats from now on */
             tableIds: string[];
         };
+        TabletFix: {
+            /** @description Meters; rougher than 150 m is ignored */
+            accuracy?: number;
+            /** Format: date-time */
+            at?: string | null;
+            /** @description Of the tablet */
+            batteryPercent?: number | null;
+            lat: number;
+            lng: number;
+        };
+        TabletFixResult: {
+            code?: string | null;
+            /**
+             * Format: uuid
+             * @description Empty: no golf cart (walking) or the fix was too rough
+             */
+            golfCartId?: string | null;
+        };
+        TabletMessageInput: {
+            body: string;
+        };
         TargetAchievement: {
             achievedDeals: number;
             /** @description Deals won and paid in the period (commission basis) */
@@ -75542,6 +75719,32 @@ export interface components {
             reason: "expired" | "damaged" | "spoiled" | "wrong_preparation" | "overproduction" | "breakage" | "other";
             /** Format: uuid */
             warehouseId: string;
+        };
+        Weather: {
+            /** Format: date-time */
+            at: string;
+            /** @description False when the course has no map position or the weather service did not answer */
+            available: boolean;
+            /** @enum {string} */
+            condition: "clear" | "partly_cloudy" | "cloudy" | "fog" | "drizzle" | "rain" | "heavy_rain" | "thunderstorm" | "other";
+            lat: number;
+            lng: number;
+            precipitationMm: number;
+            /** @description Percent */
+            rainChanceNextHour?: number | null;
+            reason?: string;
+            /** @enum {string} */
+            source: "open-meteo";
+            /**
+             * @description Weather status of Course Status it suggests
+             * @enum {string}
+             */
+            suggestedStatus: "normal" | "rain" | "lightning_warning" | "heat_warning";
+            summary: string;
+            temperatureC: number;
+            /** @description WMO weather code */
+            weatherCode: number;
+            windKmh: number;
         };
         WebhookAck: {
             eventId: string;
@@ -141599,6 +141802,189 @@ export interface operations {
             };
         };
     };
+    getGolfCourseMessages: {
+        parameters: {
+            query: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                courseId: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CourseMessage"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfCourseMessages: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CourseMessageInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CourseMessage"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfCourseMessagesRead: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessageReadInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CourseMessage"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfCourseMonitor: {
         parameters: {
             query?: {
@@ -142352,6 +142738,58 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Course"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfCoursesByIdWeather: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Weather"];
                 };
             };
             /** @description Not authenticated */
@@ -149871,6 +150309,246 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoundInfo"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfRoundsByIdMessages: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CourseMessage"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfRoundsByIdMessages: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TabletMessageInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CourseMessage"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfRoundsByIdMessagesRead: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CourseMessage"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfRoundsByIdPosition: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TabletFix"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TabletFixResult"];
                 };
             };
             /** @description Not authenticated */

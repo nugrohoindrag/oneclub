@@ -55,3 +55,21 @@
   .mon-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .mon-log li { flex-wrap: wrap; }
 }
+
+/* golf carts: the caddy tablet's GPS, or estimated on the hole being played */
+.mon-cart[data-source='estimated'] { opacity: 0.55; }
+.mon-gps { display: inline-flex; align-items: center; gap: 2px; color: var(--md-sys-color-success); font-weight: 600; }
+
+/* messenger with the caddy tablets */
+.mon-msg-layout { display: grid; grid-template-columns: 260px 1fr; gap: 16px; }
+@media (max-width: 760px) { .mon-msg-layout { grid-template-columns: 1fr; } }
+.mon-threads { display: flex; flex-direction: column; gap: 6px; max-height: 360px; overflow: auto; }
+.mon-thread { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; text-align: left; cursor: pointer; font: inherit;
+  border: 1px solid var(--md-sys-color-outline-variant); background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); }
+.mon-thread[aria-pressed='true'] { border-color: var(--md-sys-color-primary); background: var(--md-sys-color-primary-container); }
+.mon-unread { min-width: 20px; padding: 0 6px; border-radius: 999px; text-align: center; font-size: 12px; font-weight: 700;
+  background: var(--md-sys-color-error); color: var(--md-sys-color-on-error); }
+.mon-chat { display: flex; flex-direction: column; gap: 8px; min-height: 120px; max-height: 360px; overflow: auto; }
+.mon-bubble { max-width: 80%; padding: 8px 12px; border-radius: 12px; align-self: flex-start; background: var(--md-sys-color-surface-container); }
+.mon-bubble[data-mine] { align-self: flex-end; background: var(--md-sys-color-primary-container); }
+.mon-bubble small { display: block; margin-top: 2px; font-size: 11px; color: var(--md-sys-color-on-surface-variant); }

@@ -8,6 +8,7 @@ import {
 } from '@oneclub/shell';
 import { ActionButton, CourseDateBar, KV, ListPage, Tabs, money, today, useCourseDate, useStream, type R } from './common';
 import { MemberNoTierBadge } from '../p5/tiers';
+import { LiveWeather } from '../ops/weather';
 
 const pill = (k: string) => (r: R) => <StatusPill status={String(r[k] ?? '').replace(/_/g, '-')} />;
 const SESSION: Record<string, string> = { morning: 'Morning', afternoon: 'Afternoon', night: 'Night' };
@@ -431,6 +432,7 @@ export function CourseStatusCard({ courseId, status }: { courseId: string; statu
         <TextField label="Notes" value={v.notes} onChange={(x) => setV({ ...v, notes: x })} />
         {can('golf.course_status.update') && <button className="oc-btn oc-btn-ink" disabled={send.isPending} onClick={() => send.mutate({ ...v, notes: v.notes || undefined })}>Update</button>}
       </div>
+      <LiveWeather courseId={courseId} onApply={can('golf.course_status.update') ? (w) => setV({ ...v, weather: w }) : undefined} />
       <ErrorAlert error={send.error} />
     </Card>
   );

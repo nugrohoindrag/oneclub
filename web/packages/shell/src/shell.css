@@ -655,3 +655,6 @@ body > .oc-popover {
 /* tee colour of a player (red women, blue / white general, black professional) */
 .oc-tee { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; }
 .oc-tee i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, 0.35); }
+
+/* live weather that suggests a warning status (Course Status, Course Monitor) */
+.oc-weather-alert { color: var(--md-sys-color-on-warning-container); }

@@ -21,6 +21,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	"oneclub/internal/golf"
+	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
@@ -371,12 +372,14 @@ func (m *Module) ReadinessBoard(ctx context.Context, q dbtx.Querier, property uu
 
 // Position is a GPS fix of a golf cart.
 type Position struct {
-	GolfCartID uuid.UUID `json:"golfCartId"`
-	DeviceID   string    `json:"deviceId,omitempty"`
-	Lat        float64   `json:"lat"`
-	Lng        float64   `json:"lng"`
-	Battery    *int      `json:"batteryPercent,omitempty"`
-	At         time.Time `json:"at"`
+	GolfCartID uuid.UUID  `json:"golfCartId"`
+	DeviceID   string     `json:"deviceId,omitempty"`
+	FlightID   *uuid.UUID `json:"flightId,omitempty" doc:"The flight using the cart"`
+	Lat        float64    `json:"lat"`
+	Lng        float64    `json:"lng"`
+	Battery    *int       `json:"batteryPercent,omitempty"`
+	At         time.Time  `json:"at"`
+	Source     string     `json:"source,omitempty" enum:"tablet,estimated" doc:"tablet: the caddy tablet's GPS; estimated: the green of the hole being played (no fix in the last 10 minutes)"`
 }
 
 // GPSAdapter is the golf cart GPS vendor interface (vendor: OQ #8).
@@ -384,32 +387,51 @@ type GPSAdapter interface {
 	Positions(ctx context.Context, q dbtx.Querier, property uuid.UUID) ([]Position, error)
 }
 
-// MockGPS places in-use carts on the green centre (P1 course assets) of the
-// hole their flight is playing — enough for the map and pace screens until
-// a vendor is chosen.
-type MockGPS struct{}
+// TabletGPS (demo feedback 9 Oct 2026, OneClub replaces Smartscore): the
+// caddy tablet in the cart's bracket is the cart's GPS — no GPS vendor and
+// no device registered per cart. A cart out on the course shows the last
+// fix its caddy's tablet sent within FreshFix; without one, the green of
+// the hole its flight is playing (estimated).
+type TabletGPS struct{}
 
-func (MockGPS) Positions(ctx context.Context, q dbtx.Querier, property uuid.UUID) ([]Position, error) {
+// FreshFix is how long a tablet fix places the cart.
+const FreshFix = 10 * time.Minute
+
+func (TabletGPS) Positions(ctx context.Context, q dbtx.Querier, property uuid.UUID) ([]Position, error) {
 	type row struct {
 		CartID   uuid.UUID      `db:"golf_cart_id"`
+		FlightID uuid.UUID      `db:"flight_id"`
 		Device   *string        `db:"gps_device_id"`
+		Lat      *float64       `db:"last_lat"`
+		Lng      *float64       `db:"last_lng"`
+		At       *time.Time     `db:"position_at"`
+		Battery  *int           `db:"battery_percent"`
 		Geometry map[string]any `db:"geometry"`
 	}
-	rows, err := handle.List[row](q.Query(ctx, `SELECT a.golf_cart_id, cp.gps_device_id, coalesce(ca.geometry, '{}'::jsonb) AS geometry
+	rows, err := handle.List[row](q.Query(ctx, `SELECT a.golf_cart_id, a.flight_id, cp.gps_device_id, cp.last_lat::float8 AS last_lat, cp.last_lng::float8 AS last_lng,
+		cp.position_at, cp.battery_percent, coalesce(ca.geometry, '{}'::jsonb) AS geometry
 		FROM golf.golf_cart_assignments a LEFT JOIN golf.cart_profiles cp ON cp.golf_cart_id = a.golf_cart_id JOIN golf.flights f ON f.id = a.flight_id
 		LEFT JOIN golf.round_progress rp ON rp.flight_id = f.id LEFT JOIN golf.hole_progress p ON p.flight_id = f.id AND p.seq = rp.current_seq
 		LEFT JOIN golf.course_assets ca ON ca.hole_id = p.hole_id AND ca.asset_type = 'green_center' AND ca.status = 'active'
-		WHERE a.property_id = $1 AND a.status = 'in_use'`, property))
+		WHERE a.property_id = $1 AND (a.status = 'in_use' OR (a.status = 'assigned' AND f.tee_off_at IS NOT NULL AND f.round_finish_at IS NULL))`, property))
 	if err != nil {
 		return nil, err
 	}
+	now := clock.Now()
 	out := []Position{}
 	for _, r := range rows {
+		fid := r.FlightID
+		if r.Lat != nil && r.Lng != nil && r.At != nil && now.Sub(*r.At) <= FreshFix {
+			out = append(out, Position{GolfCartID: r.CartID, DeviceID: deref(r.Device), FlightID: &fid, Lat: *r.Lat, Lng: *r.Lng, Battery: r.Battery, At: *r.At,
+				Source: "tablet"})
+			continue
+		}
 		lat, lng, ok := geoPoint(r.Geometry)
 		if !ok {
 			continue
 		}
-		out = append(out, Position{GolfCartID: r.CartID, DeviceID: deref(r.Device), Lat: lat, Lng: lng, At: time.Now().UTC()})
+		out = append(out, Position{GolfCartID: r.CartID, DeviceID: deref(r.Device), FlightID: &fid, Lat: lat, Lng: lng, Battery: r.Battery, At: now.UTC(),
+			Source: "estimated"})
 	}
 	return out, nil
 }

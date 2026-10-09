@@ -8,6 +8,7 @@ import { SyncPage, read, write } from '../offline';
 import { TabletTournamentCard, TabletTournamentPage } from '../p3/tournament';
 import { PAYOUTS_TABLET_ROUTES } from '../p5/payouts';
 import { ProductImage, TodayLabel } from '../pos/shared';
+import { useCourseWeather, weatherIcon } from '../ops/weather';
 import '../pos/pos.css';
 
 /*
@@ -150,6 +151,7 @@ function RoundPage() {
   const [localPause, setLocalPause] = useState<string | null>();
   const [scores, setScores] = useState<Record<string, Record<number, number>>>({});
   const [tab, setTab] = useState<'cart' | 'score' | 'players' | 'map' | 'order'>('cart');
+  const gpsCart = useCartGps(id, status === 'in_play');
   // the last round action: once the server answers, the round is read again (scorecards open on tee-off)
   const [lastId, setLastId] = useState('');
   const last = useQueue().find((q) => q.id === lastId);
@@ -205,6 +207,7 @@ function RoundPage() {
         </div>
         <PlayTime start={teeOff} end={finish} pausedAt={pausedAt} pausedSeconds={round.round.pausedSeconds} />
         <StateChip status={status} />
+        {gpsCart && <span className="pos-muted" title="This tablet is the golf cart's GPS on the Course Monitor"><Icon name="gps_fixed" size={18} /> Cart {gpsCart}</span>}
         <span className="pos-spacer" />
         {(status === 'checked_in' || status === 'ready') && (
           <button className="pos-btn" onClick={() => { void act({ op: 'tee_off' }, 'Round started'); setStatus('in_play'); setSeq(1); setLocalStart(new Date().toISOString()); }}><Icon name="sports_golf" size={20} />Start Round</button>
@@ -236,7 +239,9 @@ function RoundPage() {
             Paused for rain since {new Date(pausedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })} — the play time has stopped.
             {Math.max(seq - 1, 0) * 2 < round.holes.length ? ` Less than half of the round played (${Math.max(seq - 1, 0)} of ${round.holes.length}): the players can reschedule at the front desk.` : ''}</div>
         )}
+        {status === 'in_play' && <TabletWeather courseId={round.round.courseId} />}
         {status === 'in_play' && <MarshalMessages flightId={id} initial={round.interventions} />}
+        {online && ['checked_in', 'ready', 'in_play'].includes(status) && <FlightMessenger flightId={id} />}
         {hole && (
           <div className="pos-hole">
             <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, flexWrap: 'wrap' }}>
@@ -299,6 +304,25 @@ function RoundPage() {
   );
 }
 
+/** The tablet in the cart's bracket is the cart's GPS (OneClub replaces
+ * Smartscore): while the round is played the position goes to the server
+ * every 30 s for the Course Monitor; nothing is queued offline. */
+function useCartGps(flightId: string, on: boolean) {
+  const online = useOnline();
+  const [cart, setCart] = useState<string | null>(null);
+  useEffect(() => {
+    if (!on || !online || !('geolocation' in navigator)) return undefined;
+    const send = () => navigator.geolocation.getCurrentPosition((p) => {
+      void request<Schemas['TabletFixResult']>('POST', `/api/v1/golf/rounds/${flightId}/position`, { lat: p.coords.latitude, lng: p.coords.longitude,
+        accuracy: p.coords.accuracy, at: new Date(p.timestamp).toISOString() }).then((r) => setCart(r.code ?? null)).catch(() => undefined);
+    }, () => undefined, { enableHighAccuracy: true, maximumAge: 20_000, timeout: 20_000 });
+    send();
+    const t = window.setInterval(send, 30_000);
+    return () => window.clearInterval(t);
+  }, [flightId, on, online]);
+  return cart;
+}
+
 /** Marshal messages for the flight (FR-PLX-04): shown until the caddy
  * confirms the flight got them; checked every 30 s, apart from the round
  * state so a queued hole is never overwritten. */
@@ -319,6 +343,81 @@ function MarshalMessages({ flightId, initial }: { flightId: string; initial: Sch
             onClick={() => ack.mutate({ id: i.id }, { onSuccess: () => setDone([...done, i.id]) })}>Got it</button>
         </div>
       ))}
+    </div>
+  );
+}
+
+/** Live weather at the course; lightning or rain shows as a warning. */
+function TabletWeather({ courseId }: { courseId: string }) {
+  const w = useCourseWeather(courseId).data;
+  if (!w?.available) return null;
+  const warn = w.suggestedStatus === 'lightning_warning' || w.suggestedStatus === 'rain';
+  return (
+    <div className="pos-banner" data-tone={warn ? 'warn' : undefined} role={warn ? 'alert' : 'status'} style={{ margin: '0 0 14px' }}>
+      <Icon name={weatherIcon(w)} size={22} />
+      <div style={{ flex: 1 }}><strong>{w.summary}</strong> · wind {Math.round(w.windKmh)} km/h
+        {w.suggestedStatus === 'lightning_warning' ? ' — lightning nearby: follow the Marshal, leave open areas.' : ''}</div>
+      <span className="pos-muted">Open-Meteo</span>
+    </div>
+  );
+}
+
+type Msg = Schemas['CourseMessage'];
+const QUICK_REPLIES = ['On our way', 'Searching for a ball', 'Need a ball spotter', 'Golf cart problem', 'Medical help needed', 'Returning to the clubhouse'];
+
+/** Messenger with course control (OneClub replaces Smartscore's cart
+ * messenger): messages from the Marshal and the back office, and the
+ * caddy's replies or reports; read receipts both ways, checked every 15 s. */
+function FlightMessenger({ flightId }: { flightId: string }) {
+  const path = `/api/v1/golf/rounds/${flightId}/messages`;
+  const list = useGet<Page<Msg>>(path, { refetchInterval: 15_000 });
+  const send = useSend<{ body: string }, Page<Msg>>('POST', path, [path]);
+  const read = useSend<Record<string, never>, Page<Msg>>('POST', `${path}:read`, [path]);
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  const items = list.data?.items ?? [];
+  const unread = items.filter((m) => m.sender !== 'tablet' && !m.readByTabletAt);
+  useEffect(() => {
+    if (open && unread.length > 0 && !read.isPending) read.mutate({});
+  }, [open, unread.length]); // eslint-disable-line react-hooks/exhaustive-deps
+  const post = (body: string) => { if (body.trim()) send.mutate({ body: body.trim() }, { onSuccess: () => setText('') }); };
+  const latest = unread[unread.length - 1];
+  const hhmm = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  return (
+    <div className="pos-section" style={{ marginBottom: 14 }}>
+      <button type="button" className="pos-msg-head" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <Icon name="forum" size={22} /><strong>Messages · Marshal &amp; back office</strong>
+        {unread.length > 0 && <span className="pos-badge-count" aria-label={`${unread.length} unread`}>{unread.length}</span>}
+        <span className="pos-spacer" /><Icon name={open ? 'expand_less' : 'expand_more'} size={22} />
+      </button>
+      {!open && latest && (
+        <div className="pos-banner" data-tone="warn" role="alert" style={{ margin: '10px 0 0' }}>
+          <Icon name="campaign" size={20} /><div style={{ flex: 1 }}><strong>{latest.senderName ?? (latest.sender === 'marshal' ? 'Marshal' : 'Back office')}</strong> · {latest.body}</div>
+          <button className="pos-btn" data-size="sm" onClick={() => setOpen(true)}>Read</button>
+        </div>
+      )}
+      {open && (
+        <>
+          <div className="pos-msg-thread" aria-live="polite">
+            {items.length === 0 && <span className="pos-muted">No messages yet. Write to the Marshal or the back office.</span>}
+            {items.map((m) => (
+              <div key={m.id} className="pos-msg" data-mine={m.sender === 'tablet' || undefined}>
+                {m.body}
+                <small>{m.sender === 'tablet' ? 'You' : m.senderName ?? m.sender}{m.broadcast ? ' · to every flight' : ''} · {hhmm(m.createdAt)}
+                  {m.sender === 'tablet' && (m.readByCourseAt ? ' · read' : ' · sent')}</small>
+              </div>
+            ))}
+          </div>
+          <div className="pos-guests" style={{ flexWrap: 'wrap', margin: '10px 0' }}>
+            {QUICK_REPLIES.map((q) => <button key={q} type="button" className="pos-guest" data-wide disabled={send.isPending} onClick={() => post(q)}>{q}</button>)}
+          </div>
+          <div style={{ display: 'flex', gap: 10 }} onKeyDown={(e) => { if (e.key === 'Enter') post(text); }}>
+            <input className="pos-input" placeholder="Message to the Marshal and the back office" value={text} maxLength={500} onChange={(e) => setText(e.target.value)} />
+            <button className="pos-btn" disabled={send.isPending || !text.trim()} onClick={() => post(text)}><Icon name="send" size={20} />Send</button>
+          </div>
+          <ErrorAlert error={send.error ?? list.error} />
+        </>
+      )}
     </div>
   );
 }

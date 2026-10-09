@@ -261,7 +261,8 @@ type Module struct {
 	Reservations *reservation.Engine // driving range bays as bookable resources
 	CRM          *crm.Engagement     // post-round feedback, caddy-recorded preferences
 	Files        *storage.Files      // HIO claim package, introduction letters
-	GPS          GPSAdapter          // golf cart positions (vendor adapter)
+	GPS          GPSAdapter          // golf cart positions (the caddy tablets)
+	Weather      WeatherSource       // live weather at the course (Open-Meteo)
 }
 
 // P1 golf types used by the P2 views.
