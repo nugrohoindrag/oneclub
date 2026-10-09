@@ -58,11 +58,12 @@ func trialDemoFeedbackFinal(_ context.Context, t *Trial) error {
 			n += 4
 		}
 		for range n {
-			at := day.Add(time.Duration(2*experience.RangeOpenHour+r.IntN(2*(experience.RangeCloseHour-experience.RangeOpenHour)-2)) * 30 * time.Minute)
+			minutes := []int{60, 60, 90, 120}[r.IntN(4)] // the bay time ends by closing
+			at := day.Add(time.Duration(2*experience.RangeOpenHour+r.IntN(2*(experience.RangeCloseHour-experience.RangeOpenHour)-minutes/30+1)) * 30 * time.Minute)
 			if !at.After(now.Add(30 * time.Minute)) {
 				continue
 			}
-			body := J{"date": day.Format(time.DateOnly), "time": at.Format("15:04"), "minutes": []int{60, 60, 90, 120}[r.IntN(4)],
+			body := J{"date": day.Format(time.DateOnly), "time": at.Format("15:04"), "minutes": minutes,
 				"area": []string{"outdoor", "outdoor", "indoor"}[r.IntN(3)], "reserveBay": r.IntN(3) > 0, "players": 1 + r.IntN(2)}
 			if r.IntN(2) == 0 && len(members) > 0 {
 				body["customerId"] = members[r.IntN(len(members))].CustomerID
