@@ -32,6 +32,21 @@ export function useGet<T>(path: string | null, options?: Omit<UseQueryOptions<T,
   });
 }
 
+/**
+ * Resolves a mutation's URL and body. When the path is a function, the keys it
+ * reads (the ids that only build the URL, e.g. `playerId`) are left out of the
+ * body: the API decodes strictly and rejects unknown fields.
+ */
+export function resolveSend<TBody>(path: string | ((vars: TBody) => string), vars: TBody): { url: string; body: TBody } {
+  if (typeof path !== 'function') return { url: path, body: vars };
+  if (vars === null || typeof vars !== 'object' || Array.isArray(vars)) return { url: path(vars), body: vars };
+  const read = new Set<PropertyKey>();
+  const spy = new Proxy(vars as object, { get: (t, k, r) => { read.add(k); return Reflect.get(t, k, r); } }) as TBody;
+  const url = path(spy);
+  const body = Object.fromEntries(Object.entries(vars as object).filter(([k]) => !read.has(k))) as TBody;
+  return { url, body };
+}
+
 /** Mutation helper that invalidates the given path prefixes on success. */
 export function useSend<TBody = unknown, TRes = unknown>(
   method: 'POST' | 'PATCH' | 'PUT' | 'DELETE',
@@ -41,7 +56,10 @@ export function useSend<TBody = unknown, TRes = unknown>(
 ) {
   const qc = useQueryClient();
   return useMutation<TRes, ApiError, TBody>({
-    mutationFn: (body) => request<TRes>(method, typeof path === 'function' ? path(body) : path, method === 'DELETE' ? undefined : body, headers?.()),
+    mutationFn: (vars) => {
+      const { url, body } = resolveSend(path, vars);
+      return request<TRes>(method, url, method === 'DELETE' ? undefined : body, headers?.());
+    },
     onSuccess: () => {
       for (const p of invalidate) {
         qc.invalidateQueries({ predicate: (q) => typeof q.queryKey[0] === 'string' && (q.queryKey[0] as string).startsWith(p) });
