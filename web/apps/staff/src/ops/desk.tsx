@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { qs, request, useGet, useSend, type Page } from '@oneclub/api-client';
+import { qs, request, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import { Checkbox, CrowdLabel, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TEE_CATEGORY, TeeBadge, TextField, crowdClass, useToast } from '@oneclub/shell';
 import { BookingForm, type BookingPrefill } from '../p1/golf';
@@ -117,13 +117,17 @@ function DeskTeeTimeBooking() {
 function DeskRangeBooking() {
   const toast = useToast();
   const [date, setDate] = useState(today());
-  const [area, setArea] = useState('outdoor');
+  // only the areas switched on at the Driving Range page (and with bays)
+  const areas = useGet<Page<Schemas['RangeArea']>>('/api/v1/golf/range-areas');
+  const open: string[] = (areas.data?.items ?? []).filter((a) => a.offered).map((a) => a.area);
+  const [chosenArea, setArea] = useState('');
+  const area = open.includes(chosenArea) ? chosenArea : (open[0] ?? '');
   const [minutes, setMinutes] = useState('60');
   const [bay, setBay] = useState(true);
   const [time, setTime] = useState('');
   const [bayId, setBayId] = useState('');
   const [guest, setGuest] = useState({ name: '', phone: '', players: '1' });
-  const slots = useGet<Page<R>>(`/api/v1/golf/range-availability${qs({ date, area, minutes })}`);
+  const slots = useGet<Page<R>>(area ? `/api/v1/golf/range-availability${qs({ date, area, minutes })}` : null);
   const book = useSend<Record<string, unknown>, R>('POST', '/api/v1/golf/range-bookings', ['/api/v1/golf/range-bookings']);
   const list = slots.data?.items ?? [];
   const picked = list.find((s) => s.time === time);
@@ -135,11 +139,15 @@ function DeskRangeBooking() {
         <Btn label="Bay & time" kind={bay ? 'ink' : 'neutral'} onClick={() => setBay(true)} />
         <Btn label="Visit only" kind={bay ? 'neutral' : 'ink'} onClick={() => { setBay(false); setBayId(''); }} />
         <TextField label="Date" type="date" value={date} onChange={(v) => { setDate(v); setTime(''); }} />
-        <SelectField label="Area" value={area} onChange={(v) => { setArea(v); setTime(''); }} options={[{ value: 'outdoor', label: 'Outdoor' }, { value: 'indoor', label: 'Indoor' }]} />
+        {open.length > 1 && <SelectField label="Area" value={area} onChange={(v) => { setArea(v); setTime(''); }}
+          options={open.map((a) => ({ value: a, label: a === 'outdoor' ? 'Outdoor' : 'Indoor' }))} />}
         <SelectField label="Length" value={minutes} onChange={(v) => { setMinutes(v); setTime(''); }}
           options={['30', '60', '90', '120'].map((m) => ({ value: m, label: `${m} min` }))} />
       </div>
-      <ErrorAlert error={slots.error} />
+      <ErrorAlert error={slots.error ?? areas.error} />
+      {areas.data && open.length === 0 && (
+        <div className="oc-alert oc-alert-warning">No driving range area is open for booking. Switch one on at <Link to="/ops/driving-range">Driving Range</Link>.</div>
+      )}
       <div className="oc-row-wrap">
         {list.map((s) => (
           <button key={String(s.time)} type="button" className={`oc-btn ${time === s.time ? 'oc-btn-ink' : 'oc-btn-neutral'} ${crowdClass(s.crowd as string)}`}

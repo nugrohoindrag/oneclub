@@ -20,7 +20,11 @@ export function RangeWizard() {
   const qc = useQueryClient();
   const [bay, setBay] = useState(true);
   const [date, setDate] = useState(isoDay(0));
-  const [area, setArea] = useState<'outdoor' | 'indoor'>('outdoor');
+  // only the areas the front desk has switched on (and that have bays)
+  const areas = useGet<Page<Schemas['RangeArea']>>('/api/v1/member/golf/range-areas');
+  const open: string[] = (areas.data?.items ?? []).map((a) => a.area);
+  const [picked, setArea] = useState('');
+  const area = open.includes(picked) ? picked : (open[0] ?? '');
   const [minutes, setMinutes] = useState(60);
   const [players, setPlayers] = useState(1);
   const [slot, setSlot] = useState<Slot | null>(null);
@@ -29,7 +33,7 @@ export function RangeWizard() {
   const [done, setDone] = useState<RangeBooking | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const avail = useGet<Page<Slot>>(`/api/v1/member/golf/range-availability${qs({ date, area, minutes })}`);
+  const avail = useGet<Page<Slot>>(area ? `/api/v1/member/golf/range-availability${qs({ date, area, minutes })}` : null);
   const reset = () => { setSlot(null); setBayId(''); };
   const book = async () => {
     if (!slot) return;
@@ -74,7 +78,8 @@ export function RangeWizard() {
   return (
     <div className="mj-page mj-narrow">
       <Head title="Book Driving Range" back={['/book', 'Book']} help="Pick a bay and a time, or just tell us you are coming." />
-      <ErrorAlert error={error} />
+      <ErrorAlert error={error ?? areas.error} />
+      {areas.data && open.length === 0 && <p className="mj-card mj-muted">The driving range is not open for booking. Please ask the front desk.</p>}
       <div className="mj-card oc-stack">
         <div className="mj-seg" role="group" aria-label="Booking kind">
           <button type="button" aria-pressed={bay} onClick={() => setBay(true)}>Bay & time</button>
@@ -82,9 +87,11 @@ export function RangeWizard() {
         </div>
         <DateStrip value={date} onChange={(d) => { setDate(d); reset(); }} days={14} />
         <div className="oc-row-wrap">
-          <div className="mj-seg" role="group" aria-label="Area">
-            {(['outdoor', 'indoor'] as const).map((a) => <button key={a} type="button" aria-pressed={area === a} onClick={() => { setArea(a); reset(); }}>{a === 'outdoor' ? 'Outdoor' : 'Indoor'}</button>)}
-          </div>
+          {open.length > 1 && (
+            <div className="mj-seg" role="group" aria-label="Area">
+              {open.map((a) => <button key={a} type="button" aria-pressed={area === a} onClick={() => { setArea(a); reset(); }}>{a === 'outdoor' ? 'Outdoor' : 'Indoor'}</button>)}
+            </div>
+          )}
           <div className="mj-seg" role="group" aria-label="Length">
             {LENGTHS.map((n) => <button key={n} type="button" aria-pressed={minutes === n} onClick={() => { setMinutes(n); reset(); }}>{n < 60 ? `${n} min` : `${n / 60} h`}</button>)}
           </div>

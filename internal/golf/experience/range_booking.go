@@ -150,23 +150,13 @@ func rangeMinutes(n int) (int, error) {
 	return n, nil
 }
 
-func rangeArea(a string) (string, error) {
-	switch a {
-	case "":
-		return "outdoor", nil
-	case "indoor", "outdoor":
-		return a, nil
-	}
-	return "", handle.Invalid("area", "invalid", "indoor or outdoor")
-}
-
 // RangeAvailability lists the start times of a day with the free bays.
 func (m *Module) RangeAvailability(ctx context.Context, q dbtx.Querier, property uuid.UUID, date, area string, minutes int) ([]RangeSlot, error) {
 	var err error
 	if minutes, err = rangeMinutes(minutes); err != nil {
 		return nil, err
 	}
-	if area, err = rangeArea(area); err != nil {
+	if area, err = m.bookableArea(ctx, q, property, area); err != nil {
 		return nil, err
 	}
 	loc := location(ctx, q, property)
@@ -224,7 +214,7 @@ func (m *Module) BookRange(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 	if err != nil {
 		return RangeBooking{}, err
 	}
-	area, err := rangeArea(in.Area)
+	area, err := m.bookableArea(ctx, tx, property, in.Area)
 	if err != nil {
 		return RangeBooking{}, err
 	}

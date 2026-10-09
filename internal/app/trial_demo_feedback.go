@@ -64,7 +64,7 @@ func trialDemoFeedbackFinal(_ context.Context, t *Trial) error {
 				continue
 			}
 			body := J{"date": day.Format(time.DateOnly), "time": at.Format("15:04"), "minutes": minutes,
-				"area": []string{"outdoor", "outdoor", "indoor"}[r.IntN(3)], "reserveBay": r.IntN(3) > 0, "players": 1 + r.IntN(2)}
+				"area": "outdoor", "reserveBay": r.IntN(3) > 0, "players": 1 + r.IntN(2)}
 			if r.IntN(2) == 0 && len(members) > 0 {
 				body["customerId"] = members[r.IntN(len(members))].CustomerID
 			} else {

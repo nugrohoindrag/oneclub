@@ -58,13 +58,12 @@ func trialGolfSetup(_ context.Context, t *Trial) error {
 	for i := 31; i <= 60; i++ { // the golf cart fleet (the demo has 30)
 		gm.Post("/api/v1/golf/golf-carts", J{"code": fmt.Sprintf("B%02d", i), "name": fmt.Sprintf("Buggy %02d", i)})
 	}
+	// MGCC's driving range is outdoor only: no indoor bays, and the front
+	// desk keeps the Indoor area switched off
 	for i := 1; i <= 12; i++ {
-		area := "outdoor"
-		if i > 10 {
-			area = "indoor"
-		}
-		gm.Post("/api/v1/golf/range-bays", J{"code": fmt.Sprintf("RB%02d", i), "name": fmt.Sprintf("Range Bay %02d", i), "area": area})
+		gm.Post("/api/v1/golf/range-bays", J{"code": fmt.Sprintf("RB%02d", i), "name": fmt.Sprintf("Range Bay %02d", i), "area": "outdoor"})
 	}
+	gm.Put("/api/v1/golf/range-areas/indoor", J{"enabled": false})
 	return nil
 }
 

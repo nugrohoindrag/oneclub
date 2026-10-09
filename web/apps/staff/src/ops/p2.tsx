@@ -158,7 +158,10 @@ export function DrivingRangePage() {
   const end = useSend<Row>('POST', (b) => `/api/v1/golf/range-sessions/${b.id}:end`, ['/api/v1/golf/range-sessions']);
   const bucket = useSend<Row, Schemas['Bucket']>('POST', '/api/v1/golf/range-buckets', ['/api/v1/golf/range-sessions'], idem);
   const [guest, setGuest] = useState('');
-  const [area, setArea] = useState('outdoor');
+  const areas = useGet<Page<Schemas['RangeArea']>>('/api/v1/golf/range-areas');
+  const withBays: string[] = (areas.data?.items ?? []).filter((a) => a.enabled && a.bays > 0).map((a) => a.area);
+  const [picked, setArea] = useState('');
+  const area = withBays.includes(picked) ? picked : (withBays[0] ?? 'outdoor');
   const [last, setLast] = useState<Schemas['Bucket'] | null>(null);
   return (
     <div className="oc-stack">
@@ -167,12 +170,14 @@ export function DrivingRangePage() {
       <Card title="Walk-in" icon="sports_golf">
         <div className="oc-row-wrap">
           <div style={{ width: 240 }}><TextField label="Guest name" value={guest} onChange={setGuest} /></div>
-          <div style={{ width: 160 }}><SelectField label="Area" value={area} onChange={setArea} options={[{ value: 'outdoor', label: 'Outdoor' }, { value: 'indoor', label: 'Indoor' }]} /></div>
+          {withBays.length > 1 && <div style={{ width: 160 }}><SelectField label="Area" value={area} onChange={setArea}
+            options={withBays.map((a) => ({ value: a, label: a === 'outdoor' ? 'Outdoor' : 'Indoor' }))} /></div>}
           <button className="oc-btn oc-btn-ink" style={{ alignSelf: 'flex-end' }} disabled={!guest}
             onClick={() => start.mutate({ guestName: guest, area }, { onSuccess: () => { setGuest(''); toast('Checked in'); } })}>Assign bay / queue</button>
         </div>
       </Card>
       <RangeBookingsCard onCheckIn={() => void sessions.refetch()} />
+      <RangeAreasCard />
       {last && <div className="oc-alert oc-alert-info">Dispenser code <strong className="oc-code">{last.dispenserCode}</strong> · {last.balls} balls{last.dispenseMode === 'bridge' ? ' (sent to dispenser)' : ''}{last.remainingBalance ? ` · balance ${last.remainingBalance}` : ''}</div>}
       <div className="oc-card">
         <DataTable rows={sessions.data?.items as unknown as Row[]} columns={[{ key: 'number', header: 'Session' }, { key: 'bayCode', header: 'Bay' },
@@ -186,6 +191,32 @@ export function DrivingRangePage() {
           )} />
       </div>
     </div>
+  );
+}
+
+/** The front desk switches the Indoor and Outdoor areas on or off: a switched-
+ * off area (or one without bays) is not offered in the Member App, on the
+ * website or at the desk. */
+function RangeAreasCard() {
+  const toast = useToast();
+  const areas = useGet<Page<Schemas['RangeArea']>>('/api/v1/golf/range-areas');
+  const set = useSend<{ area: string; enabled: boolean }>('PUT', (v) => `/api/v1/golf/range-areas/${v.area}`,
+    ['/api/v1/golf/range-areas', '/api/v1/golf/range-availability']);
+  return (
+    <Card title="Areas open for booking" icon="toggle_on">
+      <ErrorAlert error={areas.error ?? set.error} />
+      <div className="oc-row-wrap">
+        {(areas.data?.items ?? []).map((a) => (
+          <div key={a.area} className="oc-card" style={{ minWidth: 240, flex: 1 }}>
+            <Checkbox label={a.area === 'outdoor' ? 'Outdoor' : 'Indoor'} checked={a.enabled} disabled={set.isPending}
+              onChange={(on) => set.mutate({ area: a.area, enabled: on }, { onSuccess: () => toast(`${a.area === 'outdoor' ? 'Outdoor' : 'Indoor'} ${on ? 'open' : 'closed'} for booking`) })} />
+            <p className="oc-small oc-muted" style={{ margin: '4px 0 0' }}>
+              {a.bays} active {a.bays === 1 ? 'bay' : 'bays'} · {a.offered ? 'offered in the Member App, website and front desk' : a.bays ? 'not offered' : 'not offered (no bay)'}
+            </p>
+          </div>
+        ))}
+      </div>
+    </Card>
   );
 }
 

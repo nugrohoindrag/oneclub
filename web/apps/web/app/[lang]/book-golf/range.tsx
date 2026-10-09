@@ -34,7 +34,9 @@ export function BookGolfOrRange({ lang, propertyId }: { lang: Lang; propertyId: 
 function BookRange({ lang, propertyId }: { lang: Lang; propertyId: string }) {
   const id = lang === 'id';
   const [date, setDate] = useState(today());
-  const [area, setArea] = useState('outdoor');
+  // only the areas the club has switched on (and that have bays)
+  const [areas, setAreas] = useState<string[] | null>(null);
+  const [area, setArea] = useState('');
   const [minutes, setMinutes] = useState(60);
   const [players, setPlayers] = useState(1);
   const [bay, setBay] = useState(true);
@@ -47,8 +49,21 @@ function BookRange({ lang, propertyId }: { lang: Lang; propertyId: string }) {
   const [done, setDone] = useState<Booked | null>(null);
 
   useEffect(() => {
+    fetch(`/api/v1/public/golf/range-areas?propertyId=${propertyId}`)
+      .then(async (r) => {
+        const d = await r.json();
+        const open = r.ok ? ((d as { items: { area: string }[] }).items ?? []).map((a) => a.area) : [];
+        setAreas(open);
+        setArea(open[0] ?? '');
+        if (!r.ok) setError((d as Problem).detail ?? 'Error');
+      })
+      .catch(() => setError('Network error'));
+  }, [propertyId]);
+
+  useEffect(() => {
     setSlots(null);
     setSlot(null);
+    if (!area) return;
     fetch(`/api/v1/public/golf/range-availability?propertyId=${propertyId}&date=${date}&area=${area}&minutes=${minutes}`)
       .then(async (r) => {
         const d = await r.json();
@@ -71,6 +86,10 @@ function BookRange({ lang, propertyId }: { lang: Lang; propertyId: string }) {
     else setError((d as Problem).detail ?? (d as Problem).title ?? `Error ${r.status}`);
   };
 
+  if (areas && areas.length === 0) {
+    return <div className="w-card"><p>{id ? 'Driving range belum dibuka untuk pemesanan online. Silakan hubungi front desk.'
+      : 'The driving range is not open for online booking. Please contact the front desk.'}</p></div>;
+  }
   const t = (iso: string) => new Date(iso).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
   if (done) {
     return (
@@ -94,11 +113,13 @@ function BookRange({ lang, propertyId }: { lang: Lang; propertyId: string }) {
           </select>
         </label>
         <label>{id ? 'Tanggal' : 'Date'}<input type="date" value={date} min={today()} onChange={(e) => setDate(e.target.value)} /></label>
-        <label>{id ? 'Area' : 'Area'}
-          <select value={area} onChange={(e) => setArea(e.target.value)}>
-            <option value="outdoor">Outdoor</option><option value="indoor">Indoor</option>
-          </select>
-        </label>
+        {areas && areas.length > 1 && (
+          <label>Area
+            <select value={area} onChange={(e) => setArea(e.target.value)}>
+              {areas.map((a) => <option key={a} value={a}>{a === 'outdoor' ? 'Outdoor' : 'Indoor'}</option>)}
+            </select>
+          </label>
+        )}
         <label>{id ? 'Durasi' : 'Length'}
           <select value={minutes} onChange={(e) => setMinutes(Number(e.target.value))}>
             {[30, 60, 90, 120].map((n) => <option key={n} value={n}>{n} {id ? 'menit' : 'minutes'}</option>)}
