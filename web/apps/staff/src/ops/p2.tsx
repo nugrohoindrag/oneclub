@@ -5,6 +5,7 @@ import { enqueue } from '@oneclub/offline';
 import { Link } from 'react-router';
 import { GOLF_STREAM, useLive } from '../live';
 import { CourseMonitorPage } from './marshal';
+import { ACCOMMODATION_OPS_ROUTES } from '../accommodation/routes';
 import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
@@ -330,41 +331,6 @@ export function InstructorPage() {
   );
 }
 
-// ── Stay Front Desk: stays & meetings (EP-16..18) ──────────────────────────────
-
-export function StayDeskPage() {
-  const toast = useToast();
-  const today = new Date();
-  const from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1).toISOString();
-  const to = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 2).toISOString();
-  const stays = useGet<Page<Schemas['Stay']>>(`/api/v1/stay/stays${qs({ from, to })}`);
-  const checkIn = useSend<Row>('POST', (b) => `/api/v1/stay/stays/${b.id}:check-in`, ['/api/v1/stay/stays']);
-  const checkOut = useSend<Row>('POST', (b) => `/api/v1/stay/stays/${b.id}:check-out`, ['/api/v1/stay/stays']);
-  const confirm = useSend<Row>('POST', (b) => `/api/v1/stay/stays/${b.id}:confirm`, ['/api/v1/stay/stays']);
-  return (
-    <div className="oc-stack">
-      <Head title="Stay Front Desk" help="Arrivals, in-house and departures (bungalow, VIP suite, meeting room)." />
-      <ErrorAlert error={checkIn.error ?? checkOut.error ?? confirm.error} />
-      <div className="oc-card">
-        <DataTable rows={stays.data?.items as unknown as Row[]} loading={stays.isLoading} columns={[{ key: 'stayNo', header: 'Booking' }, { key: 'kind', header: 'Kind' },
-          { key: 'unitName', header: 'Unit' }, { key: 'customerName', header: 'Guest', render: (r) => String(r.customerName ?? r.guestName ?? r.corporateName ?? '—') },
-          { key: 'start', header: 'From', render: (r) => formatDateTime(String(r.start)) }, { key: 'end', header: 'To', render: (r) => formatDateTime(String(r.end)) },
-          { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> }]}
-          actions={(r) => (
-            <div className="oc-row">
-              {r.status === 'requested' && <button className="oc-btn oc-btn-outline oc-btn-sm" onClick={() => confirm.mutate({ id: r.id }, { onSuccess: () => toast('Confirmed') })}>Confirm</button>}
-              {r.status === 'reserved' && <button className="oc-btn oc-btn-ink oc-btn-sm" onClick={() => {
-                const idNumber = r.kind === 'bungalow' ? window.prompt('KTP / passport number') ?? '' : '';
-                checkIn.mutate({ id: r.id, idType: idNumber ? 'ktp' : undefined, idNumber: idNumber || undefined }, { onSuccess: () => toast('Checked in') });
-              }}>Check in</button>}
-              {r.status === 'checked_in' && <button className="oc-btn oc-btn-primary oc-btn-sm" onClick={() => checkOut.mutate({ id: r.id }, { onSuccess: () => toast('Checked out') })}>Check out</button>}
-            </div>
-          )} />
-      </div>
-    </div>
-  );
-}
-
 // ── routes and home tiles (mounted by areas/ops.tsx) ───────────
 
 /** Ops routes of P2, at the paths of the server navigation. */
@@ -373,7 +339,7 @@ export const P2_OPS_ROUTES = [
   { path: 'starter/monitor', element: <CourseMonitorPage /> }, // Marshal (FR-PLX-04/05)
   { path: 'caddy/incidents', element: <CaddyIncidentsPage /> },
   { path: 'golf-staff/inspection', element: <GolfCartInspectionPage /> },
-  { path: 'stay-desk', element: <StayDeskPage /> },
+  ...ACCOMMODATION_OPS_ROUTES, // Stay Front Desk, Housekeeping, Maintenance (accommodation requirements)
   { path: 'driving-range', element: <DrivingRangePage /> },
   { path: 'sport-reception', element: <SportReceptionPage /> },
   { path: 'instructor', element: <InstructorPage /> },
@@ -385,6 +351,7 @@ export function P2Tiles() {
   const tiles: [string, string, string, string][] = [
     ['sports_golf', 'Driving Range', '/ops/driving-range', 'golf.range.operate'], ['sports_tennis', 'Sport Reception', '/ops/sport-reception', 'sportclub.access.validate'],
     ['school', 'Instructor', '/ops/instructor', 'sportclub.class.attendance'], ['hotel', 'Stay Front Desk', '/ops/stay-desk', 'stay.stay.view'],
+    ['mop', 'Housekeeping', '/ops/housekeeping', 'stay.housekeeping.view'], ['build', 'Bungalow Maintenance', '/ops/stay-maintenance', 'stay.work_order.view'],
     ['point_of_sale', 'POS', '/ops/pos', 'commercial.order.create'],
   ];
   const shown = tiles.filter((t) => can(t[3]));

@@ -286,6 +286,12 @@ var RoleTemplates = []RoleTemplate{
 	// the front desk also works as Caddy Master (caddies and golf carts; demo feedback 9 Oct 2026)
 	{Code: "front_desk", Name: "Front Desk", Category: "Reservation", Scope: "property", Permissions: cat(ops, ma("reservation", "stay", "golf")),
 		Includes: []string{"caddy_manager"}},
+	// Accommodation (bungalow management requirements §34): the manager runs the whole module; housekeeping and maintenance
+	// work on the Ops shell (the permissions come from the stay contribution). Front Office is front_desk, Finance the cashier.
+	{Code: "accommodation_manager", Name: "Accommodation Manager", Category: "Accommodation", Scope: "property",
+		Permissions: cat(bo, ops, ma("stay", "reservation", "billing", "crm", "reporting"), []string{"reporting.report.view"})},
+	{Code: "housekeeping", Name: "Housekeeping", Category: "Accommodation", Scope: "property", Permissions: cat(ops, ma("stay"))},
+	{Code: "maintenance", Name: "Maintenance", Category: "Accommodation", Scope: "property", Permissions: cat(ops, ma("stay"))},
 	// Banquet & Event
 	{Code: "banquet_manager", Name: "Banquet Manager", Category: "Banquet & Event", Scope: "property", Permissions: cat(bo, ma("banquet", "reservation", "reporting"), []string{"reporting.report.view"})},
 	{Code: "banquet_sales", Name: "Banquet Sales", Category: "Banquet & Event", Scope: "property", Permissions: cat(bo, ma("banquet", "crm"))},

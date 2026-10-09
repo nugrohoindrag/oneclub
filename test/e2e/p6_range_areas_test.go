@@ -16,7 +16,9 @@ func TestRangeAreasSwitch(t *testing.T) {
 	// one bay per area, taken out again afterwards (other tests count the bays)
 	for _, b := range []map[string]any{{"code": "AR-I1", "area": "indoor"}, {"code": "AR-O1", "area": "outdoor"}} {
 		bay := f.SA.Must(201, "POST", "/api/v1/golf/range-bays", merge(b, map[string]any{"name": "Area test " + b["code"].(string)})).JSON()
-		t.Cleanup(func() { f.SA.Must(200, "PATCH", "/api/v1/golf/range-bays/"+str(bay["id"]), map[string]any{"status": "inactive"}) })
+		t.Cleanup(func() {
+			f.SA.Must(200, "PATCH", "/api/v1/golf/range-bays/"+str(bay["id"]), map[string]any{"status": "inactive"})
+		})
 	}
 	day := clubDay(inst, 3, isWeekday)
 	offered := func(c *Client, path string) map[string]bool {

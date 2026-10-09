@@ -801,6 +801,17 @@ type CancelResult struct {
 // Cancel cancels a reservation, applying the cancellation policy of the
 // first line's resource type (fee waived when waive=true).
 func (e *Engine) Cancel(ctx context.Context, tx pgx.Tx, rid uuid.UUID, reason string, waive bool) (CancelResult, error) {
+	return e.cancel(ctx, tx, rid, reason, waive, nil)
+}
+
+// CancelWithFee cancels a reservation with a fee computed by the business
+// line (e.g. the cancellation policy of an accommodation rate plan): the
+// folio charges are voided, the fee is charged and the rest refunded.
+func (e *Engine) CancelWithFee(ctx context.Context, tx pgx.Tx, rid uuid.UUID, reason string, fee decimal.Decimal) (CancelResult, error) {
+	return e.cancel(ctx, tx, rid, reason, false, &fee)
+}
+
+func (e *Engine) cancel(ctx context.Context, tx pgx.Tx, rid uuid.UUID, reason string, waive bool, override *decimal.Decimal) (CancelResult, error) {
 	r, err := e.lock(ctx, tx, rid)
 	if err != nil {
 		return CancelResult{}, err
@@ -810,7 +821,9 @@ func (e *Engine) Cancel(ctx context.Context, tx pgx.Tx, rid uuid.UUID, reason st
 	}
 	fee := decimal.Zero
 	var cref rules.PolicyRef
-	if r.FolioID != nil && len(r.Lines) > 0 && !waive && r.Status != StatusDraft {
+	if override != nil {
+		fee = *override
+	} else if r.FolioID != nil && len(r.Lines) > 0 && !waive && r.Status != StatusDraft {
 		_, _, cp, ref, err := e.Policies(ctx, tx, r.PropertyID, r.Lines[0].ResourceType)
 		if err != nil {
 			return CancelResult{}, err
@@ -1018,6 +1031,46 @@ func (e *Engine) ShortenLine(ctx context.Context, tx pgx.Tx, lineID uuid.UUID, n
 			newEnd.Add(time.Duration(rt.BufferAfter)*time.Minute))
 	}
 	return err
+}
+
+// AdvanceLineStart moves the start of a line earlier (early check-in of a
+// stay): the longer allocation is checked against other bookings by the
+// EXCLUDE constraint.
+func (e *Engine) AdvanceLineStart(ctx context.Context, tx pgx.Tx, lineID uuid.UUID, newStart time.Time) error {
+	var allocID *uuid.UUID
+	var start time.Time
+	var rtCode, name string
+	if err := tx.QueryRow(ctx, `SELECT l.allocation_id, lower(l.period), l.resource_type, rs.name FROM reservation.reservation_lines l
+		JOIN reservation.resources rs ON rs.id = l.resource_id WHERE l.id = $1`, lineID).Scan(&allocID, &start, &rtCode, &name); err != nil {
+		return err
+	}
+	if !newStart.Before(start) {
+		return nil
+	}
+	rt, err := e.Type(ctx, tx, rtCode)
+	if err != nil {
+		return err
+	}
+	if _, err := tx.Exec(ctx, `UPDATE reservation.reservation_lines SET period = tstzrange($2, upper(period), '[)') WHERE id = $1`, lineID, newStart); err != nil {
+		return err
+	}
+	if allocID == nil {
+		return nil
+	}
+	sp, err := tx.Begin(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = sp.Exec(ctx, `UPDATE reservation.allocations SET period = tstzrange($2, upper(period), '[)') WHERE id = $1`, *allocID,
+		newStart.Add(-time.Duration(rt.BufferBefore)*time.Minute))
+	if err != nil {
+		_ = sp.Rollback(ctx)
+		if dbtx.IsExclusionViolation(err) {
+			return errs.Conflict("slot_taken", name+" is still occupied before the check-in time")
+		}
+		return err
+	}
+	return sp.Commit(ctx)
 }
 
 // ExtendLine lengthens a line (VIP Suite overtime, FR-VIP-03): the new

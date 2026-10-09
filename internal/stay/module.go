@@ -17,6 +17,7 @@ import (
 	"oneclub/internal/kernel/id"
 	"oneclub/internal/kernel/reqctx"
 	"oneclub/internal/platform/catalog"
+	"oneclub/internal/platform/notify"
 	"oneclub/internal/platform/outbox"
 	"oneclub/internal/platform/resource"
 	"oneclub/internal/platform/rules"
@@ -31,6 +32,7 @@ type Module struct {
 	POS      commercial.POS      // restaurant orders charged to the stay
 	Vouchers commercial.Vouchers // voucher & prepaid redemption
 	Events   *outbox.Bus
+	Notify   notify.Sender // guest and staff notifications (accommodation)
 }
 
 func codeField(label string) resource.Field { return resource.Code(label) }
@@ -44,6 +46,13 @@ var BungalowTypes = &resource.Def{
 		{Name: "bedrooms", Column: "bedrooms", Label: "Bedrooms", Kind: resource.Int, Default: int64(1), Min: resource.Min(1)},
 		{Name: "facilities", Column: "facilities", Label: "Facilities", Kind: resource.StringList, Default: []string{}},
 		{Name: "description", Column: "description", Label: "Description", Kind: resource.Text, Max: 2000},
+		{Name: "bedConfiguration", Column: "bed_configuration", Label: "Bed Configuration", Kind: resource.String, Max: 120},
+		{Name: "sizeSqm", Column: "size_sqm", Label: "Room Size (m²)", Kind: resource.Decimal, Min: resource.Min(0)},
+		{Name: "view", Column: "view", Label: "View", Kind: resource.String, Max: 60},
+		{Name: "photos", Column: "photos", Label: "Photos (image URLs)", Kind: resource.StringList, Default: []string{}},
+		{Name: "baseRate", Column: "base_rate", Label: "Base Rate per Night", Kind: resource.Decimal, Min: resource.Min(0)},
+		{Name: "weekendRate", Column: "weekend_rate", Label: "Weekend Rate per Night", Kind: resource.Decimal, Min: resource.Min(0)},
+		{Name: "sortOrder", Column: "sort_order", Label: "Sort Order", Kind: resource.Int, Default: int64(0)},
 		{Name: "priceItem", Column: "price_item", Label: "Pricing Item (default: code)", Kind: resource.String, Max: 60, Upper: true},
 		resource.Status("active", "inactive")},
 }
@@ -57,6 +66,10 @@ var Bungalows = &resource.Def{
 		{Name: "view", Column: "view", Label: "View", Kind: resource.Enum, Enum: []string{"golf", "lake", "pool", "garden", "other"}, Filter: true},
 		{Name: "venueId", Column: "venue_id", Label: "Venue", Kind: resource.UUID, Ref: &resource.Ref{Table: "platform.venues", SameProperty: true, Label: "venue"}},
 		{Name: "readiness", Column: "readiness", Label: "Readiness", Kind: resource.Enum, Enum: []string{"ready", "not_ready"}, Default: "ready", Filter: true},
+		{Name: "location", Column: "location", Label: "Location", Kind: resource.String, Max: 120},
+		{Name: "capacity", Column: "capacity", Label: "Capacity (default: room type)", Kind: resource.Int, Min: resource.Min(1)},
+		{Name: "hkStatus", Column: "hk_status", Label: "Housekeeping Status", Kind: resource.Enum, Enum: HKStatuses, ReadOnly: true, Filter: true},
+		{Name: "notes", Column: "notes", Label: "Notes", Kind: resource.Text, Max: 1000},
 		{Name: "resourceId", Column: "resource_id", Label: "Bookable Resource", Kind: resource.UUID, ReadOnly: true},
 		resource.Status("active", "inactive")},
 }
@@ -202,10 +215,27 @@ type Policy struct {
 	RequireReadyUnit         bool   `json:"requireReadyUnit"`
 	RoomChargePosting        string `json:"roomChargePosting" enum:"at_booking,nightly" doc:"Bungalow room charge: posted for the whole stay at booking, or one night at a time by the night audit (the nights left at check-out) (PRD P3 FR-EOD-03)"`
 	AutoNoShow               bool   `json:"autoNoShow" doc:"The night audit marks Reserved stays that did not arrive by the business date as No-show"`
+	// Accommodation (requirements §12, §17, §18, §20, §26)
+	WeekendNights        string `json:"weekendNights" doc:"Nights priced at the weekend rate, ISO weekdays of the night (5 = Friday night, 6 = Saturday night)"`
+	LateCheckoutMode     string `json:"lateCheckoutMode" enum:"hourly,tiered" doc:"hourly: the fee per started hour after the grace; tiered: one late check-out fee until the cut-off, after it an additional night"`
+	LateCheckoutUntil    string `json:"lateCheckoutUntil" doc:"Tiered: the late check-out fee applies until this time (HH:MM)"`
+	LateCheckoutFee      string `json:"lateCheckoutFee" doc:"Tiered: the late check-out fee"`
+	AfterCutoffCharge    string `json:"afterCutoffCharge" doc:"Tiered: after the cut-off, night charges one more night; an amount charges that amount"`
+	EarlyCheckInFrom     string `json:"earlyCheckInFrom" doc:"Earliest early check-in time (HH:MM)"`
+	EarlyCheckInFee      string `json:"earlyCheckInFee" doc:"Early check-in fee posted to the folio (0 = free)"`
+	InspectionRequired   bool   `json:"inspectionRequired" doc:"A cleaned bungalow must pass an inspection before it is Ready"`
+	ReadyAfterInspection bool   `json:"readyAfterInspection" doc:"A passed inspection makes the bungalow Ready at once (otherwise it stays Inspected until released)"`
+	StayoverCleaning     bool   `json:"stayoverCleaning" doc:"The daily housekeeping plan adds a stayover cleaning for every occupied bungalow"`
+	HouseRules           string `json:"houseRules" doc:"House rules shown to the guest (My Stay)"`
+	PropertyInfo         string `json:"propertyInfo" doc:"Property information shown to the guest (My Stay): Wi-Fi, facilities, contacts"`
 }
 
 var defaultPolicy = Policy{CheckInTime: "14:00", CheckOutTime: "12:00", DepositPercent: "50", LateCheckoutFeePerHour: "100000",
-	LateCheckoutGraceMinutes: 30, RequireReadyUnit: true, RoomChargePosting: "nightly", AutoNoShow: true}
+	LateCheckoutGraceMinutes: 30, RequireReadyUnit: true, RoomChargePosting: "nightly", AutoNoShow: true,
+	WeekendNights: "5,6", LateCheckoutMode: "tiered", LateCheckoutUntil: "15:00", LateCheckoutFee: "250000", AfterCutoffCharge: "night",
+	EarlyCheckInFrom: "10:00", EarlyCheckInFee: "150000", InspectionRequired: true, ReadyAfterInspection: true, StayoverCleaning: true,
+	HouseRules:   "Check-in from 14:00, check-out until 12:00. No smoking inside the bungalow. Quiet hours 22:00-06:00. Pets are not allowed.",
+	PropertyInfo: "Front Office is open 24 hours. Breakfast 06:30-10:00 at the clubhouse restaurant."}
 
 func (m *Module) policy(ctx context.Context, q dbtx.Querier, property uuid.UUID) (Policy, rules.PolicyRef, error) {
 	return rules.PolicyAt(ctx, q, "stay.policy", property, defaultPolicy)
@@ -214,24 +244,30 @@ func (m *Module) policy(ctx context.Context, q dbtx.Querier, property uuid.UUID)
 // Contribution returns catalogue entries.
 func Contribution() catalog.Contribution {
 	defs := []*resource.Def{BungalowTypes, Bungalows, VIPSuites, MeetingRooms, Equipment}
-	perms := resource.Permissions(defs...)
+	all := append(defs, accommodationDefs...)
+	perms := resource.Permissions(all...)
 	perms = append(perms, catalog.P("stay", "stay", "view", "create", "update", "check_in", "check_out", "cancel")...)
+	perms = append(perms, accommodationPermissions()...)
 	front := []string{"stay.bungalow_type.view", "stay.bungalow.view", "stay.vip_suite.view", "stay.meeting_room.view", "stay.equipment.view",
 		"stay.stay.view", "stay.stay.create", "stay.stay.update", "stay.stay.check_in", "stay.stay.check_out", "stay.stay.cancel"}
-	mgr := append(resource.AllActions(defs...), front...)
+	mgr := append(append(resource.AllActions(all...), front...), accommodationManager...)
 	return catalog.Contribution{
 		Permissions: perms,
 		RolePermissions: map[string][]string{
-			"property_admin":    mgr,
-			"resort_manager":    mgr,
-			"front_desk":        append(front, "stay.bungalow.update"),
-			"reservation_staff": front,
-			"general_manager":   {"stay.bungalow.view", "stay.vip_suite.view", "stay.meeting_room.view", "stay.stay.view"},
-			"banquet_manager":   {"stay.meeting_room.view", "stay.equipment.view", "stay.stay.view", "stay.stay.create", "stay.stay.update"},
-			"banquet_sales":     {"stay.meeting_room.view", "stay.equipment.view", "stay.stay.view", "stay.stay.create"},
-			"cashier":           {"stay.stay.view"},
-			"pos_staff":         {"stay.stay.view"},
-			"outlet_manager":    {"stay.stay.view"},
+			"property_admin":        mgr,
+			"resort_manager":        mgr,
+			"accommodation_manager": mgr,
+			"front_desk":            append(append(front, "stay.bungalow.update"), accommodationFrontOffice...),
+			"reservation_staff":     append(append(front, "stay.module.access"), accommodationReservations...),
+			"housekeeping":          accommodationHousekeeping,
+			"maintenance":           accommodationMaintenance,
+			"general_manager":       append([]string{"stay.bungalow.view", "stay.vip_suite.view", "stay.meeting_room.view", "stay.stay.view"}, accommodationViewer...),
+			"accountant":            {"stay.stay.view", "stay.dashboard.view"},
+			"banquet_manager":       {"stay.meeting_room.view", "stay.equipment.view", "stay.stay.view", "stay.stay.create", "stay.stay.update"},
+			"banquet_sales":         {"stay.meeting_room.view", "stay.equipment.view", "stay.stay.view", "stay.stay.create"},
+			"cashier":               {"stay.stay.view", "stay.stay.charge", "stay.addon.view", "stay.module.access"},
+			"pos_staff":             {"stay.stay.view"},
+			"outlet_manager":        {"stay.stay.view"},
 		},
 	}
 }

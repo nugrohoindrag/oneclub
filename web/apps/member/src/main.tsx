@@ -12,6 +12,7 @@ import { P2_MEMBER_ROUTES } from './p2';
 import { CourseGuidePage } from './journey/course';
 import { P3_MEMBER_ROUTES } from './p3';
 import { ActivityPage, GolfHistoryPage, StayHistoryPage } from './journey/activity';
+import { MyStayPage } from './journey/mystay';
 import { BookHub } from './journey/book';
 import { GolfBookingPage } from './journey/booking';
 import { MemberHome } from './journey/home';
@@ -68,6 +69,7 @@ const router = createBrowserRouter([
           { path: 'activity/golf', element: <GolfHistoryPage /> },
           { path: 'activity/leaderboard', element: <LeaderboardPage /> },
           { path: 'activity/stays', element: <StayHistoryPage /> },
+          { path: 'activity/stays/:id', element: <MyStayPage /> },
           { path: 'golf/course-guide', element: <CourseGuidePage /> },
           // Membership
           { path: 'membership', element: <MembershipOverviewPage /> },

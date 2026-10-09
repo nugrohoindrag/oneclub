@@ -150,7 +150,7 @@ export function StayHistoryPage() {
         {!stays.isLoading && list.length === 0 && <Empty title="No stays yet" icon="cottage" />}
         <div className="mj-list">
           {list.map((s) => (
-            <div key={s.id} className="mj-item">
+            <Link key={s.id} to={s.kind === 'bungalow' ? `/activity/stays/${s.id}` : '/activity/stays'} className="mj-item" style={{ textDecoration: 'none', color: 'inherit' }}>
               <DateBadge iso={s.start} />
               <div className="mj-item-body">
                 <span className="mj-small mj-muted">{STAY_KIND[s.kind] ?? s.kind}</span>
@@ -162,7 +162,7 @@ export function StayHistoryPage() {
                 </span>
               </div>
               <StatusChip status={s.status} />
-            </div>
+            </Link>
           ))}
         </div>
       </section>

@@ -111,7 +111,7 @@ function Upcoming() {
       <div className="mj-grid-2">
         {nextGolf && <UpcomingGolf b={nextGolf} />}
         {nextStay && (
-          <Link to="/activity/stays" className="mj-card mj-upcoming" style={{ textDecoration: 'none', color: 'inherit' }}>
+          <Link to={nextStay.kind === 'bungalow' ? `/activity/stays/${nextStay.id}` : '/activity/stays'} className="mj-card mj-upcoming" style={{ textDecoration: 'none', color: 'inherit' }}>
             <DateBadge iso={nextStay.start} />
             <div style={{ flex: 1 }}>
               <div className="mj-small mj-muted">{nextStay.kind === 'meeting_room' ? 'Meeting Room' : nextStay.kind === 'vip_suite' ? 'VIP Suite' : 'Bungalow'}</div>

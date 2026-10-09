@@ -30,6 +30,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	for _, d := range []*resource.Def{BungalowTypes, Bungalows, VIPSuites, MeetingRooms, RoomLayouts, Equipment} {
 		eng.Register(reg, d)
 	}
+	m.registerAccommodation(reg, eng)
 	db := m.DB
 	add := func(rt route.Route) {
 		rt.Module, rt.Tag, rt.Scope = "stay", "Stay & Venue", route.ScopeProperty

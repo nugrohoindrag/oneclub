@@ -36,6 +36,49 @@ type roomQuote struct {
 	SnapshotID       *uuid.UUID `json:"snapshotId"`
 	RevenueComponent string     `json:"revenueComponent"`
 	Description      string     `json:"description"`
+	// Shares are the amounts of each night when the nights differ in price
+	// (accommodation rates: weekend, season); equal shares otherwise.
+	Shares []nightAmount `json:"shares,omitempty"`
+}
+
+// nightAmount is the posted amount of one night.
+type nightAmount struct {
+	Date    string `json:"date"`
+	Net     string `json:"net"`
+	Service string `json:"service"`
+	Tax     string `json:"tax"`
+}
+
+// nightShares splits the net, service and tax of a quote over its nights in
+// proportion to the night prices (the last night takes the rounding).
+func nightShares(q *RoomQuote) []nightAmount {
+	n := len(q.Nights)
+	if n == 0 {
+		return nil
+	}
+	gross := decimal.Zero
+	for _, x := range q.Nights {
+		gross = gross.Add(decOf(x.Price))
+	}
+	out := make([]nightAmount, n)
+	parts := [3]decimal.Decimal{decOf(q.Net), decOf(q.Service), decOf(q.Tax)}
+	var used [3]decimal.Decimal
+	for i, x := range q.Nights {
+		var v [3]decimal.Decimal
+		for k := range parts {
+			switch {
+			case i == n-1:
+				v[k] = parts[k].Sub(used[k])
+			case gross.IsZero():
+				v[k] = parts[k].Div(decimal.NewFromInt(int64(n))).Round(2)
+			default:
+				v[k] = parts[k].Mul(decOf(x.Price)).Div(gross).Round(2)
+			}
+			used[k] = used[k].Add(v[k])
+		}
+		out[i] = nightAmount{Date: x.Date, Net: v[0].String(), Service: v[1].String(), Tax: v[2].String()}
+	}
+	return out
 }
 
 // nightsBetween counts the local nights of a stay (at least one).
@@ -101,6 +144,9 @@ func (m *Module) postNights(ctx context.Context, tx pgx.Tx, s Stay, upTo time.Ti
 			continue
 		}
 		net, svc, tax := nightShare(q.Net, i, n), nightShare(q.Service, i, n), nightShare(q.Tax, i, n)
+		if len(q.Shares) == n {
+			net, svc, tax = decOf(q.Shares[i].Net), decOf(q.Shares[i].Service), decOf(q.Shares[i].Tax)
+		}
 		total := net.Add(svc).Add(tax)
 		lineID := q.LineID
 		lid, err := m.Billing.AddLineCharge(ctx, tx, billing.LineCharge{Charge: billing.Charge{FolioID: *s.FolioID, ReferenceType: "reservation.line",

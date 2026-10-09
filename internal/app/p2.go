@@ -51,7 +51,7 @@ var p2DocumentTypes = []provision.DocumentType{
 func p2Templates() []provision.Template {
 	var out []provision.Template
 	for _, t := range [][]provision.Template{voucher.Templates(), membership.Templates(), sportclub.Templates(), experience.Templates(), crm.Templates(),
-		reservation.Templates()} {
+		reservation.Templates(), stay.Templates()} {
 		out = append(out, t...)
 	}
 	return out
@@ -95,7 +95,7 @@ func (a *App) buildP2(reg *route.Registry, cfg *config.Config, db *dbtx.DB, file
 	a.SportClub.Register(reg, a.Engine)
 	a.Approvals.RegisterDocumentType(sportclub.InstructorFeeType, a.SportClub.FeeDecision)
 	a.Sync.Handle("sportclub.access_validate", a.SportClub.SyncAccess)
-	a.Stay = &stay.Module{DB: db, Res: a.Reservations, Billing: a.Billing, POS: a.POS, Vouchers: a.Vouchers, Events: a.Bus}
+	a.Stay = &stay.Module{DB: db, Res: a.Reservations, Billing: a.Billing, POS: a.POS, Vouchers: a.Vouchers, Events: a.Bus, Notify: a.Notification}
 	a.Stay.Register(reg, a.Engine)
 	a.Inventory = &inventory.Module{DB: db, Products: a.POS}
 	a.Inventory.Register(reg, a.Engine)
@@ -126,6 +126,7 @@ func (a *App) buildP2(reg *route.Registry, cfg *config.Config, db *dbtx.DB, file
 	a.Vouchers.RegisterJobs(a.Registrar)
 	a.Membership.RegisterP2Jobs(a.Registrar)
 	a.Experience.RegisterJobs(a.Registrar)
+	a.Stay.RegisterJobs(a.Registrar, a.Instance.Location) // accommodation: reminders, preventive maintenance, stayover cleaning
 }
 
 // subscribeP2 registers the P2 event subscribers.

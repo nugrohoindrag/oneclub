@@ -19,6 +19,7 @@ import {
 } from '../p1/business';
 import { HUBS, P2_ROUTES } from '../p2';
 import { P3_ROUTES } from '../p3';
+import { ACCOMMODATION_ROUTES } from '../accommodation/routes';
 
 // Back Office area: module paths at the root, so e-mail links keep working (Technical Doc §6.1).
 
@@ -116,6 +117,7 @@ const routes = [
       ...p1,
       ...P2_ROUTES,
       ...P3_ROUTES,
+      ...ACCOMMODATION_ROUTES,
       ...MODULE_PAGES.filter((m) => !P1_MODULES.has(m.path)).map((m) => ({ path: m.path, element: <ModulePage path={m.path} /> })),
       { path: 'reports', element: <RequirePermission perm="reporting.report.view"><ReportsPage /></RequirePermission> },
       { path: 'reports/exports', element: <RequirePermission perm="reporting.export.create"><ExportsPage /></RequirePermission> },
