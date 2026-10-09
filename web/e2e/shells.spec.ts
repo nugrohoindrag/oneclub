@@ -176,7 +176,7 @@ test('a module disabled for the instance disappears from the menu', async ({ pag
   await login(page, DASHBOARD, email('platform_admin'), '/platform/enabled-modules');
   const row = page.locator('tr', { hasText: 'Stay & Venue' });
   await expect(row).toBeVisible();
-  // enable Stay & Venue, check it appears for GM, then disable again
+  // enable Stay & Venue, check its menu (Accommodation) appears for GM, then disable again
   // The switch sits in the row actions menu; it is controlled: it flips after the server confirms.
   const menu = page.getByRole('menu');
   const toggle = menu.getByRole('checkbox');
@@ -187,12 +187,12 @@ test('a module disabled for the instance disappears from the menu', async ({ pag
   const gm = await page.context().browser()!.newContext();
   const gmPage = await gm.newPage();
   await login(gmPage, DASHBOARD, email('general_manager'), '/');
-  expect(await menuLabels(gmPage)).toContain('Stay & Venue');
+  expect(await menuLabels(gmPage)).toContain('Accommodation');
   await openMenu();
   await toggle.click();
   await expect(row.locator('.oc-status')).toHaveText('Disabled');
   await gmPage.reload();
-  expect(await menuLabels(gmPage)).not.toContain('Stay & Venue');
+  expect(await menuLabels(gmPage)).not.toContain('Accommodation');
   await gm.close();
 });
 
