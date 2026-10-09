@@ -53,6 +53,7 @@ type Publisher interface {
 type Portal interface {
 	EnsurePortalUser(ctx context.Context, tx pgx.Tx, u iam.PortalUser) (uuid.UUID, bool, error)
 	SendActivation(ctx context.Context, tx pgx.Tx, uid uuid.UUID, name string) error
+	SetPortalPassword(ctx context.Context, tx pgx.Tx, uid uuid.UUID, email, password string) error
 }
 
 // Residents looks up Modernland resident data (FR-INT-P1-05).
@@ -70,6 +71,9 @@ type Module struct {
 	Portal    Portal
 	Residents Residents
 	PortalURL func() string
+	// ShowCodes returns the sign-up code in the answer outside production
+	// (demo and sandbox instances: e-mail and WhatsApp are on hold)
+	ShowCodes bool
 }
 
 func actor(ctx context.Context) uuid.UUID {

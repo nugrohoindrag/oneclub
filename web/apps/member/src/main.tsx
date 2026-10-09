@@ -23,6 +23,8 @@ import { LeaderboardPage } from './journey/leaderboard';
 import { RangeWizard } from './journey/range';
 import { TeeTimeWizard } from './journey/teetime';
 import { HubFrame } from './journey/ui';
+import { MemberSignIn, MemberSignUp } from './journey/auth';
+import { PromoDetailPage } from './journey/promo';
 
 function MemberLogin() {
   const signup = useFlag('member.self_registration') === true;
@@ -42,7 +44,11 @@ const router = createBrowserRouter([
   {
     element: <ErrorBoundary><Outlet /></ErrorBoundary>,
     children: [
-      { path: '/login', element: <MemberLogin /> },
+      // the consumer sign-in of members and guests (demo feedback 10 Oct 2026 #37); the full page for MFA / password change
+      { path: '/login', element: <MemberSignIn /> },
+      { path: '/login/full', element: <MemberLogin /> },
+      { path: '/register/member', element: <MemberSignUp kind="member" /> },
+      { path: '/register/guest', element: <MemberSignUp kind="guest" /> },
       { path: '/login/code', element: <OtpLoginPage /> },
       { path: '/reset-password', element: <ResetPasswordPage /> },
       // Discover → Join Membership (before the member has an account)
@@ -83,6 +89,7 @@ const router = createBrowserRouter([
           { path: 'transactions/payments', element: <MyPaymentsPage /> },
           { path: 'transactions/member-charges', element: <MyChargesPage /> },
           { path: 'profile', element: <MemberProfilePage /> },
+          { path: 'promo/:id', element: <PromoDetailPage /> },
           // earlier Member App paths (links in e-mails and notifications)
           { path: 'golf', element: to('/book/tee-time') },
           { path: 'golf/tee-time', element: to('/book/tee-time') },

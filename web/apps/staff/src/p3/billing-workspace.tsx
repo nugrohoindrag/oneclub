@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Schemas } from '@oneclub/api-client';
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import {
-  ActionMenu, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, SearchBox, SelectField, Skeleton, StatTile, StatusPill, TextArea,
-  TextField, useAuth, useDebounced, usePagedList, useToast, type StatusTone,
+  ActionMenu, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, MoneyField, PageHeader, SearchBox, SelectField, Skeleton, StatTile,
+  StatusPill, TextArea, TextField, useAuth, useDebounced, usePagedList, useToast, type StatusTone,
 } from '@oneclub/shell';
 import { KV, money, type R } from '../p1/common';
 import { InvoiceStatus } from './billing';
@@ -612,7 +612,7 @@ function SplitModal({ item, onClose }: { item: Item; onClose: () => void }) {
       <div className="oc-form">
         <CorporatePicker value={corporate} onChange={setCorporate} />
         {!corporate && <CustomerPicker value={customer} onChange={setCustomer} label="Or another customer" />}
-        <TextField label="Amount for this party" value={amount} onChange={setAmount} inputMode="decimal" help={`Folio charges ${money(item.charges)}`} />
+        <MoneyField label="Amount for this party" value={amount} onChange={setAmount} help={`Folio charges ${money(item.charges)}`} />
         <TextArea label="Reason" value={reason} onChange={setReason} required />
       </div>
       {amount && <p className="oc-small">This party: <strong>{money(amount)}</strong> · stays on {item.billTo || item.holderName}: <strong>{money(rest)}</strong></p>}

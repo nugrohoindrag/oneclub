@@ -86,8 +86,8 @@ function OrderTracking({ houses }: { houses: R[] }) {
     <Card title="Order tracking" icon="receipt_long">
       <DataTable rows={rows} loading={orders.isLoading} empty="No open orders at the tee houses." columns={[
         { key: 'createdAt', header: 'Ordered', render: (o) => formatDateTime(String(o.createdAt)) }, { key: 'outletName', header: 'Tee house' },
-        { key: 'orderNo', header: 'Order' }, { key: 'customerName', header: 'Player', render: (o) => String(o.customerName ?? '—') },
-        { key: 'destinationRef', header: 'To', render: (o) => (o.servingDestination === 'hole' ? `Hole ${String(o.destinationRef ?? '')}` : 'Pick-up') },
+        { key: 'orderNo', header: 'Order' }, { key: 'customerName', header: 'Player', render: (o) => `${String(o.customerName ?? '—')}${o.reference ? ` · ${String(o.reference)}` : ''}` },
+        { key: 'destinationRef', header: 'To', render: (o) => (o.servingDestination === 'hole' ? String(o.destinationRef ?? 'Hole') : 'Pick-up') },
         { key: 'lines', header: 'Items', render: (o) => ((o.lines as R[] | undefined) ?? []).map((l) => `${String(l.quantity)}× ${String(l.name)}`).join(', ') || '—' },
         { key: 'total', header: 'Total', align: 'right', render: (o) => money(o.total) },
         { key: 'serviceStatus', header: 'Status', render: (o) => <StatusPill status={String(o.serviceStatus).replace(/_/g, '-')} /> }]} />

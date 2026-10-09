@@ -15294,6 +15294,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/course-stops": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rain stops and lightning warnings (open first, then the day's history) */
+        get: operations["getGolfCourseStops"];
+        put?: never;
+        /** Rain stop / lightning warning: pause every flight on the course */
+        post: operations["postGolfCourseStops"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/course-stops/{id}:resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resume play after a rain stop */
+        post: operations["postGolfCourseStopsByIdResume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/courses": {
         parameters: {
             query?: never;
@@ -17244,6 +17279,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/rounds/{id}/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** On-course orders of the flight with their service status */
+        get: operations["getGolfRoundsByIdOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/rounds/{id}/orders/{orderId}:cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel an on-course order the tee house has not started */
+        post: operations["postGolfRoundsByIdOrdersByOrderIdCancel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/rounds/{id}/position": {
         parameters: {
             query?: never;
@@ -17255,6 +17324,23 @@ export interface paths {
         put?: never;
         /** Caddy tablet GPS: the position of the cart the caddy rides (sent every 30 s while playing) */
         post: operations["postGolfRoundsByIdPosition"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/rounds/{id}/tee-houses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tee houses for the flight: nearest by GPS, else the next on the route */
+        get: operations["getGolfRoundsByIdTeeHouses"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -17340,6 +17426,57 @@ export interface paths {
         put?: never;
         /** Start Round (tee-off through the starter) */
         post: operations["postGolfRoundsByIdStart"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/score-correction-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Score correction requests from players */
+        get: operations["getGolfScoreCorrectionRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/score-correction-requests/{id}:approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Score correction request: approve */
+        post: operations["postGolfScoreCorrectionRequestsByIdApprove"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/score-correction-requests/{id}:reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Score correction request: reject */
+        post: operations["postGolfScoreCorrectionRequestsByIdReject"];
         delete?: never;
         options?: never;
         head?: never;
@@ -27400,6 +27537,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/member/golf/scorecards/{id}/correction-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My correction requests of a scorecard */
+        get: operations["getMemberGolfScorecardsByIdCorrectionRequests"];
+        put?: never;
+        /** Ask for a score correction (round completed) */
+        post: operations["postMemberGolfScorecardsByIdCorrectionRequests"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/member/golf/scorecards/{id}/scores": {
         parameters: {
             query?: never;
@@ -27411,6 +27566,23 @@ export interface paths {
         put?: never;
         /** Enter my own scores */
         post: operations["postMemberGolfScorecardsByIdScores"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/member/golf/scorecards/{id}:share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Share my scorecard: public PDF link (print, download, WhatsApp) */
+        post: operations["postMemberGolfScorecardsByIdShare"];
         delete?: never;
         options?: never;
         head?: never;
@@ -33700,6 +33872,40 @@ export interface paths {
         put?: never;
         /** Pay a DP / termin from the payment link (gateway checkout) */
         post: operations["postPublicPaymentSchedulesByTokenLinesByLineIdPay"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/portal-registrations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Member App sign-up: a member (member no. + a detail on file) or a non-member guest; sends a one-time code */
+        post: operations["postPublicPortalRegistrations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/portal-registrations/{id}:confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Member App sign-up: confirm the code and choose the password */
+        post: operations["postPublicPortalRegistrationsByIdConfirm"];
         delete?: never;
         options?: never;
         head?: never;
@@ -43197,6 +43403,9 @@ export interface components {
             /** @description Hole in progress on the caddy tablet (0 before tee-off) */
             currentHole: number;
             flightNo: number;
+            /** @description Players of the flight / players per cart (Golf Cart Policy) */
+            golfCartsNeeded: number;
+            holdReason?: string | null;
             holesPlayed?: number | null;
             /** Format: uuid */
             id: string;
@@ -43205,6 +43414,9 @@ export interface components {
             pausedAt?: string | null;
             /** @description Paused time already left out of the play time */
             pausedSeconds: number;
+            playersPerCart: number;
+            /** @enum {string|null} */
+            queueStatus?: "waiting" | "on_hold" | "dispatched" | "removed" | null;
             /** Format: date-time */
             readyAt?: string | null;
             /** Format: date-time */
@@ -43326,9 +43538,13 @@ export interface components {
             courseName: string;
             /** Format: date-time */
             createdAt: string;
+            /** @description Held by the starter (on hold) with this reason */
+            holdReason?: string | null;
             /** Format: uuid */
             id: string;
             localTime: string;
+            /** @description rain, lightning or a break (halfway, turn, tee_house) */
+            pauseReason?: string | null;
             /**
              * Format: date-time
              * @description Set while the round is paused (rain): the play time stops
@@ -44077,6 +44293,7 @@ export interface components {
             allowRequest: boolean;
             mandatory: boolean;
             playersPerCaddy: number;
+            scoresByAnyCaddy: boolean;
         };
         CaddyProfile: {
             baseSalary?: string | null;
@@ -44516,6 +44733,9 @@ export interface components {
         CancelInput: {
             reason: string;
             waiveFee?: boolean;
+        };
+        CancelOrderInput: {
+            reason?: string;
         };
         CancelRequest: {
             reason: string;
@@ -46895,6 +47115,8 @@ export interface components {
             getQuantity?: number | null;
             /** Format: uuid */
             id: string;
+            /** @description Banner picture (Member App home) */
+            imageUrl?: string | null;
             /** @description Items (resource type, resource, package codes; empty = all) */
             itemRefs?: string[] | null;
             /** @description Maximum Discount per Transaction */
@@ -47023,6 +47245,8 @@ export interface components {
              * @description Get Quantity (X)
              */
             getQuantity?: number | null;
+            /** @description Banner picture (Member App home) */
+            imageUrl?: string | null;
             /** @description Items (resource type, resource, package codes; empty = all) */
             itemRefs?: string[] | null;
             /** @description Maximum Discount per Transaction */
@@ -48177,9 +48401,41 @@ export interface components {
         CorporateSpend: {
             last12Months: string;
         };
+        CorrectionDecision: {
+            note?: string;
+        };
         CorrectionInput: {
             entries: components["schemas"]["ScoreEntry"][];
             reason: string;
+        };
+        CorrectionRequest: {
+            /** Format: date-time */
+            createdAt: string;
+            currentStrokes?: number | null;
+            /** Format: date-time */
+            decidedAt?: string | null;
+            decisionNote?: string | null;
+            holeNumber: number;
+            /** Format: uuid */
+            id: string;
+            par: number;
+            /** Format: date-time */
+            playedOn: string;
+            playerName: string;
+            reason: string;
+            requestedName?: string | null;
+            /** Format: uuid */
+            scorecardId: string;
+            seq: number;
+            /** @enum {string} */
+            status: "requested" | "approved" | "rejected";
+            strokes: number;
+        };
+        CorrectionRequestInput: {
+            reason: string;
+            /** @description Hole sequence in the round (1-18) */
+            seq: number;
+            strokes: number;
         };
         CostLine: {
             cost: string;
@@ -48386,6 +48642,31 @@ export interface components {
              */
             venueId?: string;
         };
+        CourseLine: {
+            /** Format: uuid */
+            customerId?: string | null;
+            /** @description Player / member the item is for */
+            guestName?: string;
+            /**
+             * Format: uuid
+             * @description Source party, e.g. the golf booking player
+             */
+            guestRef?: string | null;
+            modifierIds?: string[];
+            notes?: string;
+            /**
+             * Format: uuid
+             * @description Player the item is for (default: the order's player)
+             */
+            playerId?: string | null;
+            /** Format: uuid */
+            productId: string;
+            /** @description Default 1 */
+            quantity?: string;
+            seat?: string;
+            /** Format: uuid */
+            variantId?: string | null;
+        };
         CourseMap: {
             assets: components["schemas"]["AssetInfo"][];
             /** @description With lat & lng: distance to the green, hazards and POIs */
@@ -48462,14 +48743,17 @@ export interface components {
              * @description Client UUIDv7 (offline)
              */
             id?: string | null;
-            lines: components["schemas"]["LineInput"][];
+            lines: components["schemas"]["CourseLine"][];
             notes?: string;
             /**
              * Format: uuid
              * @description Tee house, Halfway House or clubhouse outlet
              */
             outletId: string;
-            /** Format: uuid */
+            /**
+             * Format: uuid
+             * @description Default player of the items
+             */
             playerId: string;
         };
         CourseSection: {
@@ -48550,6 +48834,31 @@ export interface components {
             /** @enum {string} */
             weather?: "normal" | "rain" | "lightning_warning" | "rain_stop" | "heat_warning";
         };
+        CourseStop: {
+            /** Format: uuid */
+            courseId: string;
+            /** Format: date-time */
+            endedAt?: string | null;
+            endedBy?: string | null;
+            /** @description Flights in play paused by the stop */
+            flights: number;
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            kind: "rain_stop" | "lightning_warning";
+            minutes: number;
+            reason?: string | null;
+            /** Format: date-time */
+            startedAt: string;
+            startedBy?: string | null;
+        };
+        CourseStopInput: {
+            /** Format: uuid */
+            courseId: string;
+            /** @enum {string} */
+            kind: "rain_stop" | "lightning_warning";
+            reason?: string;
+        };
         Court: {
             /** Format: date-time */
             archivedAt?: string | null;
@@ -48599,6 +48908,7 @@ export interface components {
             guest?: components["schemas"]["SportclubGuestInput"] | null;
             /** @description Create as Draft (online checkout) */
             hold?: boolean;
+            lines?: components["schemas"]["CourtLine"][];
             notes?: string;
             /** @description Session Package (4x/8x court voucher) to redeem instead of paying */
             packageCode?: string;
@@ -48634,6 +48944,14 @@ export interface components {
             status?: "active" | "inactive" | null;
             /** @description Surface */
             surface?: string | null;
+        };
+        CourtLine: {
+            /** Format: uuid */
+            courtId: string;
+            /** Format: date-time */
+            end: string;
+            /** Format: date-time */
+            start: string;
         };
         CreateAssignmentRequest: {
             /** Format: uuid */
@@ -53173,6 +53491,8 @@ export interface components {
             default?: unknown;
             filter: boolean;
             label: string;
+            /** @description A decimal amount of money: the form shows Rupiah while typing */
+            money: boolean;
             name: string;
             options?: string[];
             readOnly: boolean;
@@ -53298,6 +53618,8 @@ export interface components {
             year: number;
         };
         FlightPause: {
+            /** @description Time on breaks (counted in the play time) */
+            breakSeconds: number;
             /** Format: uuid */
             flightId: string;
             pauseReason?: string | null;
@@ -58059,6 +58381,15 @@ export interface components {
             key: string;
         };
         LineInput: {
+            /** Format: uuid */
+            customerId?: string | null;
+            /** @description Player / member the item is for */
+            guestName?: string;
+            /**
+             * Format: uuid
+             * @description Source party, e.g. the golf booking player
+             */
+            guestRef?: string | null;
             modifierIds?: string[];
             notes?: string;
             /** Format: uuid */
@@ -60857,6 +61188,12 @@ export interface components {
             aheadLabel?: string | null;
             /** @description Positive: behind the target */
             behindMinutes: number;
+            /** @description Allowance of the current break (Golf Policy) */
+            breakAllowanceMinutes: number;
+            /** @description Breaks of the round so far */
+            breakMinutes: number;
+            /** @description Current break beyond its allowance */
+            breakOverMinutes: number;
             caddies: string[];
             /** Format: uuid */
             courseId: string;
@@ -60887,6 +61224,17 @@ export interface components {
             live: boolean;
             mapX?: number | null;
             mapY?: number | null;
+            /** @description The pause is a break (halfway, turn, tee house) */
+            onBreak: boolean;
+            /** @enum {string|null} */
+            pauseReason?: "rain" | "lightning" | "other" | "halfway" | "turn" | "tee_house" | "break_other" | null;
+            /**
+             * Format: date-time
+             * @description Paused (rain, lightning) or on a break since
+             */
+            pausedAt?: string | null;
+            /** @description Weather pauses of the round, left out of the pace */
+            pausedMinutes: number;
             players: string[];
             playingRouteName?: string | null;
             /** @description Behind more than the route tolerance */
@@ -60945,6 +61293,8 @@ export interface components {
             courtId: string;
             /** Format: date-time */
             end: string;
+            /** @description Several courts / hours in one booking (courtId/start/end ignored) */
+            lines?: components["schemas"]["CourtLine"][];
             /** @description Charge to my member account; otherwise pay the folio online */
             memberCharge?: boolean;
             notes?: string;
@@ -61994,6 +62344,7 @@ export interface components {
             customerName?: string | null;
             destinationRef?: string | null;
             guestCount?: number | null;
+            guestName?: string | null;
             /** Format: uuid */
             id: string;
             lines: components["schemas"]["OrderLine"][];
@@ -62012,6 +62363,8 @@ export interface components {
             promotions: components["schemas"]["Redemption"][];
             /** Format: uuid */
             propertyId: string;
+            /** @description e.g. golf booking BK-261010-0015 */
+            reference?: string | null;
             /** Format: date-time */
             scheduledFor?: string | null;
             /** @enum {string} */
@@ -62051,6 +62404,8 @@ export interface components {
             /** @description Table, hole number, halfway house, stay number … */
             destinationRef?: string;
             guestCount?: number;
+            /** @description Who the order is for when no customer is linked (e.g. a guest player) */
+            guestName?: string;
             /**
              * Format: uuid
              * @description Client UUIDv7 (offline terminals); a resubmission returns the existing order
@@ -62068,6 +62423,8 @@ export interface components {
             /** @description Promo codes entered */
             promoCodes?: string[];
             promotionExclusions?: string[];
+            /** @description Source reference shown on the order, e.g. a golf booking code */
+            reference?: string;
             /**
              * Format: date-time
              * @description Pre-order ready time / catering serve time
@@ -62095,8 +62452,17 @@ export interface components {
             billId?: string | null;
             /** Format: uuid */
             chargedFolioId?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
             discountAmount: string;
             discountReason?: string | null;
+            /** @description Player / member the item is for */
+            guestName?: string | null;
+            /**
+             * Format: uuid
+             * @description Source party of the item, e.g. the golf booking player
+             */
+            guestRef?: string | null;
             /** Format: uuid */
             id: string;
             kitchenStation?: string | null;
@@ -62658,6 +63024,12 @@ export interface components {
             aheadLabel?: string | null;
             /** @description Positive: behind the target */
             behindMinutes: number;
+            /** @description Allowance of the current break (Golf Policy) */
+            breakAllowanceMinutes: number;
+            /** @description Breaks of the round so far */
+            breakMinutes: number;
+            /** @description Current break beyond its allowance */
+            breakOverMinutes: number;
             caddies: string[];
             /** Format: uuid */
             courseId: string;
@@ -62681,6 +63053,17 @@ export interface components {
             holes: number;
             /** @description Booking code or flight number */
             label: string;
+            /** @description The pause is a break (halfway, turn, tee house) */
+            onBreak: boolean;
+            /** @enum {string|null} */
+            pauseReason?: "rain" | "lightning" | "other" | "halfway" | "turn" | "tee_house" | "break_other" | null;
+            /**
+             * Format: date-time
+             * @description Paused (rain, lightning) or on a break since
+             */
+            pausedAt?: string | null;
+            /** @description Weather pauses of the round, left out of the pace */
+            pausedMinutes: number;
             players: string[];
             playingRouteName?: string | null;
             /** @description Behind more than the route tolerance */
@@ -63797,10 +64180,15 @@ export interface components {
              */
             at?: string | null;
             /**
-             * @description Default rain
+             * @description Default rain; halfway, turn, tee_house and break_other are breaks (play time keeps counting)
              * @enum {string}
              */
-            reason?: "rain" | "lightning" | "other";
+            reason?: "rain" | "lightning" | "other" | "halfway" | "turn" | "tee_house" | "break_other";
+            /**
+             * @description Default tablet
+             * @enum {string}
+             */
+            source?: "tablet" | "starter" | "marshal";
         };
         PayFeeInput: {
             /** @enum {string} */
@@ -65278,6 +65666,10 @@ export interface components {
             usual: components["schemas"]["CaddyOption"][];
         };
         PlayerContext: {
+            /** @description Caddy assigned to the player */
+            caddyName?: string | null;
+            /** @description The signed-in user may enter this player's score (Golf Policy caddy.scoresByAnyCaddy) */
+            canScore: boolean;
             /** @description From the scorecard's tee set (WHS) */
             courseHandicap?: number | null;
             favoriteCaddyIsMe: boolean;
@@ -65287,6 +65679,8 @@ export interface components {
             holeStrokes: number[];
             /** Format: date-time */
             lastRoundWithMe?: string | null;
+            /** @description Assigned to the signed-in caddy */
+            myPlayer: boolean;
             name: string;
             /** Format: uuid */
             playerId: string;
@@ -66557,6 +66951,7 @@ export interface components {
             getQuantity?: number | null;
             /** Format: uuid */
             id: string;
+            imageUrl?: string | null;
             itemRefs: string[];
             maxDiscount?: string | null;
             maxPerCustomer?: number | null;
@@ -66577,6 +66972,7 @@ export interface components {
             stackGroup?: string | null;
             stackable: boolean;
             status: string;
+            terms?: string | null;
             timeWindows: components["schemas"]["TimeWindow"][];
             validFrom?: string | null;
             validTo?: string | null;
@@ -66610,10 +67006,15 @@ export interface components {
             getQuantity?: number | null;
             /** Format: uuid */
             id: string;
+            imageUrl?: string | null;
+            membershipTypes: string[];
             minPurchase?: string | null;
             name: string;
             promoType: string;
             requiresCode: boolean;
+            /** @description member / non_member … (empty = everyone) */
+            segments: string[];
+            terms?: string | null;
             timeWindows: components["schemas"]["TimeWindow"][];
             validFrom?: string | null;
             validTo?: string | null;
@@ -66866,6 +67267,7 @@ export interface components {
             phone: string;
         };
         PublicCourt: {
+            code: string;
             /** Format: uuid */
             facilityId: string;
             /** Format: uuid */
@@ -66877,11 +67279,15 @@ export interface components {
             surface?: string | null;
         };
         PublicCourtBooking: {
+            /** @description Marketing consent (UU PDP): ticked by the visitor, never pre-checked */
+            consent?: boolean;
             /** Format: uuid */
             courtId: string;
             /** Format: date-time */
             end: string;
             guest: components["schemas"]["PublicGuest"];
+            /** @description Several courts / hours in one booking and one payment (the cart) */
+            lines?: components["schemas"]["CourtLine"][];
             notes?: string;
             /** @enum {string} */
             payMethod?: "qris" | "virtual_account" | "card";
@@ -66955,6 +67361,7 @@ export interface components {
             propertyId: string;
         };
         PublicFacility: {
+            code: string;
             facilityType?: string | null;
             /** Format: uuid */
             id: string;
@@ -68013,6 +68420,9 @@ export interface components {
             golfCarts: string[];
             holdReason?: string | null;
             localTime: string;
+            pauseReason?: string | null;
+            /** Format: date-time */
+            pausedAt?: string | null;
             players: components["schemas"]["SheetPlayer"][];
             /** @description 1-based position in the Active Dispatch Queue (0 = on hold) */
             position: number;
@@ -70786,6 +71196,8 @@ export interface components {
             bookingCode?: string | null;
             /** Format: uuid */
             bookingId?: string | null;
+            /** @description Time on breaks (halfway, turn, tee house): still play time */
+            breakSeconds: number;
             caddies: components["schemas"]["CaddyAssignment"][];
             /** Format: uuid */
             courseId: string;
@@ -70906,6 +71318,23 @@ export interface components {
             par: number;
             /** Format: uuid */
             routeId: string;
+        };
+        RouteTeeHouse: {
+            /** @description e.g. 9–10 */
+            between: string;
+            code: string;
+            /** @description Hole the tee house stands by (between this hole and the next) */
+            hole: number;
+            /** @description Holes until the flight reaches it on its route (0 = this hole) */
+            holesAhead?: number | null;
+            /** @description Distance from the tablet (GPS) */
+            meters?: number | null;
+            name: string;
+            /** @description The one to suggest: nearest by GPS, else the next on the route */
+            nearest: boolean;
+            open: boolean;
+            /** Format: uuid */
+            outletId: string;
         };
         RowError: {
             code: string;
@@ -71868,6 +72297,8 @@ export interface components {
             holes: number;
             /** Format: uuid */
             id: string;
+            /** @description Scores change only by a correction (round completed or card finalized) */
+            locked: boolean;
             par: number;
             /** Format: date-time */
             playedOn: string;
@@ -71885,6 +72316,11 @@ export interface components {
             putts?: number | null;
             scores: components["schemas"]["ScoreHole"][];
             slopeRating?: number | null;
+            /**
+             * @description in play → completed (round over) → submitted (attested) → finalized (handicap)
+             * @enum {string}
+             */
+            stage: "in_play" | "completed" | "submitted" | "finalized";
             /** @enum {string} */
             status: "draft" | "submitted" | "finalized";
             /** @description Player category of the tee */
@@ -71928,6 +72364,8 @@ export interface components {
             holes: number;
             /** Format: uuid */
             id: string;
+            /** @description Scores change only by a correction (round completed or card finalized) */
+            locked: boolean;
             /** @description Gross minus the course handicap */
             net?: number | null;
             par: number;
@@ -71950,6 +72388,11 @@ export interface components {
             /** @description A share link exists */
             shared: boolean;
             slopeRating?: number | null;
+            /**
+             * @description in play → completed (round over) → submitted (attested) → finalized (handicap)
+             * @enum {string}
+             */
+            stage: "in_play" | "completed" | "submitted" | "finalized";
             /** @enum {string} */
             status: "draft" | "submitted" | "finalized";
             /** @description Player category of the tee */
@@ -73077,6 +73520,53 @@ export interface components {
              */
             workforceRole?: "lifeguard" | "caddy" | "instructor" | "food_handler" | "engineering" | "course_maintenance" | "security" | "sport_staff" | "starter" | "other" | null;
         };
+        SignUp: {
+            /** @description Only on demo / sandbox instances (e-mail and WhatsApp on hold) */
+            demoCode?: string | null;
+            /** Format: date-time */
+            expiresAt: string;
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            name: string;
+            /** @description Masked e-mail / phone the code was sent to */
+            sentTo: string;
+        };
+        SignUpConfirm: {
+            code: string;
+            password: string;
+        };
+        SignUpDone: {
+            email: string;
+            memberNo?: string;
+            name: string;
+            /** @enum {string} */
+            status: "member" | "non_member";
+        };
+        SignUpInput: {
+            /** @description member: YYYY-MM-DD, one of birth date / phone / e-mail must match the club's record */
+            birthDate?: string;
+            /**
+             * @description Where the code goes (default e-mail)
+             * @enum {string}
+             */
+            channel?: "email" | "whatsapp";
+            email: string;
+            /**
+             * @description member: an existing member of the club; guest: a non-member account
+             * @enum {string}
+             */
+            kind: "member" | "guest";
+            /** @description member: the member no. on the card */
+            memberNo?: string;
+            /** @description guest: full name */
+            name?: string;
+            phone?: string;
+            /** Format: uuid */
+            propertyId: string;
+            /** @description Honeypot — must stay empty */
+            website?: string;
+        };
         SimulateInput: {
             scenarios: components["schemas"]["EvaluateInput"][];
         };
@@ -73383,6 +73873,7 @@ export interface components {
             courseStatus: components["schemas"]["CourseStatus"];
             date: string;
             dispatched: components["schemas"]["QueueEntry"][];
+            notReady: components["schemas"]["SheetFlight"][];
             /** @description Held flights keep their Preserved Queue Position */
             onHold: components["schemas"]["QueueEntry"][];
         };
@@ -75731,6 +76222,8 @@ export interface components {
             ok: boolean;
         };
         Ticket: {
+            /** @description Who the order is for (player, member, guest) */
+            customerName?: string | null;
             destinationRef?: string | null;
             /** Format: date-time */
             dueAt?: string | null;
@@ -75746,6 +76239,8 @@ export interface components {
             readyAt?: string | null;
             /** Format: date-time */
             receivedAt: string;
+            /** @description e.g. the golf booking code */
+            reference?: string | null;
             /** Format: date-time */
             servedAt?: string | null;
             servingDestination: string;
@@ -75918,6 +76413,8 @@ export interface components {
             subject: string;
         };
         TicketItem: {
+            /** @description Who the item is for */
+            guestName?: string | null;
             modifiers: Record<string, never>[];
             name: string;
             notes?: string | null;
@@ -109343,6 +109840,8 @@ export interface operations {
                 "filter[customerId]"?: string;
                 "filter[shiftId]"?: string;
                 date?: string;
+                /** @description e.g. on_course (tee house: orders from the caddy tablet) */
+                "filter[orderType]"?: string;
             };
             header: {
                 /** @description Active property chosen in the property switcher. */
@@ -146276,6 +146775,173 @@ export interface operations {
             };
         };
     };
+    getGolfCourseStops: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                courseId?: string;
+                /** @description Club day (default today) */
+                date?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CourseStop"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfCourseStops: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CourseStopInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseStop"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfCourseStopsByIdResume: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CourseStop"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     getGolfCourses: {
         parameters: {
             query?: {
@@ -155167,6 +155833,123 @@ export interface operations {
             };
         };
     };
+    getGolfRoundsByIdOrders: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["Order"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfRoundsByIdOrdersByOrderIdCancel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+                orderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CancelOrderInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postGolfRoundsByIdPosition: {
         parameters: {
             query?: never;
@@ -155192,6 +155975,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TabletFixResult"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfRoundsByIdTeeHouses: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                lat?: string;
+                lng?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RouteTeeHouse"][];
+                        nextCursor?: string;
+                    };
                 };
             };
             /** @description Not authenticated */
@@ -155468,6 +156313,177 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Round"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getGolfScoreCorrectionRequests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+                "filter[status]"?: "requested" | "approved" | "rejected";
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CorrectionRequest"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfScoreCorrectionRequestsByIdApprove: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CorrectionDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorrectionRequest"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfScoreCorrectionRequestsByIdReject: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CorrectionDecision"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorrectionRequest"];
                 };
             };
             /** @description Not authenticated */
@@ -198875,6 +199891,116 @@ export interface operations {
             };
         };
     };
+    getMemberGolfScorecardsByIdCorrectionRequests: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["CorrectionRequest"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberGolfScorecardsByIdCorrectionRequests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CorrectionRequestInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CorrectionRequest"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postMemberGolfScorecardsByIdScores: {
         parameters: {
             query?: never;
@@ -198897,6 +200023,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Scorecard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postMemberGolfScorecardsByIdShare: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScorecardShare"];
                 };
             };
             /** @description Not authenticated */
@@ -222374,6 +223549,74 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Payment"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicPortalRegistrations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignUpInput"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignUp"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postPublicPortalRegistrationsByIdConfirm: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SignUpConfirm"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SignUpDone"];
                 };
             };
             /** @description Problem Details (RFC 9457) */

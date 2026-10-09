@@ -174,7 +174,7 @@ func (m *Module) paymentDue(ctx context.Context, tx pgx.Tx, property uuid.UUID, 
 	if !bal.IsPositive() || !pol.Payment.PayBeforeCheckIn {
 		return decimal.Zero, nil
 	}
-	if b.PaymentMode != nil && *b.PaymentMode == "deposit" && dec(sum.HeldDeposits).IsPositive() {
+	if b.PaymentMode != nil && *b.PaymentMode == "deposit" && (dec(sum.HeldDeposits).IsPositive() || dec(sum.Payments).IsPositive()) {
 		return decimal.Zero, nil
 	}
 	return bal, nil
@@ -361,23 +361,32 @@ type QueueEntry struct {
 	Players      []SheetPlayer `json:"players"`
 	GolfCarts    []string      `json:"golfCarts"`
 	WaitMinutes  int           `json:"waitMinutes"`
+	// rain pause or break of a flight on the course (demo feedback 10 Oct 2026 #28)
+	PausedAt    *time.Time `json:"pausedAt"`
+	PauseReason *string    `json:"pauseReason"`
 }
 
 // StarterQueue is the queue of a course and day.
 type StarterQueue struct {
-	CourseID     uuid.UUID    `json:"courseId"`
-	Date         string       `json:"date"`
-	Active       []QueueEntry `json:"active" doc:"Active Dispatch Queue in order"`
-	OnHold       []QueueEntry `json:"onHold" doc:"Held flights keep their Preserved Queue Position"`
-	Dispatched   []QueueEntry `json:"dispatched"`
-	CourseStatus CourseStatus `json:"courseStatus"`
+	CourseID   uuid.UUID    `json:"courseId"`
+	Date       string       `json:"date"`
+	Active     []QueueEntry `json:"active" doc:"Active Dispatch Queue in order"`
+	OnHold     []QueueEntry `json:"onHold" doc:"Held flights keep their Preserved Queue Position"`
+	Dispatched []QueueEntry `json:"dispatched"`
+	// NotReady: flights with players checked in that are not in the queue
+	// yet, with their readiness (caddies, golf carts, payment) so the starter
+	// sees why (demo feedback 10 Oct 2026 #23)
+	NotReady     []SheetFlight `json:"notReady"`
+	CourseStatus CourseStatus  `json:"courseStatus"`
 }
 
 // LoadQueue builds the starter queue view.
 func (m *Module) LoadQueue(ctx context.Context, q dbtx.Querier, property, courseID uuid.UUID, day time.Time) (StarterQueue, error) {
-	out := StarterQueue{CourseID: courseID, Date: day.Format("2006-01-02"), Active: []QueueEntry{}, OnHold: []QueueEntry{}, Dispatched: []QueueEntry{}}
+	out := StarterQueue{CourseID: courseID, Date: day.Format("2006-01-02"), Active: []QueueEntry{}, OnHold: []QueueEntry{}, Dispatched: []QueueEntry{},
+		NotReady: []SheetFlight{}}
 	loc := location(ctx, q, property)
-	rows, err := q.Query(ctx, `SELECT sq.flight_id, sq.status, sq.scheduled_at, t.start_tee, sq.ready_at, sq.hold_reason, sq.called_at, sq.dispatched_at, sq.skips, b.code
+	rows, err := q.Query(ctx, `SELECT sq.flight_id, sq.status, sq.scheduled_at, t.start_tee, sq.ready_at, sq.hold_reason, sq.called_at, sq.dispatched_at, sq.skips, b.code,
+		f.paused_at, f.pause_reason
 		FROM golf.starter_queue sq JOIN golf.flights f ON f.id = sq.flight_id JOIN golf.tee_times t ON t.id = f.tee_time_id LEFT JOIN golf.bookings b ON b.id = f.booking_id
 		WHERE sq.property_id = $1 AND sq.course_id = $2 AND sq.play_date = $3::date AND sq.status <> 'removed'
 		ORDER BY sq.position, sq.ready_at, sq.flight_id`, property, courseID, day.Format("2006-01-02"))
@@ -387,7 +396,8 @@ func (m *Module) LoadQueue(ctx context.Context, q dbtx.Querier, property, course
 	var entries []QueueEntry
 	for rows.Next() {
 		var e QueueEntry
-		if err := rows.Scan(&e.FlightID, &e.Status, &e.ScheduledAt, &e.StartTee, &e.ReadyAt, &e.HoldReason, &e.CalledAt, &e.DispatchedAt, &e.Skips, &e.BookingCode); err != nil {
+		if err := rows.Scan(&e.FlightID, &e.Status, &e.ScheduledAt, &e.StartTee, &e.ReadyAt, &e.HoldReason, &e.CalledAt, &e.DispatchedAt, &e.Skips, &e.BookingCode,
+			&e.PausedAt, &e.PauseReason); err != nil {
 			rows.Close()
 			return out, err
 		}
@@ -432,6 +442,19 @@ func (m *Module) LoadQueue(ctx context.Context, q dbtx.Querier, property, course
 				out.Dispatched = append(out.Dispatched, e)
 			}
 		}
+	}
+	pol, err := LoadPolicies(ctx, q, property, clock.Now())
+	if err != nil {
+		return out, err
+	}
+	pending, err := m.loadFlights(ctx, q, pol, `f.course_id = $1 AND f.play_date = $2::date AND f.status IN ('confirmed', 'checked_in')
+		AND (sq.status IS NULL OR sq.status = 'removed')
+		AND EXISTS (SELECT 1 FROM golf.booking_players p WHERE p.flight_id = f.id AND p.status = 'checked_in')`, courseID, day.Format("2006-01-02"))
+	if err != nil {
+		return out, err
+	}
+	for _, f := range pending {
+		out.NotReady = append(out.NotReady, f.SheetFlight)
 	}
 	out.CourseStatus, err = loadCourseStatus(ctx, q, courseID)
 	return out, err

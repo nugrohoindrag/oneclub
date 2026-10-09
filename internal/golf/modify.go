@@ -716,11 +716,30 @@ func (m *Module) RemovePlayer(ctx context.Context, tx pgx.Tx, property, bid, pid
 	if target == nil {
 		return b, errs.NotFound("player")
 	}
-	if target.Status != "booked" {
-		return b, errs.Conflict("player_not_removable", "only booked (not checked-in) players can be removed")
+	if target.Status != "booked" && target.Status != "checked_in" {
+		return b, errs.Conflict("player_not_removable", "only booked or checked-in players can be removed")
 	}
 	if active <= 1 {
 		return b, errs.Conflict("last_player", "cancel the booking instead of removing its last player")
+	}
+	if target.Status == "checked_in" {
+		// a player who no longer plays (demo feedback 10 Oct 2026 #19): only
+		// before the flight tees off, with a reason; afterwards it is a
+		// no-show or a rain check, not a removal
+		if strings.TrimSpace(reason) == "" {
+			return b, errs.Validation("reason_required", "say why the player does not play", errs.Field("reason", "required", "reason"))
+		}
+		var teedOff bool
+		if err := tx.QueryRow(ctx, `SELECT f.tee_off_at IS NOT NULL OR f.status IN ('in_play', 'completed') FROM golf.booking_players p
+			JOIN golf.flights f ON f.id = p.flight_id WHERE p.id = $1`, pid).Scan(&teedOff); err != nil && !dbtx.IsNoRows(err) {
+			return b, err
+		}
+		if teedOff {
+			return b, errs.Conflict("player_teed_off", "the flight has teed off: record a no-show or a rain check instead")
+		}
+		if err := m.releasePlayer(ctx, tx, pid, reason); err != nil {
+			return b, err
+		}
 	}
 	var alloc, line *uuid.UUID
 	if err := tx.QueryRow(ctx, `SELECT allocation_id, folio_line_id FROM golf.booking_players WHERE id = $1`, pid).Scan(&alloc, &line); err != nil {
@@ -735,6 +754,10 @@ func (m *Module) RemovePlayer(ctx context.Context, tx pgx.Tx, property, bid, pid
 		if err := m.Billing.VoidCharge(ctx, tx, *line, "player removed: "+reason); err != nil {
 			return b, err
 		}
+	}
+	// other charges of the player (caddy fee, rentals) go with the player
+	if _, err := m.Billing.VoidSourceCharges(ctx, tx, "golf_player", pid, "player removed: "+reason); err != nil {
+		return b, err
 	}
 	if _, err := tx.Exec(ctx, `UPDATE golf.booking_players SET status = 'removed', updated_by = $2 WHERE id = $1`, pid, id.Ptr(actor(ctx))); err != nil {
 		return b, err
@@ -754,6 +777,18 @@ func (m *Module) RemovePlayer(ctx context.Context, tx pgx.Tx, property, bid, pid
 		return b, err
 	}
 	return GetBooking(ctx, tx, bid)
+}
+
+// releasePlayer frees the caddy of a removed player (back to the queue);
+// a caddy shared with other players keeps them.
+func (m *Module) releasePlayer(ctx context.Context, tx pgx.Tx, pid uuid.UUID, reason string) error {
+	if _, err := tx.Exec(ctx, `UPDATE golf.caddy_assignments SET player_ids = array_remove(player_ids, $1)
+		WHERE $1 = ANY(player_ids) AND status IN ('assigned', 'in_play') AND cardinality(player_ids) > 1`, pid); err != nil {
+		return err
+	}
+	_, err := tx.Exec(ctx, `UPDATE golf.caddy_assignments SET status = 'cancelled', replace_reason = $2
+		WHERE $1 = ANY(player_ids) AND status IN ('assigned', 'in_play')`, pid, "player removed: "+reason)
+	return err
 }
 
 // MovePlayer moves a player to another flight in the same or another slot

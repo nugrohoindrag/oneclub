@@ -4,8 +4,8 @@ import { download, qs, request, uuidv7, useGet, useSend, type Page } from '@onec
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import { enqueue } from '@oneclub/offline';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Drawer, ErrorAlert, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField,
-  useAuth, useToast, type Option,
+  AutoResourcePage, Card, Checkbox, DataTable, Drawer, ErrorAlert, Icon, Modal, MoneyField, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
+  TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import { KPIDashboardPage } from '../p2';
@@ -444,7 +444,7 @@ function QuotationModal({ rfq, supplier, onClose }: { rfq: R; supplier: R; onClo
         return (
           <div key={l.id} className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
             <span style={{ minWidth: 200 }}>{String(l.description)} · {String(l.quantity)} {val(l.uom)}</span>
-            <TextField label="Unit price" type="number" value={p.price} onChange={set('price')} />
+            <MoneyField label="Unit price" value={p.price} onChange={set('price')} />
             <TextField label="Discount %" type="number" value={p.disc} onChange={set('disc')} />
             <TextField label="Lead time (days)" type="number" value={p.lead} onChange={set('lead')} />
           </div>
@@ -633,7 +633,7 @@ function ReviseModal({ order, onClose }: { order: R; onClose: () => void }) {
           <div key={l.id} className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
             <span style={{ minWidth: 200 }}>{String(l.description)} ({String(l.quantity)} × {money(l.unitPrice)})</span>
             <TextField label="New quantity" type="number" value={e.quantity} onChange={(v) => setEdits({ ...edits, [l.id]: { ...e, quantity: v } })} />
-            <TextField label="New unit price" type="number" value={e.unitPrice} onChange={(v) => setEdits({ ...edits, [l.id]: { ...e, unitPrice: v } })} />
+            <MoneyField label="New unit price" value={e.unitPrice} onChange={(v) => setEdits({ ...edits, [l.id]: { ...e, unitPrice: v } })} />
           </div>
         );
       })}
@@ -862,7 +862,7 @@ function ReceiptWithoutPO({ onDone, onBack }: { onDone: () => void; onBack: () =
         <div key={i} className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
           <SelectField label={`Item ${i + 1}`} value={l.itemId} onChange={(v) => setLs(ls.map((x, j) => (j === i ? { ...x, itemId: v } : x)))} options={items} placeholder="Select" />
           <TextField label="Quantity" type="number" value={l.acceptedQuantity} onChange={(v) => setLs(ls.map((x, j) => (j === i ? { ...x, acceptedQuantity: v } : x)))} />
-          <TextField label="Unit cost" type="number" value={l.unitCost} onChange={(v) => setLs(ls.map((x, j) => (j === i ? { ...x, unitCost: v } : x)))} />
+          <MoneyField label="Unit cost" value={l.unitCost} onChange={(v) => setLs(ls.map((x, j) => (j === i ? { ...x, unitCost: v } : x)))} />
           <TextField label="Batch" value={l.batchNo} onChange={(v) => setLs(ls.map((x, j) => (j === i ? { ...x, batchNo: v } : x)))} />
           <TextField label="Expiry" type="date" value={l.expiryDate} onChange={(v) => setLs(ls.map((x, j) => (j === i ? { ...x, expiryDate: v } : x)))} />
         </div>
@@ -1041,7 +1041,7 @@ function LandedCostEditor({ lines, onChange }: { lines: LandedLine[]; onChange: 
       {lines.map((l, i) => (
         <div key={i} className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
           <TextField label={`Landed cost ${i + 1}`} value={l.description} onChange={(v) => set(i, 'description', v)} placeholder="Freight, import duty" required />
-          <TextField label="Amount" type="number" value={l.amount} onChange={(v) => set(i, 'amount', v)} required />
+          <MoneyField label="Amount" value={l.amount} onChange={(v) => set(i, 'amount', v)} required />
           <SelectField label="Allocate by" value={l.basis} onChange={(v) => set(i, 'basis', v)} options={[{ value: 'value', label: 'Value' }, { value: 'quantity', label: 'Quantity' }]} />
           <SelectField label="Goods receipt" value={l.goodsReceiptId} onChange={(v) => set(i, 'goodsReceiptId', v)} options={grs} placeholder="Receipts of the invoice" />
           <TextField label="PPN %" type="number" value={l.tax} onChange={(v) => set(i, 'tax', v)} placeholder="0" />
@@ -1109,7 +1109,7 @@ function DebitNoteModal({ invoice, onClose }: { invoice: R; onClose: () => void 
         ...Object.fromEntries(Object.entries(f).filter(([, v]) => v)) }, { onSuccess: onClose })}>Issue</button>
     </>}>
       <ErrorAlert error={send.error} />
-      <TextField label="Amount (excl. PPN)" type="number" value={f.subtotal} onChange={set('subtotal')} required />
+      <MoneyField label="Amount (excl. PPN)" value={f.subtotal} onChange={set('subtotal')} required />
       <TextField label="PPN" type="number" value={f.taxAmount} onChange={set('taxAmount')} />
       <TextField label="Reason" value={f.reason} onChange={set('reason')} required />
     </Modal>

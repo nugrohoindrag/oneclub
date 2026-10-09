@@ -333,11 +333,13 @@ func Contribution() catalog.Contribution {
 			"golf_admin":        {"commercial.pricing.view"},
 			"reservation_staff": {"commercial.pricing.view"},
 			"front_desk":        {"commercial.pricing.view"},
-			"membership_admin":  {"commercial.pricing.view"},
-			"outlet_manager":    {"commercial.product.view", "commercial.outlet.view"},
-			"cashier":           {"commercial.outlet.view"},
-			"pos_staff":         {"commercial.outlet.view"},
-			"kitchen_staff":     {"commercial.outlet.view"},
+			// the price shown before the payment at the Sport Reception (#39)
+			"sport_club_receptionist": {"commercial.pricing.view"},
+			"membership_admin":        {"commercial.pricing.view"},
+			"outlet_manager":          {"commercial.product.view", "commercial.outlet.view"},
+			"cashier":                 {"commercial.outlet.view"},
+			"pos_staff":               {"commercial.outlet.view"},
+			"kitchen_staff":           {"commercial.outlet.view"},
 		},
 	}
 }

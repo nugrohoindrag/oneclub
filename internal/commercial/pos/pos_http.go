@@ -12,6 +12,7 @@ import (
 	"oneclub/internal/kernel/httpx"
 	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/audit"
+	"oneclub/internal/platform/calendar"
 	"oneclub/internal/platform/handle"
 	"oneclub/internal/platform/notify"
 	"oneclub/internal/platform/resource"
@@ -107,7 +108,8 @@ func (m *Module) registerPOS(reg *route.Registry, eng *resource.Engine) {
 			return m.CreateOrder(ctx, tx, handle.Property(ctx), in)
 		})})
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/commercial/orders", Summary: "Orders", Permission: "commercial.order.view", Response: Order{}, List: true,
-		Query: []route.Param{{Name: "filter[outletId]"}, {Name: "filter[status]"}, {Name: "filter[customerId]"}, {Name: "filter[shiftId]"}, {Name: "date"}},
+		Query: []route.Param{{Name: "filter[outletId]"}, {Name: "filter[status]"}, {Name: "filter[customerId]"}, {Name: "filter[shiftId]"}, {Name: "date"},
+			{Name: "filter[orderType]", Description: "e.g. on_course (tee house: orders from the caddy tablet)"}},
 		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (httpx.Page[Order], error) {
 			lp := httpx.ParseList(r)
 			d, err := handle.QueryDate(r, "date", time.Time{})
@@ -116,13 +118,16 @@ func (m *Module) registerPOS(reg *route.Registry, eng *resource.Engine) {
 			}
 			from := time.Time{}
 			if !d.IsZero() {
-				from = time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, time.Local)
+				// the club's day, not the server's: orders after midnight WIB
+				// belong to the new day (demo feedback 10 Oct 2026, item 33)
+				from = time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, calendar.Location(ctx, tx))
 			}
 			list, err := handle.List[Order](tx.Query(ctx, orderSelect+` WHERE o.property_id = $1 AND ($2 = '' OR o.outlet_id::text = $2)
 				AND ($3 = '' OR o.status = ANY(string_to_array($3, ','))) AND ($4 = '' OR o.customer_id::text = $4) AND ($5 = '' OR o.shift_id::text = $5)
 				AND ($6::timestamptz = '0001-01-01T00:00:00Z' OR (o.created_at >= $6 AND o.created_at < $6::timestamptz + interval '1 day'))
+				AND ($8 = '' OR o.order_type = $8)
 				ORDER BY o.created_at DESC LIMIT $7`, handle.Property(ctx), lp.Filters["outletId"], lp.Filters["status"], lp.Filters["customerId"],
-				lp.Filters["shiftId"], from, lp.Limit))
+				lp.Filters["shiftId"], from, lp.Limit, lp.Filters["orderType"]))
 			return handle.Page(list, err)
 		})})
 	add(route.Route{Method: http.MethodGet, Path: "/api/v1/commercial/orders/{id}", Summary: "View order", Permission: "commercial.order.view", Response: Order{},

@@ -13,6 +13,7 @@ import (
 	"github.com/shopspring/decimal"
 
 	"oneclub/internal/crm"
+	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/dbtx"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/id"
@@ -38,37 +39,45 @@ type ScoreHole struct {
 
 // Scorecard is a player's card for a round.
 type Scorecard struct {
-	ID           uuid.UUID   `json:"id" db:"id"`
-	PropertyID   uuid.UUID   `json:"propertyId" db:"property_id"`
-	FlightID     *uuid.UUID  `json:"flightId" db:"flight_id"`
-	PlayerID     *uuid.UUID  `json:"playerId" db:"booking_player_id" doc:"Booking player"`
-	CustomerID   *uuid.UUID  `json:"customerId" db:"customer_id"`
-	PlayerName   string      `json:"playerName" db:"player_name"`
-	RouteID      uuid.UUID   `json:"playingRouteId" db:"playing_route_id"`
-	RouteName    string      `json:"playingRouteName" db:"route_name"`
-	TeeSetID     *uuid.UUID  `json:"teeSetId" db:"tee_set_id"`
-	TeeSetName   *string     `json:"teeSetName" db:"tee_set_name"`
-	TeeColor     *string     `json:"teeColor" db:"tee_color"`
-	TeeCategory  *string     `json:"teeCategory" db:"tee_category" doc:"Player category of the tee"`
-	PlayedOn     time.Time   `json:"playedOn" db:"played_on"`
-	Holes        int         `json:"holes" db:"holes"`
-	Par          int         `json:"par" db:"par"`
-	CourseRating *string     `json:"courseRating" db:"course_rating"`
-	SlopeRating  *int        `json:"slopeRating" db:"slope"`
-	Gross        *int        `json:"gross" db:"gross"`
-	Putts        *int        `json:"putts" db:"putts"`
-	Differential *string     `json:"differential" db:"differential"`
-	Status       string      `json:"status" db:"status" enum:"draft,submitted,finalized"`
-	AttestedBy   *string     `json:"attestedBy" db:"attested_by"`
-	Flags        []string    `json:"flags" db:"flags"`
-	FinalizedAt  *time.Time  `json:"finalizedAt" db:"finalized_at"`
-	Scores       []ScoreHole `json:"scores" db:"-"`
+	ID           uuid.UUID  `json:"id" db:"id"`
+	PropertyID   uuid.UUID  `json:"propertyId" db:"property_id"`
+	FlightID     *uuid.UUID `json:"flightId" db:"flight_id"`
+	PlayerID     *uuid.UUID `json:"playerId" db:"booking_player_id" doc:"Booking player"`
+	CustomerID   *uuid.UUID `json:"customerId" db:"customer_id"`
+	PlayerName   string     `json:"playerName" db:"player_name"`
+	RouteID      uuid.UUID  `json:"playingRouteId" db:"playing_route_id"`
+	RouteName    string     `json:"playingRouteName" db:"route_name"`
+	TeeSetID     *uuid.UUID `json:"teeSetId" db:"tee_set_id"`
+	TeeSetName   *string    `json:"teeSetName" db:"tee_set_name"`
+	TeeColor     *string    `json:"teeColor" db:"tee_color"`
+	TeeCategory  *string    `json:"teeCategory" db:"tee_category" doc:"Player category of the tee"`
+	PlayedOn     time.Time  `json:"playedOn" db:"played_on"`
+	Holes        int        `json:"holes" db:"holes"`
+	Par          int        `json:"par" db:"par"`
+	CourseRating *string    `json:"courseRating" db:"course_rating"`
+	SlopeRating  *int       `json:"slopeRating" db:"slope"`
+	Gross        *int       `json:"gross" db:"gross"`
+	Putts        *int       `json:"putts" db:"putts"`
+	Differential *string    `json:"differential" db:"differential"`
+	Status       string     `json:"status" db:"status" enum:"draft,submitted,finalized"`
+	AttestedBy   *string    `json:"attestedBy" db:"attested_by"`
+	Flags        []string   `json:"flags" db:"flags"`
+	FinalizedAt  *time.Time `json:"finalizedAt" db:"finalized_at"`
+	// Stage and Locked (additive, demo feedback 10 Oct 2026 #36): once the
+	// round is completed the player and the tablet no longer edit the scores;
+	// a wrong score goes through a correction request.
+	Stage  string      `json:"stage" db:"stage" enum:"in_play,completed,submitted,finalized" doc:"in play → completed (round over) → submitted (attested) → finalized (handicap)"`
+	Locked bool        `json:"locked" db:"locked" doc:"Scores change only by a correction (round completed or card finalized)"`
+	Scores []ScoreHole `json:"scores" db:"-"`
 }
 
 const scorecardSelect = `SELECT s.id, s.property_id, s.flight_id, s.booking_player_id, s.customer_id, s.player_name, s.playing_route_id, r.name AS route_name, s.tee_set_id,
 	t.name AS tee_set_name, coalesce(t.color, t.code) AS tee_color, t.player_category AS tee_category, s.played_on, s.holes, s.par, s.course_rating::text AS course_rating, s.slope, s.gross, s.putts,
-	trim_scale(s.differential)::text AS differential, s.status, s.attested_by, s.flags, s.finalized_at
-	FROM golf.scorecards s JOIN golf.playing_routes r ON r.id = s.playing_route_id LEFT JOIN golf.tee_sets t ON t.id = s.tee_set_id`
+	trim_scale(s.differential)::text AS differential, s.status, s.attested_by, s.flags, s.finalized_at,
+	CASE WHEN s.status IN ('submitted', 'finalized') THEN s.status WHEN sf.status = 'completed' THEN 'completed' ELSE 'in_play' END AS stage,
+	(s.status = 'finalized' OR coalesce(sf.status = 'completed', false)) AS locked
+	FROM golf.scorecards s JOIN golf.playing_routes r ON r.id = s.playing_route_id LEFT JOIN golf.tee_sets t ON t.id = s.tee_set_id
+	LEFT JOIN golf.flights sf ON sf.id = s.flight_id`
 
 // GetScorecard loads a scorecard with its holes.
 func (m *Module) GetScorecard(ctx context.Context, q dbtx.Querier, sid uuid.UUID) (Scorecard, error) {
@@ -172,6 +181,9 @@ func (m *Module) EnterScores(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in S
 	if status == "finalized" {
 		return Scorecard{}, errs.Conflict("scorecard_finalized", "the scorecard is finalized; use Score Correction")
 	}
+	if err := roundOpen(ctx, tx, sid, in.Source); err != nil {
+		return Scorecard{}, err
+	}
 	if len(in.Entries) == 0 {
 		return Scorecard{}, handle.Invalid("entries", "required", "at least one hole score is required")
 	}
@@ -225,6 +237,29 @@ func (m *Module) EnterScores(ctx context.Context, tx pgx.Tx, sid uuid.UUID, in S
 		return sc, err
 	}
 	return sc, record(ctx, tx, "golf.scorecard", sid, sc.PlayerName, "score_entry", pid, nil, map[string]any{"entries": in.Entries, "source": in.Source}, "")
+}
+
+// caddyGrace is how long after Complete Round the caddy's tablet may still
+// send the last holes (scores typed after tapping Complete, offline sync).
+const caddyGrace = 30 * time.Minute
+
+// roundOpen refuses score entries once the round is completed (demo feedback
+// 10 Oct 2026 #36): the player, the front desk and the office ask for a
+// correction instead; only the caddy's tablet gets a short grace period.
+func roundOpen(ctx context.Context, q dbtx.Querier, sid uuid.UUID, source string) error {
+	var status *string
+	var finished *time.Time
+	if err := q.QueryRow(ctx, `SELECT f.status, f.round_finish_at FROM golf.scorecards s LEFT JOIN golf.flights f ON f.id = s.flight_id WHERE s.id = $1`,
+		sid).Scan(&status, &finished); err != nil {
+		return err
+	}
+	if status == nil || *status != "completed" {
+		return nil
+	}
+	if source == "caddy" && finished != nil && clock.Now().Before(finished.Add(caddyGrace)) {
+		return nil
+	}
+	return errs.Conflict("round_completed", "the round is completed: the scores can only be changed by a correction request")
 }
 
 func eqInt(a, b *int) bool {
@@ -557,9 +592,16 @@ func (m *Module) CorrectScorecard(ctx context.Context, tx pgx.Tx, sid uuid.UUID,
 	if err != nil {
 		return sc, err
 	}
-	if sc.Status != "finalized" {
-		return sc, errs.Conflict("not_finalized", "only finalized scorecards are corrected; edit the draft instead")
+	if !sc.Locked {
+		return sc, errs.Conflict("not_finalized", "only scorecards of a completed round are corrected; edit the scores instead")
 	}
+	return m.applyCorrection(ctx, tx, sc, in, "staff")
+}
+
+// applyCorrection writes corrected holes with the before/after audit; a
+// finalized card recomputes its differential and handicap.
+func (m *Module) applyCorrection(ctx context.Context, tx pgx.Tx, sc Scorecard, in CorrectionInput, source string) (Scorecard, error) {
+	sid := sc.ID
 	if len(in.Entries) == 0 {
 		return sc, handle.Invalid("entries", "required", "at least one hole is required")
 	}
@@ -576,17 +618,19 @@ func (m *Module) CorrectScorecard(ctx context.Context, tx pgx.Tx, sid uuid.UUID,
 			return sc, err
 		}
 		if _, err := tx.Exec(ctx, `INSERT INTO golf.score_audit (id, property_id, scorecard_id, seq, kind, before, after, reason, source, created_by)
-			VALUES ($1,$2,$3,$4,'correction',$5,$6,$7,'staff',$8)`, id.New(), sc.PropertyID, sid, e.Seq,
+			VALUES ($1,$2,$3,$4,'correction',$5,$6,$7,$8,$9)`, id.New(), sc.PropertyID, sid, e.Seq,
 			map[string]any{"strokes": b.Strokes, "putts": b.Putts, "penalties": b.Penalties},
-			map[string]any{"strokes": e.Strokes, "putts": e.Putts, "penalties": e.Penalties}, in.Reason, actorPtr(ctx)); err != nil {
+			map[string]any{"strokes": e.Strokes, "putts": e.Putts, "penalties": e.Penalties}, in.Reason, source, actorPtr(ctx)); err != nil {
 			return sc, err
 		}
 	}
 	if err := m.recompute(ctx, tx, sid); err != nil {
 		return sc, err
 	}
-	if err := m.afterFinal(ctx, tx, sid); err != nil {
-		return sc, err
+	if sc.Status == "finalized" {
+		if err := m.afterFinal(ctx, tx, sid); err != nil {
+			return sc, err
+		}
 	}
 	after, err := m.GetScorecard(ctx, tx, sid)
 	if err != nil {

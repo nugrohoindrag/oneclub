@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import type { Lang } from '../../../lib';
+import { checkoutHref } from '../../../pay-link';
 
 interface PublicInvoice {
   number: string; kind: string; billToName: string; issueDate: string; dueDate: string; currency: string; total: string; outstanding: string; status: string;
@@ -67,7 +68,7 @@ export function PayInvoice({ lang, token }: { lang: Lang; token: string }) {
           <p>{id ? 'Menunggu pembayaran' : 'Waiting for payment'} {fmt(checkout.amount, lang)}.</p>
           {checkout.vaNumber && <p>Virtual Account: <strong>{checkout.vaNumber}</strong></p>}
           {checkout.qrString && <p className="w-muted">QRIS: {checkout.qrString.slice(0, 24)}…</p>}
-          {checkout.checkoutUrl && <a className="w-btn" href={checkout.checkoutUrl}>{id ? 'Lanjut ke pembayaran' : 'Continue to payment'}</a>}
+          {checkout.checkoutUrl && <a className="w-btn" href={checkoutHref(checkout.checkoutUrl, lang) ?? undefined}>{id ? 'Lanjut ke pembayaran' : 'Continue to payment'}</a>}
         </div>
       )}
     </div>

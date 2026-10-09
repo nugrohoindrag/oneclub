@@ -27,6 +27,7 @@ import (
 	"oneclub/internal/kernel/reqctx"
 	"oneclub/internal/kernel/secret"
 	"oneclub/internal/platform/audit"
+	"oneclub/internal/platform/iam/password"
 	"oneclub/internal/platform/notify"
 )
 
@@ -270,6 +271,21 @@ func (s *Service) SendActivation(ctx context.Context, tx pgx.Tx, uid uuid.UUID, 
 	return s.Notify.Send(ctx, tx, notify.Message{Event: "auth.portal_activation", Category: "security", UserIDs: []uuid.UUID{uid}, Mandatory: true,
 		Channels: []string{notify.ChannelEmail, notify.ChannelWhatsApp},
 		Data:     map[string]any{"name": name, "link": link, "expiresInHours": int(InviteTokenTTL.Hours())}})
+}
+
+// SetPortalPassword sets the password a portal user chose at sign-up
+// (Member App registration, demo feedback 10 Oct 2026 #37).
+func (s *Service) SetPortalPassword(ctx context.Context, tx pgx.Tx, uid uuid.UUID, email, pw string) error {
+	if err := password.CheckPolicy(pw, email); err != nil {
+		return err
+	}
+	h, err := password.Hash(pw)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(ctx, `UPDATE platform.users SET password_hash = $2, password_changed_at = now(), must_change_password = false,
+		failed_login_count = 0, locked_until = NULL, status = 'active' WHERE id = $1`, uid, h)
+	return err
 }
 
 func actor(ctx context.Context) uuid.UUID {

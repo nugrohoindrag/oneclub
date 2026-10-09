@@ -3,8 +3,8 @@ import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import {
-  AutoResourcePage, BOARD_TONES, Board, BoardCard, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Modal, PageHeader, SelectField, Skeleton, StatTile, StatusPill, TextArea, TextField,
-  useAuth, useToast, type Option,
+  AutoResourcePage, BOARD_TONES, Board, BoardCard, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Modal, MoneyField, PageHeader, SelectField,
+  Skeleton, StatTile, StatusPill, TextArea, TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute } from './types';
@@ -136,7 +136,7 @@ function LeadForm({ onClose, onDone, lead }: { onClose: () => void; onDone: (id:
         <SelectField label="Event type" value={f.eventType} onChange={set('eventType')} options={EVENT_TYPES} placeholder="—" />
         <TextField label="Event date" type="date" value={f.eventDate} onChange={set('eventDate')} />
         <TextField label="Pax" type="number" value={f.pax} onChange={set('pax')} error={fe.pax} />
-        <TextField label="Budget" type="number" value={f.budget} onChange={set('budget')} error={fe.budget} />
+        <MoneyField label="Budget" value={f.budget} onChange={set('budget')} error={fe.budget} />
         {!lead && can('crm.lead.assign') && <SelectField label="Assign to" value={f.ownerUserId} onChange={set('ownerUserId')} options={users}
           placeholder="Sales Policies (round robin)" />}
         <TextArea label="Notes" value={f.notes} onChange={set('notes')} span />
@@ -358,7 +358,7 @@ function ConvertLead({ lead, onClose }: { lead: R; onClose: () => void }) {
         {Boolean(lead.companyName) && <Checkbox label={`Create corporate account "${String(lead.companyName)}"`} checked={corporate} onChange={setCorporate} />}
         {createOpp && <>
           <TextField label="Opportunity title" value={title} onChange={setTitle} span />
-          <TextField label="Expected value" type="number" value={value} onChange={setValue} />
+          <MoneyField label="Expected value" value={value} onChange={setValue} />
           <TextField label="Expected close" type="date" value={close} onChange={setClose} />
         </>}
       </div>
@@ -421,7 +421,7 @@ function OpportunityForm({ onClose, onDone, opp }: { onClose: () => void; onDone
         {!opp && <SelectField label="Business line" value={f.line} onChange={set('line')} options={LINES} help="Opens in the pipeline of the line" />}
         <CustomerPicker value={f.customerId} onChange={set('customerId')} />
         <CorporatePicker value={f.corporateAccountId} onChange={set('corporateAccountId')} />
-        <TextField label="Expected value" type="number" value={f.expectedValue} onChange={set('expectedValue')} />
+        <MoneyField label="Expected value" value={f.expectedValue} onChange={set('expectedValue')} />
         <TextField label="Expected close" type="date" value={f.expectedCloseDate} onChange={set('expectedCloseDate')} />
         <SelectField label="Event type" value={f.eventType} onChange={set('eventType')} options={EVENT_TYPES} placeholder="—" />
         <TextField label="Event date" type="date" value={f.eventDate} onChange={set('eventDate')} />
@@ -674,7 +674,7 @@ function QuotationForm({ onClose, onDone, preset, quotation }: { onClose: () => 
           <SelectField label="Item" value={l.itemType} onChange={(v) => setLine(i, 'itemType', v)} options={ITEM_TYPES} />
           <TextField label="Description" value={l.description} onChange={(v) => setLine(i, 'description', v)} />
           <TextField label="Qty" type="number" value={l.quantity} onChange={(v) => setLine(i, 'quantity', v)} style={{ width: 80 }} />
-          <TextField label="Unit price" type="number" value={l.unitPrice} onChange={(v) => setLine(i, 'unitPrice', v)} placeholder="From pricing" />
+          <MoneyField label="Unit price" value={l.unitPrice} onChange={(v) => setLine(i, 'unitPrice', v)} placeholder="From pricing" />
           <TextField label="Service type" value={l.serviceType} onChange={(v) => setLine(i, 'serviceType', v)} placeholder="e.g. meeting_package" />
           <TextField label="Ref" value={l.itemRef} onChange={(v) => setLine(i, 'itemRef', v)} placeholder="Code / id" />
           <TextField label="Disc %" type="number" value={l.discountPercent} onChange={(v) => setLine(i, 'discountPercent', v)} style={{ width: 80 }}
@@ -1059,7 +1059,7 @@ function Adjustment({ users, onClose }: { users: Option[]; onClose: () => void }
     </>}>
       <div className="oc-form">
         <SelectField label="Sales" value={user} onChange={setUser} options={users} placeholder="Select" required />
-        <TextField label="Amount" type="number" value={amount} onChange={setAmount} help="Negative for a deduction" required />
+        <MoneyField allowNegative label="Amount" value={amount} onChange={setAmount} help="Negative for a deduction" required />
         <TextField label="Period" type="month" value={period} onChange={setPeriod} />
         <TextField label="Reason" value={reason} onChange={setReason} required span />
       </div>

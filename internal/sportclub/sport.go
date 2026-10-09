@@ -847,6 +847,17 @@ type CourtBookingInput struct {
 	Hold        bool          `json:"hold,omitempty" doc:"Create as Draft (online checkout)"`
 	Notes       string        `json:"notes,omitempty"`
 	Payment     *PaymentInput `json:"payment,omitempty"`
+	// Lines books several courts and hours in one booking and one payment
+	// (the website cart, demo feedback 10 Oct 2026 #41); courtId/start/end
+	// are then ignored.
+	Lines []CourtLine `json:"lines,omitempty"`
+}
+
+// CourtLine is one court and time of a booking.
+type CourtLine struct {
+	CourtID uuid.UUID `json:"courtId"`
+	Start   time.Time `json:"start"`
+	End     time.Time `json:"end"`
 }
 
 // CourtBookingResult is the booking with its folio.
@@ -858,18 +869,40 @@ type CourtBookingResult struct {
 
 // BookCourt books a court slot (exclusive) with the right rate or package.
 func (m *Module) BookCourt(ctx context.Context, tx pgx.Tx, property uuid.UUID, in CourtBookingInput, key string) (CourtBookingResult, error) {
-	var resID *uuid.UUID
-	var courtName, item, facilityID string
-	if err := tx.QueryRow(ctx, `SELECT c.resource_id, c.name, coalesce(c.price_item, f.price_item, f.code), c.facility_id::text FROM sportclub.courts c
-		JOIN sportclub.facilities f ON f.id = c.facility_id WHERE c.id = $1 AND c.property_id = $2 AND c.status = 'active'`, in.CourtID, property).
-		Scan(&resID, &courtName, &item, &facilityID); err != nil {
-		if dbtx.IsNoRows(err) {
-			return CourtBookingResult{}, errNotFound("court")
-		}
-		return CourtBookingResult{}, err
+	lines := in.Lines
+	if len(lines) == 0 {
+		lines = []CourtLine{{CourtID: in.CourtID, Start: in.Start, End: in.End}}
 	}
-	if resID == nil {
-		return CourtBookingResult{}, errs.Conflict("court_not_bookable", courtName+" has no bookable resource")
+	if len(lines) > 24 {
+		return CourtBookingResult{}, errs.Validation("too_many_lines", "at most 24 courts / hours in one booking")
+	}
+	if in.PackageCode != "" && len(lines) > 1 {
+		return CourtBookingResult{}, errs.Validation("package_one_line", "a court package pays one court and time at a time")
+	}
+	var item string
+	var reqs []reservation.LineRequest
+	for i, l := range lines {
+		var resID *uuid.UUID
+		var courtName, it, facilityID string
+		if err := tx.QueryRow(ctx, `SELECT c.resource_id, c.name, coalesce(c.price_item, f.price_item, f.code), c.facility_id::text FROM sportclub.courts c
+			JOIN sportclub.facilities f ON f.id = c.facility_id WHERE c.id = $1 AND c.property_id = $2 AND c.status = 'active'`, l.CourtID, property).
+			Scan(&resID, &courtName, &it, &facilityID); err != nil {
+			if dbtx.IsNoRows(err) {
+				return CourtBookingResult{}, errNotFound("court")
+			}
+			return CourtBookingResult{}, err
+		}
+		if resID == nil {
+			return CourtBookingResult{}, errs.Conflict("court_not_bookable", courtName+" has no bookable resource")
+		}
+		if !l.End.After(l.Start) {
+			return CourtBookingResult{}, errs.Validation("invalid_period", fmt.Sprintf("line %d: the end must be after the start", i+1))
+		}
+		if i == 0 {
+			item = it
+		}
+		reqs = append(reqs, reservation.LineRequest{ResourceID: *resID, Start: l.Start, End: l.End, Description: courtName,
+			Attributes: map[string]any{"courtId": l.CourtID.String(), "facilityId": facilityID}})
 	}
 	if in.Channel == "" {
 		in.Channel = "back_office"
@@ -890,9 +923,7 @@ func (m *Module) BookCourt(ctx context.Context, tx pgx.Tx, property uuid.UUID, i
 		}
 	}
 	r, err := m.Res.Book(ctx, tx, property, reservation.BookRequest{BusinessLine: "sportclub", Channel: in.Channel, CustomerID: cid, GuestName: name,
-		Hold: in.Hold, Confirm: !in.Hold, SourceType: "sportclub.court_booking", Notes: in.Notes,
-		Lines: []reservation.LineRequest{{ResourceID: *resID, Start: in.Start, End: in.End, Description: courtName,
-			Attributes: map[string]any{"courtId": in.CourtID.String(), "facilityId": facilityID}}}})
+		Hold: in.Hold, Confirm: !in.Hold, SourceType: "sportclub.court_booking", Notes: in.Notes, Lines: reqs})
 	if err != nil {
 		return CourtBookingResult{}, err
 	}

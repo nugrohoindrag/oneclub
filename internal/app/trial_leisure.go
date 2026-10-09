@@ -29,46 +29,15 @@ const (
 	trialResort       = "resort.manager@demo.oneclub.id"
 )
 
-var trialAllDay = J{"weekday": []string{"06:00", "21:00"}, "weekend": []string{"06:00", "21:00"}, "holiday": []string{"06:00", "21:00"}}
-
 func trialLeisureSetup(ctx context.Context, t *Trial) error {
 	admin, sm := t.Admin(), t.As(trialSportManager)
 	eff := t.Start.AddDate(0, 0, -30).Format(time.DateOnly)
-	set := admin.Post("/api/v1/commercial/day-type-sets", J{"code": "SPORT", "name": "Sport Club days"}).S("id")
-	wd := admin.Post("/api/v1/commercial/line-day-types", J{"code": "SC-WEEKDAY", "name": "Weekday", "dayTypeSetId": set, "weekdays": "1,2,3,4,5"}).S("id")
-	we := admin.Post("/api/v1/commercial/line-day-types", J{"code": "SC-WEEKEND", "name": "Weekend / Public Holiday", "dayTypeSetId": set, "weekdays": "6,7",
-		"includesHolidays": true}).S("id")
 	rule := func(b J) {
 		b["effectiveFrom"], b["taxCodes"], b["pricingMode"] = eff, []string{"PPN"}, "nett"
 		admin.Post("/api/v1/commercial/pricing-rules", b)
 	}
-	for _, e := range []struct{ item, seg, wd, we string }{
-		{"POOL", "walk_in", "85000", "120000"}, {"POOL", "child", "50000", "70000"}, {"POOL", "family", "250000", "350000"},
-		{"GYM", "walk_in", "100000", "100000"}, {"POOL", "staying_guest", "0", "0"}} {
-		rule(J{"code": e.item + "-" + e.seg + "-WD", "name": e.item + " " + e.seg + " weekday", "serviceType": "facility_entry", "itemRef": e.item,
-			"segment": e.seg, "lineDayTypeId": wd, "unit": "entry", "price": e.wd, "revenueComponent": "sport_entry"})
-		rule(J{"code": e.item + "-" + e.seg + "-WE", "name": e.item + " " + e.seg + " weekend", "serviceType": "facility_entry", "itemRef": e.item,
-			"segment": e.seg, "lineDayTypeId": we, "unit": "entry", "price": e.we, "revenueComponent": "sport_entry"})
-	}
-	rule(J{"code": "TENNIS-HOUR", "name": "Tennis court per hour", "serviceType": "sport_court", "itemRef": "TENNIS", "unit": "slot", "unitMinutes": 60,
-		"price": "150000", "revenueComponent": "court"})
-	rule(J{"code": "SWIM-REG", "name": "Swimming class registration", "serviceType": "class_registration", "itemRef": "SWIM-KIDS", "unit": "registration",
-		"price": "150000", "revenueComponent": "registration_fee"})
-	rule(J{"code": "TENNIS-REG", "name": "Tennis clinic registration", "serviceType": "class_registration", "itemRef": "TENNIS-CLINIC",
-		"unit": "registration", "price": "200000", "revenueComponent": "registration_fee"})
-	for _, f := range []J{
-		{"code": "POOL", "name": "Olympic Pool", "facilityType": "swimming_pool", "usageMode": "entry", "capacity": 150, "priceItem": "POOL"},
-		{"code": "GYM", "name": "Fitness Center", "facilityType": "gym", "usageMode": "entry", "capacity": 40, "priceItem": "GYM"},
-		{"code": "TENNIS", "name": "Tennis Courts", "facilityType": "tennis", "usageMode": "slot_booking", "priceItem": "TENNIS"},
-		{"code": "POOL-TRAIN", "name": "Training Pool", "facilityType": "swimming_pool", "usageMode": "class"},
-	} {
-		f["openingHours"] = trialAllDay
-		id := sm.Post("/api/v1/sportclub/facilities", f).S("id")
-		t.SetRef("facility:"+f.S("code"), id)
-	}
-	for _, c := range []string{"T1", "T2", "T3"} {
-		sm.Post("/api/v1/sportclub/courts", J{"code": "TENNIS-" + c, "name": "Tennis Court " + c, "facilityId": t.Ref("facility:TENNIS")})
-	}
+	// facilities, courts, rates, packages and memberships of the brochure (Rates 2025)
+	trialSportClubMGCC(t)
 	var coachUser string
 	if err := t.App.DB.WithReadTx(ctx, func(tx pgx.Tx) error {
 		return tx.QueryRow(ctx, `SELECT id::text FROM platform.users WHERE email = $1`, trialCoach).Scan(&coachUser)
@@ -83,36 +52,25 @@ func trialLeisureSetup(ctx context.Context, t *Trial) error {
 	swimCoach := sm.Post("/api/v1/sportclub/instructors", coach).S("id")
 	tennisCoach := sm.Post("/api/v1/sportclub/instructors", J{"code": "COACH-ANDRE", "name": "Coach Andre", "disciplines": []string{"tennis"},
 		"feeScheme": "per_student", "feeRate": "60000", "partnership": "partner"}).S("id")
-	swim := sm.Post("/api/v1/sportclub/class-programs", J{"code": "SWIM-KIDS", "name": "Swimming Kids", "discipline": "swimming", "capacity": 10,
-		"durationMinutes": 60, "facilityId": t.Ref("facility:POOL-TRAIN"), "registrationValidMonths": 12}).S("id")
-	tennis := sm.Post("/api/v1/sportclub/class-programs", J{"code": "TENNIS-CLINIC", "name": "Tennis Clinic", "discipline": "tennis", "capacity": 8,
-		"durationMinutes": 90, "registrationValidMonths": 12}).S("id")
+	program := t.ids("program", "/api/v1/sportclub/class-programs?limit=50", trialSportManager)
+	swim, tennis := program("SWIM-KIDS"), program("TENNIS-CLINIC")
 	until := t.Today.AddDate(0, 0, t.Ahead).Format(time.DateOnly)
 	from := t.Start.Format(time.DateOnly)
-	sm.Post("/api/v1/sportclub/class-schedules", J{"programId": swim, "instructorId": swimCoach, "facilityId": t.Ref("facility:POOL-TRAIN"),
+	sm.Post("/api/v1/sportclub/class-schedules", J{"programId": swim, "instructorId": swimCoach, "facilityId": t.Ref("facility:POOL"),
 		"weekdays": []int{2, 4, 6}, "startTime": "16:00", "startDate": from, "endDate": until})
 	sm.Post("/api/v1/sportclub/class-schedules", J{"programId": tennis, "instructorId": tennisCoach, "weekdays": []int{3, 6}, "startTime": "08:00",
 		"startDate": from, "endDate": until})
-	for _, v := range []J{
-		{"code": "POOL5", "name": "Voucher Kolam 5x", "kind": "quota", "category": "sport_entry", "unit": "entry", "faceValue": "5", "price": "375000",
-			"applicableServices": []string{"facility_entry"}, "validityMonths": 3},
-		{"code": "SWIM-4X", "name": "Swimming Kids 4x", "kind": "quota", "category": "class_package", "unit": "session", "faceValue": "4", "price": "450000",
-			"applicableItems": []string{"SWIM-KIDS"}, "revenueComponent": "class", "validityMonths": 2},
-		{"code": "TENNIS-4X", "name": "Tennis Clinic 4x", "kind": "quota", "category": "class_package", "unit": "session", "faceValue": "4", "price": "600000",
-			"applicableItems": []string{"TENNIS-CLINIC"}, "revenueComponent": "class", "validityMonths": 2},
-	} {
-		t.SetRef("vouchertype:"+v.S("code"), admin.Post("/api/v1/commercial/voucher-types", v).S("id"))
-	}
-	// students of the classes (guests of the club)
+	// students of the classes (guests of the club: guest registration and packages)
 	guests := t.Guests()
 	rc := t.As(trialReception)
 	for i := range 14 {
 		g := guests[(i*7+3)%len(guests)]
-		prog, pkg := swim, "SWIM-4X"
+		prog, pkg := swim, "SWIM-G-4X"
 		if i%3 == 2 {
-			prog, pkg = tennis, "TENNIS-4X"
+			prog, pkg = tennis, "TENNIS-G-4X"
 		}
-		rc.Post("/api/v1/sportclub/enrollments", J{"programId": prog, "customerId": g.ID, "payment": J{"methodType": "bank_transfer", "reference": "REG-" + fmt.Sprint(i)}})
+		rc.Post("/api/v1/sportclub/enrollments", J{"programId": prog, "customerId": g.ID, "segment": "guest",
+			"payment": J{"methodType": "bank_transfer", "reference": "REG-" + fmt.Sprint(i)}})
 		rc.Post("/api/v1/commercial/vouchers:sell", J{"voucherTypeId": t.Ref("vouchertype:" + pkg), "customerId": g.ID, "count": 2,
 			"payment": J{"methodType": "bank_transfer", "reference": "PKG-" + fmt.Sprint(i)}})
 	}
@@ -219,17 +177,28 @@ func trialLeisureDay(ctx context.Context, t *Trial, day time.Time) error {
 	t.Parallel(len(entries), trialWorkers, func(i int) { rc.Post("/api/v1/sportclub/entries", entries[i]) })
 	if r.IntN(3) == 0 {
 		g := guests[r.IntN(len(guests))]
-		rc.Post("/api/v1/commercial/vouchers:sell", J{"voucherTypeId": voucherType("POOL5"), "customerId": g.ID, "payment": J{"methodType": "qris"}})
+		code := "ENTRY5-WD"
+		if weekend {
+			code = "ENTRY5-WE"
+		}
+		rc.Post("/api/v1/commercial/vouchers:sell", J{"voucherTypeId": voucherType(code), "customerId": g.ID, "payment": J{"methodType": "qris"}})
 	}
-	// tennis court bookings
-	courts := t.ids("court", "/api/v1/sportclub/courts?limit=20", trialSportManager)
+	// court bookings: tennis, futsal, basket & volley, basket indoor (brochure courts)
+	courts := t.ids("court", "/api/v1/sportclub/courts?limit=50", trialSportManager)
 	t.At(day, "10:00")
-	tennis := []string{"TENNIS-T1", "TENNIS-T2", "TENNIS-T3"}
-	for i := range 1 + r.IntN(len(tennis)) {
-		g := guests[r.IntN(len(guests))]
-		start := t.Clock(day, fmt.Sprintf("%02d:00", 15+i))
-		rc.Post("/api/v1/sportclub/bookings", J{"courtId": courts(tennis[i%len(tennis)]), "start": start.Format(time.RFC3339),
-			"end": start.Add(time.Hour).Format(time.RFC3339), "customerId": g.ID, "payment": J{"methodType": "card", "reference": "EDC-TNS"}})
+	for _, c := range []struct {
+		courts []string
+		from   int
+		hours  int
+	}{{[]string{"TENNIS-T1", "TENNIS-T2", "TENNIS-T3", "TENNIS-T4"}, 15, 1}, {[]string{"FUTSAL-SG1", "FUTSAL-SG2", "FUTSAL-TF"}, 17, 1},
+		{[]string{"BV-1", "BV-2"}, 16, 1}, {[]string{"BI-1", "BI-2"}, 18, 2}} {
+		for i := range 1 + r.IntN(len(c.courts)) {
+			g := guests[r.IntN(len(guests))]
+			start := t.Clock(day, fmt.Sprintf("%02d:00", c.from+i))
+			rc.Call("POST", "/api/v1/sportclub/bookings", J{"courtId": courts(c.courts[i%len(c.courts)]), "start": start.Format(time.RFC3339),
+				"end": start.Add(time.Duration(c.hours) * time.Hour).Format(time.RFC3339), "customerId": g.ID,
+				"payment": J{"methodType": "card", "reference": "EDC-SPT"}})
+		}
 	}
 	// classes: the enrolled students book today's sessions; the coach takes attendance
 	t.At(day, "15:30")
@@ -251,9 +220,9 @@ func trialLeisureDay(ctx context.Context, t *Trial, day time.Time) error {
 				case 201:
 					bookings = append(bookings, b.S("id"))
 				case 409: // package used up: buy the next one
-					code := "SWIM-4X"
+					code := "SWIM-G-4X"
 					if program[s.S("programId")] == "TENNIS-CLINIC" {
-						code = "TENNIS-4X"
+						code = "TENNIS-G-4X"
 					}
 					rc.Post("/api/v1/commercial/vouchers:sell", J{"voucherTypeId": voucherType(code), "customerId": e.S("customerId"),
 						"payment": J{"methodType": "qris"}})

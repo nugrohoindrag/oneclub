@@ -58,7 +58,10 @@ const LATE_MIN = 15; // a ticket waiting longer turns red
 /** Where the dishes go: table, hole, pickup … */
 function destination(t: Ticket) {
   if (t.tableNo) return { badge: t.tableNo.split(',')[0].trim(), label: `Table ${t.tableNo}` };
-  if (t.servingDestination === 'hole') return { badge: `H${t.destinationRef ?? ''}`, label: `Hole ${t.destinationRef ?? ''}` };
+  if (t.servingDestination === 'hole') {
+    const n = String(t.destinationRef ?? '').replace(/^hole\s*/i, '');
+    return { badge: `H${n}`, label: `Hole ${n}` };
+  }
   const label = (t.destinationRef ?? t.servingDestination).replace(/_/g, ' ');
   return { badge: label.slice(0, 2).toUpperCase(), label };
 }
@@ -107,6 +110,7 @@ function OrdersBoard() {
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <strong>{d.label}</strong>
                             <div className="pos-muted" style={{ fontSize: 12 }}>{t.orderNo} · {SOURCE[t.source] ?? t.source} · {t.station}</div>
+                            {t.customerName && <div style={{ fontSize: 13 }}>{t.customerName}{t.reference ? ` · ${t.reference}` : ''}</div>}
                           </div>
                           <span className="pos-kds-timer" data-late={late || undefined} title={formatDateTime(t.receivedAt)}><Icon name="timer" size={14} />{elapsed(t.receivedAt)}</span>
                         </div>
@@ -114,7 +118,7 @@ function OrdersBoard() {
                         <ul className="pos-kds-items">
                           {(t.items as unknown as Row[]).map((i, n) => (
                             <li key={n}><span className="pos-kds-qty">{String(Number(i.quantity))}x</span><span>{String(i.name)}
-                              {i.notes ? <em>{String(i.notes)}</em> : null}</span></li>
+                              {i.guestName ? <em>for {String(i.guestName)}</em> : null}{i.notes ? <em>{String(i.notes)}</em> : null}</span></li>
                           ))}
                         </ul>
                         <button className="pos-btn" data-variant={s === 'ready' ? 'outline' : undefined} data-block disabled={state.busy === t.id}

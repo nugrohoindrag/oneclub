@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { request, useGet, type Page, type Schemas } from '@oneclub/api-client';
-import { Checkbox, ErrorAlert, Icon, SelectField, Skeleton, TextArea, TextField, useBootstrap } from '@oneclub/shell';
+import { Checkbox, ErrorAlert, Icon, SelectField, Skeleton, TextArea, TextField, useAuth, useBootstrap } from '@oneclub/shell';
 import { MethodPicker, SandboxGateway, type PayMethod } from './pay';
 import { Chip, money, Rows, Steps } from './ui';
 
@@ -94,7 +94,9 @@ export function ApplyPage() {
   const nav = useNavigate();
   const types = useGet<Page<PublicType>>(property ? `/api/v1/public/membership-types?propertyId=${property}` : null);
   const t = types.data?.items.find((x) => x.id === typeId);
-  const [f, setF] = useState({ name: '', email: '', phone: '', birthDate: '', packageId: '', notes: '' });
+  // Upgrade to Member from the Member App: the account's details are filled in (the same account becomes a member)
+  const { me } = useAuth();
+  const [f, setF] = useState({ name: me?.fullName ?? '', email: me?.email ?? '', phone: '', birthDate: '', packageId: '', notes: '' });
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<unknown>(null);

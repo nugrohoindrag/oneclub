@@ -397,7 +397,28 @@ func (Pricer) Resolve(ctx context.Context, q dbtx.Querier, property uuid.UUID, r
 		}
 		return cands[i].r.Version > cands[j].r.Version
 	})
-	r := cands[0].r
+	// a rule that applies only from a minimum quantity (min policy "reject",
+	// e.g. the 2-hour rate of a court) gives way to the next rule below it
+	pick := 0
+	for i, c := range cands {
+		if c.r.MinPolicy != "reject" || c.r.MinQuantity <= 0 {
+			pick = i
+			break
+		}
+		u := int64(req.Quantity)
+		if (c.r.Unit == "slot" || c.r.Unit == "hour" || c.r.Unit == "day_use_hour") && req.End != nil {
+			m := 60.0
+			if c.r.UnitMinutes != nil {
+				m = float64(*c.r.UnitMinutes)
+			}
+			u = int64(math.Ceil(durMin / m))
+		}
+		if u >= int64(c.r.MinQuantity) {
+			pick = i
+			break
+		}
+	}
+	r := cands[pick].r
 	price := dec(r.Price)
 	expl := []string{fmt.Sprintf("rule %s v%d (%s)", r.Code, r.Version, r.Name)}
 	units := decimal.NewFromInt(int64(req.Quantity))

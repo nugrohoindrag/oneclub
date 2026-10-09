@@ -435,6 +435,29 @@
 .pos-score-row { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 16px 18px; border-radius: 18px; border: 1px solid var(--pos-line);
   background: var(--pos-surface); }
 .pos-score { width: 56px !important; height: 56px !important; font-size: 18px; font-weight: 600; text-align: center; border-radius: 14px; }
+/* score row (demo feedback 10 Oct 2026 #24): name left, buttons right on a wide
+   tablet, name above the buttons on a narrow one; Save stays inside the box */
+.pos-score-name { flex: 1 1 160px; min-width: 0; overflow-wrap: anywhere; }
+.pos-score-buttons { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-end; max-width: 100%; }
+.pos-score-buttons form { flex-wrap: nowrap; }
+.pos-score-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 0; border-bottom: 1px solid var(--pos-line); }
+.pos-score-line:last-child { border-bottom: 0; }
+.pos-cart-table tr[data-mine] th { color: var(--pos-primary); }
+.pos-gps-note { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--pos-muted); font-size: 14px; }
+/* on-course order (#30): − qty + per item, the order sheet, the history */
+.pos-order-tab { padding-bottom: 8px; }
+.pos-order-tab .pos-product { cursor: default; }
+.pos-order-tab .pos-product[data-sold-out] { opacity: 0.55; }
+.pos-product-hit { display: flex; flex-direction: column; gap: 10px; background: none; border: 0; padding: 0; text-align: left; color: inherit; cursor: pointer; font: inherit; }
+.pos-product-hit:disabled { cursor: not-allowed; }
+.pos-qty { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pos-qty button { width: 48px; height: 48px; border-radius: 12px; border: 1px solid var(--pos-primary); background: var(--pos-primary-soft); color: var(--pos-primary);
+  display: grid; place-items: center; cursor: pointer; }
+.pos-qty strong { min-width: 28px; text-align: center; font-size: 18px; }
+.pos-order-bar { margin: 0; position: sticky; bottom: 0; z-index: 2; }
+.pos-order-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--pos-line); }
+.pos-order-line:last-child { border-bottom: 0; }
+.pos-ops .oc-chip[data-usual] { border-color: var(--pos-primary); }
 /* a saved score typed by hand (not one of the quick buttons) */
 .pos-score[data-saved] { background: var(--pos-primary-soft); border-color: var(--pos-primary); color: var(--pos-primary); }
 .pos-card .pos-btn { text-decoration: none; }

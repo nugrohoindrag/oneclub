@@ -58,19 +58,20 @@ var defaultPOSPolicy = POSPolicy{MaxDiscountPercent: "10", OfflineMemberCharge: 
 // ── views ─────────────────────────────────────────────────────────────────
 
 const orderSelect = `SELECT o.id, o.property_id, o.order_no, o.outlet_id, ou.name AS outlet_name, o.shift_id, o.order_type, o.source, o.table_no,
-	o.guest_count, o.customer_id, c.name AS customer_name, o.member_pricing, o.serving_destination, o.destination_ref, o.scheduled_for, o.status,
+	o.guest_count, o.customer_id, coalesce(c.name, o.guest_name) AS customer_name, o.member_pricing, o.serving_destination, o.destination_ref, o.scheduled_for, o.status,
 	o.service_status, o.charge_folio_id, o.offline, o.needs_review, o.notes, o.void_reason, o.created_at,
 	o.promo_codes, o.promotion_exclusions, trim_scale(o.client_total)::text AS client_total, o.promotion_mismatch,
 	trim_scale(coalesce((SELECT sum(total_amount) FROM commercial.order_lines l WHERE l.order_id = o.id AND l.status = 'active'), 0))::text AS total,
 	o.tier_code, o.tier_name, trim_scale(o.tier_discount_percent)::text AS tier_discount_percent, o.tier_discount_label, o.table_ids, o.table_reservation_id, o.billed_at,
-	trim_scale(coalesce((SELECT sum(tier_discount) FROM commercial.order_lines l WHERE l.order_id = o.id AND l.status = 'active'), 0))::text AS tier_discount
+	trim_scale(coalesce((SELECT sum(tier_discount) FROM commercial.order_lines l WHERE l.order_id = o.id AND l.status = 'active'), 0))::text AS tier_discount,
+	o.guest_name, o.reference
 	FROM commercial.orders o JOIN commercial.outlets ou ON ou.id = o.outlet_id LEFT JOIN reporting.customer_directory c ON c.id = o.customer_id`
 
 const orderLineSelect = `SELECT id, line_no, product_id, variant_id, name, trim_scale(quantity)::text AS quantity, trim_scale(unit_price)::text AS unit_price,
 	modifiers, trim_scale(discount_amount)::text AS discount_amount, discount_reason, trim_scale(net_amount)::text AS net_amount,
 	trim_scale(service_amount)::text AS service_amount, trim_scale(tax_amount)::text AS tax_amount, trim_scale(total_amount)::text AS total_amount,
 	kitchen_station, bill_id, seat, notes, status, sent_at, charged_folio_id, trim_scale(promotion_discount)::text AS promotion_discount, promotions,
-	trim_scale(tier_discount)::text AS tier_discount FROM commercial.order_lines`
+	trim_scale(tier_discount)::text AS tier_discount, guest_name, customer_id, guest_ref FROM commercial.order_lines`
 
 // Order returns an order with lines and bills.
 func (m *Module) Order(ctx context.Context, q dbtx.Querier, oid uuid.UUID) (Order, error) {
@@ -239,6 +240,11 @@ func (m *Module) CreateOrder(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	if _, err := tx.Exec(ctx, `INSERT INTO commercial.order_bills (id, property_id, order_id, bill_no, customer_id) VALUES ($1,$2,$3,1,$4)`,
 		id.New(), property, oid, in.CustomerID); err != nil {
 		return Order{}, err
+	}
+	if in.GuestName != "" || in.Reference != "" {
+		if _, err := tx.Exec(ctx, `UPDATE commercial.orders SET guest_name = $2, reference = $3 WHERE id = $1`, oid, nullStr(in.GuestName), nullStr(in.Reference)); err != nil {
+			return Order{}, err
+		}
 	}
 	if len(in.TableIDs) > 0 || in.TableReservationID != nil {
 		if _, err := tx.Exec(ctx, `UPDATE commercial.orders SET table_ids = $2, table_reservation_id = $3 WHERE id = $1`,
@@ -420,10 +426,11 @@ func (m *Module) addLines(ctx context.Context, tx pgx.Tx, property, oid uuid.UUI
 		next++
 		modsRaw, _ := json.Marshal(mods)
 		if _, err := tx.Exec(ctx, `INSERT INTO commercial.order_lines (id, property_id, order_id, line_no, product_id, variant_id, name, quantity, unit_price,
-			modifiers, net_amount, service_amount, tax_amount, total_amount, pricing_snapshot_id, kitchen_station, bill_id, seat, notes, created_by)
-			VALUES ($1,$2,$3,$4,$5,$6,$7,$8::numeric,$9::numeric,$10,$11::numeric,$12::numeric,$13::numeric,$14::numeric,$15,$16,$17,$18,$19,$20)`,
+			modifiers, net_amount, service_amount, tax_amount, total_amount, pricing_snapshot_id, kitchen_station, bill_id, seat, notes, created_by,
+			guest_name, customer_id, guest_ref)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8::numeric,$9::numeric,$10,$11::numeric,$12::numeric,$13::numeric,$14::numeric,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
 			id.New(), property, oid, next, pr.ID, li.VariantID, name, qty.String(), base.String(), modsRaw, net.String(), svc.String(), tax.String(),
-			total.String(), snap, st, billID, nullStr(li.Seat), nullStr(li.Notes), actorID(ctx)); err != nil {
+			total.String(), snap, st, billID, nullStr(li.Seat), nullStr(li.Notes), actorID(ctx), nullStr(li.GuestName), li.CustomerID, li.GuestRef); err != nil {
 			return err
 		}
 	}
@@ -730,6 +737,8 @@ type Ticket struct {
 	ReceivedAt         time.Time    `json:"receivedAt" db:"received_at"`
 	ReadyAt            *time.Time   `json:"readyAt" db:"ready_at"`
 	ServedAt           *time.Time   `json:"servedAt" db:"served_at"`
+	CustomerName       *string      `json:"customerName" db:"customer_name" doc:"Who the order is for (player, member, guest)"`
+	Reference          *string      `json:"reference" db:"reference" doc:"e.g. the golf booking code"`
 	Items              []TicketItem `json:"items" db:"-"`
 }
 
@@ -740,10 +749,12 @@ type TicketItem struct {
 	Modifiers []map[string]any `json:"modifiers" db:"modifiers"`
 	Notes     *string          `json:"notes" db:"notes"`
 	Status    string           `json:"status" db:"status"`
+	GuestName *string          `json:"guestName" db:"guest_name" doc:"Who the item is for"`
 }
 
 const ticketSelect = `SELECT t.id, t.order_id, o.order_no, ou.name AS outlet_name, t.station, t.status, o.source, o.order_type, o.table_no,
-	o.serving_destination, o.destination_ref, t.due_at, t.received_at, t.ready_at, t.served_at
+	o.serving_destination, o.destination_ref, t.due_at, t.received_at, t.ready_at, t.served_at,
+	coalesce((SELECT c.name FROM reporting.customer_directory c WHERE c.id = o.customer_id), o.guest_name) AS customer_name, o.reference
 	FROM commercial.kitchen_tickets t JOIN commercial.orders o ON o.id = t.order_id JOIN commercial.outlets ou ON ou.id = o.outlet_id`
 
 func (m *Module) tickets(ctx context.Context, q dbtx.Querier, where string, args ...any) ([]Ticket, error) {
@@ -752,7 +763,7 @@ func (m *Module) tickets(ctx context.Context, q dbtx.Querier, where string, args
 		return list, err
 	}
 	for i := range list {
-		if list[i].Items, err = handle.List[TicketItem](q.Query(ctx, `SELECT l.name, trim_scale(l.quantity)::text AS quantity, l.modifiers, l.notes, l.status
+		if list[i].Items, err = handle.List[TicketItem](q.Query(ctx, `SELECT l.name, trim_scale(l.quantity)::text AS quantity, l.modifiers, l.notes, l.status, l.guest_name
 			FROM commercial.order_lines l JOIN commercial.kitchen_tickets t ON l.id = ANY(t.line_ids) WHERE t.id = $1 ORDER BY l.line_no`, list[i].ID)); err != nil {
 			return list, err
 		}

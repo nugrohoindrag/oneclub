@@ -146,6 +146,9 @@ func (r PromoResult) TotalDiscount() decimal.Decimal { return dec(r.Discount) }
 // PromotionRule is a promotion as the engine reads it (also the POS offline
 // promotion cache, FR-PRM-09).
 type PromotionRule struct {
+	// banner of the Member App and its detail page (demo feedback 10 Oct 2026 #37.5)
+	Terms              *string      `db:"terms" json:"terms"`
+	ImageURL           *string      `db:"image_url" json:"imageUrl"`
 	ID                 uuid.UUID    `db:"id" json:"id"`
 	Code               string       `db:"code" json:"code"`
 	Name               string       `db:"name" json:"name"`
@@ -194,7 +197,7 @@ const promoSelect = `SELECT id, code, name, description, promo_type, discount_pe
 	service_types, outlet_ids, product_ids, categories, item_refs, segments, membership_types, customer_segment_ids, weekdays, time_windows, day_kinds,
 	day_type_codes, to_char(valid_from, 'YYYY-MM-DD') AS valid_from, to_char(valid_to, 'YYYY-MM-DD') AS valid_to, min_purchase::text AS min_purchase,
 	min_quantity, requires_code, public, stackable, stack_group, priority, budget_amount::text AS budget_amount, max_redemptions, max_per_customer,
-	status, version FROM commercial.promotions`
+	status, version, terms, image_url FROM commercial.promotions`
 
 // loadPromotions returns the candidate promotions valid on a local date.
 func loadPromotions(ctx context.Context, q dbtx.Querier, property uuid.UUID, day string, only []uuid.UUID) ([]PromotionRule, error) {
@@ -1086,13 +1089,19 @@ type PromotionView struct {
 	BusinessLines   []string     `json:"businessLines"`
 	MinPurchase     *string      `json:"minPurchase"`
 	RequiresCode    bool         `json:"requiresCode"`
+	// Member App banner and promo detail (additive, demo feedback #37.5)
+	Terms           *string  `json:"terms"`
+	ImageURL        *string  `json:"imageUrl"`
+	Segments        []string `json:"segments" doc:"member / non_member … (empty = everyone)"`
+	MembershipTypes []string `json:"membershipTypes"`
 }
 
 func viewOf(p PromotionRule) PromotionView {
 	return PromotionView{ID: p.ID, Code: p.Code, Name: p.Name, Description: p.Description, PromoType: p.PromoType, DiscountPercent: trimDec(p.DiscountPercent),
 		DiscountAmount: trimDec(p.DiscountAmount), BuyQuantity: p.BuyQuantity, GetQuantity: p.GetQuantity, BundlePrice: trimDec(p.BundlePrice),
 		ValidFrom: p.ValidFrom, ValidTo: p.ValidTo, Weekdays: nonNilInts(p.Weekdays), TimeWindows: nonNilWindows(p.TimeWindows), Channels: nonNil(p.Channels),
-		BusinessLines: nonNil(p.BusinessLines), MinPurchase: trimDec(p.MinPurchase), RequiresCode: p.RequiresCode}
+		BusinessLines: nonNil(p.BusinessLines), MinPurchase: trimDec(p.MinPurchase), RequiresCode: p.RequiresCode,
+		Terms: p.Terms, ImageURL: p.ImageURL, Segments: nonNil(p.Segments), MembershipTypes: nonNil(p.MembershipTypes)}
 }
 
 func trimDec(s *string) *string {

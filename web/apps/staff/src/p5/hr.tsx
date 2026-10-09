@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { download, request, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { currentLocale, formatDate, formatDateTime } from '@oneclub/i18n';
 import {
-  ActionMenu, AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
-  TextField, useAuth, useToast, type Option,
+  ActionMenu, AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, FilterPills, Icon, Modal, MoneyField, PageHeader, SelectField,
+  Skeleton, StatusPill, TextArea, TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
@@ -605,8 +605,8 @@ function AllowancesEditor({ list, onChange }: { list: Allow[]; onChange: (l: All
       {list.map((a, i) => (
         <div key={i} className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
           <TextField label="Code" value={a.code} onChange={(v) => set(i, 'code', v)} />
-          <TextField label="Allowance" value={a.name} onChange={(v) => set(i, 'name', v)} />
-          <TextField label="Amount / month" type="number" value={a.amount} onChange={(v) => set(i, 'amount', v)} />
+          <MoneyField label="Allowance" value={a.name} onChange={(v) => set(i, 'name', v)} />
+          <MoneyField label="Amount / month" value={a.amount} onChange={(v) => set(i, 'amount', v)} />
           <button className="oc-btn oc-btn-text" aria-label={`Remove allowance ${i + 1}`} onClick={() => onChange(list.filter((_, j) => j !== i))}><Icon name="delete" size={18} /></button>
         </div>
       ))}
@@ -631,7 +631,7 @@ function ContractModal({ employeeId, onClose }: { employeeId?: string; onClose: 
       <TextField label="Start" type="date" value={f.startDate} onChange={set('startDate')} />
       {f.contractType === 'pkwt' ? <TextField label="End" type="date" value={f.endDate ?? ''} onChange={set('endDate')} required />
         : <TextField label="Probation (months)" type="number" min={0} max={3} value={f.probationMonths ?? ''} onChange={set('probationMonths')} />}
-      <TextField label="Base salary / month" type="number" value={f.baseSalary ?? ''} onChange={set('baseSalary')} required />
+      <MoneyField label="Base salary / month" value={f.baseSalary ?? ''} onChange={set('baseSalary')} required />
       <SelectField label="Work week" value={f.workWeekDays} onChange={set('workWeekDays')} options={[{ value: '5', label: '5 days' }, { value: '6', label: '6 days' }]} />
       <AllowancesEditor list={allow} onChange={setAllow} />
       <div className="oc-span"><FileUpload value={f.signedFileId ?? ''} onChange={set('signedFileId')} label="Attach signed contract" /></div>
@@ -648,7 +648,7 @@ function RenewModal({ c, kind, onClose }: { c: R; kind: string; onClose: () => v
       path={`${HR}/contracts/${String(c.id)}:${kind}`} body={() => clean(f)}>
       <TextField label="Start" type="date" value={f.startDate ?? ''} onChange={set('startDate')} help="Default: the day after the current contract ends" />
       {kind === 'renew' && <TextField label="End" type="date" value={f.endDate ?? ''} onChange={set('endDate')} required />}
-      <TextField label="Base salary / month" type="number" value={f.baseSalary ?? ''} onChange={set('baseSalary')} placeholder="Unchanged" />
+      <MoneyField label="Base salary / month" value={f.baseSalary ?? ''} onChange={set('baseSalary')} placeholder="Unchanged" />
       <TextArea label="Notes" value={f.notes ?? ''} onChange={set('notes')} span />
     </FormModal>
   );

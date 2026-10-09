@@ -3,8 +3,8 @@ import { useNavigate, useParams } from 'react-router';
 import { download, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, DataTable, Empty, ErrorAlert, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth,
-  useToast, type Option,
+  AutoResourcePage, Card, DataTable, Empty, ErrorAlert, Icon, Modal, MoneyField, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField,
+  useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
@@ -291,7 +291,7 @@ export function BonusDetailPage() {
         <FormModal open onClose={() => setOpen(false)} title="Add bonus line" method="PUT" path={`${base}/lines`}
           body={() => ({ lines: [...current.filter((l) => l.employeeId !== emp), clean({ employeeId: emp, amount, note })] })}>
           <SelectField label="Employee" value={emp} onChange={setEmp} options={employees} required />
-          <TextField label="Amount" type="number" value={amount} onChange={setAmount} required />
+          <MoneyField label="Amount" value={amount} onChange={setAmount} required />
           <TextArea label="Note" value={note} onChange={setNote} />
         </FormModal>
       )}

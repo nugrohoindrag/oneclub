@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Checkbox, DataTable, Empty, ErrorAlert, Icon, Modal, PageHeader, SearchBox, SelectField, StatusPill, TextArea, TextField, useAuth,
-  useDebounced, useToast,
+  AutoResourcePage, Checkbox, DataTable, Empty, ErrorAlert, Icon, Modal, MoneyField, PageHeader, SearchBox, SelectField, StatusPill, TextArea,
+  TextField, useAuth, useDebounced, useToast,
 } from '@oneclub/shell';
 import { Tabs } from '../p1/common';
 import { INV, PRIORITIES, WO_CATEGORIES, label, money, type Row, type RoomState, type WorkOrder } from './shared';
@@ -91,7 +91,7 @@ function MoveModal({ wo, op, onClose }: { wo: WorkOrder; op: string; onClose: ()
         {wo.closesUnit && <p className="oc-muted">The bungalow is put back on sale and waits for a housekeeping inspection before it is Ready.</p>}
         <div className="oc-form">
           <TextArea label="Resolution" span rows={3} value={v.resolution} onChange={(x) => setV({ ...v, resolution: x })} required />
-          <TextField label="Cost" value={v.cost} onChange={(x) => setV({ ...v, cost: x })} />
+          <MoneyField label="Cost" value={v.cost} onChange={(x) => setV({ ...v, cost: x })} />
         </div>
       </>}
       {op === 'cancel' && <TextArea label="Reason" rows={2} value={v.reason} onChange={(x) => setV({ ...v, reason: x })} />}

@@ -226,8 +226,9 @@ func (m *Module) syncCourtResource(ctx context.Context, tx pgx.Tx, row map[strin
 	pid, _ := reqctx.Property(ctx)
 	var facCode, facPrice, facType *string
 	var venue *uuidT
-	if err := tx.QueryRow(ctx, `SELECT code, price_item, facility_type, venue_id FROM sportclub.facilities WHERE id = $1`, row["facilityId"]).
-		Scan(&facCode, &facPrice, &facType, &venue); err != nil {
+	var hours, attrs map[string]any
+	if err := tx.QueryRow(ctx, `SELECT code, price_item, facility_type, venue_id, opening_hours, attributes FROM sportclub.facilities WHERE id = $1`, row["facilityId"]).
+		Scan(&facCode, &facPrice, &facType, &venue, &hours, &attrs); err != nil {
 		return err
 	}
 	item := str(row["priceItem"])
@@ -239,7 +240,9 @@ func (m *Module) syncCourtResource(ctx context.Context, tx pgx.Tx, row map[strin
 	}
 	rid, err := m.Res.EnsureResource(ctx, tx, uuidPtr(row["resourceId"]), reservation.ResourceRequest{PropertyID: pid, Code: "CRT-" + str(row["code"]),
 		Name: str(row["name"]), ResourceType: "sport_court", VenueID: venue, Status: activeOr(str(row["status"])),
-		Attributes: map[string]any{"priceItem": item, "courtId": str(row["id"]), "facilityId": str(row["facilityId"]), "facilityType": deref(facType)}})
+		// the facility's opening hours (and the demo's 24-hour period) decide the court's slot grid
+		Attributes: map[string]any{"priceItem": item, "courtId": str(row["id"]), "facilityId": str(row["facilityId"]), "facilityType": deref(facType),
+			"openingHours": hours, "allDayUntil": attrs["allDayUntil"], "surface": row["surface"], "indoor": row["indoor"]}})
 	if err != nil {
 		return err
 	}
@@ -301,7 +304,7 @@ func Contribution() catalog.Contribution {
 		RolePermissions: map[string][]string{
 			"property_admin":          manager,
 			"sport_club_manager":      manager,
-			"sport_club_receptionist": ops,
+			"sport_club_receptionist": append(append([]string{}, ops...), "sportclub.entry.cancel"),
 			"instructor_coach":        {"sportclub.class.view", "sportclub.class.attendance", "sportclub.class_program.view", "sportclub.facility.view"},
 			"lifeguard":               {"sportclub.facility.view", "sportclub.access.view"},
 			"general_manager":         {"sportclub.facility.view", "sportclub.court.view", "sportclub.entry.view", "sportclub.access.view", "sportclub.booking.view", "sportclub.class.view", "sportclub.instructor_fee.view"},

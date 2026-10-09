@@ -4,6 +4,7 @@ import { useGet, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
 import { Icon, PlayTime, Skeleton, useAuth, useBootstrap, useNavigation } from '@oneclub/shell';
 import { RateCaddy } from './booking';
+import { PromoCarousel } from './promo';
 import { Chip, dayLabel, money, StatusChip } from './ui';
 
 // Member Home: the starting point of the journey. It answers three
@@ -48,10 +49,12 @@ export function MemberHome() {
         <div className="mj-muted">{boot.branding.appName}</div>
         <h1>{greeting()}, {first}</h1>
         <div className="mj-hero-row">
-          {ms && <span className="mj-tier"><Icon name="workspace_premium" size={16} /> {ms.typeName}</span>}
+          {ms ? <span className="mj-tier"><Icon name="workspace_premium" size={16} /> Member · {ms.typeName}</span>
+            : !m.isLoading && <span className="mj-tier"><Icon name="person" size={16} /> Non-member</span>}
           {(ms?.memberNo ?? m.data?.profile.memberNo) && <span className="mj-hero-tag">Member ID: {ms?.memberNo ?? m.data?.profile.memberNo}</span>}
           <span className="oc-spacer" />
-          <Link className="oc-btn oc-btn-sm" style={{ background: '#fff', color: 'var(--md-sys-color-primary-strong)' }} to="/membership/card"><Icon name="qr_code_2" size={18} /> Member Card</Link>
+          {ms ? <Link className="oc-btn oc-btn-sm" style={{ background: '#fff', color: 'var(--md-sys-color-primary-strong)' }} to="/membership/card"><Icon name="qr_code_2" size={18} /> Member Card</Link>
+            : !m.isLoading && <Link className="oc-btn oc-btn-sm" style={{ background: '#fff', color: 'var(--md-sys-color-primary-strong)' }} to="/join"><Icon name="upgrade" size={18} /> Upgrade to Member</Link>}
         </div>
         <div className="mj-hero-stats">
           <div><span>Membership</span><strong>{ms?.status === 'active' ? 'Active' : ms?.status ?? '—'}</strong></div>
@@ -68,6 +71,7 @@ export function MemberHome() {
         </Link>
       )}
 
+      <PromoCarousel />
       <RateLastRound />
       <Upcoming />
 

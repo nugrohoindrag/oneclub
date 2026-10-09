@@ -3,7 +3,8 @@ import { Link } from 'react-router';
 import { uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
 import {
-  DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, useToast, type Option,
+  DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, MoneyField, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, useToast,
+  type Option,
 } from '@oneclub/shell';
 import { KV, money, today, type R } from '../p1/common';
 import { registerEssSection } from './hr';
@@ -61,7 +62,7 @@ function RequestForm({ path, employees, onClose }: { path: string; employees?: O
         purpose: f.purpose })}>
       {employees && <SelectField label="Employee" value={f.employeeId ?? ''} onChange={set('employeeId')} options={employees} required span />}
       <SelectField label="Type" value={f.loanType} onChange={set('loanType')} options={TYPES} required />
-      <TextField label="Amount (IDR)" inputMode="decimal" value={f.principal ?? ''} onChange={set('principal')} required />
+      <MoneyField label="Amount (IDR)" value={f.principal ?? ''} onChange={set('principal')} required />
       <TextField label="Installment per payroll (empty = deducted at once)" inputMode="decimal" value={f.installment ?? ''} onChange={set('installment')} />
       <TextField label="First deduction (YYYY-MM)" value={f.startPeriod ?? ''} onChange={set('startPeriod')} />
       <TextArea label="Purpose" value={f.purpose ?? ''} onChange={set('purpose')} required />
@@ -174,7 +175,7 @@ export function LoansWorkspace({ employeeId }: { employeeId?: string }) {
           body={() => clean({ paidOn: f.paidOn, amount: f.amount, method: f.method, reference: f.reference, notes: f.notes, bankAccountCode: f.bankAccountCode })}>
           <p className="oc-muted oc-small" style={{ margin: 0 }}>Outstanding {money(loan.outstanding)}. Payroll installments are recorded by the payroll run; use this for cash returned or a transfer.</p>
           <TextField label="Paid on" type="date" value={f.paidOn ?? ''} onChange={(v) => setF({ ...f, paidOn: v })} required />
-          <TextField label="Amount (IDR)" inputMode="decimal" value={f.amount ?? ''} onChange={(v) => setF({ ...f, amount: v })} required />
+          <MoneyField label="Amount (IDR)" value={f.amount ?? ''} onChange={(v) => setF({ ...f, amount: v })} required />
           <SelectField label="Method" value={f.method ?? ''} onChange={(v) => setF({ ...f, method: v })} options={METHODS} required />
           <TextField label="Reference" value={f.reference ?? ''} onChange={(v) => setF({ ...f, reference: v })} />
           <TextArea label="Notes" value={f.notes ?? ''} onChange={(v) => setF({ ...f, notes: v })} span />

@@ -1,6 +1,7 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
 import type { Lang } from '../../../lib';
+import { checkoutHref } from '../../../pay-link';
 
 /*
  * Payment schedule behind its secure link (PRD P3 FR-WEB-P3-05,
@@ -97,7 +98,7 @@ export function PaySchedule({ lang, token, quotationToken }: { lang: Lang; token
           <p>{id ? 'Menunggu pembayaran' : 'Waiting for payment'} {fmt(checkout.amount, cur, lang)}.</p>
           {checkout.vaNumber && <p>Virtual Account: <strong>{checkout.vaNumber}</strong></p>}
           {checkout.qrString && <p className="w-muted">QRIS: {checkout.qrString.slice(0, 24)}…</p>}
-          {checkout.checkoutUrl && <a className="w-btn" href={checkout.checkoutUrl}>{id ? 'Lanjut ke pembayaran' : 'Continue to payment'}</a>}
+          {checkout.checkoutUrl && <a className="w-btn" href={checkoutHref(checkout.checkoutUrl, lang) ?? undefined}>{id ? 'Lanjut ke pembayaran' : 'Continue to payment'}</a>}
         </div>
       )}
     </div>

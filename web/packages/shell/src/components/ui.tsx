@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
-import { Icon } from '@oneclub/ui';
+import { Icon, MoneyInput, type MoneyInputProps } from '@oneclub/ui';
 import { Amount, Delta } from './dash';
 import { ApiError, useGet } from '@oneclub/api-client';
 import { useTranslation, validationMessage } from '@oneclub/i18n';
@@ -283,6 +283,19 @@ export function TextField({ label, help, error, span, onChange, required, ...res
   return (
     <Field label={label} help={help} error={error} required={required} span={span}>
       {(id) => <input id={id} className="oc-input" required={required} aria-invalid={!!error} {...rest} onChange={(e) => onChange?.(e.target.value)} />}
+    </Field>
+  );
+}
+
+type MoneyFieldProps = Omit<MoneyInputProps, 'className'> & { label: string; help?: string; error?: string; span?: boolean };
+
+/** A money field: "Rp 500.000" while typing, the plain number in onChange
+ * (demo feedback 10 Oct 2026 #13). Use it for every amount, price, fee,
+ * deposit, tip or salary instead of a TextField. */
+export function MoneyField({ label, help, error, span, required, ...rest }: MoneyFieldProps) {
+  return (
+    <Field label={label} help={help} error={error} required={required} span={span}>
+      {(id) => <MoneyInput id={id} className="oc-input" required={required} aria-invalid={!!error} {...rest} />}
     </Field>
   );
 }

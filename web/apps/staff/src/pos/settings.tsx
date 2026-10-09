@@ -4,6 +4,7 @@ import { qs, request, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import { useOnline } from '@oneclub/offline';
 import { ErrorAlert, Icon, useAuth, useToast } from '@oneclub/shell';
+import { MoneyInput } from '@oneclub/ui';
 import { OUTLET_KEY, write } from '../offline';
 import { OpenShift } from './pay';
 import { CustomerSelect } from './tables';
@@ -67,7 +68,7 @@ function ShiftSection({ outletId }: { outletId: string }) {
       </div>
       <h2 style={{ marginTop: 22 }}>Cash in / out</h2>
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-        <input className="pos-input" style={{ width: 180 }} inputMode="numeric" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))} />
+        <MoneyInput className="pos-input" style={{ width: 180 }} placeholder="Amount" aria-label="Amount" value={amount} onChange={setAmount} />
         <input className="pos-input" style={{ flex: 1, minWidth: 200 }} placeholder="Reason" value={reason} onChange={(e) => setReason(e.target.value)} />
         {(['cash_in', 'cash_out'] as const).map((k) => (
           <button key={k} className="pos-btn" data-variant="outline" disabled={!amount || !reason || move.isPending}
@@ -77,8 +78,8 @@ function ShiftSection({ outletId }: { outletId: string }) {
       </div>
       <h2 style={{ marginTop: 22 }}>Close shift</h2>
       <div style={{ display: 'flex', gap: 12 }}>
-        <input className="pos-input" style={{ width: 220 }} inputMode="numeric" placeholder={`Counted cash (${money(r?.expectedCash)})`} value={counted}
-          onChange={(e) => setCounted(e.target.value.replace(/\D/g, ''))} />
+        <MoneyInput className="pos-input" style={{ width: 220 }} placeholder={`Counted cash (${money(r?.expectedCash)})`} aria-label="Counted cash" value={counted}
+          onChange={setCounted} />
         <button className="pos-btn" disabled={counted === '' || close.isPending}
           onClick={() => close.mutate({ countedCash: counted }, { onSuccess: (res) => { setZ(res); setCounted(''); void refetch(); toast('Shift closed'); } })}>Close Shift</button>
       </div>

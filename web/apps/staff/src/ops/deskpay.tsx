@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { getActiveProperty, qs, request } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import { ErrorAlert, Icon } from '@oneclub/shell';
+import { MoneyInput } from '@oneclub/ui';
 import { Basket, Brand } from '../pos/pay';
 import { PosDialog, money } from '../pos/shared';
 
@@ -104,8 +105,7 @@ export function DeskPayDialog({ amount, summary, members = [], methods, onClose,
           )}
           {method === m && m === 'cash' && (
             <div className="pos-method-body">
-              <input className="pos-input" inputMode="numeric" placeholder={`Cash received (${money(amount)})`} value={received}
-                onChange={(e) => setReceived(e.target.value.replace(/\D/g, ''))} />
+              <MoneyInput className="pos-input" placeholder={`Cash received (${money(amount)})`} aria-label="Cash received" value={received} onChange={setReceived} />
               <div className="pos-guests">
                 {[amount, Math.ceil(amount / 50000) * 50000, Math.ceil(amount / 100000) * 100000].filter((v, i, a) => a.indexOf(v) === i).map((v) => (
                   <button key={v} type="button" className="pos-guest" data-wide aria-pressed={Number(received) === v} onClick={() => setReceived(String(v))}>{money(v)}</button>

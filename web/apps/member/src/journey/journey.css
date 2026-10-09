@@ -256,3 +256,36 @@ a.mj-item:hover strong { color: var(--md-sys-color-primary); }
   .mj-course-top, .mj-hole { grid-template-columns: minmax(0, 1fr); }
   .mj-hole-pics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Member App sign-in / sign-up (demo feedback 10 Oct 2026 #37): a consumer screen with the club photo */
+.mj-auth { min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(360px, 520px); background: var(--md-sys-color-background); }
+.mj-auth-photo { background-size: cover; background-position: center; }
+.mj-auth-panel { display: flex; flex-direction: column; justify-content: center; padding: 40px clamp(20px, 5vw, 56px); background: var(--md-sys-color-surface); }
+.mj-auth-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; font-size: 18px; }
+.mj-auth-brand img { width: 44px; height: 44px; object-fit: contain; }
+.mj-auth-title { margin: 0 0 6px; font-size: 28px; letter-spacing: -0.01em; }
+.mj-auth-btn { min-height: 52px; font-size: 16px; justify-content: center; }
+.mj-auth-links { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.mj-auth-choices { display: grid; gap: 10px; }
+.mj-auth-choices .mj-card { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; min-height: 64px; }
+@media (max-width: 860px) {
+  .mj-auth { grid-template-columns: 1fr; }
+  .mj-auth-photo { min-height: 180px; }
+}
+
+/* promo banner carousel (#37.5) */
+.mj-promo { display: flex; flex-direction: column; gap: 8px; }
+.mj-promo-strip { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: var(--mj-radius); }
+.mj-promo-strip::-webkit-scrollbar { display: none; }
+.mj-promo-slide { flex: 0 0 100%; scroll-snap-align: start; min-height: 168px; display: flex; align-items: flex-end; padding: 18px; text-decoration: none; color: #fff;
+  background: linear-gradient(135deg, var(--md-sys-color-primary), var(--md-sys-color-primary-strong, #0b3d91)); background-size: cover; background-position: center; position: relative; }
+.mj-promo-slide::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 35%, rgba(0, 0, 0, 0.55)); }
+.mj-promo-text { position: relative; z-index: 1; display: grid; gap: 4px; }
+.mj-promo-text strong { font-size: 20px; }
+.mj-promo-tag { justify-self: start; padding: 3px 10px; border-radius: 999px; background: #fff; color: var(--md-sys-color-primary-strong, #0b3d91); font-weight: 700; font-size: 13px; }
+.mj-promo-dots { display: flex; justify-content: center; gap: 6px; }
+.mj-promo-dots button { width: 8px; height: 8px; border-radius: 50%; border: 0; padding: 0; background: var(--md-sys-color-outline-variant); cursor: pointer; }
+.mj-promo-dots button[aria-selected='true'] { width: 22px; border-radius: 4px; background: var(--md-sys-color-primary); }
+.mj-promo-hero { min-height: 200px; border-radius: var(--mj-radius); padding: 16px; display: flex; align-items: flex-start;
+  background: linear-gradient(135deg, var(--md-sys-color-primary), var(--md-sys-color-primary-strong, #0b3d91)); background-size: cover; background-position: center; }
+@media (prefers-reduced-motion: reduce) { .mj-promo-strip { scroll-behavior: auto; } }

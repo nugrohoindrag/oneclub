@@ -3,8 +3,8 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Modal, PageHeader, SelectField, Skeleton, StatTile, StatusPill, TextArea, TextField, useAuth,
-  useToast,
+  AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Modal, MoneyField, PageHeader, SelectField, Skeleton, StatTile, StatusPill,
+  TextArea, TextField, useAuth, useToast,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
@@ -450,7 +450,7 @@ function CashDocumentModal({ onClose, shift }: { onClose: () => void; shift?: R 
         <BankSelect label={kind === 'replenishment' ? 'From bank' : 'Cash account'} value={f.fromAccountId} onChange={upd('fromAccountId')} />
         {['deposit', 'replenishment', 'transfer'].includes(kind) && <BankSelect label="To account" value={f.toAccountId} onChange={upd('toAccountId')} />}
         <TextField label={kind === 'count' ? 'Counted cash' : 'Amount'} value={f.amount} onChange={upd('amount')} required />
-        {['deposit', 'transfer'].includes(kind) && <TextField label="Bank fee" value={f.fee} onChange={upd('fee')} />}
+        {['deposit', 'transfer'].includes(kind) && <MoneyField label="Bank fee" value={f.fee} onChange={upd('fee')} />}
         {kind === 'expense' && <AccountSelect label="Expense account" value={f.expenseAccountId} onChange={upd('expenseAccountId')} required />}
         {kind === 'expense' && <TextField label="Cost center" value={f.costCenter} onChange={upd('costCenter')} />}
         <TextField label="Reference" value={f.reference} onChange={upd('reference')} />

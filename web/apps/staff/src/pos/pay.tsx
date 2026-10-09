@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { qs, request, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDateTime, formatNumber } from '@oneclub/i18n';
 import { ErrorAlert, Icon, useAuth } from '@oneclub/shell';
+import { MoneyInput } from '@oneclub/ui';
 import { PosDialog, money, type Order, type Row } from './shared';
 
 // Payment Method, the shift it needs, and Order Successful (POS design).
@@ -27,7 +28,7 @@ export function OpenShift({ outletId, onOpened }: { outletId: string; onOpened: 
       <p className="pos-muted" style={{ marginTop: -6 }}>Payments are recorded in the cashier shift of this outlet.</p>
       <label className="pos-label" htmlFor="pos-opening">Opening cash</label>
       <div style={{ display: 'flex', gap: 12 }}>
-        <input id="pos-opening" className="pos-input" inputMode="numeric" value={cash} onChange={(e) => setCash(e.target.value.replace(/\D/g, ''))} />
+        <MoneyInput id="pos-opening" className="pos-input" value={cash} onChange={setCash} />
         <button className="pos-btn" disabled={open.isPending} onClick={() => open.mutate({ outletId, openingCash: cash || '0' }, { onSuccess: onOpened })}>Open Shift</button>
       </div>
       <ErrorAlert error={open.error} />
@@ -114,7 +115,7 @@ export function PaymentDialog({ order, shiftId, outletId, onClose, onPaid, onShi
           )}
           {method === m && m === 'cash' && (
             <div className="pos-method-body">
-              <input className="pos-input" inputMode="numeric" placeholder={`Cash received (${money(due)})`} value={received} onChange={(e) => setReceived(e.target.value.replace(/\D/g, ''))} />
+              <MoneyInput className="pos-input" aria-label="Cash received" placeholder={`Cash received (${money(due)})`} value={received} onChange={setReceived} />
               <div className="pos-guests">
                 {[due, Math.ceil(due / 50000) * 50000, Math.ceil(due / 100000) * 100000].filter((v, i, a) => a.indexOf(v) === i).map((v) => (
                   <button key={v} type="button" className="pos-guest" data-wide aria-pressed={Number(received) === v} onClick={() => setReceived(String(v))}>{money(v)}</button>
@@ -170,7 +171,7 @@ export function OfflinePayDialog({ due, onClose, onPay }: { due: number; onClose
           {method === m && m !== 'cash' && <div className="pos-method-body">
             <input className="pos-input" placeholder={m === 'card' ? 'Approval code (EDC)' : 'QRIS reference'} value={ref} onChange={(e) => setRef(e.target.value)} /></div>}
           {method === m && m === 'cash' && <div className="pos-method-body">
-            <input className="pos-input" inputMode="numeric" placeholder={`Cash received (${money(due)})`} value={received} onChange={(e) => setReceived(e.target.value.replace(/\D/g, ''))} />
+            <MoneyInput className="pos-input" aria-label="Cash received" placeholder={`Cash received (${money(due)})`} value={received} onChange={setReceived} />
             {change > 0 && <strong>Change: {money(change)}</strong>}
           </div>}
         </div>

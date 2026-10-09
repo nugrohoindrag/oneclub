@@ -3,8 +3,8 @@ import { Link } from 'react-router';
 import { download, request, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
 import {
-  AutoResourcePage, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SelectField, StatusPill, TextArea, TextField, useAuth, useToast,
-  type Option,
+  AutoResourcePage, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, MoneyField, PageHeader, SelectField, StatusPill, TextArea, TextField,
+  useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { KV, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute } from '../p3/types';
@@ -94,7 +94,7 @@ function ClaimForm({ path, upload, employees, categories, onClose }: { path: str
         options={categories.map((c) => ({ value: String(c.id), label: String(c.name) }))}
         help={cat?.maxAmount ? `At most ${money(cat.maxAmount)} per claim` : undefined} />
       <TextField label="Date of the expense" type="date" value={f.expenseDate} onChange={set('expenseDate')} required />
-      <TextField label="Amount (IDR)" inputMode="decimal" value={f.amount ?? ''} onChange={set('amount')} required />
+      <MoneyField label="Amount (IDR)" value={f.amount ?? ''} onChange={set('amount')} required />
       <TextArea label="Description" value={f.description ?? ''} onChange={set('description')} required span />
       <ReceiptUpload path={upload} value={f.fileId ?? ''} onChange={set('fileId')} />
     </Send>

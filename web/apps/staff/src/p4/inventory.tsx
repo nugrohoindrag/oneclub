@@ -4,8 +4,8 @@ import { qs, request, uuidv7, useGet, useSend, type Page } from '@oneclub/api-cl
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import { enqueue } from '@oneclub/offline';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
-  TextField, useAuth, useToast, type Option,
+  AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, MoneyField, PageHeader, SelectField, Skeleton, StatusPill,
+  TextArea, TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import { KPIDashboardPage } from '../p2';
@@ -60,38 +60,83 @@ type Detector = { detect: (src: HTMLVideoElement) => Promise<{ rawValue: string 
 
 /** Barcode input: USB / Bluetooth scanners type into the field (Enter),
  * the camera uses BarcodeDetector where the browser has it. */
-export function ScanField({ onCode, label: lbl = 'Scan barcode' }: { onCode: (code: string) => void; label?: string }) {
+export function ScanField({ onCode, label: lbl = 'Scan barcode', placeholder = 'Scan or type the barcode, then Enter', autoFocus }: {
+  onCode: (code: string) => void; label?: string; placeholder?: string; autoFocus?: boolean;
+}) {
   const [code, setCode] = useState('');
   const [camera, setCamera] = useState(false);
+  const [problem, setProblem] = useState('');
   const video = useRef<HTMLVideoElement>(null);
-  const supported = typeof window !== 'undefined' && 'BarcodeDetector' in window;
+  // BarcodeDetector where the browser has it (Chrome Android, Safari 17+); elsewhere — Chrome on
+  // Windows/Linux, Firefox — the QR code is decoded in JS (jsQR), so the camera works on every
+  // front desk laptop (demo feedback 10 Oct 2026 #15)
+  const native = typeof window !== 'undefined' && 'BarcodeDetector' in window;
+  const canCamera = typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
   useEffect(() => {
-    if (!camera || !supported) return undefined;
+    if (!camera) return undefined;
+    if (typeof window !== 'undefined' && !window.isSecureContext) {
+      setProblem('The camera needs a secure (https) connection.');
+      setCamera(false);
+      return undefined;
+    }
     let stream: MediaStream | undefined;
     let timer: number | undefined;
-    const Ctor = (window as unknown as { BarcodeDetector: new (o: { formats: string[] }) => Detector }).BarcodeDetector;
-    const detector = new Ctor({ formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'qr_code'] });
-    void navigator.mediaDevices?.getUserMedia({ video: { facingMode: 'environment' } }).then((s) => {
-      stream = s;
+    let stopped = false;
+    const found = (raw: string) => {
+      if (stopped || !raw) return;
+      stopped = true;
+      onCode(raw);
+      setCamera(false);
+    };
+    const canvas = document.createElement('canvas');
+    const start = async () => {
+      let detect: (v: HTMLVideoElement) => Promise<string | undefined>;
+      if (native) {
+        const Ctor = (window as unknown as { BarcodeDetector: new (o: { formats: string[] }) => Detector }).BarcodeDetector;
+        const detector = new Ctor({ formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'qr_code'] });
+        detect = async (v) => (await detector.detect(v))[0]?.rawValue;
+      } else {
+        const jsQR = (await import('jsqr')).default;
+        detect = async (v) => {
+          const w = v.videoWidth;
+          const h = v.videoHeight;
+          if (!w || !h) return undefined;
+          const scale = Math.min(1, 640 / w);
+          canvas.width = Math.round(w * scale);
+          canvas.height = Math.round(h * scale);
+          const ctx = canvas.getContext('2d', { willReadFrequently: true });
+          if (!ctx) return undefined;
+          ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+          const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          return jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' })?.data;
+        };
+      }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      } catch (e) {
+        const name = (e as DOMException).name;
+        setProblem(name === 'NotAllowedError' || name === 'SecurityError' ? 'Camera permission was refused — allow the camera for this site in the browser.'
+          : name === 'NotFoundError' || name === 'OverconstrainedError' ? 'No camera found on this device.' : 'The camera could not start.');
+        setCamera(false);
+        return;
+      }
+      if (stopped) { stream.getTracks().forEach((t) => t.stop()); return; }
       if (video.current) {
-        video.current.srcObject = s;
+        video.current.srcObject = stream;
         void video.current.play();
       }
       timer = window.setInterval(() => {
-        if (!video.current) return;
-        void detector.detect(video.current).then((found) => {
-          if (found[0]?.rawValue) {
-            onCode(found[0].rawValue);
-            setCamera(false);
-          }
-        }).catch(() => undefined);
-      }, 400);
-    }).catch(() => setCamera(false));
+        if (video.current) void detect(video.current).then((raw) => raw && found(raw)).catch(() => undefined);
+      }, native ? 400 : 300);
+    };
+    setProblem('');
+    void start();
     return () => {
+      stopped = true;
       if (timer) window.clearInterval(timer);
       stream?.getTracks().forEach((t) => t.stop());
     };
-  }, [camera, supported, onCode]);
+  }, [camera, native, onCode]);
   const submit = () => {
     if (code.trim()) onCode(code.trim());
     setCode('');
@@ -99,14 +144,15 @@ export function ScanField({ onCode, label: lbl = 'Scan barcode' }: { onCode: (co
   return (
     <div className="oc-stack" style={{ gap: 8 }}>
       <div className="oc-row-wrap" onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}>
-        <TextField label={lbl} value={code} onChange={setCode} placeholder="Scan or type the barcode, then Enter" />
-        <button className="oc-btn oc-btn-neutral" onClick={submit} aria-label="Look up barcode"><Icon name="search" size={18} /> Find</button>
-        {supported && (
+        <TextField label={lbl} value={code} onChange={setCode} placeholder={placeholder} autoFocus={autoFocus} />
+        <button className="oc-btn oc-btn-neutral" onClick={submit} aria-label="Look up the code"><Icon name="search" size={18} /> Find</button>
+        {canCamera && (
           <button className="oc-btn oc-btn-neutral" onClick={() => setCamera((c) => !c)} aria-pressed={camera} aria-label="Scan with the camera">
             <Icon name="photo_camera" size={18} /> {camera ? 'Stop camera' : 'Camera'}
           </button>
         )}
       </div>
+      {problem && <div className="oc-alert oc-alert-warning" role="alert">{problem}</div>}
       {camera && <video ref={video} muted playsInline aria-label="Camera preview" style={{ width: '100%', maxWidth: 420, borderRadius: 12 }} />}
     </div>
   );
@@ -146,7 +192,7 @@ function LinesEditor({ lines, onChange, incoming, signed }: { lines: Line[]; onC
           <SelectField label="Item" value={l.itemId} onChange={(v) => set(i, 'itemId', v)} options={items.options} placeholder="Select item" />
           <TextField label={signed ? 'Quantity (+ / −)' : 'Quantity'} type="number" value={l.quantity} onChange={(v) => set(i, 'quantity', v)} />
           <SelectField label="UOM" value={l.uomId} onChange={(v) => set(i, 'uomId', v)} options={uoms} placeholder="Stock UOM" />
-          {incoming && <TextField label="Unit cost" type="number" value={l.unitCost} onChange={(v) => set(i, 'unitCost', v)} />}
+          {incoming && <MoneyField label="Unit cost" value={l.unitCost} onChange={(v) => set(i, 'unitCost', v)} />}
           <TextField label="Batch" value={l.batchNo} onChange={(v) => set(i, 'batchNo', v)} />
           {incoming && <TextField label="Expiry" type="date" value={l.expiryDate} onChange={(v) => set(i, 'expiryDate', v)} />}
           <button className="oc-btn oc-btn-text" aria-label="Remove line" onClick={() => onChange(lines.filter((_, j) => j !== i))}><Icon name="delete" size={18} /></button>
@@ -1042,8 +1088,8 @@ function CompleteWorkOrder({ wo, onClose }: { wo: R; onClose: () => void }) {
     </>}>
       <ErrorAlert error={send.error} />
       <div className="oc-form">
-        <TextField label="Labor cost" type="number" value={labor} onChange={setLabor} />
-        <TextField label="Vendor cost" type="number" value={vendor} onChange={setVendor} />
+        <MoneyField label="Labor cost" value={labor} onChange={setLabor} />
+        <MoneyField label="Vendor cost" value={vendor} onChange={setVendor} />
         <WarehouseSelect label="Spare parts from (default Engineering)" value={wh} onChange={setWh} all />
       </div>
       <h3>Spare parts used</h3>

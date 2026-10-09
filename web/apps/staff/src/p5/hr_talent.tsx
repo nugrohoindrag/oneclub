@@ -3,8 +3,8 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { download, request, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { currentLocale, formatDate, formatDateTime } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Board, BoardCard, Card, Checkbox, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
-  TextField, useAuth, useToast, type Option,
+  AutoResourcePage, Board, BoardCard, Card, Checkbox, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, MoneyField, PageHeader, SelectField,
+  Skeleton, StatusPill, TextArea, TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute } from '../p3/types';
@@ -166,8 +166,8 @@ function RequisitionForm({ onClose, onDone, edit }: { onClose: () => void; onDon
         <SelectField label="Worker category" value={f.workerCategory} onChange={set('workerCategory')} options={opts(['regular', 'daily', 'intern'])} />
         <SelectField label="Reason" value={f.reason} onChange={set('reason')} options={opts(['new_position', 'replacement', 'seasonal', 'other'])} />
         {f.reason === 'replacement' && <SelectField label="Replaces" value={f.replacementForId ?? ''} onChange={set('replacementForId')} options={employees} placeholder="—" />}
-        <TextField label="Salary budget from" inputMode="numeric" value={f.salaryMin ?? ''} onChange={set('salaryMin')} />
-        <TextField label="Salary budget to" inputMode="numeric" value={f.salaryMax ?? ''} onChange={set('salaryMax')} />
+        <MoneyField label="Salary budget from" value={f.salaryMin ?? ''} onChange={set('salaryMin')} />
+        <MoneyField label="Salary budget to" value={f.salaryMax ?? ''} onChange={set('salaryMax')} />
       </>}
       <SelectField label="Hiring manager" value={f.hiringManagerId ?? ''} onChange={set('hiringManagerId')} options={employees} placeholder={edit ? 'Unchanged' : 'Me'} />
       <TextField label="Target start" type="date" value={f.targetStartDate ?? ''} onChange={set('targetStartDate')} />
@@ -322,7 +322,7 @@ function CandidateForm({ edit, onClose }: { edit?: R; onClose: () => void }) {
       <TextField label="Current employer" value={f.currentEmployer ?? ''} onChange={set('currentEmployer')} />
       <TextField label="Current job title" value={f.currentTitle ?? ''} onChange={set('currentTitle')} />
       <TextField label="Experience (years)" inputMode="decimal" value={f.experienceYears ?? ''} onChange={set('experienceYears')} />
-      {can('hris.candidate.view_sensitive') && <TextField label="Expected salary" inputMode="numeric" value={f.expectedSalary ?? ''} onChange={set('expectedSalary')} />}
+      {can('hris.candidate.view_sensitive') && <MoneyField label="Expected salary" value={f.expectedSalary ?? ''} onChange={set('expectedSalary')} />}
       <SelectField label="Source" value={f.source ?? ''} onChange={set('source')} options={opts(SOURCES)} />
       <TextArea label="Notes" value={f.notes ?? ''} onChange={set('notes')} span />
       <CvUpload value={f.cvFileId ?? ''} onChange={set('cvFileId')} />
@@ -514,12 +514,12 @@ function OfferForm({ applicationId, onClose }: { applicationId: string; contract
       <TextField label="Start date" type="date" value={f.startDate ?? ''} onChange={set('startDate')} required />
       {f.contractType === 'pkwt' ? <TextField label="End date" type="date" value={f.endDate ?? ''} onChange={set('endDate')} required />
         : <TextField label="Probation (months)" type="number" min={0} max={3} value={f.probationMonths ?? ''} onChange={set('probationMonths')} />}
-      <TextField label="Base salary" inputMode="numeric" value={f.baseSalary ?? ''} onChange={set('baseSalary')} required />
+      <MoneyField label="Base salary" value={f.baseSalary ?? ''} onChange={set('baseSalary')} required />
       <SelectField label="Work week" value={f.workWeekDays} onChange={set('workWeekDays')} options={[{ value: '5', label: '5 days' }, { value: '6', label: '6 days' }]} />
       {allow.map((x, i) => (
         <React.Fragment key={i}>
           <TextField label={`Allowance ${i + 1}`} value={x.name} onChange={(v) => setAllow(allow.map((y, j) => (j === i ? { ...y, name: v } : y)))} />
-          <TextField label="Amount" inputMode="numeric" value={x.amount} onChange={(v) => setAllow(allow.map((y, j) => (j === i ? { ...y, amount: v } : y)))} />
+          <MoneyField label="Amount" value={x.amount} onChange={(v) => setAllow(allow.map((y, j) => (j === i ? { ...y, amount: v } : y)))} />
         </React.Fragment>
       ))}
       <button className="oc-btn oc-btn-text oc-btn-sm" onClick={() => setAllow([...allow, { name: '', amount: '' }])}><Icon name="add" size={18} /> Allowance</button>

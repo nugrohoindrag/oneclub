@@ -15652,6 +15652,14 @@
           "flightNo": {
             "type": "integer"
           },
+          "golfCartsNeeded": {
+            "description": "Players of the flight / players per cart (Golf Cart Policy)",
+            "type": "integer"
+          },
+          "holdReason": {
+            "nullable": true,
+            "type": "string"
+          },
           "holesPlayed": {
             "nullable": true,
             "type": "integer"
@@ -15672,6 +15680,19 @@
           "pausedSeconds": {
             "description": "Paused time already left out of the play time",
             "type": "integer"
+          },
+          "playersPerCart": {
+            "type": "integer"
+          },
+          "queueStatus": {
+            "enum": [
+              "waiting",
+              "on_hold",
+              "dispatched",
+              "removed"
+            ],
+            "nullable": true,
+            "type": "string"
           },
           "readyAt": {
             "format": "date-time",
@@ -15711,7 +15732,9 @@
           "flightNo",
           "status",
           "pausedSeconds",
-          "currentHole"
+          "currentHole",
+          "golfCartsNeeded",
+          "playersPerCart"
         ],
         "type": "object"
       },
@@ -16021,11 +16044,21 @@
             "format": "date-time",
             "type": "string"
           },
+          "holdReason": {
+            "description": "Held by the starter (on hold) with this reason",
+            "nullable": true,
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
           },
           "localTime": {
+            "type": "string"
+          },
+          "pauseReason": {
+            "description": "rain, lightning or a break (halfway, turn, tee_house)",
+            "nullable": true,
             "type": "string"
           },
           "pausedAt": {
@@ -18119,12 +18152,16 @@
           },
           "playersPerCaddy": {
             "type": "integer"
+          },
+          "scoresByAnyCaddy": {
+            "type": "boolean"
           }
         },
         "required": [
           "playersPerCaddy",
           "mandatory",
-          "allowRequest"
+          "allowRequest",
+          "scoresByAnyCaddy"
         ],
         "type": "object"
       },
@@ -19263,6 +19300,14 @@
         "required": [
           "reason"
         ],
+        "type": "object"
+      },
+      "CancelOrderInput": {
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "CancelRequest": {
@@ -26215,6 +26260,12 @@
             "format": "uuid",
             "type": "string"
           },
+          "imageUrl": {
+            "description": "Banner picture (Member App home)",
+            "maxLength": 500,
+            "nullable": true,
+            "type": "string"
+          },
           "itemRefs": {
             "description": "Items (resource type, resource, package codes; empty = all)",
             "items": {
@@ -26588,6 +26639,12 @@
             "format": "int64",
             "nullable": true,
             "type": "integer"
+          },
+          "imageUrl": {
+            "description": "Banner picture (Member App home)",
+            "maxLength": 500,
+            "nullable": true,
+            "type": "string"
           },
           "itemRefs": {
             "description": "Items (resource type, resource, package codes; empty = all)",
@@ -29829,6 +29886,14 @@
         ],
         "type": "object"
       },
+      "CorrectionDecision": {
+        "properties": {
+          "note": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "CorrectionInput": {
         "properties": {
           "entries": {
@@ -29843,6 +29908,103 @@
         },
         "required": [
           "entries",
+          "reason"
+        ],
+        "type": "object"
+      },
+      "CorrectionRequest": {
+        "properties": {
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "currentStrokes": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "decidedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "decisionNote": {
+            "nullable": true,
+            "type": "string"
+          },
+          "holeNumber": {
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "par": {
+            "type": "integer"
+          },
+          "playedOn": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "requestedName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "scorecardId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "seq": {
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "requested",
+              "approved",
+              "rejected"
+            ],
+            "type": "string"
+          },
+          "strokes": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "scorecardId",
+          "playerName",
+          "playedOn",
+          "seq",
+          "holeNumber",
+          "par",
+          "strokes",
+          "reason",
+          "status",
+          "createdAt"
+        ],
+        "type": "object"
+      },
+      "CorrectionRequestInput": {
+        "properties": {
+          "reason": {
+            "type": "string"
+          },
+          "seq": {
+            "description": "Hole sequence in the round (1-18)",
+            "type": "integer"
+          },
+          "strokes": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "seq",
+          "strokes",
           "reason"
         ],
         "type": "object"
@@ -30332,6 +30494,61 @@
         },
         "type": "object"
       },
+      "CourseLine": {
+        "properties": {
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "guestName": {
+            "description": "Player / member the item is for",
+            "type": "string"
+          },
+          "guestRef": {
+            "description": "Source party, e.g. the golf booking player",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "modifierIds": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "playerId": {
+            "description": "Player the item is for (default: the order's player)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "productId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "quantity": {
+            "description": "Default 1",
+            "type": "string"
+          },
+          "seat": {
+            "type": "string"
+          },
+          "variantId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "productId"
+        ],
+        "type": "object"
+      },
       "CourseMap": {
         "properties": {
           "assets": {
@@ -30554,7 +30771,7 @@
           },
           "lines": {
             "items": {
-              "$ref": "#/components/schemas/LineInput"
+              "$ref": "#/components/schemas/CourseLine"
             },
             "type": "array"
           },
@@ -30567,6 +30784,7 @@
             "type": "string"
           },
           "playerId": {
+            "description": "Default player of the items",
             "format": "uuid",
             "type": "string"
           }
@@ -30772,6 +30990,85 @@
         },
         "type": "object"
       },
+      "CourseStop": {
+        "properties": {
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "endedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "endedBy": {
+            "nullable": true,
+            "type": "string"
+          },
+          "flights": {
+            "description": "Flights in play paused by the stop",
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "rain_stop",
+              "lightning_warning"
+            ],
+            "type": "string"
+          },
+          "minutes": {
+            "type": "integer"
+          },
+          "reason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "startedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "startedBy": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "courseId",
+          "kind",
+          "startedAt",
+          "flights",
+          "minutes"
+        ],
+        "type": "object"
+      },
+      "CourseStopInput": {
+        "properties": {
+          "courseId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "rain_stop",
+              "lightning_warning"
+            ],
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "courseId",
+          "kind"
+        ],
+        "type": "object"
+      },
       "Court": {
         "properties": {
           "archivedAt": {
@@ -30889,6 +31186,12 @@
             "description": "Create as Draft (online checkout)",
             "type": "boolean"
           },
+          "lines": {
+            "items": {
+              "$ref": "#/components/schemas/CourtLine"
+            },
+            "type": "array"
+          },
           "notes": {
             "type": "string"
           },
@@ -30987,6 +31290,28 @@
             "type": "string"
           }
         },
+        "type": "object"
+      },
+      "CourtLine": {
+        "properties": {
+          "courtId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "end": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "start": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "courtId",
+          "start",
+          "end"
+        ],
         "type": "object"
       },
       "CreateAssignmentRequest": {
@@ -43606,6 +43931,10 @@
           "label": {
             "type": "string"
           },
+          "money": {
+            "description": "A decimal amount of money: the form shows Rupiah while typing",
+            "type": "boolean"
+          },
           "name": {
             "type": "string"
           },
@@ -43654,7 +43983,8 @@
           "required",
           "readOnly",
           "createOnly",
-          "filter"
+          "filter",
+          "money"
         ],
         "type": "object"
       },
@@ -44062,6 +44392,10 @@
       },
       "FlightPause": {
         "properties": {
+          "breakSeconds": {
+            "description": "Time on breaks (counted in the play time)",
+            "type": "integer"
+          },
           "flightId": {
             "format": "uuid",
             "type": "string"
@@ -44085,7 +44419,8 @@
         "required": [
           "flightId",
           "status",
-          "pausedSeconds"
+          "pausedSeconds",
+          "breakSeconds"
         ],
         "type": "object"
       },
@@ -57830,6 +58165,21 @@
       },
       "LineInput": {
         "properties": {
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "guestName": {
+            "description": "Player / member the item is for",
+            "type": "string"
+          },
+          "guestRef": {
+            "description": "Source party, e.g. the golf booking player",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
           "modifierIds": {
             "items": {
               "format": "uuid",
@@ -65513,6 +65863,18 @@
             "description": "Positive: behind the target",
             "type": "integer"
           },
+          "breakAllowanceMinutes": {
+            "description": "Allowance of the current break (Golf Policy)",
+            "type": "integer"
+          },
+          "breakMinutes": {
+            "description": "Breaks of the round so far",
+            "type": "integer"
+          },
+          "breakOverMinutes": {
+            "description": "Current break beyond its allowance",
+            "type": "integer"
+          },
           "caddies": {
             "items": {
               "type": "string"
@@ -65593,6 +65955,33 @@
             "nullable": true,
             "type": "number"
           },
+          "onBreak": {
+            "description": "The pause is a break (halfway, turn, tee house)",
+            "type": "boolean"
+          },
+          "pauseReason": {
+            "enum": [
+              "rain",
+              "lightning",
+              "other",
+              "halfway",
+              "turn",
+              "tee_house",
+              "break_other"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedAt": {
+            "description": "Paused (rain, lightning) or on a break since",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedMinutes": {
+            "description": "Weather pauses of the round, left out of the pace",
+            "type": "integer"
+          },
           "players": {
             "items": {
               "type": "string"
@@ -65636,6 +66025,11 @@
           "players",
           "caddies",
           "golfCarts",
+          "onBreak",
+          "pausedMinutes",
+          "breakMinutes",
+          "breakAllowanceMinutes",
+          "breakOverMinutes",
           "live",
           "interventions"
         ],
@@ -65811,6 +66205,13 @@
           "end": {
             "format": "date-time",
             "type": "string"
+          },
+          "lines": {
+            "description": "Several courts / hours in one booking (courtId/start/end ignored)",
+            "items": {
+              "$ref": "#/components/schemas/CourtLine"
+            },
+            "type": "array"
           },
           "memberCharge": {
             "description": "Charge to my member account; otherwise pay the folio online",
@@ -69375,6 +69776,10 @@
             "nullable": true,
             "type": "integer"
           },
+          "guestName": {
+            "nullable": true,
+            "type": "string"
+          },
           "id": {
             "format": "uuid",
             "type": "string"
@@ -69434,6 +69839,11 @@
           },
           "propertyId": {
             "format": "uuid",
+            "type": "string"
+          },
+          "reference": {
+            "description": "e.g. golf booking BK-261010-0015",
+            "nullable": true,
             "type": "string"
           },
           "scheduledFor": {
@@ -69574,6 +69984,10 @@
           "guestCount": {
             "type": "integer"
           },
+          "guestName": {
+            "description": "Who the order is for when no customer is linked (e.g. a guest player)",
+            "type": "string"
+          },
           "id": {
             "description": "Client UUIDv7 (offline terminals); a resubmission returns the existing order",
             "format": "uuid",
@@ -69626,6 +70040,10 @@
               "type": "string"
             },
             "type": "array"
+          },
+          "reference": {
+            "description": "Source reference shown on the order, e.g. a golf booking code",
+            "type": "string"
           },
           "scheduledFor": {
             "description": "Pre-order ready time / catering serve time",
@@ -69702,10 +70120,26 @@
             "nullable": true,
             "type": "string"
           },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
           "discountAmount": {
             "type": "string"
           },
           "discountReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "guestName": {
+            "description": "Player / member the item is for",
+            "nullable": true,
+            "type": "string"
+          },
+          "guestRef": {
+            "description": "Source party of the item, e.g. the golf booking player",
+            "format": "uuid",
             "nullable": true,
             "type": "string"
           },
@@ -71629,6 +72063,18 @@
             "description": "Positive: behind the target",
             "type": "integer"
           },
+          "breakAllowanceMinutes": {
+            "description": "Allowance of the current break (Golf Policy)",
+            "type": "integer"
+          },
+          "breakMinutes": {
+            "description": "Breaks of the round so far",
+            "type": "integer"
+          },
+          "breakOverMinutes": {
+            "description": "Current break beyond its allowance",
+            "type": "integer"
+          },
           "caddies": {
             "items": {
               "type": "string"
@@ -71686,6 +72132,33 @@
             "description": "Booking code or flight number",
             "type": "string"
           },
+          "onBreak": {
+            "description": "The pause is a break (halfway, turn, tee house)",
+            "type": "boolean"
+          },
+          "pauseReason": {
+            "enum": [
+              "rain",
+              "lightning",
+              "other",
+              "halfway",
+              "turn",
+              "tee_house",
+              "break_other"
+            ],
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedAt": {
+            "description": "Paused (rain, lightning) or on a break since",
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedMinutes": {
+            "description": "Weather pauses of the round, left out of the pace",
+            "type": "integer"
+          },
           "players": {
             "items": {
               "type": "string"
@@ -71728,7 +72201,12 @@
           "slow",
           "players",
           "caddies",
-          "golfCarts"
+          "golfCarts",
+          "onBreak",
+          "pausedMinutes",
+          "breakMinutes",
+          "breakAllowanceMinutes",
+          "breakOverMinutes"
         ],
         "type": "object"
       },
@@ -74778,11 +75256,24 @@
             "type": "string"
           },
           "reason": {
-            "description": "Default rain",
+            "description": "Default rain; halfway, turn, tee_house and break_other are breaks (play time keeps counting)",
             "enum": [
               "rain",
               "lightning",
-              "other"
+              "other",
+              "halfway",
+              "turn",
+              "tee_house",
+              "break_other"
+            ],
+            "type": "string"
+          },
+          "source": {
+            "description": "Default tablet",
+            "enum": [
+              "tablet",
+              "starter",
+              "marshal"
             ],
             "type": "string"
           }
@@ -79397,6 +79888,15 @@
       },
       "PlayerContext": {
         "properties": {
+          "caddyName": {
+            "description": "Caddy assigned to the player",
+            "nullable": true,
+            "type": "string"
+          },
+          "canScore": {
+            "description": "The signed-in user may enter this player's score (Golf Policy caddy.scoresByAnyCaddy)",
+            "type": "boolean"
+          },
           "courseHandicap": {
             "description": "From the scorecard's tee set (WHS)",
             "nullable": true,
@@ -79426,6 +79926,10 @@
             "format": "date-time",
             "nullable": true,
             "type": "string"
+          },
+          "myPlayer": {
+            "description": "Assigned to the signed-in caddy",
+            "type": "boolean"
           },
           "name": {
             "type": "string"
@@ -79464,7 +79968,9 @@
           "highlights",
           "roundsWithMe",
           "favoriteCaddyIsMe",
-          "holeStrokes"
+          "holeStrokes",
+          "myPlayer",
+          "canScore"
         ],
         "type": "object"
       },
@@ -83195,6 +83701,10 @@
             "format": "uuid",
             "type": "string"
           },
+          "imageUrl": {
+            "nullable": true,
+            "type": "string"
+          },
           "itemRefs": {
             "items": {
               "type": "string"
@@ -83277,6 +83787,10 @@
             "type": "boolean"
           },
           "status": {
+            "type": "string"
+          },
+          "terms": {
+            "nullable": true,
             "type": "string"
           },
           "timeWindows": {
@@ -83432,6 +83946,16 @@
             "format": "uuid",
             "type": "string"
           },
+          "imageUrl": {
+            "nullable": true,
+            "type": "string"
+          },
+          "membershipTypes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "minPurchase": {
             "nullable": true,
             "type": "string"
@@ -83444,6 +83968,17 @@
           },
           "requiresCode": {
             "type": "boolean"
+          },
+          "segments": {
+            "description": "member / non_member … (empty = everyone)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "terms": {
+            "nullable": true,
+            "type": "string"
           },
           "timeWindows": {
             "items": {
@@ -83475,7 +84010,9 @@
           "timeWindows",
           "channels",
           "businessLines",
-          "requiresCode"
+          "requiresCode",
+          "segments",
+          "membershipTypes"
         ],
         "type": "object"
       },
@@ -84275,6 +84812,9 @@
       },
       "PublicCourt": {
         "properties": {
+          "code": {
+            "type": "string"
+          },
           "facilityId": {
             "format": "uuid",
             "type": "string"
@@ -84301,6 +84841,7 @@
         },
         "required": [
           "id",
+          "code",
           "name",
           "facilityId",
           "indoor"
@@ -84309,6 +84850,10 @@
       },
       "PublicCourtBooking": {
         "properties": {
+          "consent": {
+            "description": "Marketing consent (UU PDP): ticked by the visitor, never pre-checked",
+            "type": "boolean"
+          },
           "courtId": {
             "format": "uuid",
             "type": "string"
@@ -84319,6 +84864,13 @@
           },
           "guest": {
             "$ref": "#/components/schemas/PublicGuest"
+          },
+          "lines": {
+            "description": "Several courts / hours in one booking and one payment (the cart)",
+            "items": {
+              "$ref": "#/components/schemas/CourtLine"
+            },
+            "type": "array"
           },
           "notes": {
             "type": "string"
@@ -84554,6 +85106,9 @@
       },
       "PublicFacility": {
         "properties": {
+          "code": {
+            "type": "string"
+          },
           "facilityType": {
             "nullable": true,
             "type": "string"
@@ -84574,6 +85129,7 @@
         },
         "required": [
           "id",
+          "code",
           "name",
           "usageMode",
           "openingHours"
@@ -87944,6 +88500,15 @@
             "type": "string"
           },
           "localTime": {
+            "type": "string"
+          },
+          "pauseReason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "pausedAt": {
+            "format": "date-time",
+            "nullable": true,
             "type": "string"
           },
           "players": {
@@ -96061,6 +96626,10 @@
             "nullable": true,
             "type": "string"
           },
+          "breakSeconds": {
+            "description": "Time on breaks (halfway, turn, tee house): still play time",
+            "type": "integer"
+          },
           "caddies": {
             "items": {
               "$ref": "#/components/schemas/CaddyAssignment"
@@ -96185,6 +96754,7 @@
           "currentSeq",
           "holes",
           "pausedSeconds",
+          "breakSeconds",
           "paceStatus",
           "behindMinutes",
           "players",
@@ -96475,6 +97045,55 @@
           "holeCount",
           "par",
           "holes"
+        ],
+        "type": "object"
+      },
+      "RouteTeeHouse": {
+        "properties": {
+          "between": {
+            "description": "e.g. 9–10",
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "hole": {
+            "description": "Hole the tee house stands by (between this hole and the next)",
+            "type": "integer"
+          },
+          "holesAhead": {
+            "description": "Holes until the flight reaches it on its route (0 = this hole)",
+            "nullable": true,
+            "type": "integer"
+          },
+          "meters": {
+            "description": "Distance from the tablet (GPS)",
+            "nullable": true,
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "nearest": {
+            "description": "The one to suggest: nearest by GPS, else the next on the route",
+            "type": "boolean"
+          },
+          "open": {
+            "type": "boolean"
+          },
+          "outletId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "outletId",
+          "code",
+          "name",
+          "hole",
+          "between",
+          "open",
+          "nearest"
         ],
         "type": "object"
       },
@@ -99359,6 +99978,10 @@
             "format": "uuid",
             "type": "string"
           },
+          "locked": {
+            "description": "Scores change only by a correction (round completed or card finalized)",
+            "type": "boolean"
+          },
           "par": {
             "type": "integer"
           },
@@ -99400,6 +100023,16 @@
             "nullable": true,
             "type": "integer"
           },
+          "stage": {
+            "description": "in play → completed (round over) → submitted (attested) → finalized (handicap)",
+            "enum": [
+              "in_play",
+              "completed",
+              "submitted",
+              "finalized"
+            ],
+            "type": "string"
+          },
           "status": {
             "enum": [
               "draft",
@@ -99438,6 +100071,8 @@
           "par",
           "status",
           "flags",
+          "stage",
+          "locked",
           "scores"
         ],
         "type": "object"
@@ -99545,6 +100180,10 @@
             "format": "uuid",
             "type": "string"
           },
+          "locked": {
+            "description": "Scores change only by a correction (round completed or card finalized)",
+            "type": "boolean"
+          },
           "net": {
             "description": "Gross minus the course handicap",
             "nullable": true,
@@ -99598,6 +100237,16 @@
             "nullable": true,
             "type": "integer"
           },
+          "stage": {
+            "description": "in play → completed (round over) → submitted (attested) → finalized (handicap)",
+            "enum": [
+              "in_play",
+              "completed",
+              "submitted",
+              "finalized"
+            ],
+            "type": "string"
+          },
           "status": {
             "enum": [
               "draft",
@@ -99636,6 +100285,8 @@
           "par",
           "status",
           "flags",
+          "stage",
+          "locked",
           "scores",
           "clubName",
           "courseName",
@@ -103053,6 +103704,134 @@
         },
         "type": "object"
       },
+      "SignUp": {
+        "properties": {
+          "demoCode": {
+            "description": "Only on demo / sandbox instances (e-mail and WhatsApp on hold)",
+            "nullable": true,
+            "type": "string"
+          },
+          "expiresAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sentTo": {
+            "description": "Masked e-mail / phone the code was sent to",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "name",
+          "sentTo",
+          "expiresAt"
+        ],
+        "type": "object"
+      },
+      "SignUpConfirm": {
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "password"
+        ],
+        "type": "object"
+      },
+      "SignUpDone": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "memberNo": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "member",
+              "non_member"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "name",
+          "status"
+        ],
+        "type": "object"
+      },
+      "SignUpInput": {
+        "properties": {
+          "birthDate": {
+            "description": "member: YYYY-MM-DD, one of birth date / phone / e-mail must match the club's record",
+            "type": "string"
+          },
+          "channel": {
+            "description": "Where the code goes (default e-mail)",
+            "enum": [
+              "email",
+              "whatsapp"
+            ],
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "kind": {
+            "description": "member: an existing member of the club; guest: a non-member account",
+            "enum": [
+              "member",
+              "guest"
+            ],
+            "type": "string"
+          },
+          "memberNo": {
+            "description": "member: the member no. on the card",
+            "type": "string"
+          },
+          "name": {
+            "description": "guest: full name",
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "website": {
+            "description": "Honeypot — must stay empty",
+            "type": "string"
+          }
+        },
+        "required": [
+          "propertyId",
+          "kind",
+          "email"
+        ],
+        "type": "object"
+      },
       "SimulateInput": {
         "properties": {
           "scenarios": {
@@ -103984,6 +104763,12 @@
             },
             "type": "array"
           },
+          "notReady": {
+            "items": {
+              "$ref": "#/components/schemas/SheetFlight"
+            },
+            "type": "array"
+          },
           "onHold": {
             "description": "Held flights keep their Preserved Queue Position",
             "items": {
@@ -103998,6 +104783,7 @@
           "active",
           "onHold",
           "dispatched",
+          "notReady",
           "courseStatus"
         ],
         "type": "object"
@@ -110456,6 +111242,11 @@
       },
       "Ticket": {
         "properties": {
+          "customerName": {
+            "description": "Who the order is for (player, member, guest)",
+            "nullable": true,
+            "type": "string"
+          },
           "destinationRef": {
             "nullable": true,
             "type": "string"
@@ -110495,6 +111286,11 @@
           },
           "receivedAt": {
             "format": "date-time",
+            "type": "string"
+          },
+          "reference": {
+            "description": "e.g. the golf booking code",
+            "nullable": true,
             "type": "string"
           },
           "servedAt": {
@@ -111070,6 +111866,11 @@
       },
       "TicketItem": {
         "properties": {
+          "guestName": {
+            "description": "Who the item is for",
+            "nullable": true,
+            "type": "string"
+          },
           "modifiers": {
             "items": {
               "type": "object"
@@ -173896,6 +174697,14 @@
           {
             "in": "query",
             "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "e.g. on_course (tee house: orders from the caddy tablet)",
+            "in": "query",
+            "name": "filter[orderType]",
             "schema": {
               "type": "string"
             }
@@ -237944,6 +238753,288 @@
         "x-permission": "golf.course_status.update"
       }
     },
+    "/api/v1/golf/course-stops": {
+      "get": {
+        "operationId": "getGolfCourseStops",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "courseId",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Club day (default today)",
+            "in": "query",
+            "name": "date",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CourseStop"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Rain stops and lightning warnings (open first, then the day's history)",
+        "tags": [
+          "Pace of Play"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.pace.view"
+      },
+      "post": {
+        "operationId": "postGolfCourseStops",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseStopInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseStop"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Rain stop / lightning warning: pause every flight on the course",
+        "tags": [
+          "Pace of Play"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.course_status.update"
+      }
+    },
+    "/api/v1/golf/course-stops/{id}:resume": {
+      "post": {
+        "operationId": "postGolfCourseStopsByIdResume",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseStop"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Resume play after a rain stop",
+        "tags": [
+          "Pace of Play"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.course_status.update"
+      }
+    },
     "/api/v1/golf/courses": {
       "get": {
         "operationId": "getGolfCourses",
@@ -253393,6 +254484,217 @@
         "x-permission": "golf.round.operate"
       }
     },
+    "/api/v1/golf/rounds/{id}/orders": {
+      "get": {
+        "operationId": "getGolfRoundsByIdOrders",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/Order"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "On-course orders of the flight with their service status",
+        "tags": [
+          "Caddy Tablet"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.tablet.use"
+      }
+    },
+    "/api/v1/golf/rounds/{id}/orders/{orderId}:cancel": {
+      "post": {
+        "operationId": "postGolfRoundsByIdOrdersByOrderIdCancel",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "orderId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelOrderInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Cancel an on-course order the tee house has not started",
+        "tags": [
+          "Caddy Tablet"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.tablet.use"
+      }
+    },
     "/api/v1/golf/rounds/{id}/position": {
       "post": {
         "operationId": "postGolfRoundsByIdPosition",
@@ -253483,6 +254785,131 @@
         "x-audited": false,
         "x-module": "golf",
         "x-permission": "golf.round.operate"
+      }
+    },
+    "/api/v1/golf/rounds/{id}/tee-houses": {
+      "get": {
+        "operationId": "getGolfRoundsByIdTeeHouses",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lat",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lng",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/RouteTeeHouse"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Tee houses for the flight: nearest by GPS, else the next on the route",
+        "tags": [
+          "Caddy Tablet"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.tablet.use"
       }
     },
     "/api/v1/golf/rounds/{id}/times": {
@@ -253932,6 +255359,305 @@
         "x-audited": true,
         "x-module": "golf",
         "x-permission": "golf.round.operate"
+      }
+    },
+    "/api/v1/golf/score-correction-requests": {
+      "get": {
+        "operationId": "getGolfScoreCorrectionRequests",
+        "parameters": [
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter[status]",
+            "schema": {
+              "enum": [
+                "requested",
+                "approved",
+                "rejected"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CorrectionRequest"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Score correction requests from players",
+        "tags": [
+          "Scoring"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.scorecard.correct"
+      }
+    },
+    "/api/v1/golf/score-correction-requests/{id}:approve": {
+      "post": {
+        "operationId": "postGolfScoreCorrectionRequestsByIdApprove",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionRequest"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Score correction request: approve",
+        "tags": [
+          "Scoring"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.scorecard.correct"
+      }
+    },
+    "/api/v1/golf/score-correction-requests/{id}:reject": {
+      "post": {
+        "operationId": "postGolfScoreCorrectionRequestsByIdReject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionRequest"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Score correction request: reject",
+        "tags": [
+          "Scoring"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.scorecard.correct"
       }
     },
     "/api/v1/golf/scorecards": {
@@ -329227,6 +330953,187 @@
         "x-permission": "platform.member_portal.access"
       }
     },
+    "/api/v1/member/golf/scorecards/{id}/correction-requests": {
+      "get": {
+        "operationId": "getMemberGolfScorecardsByIdCorrectionRequests",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/CorrectionRequest"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "My correction requests of a scorecard",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      },
+      "post": {
+        "operationId": "postMemberGolfScorecardsByIdCorrectionRequests",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionRequestInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CorrectionRequest"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Ask for a score correction (round completed)",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
     "/api/v1/member/golf/scorecards/{id}/scores": {
       "post": {
         "operationId": "postMemberGolfScorecardsByIdScores",
@@ -329301,6 +331208,78 @@
           }
         ],
         "summary": "Enter my own scores",
+        "tags": [
+          "Member Portal"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "platform.member_portal.access"
+      }
+    },
+    "/api/v1/member/golf/scorecards/{id}:share": {
+      "post": {
+        "operationId": "postMemberGolfScorecardsByIdShare",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScorecardShare"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Share my scorecard: public PDF link (print, download, WhatsApp)",
         "tags": [
           "Member Portal"
         ],
@@ -367974,6 +369953,104 @@
         ],
         "x-audited": true,
         "x-module": "billing"
+      }
+    },
+    "/api/v1/public/portal-registrations": {
+      "post": {
+        "operationId": "postPublicPortalRegistrations",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignUpInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignUp"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Member App sign-up: a member (member no. + a detail on file) or a non-member guest; sends a one-time code",
+        "tags": [
+          "Public"
+        ],
+        "x-audited": true,
+        "x-module": "membership"
+      }
+    },
+    "/api/v1/public/portal-registrations/{id}:confirm": {
+      "post": {
+        "operationId": "postPublicPortalRegistrationsByIdConfirm",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignUpConfirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignUpDone"
+                }
+              }
+            },
+            "description": "Created"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Member App sign-up: confirm the code and choose the password",
+        "tags": [
+          "Public"
+        ],
+        "x-audited": true,
+        "x-module": "membership"
       }
     },
     "/api/v1/public/procurement/purchase-orders/{token}/pdf": {

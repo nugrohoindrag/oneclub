@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { qs, request, useGet, type Page, type Schemas } from '@oneclub/api-client';
-import { ErrorAlert, Icon, Modal, PlayTime, QRCode, SelectField, Skeleton, TextField, useToast } from '@oneclub/shell';
+import { ErrorAlert, Icon, Modal, MoneyField, PlayTime, QRCode, SelectField, Skeleton, TextField, useToast } from '@oneclub/shell';
 import { HoleBests } from './leaderboard';
 import { MethodPicker, PaymentPanel } from './pay';
 import { Check, Chip, dayLabel, downloadICS, Head, initials, isoDay, money, Rows, StatusChip } from './ui';
@@ -256,7 +256,7 @@ function PayAmount({ folioId, balance, onClose, onPayment }: { folioId: string; 
       <button className="oc-btn oc-btn-neutral" onClick={onClose}>Back</button>
       <button className="oc-btn oc-btn-primary" disabled={busy || !(n > 0 && n <= balance)} onClick={() => void go()}>Pay {money(n)}</button></>}>
       <div className="oc-stack">
-        <TextField label={`Amount (balance ${money(balance)})`} value={amount} onChange={(v) => setAmount(v.replace(/\D/g, ''))} inputMode="numeric" />
+        <MoneyField label={`Amount (balance ${money(balance)})`} value={amount} onChange={setAmount} />
         <div className="oc-row-wrap">
           <button type="button" className="oc-chip" aria-pressed={n === Math.round(balance)} onClick={() => setAmount(String(Math.round(balance)))}>Full balance</button>
           <button type="button" className="oc-chip" aria-pressed={n === Math.round(balance / 2)} onClick={() => setAmount(String(Math.round(balance / 2)))}>Half</button>

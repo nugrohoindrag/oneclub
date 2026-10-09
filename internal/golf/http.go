@@ -96,6 +96,8 @@ type BookingSummary struct {
 	RoundFinishAt *time.Time `json:"roundFinishAt" doc:"Round finish of the last flight (empty while any flight is still playing)"`
 	PausedAt      *time.Time `json:"pausedAt" doc:"Set while the round is paused (rain): the play time stops"`
 	PausedSeconds int        `json:"pausedSeconds" doc:"Paused time left out of the play time"`
+	PauseReason   *string    `json:"pauseReason" doc:"rain, lightning or a break (halfway, turn, tee_house)"`
+	HoldReason    *string    `json:"holdReason" doc:"Held by the starter (on hold) with this reason"`
 }
 
 func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *http.Request, extraWhere string, extraArgs ...any) (httpx.Page[BookingSummary], error) {
@@ -148,11 +150,12 @@ func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *ht
 		order = "b.created_at DESC"
 	}
 	rows, err := q.Query(ctx, `SELECT b.id, b.code, b.booking_type, b.channel, b.status, b.course_id, c.name, b.play_date, b.start_at, b.player_count, b.contact_name,
-		b.payment_mode, b.folio_id, b.created_at, pt.tee_off_at, pt.round_finish_at, pt.paused_at, coalesce(pt.paused_seconds, 0)
+		b.payment_mode, b.folio_id, b.created_at, pt.tee_off_at, pt.round_finish_at, pt.paused_at, coalesce(pt.paused_seconds, 0), pt.pause_reason, pt.hold_reason
 		FROM golf.bookings b JOIN golf.courses c ON c.id = b.course_id
 		LEFT JOIN LATERAL (SELECT min(f.tee_off_at) AS tee_off_at,
 		  CASE WHEN bool_and(f.round_finish_at IS NOT NULL) THEN max(f.round_finish_at) END AS round_finish_at,
-		  max(f.paused_at) AS paused_at, max(f.paused_seconds)::int AS paused_seconds
+		  max(f.paused_at) AS paused_at, max(f.paused_seconds)::int AS paused_seconds, max(f.pause_reason) FILTER (WHERE f.paused_at IS NOT NULL) AS pause_reason,
+		  (SELECT max(sq.hold_reason) FROM golf.starter_queue sq WHERE sq.flight_id = ANY(array_agg(f.id)) AND sq.status = 'on_hold') AS hold_reason
 		  FROM golf.flights f WHERE f.id IN (SELECT x.flight_id FROM golf.booking_players x WHERE x.booking_id = b.id AND x.status <> 'removed')
 		    AND f.status <> 'cancelled') pt ON true WHERE `+strings.Join(where, " AND ")+
 		fmt.Sprintf(" ORDER BY %s LIMIT %d OFFSET %d", order, lp.PageSize+1, offset), args...)
@@ -166,7 +169,8 @@ func listBookings(ctx context.Context, q dbtx.Querier, property uuid.UUID, r *ht
 		var d time.Time
 		var folio *uuid.UUID
 		if err := rows.Scan(&b.ID, &b.Code, &b.BookingType, &b.Channel, &b.Status, &b.CourseID, &b.CourseName, &d, &b.StartAt, &b.PlayerCount, &b.ContactName,
-			&b.PaymentMode, &folio, &b.CreatedAt, &b.TeeOffAt, &b.RoundFinishAt, &b.PausedAt, &b.PausedSeconds); err != nil {
+			&b.PaymentMode, &folio, &b.CreatedAt, &b.TeeOffAt, &b.RoundFinishAt, &b.PausedAt, &b.PausedSeconds,
+			&b.PauseReason, &b.HoldReason); err != nil {
 			rows.Close()
 			return httpx.Page[BookingSummary]{}, err
 		}

@@ -3,7 +3,7 @@ import { download, qs, request, useGet, useSend, type Page } from '@oneclub/api-
 import { formatDate, formatDateTime, useTranslation } from '@oneclub/i18n';
 import { useAuth } from '../context';
 import {
-  ConfirmDialog, DataTable, Drawer, ErrorAlert, FilterPills, Icon, PageHeader, SearchBox, SelectField, StatusPill, TextArea, TextField,
+  ConfirmDialog, DataTable, Drawer, ErrorAlert, FilterPills, Icon, MoneyField, PageHeader, SearchBox, SelectField, StatusPill, TextArea, TextField,
   Checkbox, fieldErrors, useDebounced, usePagedList, type Column, type Option,
 } from '../components/ui';
 import { useToast } from '../components/toast';
@@ -13,7 +13,8 @@ export type Row = Record<string, unknown> & { id: string };
 export interface FieldDef {
   name: string;
   label: string;
-  type?: 'text' | 'email' | 'number' | 'decimal' | 'textarea' | 'date' | 'datetime' | 'boolean' | 'select' | 'reference' | 'json' | 'list' | 'intlist' | 'time' | 'image';
+  /** money: a decimal amount in Rupiah, formatted while typing (MoneyField) */
+  type?: 'text' | 'email' | 'number' | 'decimal' | 'money' | 'textarea' | 'date' | 'datetime' | 'boolean' | 'select' | 'reference' | 'json' | 'list' | 'intlist' | 'time' | 'image';
   required?: boolean;
   options?: Option[];
   /** For type=reference: list endpoint and label key. */
@@ -162,6 +163,8 @@ export function ResourceForm({ cfg, row, onDone }: { cfg: ResourceConfig; row?: 
               return <RefSelect key={f.name} f={f} value={String(values[f.name])} onChange={set(f.name)} error={fe[f.name]} />;
             case 'image':
               return <ImageField key={f.name} f={f} resourceKey={cfg.resourceKey} value={String(values[f.name])} onChange={set(f.name)} error={fe[f.name]} />;
+            case 'money':
+              return <MoneyField key={f.name} {...common} disabled={disabled} placeholder={f.placeholder} value={String(values[f.name] ?? '')} onChange={set(f.name)} />;
             default:
               return <TextField key={f.name} {...common} disabled={disabled} placeholder={f.placeholder}
                 type={f.type === 'email' ? 'email' : f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : f.type === 'datetime' ? 'datetime-local' : 'text'}

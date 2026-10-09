@@ -47,7 +47,7 @@ export function KioskCheckInPage() {
   const onCode = useCallback((c: string) => void scan(c), [scan]);
   return (
     <div className="kiosk">
-      <Link className="kiosk-exit" to="/ops/check-in" aria-label="Leave the kiosk"><Icon name="close" size={20} /></Link>
+      <Link className="kiosk-exit" to="/ops/front-desk/check-in" aria-label="Leave the kiosk"><Icon name="close" size={20} /></Link>
       <div className="kiosk-card">
         {done ? (
           <>

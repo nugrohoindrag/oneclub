@@ -8,6 +8,9 @@ package experience
 import (
 	"context"
 	"encoding/json"
+	"slices"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -48,6 +51,43 @@ type PaceFlight struct {
 	Caddies        []string   `json:"caddies"`
 	GolfCarts      []string   `json:"golfCarts"`
 	HoleStartedAt  *time.Time `json:"holeStartedAt"`
+	// pause and break (demo feedback 10 Oct 2026 #28, #31): a rain pause
+	// freezes the pace; a break counts with its allowance.
+	PausedAt         *time.Time `json:"pausedAt" doc:"Paused (rain, lightning) or on a break since"`
+	PauseReason      *string    `json:"pauseReason" enum:"rain,lightning,other,halfway,turn,tee_house,break_other"`
+	OnBreak          bool       `json:"onBreak" doc:"The pause is a break (halfway, turn, tee house)"`
+	PausedMinutes    int        `json:"pausedMinutes" doc:"Weather pauses of the round, left out of the pace"`
+	BreakMinutes     int        `json:"breakMinutes" doc:"Breaks of the round so far"`
+	BreakAllowance   int        `json:"breakAllowanceMinutes" doc:"Allowance of the current break (Golf Policy)"`
+	BreakOverMinutes int        `json:"breakOverMinutes" doc:"Current break beyond its allowance"`
+}
+
+// breakAllowance is the pace allowance of the flight's breaks (each break up
+// to its Golf Policy minutes) and the time spent on breaks so far.
+func breakAllowance(ctx context.Context, q dbtx.Querier, fid uuid.UUID, allow map[string]int, now time.Time) (int, int, error) {
+	rows, err := q.Query(ctx, `SELECT kind, started_at, ended_at FROM golf.flight_pauses WHERE flight_id = $1
+		AND kind IN ('halfway', 'turn', 'tee_house', 'break_other')`, fid)
+	if err != nil {
+		return 0, 0, err
+	}
+	defer rows.Close()
+	minutes, secs := 0, 0
+	for rows.Next() {
+		var kind string
+		var start time.Time
+		var end *time.Time
+		if err := rows.Scan(&kind, &start, &end); err != nil {
+			return 0, 0, err
+		}
+		stop := now
+		if end != nil {
+			stop = *end
+		}
+		d := max(int(stop.Sub(start).Seconds()), 0)
+		secs += d
+		minutes += min(d/60, allow[kind])
+	}
+	return minutes, secs, rows.Err()
 }
 
 // Pace computes pace of play for flights in play (FR-PLX-04).
@@ -100,11 +140,36 @@ func (m *Module) Pace(ctx context.Context, q dbtx.Querier, property uuid.UUID) (
 		for i := 0; i < r.CurrentSeq && i < len(holes); i++ {
 			target += targets[holes[i].HoleID]
 		}
-		elapsed := int(now.Sub(*r.TeeOffAt).Minutes())
+		// weather pauses stop the clock; breaks count up to their allowance
+		pausedSecs := r.PausedSeconds
+		pol, err := golf.LoadPolicies(ctx, q, property, now)
+		if err != nil {
+			return nil, err
+		}
+		allowed, breakSecs, err := breakAllowance(ctx, q, fid, pol.Golf.BreakMinutes, now)
+		if err != nil {
+			return nil, err
+		}
+		var onBreak bool
+		var curAllow, over int
+		if r.PausedAt != nil {
+			cur := int(now.Sub(*r.PausedAt).Seconds())
+			if r.PauseReason != nil && golf.IsBreak(*r.PauseReason) {
+				onBreak = true
+				curAllow = pol.Golf.BreakMinutes[*r.PauseReason]
+				over = max(cur/60-curAllow, 0)
+			} else {
+				pausedSecs += max(cur, 0)
+			}
+		}
+		elapsed := int(now.Sub(*r.TeeOffAt).Minutes()) - pausedSecs/60
+		target += allowed
 		p := PaceFlight{FlightID: fid, CourseID: r.CourseID, Label: r.Label(), RouteName: r.RouteName, TeeTime: r.TeeTime, TeeOffAt: *r.TeeOffAt, CurrentSeq: r.CurrentSeq,
 			Holes: len(holes), ElapsedMinutes: elapsed, TargetMinutes: target, BehindMinutes: elapsed - target, Players: []string{}, Caddies: []string{},
-			GolfCarts: []string{}}
-		p.Slow = p.BehindMinutes > r.Tolerance
+			GolfCarts: []string{}, PausedAt: r.PausedAt, PauseReason: r.PauseReason, OnBreak: onBreak, PausedMinutes: pausedSecs / 60,
+			BreakMinutes: breakSecs / 60, BreakAllowance: curAllow, BreakOverMinutes: over}
+		// a paused flight is not slow: its clock is frozen (rain) or it is on an allowed break
+		p.Slow = p.BehindMinutes > r.Tolerance && (r.PausedAt == nil || (onBreak && over > 0))
 		if r.CurrentSeq >= 1 && r.CurrentSeq <= len(holes) {
 			p.Hole = holes[r.CurrentSeq-1].SectionCode + "-" + itoa(holes[r.CurrentSeq-1].Number)
 			hid := holes[r.CurrentSeq-1].HoleID
@@ -271,6 +336,33 @@ func (m *Module) canSeeFlight(ctx context.Context, q dbtx.Querier, r Round) erro
 	return nil
 }
 
+// mayScore refuses a caddy writing the score of another caddy's player
+// (1 caddy = 1 player, unless the Golf Policy lets any caddy score).
+func (m *Module) mayScore(ctx context.Context, q dbtx.Querier, sid uuid.UUID) error {
+	var fid, pid *uuid.UUID
+	if err := q.QueryRow(ctx, `SELECT flight_id, booking_player_id FROM golf.scorecards WHERE id = $1`, sid).Scan(&fid, &pid); err != nil {
+		if dbtx.IsNoRows(err) {
+			return errs.NotFound("scorecard")
+		}
+		return err
+	}
+	if fid == nil || pid == nil {
+		return nil
+	}
+	r, err := m.GetRound(ctx, q, *fid)
+	if err != nil {
+		return err
+	}
+	_, allowed, err := m.scoreRights(ctx, q, r)
+	if err != nil {
+		return err
+	}
+	if !allowed[*pid] {
+		return errs.Forbidden("this player has another caddy: only that caddy's tablet enters the score")
+	}
+	return nil
+}
+
 // PlayerContext is the customer context shown on the tablet (FR-TAB-03):
 // name, preferences, history with this caddy — nothing else personal.
 type PlayerContext struct {
@@ -287,6 +379,43 @@ type PlayerContext struct {
 	ScorecardID     *uuid.UUID       `json:"scorecardId"`
 	CourseHandicap  *int             `json:"courseHandicap" doc:"From the scorecard's tee set (WHS)"`
 	HoleStrokes     []int            `json:"holeStrokes" doc:"Handicap strokes received per hole, in route sequence"`
+	// 1 caddy = 1 player (demo feedback 10 Oct 2026 #25): the tablet scores
+	// only the players of its caddy; the rest of the flight is read-only.
+	CaddyName *string `json:"caddyName" doc:"Caddy assigned to the player"`
+	MyPlayer  bool    `json:"myPlayer" doc:"Assigned to the signed-in caddy"`
+	CanScore  bool    `json:"canScore" doc:"The signed-in user may enter this player's score (Golf Policy caddy.scoresByAnyCaddy)"`
+}
+
+// scoreRights tells which booking players the signed-in user may score:
+// staff every player; a caddy their own players and the players without a
+// caddy (anyone of the flight when the Golf Policy allows it).
+func (m *Module) scoreRights(ctx context.Context, q dbtx.Querier, r Round) (mine, allowed map[uuid.UUID]bool, err error) {
+	mine, allowed = map[uuid.UUID]bool{}, map[uuid.UUID]bool{}
+	c, cerr := m.myCaddy(ctx, q, r.PropertyID)
+	caddied := map[uuid.UUID]bool{}
+	for _, a := range r.Caddies {
+		if a.Status == "cancelled" || a.Status == "replaced" {
+			continue
+		}
+		for _, pid := range a.PlayerIDs {
+			caddied[pid] = true
+			if cerr == nil && a.CaddyID == c.ID {
+				mine[pid] = true
+			}
+		}
+	}
+	all := cerr != nil // not a caddy: starter, marshal, office
+	if !all {
+		pol, err := golf.LoadPolicies(ctx, q, r.PropertyID, clock.Now())
+		if err != nil {
+			return mine, allowed, err
+		}
+		all = pol.Caddy.ScoresByAnyCaddy
+	}
+	for _, p := range r.Players {
+		allowed[p.ID] = all || mine[p.ID] || !caddied[p.ID]
+	}
+	return mine, allowed, nil
 }
 
 // RoundInfo is everything the tablet needs for a round (cached offline).
@@ -316,9 +445,27 @@ func (m *Module) RoundInfo(ctx context.Context, q dbtx.Querier, fid uuid.UUID) (
 	if c, err := m.myCaddy(ctx, q, r.PropertyID); err == nil {
 		me = &c.ID
 	}
-	for _, p := range r.Players {
+	mine, allowed, err := m.scoreRights(ctx, q, r)
+	if err != nil {
+		return ri, err
+	}
+	caddyOf := map[uuid.UUID]string{}
+	for _, a := range r.Caddies {
+		if a.Status != "cancelled" && a.Status != "replaced" {
+			for _, pid := range a.PlayerIDs {
+				caddyOf[pid] = a.CaddyName
+			}
+		}
+	}
+	// the caddy's own players first (scorecard, Cart View)
+	players := append([]RoundPlayer{}, r.Players...)
+	sort.SliceStable(players, func(i, j int) bool { return mine[players[i].ID] && !mine[players[j].ID] })
+	for _, p := range players {
 		pc := PlayerContext{PlayerID: p.ID, Name: p.Name, PlayerType: p.PlayerType, Handicap: p.HandicapIndex, Preferences: []crm.Preference{},
-			Highlights: []string{}, ScorecardID: p.ScorecardID}
+			Highlights: []string{}, ScorecardID: p.ScorecardID, MyPlayer: mine[p.ID], CanScore: allowed[p.ID]}
+		if n, ok := caddyOf[p.ID]; ok {
+			pc.CaddyName = &n
+		}
 		if p.CustomerID != nil {
 			if pc.Handicap == nil {
 				pc.Handicap = currentHandicap(ctx, q, *p.CustomerID)
@@ -399,16 +546,25 @@ func (m *Module) Handover(ctx context.Context, tx pgx.Tx, fid uuid.UUID, in Hand
 // ── on-course order & preference (FR-CTB-07) ──────────────────────────────
 
 type CourseOrderInput struct {
-	ID       *uuid.UUID             `json:"id,omitempty" doc:"Client UUIDv7 (offline)"`
-	FlightID uuid.UUID              `json:"flightId"`
-	PlayerID uuid.UUID              `json:"playerId"`
-	OutletID uuid.UUID              `json:"outletId" doc:"Tee house, Halfway House or clubhouse outlet"`
-	Lines    []commercial.LineInput `json:"lines"`
-	Deliver  string                 `json:"deliver,omitempty" enum:"hole,halfway_house" doc:"Default: the next hole; halfway_house = pick up at the outlet (tee house)"`
-	Notes    string                 `json:"notes,omitempty"`
+	ID       *uuid.UUID   `json:"id,omitempty" doc:"Client UUIDv7 (offline)"`
+	FlightID uuid.UUID    `json:"flightId"`
+	PlayerID uuid.UUID    `json:"playerId" doc:"Default player of the items"`
+	OutletID uuid.UUID    `json:"outletId" doc:"Tee house, Halfway House or clubhouse outlet"`
+	Lines    []CourseLine `json:"lines"`
+	Deliver  string       `json:"deliver,omitempty" enum:"hole,halfway_house" doc:"Default: the next hole; halfway_house = pick up at the outlet (tee house)"`
+	Notes    string       `json:"notes,omitempty"`
 }
 
-// CourseOrder places an on-course F&B order charged to the player's folio.
+// CourseLine is an item of an on-course order with the player it is for
+// (demo feedback 10 Oct 2026 #35): the item goes to that player's bill.
+type CourseLine struct {
+	commercial.LineInput
+	PlayerID *uuid.UUID `json:"playerId,omitempty" doc:"Player the item is for (default: the order's player)"`
+}
+
+// CourseOrder places an on-course F&B order charged to the players' folio:
+// the order shows the player and the booking at the tee house, each item
+// the player it is for.
 func (m *Module) CourseOrder(ctx context.Context, tx pgx.Tx, in CourseOrderInput) (commercial.Order, error) {
 	f, err := m.GetRound(ctx, tx, in.FlightID)
 	if err != nil {
@@ -417,19 +573,64 @@ func (m *Module) CourseOrder(ctx context.Context, tx pgx.Tx, in CourseOrderInput
 	if err := m.canSeeFlight(ctx, tx, f); err != nil {
 		return commercial.Order{}, err
 	}
-	var player *RoundPlayer
-	for i := range f.Players {
-		if f.Players[i].ID == in.PlayerID {
-			player = &f.Players[i]
-		}
+	if f.Status == "completed" || f.Status == "cancelled" {
+		return commercial.Order{}, errs.Conflict("round_closed", "the round is "+f.Status)
 	}
-	if player == nil {
+	if len(in.Lines) == 0 {
+		return commercial.Order{}, handle.Invalid("lines", "required", "at least one item is required")
+	}
+	players := map[uuid.UUID]RoundPlayer{}
+	for _, p := range f.Players {
+		players[p.ID] = p
+	}
+	if _, ok := players[in.PlayerID]; !ok {
 		return commercial.Order{}, handle.Invalid("playerId", "not_in_flight", "player is not in this flight")
 	}
-	if player.Status != "checked_in" || f.FolioID == nil {
-		return commercial.Order{}, errs.Conflict("no_folio", "the player is not checked in")
+	// one order per bill (players of another booking in the flight)
+	type group struct {
+		folio uuid.UUID
+		lines []commercial.LineInput
+		names []string
 	}
-	dest, ref := "hole", itoa(min(f.CurrentSeq+1, max(f.Holes, 1)))
+	var groups []*group
+	for _, l := range in.Lines {
+		pid := in.PlayerID
+		if l.PlayerID != nil {
+			pid = *l.PlayerID
+		}
+		p, ok := players[pid]
+		if !ok {
+			return commercial.Order{}, handle.Invalid("lines", "not_in_flight", "an item is for a player who is not in this flight")
+		}
+		if p.Status != "checked_in" {
+			return commercial.Order{}, errs.Conflict("no_folio", p.Name+" is not checked in")
+		}
+		var fid *uuid.UUID
+		if err := tx.QueryRow(ctx, `SELECT b.folio_id FROM golf.booking_players p JOIN golf.bookings b ON b.id = p.booking_id WHERE p.id = $1`, pid).Scan(&fid); err != nil {
+			return commercial.Order{}, err
+		}
+		if fid == nil {
+			return commercial.Order{}, errs.Conflict("no_folio", p.Name+" has no open bill")
+		}
+		li := l.LineInput
+		pidCopy := p.ID
+		li.GuestName, li.CustomerID, li.GuestRef = p.Name, p.CustomerID, &pidCopy
+		var g *group
+		for _, x := range groups {
+			if x.folio == *fid {
+				g = x
+			}
+		}
+		if g == nil {
+			g = &group{folio: *fid}
+			groups = append(groups, g)
+		}
+		g.lines = append(g.lines, li)
+		if !slices.Contains(g.names, p.Name) {
+			g.names = append(g.names, p.Name)
+		}
+	}
+	dest, ref := "hole", "Hole "+itoa(min(f.CurrentSeq+1, max(f.Holes, 1)))
 	if in.Deliver == "halfway_house" {
 		// pick-up at the outlet itself: the Halfway House or a tee house
 		ref = "Halfway House"
@@ -438,8 +639,82 @@ func (m *Module) CourseOrder(ctx context.Context, tx pgx.Tx, in CourseOrderInput
 		}
 		dest = "halfway_house"
 	}
-	return m.POS.CreateOrder(ctx, tx, f.PropertyID, commercial.OrderInput{ID: in.ID, OutletID: in.OutletID, OrderType: "on_course", Source: "caddy_tablet",
-		CustomerID: player.CustomerID, ServingDestination: dest, DestinationRef: ref, ChargeFolioID: f.FolioID, Lines: in.Lines, Send: true, Notes: in.Notes})
+	var first commercial.Order
+	for i, g := range groups {
+		folio := g.folio
+		oid := in.ID
+		if i > 0 {
+			oid = nil
+		}
+		var cust *uuid.UUID
+		if p := players[in.PlayerID]; len(g.names) == 1 && g.names[0] == p.Name {
+			cust = p.CustomerID
+		}
+		o, err := m.POS.CreateOrder(ctx, tx, f.PropertyID, commercial.OrderInput{ID: oid, OutletID: in.OutletID, OrderType: "on_course", Source: "caddy_tablet",
+			CustomerID: cust, GuestName: strings.Join(g.names, ", "), Reference: f.Label(), ServingDestination: dest, DestinationRef: ref, ChargeFolioID: &folio,
+			Lines: g.lines, Send: true, Notes: in.Notes})
+		if err != nil {
+			return o, err
+		}
+		if i == 0 {
+			first = o
+		}
+	}
+	return first, m.live(ctx, tx, "golf.tee_sheet", f.PropertyID, "on_course_order", f.FlightID.String(), map[string]any{"orderNo": first.OrderNo})
+}
+
+// flightFolios are the bills of the flight's bookings.
+func flightFolios(ctx context.Context, q dbtx.Querier, fid uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.Query(ctx, `SELECT DISTINCT b.folio_id FROM golf.booking_players p JOIN golf.bookings b ON b.id = p.booking_id
+		WHERE p.flight_id = $1 AND b.folio_id IS NOT NULL`, fid)
+	if err != nil {
+		return nil, err
+	}
+	return pgx.CollectRows(rows, pgx.RowTo[uuid.UUID])
+}
+
+// FlightOrders is the caddy tablet's order history of the flight with the
+// live service status (new -> preparing -> ready -> served).
+func (m *Module) FlightOrders(ctx context.Context, q dbtx.Querier, fid uuid.UUID) ([]commercial.Order, error) {
+	r, err := m.GetRound(ctx, q, fid)
+	if err != nil {
+		return nil, err
+	}
+	if err := m.canSeeFlight(ctx, q, r); err != nil {
+		return nil, err
+	}
+	folios, err := flightFolios(ctx, q, fid)
+	if err != nil || len(folios) == 0 {
+		return []commercial.Order{}, err
+	}
+	return m.POS.FolioOrders(ctx, q, folios)
+}
+
+// CancelCourseOrder cancels an on-course order of the caddy's flight while
+// the tee house has not started it.
+func (m *Module) CancelCourseOrder(ctx context.Context, tx pgx.Tx, fid, oid uuid.UUID, reason string) (commercial.Order, error) {
+	r, err := m.GetRound(ctx, tx, fid)
+	if err != nil {
+		return commercial.Order{}, err
+	}
+	if err := m.canSeeFlight(ctx, tx, r); err != nil {
+		return commercial.Order{}, err
+	}
+	o, err := m.POS.Order(ctx, tx, oid)
+	if err != nil {
+		return o, err
+	}
+	folios, err := flightFolios(ctx, tx, fid)
+	if err != nil {
+		return o, err
+	}
+	if o.OrderType != "on_course" || o.ChargeFolioID == nil || !slices.Contains(folios, *o.ChargeFolioID) {
+		return o, errs.NotFound("order")
+	}
+	if reason == "" {
+		reason = "cancelled from the caddy tablet"
+	}
+	return m.POS.CancelOrder(ctx, tx, oid, reason)
 }
 
 // RecordPreference records a preference noticed by the caddy for a player of
@@ -591,6 +866,9 @@ func (m *Module) SyncHandler(ctx context.Context, tx pgx.Tx, payload json.RawMes
 		}
 		if fl == nil || *fl != in.FlightID {
 			return nil, errs.Validation("scorecard_mismatch", "scorecard is not part of this flight")
+		}
+		if err := m.mayScore(ctx, tx, *in.ScorecardID); err != nil {
+			return nil, err
 		}
 		sc, err := m.EnterScores(ctx, tx, *in.ScorecardID, ScoreInput{Entries: in.Entries, Source: "caddy", DeviceID: in.DeviceID})
 		return map[string]any{"scorecardId": sc.ID, "gross": sc.Gross, "status": sc.Status}, err

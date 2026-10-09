@@ -250,11 +250,13 @@ func Contribution() catalog.Contribution {
 			"membership_manager": append(append([]string{}, desk...), "crm.customer.merge", "crm.customer.export", "crm.customer.view_sensitive", "crm.corporate_account.create", "crm.corporate_account.update"),
 			"reservation_staff":  desk,
 			"front_desk":         desk,
-			"golf_manager":       {"crm.customer.view", "crm.customer_overview.view", "crm.guest.view"},
-			"golf_admin":         {"crm.customer.view", "crm.guest.view"},
-			"finance_manager":    {"crm.customer.view", "crm.customer_overview.view", "crm.corporate_account.view"},
-			"accountant":         {"crm.customer.view", "crm.corporate_account.view"},
-			"sales_executive":    {"crm.customer.view", "crm.customer.create", "crm.customer.update", "crm.corporate_account.view", "crm.customer_overview.view"},
+			// Sport Reception sells tickets, courts and classes to members and guests (demo feedback 10 Oct 2026 #39)
+			"sport_club_receptionist": desk,
+			"golf_manager":            {"crm.customer.view", "crm.customer_overview.view", "crm.guest.view"},
+			"golf_admin":              {"crm.customer.view", "crm.guest.view"},
+			"finance_manager":         {"crm.customer.view", "crm.customer_overview.view", "crm.corporate_account.view"},
+			"accountant":              {"crm.customer.view", "crm.corporate_account.view"},
+			"sales_executive":         {"crm.customer.view", "crm.customer.create", "crm.customer.update", "crm.corporate_account.view", "crm.customer_overview.view"},
 		},
 	}
 }

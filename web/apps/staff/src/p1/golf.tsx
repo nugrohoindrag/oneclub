@@ -472,8 +472,12 @@ export function CaddyBoard() {
   const board = useGet<Page<R>>(`/api/v1/golf/caddy-availability?date=${cd.date}`);
   const att = useSend<Record<string, unknown>>('PUT', '/api/v1/golf/caddy-availability', ['/api/v1/golf/caddy']);
   const reorder = useSend<Record<string, unknown>>('POST', '/api/v1/golf/caddy-queue:reorder', ['/api/v1/golf/caddy']);
-  const rows = board.data?.items ?? [];
-  const present = rows.filter((c) => c.attendance === 'present');
+  const all = board.data?.items ?? [];
+  const present = all.filter((c) => c.attendance === 'present');
+  // available first, like the Operational Caddy Availability (demo feedback #14)
+  const bucket = (c: R) => (['assigned', 'in_play'].includes(String(c.status)) ? 'on_duty' : c.attendance === 'present' && c.status === 'available' ? 'available' : 'not_present');
+  const [filter, setFilter] = useState('available');
+  const rows = filter === 'all' ? all : all.filter((c) => bucket(c) === filter);
   const manage = can('golf.caddy_assignment.manage');
   const mark = (c: R, status: string) => att.mutate({ date: cd.date, entries: [{ caddyId: c.caddyId, status }] });
   const move = (c: R, dir: -1 | 1) => {
@@ -487,10 +491,19 @@ export function CaddyBoard() {
   return (
     <div className="oc-stack">
       <PageHeader title="Caddy Queue" help="Attendance and rotation of the day (first available caddy is assigned first)." actions={manage ? (
-        <button className="oc-btn oc-btn-neutral" onClick={() => att.mutate({ date: cd.date, entries: rows.filter((c) => !c.attendance).map((c) => ({ caddyId: c.caddyId, status: 'present' })) })}>
+        <button className="oc-btn oc-btn-neutral" onClick={() => att.mutate({ date: cd.date, entries: all.filter((c) => !c.attendance).map((c) => ({ caddyId: c.caddyId, status: 'present' })) })}>
           Mark all present</button>) : undefined} />
       <CourseDateBar cd={cd} noCourse />
+      <div className="oc-row-wrap" role="tablist" aria-label="Caddies">
+        {[['available', 'Available'], ['not_present', 'Not present'], ['on_duty', 'On duty'], ['all', 'All']].map(([f, l]) => (
+          <button key={f} type="button" className="oc-chip" aria-pressed={filter === f} onClick={() => setFilter(f)}>
+            {l} · {f === 'all' ? all.length : all.filter((c) => bucket(c) === f).length}</button>
+        ))}
+      </div>
       <ErrorAlert error={att.error ?? reorder.error} />
+      {board.data && filter === 'available' && rows.length === 0 && (
+        <div className="oc-alert oc-alert-warning">No caddy is present yet. <button className="oc-btn oc-btn-sm oc-btn-text" onClick={() => setFilter('not_present')}>Record attendance</button></div>
+      )}
       <DataTable rows={rows} loading={board.isLoading} rowKey={(c) => String(c.caddyId)}
         columns={[{ key: 'queueNo', header: '#', render: (c) => (c.attendance === 'present' ? present.indexOf(c) + 1 : '—') }, { key: 'code', header: 'Caddy No.' }, { key: 'name', header: 'Name' },
           { key: 'attendance', header: 'Attendance', render: pill('attendance') }, { key: 'status', header: 'Status', render: pill('status') },

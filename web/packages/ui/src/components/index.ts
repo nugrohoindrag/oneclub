@@ -4,6 +4,8 @@
  *   communication  Icon (Material Symbols Rounded, self-hosted subset)
  *   dashboard      the dashboard kit (cards, amounts, change chips, charts,
  *                  breakdowns, tables) after docs/product/dashboard-ui.webp
+ *   forms          MoneyInput (Rupiah formatted while typing)
  */
 export * from './communication/index.js';
 export * from './dashboard/index.js';
+export * from './forms/index.js';

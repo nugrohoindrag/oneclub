@@ -1,6 +1,8 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
+import { MoneyInput } from '@oneclub/ui';
 import type { Lang } from '../../../lib';
+import { checkoutHref } from '../../../pay-link';
 
 interface PublicBooking {
   code: string; status: string; courseName: string; localTime: string; playDate: string; playerCount: number; contactName: string; canCancel: boolean;
@@ -49,7 +51,7 @@ export function ManageBooking({ lang, token }: { lang: Lang; token: string }) {
     setBusy(false);
     if (!r.ok) return setError(d.detail ?? 'Error');
     const nb = d as PublicBooking;
-    if (nb.payment?.checkoutUrl) window.location.href = nb.payment.checkoutUrl;
+    if (nb.payment?.checkoutUrl) window.location.href = checkoutHref(nb.payment.checkoutUrl, lang) ?? nb.payment.checkoutUrl;
     else setB(nb);
   };
   if (error) return <p className="w-error">{error}</p>;
@@ -63,14 +65,14 @@ export function ManageBooking({ lang, token }: { lang: Lang; token: string }) {
         <div>
           <p>{id ? 'Menunggu pembayaran' : 'Waiting for payment'} {fmt(b.payment.amount, lang)}.</p>
           {b.payment.vaNumber && <p>Virtual Account: <strong>{b.payment.vaNumber}</strong></p>}
-          {b.payment.checkoutUrl && <a className="w-btn" href={b.payment.checkoutUrl}>{id ? 'Bayar sekarang' : 'Pay now'}</a>}
+          {b.payment.checkoutUrl && <a className="w-btn" href={checkoutHref(b.payment.checkoutUrl, lang) ?? undefined}>{id ? 'Bayar sekarang' : 'Pay now'}</a>}
         </div>
       )}
       {b.status === 'confirmed' && <p>{id ? 'Tunjukkan kode pemesanan saat check-in.' : 'Show your booking code at check-in.'}</p>}
       {b.folio && Number(b.folio.balance) > 0 && b.payment?.status !== 'pending' && ['pending', 'confirmed', 'checked_in', 'completed'].includes(b.status) && (
         <div className="w-form" style={{ marginTop: 16 }}>
           <label>{id ? `Bayar sekarang (Rp, kosong = seluruh sisa ${fmt(b.folio.balance, lang)})` : `Pay now (IDR, empty = the whole ${fmt(b.folio.balance, lang)})`}
-            <input inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ''))} />
+            <MoneyInput value={amount} onChange={setAmount} />
           </label>
           <label>{id ? 'Metode pembayaran' : 'Payment method'}
             <select value={method} onChange={(e) => setMethod(e.target.value)}>

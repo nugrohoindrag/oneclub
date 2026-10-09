@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
+import { MoneyInput } from '@oneclub/ui';
 import type { Lang } from '../../../../lib';
 
 interface RFQLine { rfqLineId: string; description: string; quantity: string; uom?: string | null; neededBy?: string | null }
@@ -65,7 +66,7 @@ export function SupplierQuote({ lang, token }: { lang: Lang; token: string }) {
           <fieldset key={l.rfqLineId} style={{ border: '1px solid var(--w-line, #ddd)', borderRadius: 8, padding: 12 }}>
             <legend>{l.description} · {l.quantity} {l.uom ?? ''}{l.neededBy ? ` · ${l.neededBy}` : ''}</legend>
             <label>{id ? `Harga satuan (${rfq.currency}, sebelum PPN)` : `Unit price (${rfq.currency}, excl. VAT)`}
-              <input inputMode="decimal" value={prices[l.rfqLineId]?.unitPrice ?? ''} onChange={(e) => set(l.rfqLineId, 'unitPrice', e.target.value)} disabled={!open} />
+              <MoneyInput decimals={2} value={prices[l.rfqLineId]?.unitPrice ?? ''} onChange={(v) => set(l.rfqLineId, 'unitPrice', v)} disabled={!open} />
             </label>
             <label>{id ? 'Diskon (%)' : 'Discount (%)'}
               <input inputMode="decimal" value={prices[l.rfqLineId]?.discountPercent ?? ''} onChange={(e) => set(l.rfqLineId, 'discountPercent', e.target.value)} disabled={!open} />

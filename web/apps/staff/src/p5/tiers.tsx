@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
-import {
-  Card, Checkbox, DataTable, Drawer, ErrorAlert, Icon, Modal, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, useToast,
-} from '@oneclub/shell';
+import { Card, Checkbox, DataTable, Drawer, ErrorAlert, Icon, Modal, MoneyField, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, useToast } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, money, type R } from '../p1/common';
 
 // Member tier classes & classification (PRD P5 EP-18 §16 #14, product owner request "on member add tier class and with classification
@@ -133,7 +131,7 @@ function TierForm({ tier, onClose }: { tier?: R; onClose: () => void }) {
         <h3 style={{ gridColumn: '1 / -1', margin: 0 }}>Qualification (versioned: a change applies at the next evaluation)</h3>
         <SelectField label="Thresholds" value={String(f.qualifyMode)} onChange={set('qualifyMode')}
           options={[{ value: 'all', label: 'Spend and points (all set thresholds)' }, { value: 'any', label: 'Spend or points (any threshold)' }]} />
-        <TextField label="Minimum spend (window)" inputMode="decimal" value={String(f.minSpend)} onChange={set('minSpend')} error={fieldErr('minSpend')} />
+        <MoneyField label="Minimum spend (window)" value={String(f.minSpend)} onChange={set('minSpend')} error={fieldErr('minSpend')} />
         <TextField label="Minimum points (window)" type="number" min={0} value={String(f.minPoints)} onChange={set('minPoints')} />
         <TextField label="Window (months; empty = programme)" type="number" min={1} max={60} value={String(f.periodMonths)} onChange={set('periodMonths')} />
         <fieldset style={{ gridColumn: '1 / -1', border: 0, padding: 0 }}>

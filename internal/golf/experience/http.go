@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
@@ -152,6 +153,11 @@ type PaceTargetInput struct {
 }
 
 // PaceToleranceInput sets the slow-play tolerance of a playing route.
+// CancelOrderInput is the reason an on-course order is cancelled.
+type CancelOrderInput struct {
+	Reason string `json:"reason,omitempty"`
+}
+
 type PaceToleranceInput struct {
 	ToleranceMinutes int `json:"toleranceMinutes"`
 }
@@ -180,6 +186,9 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	m.registerRangeBookings(reg, add)
 	m.registerRangeAreas(reg, add)
 	m.registerScorecardSheets(reg, add)
+	m.registerCorrectionRequests(reg, add)
+	m.registerCourseStops(add)
+	m.registerRouteTeeHouses(add)
 	m.registerSelfCheckIn(reg, add)
 	m.registerTabletGPS(add)
 	m.registerMessages(add)
@@ -356,6 +365,28 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 		Permission: "golf.tablet.use", Request: CourseOrderInput{}, Response: commercial.Order{}, Idempotent: true,
 		Handler: handle.Write(db, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, in CourseOrderInput) (commercial.Order, error) {
 			return m.CourseOrder(ctx, tx, in)
+		})})
+	add("Caddy Tablet", route.Route{Method: http.MethodGet, Path: "/api/v1/golf/rounds/{id}/orders", Summary: "On-course orders of the flight with their service status",
+		Permission: "golf.tablet.use", Response: commercial.Order{}, List: true,
+		Handler: handle.Read(db, func(ctx context.Context, tx pgx.Tx, r *http.Request) (httpx.Page[commercial.Order], error) {
+			fid, err := id(r)
+			if err != nil {
+				return httpx.Page[commercial.Order]{}, err
+			}
+			return handle.Page(m.FlightOrders(ctx, tx, fid))
+		})})
+	add("Caddy Tablet", route.Route{Method: http.MethodPost, Path: "/api/v1/golf/rounds/{id}/orders/{orderId}:cancel", Summary: "Cancel an on-course order the tee house has not started",
+		Permission: "golf.tablet.use", Request: CancelOrderInput{}, Response: commercial.Order{}, Status: http.StatusOK,
+		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in CancelOrderInput) (commercial.Order, error) {
+			fid, err := id(r)
+			if err != nil {
+				return commercial.Order{}, err
+			}
+			oid, err := uuid.Parse(chi.URLParam(r, "orderId"))
+			if err != nil {
+				return commercial.Order{}, errs.NotFound("order")
+			}
+			return m.CancelCourseOrder(ctx, tx, fid, oid, in.Reason)
 		})})
 	add("Caddy Tablet", route.Route{Method: http.MethodPost, Path: "/api/v1/golf/customers/{id}/preferences", Summary: "Record Customer Preference (caddy)",
 		Permission: "golf.tablet.use", Request: crm.PreferenceInput{}, Response: crm.Preference{},
@@ -657,6 +688,9 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in ScoreInput) (Scorecard, error) {
 			sid, err := m.seeCard(ctx, tx, r)
 			if err != nil {
+				return Scorecard{}, err
+			}
+			if err := m.mayScore(ctx, tx, sid); err != nil {
 				return Scorecard{}, err
 			}
 			return m.EnterScores(ctx, tx, sid, in)

@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { qs, request, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
-import {
-  Card, Checkbox, ErrorAlert, Icon, PageHeader, SelectField, StatusPill, TextArea, TextField, useAuth, useDebounced, useToast,
-} from '@oneclub/shell';
+import { Card, Checkbox, ErrorAlert, Icon, MoneyField, PageHeader, SelectField, StatusPill, TextArea, TextField, useAuth, useDebounced, useToast } from '@oneclub/shell';
 import { money, today, type R } from '../p1/common';
 import { CorporatePicker, CustomerPicker } from './sales';
 
@@ -326,7 +324,7 @@ function ManualLines({ lines, onChange, preview }: { lines: Line[]; onChange: (l
                 options={(COMPONENTS[l.businessLine] ?? ['other']).map((c) => ({ value: c, label: label(c) }))} help="Decides the revenue account" />
               <TextField label="Quantity" type="number" value={l.quantity} onChange={(v) => set(i, { quantity: v })} />
               <TextField label="Unit" value={l.unit} onChange={(v) => set(i, { unit: v })} placeholder="pax, night, hour …" />
-              <TextField label="Unit price" type="number" value={l.unitPrice} onChange={(v) => set(i, { unitPrice: v })} required help="Before discount, tax & service" />
+              <MoneyField label="Unit price" value={l.unitPrice} onChange={(v) => set(i, { unitPrice: v })} required help="Before discount, tax & service" />
               <TextField label="Discount" type="number" value={l.discount} onChange={(v) => set(i, { discount: v, discountPercent: '' })} placeholder="Amount" />
               <TextField label="or discount %" type="number" value={l.discountPercent} onChange={(v) => set(i, { discountPercent: v, discount: '' })} />
             </div>

@@ -1216,6 +1216,7 @@ func (m *Module) Register(reg *route.Registry, eng *resource.Engine) {
 	for _, d := range []*resource.Def{Members, Programs, Types, Packages} {
 		eng.Register(reg, d)
 	}
+	m.registerSignUp(reg) // Member App sign-up (demo feedback 10 Oct 2026 #37)
 	add := func(rt route.Route) {
 		rt.Module = "membership"
 		if rt.Scope == route.ScopeGlobal && rt.Auth == route.AuthRequired && !strings.HasPrefix(rt.Path, "/api/v1/member/") {

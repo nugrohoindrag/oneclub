@@ -3,8 +3,8 @@ import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import {
-  Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, type StatusTone,
-  useDebounced, useToast,
+  Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, MoneyField, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField,
+  useAuth, useDebounced, useToast, type StatusTone,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import { ImportCorporateAR } from './ar_import';
@@ -105,7 +105,7 @@ function InvoiceFilterPanel({ value, onChange }: { value: InvoiceFilters; onChan
             <TextField label="to" type="date" value={value.to} min={value.from || undefined} onChange={set('to')} />
             <TextField label="Due date from" type="date" value={value.dueFrom} max={value.dueTo || undefined} onChange={set('dueFrom')} />
             <TextField label="to" type="date" value={value.dueTo} min={value.dueFrom || undefined} onChange={set('dueTo')} />
-            <TextField label="Amount from" type="number" inputMode="decimal" value={value.minTotal} onChange={set('minTotal')} placeholder="Rp" />
+            <MoneyField label="Amount from" value={value.minTotal} onChange={set('minTotal')} placeholder="Rp" />
             <TextField label="to" type="number" inputMode="decimal" value={value.maxTotal} onChange={set('maxTotal')} placeholder="Rp" />
           </div>
           <div className="oc-row" style={{ marginTop: 12 }}>
@@ -276,7 +276,7 @@ function AmountModal({ title, path, invalidate, onClose, defaultAmount = '', met
         onClick={() => send.mutate({ ...(extra ?? {}), amount: amount || undefined, ...(method ? { methodType, reference: reference || undefined } : {}), ...(reason ? { reason: why } : {}) },
           { onSuccess: () => { toast(`${title}: done`); onClose(); } })}>{title}</button></>}>
       <div className="oc-form">
-        <TextField label="Amount" value={amount} onChange={setAmount} inputMode="decimal" help={help} />
+        <MoneyField label="Amount" value={amount} onChange={setAmount} help={help} />
         {method && <SelectField label="Method" value={methodType} onChange={setMethod} options={METHODS} />}
         {method && <TextField label="Reference" value={reference} onChange={setReference} />}
         {reason && <TextArea label="Reason" value={why} onChange={setWhy} required />}
@@ -589,7 +589,7 @@ function CashMoveModal({ id, onClose }: { id: string; onClose: () => void }) {
       <button className="oc-btn oc-btn-primary" disabled={!amount || !reason || send.isPending} onClick={() => send.mutate({ kind, amount, reason }, { onSuccess: onClose })}>Save</button></>}>
       <div className="oc-form">
         <SelectField label="Kind" value={kind} onChange={setKind} options={[{ value: 'cash_in', label: 'Cash In' }, { value: 'cash_out', label: 'Cash Out' }]} />
-        <TextField label="Amount" value={amount} onChange={setAmount} inputMode="decimal" required />
+        <MoneyField label="Amount" value={amount} onChange={setAmount} required />
         <TextArea label="Reason" value={reason} onChange={setReason} required />
       </div>
       <ErrorAlert error={send.error} />

@@ -13,15 +13,18 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
 	"oneclub/internal/inventory"
+	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/httpx"
 	"oneclub/internal/kernel/id"
 	"oneclub/internal/kernel/route"
 	"oneclub/internal/platform/audit"
+	"oneclub/internal/platform/calendar"
 	"oneclub/internal/platform/handle"
 )
 
@@ -54,6 +57,10 @@ type TeeHouse struct {
 	OutOfStock  int            `json:"outOfStock"`
 }
 
+// teeHouseHoles is where the default tee houses stand (MGCC: Tee House 2 by
+// hole 8; the Halfway House after hole 9).
+var teeHouseHoles = map[int]int{1: 2, 2: 8, 3: 5, 4: 12, 5: 14, 6: 17}
+
 // SetupTeeHouses creates the tee house outlets, menus and warehouses once.
 func (m *Module) SetupTeeHouses(ctx context.Context, tx pgx.Tx, property uuid.UUID, in TeeHouseSetupInput) ([]TeeHouse, error) {
 	if len(in.Groups) == 0 {
@@ -80,6 +87,13 @@ func (m *Module) SetupTeeHouses(ctx context.Context, tx pgx.Tx, property uuid.UU
 				RETURNING id`, id.New(), property, code, name, g.Code, g.Area, handle.UserID(ctx)).Scan(&oid); err != nil {
 				return nil, err
 			}
+			// the hole it stands by, for "nearest tee house" on the caddy tablet (kept when set)
+			if h, ok := teeHouseHoles[n]; ok {
+				if _, err := tx.Exec(ctx, `UPDATE commercial.outlets SET attributes = attributes || jsonb_build_object('hole', $2::int) WHERE id = $1 AND NOT attributes ? 'hole'`,
+					oid, h); err != nil {
+					return nil, err
+				}
+			}
 			if tmpl != nil {
 				if _, err := tx.Exec(ctx, `INSERT INTO commercial.menus (id, property_id, outlet_id, code, name, available_from, available_to, weekdays, product_ids, channels, created_by)
 					SELECT gen_random_uuid(), property_id, $2, $3 || '-' || code, $4 || ' · ' || name, available_from, available_to, weekdays, product_ids, channels, $5
@@ -103,13 +117,16 @@ func (m *Module) SetupTeeHouses(ctx context.Context, tx pgx.Tx, property uuid.UU
 
 // TeeHouses lists the tee houses with today's orders and stock alerts.
 func (m *Module) TeeHouses(ctx context.Context, tx pgx.Tx, property uuid.UUID) ([]TeeHouse, error) {
+	// today is the club's day (WIB), not the database's UTC day
+	now := clock.Now().In(calendar.Location(ctx, tx))
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 	rows, err := tx.Query(ctx, `SELECT o.id, o.code, o.name, coalesce(o.attributes->>'group', ''), coalesce(o.attributes->>'area', ''), o.status,
 		(SELECT w.id FROM inventory.warehouses w WHERE w.outlet_id = o.id AND w.archived_at IS NULL ORDER BY w.code LIMIT 1),
-		(SELECT count(*) FROM commercial.orders x WHERE x.outlet_id = o.id AND x.created_at >= date_trunc('day', now()) AND x.status <> 'voided')::int,
+		(SELECT count(*) FROM commercial.orders x WHERE x.outlet_id = o.id AND x.created_at >= $2 AND x.status <> 'voided')::int,
 		(SELECT trim_scale(coalesce(sum(l.total_amount), 0))::text FROM commercial.orders x JOIN commercial.order_lines l ON l.order_id = x.id AND l.status = 'active'
-		  WHERE x.outlet_id = o.id AND x.created_at >= date_trunc('day', now()) AND x.status IN ('paid', 'charged'))
+		  WHERE x.outlet_id = o.id AND x.created_at >= $2 AND x.status IN ('paid', 'charged'))
 		FROM commercial.outlets o WHERE o.property_id = $1 AND o.outlet_type = 'tee_house' AND o.archived_at IS NULL
-		ORDER BY o.attributes->>'group', length(o.code), o.code`, property)
+		ORDER BY o.attributes->>'group', length(o.code), o.code`, property, today)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +146,7 @@ func (m *Module) TeeHouses(ctx context.Context, tx pgx.Tx, property uuid.UUID) (
 		return out, nil
 	}
 	open, err := tx.Query(ctx, `SELECT outlet_id, service_status, count(*)::int FROM commercial.orders WHERE outlet_id = ANY($1) AND status IN ('open', 'paid', 'charged')
-		AND service_status <> 'served' AND created_at >= date_trunc('day', now()) GROUP BY 1, 2`, ids)
+		AND service_status <> 'served' AND created_at >= $2 GROUP BY 1, 2`, ids, today)
 	if err != nil {
 		return nil, err
 	}

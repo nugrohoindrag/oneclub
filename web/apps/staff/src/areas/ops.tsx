@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useRef, useState } from 'react';
 import { Link, Navigate, Outlet, useLocation, useRoutes } from 'react-router';
 import { useGet, type Page } from '@oneclub/api-client';
 import { useTranslation } from '@oneclub/i18n';
@@ -29,14 +29,15 @@ const PosApp = lazy(() => import('../pos'));
 /** Entries kept at the foot of the rail. */
 const RAIL_FOOT = new Set(['/ops/sync', '/ops/notifications']);
 
-/** The area of the current page: the menu entry whose own path or one of its pages is the longest match. */
-function currentArea(items: NavItem[], pathname: string) {
+/** The area of the current page: the menu entry whose own path or one of its pages is the longest match;
+ * a page listed in two menus stays in the menu it was opened from (demo feedback 10 Oct 2026 #22). */
+function currentArea(items: NavItem[], pathname: string, previous?: string) {
   const hit = (p: string) => (p === '/ops' ? pathname === '/ops' : pathname === p || pathname.startsWith(`${p}/`));
   let area: NavItem | undefined;
   let best = -1;
   for (const i of items) {
     for (const p of [i.path, ...(i.children ?? []).filter((c) => !c.section).map((c) => c.path)]) {
-      if (hit(p) && p.length > best) { best = p.length; area = i; }
+      if (hit(p) && (p.length > best || (p.length === best && i.key === previous))) { best = p.length; area = i; }
     }
   }
   return area;
@@ -55,7 +56,9 @@ function OpsLayout() {
   const b = useBootstrap();
   const { pathname } = useLocation();
   const items = useNavigation('ops').data?.items ?? [];
-  const area = currentArea(items, pathname);
+  const last = useRef<string | undefined>(undefined);
+  const area = currentArea(items, pathname, last.current);
+  last.current = area?.key;
   const tabs = (area?.children ?? []).filter((c, i, all) => !c.section && all.findIndex((x) => x.path === c.path) === i);
   const entry = (i: NavItem) => (
     <Link key={i.key} to={i.path} title={i.label} aria-current={area?.key === i.key ? 'page' : undefined}>
@@ -148,14 +151,16 @@ const routes = [
       { path: 'sync', element: <SyncPage /> },
       { path: 'starter', element: <StarterQueuePage /> },
       { path: 'starter/ready', element: <StarterQueuePage view="ready" /> },
-      { path: 'starter/dispatch', element: <StarterQueuePage /> },
+      { path: 'starter/dispatch', element: <StarterQueuePage view="dispatch" /> },
+      { path: 'starter/check-in', element: <OpsCheckInPage /> },
+      { path: 'front-desk/check-in', element: <OpsCheckInPage /> },
       { path: 'starter/rounds', element: <StarterQueuePage view="rounds" /> },
       { path: 'starter/tee-sheet', element: <OpsTeeSheetPage /> },
       { path: 'check-in', element: <OpsCheckInPage /> },
       { path: 'kiosk', element: <KioskCheckInPage /> },
       { path: 'check-out', element: <OpsCheckOutPage /> },
       { path: 'caddy', element: <CaddyQueuePage /> },
-      { path: 'caddy/availability', element: <CaddyQueuePage /> },
+      { path: 'caddy/availability', element: <CaddyQueuePage view="availability" /> },
       { path: 'caddy/rotation', element: <CaddyQueuePage /> },
       { path: 'caddy/assignment', element: <CaddyAssignmentPage /> },
       { path: 'caddy/history', element: <CaddyHistoryPage /> },

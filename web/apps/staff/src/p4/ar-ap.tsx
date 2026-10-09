@@ -3,8 +3,8 @@ import { Link, Navigate, useSearchParams } from 'react-router';
 import { request, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import {
-  Card, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, Pager, SelectField, Skeleton, StatTile, StatusPill, TextArea, TextField, useAuth, usePager, useToast,
-  type Column,
+  Card, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, MoneyField, PageHeader, Pager, SelectField, Skeleton, StatTile, StatusPill, TextArea,
+  TextField, useAuth, usePager, useToast, type Column,
 } from '@oneclub/shell';
 import { useQueryClient } from '@tanstack/react-query';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
@@ -91,7 +91,7 @@ function FollowUpModal({ party, data, invoiceId, onClose }: { party: 'customer' 
           options={data.openItems.map((i) => ({ value: i.id, label: `${i.number} · ${money(i.amount)}` }))} />
         {f.action === 'promise_to_pay' && <>
           <TextField label="Promised date" type="date" value={f.promisedDate} onChange={upd('promisedDate')} required />
-          <TextField label="Promised amount" value={f.promisedAmount} onChange={upd('promisedAmount')} />
+          <MoneyField label="Promised amount" value={f.promisedAmount} onChange={upd('promisedAmount')} />
         </>}
         <TextField label="Next follow-up" type="date" value={f.nextFollowUp} onChange={upd('nextFollowUp')} help="Leave empty when nothing is planned" />
         <TextArea label="Notes" value={f.notes} onChange={upd('notes')} rows={3} span />
@@ -335,7 +335,7 @@ function ReceivePaymentModal({ onClose }: { onClose: () => void }) {
         <SelectField label="Received in (method)" value={f.paymentMethodId} onChange={upd('paymentMethodId')} placeholder="Bank transfer"
           options={rowsOf(methods.data).filter((m) => !['member_account', 'voucher_prepaid', 'loyalty_points'].includes(String(m.methodType)))
             .map((m) => ({ value: String(m.id), label: String(m.name) }))} />
-        <TextField label="Amount" value={f.amount} onChange={upd('amount')} inputMode="decimal" required />
+        <MoneyField label="Amount" value={f.amount} onChange={upd('amount')} required />
         <TextField label="Reference" value={f.reference} onChange={upd('reference')} help="Transfer reference on the bank statement" />
         <TextField label="Payer" value={f.payerName} onChange={upd('payerName')} placeholder={String(customer?.billToName ?? '')} />
       </div>
@@ -376,7 +376,7 @@ export function CreditNoteModal({ onClose }: { onClose: () => void }) {
       <div className="oc-form">
         <SelectField label="Invoice" value={f.invoiceId} onChange={(v) => setF({ ...f, invoiceId: v })} required placeholder="Choose an open invoice"
           options={open.map((i) => ({ value: String(i.id), label: `${String(i.number)} · ${String(i.billToName)} · ${money(i.outstanding)}` }))} />
-        <TextField label="Amount" value={f.amount} onChange={(v) => setF({ ...f, amount: v })} inputMode="decimal" required help="At most the outstanding amount" />
+        <MoneyField label="Amount" value={f.amount} onChange={(v) => setF({ ...f, amount: v })} required help="At most the outstanding amount" />
         <TextArea label="Reason" value={f.reason} onChange={(v) => setF({ ...f, reason: v })} rows={2} required span
           help="Invoice correction, event cancelled, overbilling …" />
       </div>
@@ -539,7 +539,7 @@ function VendorBillModal({ onClose }: { onClose: () => void }) {
           options={[{ value: 'PPH23', label: 'PPh 23' }, { value: 'PPH42', label: 'PPh 4(2)' }]} />
         <AccountSelect label="Expense account" value={line.accountId} onChange={(v) => setLine({ ...line, accountId: v })} required />
         <TextField label="Description" value={line.description} onChange={(v) => setLine({ ...line, description: v })} required />
-        <TextField label="Amount (DPP)" value={line.amount} onChange={(v) => setLine({ ...line, amount: v })} required />
+        <MoneyField label="Amount (DPP)" value={line.amount} onChange={(v) => setLine({ ...line, amount: v })} required />
         <TextField label="Cost center" value={line.costCenter} onChange={(v) => setLine({ ...line, costCenter: v })} />
       </div>
       <ErrorAlert error={send.error} />

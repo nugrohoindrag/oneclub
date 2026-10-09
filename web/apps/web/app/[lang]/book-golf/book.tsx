@@ -1,6 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { MoneyInput } from '@oneclub/ui';
 import type { Lang } from '../../lib';
+import { checkoutHref } from '../../pay-link';
 
 interface Slot { id: string; localTime: string; startTee: number; remaining: number; minPlayers: number; maxPlayers: number; session: string; status: string; crowd?: string; prices: Record<string, string> }
 interface Hold { id: string; holdToken: string; expiresAt: string; players: number }
@@ -71,7 +73,7 @@ export function BookGolf({ lang }: { lang: Lang }) {
         holdId: hold.id, holdToken: hold.holdToken, consent, contact, players: others.map((n) => ({ name: n })),
         paymentMode: when, paymentMethod: when === 'pay_at_venue' ? undefined : method, depositAmount: when === 'deposit' ? part : undefined,
       });
-      if (b.payment?.checkoutUrl) window.location.href = b.payment.checkoutUrl;
+      if (b.payment?.checkoutUrl) window.location.href = checkoutHref(b.payment.checkoutUrl, lang, `/${lang}/booking/${b.manageToken}`) ?? b.payment.checkoutUrl;
       else window.location.href = `/${lang}/booking/${b.manageToken}`;
     } catch (err) {
       setError((err as Error).message);
@@ -106,7 +108,7 @@ export function BookGolf({ lang }: { lang: Lang }) {
           </label>
           {when === 'deposit' && (
             <label>{id ? 'Nominal dibayar sekarang (Rp)' : 'Amount paid now (IDR)'}
-              <input inputMode="numeric" value={part} onChange={(e) => setPart(e.target.value.replace(/\D/g, ''))} required />
+              <MoneyInput value={part} onChange={setPart} required />
             </label>
           )}
           {when !== 'pay_at_venue' && (

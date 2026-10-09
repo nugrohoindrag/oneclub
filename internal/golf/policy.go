@@ -59,6 +59,10 @@ type GolfPolicy struct {
 	RangeCloseHour         int            `json:"rangeCloseHour"` // closing hour (1–24); bay times end by then
 	DressCode              string         `json:"dressCode"`
 	ClubRules              string         `json:"clubRules"`
+	// BreakMinutes is the allowance per break during the round (halfway,
+	// turn, tee_house, break_other): the pace allows it, a longer break
+	// warns the Marshal (demo feedback 10 Oct 2026 #31).
+	BreakMinutes map[string]int `json:"breakMinutes"`
 }
 
 // GuestPolicy (FR-POL-02).
@@ -100,6 +104,12 @@ type CaddyPolicy struct {
 	PlayersPerCaddy int  `json:"playersPerCaddy"`
 	Mandatory       bool `json:"mandatory"`
 	AllowRequest    bool `json:"allowRequest"`
+	// ScoresByAnyCaddy lets every caddy of the flight enter every player's
+	// score (clubs with one caddy for two players or one tablet per cart).
+	// Off (default, MGCC: 1 caddy = 1 player): a caddy scores only the
+	// players assigned to them; a player without a caddy is open to the
+	// flight's caddies and the starter/marshal (demo feedback 10 Oct 2026).
+	ScoresByAnyCaddy bool `json:"scoresByAnyCaddy"`
 }
 
 // CartPolicy (FR-POL-07).
@@ -161,7 +171,8 @@ var (
 		BookingCutoffMinutes:  map[string]int{"member_app": 60, "website": 120, "back_office": 0, "walk_in": 0, "import": 0},
 		RescheduleCutoffHours: 24, MaxReschedules: 2, AllowTBA: true, NoShowGraceMinutes: 30, RoundMinutes18: 300, RoundMinutes9: 150, ReminderHour: 8,
 		RangeOpenHour: 6, RangeCloseHour: 22,
-		DressCode: "Collared shirt, golf trousers or shorts, soft-spike golf shoes.", ClubRules: "Please arrive 30 minutes before your tee time."}
+		BreakMinutes: map[string]int{"halfway": 15, "turn": 5, "tee_house": 5, "break_other": 10},
+		DressCode:    "Collared shirt, golf trousers or shorts, soft-spike golf shoes.", ClubRules: "Please arrive 30 minutes before your tee time."}
 	DefaultGuest        = GuestPolicy{MaxGuestsPerMember: 3, MemberMustPlay: true}
 	DefaultCancellation = CancellationPolicy{FreeCancelHours: 24, LateCancelFeePercent: "50", NoShowFeePercent: "100", NoShowBlockAfter: 3, NoShowBlockWindowDays: 90,
 		WaiverRequiresApproval: true}
@@ -216,6 +227,10 @@ func LoadPolicies(ctx context.Context, q dbtx.Querier, property uuid.UUID, at ti
 	p.Golf.BookingCutoffMinutes = map[string]int{}
 	for k, v := range DefaultGolf.BookingCutoffMinutes {
 		p.Golf.BookingCutoffMinutes[k] = v
+	}
+	p.Golf.BreakMinutes = map[string]int{}
+	for k, v := range DefaultGolf.BreakMinutes {
+		p.Golf.BreakMinutes[k] = v
 	}
 	for code, dst := range map[string]any{PolicyGolf: &p.Golf, PolicyGuest: &p.Guest, PolicyCancellation: &p.Cancellation, PolicyWeather: &p.Weather,
 		PolicyCaddy: &p.Caddy, PolicyCart: &p.Cart, PolicyPayment: &p.Payment, PolicyEligibility: &p.Eligibility, PolicyOverride: &p.Override} {

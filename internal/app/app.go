@@ -226,7 +226,7 @@ func Build(cfg *config.Config, db *dbtx.DB, o Options) (*App, error) {
 	billingHTTP.RegisterMember(reg)
 	a.Approvals.RegisterDocumentType(billing.RefundDocumentType, billingHTTP.RefundDecision)
 	a.Membership = &membership.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Billing: a.Billing, Notify: a.Notification, Portal: a.IAM,
-		Residents: a.Integrations, PortalURL: portalURL}
+		Residents: a.Integrations, PortalURL: portalURL, ShowCodes: cfg.Env != "production"}
 	a.Membership.Register(reg, a.Engine)
 	a.Approvals.RegisterDocumentType(membership.ApplicationDocumentType, a.Membership.ApplicationDecision)
 	a.Golf = &golf.Module{DB: db, Events: a.Bus, Approvals: a.Approvals, Billing: a.Billing, Refunds: billingHTTP, Notify: a.Notification, Hub: a.Hub,

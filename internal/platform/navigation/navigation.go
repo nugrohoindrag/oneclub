@@ -509,9 +509,10 @@ var Trees = map[string][]Item{
 			s("ops-tee-sheet", "Tee Sheet", "/ops/starter/tee-sheet", "golf.tee_sheet.view"),
 			s("queue", "Queue", "/ops/starter", "golf.starter.view"),
 			s("ready-flights", "Ready Flights", "/ops/starter/ready", "golf.starter.view"),
-			s("dispatch", "Dispatch", "/ops/starter/dispatch", "golf.starter.control"),
-			s("starter-check-in", "Check-in", "/ops/check-in", "golf.check_in.perform"),
-			s("tee-off", "Tee-Off", "/ops/starter/dispatch", "golf.starter.control"),
+			// one tee-off screen; each menu has its own check-in path so the rail stays on the menu it was
+			// opened from (demo feedback 10 Oct 2026 #22, #23)
+			s("dispatch", "Dispatch / Tee-Off", "/ops/starter/dispatch", "golf.starter.control"),
+			s("starter-check-in", "Check-in", "/ops/starter/check-in", "golf.check_in.perform"),
 			s("round-status", "Round Status", "/ops/starter/rounds", "golf.starter.view"),
 			s("ops-course-monitor", "Course Monitor", "/ops/starter/monitor", "golf.pace.view"),
 			s("pace-of-play", "Pace of Play", "/ops/starter/pace", "golf.pace.view"),
@@ -531,7 +532,6 @@ var Trees = map[string][]Item{
 			s("caddy-availability", "Caddy Availability", "/ops/caddy/availability", "golf.caddy.view"),
 			s("caddy-assignment", "Caddy Assignment", "/ops/caddy/assignment", "golf.caddy_assignment.manage"),
 			s("caddy-rotation", "Caddy Rotation", "/ops/caddy/rotation", "golf.caddy_assignment.manage"),
-			s("caddy-attendance", "Caddy Attendance", "/ops/caddy/availability", "golf.caddy_assignment.manage"),
 			s("caddy-history", "Caddy History", "/ops/caddy/history", "golf.caddy.view"),
 			s("caddy-incidents", "Incidents & Settlement", "/ops/caddy/incidents", "golf.caddy_incident.create"),
 			// PRD P5 FR-ATT-08: caddies clocking in on the caddy house device join the queue.
@@ -540,7 +540,7 @@ var Trees = map[string][]Item{
 		{Key: "front-desk", Label: "Front Desk", Path: "/ops/front-desk", Icon: "concierge", Module: "golf", Permission: "golf.check_in.perform", Children: []Item{
 			s("reservations", "Reservations", "/ops/front-desk", "golf.booking.view"),
 			s("fd-new-booking", "New Booking", "/ops/front-desk/new", "golf.booking.create"),
-			s("fd-check-in", "Check-in", "/ops/check-in", "golf.check_in.perform"),
+			s("fd-check-in", "Check-in", "/ops/front-desk/check-in", "golf.check_in.perform"),
 			s("fd-check-out", "Check-out", "/ops/check-out", "golf.check_in.perform"),
 			s("guest", "Guest", "/ops/front-desk/guest", "crm.guest.view"),
 			s("fd-payments", "Payments", "/ops/front-desk/payments", "billing.payment.create"),

@@ -1,5 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
+import { checkoutHref } from '../../../../pay-link';
 
 interface Start { flightNo: number; startLabel: string; localTime: string; roundNo: number }
 interface Registration {
@@ -40,7 +41,7 @@ export function ManageRegistration({ lang, propertyId, token }: { lang: string; 
       <p><strong>{r.status.replace(/_/g, ' ')}</strong>{r.waitlistPosition ? ` #${r.waitlistPosition}` : ''} · {r.packageName ?? ''} · {rp(r.feeTotal)} ({r.paymentStatus.replace(/_/g, ' ')})</p>
       {r.checkout && Number(r.balance) > 0 && (
         <p>{id ? 'Sisa pembayaran' : 'To pay'}: <strong>{rp(r.balance)}</strong>{r.checkout.vaNumber ? ` · VA ${r.checkout.vaNumber}` : ''}
-          {r.checkout.checkoutUrl && <> · <a href={r.checkout.checkoutUrl}>{id ? 'Bayar' : 'Pay'}</a></>}</p>
+          {r.checkout.checkoutUrl && <> · <a href={checkoutHref(r.checkout.checkoutUrl, lang) ?? undefined}>{id ? 'Bayar' : 'Pay'}</a></>}</p>
       )}
       {r.start && <p>{id ? 'Start' : 'Start'}: {id ? 'ronde' : 'round'} {r.start.roundNo} · flight {r.start.flightNo} · {r.start.startLabel} · {r.start.localTime}</p>}
       <p><a href={`/${lang}/tournaments/${r.tournamentId}`}>{id ? 'Detail turnamen' : 'Tournament details'}</a></p>

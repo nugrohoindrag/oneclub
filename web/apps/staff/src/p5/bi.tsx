@@ -3,8 +3,8 @@ import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber, formatRelative } from '@oneclub/i18n';
 import {
-  ColumnChart, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, PageHeader, RequirePermission, SelectField, Skeleton, StatusPill, TextField, useAuth,
-  useToast,
+  Card, Checkbox, ColumnChart, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, MoneyField, PageHeader, RequirePermission, SelectField, Skeleton,
+  StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
 import { ActionButton, KV, Tabs, money, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
@@ -202,7 +202,7 @@ function PlanDrawer({ id, onClose }: { id: string; onClose: () => void }) {
               <div className="oc-row-wrap">
                 <div style={{ minWidth: 260 }}><SelectField label="KPI" value={annualKPI} onChange={setAnnualKPI} placeholder="Choose a KPI"
                   options={execDefs.map((d) => ({ value: String(d.executiveKey), label: `${String(d.label)} (${label(d.domain)})` }))} /></div>
-                <div style={{ width: 200 }}><TextField label="Annual amount" value={annual} onChange={setAnnual} inputMode="decimal" /></div>
+                <div style={{ width: 200 }}><MoneyField label="Annual amount" value={annual} onChange={setAnnual} /></div>
                 <button className="oc-btn oc-btn-ink" style={{ alignSelf: 'flex-end' }} disabled={!annualKPI || !annual || save.isPending}
                   onClick={() => save.mutate({ remove: [annualKPI], annual: [{ kpiKey: annualKPI, amount: annual }] }, {
                     onSuccess: () => { setAnnual(''); toast('Annual budget split per month'); p.refetch(); }, onError: (e) => toast(e.message, 'error') })}>Apply</button>

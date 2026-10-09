@@ -21,7 +21,15 @@ export function MembershipOverviewPage() {
   return (
     <div className="mj-page">
       <Head title="Membership" />
-      <ErrorAlert error={m.error} />
+      {!m.isLoading && !ms ? (
+        // a non-member account (guest sign-up): the same app, member benefits after the upgrade (demo feedback #37.5)
+        <div className="mj-card oc-row-wrap">
+          <span className="mj-icon"><Icon name="workspace_premium" size={22} /></span>
+          <span style={{ flex: 1 }}><strong>You are a non-member</strong><br />
+            <span className="mj-small mj-muted">Become a member for member rates, longer booking windows, guests and member charge. Your bookings and history stay with this account.</span></span>
+          <Link className="oc-btn oc-btn-primary" to="/join">Upgrade to Member</Link>
+        </div>
+      ) : <ErrorAlert error={m.error} />}
       {m.isLoading && <Skeleton rows={6} />}
       {p && (
         <>

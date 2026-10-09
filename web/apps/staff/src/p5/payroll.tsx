@@ -3,8 +3,8 @@ import { Link, Navigate, useNavigate, useParams } from 'react-router';
 import { download, uuidv7, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatNumber } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, PageHeader, SearchBox, SelectField, Skeleton, StatTile, StatusPill,
-  TextArea, TextField, useAuth, useToast, type Option,
+  AutoResourcePage, Card, Checkbox, DataTable, Empty, ErrorAlert, FilterPills, Icon, Modal, MoneyField, PageHeader, SearchBox, SelectField, Skeleton,
+  StatTile, StatusPill, TextArea, TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
@@ -487,7 +487,7 @@ function AdjustmentList() {
           body={() => clean({ employeeId: f.employeeId, componentCode: f.componentCode, amount: f.amount, periodCode: f.periodCode, targetRunType: f.targetRunType, reason: f.reason })}>
           <SelectField label="Employee" value={f.employeeId ?? ''} onChange={(v) => setF({ ...f, employeeId: v })} options={employees} required span />
           <TextField label="Component code" value={f.componentCode ?? ''} onChange={(v) => setF({ ...f, componentCode: v.toUpperCase() })} required />
-          <TextField label="Amount" inputMode="decimal" value={f.amount ?? ''} onChange={(v) => setF({ ...f, amount: v })} required />
+          <MoneyField label="Amount" value={f.amount ?? ''} onChange={(v) => setF({ ...f, amount: v })} required />
           <TextField label="Period (YYYY-MM)" value={f.periodCode ?? ''} onChange={(v) => setF({ ...f, periodCode: v })} required />
           <SelectField label="Paid by run" value={f.targetRunType ?? ''} onChange={(v) => setF({ ...f, targetRunType: v })} options={opts(['regular', 'bonus', 'adjustment', 'final_settlement'])} />
           <TextField label="Reason" value={f.reason ?? ''} onChange={(v) => setF({ ...f, reason: v })} required span />

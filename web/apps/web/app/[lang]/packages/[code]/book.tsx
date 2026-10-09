@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { idr, type Lang } from '../../../lib';
 import { checkPromoCode, type CodeCheck } from '../../promotions/check';
 import type { PublicPackage } from '../shared';
+import { checkoutHref } from '../../../pay-link';
 
 type Result = Record<string, unknown>;
 interface Day { date: string; available: boolean; reason?: string; price: string }
@@ -62,7 +63,7 @@ export function BookPackage({ lang, propertyId, pkg }: { lang: Lang; propertyId:
         {b.status === 'pending' && <p>{id ? 'Pemesanan ditahan sampai' : 'Your booking is held until'} {new Date(String(b.holdExpiresAt)).toLocaleString(lang)}.</p>}
         {online && online.status === 'pending' && (
           <p>{id ? 'Selesaikan pembayaran' : 'Complete the payment'}{online.vaNumber ? <> — VA <strong>{String(online.vaNumber)}</strong></> : null}
-            {online.checkoutUrl ? <> — <a href={String(online.checkoutUrl)}>{id ? 'buka halaman pembayaran' : 'open the payment page'}</a></> : null}.</p>
+            {online.checkoutUrl ? <> — <a href={checkoutHref(String(online.checkoutUrl), lang) ?? undefined}>{id ? 'buka halaman pembayaran' : 'open the payment page'}</a></> : null}.</p>
         )}
       </div>
     );

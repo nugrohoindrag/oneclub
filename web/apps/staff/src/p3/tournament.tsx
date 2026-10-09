@@ -4,7 +4,7 @@ import { download, qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import { cacheGet, cachePut, enqueue, useOnline } from '@oneclub/offline';
 import {
-  Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, Modal, PageHeader, SelectField, StatusPill, TextArea, TextField, useAuth, useToast,
+  Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, Modal, MoneyField, PageHeader, SelectField, StatusPill, TextArea, TextField, useAuth, useToast,
   type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
@@ -630,7 +630,7 @@ function PackagesFees({ t }: { t: R }) {
           <SelectField label="Component" value={fee.component} onChange={(v) => setFee({ ...fee, component: v })} options={COMPONENTS} />
           <TextField label="Name" value={fee.name} onChange={(v) => setFee({ ...fee, name: v })} />
           <SelectField label="For" value={fee.playerType} onChange={(v) => setFee({ ...fee, playerType: v })} options={PLAYER_TYPES} />
-          <TextField label="Amount" type="number" value={fee.amount} onChange={(v) => setFee({ ...fee, amount: v })} />
+          <MoneyField label="Amount" value={fee.amount} onChange={(v) => setFee({ ...fee, amount: v })} />
           <TextField label="Tax & Service codes" value={fee.taxCodes} onChange={(v) => setFee({ ...fee, taxCodes: v })} help="Comma separated" />
           <button className="oc-btn oc-btn-primary" disabled={!fee.name || !fee.amount || feeSend.isPending} onClick={() => feeSend.mutate({ packageId: opt(fee.packageId), component: fee.component,
             name: fee.name, playerType: fee.playerType, amount: fee.amount, taxCodes: fee.taxCodes ? fee.taxCodes.split(',').map((s) => s.trim()).filter(Boolean) : undefined } as unknown as R,
@@ -665,7 +665,7 @@ function SponsorsPanel({ t }: { t: R }) {
         <SelectField label="Level" value={f.sponsorLevel} onChange={(v) => setF({ ...f, sponsorLevel: v })} options={LEVELS} />
         <TextField label="Sponsor package" value={f.packageName} onChange={(v) => setF({ ...f, packageName: v })} />
         <SelectField label="Billed to" value={f.corporateAccountId} onChange={(v) => setF({ ...f, corporateAccountId: v })} placeholder="—" options={(corps.data?.items ?? []).map((c) => ({ value: c.id, label: String(c.name) }))} />
-        <TextField label="Amount" type="number" value={f.amount} onChange={(v) => setF({ ...f, amount: v })} />
+        <MoneyField label="Amount" value={f.amount} onChange={(v) => setF({ ...f, amount: v })} />
         <TextField label="Logo URL" value={f.logoUrl} onChange={(v) => setF({ ...f, logoUrl: v })} />
         <TextField label="Sponsored holes" value={f.holes} onChange={(v) => setF({ ...f, holes: v })} help="e.g. 3, 7" />
         <TextField label="Contact e-mail" value={f.contactEmail} onChange={(v) => setF({ ...f, contactEmail: v })} />

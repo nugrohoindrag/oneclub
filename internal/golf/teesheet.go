@@ -817,7 +817,7 @@ func (m *Module) loadFlights(ctx context.Context, q dbtx.Querier, pol Policies, 
 		rd.GolfCartsOK = !pol.Cart.Mandatory || len(f.Carts) >= f.CartsNeeded
 		if pol.Payment.PayBeforeCheckIn && ex[i].folio != nil && ex[i].mode != nil && (*ex[i].mode == "pay_at_venue" || *ex[i].mode == "deposit") {
 			if sum, err := billing.FolioSummary(ctx, q, *ex[i].folio); err == nil {
-				rd.PaymentOK = !decPositive(sum.Balance) || decPositive(sum.HeldDeposits)
+				rd.PaymentOK = !decPositive(sum.Balance) || decPositive(sum.HeldDeposits) || (*ex[i].mode == "deposit" && decPositive(sum.Payments))
 			}
 		}
 		rd.Ready = n > 0 && rd.CheckedIn == n && rd.CaddiesOK && rd.GolfCartsOK

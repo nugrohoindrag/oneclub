@@ -6,6 +6,7 @@ package resource
 
 import (
 	"net/http"
+	"regexp"
 	"sort"
 
 	"oneclub/internal/kernel/authz"
@@ -28,7 +29,13 @@ type FieldMeta struct {
 	CreateOnly bool     `json:"createOnly"`
 	Filter     bool     `json:"filter"`
 	Default    any      `json:"default,omitempty"`
+	Money      bool     `json:"money" doc:"A decimal amount of money: the form shows Rupiah while typing"`
 }
+
+// moneyName tells the decimal fields that hold money from those holding a
+// percent, a quantity or a rating (demo feedback 10 Oct 2026 #13).
+var moneyName = regexp.MustCompile(`(?i)(price|amount|fee|cost|deposit|salary|charge|tip|spend|budget|limit|allowance|wage|bonus|fine|penalty|value|total|balance|rate)$`)
+var notMoney = regexp.MustCompile(`(?i)(percent|pct|ratio|factor|qty|quantity|weight|hours|minutes|days|points|exchangeRate|taxRate)`)
 
 // DefMeta describes one resource.
 type DefMeta struct {
@@ -62,7 +69,8 @@ func (e *Engine) Meta(p *authz.Principal) []DefMeta {
 			NoDelete: d.NoDelete, Fields: []FieldMeta{}}
 		for _, f := range d.Fields {
 			fm := FieldMeta{Name: f.Name, Label: f.Label, Type: kindNames[f.Kind], Required: f.Required, Options: f.Enum, ReadOnly: f.ReadOnly,
-				CreateOnly: f.CreateOnly, Filter: f.Filter, Default: f.Default}
+				CreateOnly: f.CreateOnly, Filter: f.Filter, Default: f.Default,
+				Money: f.Kind == Decimal && moneyName.MatchString(f.Name) && !notMoney.MatchString(f.Name)}
 			if f.Ref != nil {
 				fm.RefPath = byTable[f.Ref.Table]
 			}

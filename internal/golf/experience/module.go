@@ -426,7 +426,8 @@ func Contribution() catalog.Contribution {
 			"golf_admin": with(view, "golf.range_bay.create", "golf.range_bay.update", "golf.reciprocal_club.create", "golf.reciprocal_club.update",
 				"golf.hall_of_fame.create", "golf.hall_of_fame.update", "golf.hall_of_fame.publish", "golf.scorecard.enter", "golf.scorecard.finalize",
 				"golf.scorecard.view_all", "golf.reciprocal_visit.verify", "golf.introduction_letter.request", "golf.introduction_letter.issue", "golf.hio.manage"),
-			"starter_marshal": with(view, "golf.scorecard.enter", "golf.round.operate", "golf.pace.manage"),
+			// the marshal approves the players' score corrections (demo feedback 10 Oct 2026 #36)
+			"starter_marshal": with(view, "golf.scorecard.enter", "golf.round.operate", "golf.pace.manage", "golf.scorecard.correct"),
 			"caddy_manager": with(view, "golf.caddy_promotion.request", "golf.caddy_incident.create", "golf.caddy_incident.manage",
 				"golf.caddy_settlement.manage"),
 			"caddy": {"golf.tablet.use", "golf.caddy_assignment.accept", "golf.round.view", "golf.round.operate", "golf.scorecard.view", "golf.scorecard.enter", "golf.caddy_incident.create",
@@ -443,7 +444,9 @@ func Contribution() catalog.Contribution {
 			"membership_admin":    {"golf.reciprocal_club.view", "golf.introduction_letter.view", "golf.introduction_letter.request", "golf.introduction_letter.issue", "golf.reciprocal_visit.view"},
 			"front_desk": {"golf.reciprocal_visit.view", "golf.reciprocal_visit.verify", "golf.reciprocal_club.view",
 				"golf.range_bay.view", "golf.range.view", "golf.range.operate", // range bookings at the desk (demo feedback 9 Oct 2026)
-				"golf.maintenance_task.view"}, // the holes being worked, on the tee sheet
+				"golf.maintenance_task.view", // the holes being worked, on the tee sheet
+				// doubling as the starter (demo feedback 10 Oct 2026 #21): round finish, Course Monitor
+				"golf.round.view", "golf.round.operate", "golf.pace.view", "golf.pace.manage"},
 		},
 	}
 }

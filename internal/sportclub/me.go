@@ -20,12 +20,13 @@ import (
 )
 
 type MyCourtBookingInput struct {
-	CourtID      uuid.UUID `json:"courtId"`
-	Start        time.Time `json:"start"`
-	End          time.Time `json:"end"`
-	PackageCode  string    `json:"packageCode,omitempty"`
-	MemberCharge bool      `json:"memberCharge,omitempty" doc:"Charge to my member account; otherwise pay the folio online"`
-	Notes        string    `json:"notes,omitempty"`
+	CourtID      uuid.UUID   `json:"courtId"`
+	Start        time.Time   `json:"start"`
+	End          time.Time   `json:"end"`
+	PackageCode  string      `json:"packageCode,omitempty"`
+	MemberCharge bool        `json:"memberCharge,omitempty" doc:"Charge to my member account; otherwise pay the folio online"`
+	Notes        string      `json:"notes,omitempty"`
+	Lines        []CourtLine `json:"lines,omitempty" doc:"Several courts / hours in one booking (courtId/start/end ignored)"`
 }
 
 type MyEnrollInput struct {
@@ -55,7 +56,7 @@ func (m *Module) registerMe(reg *route.Registry) {
 				return CourtBookingResult{}, err
 			}
 			return m.BookCourt(ctx, tx, p.PropertyID, CourtBookingInput{CourtID: in.CourtID, Start: in.Start, End: in.End, CustomerID: &p.ID,
-				Channel: "member_app", PackageCode: in.PackageCode, Notes: in.Notes, Payment: memberCharge(in.MemberCharge)}, r.Header.Get("Idempotency-Key"))
+				Channel: "member_app", PackageCode: in.PackageCode, Notes: in.Notes, Payment: memberCharge(in.MemberCharge), Lines: in.Lines}, r.Header.Get("Idempotency-Key"))
 		})})
 	me(route.Route{Method: http.MethodGet, Path: "/api/v1/member/sport-club/class-sessions", Summary: "Class schedule to book", Response: Session{}, List: true,
 		Query: []route.Param{{Name: "from"}, {Name: "days", Type: "integer"}, {Name: "filter[programId]"}},

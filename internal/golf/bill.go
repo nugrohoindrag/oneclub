@@ -78,6 +78,29 @@ func (m *Module) Bill(ctx context.Context, q dbtx.Querier, property, bid uuid.UU
 	if len(players) == 0 {
 		return out, nil
 	}
+	// on-course F&B items carry the player they are for (demo feedback #35)
+	var orderLines []uuid.UUID
+	for _, l := range f.Lines {
+		if l.ReferenceType != nil && *l.ReferenceType == "commercial.order_line" && l.ReferenceID != nil {
+			orderLines = append(orderLines, *l.ReferenceID)
+		}
+	}
+	forPlayer := map[uuid.UUID]uuid.UUID{}
+	if len(orderLines) > 0 {
+		rows, err := q.Query(ctx, `SELECT id, guest_ref FROM commercial.order_lines WHERE id = ANY($1) AND guest_ref IS NOT NULL`, orderLines)
+		if err != nil {
+			return out, err
+		}
+		for rows.Next() {
+			var lid, pid uuid.UUID
+			if err := rows.Scan(&lid, &pid); err != nil {
+				rows.Close()
+				return out, err
+			}
+			forPlayer[lid] = pid
+		}
+		rows.Close()
+	}
 	own := map[uuid.UUID]decimal.Decimal{}
 	common := decimal.Zero
 	for _, l := range f.Lines {
@@ -85,9 +108,15 @@ func (m *Module) Bill(ctx context.Context, q dbtx.Querier, property, bid uuid.UU
 			continue
 		}
 		t := dec(l.Total)
-		if l.ReferenceType != nil && *l.ReferenceType == "golf_player" && l.ReferenceID != nil {
-			if _, ok := own[*l.ReferenceID]; ok || isPlayer(players, *l.ReferenceID) {
-				own[*l.ReferenceID] = own[*l.ReferenceID].Add(t)
+		ref := l.ReferenceID
+		if l.ReferenceType != nil && *l.ReferenceType == "commercial.order_line" && ref != nil {
+			if pid, ok := forPlayer[*ref]; ok {
+				ref = &pid
+			}
+		}
+		if ref != nil && (l.ReferenceType != nil && (*l.ReferenceType == "golf_player" || *l.ReferenceType == "commercial.order_line")) {
+			if _, ok := own[*ref]; ok || isPlayer(players, *ref) {
+				own[*ref] = own[*ref].Add(t)
 				continue
 			}
 		}

@@ -20,7 +20,8 @@ export function configFromMeta(d: DefMeta): ResourceConfig {
     .filter((f) => !f.readOnly && f.name !== 'attributes')
     .map((f) => ({
       name: f.name, label: f.label, required: f.required, createOnly: f.createOnly, default: f.default ?? undefined,
-      type: (f.type === 'jsonlist' ? 'json' : f.type) as FieldDef['type'],
+      // a decimal holding money shows Rupiah while typing (demo feedback #13)
+      type: (f.type === 'jsonlist' ? 'json' : f.type === 'decimal' && (f as { money?: boolean }).money ? 'money' : f.type) as FieldDef['type'],
       options: f.options?.map((o) => ({ value: o, label: o.replace(/_/g, ' ') })),
       ref: f.type === 'reference' && f.refPath ? { path: f.refPath, label: labelOf } : undefined,
       span: ['textarea', 'json', 'jsonlist'].includes(f.type),
@@ -38,6 +39,7 @@ export function configFromMeta(d: DefMeta): ResourceConfig {
       if (f.type === 'date') return formatDate(String(v));
       if (f.type === 'datetime') return formatDateTime(String(v));
       if (Array.isArray(v)) return v.join(', ');
+      if ((f as { money?: boolean }).money) return `Rp ${Number(v).toLocaleString('id-ID')}`;
       return String(v);
     },
   }));

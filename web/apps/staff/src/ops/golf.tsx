@@ -3,12 +3,11 @@ import { Link } from 'react-router';
 import { qs, request, useGet, useSend, uuidv7, type Page } from '@oneclub/api-client';
 import { formatDateTime, formatMoney } from '@oneclub/i18n';
 import { cacheGet, cachePut, enqueue, useOnline } from '@oneclub/offline';
-import {
-  Card, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TextField, useAuth, useToast,
-} from '@oneclub/shell';
+import { Card, DataTable, ErrorAlert, Icon, Modal, MoneyField, PlayTime, SelectField, StatusPill, TextField, useAuth, useToast } from '@oneclub/shell';
 import { BookingScorecards, CaddyCartModal } from './desk';
 import { DeskPayDialog, newPayments, type DeskTender } from './deskpay';
 import { MaintenanceBanner } from './maintenance';
+import { ScanField } from '../p4/inventory';
 
 type R = Record<string, unknown> & { id: string };
 
@@ -81,7 +80,7 @@ export function OpsTiles() {
   const tiles: [string, string, string, string][] = [
     ['flag', 'Starter', '/ops/starter', 'golf.starter.view'], ['hiking', 'Caddy Master', '/ops/caddy', 'golf.caddy.view'],
     ['concierge', 'Front Desk', '/ops/front-desk', 'golf.check_in.perform'], ['golf_course', 'Golf Staff', '/ops/golf-staff', 'golf.bag.manage'],
-    ['how_to_reg', 'Check-in', '/ops/check-in', 'golf.check_in.perform'],
+    ['how_to_reg', 'Check-in', '/ops/front-desk/check-in', 'golf.check_in.perform'],
   ];
   return (
     <div className="oc-grid">
@@ -96,13 +95,42 @@ export function OpsTiles() {
 
 // ── Starter (FR-CHK-07..10) ────────────────────────────────────────────────
 
-export function StarterQueuePage({ view = 'queue' }: { view?: 'queue' | 'ready' | 'rounds' }) {
+const PAUSE_LABEL: Record<string, string> = { rain: 'Paused · rain', lightning: 'Paused · lightning', other: 'Paused', halfway: 'On break · Halfway House',
+  turn: 'On break · the turn', tee_house: 'On break · tee house', break_other: 'On break' };
+
+/** Rain pause or break of a flight on the course (demo feedback 10 Oct 2026 #28, #31). */
+export function PauseChip({ at, reason }: { at?: unknown; reason?: unknown }) {
+  if (!at) return null;
+  const since = new Date(String(at)).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const brk = ['halfway', 'turn', 'tee_house', 'break_other'].includes(String(reason));
+  return <span className="pos-kitchen" data-kitchen={brk ? 'sent' : 'preparing'}><Icon name={brk ? 'local_cafe' : 'rainy'} size={16} />{PAUSE_LABEL[String(reason)] ?? 'Paused'} · since {since}</span>;
+}
+
+/** Why a checked-in flight is not in the queue yet. */
+function notReadyReasons(f: R): string[] {
+  const rd = (f.readiness ?? {}) as R;
+  const out: string[] = [];
+  if (Number(rd.checkedIn) < Number(rd.players)) out.push(`${Number(rd.players) - Number(rd.checkedIn)} player(s) not checked in`);
+  if (rd.caddiesOk === false) out.push('caddies missing');
+  if (rd.golfCartsOk === false) out.push(`golf carts ${((f.golfCarts as string[]) ?? []).length} of ${Number(f.golfCartsNeeded)}`);
+  if (rd.paymentOk === false) out.push('payment due before tee-off');
+  return out;
+}
+
+const STARTER_VIEWS = {
+  queue: ['Starter Queue', "Today's queue in FIFO order, flights on hold and flights not ready yet."],
+  ready: ['Ready Flights', 'Checked in, caddies and golf carts complete, not on hold.'],
+  dispatch: ['Dispatch / Tee-Off', 'The next flight to tee off.'],
+  rounds: ['Round Status', 'Flights on the course.'],
+} as const;
+
+export function StarterQueuePage({ view = 'queue' }: { view?: keyof typeof STARTER_VIEWS }) {
   const c = useCourse();
   const toast = useToast();
   const { can } = useAuth();
   const date = today();
   const path = c.courseId ? `/api/v1/golf/starter-queue${qs({ courseId: c.courseId, date })}` : null;
-  const q = useCached<{ active: R[]; onHold: R[]; dispatched: R[]; courseStatus: R }>(path, `starter:${c.courseId}:${date}`);
+  const q = useCached<{ active: R[]; onHold: R[]; dispatched: R[]; notReady?: R[]; courseStatus: R }>(path, `starter:${c.courseId}:${date}`);
   useStream(c.courseId ? `/api/v1/golf/tee-sheet/stream${qs({ courseId: c.courseId, date })}` : null, () => void q.refetch());
   const [holdFor, setHoldFor] = useState<R | null>(null);
   const [finishFor, setFinishFor] = useState<R | null>(null);
@@ -114,38 +142,55 @@ export function StarterQueuePage({ view = 'queue' }: { view?: 'queue' | 'ready' 
   const players = (f: R) => ((f.players as R[]) ?? []).map((p) => String(p.name)).join(', ');
   const cs = q.data?.courseStatus;
   const stopped = cs && (cs.courseState === 'closed' || ['rain_stop', 'lightning_warning'].includes(String(cs.weather)));
+  const active = q.data?.active ?? [];
+  // Dispatch / Tee-Off: the next flight of the queue; Ready Flights: every flight ready to go
+  const shown = view === 'dispatch' ? active.slice(0, 1) : active;
+  const [title, help] = STARTER_VIEWS[view];
+  const card = (f: R, i: number) => (
+    <div key={String(f.flightId)} className="oc-card">
+      <div className="oc-row-wrap">
+        <strong style={{ fontSize: 22 }}>#{i + 1} · {String(f.localTime)} · tee {String(f.startTee)}</strong>
+        <span className="oc-muted">{String(f.bookingCode ?? '')} · waiting {String(f.waitMinutes)} min</span>
+        {f.calledAt ? <StatusPill status="called" /> : null}
+      </div>
+      <div style={{ margin: '8px 0' }}>{players(f)}{(f.golfCarts as string[])?.length ? ` · carts ${(f.golfCarts as string[]).join(', ')}` : ''}</div>
+      {ctl && (
+        <div className="oc-row-wrap">
+          <Btn label="Call" onClick={() => run(f, 'call')} />
+          {view !== 'ready' && <Btn label="Skip" onClick={() => run(f, 'skip')} />}
+          <Btn label="Hold" onClick={() => setHoldFor(f)} />
+          <Btn label="Tee-Off" kind="primary" disabled={!!stopped} onClick={() => run(f, 'tee-off')} />
+        </div>
+      )}
+    </div>
+  );
   return (
     <div className="oc-stack">
-      <Head title={view === 'rounds' ? 'Round Status' : view === 'ready' ? 'Ready Flights' : 'Starter Queue'} help={`${date} · ${cs ? `${String(cs.courseState)}, ${String(cs.weather).replace(/_/g, ' ')}` : ''}`} />
+      <Head title={title} help={`${date} · ${cs ? `${String(cs.courseState)}, ${String(cs.weather).replace(/_/g, ' ')}` : ''} · ${help}`} />
       <CoursePicker c={c} />
       {stopped && <div className="oc-alert oc-alert-warning" role="status">Tee-off suspended by course status.</div>}
+      {!ctl && !q.offline && <div className="oc-alert oc-alert-info" role="status">View only — the tee-off is controlled by the Starter.</div>}
       <ErrorAlert error={q.error} />
       {view !== 'rounds' && (
         <div className="oc-stack">
-          {(q.data?.active ?? []).map((f, i) => (
-            <div key={String(f.flightId)} className="oc-card">
-              <div className="oc-row-wrap">
-                <strong style={{ fontSize: 22 }}>#{i + 1} · {String(f.localTime)} · tee {String(f.startTee)}</strong>
-                <span className="oc-muted">{String(f.bookingCode ?? '')} · waiting {String(f.waitMinutes)} min</span>
-              </div>
-              <div style={{ margin: '8px 0' }}>{players(f)}{(f.golfCarts as string[])?.length ? ` · carts ${(f.golfCarts as string[]).join(', ')}` : ''}</div>
-              {ctl && (
-                <div className="oc-row-wrap">
-                  <Btn label="Call" onClick={() => run(f, 'call')} />
-                  <Btn label="Skip" onClick={() => run(f, 'skip')} />
-                  <Btn label="Hold" onClick={() => setHoldFor(f)} />
-                  <Btn label="Tee-Off" kind="primary" disabled={!!stopped} onClick={() => run(f, 'tee-off')} />
-                </div>
-              )}
-            </div>
-          ))}
-          {q.data && q.data.active.length === 0 && <p className="oc-muted">No flights waiting.</p>}
-          {(q.data?.onHold ?? []).length > 0 && (
+          {shown.map(card)}
+          {q.data && shown.length === 0 && <p className="oc-muted">{view === 'queue' ? 'No flights waiting.' : 'No flight is ready yet.'}</p>}
+          {view === 'queue' && (q.data?.onHold ?? []).length > 0 && (
             <Card title="On Hold" icon="pause_circle">
               {(q.data?.onHold ?? []).map((f) => (
                 <div key={String(f.flightId)} className="oc-row-wrap" style={{ marginBottom: 8 }}>
                   <strong>{String(f.localTime)}</strong><span>{players(f)}</span><span className="oc-muted">{String(f.holdReason ?? '')}</span>
                   {ctl && <Btn label="Release" kind="primary" onClick={() => run(f, 'release')} />}
+                </div>
+              ))}
+            </Card>
+          )}
+          {view !== 'dispatch' && (q.data?.notReady ?? []).length > 0 && (
+            <Card title="Checked in, not ready yet" icon="hourglass_top">
+              {(q.data?.notReady ?? []).map((f) => (
+                <div key={String(f.id)} className="oc-row-wrap" style={{ marginBottom: 8 }}>
+                  <strong>{String(f.localTime)}</strong><span>{String(f.bookingCode ?? '')}</span><span>{players(f)}</span>
+                  <span className="oc-alert oc-alert-warning" style={{ padding: '2px 10px' }}>{notReadyReasons(f).join(' · ') || 'waiting'}</span>
                 </div>
               ))}
             </Card>
@@ -156,6 +201,7 @@ export function StarterQueuePage({ view = 'queue' }: { view?: 'queue' | 'ready' 
         <DataTable rows={q.data?.dispatched} rowKey={(f) => String(f.flightId)}
           columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'players', header: 'Players', render: players },
             { key: 'dispatchedAt', header: 'Tee-Off', render: (f) => formatDateTime(String(f.dispatchedAt)) },
+            { key: 'pausedAt', header: 'Status', render: (f) => (f.pausedAt ? <PauseChip at={f.pausedAt} reason={f.pauseReason} /> : <StatusPill status="in-play" />) },
             { key: 'playTime', header: 'Play time', render: (f) => <PlayTime start={f.dispatchedAt as string} label={false} /> }]}
           actions={(f) => ctl && <Btn label="Round Finish" onClick={() => setFinishFor(f)} />} />
       )}
@@ -230,9 +276,8 @@ export function OpsCheckInPage() {
       <Head title="Check-in" help={online ? 'Scan a member card or booking QR, or pick the booking.' : 'Offline: check-ins are queued and synced in order.'}
         actions={<Link className="oc-btn oc-btn-neutral" to="/ops/kiosk"><Icon name="qr_code_scanner" size={18} /> Self check-in kiosk</Link>} />
       {online && (
-        <div className="oc-row-wrap">
-          <TextField label="Scan card / QR" value={scan} onChange={setScan} autoFocus />
-        </div>
+        // USB scanner (types + Enter), typing, or the laptop / tablet camera (demo feedback #15)
+        <ScanField label="Scan card / QR" placeholder="Scan the member card or the booking QR, or type it, then Enter" onCode={setScan} autoFocus />
       )}
       <ErrorAlert error={lookup.error} />
       {(lookup.data?.items ?? []).map((cnd) => (
@@ -325,7 +370,7 @@ function CheckOutModal({ entry, onClose, onDone }: { entry: R; onClose: () => vo
         <p style={{ margin: 0 }}>Charges {money(b.data?.folio?.charges)} · paid {money(b.data?.folio?.payments)} · balance <strong>{money(b.data?.folio?.balance)}</strong></p>
         {due > 0 && (
           <div className="oc-row-wrap">
-            <TextField label="Amount (empty = all)" value={amount} onChange={(v) => setAmount(v.replace(/\D/g, ''))} inputMode="numeric" />
+            <MoneyField label="Amount (empty = all)" value={amount} onChange={(v) => setAmount(v.replace(/\D/g, ''))} />
           </div>
         )}
         {paying && <DeskPayDialog amount={n} onClose={() => setPaying(false)} pay={go} onFinish={finish}
@@ -388,7 +433,7 @@ function CaddyTips({ flightId, onTip }: { flightId: string; onTip: () => void })
       {caddies.map((a) => (
         <div key={a.id} className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
           <span style={{ minWidth: 160 }}><strong>{String(a.caddyName)}</strong><br /><span className="oc-small oc-muted">tips {money(a.tips)}</span></span>
-          <TextField label="Tip (non-cash)" value={amount[a.id] ?? ''} onChange={(v) => setAmount({ ...amount, [a.id]: v.replace(/\D/g, '') })} />
+          <MoneyField label="Tip (non-cash)" value={amount[a.id] ?? ''} onChange={(v) => setAmount({ ...amount, [a.id]: v.replace(/\D/g, '') })} />
           <Btn label="Add tip" disabled={!amount[a.id] || tip.isPending}
             onClick={() => tip.mutate({ assignmentId: a.id, amount: amount[a.id], method: 'non_cash' }, { onSuccess: () => { setAmount({ ...amount, [a.id]: '' }); onTip(); } })} />
         </div>
@@ -400,25 +445,56 @@ function CaddyTips({ flightId, onTip }: { flightId: string; onTip: () => void })
 
 // ── Caddy Master (EP-09) ───────────────────────────────────────────────────
 
-export function CaddyQueuePage() {
+type CaddyFilter = 'available' | 'not_present' | 'on_duty' | 'all';
+const CADDY_FILTERS: [CaddyFilter, string][] = [['available', 'Available'], ['not_present', 'Not present'], ['on_duty', 'On duty'], ['all', 'All']];
+
+/** Which filter a caddy of the board falls in. */
+export function caddyBucket(c: R): Exclude<CaddyFilter, 'all'> {
+  if (['assigned', 'in_play'].includes(String(c.status))) return 'on_duty';
+  return c.attendance === 'present' && c.status === 'available' ? 'available' : 'not_present';
+}
+
+/** Caddy Queue / Caddy Availability (demo feedback 10 Oct 2026 #14): the
+ * caddies who can be assigned first (present, no job), in queue order;
+ * the others one tap away — Not present to record the attendance. */
+export function CaddyQueuePage({ view = 'queue' }: { view?: 'queue' | 'availability' }) {
   const date = today();
   const { can } = useAuth();
   const board = useCached<Page<R>>(`/api/v1/golf/caddy-availability?date=${date}`, `caddies:${date}`);
   const att = useSend<Record<string, unknown>>('PUT', '/api/v1/golf/caddy-availability', ['/api/v1/golf/caddy']);
   const reorder = useSend<Record<string, unknown>>('POST', '/api/v1/golf/caddy-queue:reorder', ['/api/v1/golf/caddy']);
+  const [filter, setFilter] = useState<CaddyFilter>('available');
   const rows = board.data?.items ?? [];
   const present = rows.filter((c) => c.attendance === 'present');
+  const count = (f: CaddyFilter) => (f === 'all' ? rows.length : rows.filter((c) => caddyBucket(c) === f).length);
+  // queue order from the server: the next caddy of the rotation first
+  const shown = filter === 'all' ? rows : rows.filter((c) => caddyBucket(c) === filter);
   const manage = can('golf.caddy_assignment.manage') && !board.offline;
   const toBack = (c: R) => reorder.mutate({ date, caddyIds: [...present.filter((p) => p.caddyId !== c.caddyId).map((p) => p.caddyId), c.caddyId] });
   return (
     <div className="oc-stack">
-      <Head title="Caddy Queue" help="Attendance and rotation of today." />
-      <ErrorAlert error={att.error ?? reorder.error} />
+      <Head title={view === 'availability' ? 'Caddy Availability' : 'Caddy Queue'} help={`${date} · attendance and rotation of today — the next caddy of the queue first.`} />
+      <div className="oc-row-wrap" role="tablist" aria-label="Caddies">
+        {CADDY_FILTERS.map(([f, l]) => (
+          <button key={f} type="button" className="oc-chip" role="tab" aria-pressed={filter === f} aria-selected={filter === f} onClick={() => setFilter(f)}>{l} · {count(f)}</button>
+        ))}
+      </div>
+      <ErrorAlert error={board.error ?? att.error ?? reorder.error} />
+      {board.data && filter === 'available' && shown.length === 0 && (
+        <div className="oc-alert oc-alert-warning oc-row-wrap" style={{ alignItems: 'center' }}>
+          <span style={{ flex: 1 }}>No caddy is present yet today.</span>
+          <Btn label={`Record attendance · ${count('not_present')} not present`} kind="primary" onClick={() => setFilter('not_present')} />
+        </div>
+      )}
       <div className="oc-grid">
-        {rows.map((c) => (
+        {shown.map((c, i) => (
           <div key={String(c.caddyId)} className="oc-card">
-            <div className="oc-row"><strong style={{ fontSize: 20 }}>{String(c.code)}</strong><span className="oc-spacer" /><StatusPill status={String(c.status).replace(/_/g, '-')} /></div>
-            <div>{String(c.name)}{c.teeTime ? ` · ${String(c.teeTime)}` : ''} · {String(c.roundsToday)} rounds</div>
+            <div className="oc-row">
+              <strong style={{ fontSize: 20 }}>{String(c.code)}</strong>
+              {filter === 'available' && i === 0 && <span className="oc-small" style={{ marginLeft: 8 }}><StatusPill status="ready" label="Next in queue" /></span>}
+              <span className="oc-spacer" /><StatusPill status={String(c.status).replace(/_/g, '-')} />
+            </div>
+            <div>{String(c.name)}{c.teeTime ? ` · flight ${String(c.teeTime)}` : ''} · {String(c.roundsToday)} rounds</div>
             {manage && (
               <div className="oc-row-wrap" style={{ marginTop: 8 }}>
                 {c.attendance !== 'present'
@@ -562,7 +638,7 @@ export function BagStoragePage() {
       <div className="oc-row-wrap">
         <SelectField label="Customer" value={v.customerId} onChange={(x) => setV({ ...v, customerId: x })} options={(customers.data?.items ?? []).map((c) => ({ value: c.id, label: String(c.name) }))} />
         <TextField label="Rack" value={v.rackNumber} onChange={(x) => setV({ ...v, rackNumber: x })} />
-        <TextField label="Fee" value={v.fee} onChange={(x) => setV({ ...v, fee: x })} />
+        <MoneyField label="Fee" value={v.fee} onChange={(x) => setV({ ...v, fee: x })} />
         <Btn label="Store" kind="ink" disabled={!v.customerId || !v.rackNumber} onClick={() => store.mutate({ ...v, fee: v.fee || undefined })} />
       </div>
       <ErrorAlert error={store.error ?? end.error} />
@@ -589,7 +665,7 @@ export function LockersPage() {
           options={(lockers.data?.items ?? []).filter((l) => l.lockerStatus === 'available').map((l) => ({ value: l.id, label: `${String(l.code)} (${String(l.area)})` }))} />
         <SelectField label="Player" value={v.bookingPlayerId} onChange={(x) => setV({ ...v, bookingPlayerId: x })}
           options={(players.data?.items ?? []).map((p) => ({ value: p.id, label: `${String(p.name)} (${String(p.bookingCode)})` }))} />
-        <TextField label="Fee (optional)" value={v.fee} onChange={(x) => setV({ ...v, fee: x.replace(/\D/g, '') })} />
+        <MoneyField label="Fee (optional)" value={v.fee} onChange={(x) => setV({ ...v, fee: x.replace(/\D/g, '') })} />
         <Btn label="Assign" kind="ink" disabled={!v.lockerId || !v.bookingPlayerId}
           onClick={() => assign.mutate({ ...v, fee: v.fee || undefined, assignmentType: 'daily' }, { onSuccess: () => setV({ lockerId: '', bookingPlayerId: '', fee: '' }) })} />
       </div>

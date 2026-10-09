@@ -92,6 +92,45 @@ func clockOn(day time.Time, hhmm string, loc *time.Location) time.Time {
 	return time.Date(day.Year(), day.Month(), day.Day(), t.Hour(), t.Minute(), 0, 0, loc)
 }
 
+// resourceHours are a resource's own opening hours of a day (attribute
+// "openingHours": {"weekday"|"weekend"|"holiday": ["07:00", "22:00"]}, e.g. a
+// futsal court open later at the weekend), or the whole day while
+// "allDayUntil" (YYYY-MM-DD) has not passed — the demo's 24-hour operation
+// that goes back to the normal hours by itself (demo feedback 10 Oct 2026).
+func resourceHours(ctx context.Context, q dbtx.Querier, property uuid.UUID, res Resource, day time.Time, loc *time.Location) (time.Time, time.Time, bool, error) {
+	if until, _ := res.Attributes["allDayUntil"].(string); until != "" && day.Format("2006-01-02") <= until {
+		return day, day.AddDate(0, 0, 1), true, nil
+	}
+	hours, _ := res.Attributes["openingHours"].(map[string]any)
+	if len(hours) == 0 {
+		return time.Time{}, time.Time{}, false, nil
+	}
+	kind := "weekday"
+	if h, err := calendar.IsHoliday(ctx, q, property, day); err != nil {
+		return time.Time{}, time.Time{}, false, err
+	} else if h {
+		kind = "holiday"
+	} else if day.Weekday() == time.Saturday || day.Weekday() == time.Sunday {
+		kind = "weekend"
+	}
+	v, _ := hours[kind].([]any)
+	if len(v) != 2 {
+		if v, _ = hours["weekday"].([]any); len(v) != 2 {
+			return time.Time{}, time.Time{}, false, nil
+		}
+	}
+	o, _ := v[0].(string)
+	c, _ := v[1].(string)
+	if o == "" || c == "" {
+		return time.Time{}, time.Time{}, false, nil
+	}
+	close := clockOn(day, c, loc)
+	if c == "24:00" || c == "00:00" {
+		close = day.AddDate(0, 0, 1)
+	}
+	return clockOn(day, o, loc), close, true, nil
+}
+
 // Availability builds the slot grid with status, remaining capacity and an
 // optional indicative price.
 func (e *Engine) Availability(ctx context.Context, q dbtx.Querier, property uuid.UUID, aq AvailabilityQuery) (Availability, error) {
@@ -151,6 +190,11 @@ func (e *Engine) Availability(ctx context.Context, q dbtx.Querier, property uuid
 				grid = append(grid, [2]time.Time{day, day.AddDate(0, 0, 1)})
 			default:
 				open, close := clockOn(day, rt.OpenTime, loc), clockOn(day, rt.CloseTime, loc)
+				if o, c, ok, err := resourceHours(ctx, q, property, res, day, loc); err != nil {
+					return out, err
+				} else if ok {
+					open, close = o, c
+				}
 				step := time.Duration(rt.SlotMinutes) * time.Minute
 				for t := open; !t.Add(step).After(close); t = t.Add(step) {
 					grid = append(grid, [2]time.Time{t, t.Add(step)})

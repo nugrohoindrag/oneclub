@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { qs, request, useGet, uuidv7, type Page, type Schemas } from '@oneclub/api-client';
-import { ErrorAlert, Icon, QRCode, SelectField, Skeleton, TextField, useAuth, useDebounced } from '@oneclub/shell';
+import { ErrorAlert, Icon, MoneyField, QRCode, SelectField, Skeleton, TextField, useAuth, useDebounced } from '@oneclub/shell';
 import { MethodPicker, PaymentPanel, type PayMethod } from './pay';
 import { Check, Chip, dayLabel, downloadICS, Head, initials, isoDay, money, Rows, Steps } from './ui';
 
@@ -416,7 +416,7 @@ function PaymentStep({ when, setWhen, method, setMethod, part, setPart, total, b
         ))}
       </div>
       {when === 'part' && (
-        <TextField label={`Amount to pay now${total ? ` (of ${money(total)})` : ''}`} value={part} onChange={(v) => setPart(v.replace(/\D/g, ''))} inputMode="numeric" />
+        <MoneyField label={`Amount to pay now${total ? ` (of ${money(total)})` : ''}`} value={part} onChange={setPart} />
       )}
       {(when === 'now' || when === 'part') && (
         <>

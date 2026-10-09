@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import type { Lang } from '../../../lib';
 import type { PublicTournament } from '../lib';
+import { checkoutHref } from '../../../pay-link';
 
 interface Checkout { method: string; amount: string; status: string; checkoutUrl?: string | null; qrString?: string | null; vaNumber?: string | null; expiresAt?: string | null }
 interface Registration { number: string; status: string; waitlistPosition?: number | null; feeTotal: string; paymentStatus: string; checkout?: Checkout | null; manageToken?: string }
@@ -41,7 +42,7 @@ export function RegisterTournament({ lang, propertyId, t }: { lang: Lang; proper
             <p>{id ? 'Bayar biaya turnamen' : 'Pay the tournament fee'}: <strong>{rp(done.checkout.amount)}</strong>{done.checkout.expiresAt ? ` · ${id ? 'sebelum' : 'by'} ${new Date(done.checkout.expiresAt).toLocaleString()}` : ''}</p>
             {done.checkout.vaNumber && <p>Virtual Account: <strong>{done.checkout.vaNumber}</strong></p>}
             {done.checkout.qrString && <p className="w-muted" style={{ wordBreak: 'break-all' }}>QRIS: {done.checkout.qrString}</p>}
-            {done.checkout.checkoutUrl && <a className="w-btn" href={done.checkout.checkoutUrl}>{id ? 'Bayar sekarang' : 'Pay now'}</a>}
+            {done.checkout.checkoutUrl && <a className="w-btn" href={checkoutHref(done.checkout.checkoutUrl, lang) ?? undefined}>{id ? 'Bayar sekarang' : 'Pay now'}</a>}
           </div>
         )}
         <p>{id ? 'Simpan tautan ini untuk melihat status, start sheet, atau membatalkan:' : 'Keep this link to see your status and start, or to withdraw:'} <a href={link}>{link}</a></p>

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router';
 import { qs, request, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextField,
+  AutoResourcePage, Card, Checkbox, DataTable, Drawer, Empty, ErrorAlert, Modal, MoneyField, PageHeader, SelectField, Skeleton, StatusPill, TextField,
   useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
@@ -151,7 +151,7 @@ function Simulate({ id }: { id: string }) {
           options={(products.data?.items ?? []).map((x) => ({ value: x.id, label: String(x.name) }))} />
         {!product && <TextField label="Service type" value={serviceType} onChange={setServiceType} help="e.g. sport_court, bungalow, package" />}
         <TextField label="Quantity" type="number" value={qty} onChange={setQty} />
-        <TextField label="Unit price" type="number" value={unit} onChange={setPrice} />
+        <MoneyField label="Unit price" value={unit} onChange={setPrice} />
         <TextField label="Sale time" type="datetime-local" value={at} onChange={setAt} />
         <SelectField label="Channel" value={channel} onChange={setChannel} options={CHANNELS} />
       </div>
@@ -231,7 +231,7 @@ function CheckCode() {
     <Card title="Check a promo code" icon="fact_check">
       <div className="oc-form">
         <TextField label="Code" value={code} onChange={setCode} required />
-        <TextField label="Purchase amount" type="number" value={amount} onChange={setAmount} />
+        <MoneyField label="Purchase amount" value={amount} onChange={setAmount} />
         <SelectField label="Channel" value={channel} onChange={setChannel} options={CHANNELS} />
       </div>
       <Actions><button className="oc-btn oc-btn-neutral" disabled={!code || send.isPending}

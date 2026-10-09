@@ -161,6 +161,12 @@ type BookingFlight struct {
 	PausedSeconds int        `json:"pausedSeconds" doc:"Paused time already left out of the play time"`
 	HolesPlayed   *int       `json:"holesPlayed"`
 	CurrentHole   int        `json:"currentHole" doc:"Hole in progress on the caddy tablet (0 before tee-off)"`
+	// the starter queue (demo feedback 10 Oct 2026 #21): held flights show at the front desk
+	QueueStatus *string `json:"queueStatus" enum:"waiting,on_hold,dispatched,removed"`
+	HoldReason  *string `json:"holdReason"`
+	// golf carts the flight needs by the Golf Cart Policy (demo feedback #18)
+	GolfCartsNeeded int `json:"golfCartsNeeded" doc:"Players of the flight / players per cart (Golf Cart Policy)"`
+	PlayersPerCart  int `json:"playersPerCart"`
 }
 
 // Booking is the API view of a booking.
@@ -245,7 +251,8 @@ func GetBooking(ctx context.Context, q dbtx.Querier, bid uuid.UUID) (Booking, er
 	_ = q.QueryRow(ctx, `SELECT property_id FROM golf.bookings WHERE id = $1`, bid).Scan(&pid)
 	b.LocalTime = b.StartAt.In(location(ctx, q, pid)).Format("15:04")
 	rows, err := q.Query(ctx, `SELECT f.id, f.tee_time_id, t.start_at, t.start_tee, f.flight_no, f.status, f.ready_at, f.tee_off_at, f.round_finish_at,
-		f.paused_at, f.pause_reason, f.paused_seconds, f.holes_played, coalesce((SELECT max(hp.seq) FROM golf.hole_progress hp WHERE hp.flight_id = f.id), 0)
+		f.paused_at, f.pause_reason, f.paused_seconds, f.holes_played, coalesce((SELECT max(hp.seq) FROM golf.hole_progress hp WHERE hp.flight_id = f.id), 0),
+		(SELECT sq.status FROM golf.starter_queue sq WHERE sq.flight_id = f.id), (SELECT sq.hold_reason FROM golf.starter_queue sq WHERE sq.flight_id = f.id AND sq.status = 'on_hold')
 		FROM golf.flights f JOIN golf.tee_times t ON t.id = f.tee_time_id WHERE f.booking_id = $1 ORDER BY t.start_at, f.flight_no`, bid)
 	if err != nil {
 		return b, err
@@ -254,7 +261,8 @@ func GetBooking(ctx context.Context, q dbtx.Querier, bid uuid.UUID) (Booking, er
 	for rows.Next() {
 		var f BookingFlight
 		if err := rows.Scan(&f.ID, &f.TeeTimeID, &f.StartAt, &f.StartTee, &f.FlightNo, &f.Status, &f.ReadyAt, &f.TeeOffAt, &f.FinishAt,
-			&f.PausedAt, &f.PauseReason, &f.PausedSeconds, &f.HolesPlayed, &f.CurrentHole); err != nil {
+			&f.PausedAt, &f.PauseReason, &f.PausedSeconds, &f.HolesPlayed, &f.CurrentHole,
+			&f.QueueStatus, &f.HoldReason); err != nil {
 			rows.Close()
 			return b, err
 		}
@@ -279,6 +287,22 @@ func GetBooking(ctx context.Context, q dbtx.Querier, bid uuid.UUID) (Booking, er
 		b.Players = append(b.Players, p)
 	}
 	pr.Close()
+	cart := DefaultCart
+	if _, err := resolve(ctx, q, PolicyCart, pid, clock.Now(), &cart); err != nil {
+		return b, err
+	}
+	if cart.PlayersPerCart <= 0 {
+		cart.PlayersPerCart = 2
+	}
+	for i := range b.Flights {
+		n := 0
+		for _, p := range b.Players {
+			if p.FlightID == b.Flights[i].ID && (p.Status == "booked" || p.Status == "checked_in") {
+				n++
+			}
+		}
+		b.Flights[i].PlayersPerCart, b.Flights[i].GolfCartsNeeded = cart.PlayersPerCart, ceilDiv(n, cart.PlayersPerCart)
+	}
 	if b.FolioID != nil {
 		s, err := billing.FolioSummary(ctx, q, *b.FolioID)
 		if err != nil {
@@ -1323,7 +1347,9 @@ func (m *Module) applyPaymentPolicy(ctx context.Context, tx pgx.Tx, property, bo
 		return m.confirm(ctx, tx, property, bookingID, "member charge")
 	case "prepaid", "deposit":
 		amount := balance
-		purpose := "settlement"
+		// pay part now is a part payment of the bill (any amount, demo
+		// feedback 9 Oct 2026), not a held deposit: it counts as Paid on the
+		// front desk bill, the Member App and the check-out straight away
 		if mode == "deposit" {
 			pct := dec(rule.DepositPercent)
 			if pct.IsZero() {
@@ -1338,7 +1364,6 @@ func (m *Module) applyPaymentPolicy(ctx context.Context, tx pgx.Tx, property, bo
 						errs.Field("depositAmount", "invalid", "1 – "+balance.StringFixed(0)))
 				}
 			}
-			purpose = "deposit"
 		}
 		if _, err := tx.Exec(ctx, `UPDATE golf.bookings SET payment_mode = $2, payment_due_at = $3, deposit_amount = CASE WHEN $2 = 'deposit' THEN $4::numeric END,
 			status = 'pending' WHERE id = $1`, bookingID, mode, due, amount.String()); err != nil {
@@ -1355,7 +1380,7 @@ func (m *Module) applyPaymentPolicy(ctx context.Context, tx pgx.Tx, property, bo
 			if method == "" {
 				method = "payment_gateway"
 			}
-			if _, err := m.Billing.TakePayment(ctx, tx, billing.PaymentInput{FolioID: &folioID, MethodType: method, Channel: "online", Purpose: purpose,
+			if _, err := m.Billing.TakePayment(ctx, tx, billing.PaymentInput{FolioID: &folioID, MethodType: method, Channel: "online",
 				Amount: amount, ExpiresAt: &due, Description: "Golf booking"}); err != nil {
 				return err
 			}
@@ -1368,7 +1393,7 @@ func (m *Module) applyPaymentPolicy(ctx context.Context, tx pgx.Tx, property, bo
 			if err != nil {
 				return err
 			}
-			if st == "pending" && (paid.GreaterThanOrEqual(balance) || (mode == "deposit" && held.GreaterThanOrEqual(amount))) {
+			if st == "pending" && (paid.GreaterThanOrEqual(balance) || (mode == "deposit" && paid.Add(held).GreaterThanOrEqual(amount))) {
 				return m.confirm(ctx, tx, property, bookingID, "paid")
 			}
 		}

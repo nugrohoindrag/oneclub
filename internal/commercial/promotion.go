@@ -100,6 +100,7 @@ var Promotions = &resource.Def{
 		{Name: "minQuantity", Column: "min_quantity", Label: "Minimum Quantity", Kind: resource.Int, Min: resource.Min(1)},
 		{Name: "requiresCode", Column: "requires_code", Label: "Requires Promo Code", Kind: resource.Bool, Default: false},
 		{Name: "public", Column: "public", Label: "Show on Website & Member App", Kind: resource.Bool, Default: true},
+		{Name: "imageUrl", Column: "image_url", Label: "Banner picture (Member App home)", Kind: resource.Image, Max: 500},
 		{Name: "stackable", Column: "stackable", Label: "Stackable", Kind: resource.Bool, Default: false},
 		{Name: "stackGroup", Column: "stack_group", Label: "Stack Group", Kind: resource.String, Max: 40, Upper: true},
 		{Name: "priority", Column: "priority", Label: "Priority (lower first)", Kind: resource.Int, Default: int64(100), Min: resource.Min(0)},

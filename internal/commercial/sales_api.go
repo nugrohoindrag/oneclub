@@ -24,6 +24,10 @@ type POS interface {
 	// DefaultOutlet is the outlet that prepares banquet / catering orders
 	// when none is chosen.
 	DefaultOutlet(ctx context.Context, q dbtx.Querier, property uuid.UUID) (uuid.UUID, error)
+	// FolioOrders lists the orders charged to folios (e.g. a golf booking's
+	// on-course orders); CancelOrder cancels one the kitchen has not started.
+	FolioOrders(ctx context.Context, q dbtx.Querier, folios []uuid.UUID) ([]Order, error)
+	CancelOrder(ctx context.Context, tx pgx.Tx, oid uuid.UUID, reason string) (Order, error)
 }
 
 // Vouchers redeems vouchers, prepaid balances and quotas (contract C3).
@@ -64,6 +68,10 @@ type OrderLine struct {
 	Promotions        []AppliedPromotion `json:"promotions" db:"promotions"`
 	// PRD P5 (additive): loyalty tier F&B discount of the line (member tier class).
 	TierDiscount string `json:"tierDiscount" db:"tier_discount"`
+	// Who the item is for (additive, demo feedback 10 Oct 2026 #35).
+	GuestName  *string    `json:"guestName" db:"guest_name" doc:"Player / member the item is for"`
+	CustomerID *uuid.UUID `json:"customerId" db:"customer_id"`
+	GuestRef   *uuid.UUID `json:"guestRef" db:"guest_ref" doc:"Source party of the item, e.g. the golf booking player"`
 }
 
 // Bill is a (split) bill of an order.
@@ -127,6 +135,10 @@ type Order struct {
 	TableIDs           []uuid.UUID `json:"tableIds" db:"table_ids"`
 	TableReservationID *uuid.UUID  `json:"tableReservationId" db:"table_reservation_id"`
 	BilledAt           *time.Time  `json:"billedAt" db:"billed_at"`
+	// Who the order is for when no customer is linked, and the source
+	// reference, e.g. the golf booking code (additive, demo feedback #34).
+	GuestName *string `json:"guestName" db:"guest_name"`
+	Reference *string `json:"reference" db:"reference" doc:"e.g. golf booking BK-261010-0015"`
 }
 
 // LineInput is an item ordered.
@@ -137,6 +149,10 @@ type LineInput struct {
 	ModifierIDs []uuid.UUID `json:"modifierIds,omitempty"`
 	Seat        string      `json:"seat,omitempty"`
 	Notes       string      `json:"notes,omitempty"`
+	// Who the item is for (additive, demo feedback 10 Oct 2026 #35)
+	GuestName  string     `json:"guestName,omitempty" doc:"Player / member the item is for"`
+	CustomerID *uuid.UUID `json:"customerId,omitempty"`
+	GuestRef   *uuid.UUID `json:"guestRef,omitempty" doc:"Source party, e.g. the golf booking player"`
 }
 
 // OrderInput creates an order (POS, member app pre-order, caddy tablet
@@ -169,6 +185,9 @@ type OrderInput struct {
 	// POS Table View (additive)
 	TableIDs           []uuid.UUID `json:"tableIds,omitempty" doc:"Dining tables the order seats (Table View); tableNo defaults to their codes"`
 	TableReservationID *uuid.UUID  `json:"tableReservationId,omitempty" doc:"Table reservation seated by this order"`
+	// additive (demo feedback 10 Oct 2026 #34)
+	GuestName string `json:"guestName,omitempty" doc:"Who the order is for when no customer is linked (e.g. a guest player)"`
+	Reference string `json:"reference,omitempty" doc:"Source reference shown on the order, e.g. a golf booking code"`
 }
 
 // Voucher is a voucher with its type.

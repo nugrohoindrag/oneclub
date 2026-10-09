@@ -1,5 +1,5 @@
 /* Course Monitor (ops/marshal.tsx): map + flight list, one column on a phone. */
-.mon { --mon-on: var(--md-sys-color-success); --mon-behind: var(--md-sys-color-warning); --mon-slow: var(--md-sys-color-error); }
+.mon { --mon-on: var(--md-sys-color-success); --mon-behind: var(--md-sys-color-warning); --mon-slow: var(--md-sys-color-error); --mon-paused: #2563eb; --mon-break: #7c3aed; }
 .mon-stats { display: grid; gap: var(--md-sys-gap-card); grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
 .mon-layout { display: grid; gap: var(--md-sys-gap-card); grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr); align-items: start; }
 @media (max-width: 1100px) { .mon-layout { grid-template-columns: minmax(0, 1fr); } }
@@ -10,6 +10,10 @@
 [data-tone='on-pace'] { --mon-tone: var(--mon-on); }
 [data-tone='behind'] { --mon-tone: var(--mon-behind); }
 [data-tone='slow'] { --mon-tone: var(--mon-slow); }
+[data-tone='paused'] { --mon-tone: var(--mon-paused); }
+[data-tone='break'] { --mon-tone: var(--mon-break); }
+.mon-stop { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.mon-stop-bar { align-items: center; }
 .mon-legend i, .mon-dot { background: var(--mon-tone); }
 
 /* map: the image with flights and golf carts placed in % of its size */

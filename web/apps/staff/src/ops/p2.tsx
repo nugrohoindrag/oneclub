@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { qs, request, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
+import { qs, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime, formatNumber } from '@oneclub/i18n';
-import { enqueue } from '@oneclub/offline';
 import { Link } from 'react-router';
 import { GOLF_STREAM, useLive } from '../live';
 import { CourseMonitorPage } from './marshal';
+import { SportReceptionPage } from './sport';
 import { ACCOMMODATION_OPS_ROUTES } from '../accommodation/routes';
 import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, SelectField, StatusPill, TextField, useAuth, useToast,
@@ -250,58 +250,6 @@ function RangeBookingsCard({ onCheckIn }: { onCheckIn: () => void }) {
 
 // ── Sport Reception: access, entries, occupancy (FR-SPT-04/05/08) ─────────
 
-const SCAN_KEY = 'oneclub.ops.facility';
-
-export function SportReceptionPage() {
-  const toast = useToast();
-  const { propertyId } = useAuth();
-  const facilities = useGet<Page<Row>>('/api/v1/sportclub/facilities?filter[status]=active');
-  const occupancy = useGet<Page<Schemas['Occupancy']>>('/api/v1/sportclub/occupancy', { refetchInterval: 30_000 });
-  const [facility, setFacility] = useState(() => localStorage.getItem(SCAN_KEY) ?? '');
-  const [code, setCode] = useState('');
-  const [result, setResult] = useState<Schemas['AccessResult'] | null>(null);
-  const [error, setError] = useState<unknown>(null);
-  const validate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      if (!navigator.onLine) {
-        await enqueue('sportclub.access_validate', { code, facilityId: facility, direction: 'in', terminal: 'reception' }, propertyId);
-        toast('Offline: access recorded in the sync queue');
-      } else {
-        setResult(await request<Schemas['AccessResult']>('POST', '/api/v1/sportclub/access:validate', { code, facilityId: facility, direction: 'in', terminal: 'reception' }));
-      }
-      setCode('');
-      void occupancy.refetch();
-    } catch (err) {
-      setError(err);
-    }
-  };
-  return (
-    <div className="oc-stack">
-      <Head title="Sport Reception" help="Scan a member card, entry ticket, booking or stay QR." />
-      <Card title="Facility Access" icon="qr_code_scanner">
-        <form className="oc-row-wrap" onSubmit={validate}>
-          <div style={{ width: 260 }}><SelectField label="Facility" value={facility} onChange={(v) => { setFacility(v); localStorage.setItem(SCAN_KEY, v); }}
-            options={(facilities.data?.items ?? []).map((f) => ({ value: String(f.id), label: String(f.name) }))} placeholder="Select facility" /></div>
-          <div style={{ flex: 1, minWidth: 240 }}><TextField label="Scan / code" value={code} onChange={setCode} autoFocus /></div>
-          <button className="oc-btn oc-btn-ink" style={{ alignSelf: 'flex-end' }} disabled={!facility || !code}>Validate</button>
-        </form>
-        <ErrorAlert error={error} />
-        {result && (
-          <div className={`oc-alert ${result.result === 'granted' ? 'oc-alert-success' : 'oc-alert-error'}`} style={{ marginTop: 12 }}>
-            <strong>{result.result === 'granted' ? 'Access granted' : 'Access denied'}</strong> · {result.credentialType}{result.customerName ? ` · ${result.customerName}` : ''}
-            {result.reason ? ` — ${result.reason}` : ''}
-          </div>
-        )}
-      </Card>
-      <Card title="Facility Occupancy" icon="groups">
-        <DataTable rows={occupancy.data?.items as unknown as Row[]} rowKey={(r) => String(r.facilityId)} columns={[{ key: 'facilityName', header: 'Facility' },
-          { key: 'inside', header: 'Inside' }, { key: 'capacity', header: 'Capacity' }, { key: 'entriesToday', header: 'Entries today' }, { key: 'booked', header: 'Booked' }]} />
-      </Card>
-    </div>
-  );
-}
 
 // ── Instructor: My Classes & attendance (FR-CLS-07) ───────────────────────
 

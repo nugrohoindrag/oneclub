@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
-  Card, DataTable, Drawer, ErrorAlert, Icon, Modal, PageHeader, ResourcePage, SelectField, Skeleton, StatusPill, TextArea, TextField,
+  Card, DataTable, Drawer, ErrorAlert, Icon, Modal, MoneyField, PageHeader, ResourcePage, SelectField, Skeleton, StatusPill, TextArea, TextField,
   statusCol, useAuth, useDebounced, type ResourceConfig,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from './common';
@@ -90,7 +90,7 @@ export const packageCfg: ResourceConfig = {
   fields: [{ name: 'typeId', label: 'Membership Type', type: 'reference', required: true, ref: { path: '/api/v1/membership/types', label: (r) => String(r.name) } },
     { name: 'code', label: 'Code', required: true }, { name: 'name', label: 'Name', required: true },
     { name: 'periodUnit', label: 'Period unit', type: 'select', default: 'year', options: [{ value: 'year', label: 'Year' }, { value: 'month', label: 'Month' }] },
-    { name: 'periodCount', label: 'Period count', type: 'number', default: 1 }, { name: 'joiningFee', label: 'Joining fee', type: 'decimal' }, { name: 'periodFee', label: 'Period fee', type: 'decimal' }, st],
+    { name: 'periodCount', label: 'Period count', type: 'number', default: 1 }, { name: 'joiningFee', label: 'Joining fee', type: 'money' }, { name: 'periodFee', label: 'Period fee', type: 'money' }, st],
 };
 
 export function ApplicationsPage() {
@@ -312,7 +312,7 @@ const ruleCfg: ResourceConfig = {
     { name: 'timeBandId', label: 'Time Band', type: 'reference', ref: { path: '/api/v1/commercial/time-bands', label: (r) => String(r.name) } },
     { name: 'playingRouteId', label: 'Playing Route', type: 'reference', ref: { path: '/api/v1/golf/playing-routes', label: (r) => String(r.name) } },
     { name: 'channel', label: 'Channel', type: 'select', options: ['member_app', 'website', 'back_office', 'walk_in'].map((v) => ({ value: v, label: v.replace('_', ' ') })) },
-    { name: 'price', label: 'Price (all-in)', type: 'decimal', required: true }, { name: 'priority', label: 'Priority (lower first)', type: 'number', default: 100 },
+    { name: 'price', label: 'Price (all-in)', type: 'money', required: true }, { name: 'priority', label: 'Priority (lower first)', type: 'number', default: 100 },
     { name: 'effectiveFrom', label: 'Effective from', type: 'date', required: true }, { name: 'effectiveTo', label: 'Effective to', type: 'date' },
     { name: 'components', label: 'Components (JSON)', type: 'textarea', span: true,
       help: '[{"code":"green_fee","name":"Green Fee","type":"remainder"},{"code":"caddy_fee","name":"Caddy Fee","type":"amount","value":"150000","liability":true}]' }, st],
@@ -487,7 +487,7 @@ function PaymentModal({ folio, onClose }: { folio: R & { summary: R }; onClose: 
       <div className="oc-form">
         <SelectField label="Method" value={v.methodType} onChange={(x) => setV({ ...v, methodType: x })}
           options={['cash', 'card', 'bank_transfer', 'qris', 'virtual_account'].map((m) => ({ value: m, label: m.replace('_', ' ') }))} />
-        <TextField label="Amount" value={v.amount} onChange={(x) => setV({ ...v, amount: x })} />
+        <MoneyField label="Amount" value={v.amount} onChange={(x) => setV({ ...v, amount: x })} />
         <TextField label="Reference (EDC / transfer)" value={v.reference} onChange={(x) => setV({ ...v, reference: x })} />
       </div>
       <ErrorAlert error={send.error} />
@@ -504,7 +504,7 @@ function ChargeModal({ folioId, onClose }: { folioId: string; onClose: () => voi
       <div className="oc-form">
         <SelectField label="Type" value={v.chargeType} onChange={(x) => setV({ ...v, chargeType: x })} options={['other', 'locker', 'bag_storage', 'discount'].map((c) => ({ value: c, label: c.replace('_', ' ') }))} />
         <TextField label="Description" value={v.description} onChange={(x) => setV({ ...v, description: x })} />
-        <TextField label="Unit price" value={v.unitPrice} onChange={(x) => setV({ ...v, unitPrice: x })} />
+        <MoneyField label="Unit price" value={v.unitPrice} onChange={(x) => setV({ ...v, unitPrice: x })} />
         <TextField label="Quantity" value={v.quantity} onChange={(x) => setV({ ...v, quantity: x })} />
       </div>
       <ErrorAlert error={send.error} />
@@ -520,7 +520,7 @@ function RefundModal({ payment, onClose }: { payment: R; onClose: () => void }) 
       <button className="oc-btn oc-btn-danger" disabled={!v.reason || send.isPending} onClick={() => send.mutate({ paymentId: payment.id, ...v }, { onSuccess: onClose })}>Process Refund</button></>}>
       <p className="oc-muted">Refunds above the Refund Policy limit wait for approval.</p>
       <div className="oc-form">
-        <TextField label="Amount" value={v.amount} onChange={(x) => setV({ ...v, amount: x })} />
+        <MoneyField label="Amount" value={v.amount} onChange={(x) => setV({ ...v, amount: x })} />
         <SelectField label="Destination" value={v.destination} onChange={(x) => setV({ ...v, destination: x })} options={[{ value: 'original_method', label: 'Original method' }, { value: 'member_account', label: 'Member account' }]} />
         <TextArea label="Reason" value={v.reason} onChange={(x) => setV({ ...v, reason: x })} required span />
       </div>
@@ -585,7 +585,7 @@ function AccountDrawer({ account, onClose, canAdjust }: { account: R; onClose: (
           <Card title="Adjustment" icon="tune">
             <div className="oc-row-wrap">
               <SelectField label="Type" value={v.entryType} onChange={(x) => setV({ ...v, entryType: x })} options={[{ value: 'adjustment', label: 'Adjustment' }, { value: 'opening_balance', label: 'Opening balance' }]} />
-              <TextField label="Amount (+ owed, − credit)" value={v.amount} onChange={(x) => setV({ ...v, amount: x })} />
+              <MoneyField allowNegative label="Amount (+ owed, − credit)" value={v.amount} onChange={(x) => setV({ ...v, amount: x })} />
               <TextField label="Description" value={v.description} onChange={(x) => setV({ ...v, description: x })} />
               <button className="oc-btn oc-btn-ink" disabled={!v.amount || !v.description || send.isPending} onClick={() => send.mutate(v)}>Post</button>
             </div>

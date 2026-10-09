@@ -1,5 +1,6 @@
 'use client';
 import { useState, type ReactNode } from 'react';
+import { checkoutHref } from '../pay-link';
 
 /*
  * Website booking flow (roadmap §33, PRD P2 EP-26): Select Service → Date /
@@ -26,8 +27,18 @@ async function post(path: string, body: unknown): Promise<Result> {
   return data;
 }
 
+/** Labels of the booking form in the page language (/id is Indonesian). */
+const FORM = {
+  en: { guest: 'Guest Information', name: 'Name', phone: 'Phone (WhatsApp)', email: 'E-mail', voucher: 'Voucher code', payment: 'Payment', card: 'Card',
+    confirm: 'Booking Confirmation', reference: 'Reference', total: 'Total', due: 'due', complete: 'Complete the payment', va: 'to virtual account',
+    open: 'open payment page', paid: 'Payment received — see you soon!' },
+  id: { guest: 'Data Pemesan', name: 'Nama', phone: 'Nomor ponsel (WhatsApp)', email: 'E-mail', voucher: 'Kode voucher', payment: 'Pembayaran', card: 'Kartu kredit',
+    confirm: 'Konfirmasi Pemesanan', reference: 'Kode', total: 'Total', due: 'sisa', complete: 'Selesaikan pembayaran', va: 'ke virtual account',
+    open: 'buka halaman pembayaran', paid: 'Pembayaran diterima — sampai jumpa!' },
+};
+
 export function BookingForm({
-  title, path, propertyId, fields, build, pay = true, voucher = false, submitLabel = 'Book', done, consent,
+  title, path, propertyId, fields, build, pay = true, voucher = false, submitLabel = 'Book', done, consent, lang = 'en',
 }: {
   title: string;
   path: string;
@@ -41,7 +52,9 @@ export function BookingForm({
   done?: (r: Result) => ReactNode;
   /** Marketing consent checkbox label (UU PDP, PRD P3 FR-WEB-P3-02): unticked by default, sent as `consent`. */
   consent?: string;
+  lang?: 'id' | 'en';
 }) {
+  const L = FORM[lang];
   const [v, setV] = useState<Record<string, string>>(() => Object.fromEntries(fields.map((f) => [f.name, f.initial ?? ''])));
   const [guest, setGuest] = useState({ name: '', phone: '', email: '', website: '' });
   const [method, setMethod] = useState('qris');
@@ -71,17 +84,17 @@ export function BookingForm({
     const online = co?.online as Result | undefined;
     return (
       <div className="w-card" role="status">
-        <h2 style={{ marginTop: 0 }}>Booking Confirmation</h2>
-        {result.reference ? <p>Reference <strong>{String(result.reference)}</strong> · {String(result.status ?? '')}</p> : null}
+        <h2 style={{ marginTop: 0 }}>{L.confirm}</h2>
+        {result.reference ? <p>{L.reference} <strong>{String(result.reference)}</strong> · {String(result.status ?? '')}</p> : null}
         {done?.(result)}
-        {co && <p>Total {String(co.total)} · due {String(co.amountDue)}</p>}
+        {co && <p>{L.total} {String(co.total)} · {L.due} {String(co.amountDue)}</p>}
         {online && online.status === 'pending' && (
           <p>
-            Complete the payment{online.vaNumber ? <> to virtual account <strong>{String(online.vaNumber)}</strong></> : null}
-            {online.checkoutUrl ? <> — <a href={String(online.checkoutUrl)}>open payment page</a></> : null}.
+            {L.complete}{online.vaNumber ? <> {L.va} <strong>{String(online.vaNumber)}</strong></> : null}
+            {online.checkoutUrl ? <> — <a className="w-btn" href={checkoutHref(String(online.checkoutUrl), lang) ?? undefined}>{L.open}</a></> : null}.
           </p>
         )}
-        {online && online.status === 'paid' && <p>Payment received — see you soon!</p>}
+        {online && online.status === 'paid' && <p>{L.paid}</p>}
       </div>
     );
   }
@@ -96,10 +109,10 @@ export function BookingForm({
       <h2 style={{ marginTop: 0 }}>{title}</h2>
       {fields.map((f) => <label key={f.name} htmlFor={f.name}>{f.label}{field(f)}</label>)}
       <fieldset>
-        <legend>Guest Information</legend>
-        <label>Name<input required value={guest.name} onChange={(e) => setGuest({ ...guest, name: e.target.value })} /></label>
-        <label>Phone (WhatsApp)<input type="tel" value={guest.phone} onChange={(e) => setGuest({ ...guest, phone: e.target.value })} /></label>
-        <label>E-mail<input type="email" value={guest.email} onChange={(e) => setGuest({ ...guest, email: e.target.value })} /></label>
+        <legend>{L.guest}</legend>
+        <label>{L.name}<input required value={guest.name} onChange={(e) => setGuest({ ...guest, name: e.target.value })} /></label>
+        <label>{L.phone}<input type="tel" value={guest.phone} onChange={(e) => setGuest({ ...guest, phone: e.target.value })} /></label>
+        <label>{L.email}<input type="email" value={guest.email} onChange={(e) => setGuest({ ...guest, email: e.target.value })} /></label>
         <label aria-hidden="true" style={{ position: 'absolute', left: -9999 }}>Website<input tabIndex={-1} autoComplete="off" value={guest.website}
           onChange={(e) => setGuest({ ...guest, website: e.target.value })} /></label>
       </fieldset>
@@ -109,11 +122,11 @@ export function BookingForm({
           <span>{consent}</span>
         </label>
       )}
-      {voucher && <label>Voucher code<input value={code} onChange={(e) => setCode(e.target.value)} /></label>}
+      {voucher && <label>{L.voucher}<input value={code} onChange={(e) => setCode(e.target.value)} /></label>}
       {pay && (
-        <label>Payment
+        <label>{L.payment}
           <select value={method} onChange={(e) => setMethod(e.target.value)}>
-            <option value="qris">QRIS</option><option value="virtual_account">Virtual Account</option><option value="card">Card</option>
+            <option value="qris">QRIS</option><option value="virtual_account">Virtual Account</option><option value="card">{L.card}</option>
           </select>
         </label>
       )}
@@ -126,26 +139,15 @@ export function BookingForm({
 type Opt = { id: string; name: string };
 const opts = (xs: Opt[]) => xs.map((x) => ({ value: x.id, label: x.name }));
 const iso = (local: string) => (local ? new Date(local).toISOString() : '');
-const plusHours = (local: string, h: number) => (local ? new Date(new Date(local).getTime() + h * 3600_000).toISOString() : '');
 
-export function CourtBooking({ propertyId, courts }: { propertyId: string; courts: Opt[] }) {
+export function ClassRegistration({ propertyId, programs, lang = 'en' }: { propertyId: string; programs: Opt[]; lang?: 'id' | 'en' }) {
+  const id = lang === 'id';
   return (
-    <BookingForm title="Book Sport Club" path="/api/v1/public/court-bookings" propertyId={propertyId} voucher
+    <BookingForm lang={lang} title={id ? 'Daftar kelas' : 'Register for a class'} path="/api/v1/public/class-enrollments" propertyId={propertyId}
+      submitLabel={id ? 'Daftar' : 'Register'}
       fields={[
-        { name: 'courtId', label: 'Court', type: 'select', options: opts(courts), required: true, initial: courts[0]?.id },
-        { name: 'start', label: 'Date & time', type: 'datetime-local', required: true },
-        { name: 'hours', label: 'Hours', type: 'number', initial: '1' },
-      ]}
-      build={(v) => ({ courtId: v.courtId, start: iso(v.start), end: plusHours(v.start, Number(v.hours || 1)) })} />
-  );
-}
-
-export function ClassRegistration({ propertyId, programs }: { propertyId: string; programs: Opt[] }) {
-  return (
-    <BookingForm title="Register for a class" path="/api/v1/public/class-enrollments" propertyId={propertyId} submitLabel="Register"
-      fields={[
-        { name: 'programId', label: 'Class', type: 'select', options: opts(programs), required: true, initial: programs[0]?.id },
-        { name: 'birthDate', label: 'Participant date of birth', type: 'date' },
+        { name: 'programId', label: id ? 'Kelas' : 'Class', type: 'select', options: opts(programs), required: true, initial: programs[0]?.id },
+        { name: 'birthDate', label: id ? 'Tanggal lahir peserta' : 'Participant date of birth', type: 'date' },
       ]}
       build={(v) => ({ programId: v.programId, birthDate: v.birthDate || undefined })} />
   );

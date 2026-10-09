@@ -3,8 +3,8 @@ import { useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Empty, ErrorAlert, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, useToast,
-  type Option,
+  AutoResourcePage, Card, Checkbox, DataTable, Empty, ErrorAlert, Modal, MoneyField, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
+  TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from '../p3/types';
@@ -495,7 +495,7 @@ function RegistrationCategories({ tid }: { tid: string }) {
         { key: 'name', header: 'Fee' }, { key: 'amount', header: 'Amount', render: (r) => money(r.amount) },
         { key: 'category', header: 'Category', render: (r) => <SelectField label="Category" value={fv(r, 'category')} onChange={(v) => setFee(r, 'category', v)}
           placeholder="Every category" options={opts(['member', 'guest', 'sponsor_invitation'])} /> },
-        { key: 'earlyBirdAmount', header: 'Early-bird', render: (r) => <TextField label="Early-bird amount" value={fv(r, 'earlyBirdAmount')} onChange={(v) => setFee(r, 'earlyBirdAmount', v)} /> },
+        { key: 'earlyBirdAmount', header: 'Early-bird', render: (r) => <MoneyField label="Early-bird amount" value={fv(r, 'earlyBirdAmount')} onChange={(v) => setFee(r, 'earlyBirdAmount', v)} /> },
         { key: 'earlyBirdUntil', header: 'Until', render: (r) => <TextField label="Last date" type="date" value={fv(r, 'earlyBirdUntil')} onChange={(v) => setFee(r, 'earlyBirdUntil', v)} /> },
         { key: 'earlyBirdOpen', header: 'Today', render: (r) => (r.earlyBirdOpen ? <StatusPill status="active" label="Early-bird" /> : '—') }]} />
       <div className="oc-row-wrap">

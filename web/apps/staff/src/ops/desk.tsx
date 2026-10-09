@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { getActiveProperty, qs, request, useGet, useSend, uuidv7, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
-import { Checkbox, CrowdLabel, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TEE_CATEGORY, TeeBadge, TextField, crowdClass, useToast } from '@oneclub/shell';
+import {
+  Checkbox, CrowdLabel, DataTable, ErrorAlert, Icon, Modal, MoneyField, PlayTime, SelectField, StatusPill, TEE_CATEGORY, TeeBadge, TextField,
+  crowdClass, useAuth, useToast,
+} from '@oneclub/shell';
 import { BookingForm, type BookingPrefill } from '../p1/golf';
 import { DeskPayDialog, newPayments, type DeskMember, type DeskTender } from './deskpay';
-import { Btn, Head, money, today, useCached } from './golf';
+import { Btn, Head, PauseChip, money, today, useCached } from './golf';
 
 // Front Desk (demo feedback 9 Oct 2026): players book at the desk with or
 // without an account, the desk moves tee times first come first served,
@@ -21,6 +24,8 @@ const digits = (v: string) => v.replace(/\D/g, '');
 /** Rows keyed by another id field (DataTable needs id). */
 const withId = (xs: R[] | undefined, key: string): R[] => (xs ?? []).map((x) => ({ ...x, id: String(x[key]) }) as R);
 const live = (p: R) => !['removed', 'cancelled'].includes(String(p.status));
+/** A break (halfway, turn, tee house) keeps the play time running; rain stops it. */
+export const isBreak = (reason: unknown) => ['halfway', 'turn', 'tee_house', 'break_other'].includes(String(reason));
 
 export function FrontDeskPage() {
   const [date, setDate] = useState(today());
@@ -37,7 +42,7 @@ export function FrontDeskPage() {
       <Head title="Reservations" help={`${date}${bookings.offline ? ' · offline copy' : ''}`} actions={<>
         <Link className="oc-btn oc-btn-primary" to="/ops/front-desk/new"><Icon name="add" size={18} /> New Booking</Link>
         <button className="oc-btn oc-btn-neutral" onClick={() => setMerge(merge ? null : [])}>{merge ? 'Cancel merge' : 'Merge bills'}</button>
-        <Link className="oc-btn oc-btn-ink" to="/ops/check-in">Check-in</Link></>} />
+        <Link className="oc-btn oc-btn-ink" to="/ops/front-desk/check-in">Check-in</Link></>} />
       <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
         <TextField label="Date" type="date" value={date} onChange={setDate} />
         {merge && <span className="oc-muted">Choose the bookings one person pays for · {merge.length} selected</span>}
@@ -46,8 +51,10 @@ export function FrontDeskPage() {
       <DataTable rows={bookings.data?.items} loading={bookings.isLoading} columns={[{ key: 'localTime', header: 'Tee Time' }, { key: 'code', header: 'Booking' },
         { key: 'contactName', header: 'Booked by' }, { key: 'playerCount', header: 'Players', align: 'right' },
         { key: 'paymentMode', header: 'Payment', render: (b) => String(b.paymentMode ?? '—').replace(/_/g, ' ') },
-        { key: 'status', header: 'Status', render: (b) => <StatusPill status={String(b.status).replace(/_/g, '-')} /> },
-        { key: 'teeOffAt', header: 'Play time', render: (b) => <PlayTime start={b.teeOffAt as string} end={b.roundFinishAt as string} pausedAt={b.pausedAt as string | null | undefined} pausedSeconds={Number(b.pausedSeconds ?? 0)} label={false} fallback="—" /> }]}
+        { key: 'status', header: 'Status', render: (b) => (b.holdReason
+          ? <span title={String(b.holdReason)}><StatusPill status="on-hold" /> <span className="oc-small oc-muted">{String(b.holdReason)}</span></span>
+          : b.pausedAt ? <PauseChip at={b.pausedAt} reason={b.pauseReason} /> : <StatusPill status={String(b.status).replace(/_/g, '-')} />) },
+        { key: 'teeOffAt', header: 'Play time', render: (b) => <PlayTime start={b.teeOffAt as string} end={b.roundFinishAt as string} pausedAt={isBreak(b.pauseReason) ? null : b.pausedAt as string | null | undefined} pausedSeconds={Number(b.pausedSeconds ?? 0)} label={false} fallback="—" /> }]}
         actions={(b) => (bookings.offline ? null : merge
           ? <Checkbox label="Merge" checked={merge.includes(b.id)} disabled={['cancelled', 'no_show'].includes(String(b.status))} onChange={(on) => toggle(b.id, on)} />
           : <Btn label="Manage" onClick={() => setOpen(b.id)} />)} />
@@ -218,6 +225,7 @@ function DeskBookingModal({ id, onClose }: { id: string; onClose: () => void }) 
             <BookingPlayTime flights={x.flights} />
             <span className="oc-muted">{String(x.playDate)} · {String(x.courseName)} · {x.players.filter(live).length} players · payment {String(x.paymentMode ?? '—').replace(/_/g, ' ')}</span>
           </div>
+          <FlightHold b={x} onDone={() => void b.refetch()} />
           <div className="oc-row-wrap" role="tablist">
             {TABS.map(([k, l]) => <Btn key={k} label={l} kind={tab === k ? 'ink' : 'neutral'} onClick={() => setTab(k)} />)}
           </div>
@@ -230,6 +238,44 @@ function DeskBookingModal({ id, onClose }: { id: string; onClose: () => void }) 
         </div>
       )}
     </Modal>
+  );
+}
+
+/** On hold in the starter queue ("we eat first"): shown at the desk and held or
+ * released from here — the same queue the Starter works (demo feedback #21). */
+function FlightHold({ b, onDone }: { b: Booking; onDone: () => void }) {
+  const { can } = useAuth();
+  const toast = useToast();
+  const [holdFor, setHoldFor] = useState<string | null>(null);
+  const [reason, setReason] = useState('');
+  const act = useSend<{ fid: string; action: string; reason?: string }>('POST', (v) => `/api/v1/golf/starter-queue/${v.fid}:${v.action}`, ['/api/v1/golf']);
+  const ctl = can('golf.starter.control');
+  const flights = b.flights.filter((f) => f.queueStatus === 'waiting' || f.queueStatus === 'on_hold' || f.pausedAt);
+  if (!flights.length) return null;
+  const run = (fid: string, action: string, why?: string) => act.mutate({ fid, action, reason: why }, {
+    onSuccess: () => { toast(action === 'hold' ? 'Flight on hold' : 'Flight released to the queue'); setHoldFor(null); setReason(''); onDone(); },
+  });
+  return (
+    <div className="oc-stack" style={{ gap: 8 }}>
+      {flights.map((f) => (
+        <div key={String(f.id)} className="oc-row-wrap" style={{ alignItems: 'center' }}>
+          {b.flights.length > 1 && <strong>Flight {String(f.flightNo)}</strong>}
+          {f.pausedAt ? <PauseChip at={f.pausedAt} reason={f.pauseReason} />
+            : f.queueStatus === 'on_hold' ? <span className="oc-alert oc-alert-warning" style={{ padding: '4px 12px' }}><Icon name="pause_circle" size={18} /> On hold · {String(f.holdReason ?? '')}</span>
+              : <span className="oc-muted">Ready in the starter queue</span>}
+          {ctl && f.queueStatus === 'on_hold' && <Btn label="Release" kind="primary" disabled={act.isPending} onClick={() => run(String(f.id), 'release')} />}
+          {ctl && f.queueStatus === 'waiting' && holdFor !== f.id && <Btn label="Hold" disabled={act.isPending} onClick={() => setHoldFor(String(f.id))} />}
+          {holdFor === f.id && (
+            <>
+              <TextField label="Reason" value={reason} onChange={setReason} placeholder="e.g. eating first at the restaurant" autoFocus />
+              <Btn label="Cancel" onClick={() => setHoldFor(null)} />
+              <Btn label="Hold flight" kind="primary" disabled={!reason.trim() || act.isPending} onClick={() => run(String(f.id), 'hold', reason.trim())} />
+            </>
+          )}
+        </div>
+      ))}
+      <ErrorAlert error={act.error} />
+    </div>
   );
 }
 
@@ -277,7 +323,7 @@ function BillTab({ id, members }: { id: string; members: DeskMember[] }) {
                 onChange={(on) => setPicked((s) => (on ? [...s, p.id] : s.filter((v) => v !== p.id)))} />} />
           ) : (
             <div className="oc-row-wrap">
-              <TextField label="Amount (empty = all)" value={amount} onChange={(v) => setAmount(digits(v))} inputMode="numeric" />
+              <MoneyField label="Amount (empty = all)" value={amount} onChange={(v) => setAmount(digits(v))} />
               <TextField label="Payer name" value={payer} onChange={setPayer} />
             </div>
           )}
@@ -395,21 +441,26 @@ function PlayersTab({ b, onDone }: { b: Booking; onDone: () => void }) {
   const toast = useToast();
   const [edit, setEdit] = useState<Record<string, { name: string; phone: string }>>({});
   const [removing, setRemoving] = useState<string | null>(null);
+  const [why, setWhy] = useState('cancelled');
   const [add, setAdd] = useState({ playerType: 'non_member', memberNo: '', name: '', phone: '' });
   const inv = ['/api/v1/golf'];
   const patch = useSend<Record<string, unknown>>('PATCH', (v) => `/api/v1/golf/bookings/${b.id}/players/${String(v.playerId)}`, inv);
-  const remove = useSend<Record<string, unknown>>('DELETE', (v) => `/api/v1/golf/bookings/${b.id}/players/${String(v.playerId)}`, inv);
+  const remove = useSend<Record<string, unknown>>('DELETE', (v) => `/api/v1/golf/bookings/${b.id}/players/${String(v.playerId)}${qs({ reason: String(v.reason ?? '') })}`, inv);
   const create = useSend<Record<string, unknown>>('POST', `/api/v1/golf/bookings/${b.id}/players`, inv);
   const tees = useGet<Page<R>>(`/api/v1/golf/tee-sets${qs({ 'filter[courseId]': b.courseId, 'filter[status]': 'active', limit: 20 })}`);
   const teeOptions = (tees.data?.items ?? []).map((t) => ({ value: t.id, label: `${String(t.name)}${t.playerCategory ? ` · ${TEE_CATEGORY[String(t.playerCategory)] ?? String(t.playerCategory)}` : ''}` }));
   const players = b.players.filter(live);
   const ok = () => { toast('Players updated'); setEdit({}); setRemoving(null); onDone(); };
+  // a player who does not play can go until the flight tees off (checked in too)
+  const teedOff = (p: R) => b.flights.some((f) => f.id === p.flightId && (f.teeOffAt || ['in_play', 'completed'].includes(String(f.status))));
+  const removable = (p: R) => players.length > 1 && (p.status === 'booked' || (p.status === 'checked_in' && !teedOff(p)));
+  const WHY: Record<string, string> = { cancelled: 'Cancelled', sick: 'Sick', rescheduled: 'Rescheduled', other: 'Other reason' };
   const member = add.playerType === 'member';
   return (
     <div className="oc-stack">
       <div className="oc-table-wrap">
         <table className="oc-table desk-players">
-          <thead><tr><th>Player</th><th>Tee</th><th className="desk-players-actions" aria-label="Actions" /></tr></thead>
+          <thead><tr><th>Player</th><th>Tee Set</th><th className="desk-players-actions" aria-label="Actions" /></tr></thead>
           <tbody>
             {players.map((p) => {
               const e = edit[p.id];
@@ -429,7 +480,7 @@ function PlayersTab({ b, onDone }: { b: Booking; onDone: () => void }) {
                   </td>
                   <td>
                     {teeOptions.length > 0 ? (
-                      <select className="oc-select" aria-label={`Tee of ${who}`} value={String(p.teeSetId ?? '')} disabled={patch.isPending}
+                      <select className="oc-select" aria-label={`Tee set of ${who}`} value={String(p.teeSetId ?? '')} disabled={patch.isPending}
                         onChange={(v) => { if (v.target.value) patch.mutate({ playerId: p.id, teeSetId: v.target.value }, { onSuccess: ok }); }}>
                         <option value="">By player category</option>
                         {teeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -446,15 +497,18 @@ function PlayersTab({ b, onDone }: { b: Booking; onDone: () => void }) {
                         </>
                       ) : removing === p.id ? (
                         <>
+                          <select className="oc-select" aria-label={`Why ${who} does not play`} value={why} onChange={(v) => setWhy(v.target.value)} style={{ minWidth: 140 }}>
+                            {Object.entries(WHY).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+                          </select>
                           <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setRemoving(null)}>Keep</button>
-                          <button className="oc-btn oc-btn-danger oc-btn-sm" disabled={remove.isPending} onClick={() => remove.mutate({ playerId: p.id }, { onSuccess: ok })}>Remove {who}?</button>
+                          <button className="oc-btn oc-btn-danger oc-btn-sm" disabled={remove.isPending} onClick={() => remove.mutate({ playerId: p.id, reason: WHY[why] }, { onSuccess: ok })}>Remove {who}?</button>
                         </>
                       ) : (
                         <>
                           {p.playerType !== 'member'
                             ? <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => setEdit({ [p.id]: { name: String(p.name ?? ''), phone: String(p.phone ?? '') } })}>Edit</button>
                             : <span className="desk-players-slot" aria-hidden="true" />}
-                          {p.status === 'booked' && players.length > 1
+                          {removable(p)
                             ? <button className="oc-btn oc-btn-outline oc-btn-sm" aria-label={`Remove ${who}`} onClick={() => setRemoving(p.id)}>Remove</button>
                             : <span className="desk-players-slot" aria-hidden="true" />}
                         </>
@@ -493,6 +547,9 @@ function PlayersTab({ b, onDone }: { b: Booking; onDone: () => void }) {
           </tbody>
         </table>
       </div>
+      {removing && players.find((p) => p.id === removing)?.status === 'checked_in' && (
+        <p className="oc-small oc-muted" style={{ margin: 0 }}>The caddy goes back to the queue, the green fee is voided and a payment already made for this player becomes a refund. Check the golf carts in Caddy &amp; Cart.</p>
+      )}
       <ErrorAlert error={patch.error ?? remove.error ?? create.error} />
       <BookingHoleBests id={b.id} />
       <BookingScorecards bookingId={b.id} />
@@ -580,15 +637,17 @@ function CaddyTab({ b }: { b: Booking }) {
         <div key={String(f.id)} className="oc-stack">
           {b.flights.length > 1 && <strong>Flight {String(f.flightNo)}</strong>}
           <FlightCaddies bookingId={b.id} code={String(b.code)} flightId={String(f.id)} date={b.playDate} />
-          <FlightCarts flightId={String(f.id)} date={b.playDate} players={b.players.filter((p) => live(p) && p.flightId === f.id)} />
+          <FlightCarts flightId={String(f.id)} date={b.playDate} players={b.players.filter((p) => live(p) && p.flightId === f.id)}
+            needed={Number(f.golfCartsNeeded ?? 0)} perCart={Number(f.playersPerCart ?? 2)} />
         </div>
       ))}
     </div>
   );
 }
 
-/** Golf carts: one cart carries 2 players and their 2 caddies. */
-function FlightCarts({ flightId, date, players }: { flightId: string; date: string; players: R[] }) {
+/** Golf carts: one cart carries 2 players and their 2 caddies (Golf Cart
+ * Policy); the desk sees at once when players were added or removed. */
+function FlightCarts({ flightId, date, players, needed, perCart }: { flightId: string; date: string; players: R[]; needed: number; perCart: number }) {
   const toast = useToast();
   const list = useGet<Page<R>>(`/api/v1/golf/golf-cart-assignments${qs({ date })}`);
   const ready = useGet<Page<R>>('/api/v1/golf/golf-carts?filter[readiness]=ready&filter[status]=active&limit=200');
@@ -598,14 +657,25 @@ function FlightCarts({ flightId, date, players }: { flightId: string; date: stri
   const [pick, setPick] = useState('');
   const mine = (list.data?.items ?? []).filter((a) => a.flightId === flightId && !['returned', 'cancelled'].includes(String(a.status)));
   const ok = (what: string) => () => { toast(what); setPick(''); void list.refetch(); void ready.refetch(); };
+  const need = needed || Math.ceil(players.length / perCart);
+  const missing = need - mine.length;
+  const riders = (i: number) => players.slice(i * perCart, i * perCart + perCart);
+  const without = players.slice(mine.length * perCart);
   return (
     <div className="oc-stack">
-      <h3 style={{ margin: '8px 0 0' }}>Golf carts <span className="oc-small oc-muted">· 1 cart = 2 players + their 2 caddies · {Math.ceil(players.length / 2)} needed</span></h3>
-      {mine.length === 0 && <span className="oc-muted">No golf cart yet</span>}
+      <h3 style={{ margin: '8px 0 0' }}>Golf carts <span className="oc-small oc-muted">· 1 cart = {perCart} players + their caddies · {mine.length} of {need} assigned</span></h3>
+      {missing > 0 && (
+        <div className="oc-alert oc-alert-warning" role="alert">
+          {players.length} players → {need} golf cart{need > 1 ? 's' : ''} needed, {mine.length} assigned. Add {missing} golf cart{missing > 1 ? 's' : ''}.
+          {without.length > 0 && <div className="oc-small">No golf cart yet: {without.map((p) => String(p.name || 'Guest')).join(', ')}</div>}
+        </div>
+      )}
+      {missing < 0 && <div className="oc-alert oc-alert-info" role="status">{-missing} golf cart{missing < -1 ? 's' : ''} more than the players need — return the extra one.</div>}
+      {mine.length === 0 && missing <= 0 && <span className="oc-muted">No golf cart yet</span>}
       {mine.map((a, i) => (
         <div key={a.id} className="oc-row-wrap" style={{ alignItems: 'center' }}>
           <strong style={{ minWidth: 200 }}>Cart {String(a.golfCartCode)}{a.extra ? ' · extra (surcharge)' : ''}</strong>
-          <span className="oc-muted">{players.slice(i * 2, i * 2 + 2).map((p) => String(p.name || 'Guest')).join(' & ') || '—'}</span>
+          <span className="oc-muted">{riders(i).map((p) => String(p.name || 'Guest')).join(' & ') || 'no player (extra)'}</span>
           <StatusPill status={String(a.status).replace(/_/g, '-')} />
           <Btn label="Return" disabled={ret.isPending} onClick={() => ret.mutate({ id: a.id }, { onSuccess: ok('Golf cart returned') })} />
         </div>
@@ -678,8 +748,9 @@ function FlightCaddies({ bookingId, code, flightId, date }: { bookingId: string;
                   <div className="oc-row-wrap" aria-label="Known caddies">
                     {known.map((c, i) => (
                       <button key={`${String(c.caddyId)}-${i}`} type="button" className="oc-chip" aria-pressed={chosen === c.caddyId} disabled={!c.available}
-                        onClick={() => setPick({ ...pick, [pid]: String(c.caddyId) })}>
-                        {String(c.code)} · {String(c.name)} · {REASON[String(c.reason)] ?? ''}{Number(c.rounds) > 0 ? ` (${String(c.rounds)} rounds)` : ''}{c.available ? '' : ` · ${why(c.caddyId)}`}
+                        data-usual={c.reason === 'usual' || undefined} onClick={() => setPick({ ...pick, [pid]: String(c.caddyId) })}>
+                        {c.reason === 'usual' ? <strong>{String(c.code)} · {String(c.name)}</strong> : <>{String(c.code)} · {String(c.name)}</>} · {REASON[String(c.reason)] ?? ''}
+                        {Number(c.rounds) > 0 ? ` (${String(c.rounds)} rounds)` : ''}{c.available ? '' : ` · ${why(c.caddyId)}`}
                       </button>
                     ))}
                   </div>

@@ -4,8 +4,8 @@ import { qs, request, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime } from '@oneclub/i18n';
 import { enqueue } from '@oneclub/offline';
 import {
-  AutoResourcePage, Card, Checkbox, DataTable, Empty, ErrorAlert, Modal, PageHeader, SelectField, Skeleton, StatusPill, TextArea, TextField,
-  useAuth, useToast, type Option,
+  AutoResourcePage, Card, Checkbox, DataTable, Empty, ErrorAlert, Modal, MoneyField, PageHeader, SelectField, Skeleton, StatusPill, TextArea,
+  TextField, useAuth, useToast, type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from './types';
@@ -145,7 +145,7 @@ function EventForm({ onClose, onDone }: { onClose: () => void; onDone: (id: stri
         <Checkbox label="Open event: website and Member App registration" checked={pub} onChange={setPub} />
         {pub && <>
           <TextField label="Capacity (seats)" type="number" value={f.capacity} onChange={set('capacity')} />
-          <TextField label="Registration fee per seat" type="number" value={f.registrationFee} onChange={set('registrationFee')} />
+          <MoneyField label="Registration fee per seat" value={f.registrationFee} onChange={set('registrationFee')} />
           <Checkbox label="Members only" checked={membersOnly} onChange={setMembersOnly} />
           <TextArea label="Description (website)" value={f.description} onChange={set('description')} />
         </>}
@@ -447,7 +447,7 @@ function ResourcesTab({ e }: { e: R }) {
         <form className="oc-row-wrap" onSubmit={(ev) => { ev.preventDefault(); addRes.mutate({ resourceId: res.resourceId, description: opt(res.description), amount: opt(res.amount) }); }}>
           <SelectField label="Resource" value={res.resourceId} onChange={(v) => setRes((x) => ({ ...x, resourceId: v }))} options={resources} />
           <TextField label="Description" value={res.description} onChange={(v) => setRes((x) => ({ ...x, description: v }))} />
-          <TextField label="Charge (not in the package)" type="number" value={res.amount} onChange={(v) => setRes((x) => ({ ...x, amount: v }))} />
+          <MoneyField label="Charge (not in the package)" value={res.amount} onChange={(v) => setRes((x) => ({ ...x, amount: v }))} />
           <button className="oc-btn oc-btn-neutral oc-btn-sm" disabled={!res.resourceId}>Book</button>
         </form>
         <ErrorAlert error={addRes.error} />
@@ -459,7 +459,7 @@ function ResourcesTab({ e }: { e: R }) {
         <form className="oc-row-wrap" onSubmit={(ev) => { ev.preventDefault(); addVendor.mutate({ vendorId: vd.vendorId, service: vd.service, fee: opt(vd.fee), chargeToCustomer: charge || undefined }); }}>
           <SelectField label="Vendor" value={vd.vendorId} onChange={(v) => setVd((x) => ({ ...x, vendorId: v }))} options={vendors} />
           <TextField label="Service" value={vd.service} onChange={(v) => setVd((x) => ({ ...x, service: v }))} />
-          <TextField label="Fee" type="number" value={vd.fee} onChange={(v) => setVd((x) => ({ ...x, fee: v }))} />
+          <MoneyField label="Fee" value={vd.fee} onChange={(v) => setVd((x) => ({ ...x, fee: v }))} />
           <Checkbox label="Charge the customer" checked={charge} onChange={setCharge} />
           <button className="oc-btn oc-btn-neutral oc-btn-sm" disabled={!vd.vendorId || !vd.service}>Book vendor</button>
         </form>
@@ -656,7 +656,7 @@ function BillingTab({ e }: { e: R }) {
             <SelectField label="Extra charge" value={c.chargeTypeId} onChange={(v) => setC((x) => ({ ...x, chargeTypeId: v }))} options={types} placeholder="—" />
             <SelectField label="or kind" value={c.kind} onChange={(v) => setC((x) => ({ ...x, kind: v }))} options={CHARGE_KINDS} placeholder="—" />
             <TextField label="Quantity" type="number" value={c.quantity} onChange={(v) => setC((x) => ({ ...x, quantity: v }))} />
-            <TextField label="Unit price" type="number" value={c.unitPrice} onChange={(v) => setC((x) => ({ ...x, unitPrice: v }))} />
+            <MoneyField label="Unit price" value={c.unitPrice} onChange={(v) => setC((x) => ({ ...x, unitPrice: v }))} />
             <TextField label="Description" value={c.description} onChange={(v) => setC((x) => ({ ...x, description: v }))} />
             <button className="oc-btn oc-btn-neutral oc-btn-sm" disabled={!c.chargeTypeId && !c.kind}>Post charge</button>
           </form>

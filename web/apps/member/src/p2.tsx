@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
+import { getActiveProperty, request, uuidv7, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
   Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, Modal, PageHeader, QRCode, SelectField, Skeleton, StatusPill, TextArea, TextField, useToast,
@@ -154,6 +154,8 @@ export function ScoresPage() {
   );
 }
 
+const STAGES: [string, string][] = [['in_play', 'In play'], ['completed', 'Round completed'], ['submitted', 'Submitted'], ['finalized', 'Finalized']];
+
 export function ScorecardPage() {
   const { id } = useParams();
   const toast = useToast();
@@ -162,14 +164,40 @@ export function ScorecardPage() {
   const [draft, setDraft] = useState<Record<number, string>>({});
   const save = useSend<Row, Schemas['Scorecard']>('POST', `${path}/scores`, [path]);
   const submit = useSend<Row>('POST', `${path}:submit`, [path]);
+  const share = useSend<Record<string, never>, Schemas['ScorecardShare']>('POST', `${path}:share`, []);
+  const corrections = useGet<Page<Schemas['CorrectionRequest']>>(`${path}/correction-requests`);
+  const ask = useSend<Row, Schemas['CorrectionRequest']>('POST', `${path}/correction-requests`, [`${path}/correction-requests`]);
+  const [fix, setFix] = useState<{ seq: string; strokes: string; reason: string } | null>(null);
+  const [link, setLink] = useState('');
   const c = card.data;
   if (!c) return <Skeleton rows={8} />;
-  const locked = c.status === 'finalized';
+  // after Complete Round the card is read-only: a wrong score goes through a correction request (demo feedback #36)
+  const locked = c.locked || c.status === 'finalized';
+  const stage = STAGES.findIndex(([k]) => k === c.stage);
+  const pending = (corrections.data?.items ?? []).filter((x) => x.status === 'requested');
+  const getLink = async () => {
+    if (link) return link;
+    const r = await share.mutateAsync({});
+    setLink(r.link);
+    return r.link;
+  };
+  const shareIt = async () => {
+    const url = await getLink();
+    const text = `My scorecard of ${formatDate(c.playedOn)}${c.gross ? ` — gross ${c.gross}` : ''}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Scorecard', text, url }); return; } catch { /* closed: fall back to the link */ }
+    }
+    window.open(`https://wa.me/?text=${encodeURIComponent(`${text}: ${url}`)}`, '_blank', 'noopener');
+  };
   return (
     <div className="oc-stack">
       <PageHeader title={`Scorecard · ${formatDate(c.playedOn)}`} help={`${c.playingRouteName ?? ''} · ${c.teeSetName ?? ''} · Par ${c.par}${c.gross ? ` · Gross ${c.gross}` : ''}`}
         actions={<StatusPill status={c.status} />} />
-      <ErrorAlert error={save.error ?? submit.error} />
+      <ol className="oc-steps" aria-label="Scorecard stage">
+        {STAGES.map(([k, l], i) => <li key={k} data-state={i < stage ? 'done' : i === stage ? 'current' : undefined} aria-current={i === stage ? 'step' : undefined}>
+          <span className="oc-steps-dot">{i < stage ? <Icon name="check" size={14} /> : i + 1}</span>{l}</li>)}
+      </ol>
+      <ErrorAlert error={save.error ?? submit.error ?? share.error ?? ask.error} />
       <div className="oc-card" style={{ overflowX: 'auto' }}>
         <table className="oc-table">
           <thead><tr><th>Hole</th>{c.scores.map((h) => <th key={h.seq}>{h.sectionCode.slice(-1)}{h.holeNumber}</th>)}</tr></thead>
@@ -177,7 +205,7 @@ export function ScorecardPage() {
             <tr><td>Par</td>{c.scores.map((h) => <td key={h.seq}>{h.par}</td>)}</tr>
             <tr><td>SI</td>{c.scores.map((h) => <td key={h.seq}>{h.strokeIndex}</td>)}</tr>
             <tr><td>Score</td>{c.scores.map((h) => (
-              <td key={h.seq}>{locked ? (h.strokes ?? '—') : (
+              <td key={h.seq}>{locked ? <strong>{h.strokes ?? '—'}</strong> : (
                 <input className="oc-input" style={{ width: 44, textAlign: 'center' }} inputMode="numeric" aria-label={`Hole ${h.seq} strokes`}
                   value={draft[h.seq] ?? (h.strokes ? String(h.strokes) : '')} onChange={(e) => setDraft({ ...draft, [h.seq]: e.target.value })} />
               )}</td>
@@ -190,8 +218,44 @@ export function ScorecardPage() {
         <div className="oc-row">
           <button className="oc-btn oc-btn-outline" onClick={() => save.mutate({ source: 'player', entries: Object.entries(draft).filter(([, v]) => v).map(([seq, v]) => ({ seq: Number(seq), strokes: Number(v), clientAt: new Date().toISOString() })) },
             { onSuccess: () => { setDraft({}); toast('Scores saved'); } })}>Save scores</button>
-          <button className="oc-btn oc-btn-ink" onClick={() => submit.mutate({}, { onSuccess: () => toast('Submitted for finalization') })}>Submit</button>
         </div>
+      )}
+      {locked && (
+        <div className="oc-row-wrap">
+          <button className="oc-btn oc-btn-ink" disabled={share.isPending} onClick={() => void getLink().then((u) => window.open(u, '_blank', 'noopener'))}><Icon name="download" size={18} /> Download PDF</button>
+          <button className="oc-btn oc-btn-outline" disabled={share.isPending} onClick={() => void getLink().then((u) => { const w = window.open(u, '_blank', 'noopener'); w?.addEventListener('load', () => w.print()); })}><Icon name="print" size={18} /> Print</button>
+          <button className="oc-btn oc-btn-outline" disabled={share.isPending} onClick={() => void shareIt()}><Icon name="share" size={18} /> Share</button>
+          {c.stage === 'completed' && <button className="oc-btn oc-btn-outline" disabled={submit.isPending} onClick={() => submit.mutate({}, { onSuccess: () => toast('Submitted for finalization') })}>Submit</button>}
+          {c.status !== 'finalized' && <button className="oc-btn oc-btn-text" onClick={() => setFix({ seq: '', strokes: '', reason: '' })}>Ask for a correction</button>}
+        </div>
+      )}
+      {link && <p className="oc-small oc-muted" style={{ margin: 0, wordBreak: 'break-all' }}>Link: {link}</p>}
+      {fix && (
+        <Card title="Ask for a score correction" icon="edit_note">
+          <p className="oc-small oc-muted" style={{ marginTop: 0 }}>The round is completed, so the score is changed by the Marshal / handicap committee after they check it.</p>
+          <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+            <SelectField label="Hole" value={fix.seq} onChange={(v) => setFix({ ...fix, seq: v })} placeholder="Choose"
+              options={c.scores.map((h) => ({ value: String(h.seq), label: `${h.sectionCode.slice(-1)}${h.holeNumber} · now ${h.strokes ?? '—'}` }))} />
+            <TextField label="Correct strokes" value={fix.strokes} onChange={(v) => setFix({ ...fix, strokes: v.replace(/\D/g, '').slice(0, 2) })} inputMode="numeric" />
+            <TextField label="Reason" value={fix.reason} onChange={(v) => setFix({ ...fix, reason: v })} />
+          </div>
+          <div className="oc-row" style={{ marginTop: 8 }}>
+            <button className="oc-btn oc-btn-neutral" onClick={() => setFix(null)}>Cancel</button>
+            <button className="oc-btn oc-btn-ink" disabled={!fix.seq || !fix.strokes || !fix.reason.trim() || ask.isPending}
+              onClick={() => ask.mutate({ seq: Number(fix.seq), strokes: Number(fix.strokes), reason: fix.reason.trim() }, { onSuccess: () => { setFix(null); toast('Correction requested'); } })}>Send request</button>
+          </div>
+        </Card>
+      )}
+      {(corrections.data?.items ?? []).length > 0 && (
+        <Card title="Correction requests" icon="history">
+          {(corrections.data?.items ?? []).map((x) => (
+            <div key={x.id} className="oc-row-wrap" style={{ marginBottom: 6 }}>
+              <span>Hole {x.holeNumber}: {x.currentStrokes ?? '—'} → <strong>{x.strokes}</strong></span><span className="oc-muted">{x.reason}</span>
+              <StatusPill status={x.status === 'requested' ? 'pending' : x.status} />{x.decisionNote ? <span className="oc-small oc-muted">{x.decisionNote}</span> : null}
+            </div>
+          ))}
+          {pending.length > 0 && <p className="oc-small oc-muted" style={{ margin: 0 }}>Waiting for the Marshal / handicap committee.</p>}
+        </Card>
       )}
     </div>
   );
@@ -209,6 +273,8 @@ export function SportClubPage() {
     <div className="oc-stack">
       <PageHeader title="Sport Club" help="Show your Digital Member Card QR at the gate for Facility Access." />
       <ErrorAlert error={book.error} />
+      <MemberCourtBooking />
+      <MemberClassEnroll enrolled={(classes.data?.items ?? []).filter((c) => c.status === 'active').map((c) => c.programId)} onDone={() => void classes.refetch()} />
       <Card title="My Classes" icon="school">
         <DataTable rows={classes.data?.items as unknown as Row[]} columns={[{ key: 'programName', header: 'Class' },
           { key: 'validUntil', header: 'Valid until', render: (r) => (r.validUntil ? formatDate(String(r.validUntil)) : '—') },
@@ -225,6 +291,136 @@ export function SportClubPage() {
           { key: 'status', header: 'Status', render: (r) => <StatusPill status={String(r.status)} /> }, { key: 'quotaUsed', header: 'Quota used', render: (r) => (r.quotaUsed ? 'Yes' : 'No') }]} />
       </Card>
     </div>
+  );
+}
+
+type SportPage = { facilities: { id: string; name: string; usageMode: string }[]; courts: { id: string; name: string; facilityId: string; resourceId?: string | null }[];
+  classPrograms: { id: string; name: string; discipline: string }[] };
+type CourtSlot = { start: string; end: string; status: string; price?: string | null };
+type CourtPick = { courtId: string; courtName: string; start: string; end: string; price: number };
+const hm = (iso: string) => new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+const ymdLocal = (d: Date) => d.toLocaleDateString('sv');
+
+/** Book Facility (demo feedback 10 Oct 2026 #39): the sport, the date, the
+ * free hours of every court with their price, then member charge or pay online. */
+function MemberCourtBooking() {
+  const toast = useToast();
+  const page = useGet<SportPage>(`/api/v1/public/sport-club?propertyId=${getActiveProperty()}`);
+  const sports = (page.data?.facilities ?? []).filter((f) => f.usageMode === 'slot_booking');
+  const [sport, setSport] = useState('');
+  const sp = sport || sports[0]?.id || '';
+  const courts = (page.data?.courts ?? []).filter((c) => c.facilityId === sp && c.resourceId);
+  const [date, setDate] = useState(ymdLocal(new Date()));
+  const [grid, setGrid] = useState<Record<string, CourtSlot[]>>({});
+  const [picks, setPicks] = useState<CourtPick[]>([]);
+  const [charge, setCharge] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+  const [payment, setPayment] = useState<Schemas['Payment'] | null>(null);
+  const key = courts.map((c) => c.id).join(',');
+  const load = () => Promise.all(courts.map(async (c) => {
+    const a = await request<{ resources: { slots: CourtSlot[] }[] }>('GET', `/api/v1/public/availability?propertyId=${getActiveProperty()}&resourceType=sport_court&resourceId=${c.resourceId}&date=${date}`);
+    return [c.id, a.resources[0]?.slots ?? []] as const;
+  })).then((xs) => setGrid(Object.fromEntries(xs)), setError);
+  useEffect(() => { void load(); }, [key, date]); // eslint-disable-line react-hooks/exhaustive-deps
+  const picked = (c: { id: string }, s: CourtSlot) => picks.some((p) => p.courtId === c.id && p.start === s.start);
+  const toggle = (c: { id: string; name: string }, s: CourtSlot) => setPicks((ps) => (picked(c, s) ? ps.filter((p) => !(p.courtId === c.id && p.start === s.start))
+    : [...ps, { courtId: c.id, courtName: c.name, start: s.start, end: s.end, price: Number(s.price ?? 0) }]));
+  const total = picks.reduce((n, p) => n + p.price, 0);
+  const book = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const r = await request<Schemas['CourtBookingResult']>('POST', '/api/v1/member/sport-club/court-bookings', { lines: picks.map((p) => ({ courtId: p.courtId, start: p.start, end: p.end })),
+        courtId: picks[0].courtId, start: picks[0].start, end: picks[0].end, memberCharge: charge }, { 'Idempotency-Key': uuidv7() });
+      setPicks([]);
+      void load();
+      if (!charge && r.folio && Number(r.folio.summary.balance) > 0) {
+        setPayment(await request<Schemas['Payment']>('POST', `/api/v1/member/folios/${r.folio.id}:pay-online`, { method: 'qris' }));
+      } else toast(`Court booked · ${r.reservation.code}`);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setBusy(false);
+    }
+  };
+  if (!sports.length) return null;
+  return (
+    <Card title="Book a Court" icon="sports_tennis">
+      <div className="oc-stack">
+        {payment ? <PaymentPanel payment={payment} onPaid={() => { setPayment(null); toast('Paid — your court is booked'); }} onFailed={() => setPayment(null)} /> : <>
+          <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+            {sports.map((f) => <button key={f.id} type="button" className={`oc-btn ${sp === f.id ? 'oc-btn-ink' : 'oc-btn-neutral'}`} onClick={() => { setSport(f.id); setPicks([]); }}>{f.name}</button>)}
+            <TextField label="Date" type="date" value={date} min={ymdLocal(new Date())} max={ymdLocal(new Date(Date.now() + 30 * 86_400_000))} onChange={(v) => { setDate(v); setPicks([]); }} />
+          </div>
+          {courts.map((c) => (
+            <div key={c.id}>
+              <strong>{c.name}</strong>
+              <div className="oc-row-wrap" style={{ marginTop: 6 }}>
+                {(grid[c.id] ?? []).map((sl) => (
+                  <button key={sl.start} type="button" className={`oc-btn oc-btn-sm ${picked(c, sl) ? 'oc-btn-ink' : 'oc-btn-outline'}`} style={{ minHeight: 48, flexDirection: 'column' }}
+                    disabled={sl.status !== 'available' && !picked(c, sl)} onClick={() => toggle(c, sl)}>
+                    <strong>{hm(sl.start)}</strong><span className="oc-small">{sl.status === 'available' ? money(sl.price) : sl.status === 'reserved' ? 'Booked' : 'Closed'}</span>
+                  </button>
+                ))}
+                {(grid[c.id] ?? []).length === 0 && <span className="oc-muted oc-small">No hours on this date.</span>}
+              </div>
+            </div>
+          ))}
+          {picks.length > 0 && (
+            <div className="oc-row-wrap" style={{ alignItems: 'center' }}>
+              <span>{picks.map((p) => `${p.courtName} ${hm(p.start)}`).join(', ')}</span>
+              <strong>{money(total)}</strong>
+              <Checkbox label="Charge to my member account" checked={charge} onChange={setCharge} />
+              <button className="oc-btn oc-btn-ink" disabled={busy} onClick={() => void book()}>{charge ? 'Book' : 'Book & pay'}</button>
+            </div>
+          )}
+          <span className="oc-small oc-muted">Bookings cannot be cancelled and are not refunded. Prices include tax.</span>
+        </>}
+        <ErrorAlert error={error} />
+      </div>
+    </Card>
+  );
+}
+
+/** Book Class: register for a class program, then book its sessions (#39). */
+function MemberClassEnroll({ enrolled, onDone }: { enrolled: string[]; onDone: () => void }) {
+  const toast = useToast();
+  const page = useGet<SportPage>(`/api/v1/public/sport-club?propertyId=${getActiveProperty()}`);
+  const [program, setProgram] = useState('');
+  const [charge, setCharge] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+  const [payment, setPayment] = useState<Schemas['Payment'] | null>(null);
+  const open = (page.data?.classPrograms ?? []).filter((p) => !enrolled.includes(p.id));
+  if (!(page.data?.classPrograms ?? []).length) return null;
+  const enroll = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      const e = await request<Schemas['Enrollment']>('POST', '/api/v1/member/sport-club/class-enrollments', { programId: program, memberCharge: charge }, { 'Idempotency-Key': uuidv7() });
+      onDone();
+      if (!charge && e.folioId) setPayment(await request<Schemas['Payment']>('POST', `/api/v1/member/folios/${e.folioId}:pay-online`, { method: 'qris' }));
+      else toast(`Registered for ${e.programName}`);
+    } catch (err) {
+      setError(err);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Card title="Register for a Class" icon="how_to_reg">
+      {payment ? <PaymentPanel payment={payment} onPaid={() => { setPayment(null); toast('Registration paid'); onDone(); }} onFailed={() => setPayment(null)} /> : (
+        <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+          <SelectField label="Class" value={program} onChange={setProgram} placeholder={open.length ? 'Choose' : 'You are registered for every class'}
+            options={open.map((p) => ({ value: p.id, label: p.name }))} />
+          <Checkbox label="Charge to my member account" checked={charge} onChange={setCharge} />
+          <button className="oc-btn oc-btn-ink" disabled={!program || busy} onClick={() => void enroll()}>Register</button>
+        </div>
+      )}
+      <p className="oc-small oc-muted" style={{ marginBottom: 0 }}>After registering, book the sessions below; the 4x / 8x class packages are sold at the Sport Reception.</p>
+      <ErrorAlert error={error} />
+    </Card>
   );
 }
 

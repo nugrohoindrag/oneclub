@@ -13,6 +13,7 @@ import (
 
 	"oneclub/internal/billing"
 	"oneclub/internal/crm"
+	"oneclub/internal/kernel/clock"
 	"oneclub/internal/kernel/errs"
 	"oneclub/internal/kernel/httpx"
 	"oneclub/internal/kernel/route"
@@ -21,6 +22,7 @@ import (
 
 type PublicFacility struct {
 	ID           uuid.UUID      `json:"id" db:"id"`
+	Code         string         `json:"code" db:"code"`
 	Name         string         `json:"name" db:"name"`
 	FacilityType *string        `json:"facilityType" db:"facility_type"`
 	UsageMode    string         `json:"usageMode" db:"usage_mode"`
@@ -29,6 +31,7 @@ type PublicFacility struct {
 
 type PublicCourt struct {
 	ID         uuid.UUID  `json:"id" db:"id"`
+	Code       string     `json:"code" db:"code"`
 	Name       string     `json:"name" db:"name"`
 	FacilityID uuid.UUID  `json:"facilityId" db:"facility_id"`
 	Surface    *string    `json:"surface" db:"surface"`
@@ -62,6 +65,8 @@ type PublicCourtBooking struct {
 	VoucherCode string          `json:"voucherCode,omitempty"`
 	PayMethod   string          `json:"payMethod,omitempty" enum:"qris,virtual_account,card"`
 	Notes       string          `json:"notes,omitempty"`
+	Lines       []CourtLine     `json:"lines,omitempty" doc:"Several courts / hours in one booking and one payment (the cart)"`
+	Consent     bool            `json:"consent,omitempty" doc:"Marketing consent (UU PDP): ticked by the visitor, never pre-checked"`
 }
 
 func (b PublicCourtBooking) Property() uuid.UUID      { return b.PropertyID }
@@ -99,11 +104,11 @@ func (m *Module) registerPublic(reg *route.Registry) {
 			var out PublicSportClub
 			err = db.WithReadTx(ctx, func(tx pgx.Tx) error {
 				var err error
-				if out.Facilities, err = handle.List[PublicFacility](tx.Query(ctx, `SELECT id, name, facility_type, usage_mode, opening_hours FROM sportclub.facilities
+				if out.Facilities, err = handle.List[PublicFacility](tx.Query(ctx, `SELECT id, code, name, facility_type, usage_mode, opening_hours FROM sportclub.facilities
 					WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL ORDER BY name`, pid)); err != nil {
 					return err
 				}
-				if out.Courts, err = handle.List[PublicCourt](tx.Query(ctx, `SELECT id, name, facility_id, surface, indoor, resource_id FROM sportclub.courts
+				if out.Courts, err = handle.List[PublicCourt](tx.Query(ctx, `SELECT id, code, name, facility_id, surface, indoor, resource_id FROM sportclub.courts
 					WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL ORDER BY name`, pid)); err != nil {
 					return err
 				}
@@ -120,8 +125,27 @@ func (m *Module) registerPublic(reg *route.Registry) {
 	crm.PublicRoute(reg, "sportclub", route.Route{Method: http.MethodPost, Path: "/api/v1/public/court-bookings", Summary: "Book Sport Club court (non-member; online payment)",
 		Request: PublicCourtBooking{}, Response: PublicBooking{},
 		Handler: crm.PublicWrite(db, http.StatusCreated, func(ctx context.Context, tx pgx.Tx, r *http.Request, pid uuid.UUID, c crm.Customer, in PublicCourtBooking) (PublicBooking, error) {
+			// booking window: 30 days ahead; no time already past (club decision 10 Oct 2026)
+			last := clock.Now().AddDate(0, 0, 31)
+			for _, l := range append([]CourtLine{{CourtID: in.CourtID, Start: in.Start, End: in.End}}, in.Lines...) {
+				if l.Start.IsZero() {
+					continue
+				}
+				if l.Start.After(last) {
+					return PublicBooking{}, errs.Validation("outside_booking_window", "courts can be booked up to 30 days ahead")
+				}
+				if l.End.Before(clock.Now()) {
+					return PublicBooking{}, errs.Validation("slot_past", "this time has already passed")
+				}
+			}
+			if in.Consent { // an unticked box never revokes an earlier consent
+				yes := true
+				if _, err := crm.SetConsent(ctx, tx, pid, c.ID, nil, &yes); err != nil {
+					return PublicBooking{}, err
+				}
+			}
 			res, err := m.BookCourt(ctx, tx, pid, CourtBookingInput{CourtID: in.CourtID, Start: in.Start, End: in.End, CustomerID: &c.ID, Channel: "website",
-				Hold: true, Notes: in.Notes}, "")
+				Hold: true, Notes: in.Notes, Lines: in.Lines}, "")
 			if err != nil {
 				return PublicBooking{}, err
 			}

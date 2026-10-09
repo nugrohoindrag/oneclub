@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
-import { Card, DataTable, ErrorAlert, SelectField, StatusPill, TextField, useAuth, useToast } from '@oneclub/shell';
+import { Card, DataTable, ErrorAlert, MoneyField, SelectField, StatusPill, TextField, useAuth, useToast } from '@oneclub/shell';
 import { Btn, CaddyAssignmentPage, Head, money } from './golf';
 
 // Caddy History (demo feedback 9 Oct 2026): per caddy the members they
@@ -76,7 +76,7 @@ function Wage({ id }: { id: string }) {
         <TextField label="Month" type="month" value={month} onChange={setMonth} />
         {can('golf.caddy.update') && (
           <>
-            <TextField label={`Base salary / month (now ${money(profile.data?.baseSalary ?? 0)})`} value={base} onChange={(v) => setBase(v.replace(/\D/g, ''))} inputMode="numeric" />
+            <MoneyField label={`Base salary / month (now ${money(profile.data?.baseSalary ?? 0)})`} value={base} onChange={setBase} />
             <Btn label="Save base salary" disabled={!base || save.isPending}
               onClick={() => save.mutate({ baseSalary: base }, { onSuccess: () => { toast('Base salary saved'); setBase(''); void w.refetch(); void profile.refetch(); } })} />
           </>

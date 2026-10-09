@@ -3,8 +3,9 @@ import { Link, useParams, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
-  Amount, AutoResourcePage, Avatar, BreakdownList, Card, Checkbox, DashCard, DashGrid, DataTable, Drawer, Empty, ErrorAlert, Gauge, Modal, PageHeader, Podium,
-  RankBadge, RankBars, RankMove, SegmentBar, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, useToast, type Option,
+  Amount, AutoResourcePage, Avatar, BreakdownList, Card, Checkbox, DashCard, DashGrid, DataTable, Drawer, Empty, ErrorAlert, Gauge, Modal, MoneyField,
+  PageHeader, Podium, RankBadge, RankBars, RankMove, SegmentBar, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, useToast,
+  type Option,
 } from '@oneclub/shell';
 import { ActionButton, KV, ListPage, Tabs, money, moneyShort, today, type R } from '../p1/common';
 import type { AreaRoute, OpsRoute, OpsTile } from './types';
@@ -227,7 +228,7 @@ function SegmentForm({ onClose }: { onClose: () => void }) {
         <TextField label="Age to" type="number" value={f.maxAge} onChange={set('maxAge')} />
         <SelectField label="Residence (Modernland)" value={f.resident} onChange={set('resident')} options={yesNo} placeholder="Any" />
         <TextField label="Minimum visits (frequency)" type="number" value={f.minVisits} onChange={set('minVisits')} />
-        <TextField label="Minimum spend" value={f.minSpend} onChange={set('minSpend')} inputMode="decimal" />
+        <MoneyField label="Minimum spend" value={f.minSpend} onChange={set('minSpend')} />
         <TextField label="Loyalty tiers (codes)" value={f.loyaltyTiers} onChange={set('loyaltyTiers')} />
         <TextField label="RFM segments" value={f.rfmSegments} onChange={set('rfmSegments')} help="champions, loyal, potential, new, at_risk, hibernating, inactive" />
         <TextField label="Top N spenders" type="number" value={f.topSpenderRank} onChange={set('topSpenderRank')} />
@@ -844,7 +845,7 @@ function CompensationModal({ id, onClose }: { id: string; onClose: () => void })
       <div className="oc-form">
         <SelectField label="Type" value={type} onChange={setType} options={opts(['points', 'voucher', 'refund', 'other'], { points: 'Loyalty points' })} />
         {type === 'points' ? <TextField label="Points" type="number" value={points} onChange={setPoints} />
-          : <TextField label="Amount" value={amount} onChange={setAmount} inputMode="decimal" />}
+          : <MoneyField label="Amount" value={amount} onChange={setAmount} />}
         <TextField label="Description" value={desc} onChange={setDesc} required span />
       </div>
       <ErrorAlert error={send.error} />

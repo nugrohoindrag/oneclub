@@ -65,6 +65,7 @@ type Round struct {
 	PausedAt      *time.Time        `json:"pausedAt" db:"paused_at" doc:"Paused (rain): the play time stops"`
 	PauseReason   *string           `json:"pauseReason" db:"pause_reason"`
 	PausedSeconds int               `json:"pausedSeconds" db:"paused_seconds"`
+	BreakSeconds  int               `json:"breakSeconds" db:"break_seconds" doc:"Time on breaks (halfway, turn, tee house): still play time"`
 	PaceStatus    string            `json:"paceStatus" db:"pace_status" enum:"on_pace,slow,fast"`
 	BehindMinutes int               `json:"behindMinutes" db:"behind_minutes"`
 	DeviceID      *string           `json:"deviceId" db:"tablet_device"`
@@ -85,7 +86,7 @@ func (r Round) Label() string {
 // route is the booking's, else the tee time's, else the course default.
 const roundSelect = `SELECT f.id, f.property_id, f.flight_no, f.booking_id, b.code AS booking_code, b.folio_id, f.course_id, r.id AS route_id,
 	r.name AS route_name, coalesce(pt.tolerance_minutes, 10) AS tolerance_minutes, f.play_date, tt.start_at AS tee_time, f.status,
-	coalesce(rp.current_seq, 0) AS current_seq, coalesce(r.hole_count, 0) AS holes, f.tee_off_at, f.round_finish_at, f.paused_at, f.pause_reason, f.paused_seconds,
+	coalesce(rp.current_seq, 0) AS current_seq, coalesce(r.hole_count, 0) AS holes, f.tee_off_at, f.round_finish_at, f.paused_at, f.pause_reason, f.paused_seconds, f.break_seconds,
 	coalesce(rp.pace_status, 'on_pace') AS pace_status, coalesce(rp.behind_minutes, 0) AS behind_minutes, rp.tablet_device
 	FROM golf.flights f JOIN golf.tee_times tt ON tt.id = f.tee_time_id LEFT JOIN golf.bookings b ON b.id = f.booking_id
 	LEFT JOIN golf.playing_routes r ON r.id = coalesce(b.playing_route_id, tt.playing_route_id,

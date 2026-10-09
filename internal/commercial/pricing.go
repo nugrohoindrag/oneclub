@@ -438,8 +438,9 @@ func Resolve(ctx context.Context, q dbtx.Querier, pq PriceQuery) (PriceResult, e
 	timeBandCode := ""
 	{
 		var x uuid.UUID
+		// golf sessions only: bands of session "other" price other lines (e.g. the Sport Club courts)
 		err := q.QueryRow(ctx, `SELECT id, code FROM commercial.time_bands WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL
-			AND (session = $2 OR ($3 <> '' AND start_time <= $3 AND end_time >= $3))
+			AND session <> 'other' AND (session = $2 OR ($3 <> '' AND start_time <= $3 AND end_time >= $3))
 			ORDER BY (session = $2) DESC, (start_time <= $3 AND end_time >= $3) DESC, start_time LIMIT 1`,
 			pq.Property, pq.Session, pq.LocalTime).Scan(&x, &timeBandCode)
 		if err == nil {

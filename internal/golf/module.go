@@ -322,7 +322,10 @@ func Contribution() catalog.Contribution {
 			"reservation_staff": desk,
 			// the front desk assigns the caddies and golf carts (Caddy Master role merged in, demo feedback 9 Oct 2026)
 			"front_desk": append(append([]string{}, desk...), "golf.caddy_assignment.manage", "golf.golf_cart_assignment.manage", "golf.golf_cart.update",
-				"golf.rain_check.issue"),
+				"golf.rain_check.issue",
+				// the front desk doubles as the starter (demo feedback 10 Oct 2026 #21); a club with its own
+				// starter takes these two out of the role in Settings › Access
+				"golf.starter.control", "golf.course_status.update"),
 			"general_manager": append(append([]string{}, view...), "golf.booking.export"),
 			"club_manager":    append(append([]string{}, view...), "golf.booking.export"),
 			"finance_manager": {"golf.booking.view", "golf.course.view", "golf.tee_sheet.view"},

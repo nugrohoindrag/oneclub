@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router';
 import { qs, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
@@ -30,10 +30,17 @@ const KINDS: [kind: string, label: string, icon: string][] = [
 const hhmm = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 const kindLabel = (k: string) => KINDS.find((x) => x[0] === k)?.[1] ?? k;
 
-/** on pace · behind (within tolerance) · slow */
-const toneOf = (f: Flight) => (f.slow ? 'slow' : f.behindMinutes > 0 ? 'behind' : 'on-pace');
+const BREAK: Record<string, string> = { halfway: 'Halfway House', turn: 'the turn', tee_house: 'tee house stop', break_other: 'break' };
+const minutesSince = (iso: string) => Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60_000));
+
+/** on pace · behind (within tolerance) · slow · paused (rain: pace frozen) · on break */
+const toneOf = (f: Flight) => (f.pausedAt && !f.onBreak ? 'paused' : f.onBreak && !f.breakOverMinutes ? 'break' : f.slow ? 'slow' : f.behindMinutes > 0 ? 'behind' : 'on-pace');
 
 function behindText(f: Flight) {
+  if (f.pausedAt && !f.onBreak) return `Paused · ${f.pauseReason === 'lightning' ? 'lightning' : 'rain'} ${hhmm(f.pausedAt)} (${minutesSince(f.pausedAt)} min)`;
+  if (f.pausedAt && f.onBreak) {
+    return `On break · ${BREAK[String(f.pauseReason)] ?? 'break'} since ${hhmm(f.pausedAt)}${f.breakOverMinutes ? ` · ${f.breakOverMinutes} min over the ${f.breakAllowanceMinutes} min allowed` : ''}`;
+  }
   if (f.behindMinutes > 0) return `${f.behindMinutes} min behind`;
   if (f.behindMinutes < 0) return `${-f.behindMinutes} min ahead`;
   return 'On target';
@@ -46,7 +53,18 @@ export function CourseMonitorPage() {
   const [course, setCourse] = useState('');
   const path = `/api/v1/golf/course-monitor${qs({ courseId: course || undefined })}`;
   const mon = useGet<Monitor>(path, { refetchInterval: 30_000 });
-  useLive(GOLF_STREAM, ['golf.pace', 'golf.cart'], useMemo(() => () => void mon.refetch(), [mon]));
+  useLive(GOLF_STREAM, ['golf.pace', 'golf.cart', 'golf.course_status'], useMemo(() => () => void mon.refetch(), [mon]));
+  // a flight pausing (rain from the caddy tablet) or going on a break is told at once (demo feedback #28)
+  const seen = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const now = new Set((mon.data?.flights ?? []).filter((f) => f.pausedAt).map((f) => f.flightId));
+    if (seen.current) {
+      for (const f of mon.data?.flights ?? []) {
+        if (f.pausedAt && !seen.current.has(f.flightId)) toast(`${f.label}: ${behindText(f)}`, f.onBreak ? 'info' : 'error');
+      }
+    }
+    if (mon.data) seen.current = now;
+  }, [mon.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const [selected, setSelected] = useState('');
   const [compose, setCompose] = useState<{ flight: Flight; kind: string } | null>(null);
   const [message, setMessage] = useState('');
@@ -73,9 +91,12 @@ export function CourseMonitorPage() {
       <ErrorAlert error={mon.error ?? send.error} />
       {!m ? <Skeleton rows={6} /> : (
         <>
+          <CourseStops courseId={m.courseId} paused={m.flights.filter((f) => f.pausedAt && !f.onBreak).length} inPlay={m.inPlay} onChange={() => void mon.refetch()} />
           <div className="mon-stats">
             <StatTile label="In play" value={m.inPlay} icon="golf_course" />
             <StatTile label="Slow" value={m.slow} icon="hourglass_bottom" />
+            <StatTile label="Paused · rain" value={m.flights.filter((f) => f.pausedAt && !f.onBreak).length} icon="rainy" />
+            <StatTile label="On break" value={m.flights.filter((f) => f.onBreak).length} icon="local_cafe" />
             <StatTile label="Interventions today" value={m.interventions.length} icon="flag" />
             <StatTile label="Golf carts on GPS" value={m.golfCarts.filter((c) => c.source === 'tablet').length} icon="electric_car" />
           </div>
@@ -91,6 +112,8 @@ export function CourseMonitorPage() {
                 <span className="mon-legend"><i data-tone="on-pace" />On pace</span>
                 <span className="mon-legend"><i data-tone="behind" />Behind</span>
                 <span className="mon-legend"><i data-tone="slow" />Slow</span>
+                <span className="mon-legend"><i data-tone="paused" />Paused (rain)</span>
+                <span className="mon-legend"><i data-tone="break" />On break</span>
                 <span className="mon-legend"><Icon name="electric_car" size={16} />Golf cart (caddy tablet GPS; faded: estimated on the hole)</span>
                 <span className="mon-legend"><Icon name="construction" size={16} />Maintenance</span>
               </div>
@@ -108,6 +131,7 @@ export function CourseMonitorPage() {
             <h2 className="mon-h2">Messages with the caddy tablets</h2>
             <CourseMessenger courseId={m.courseId} flights={m.flights} selected={selected} onSelect={setSelected} canSend={manage} />
           </section>
+          {can('golf.scorecard.correct') && <ScoreCorrections />}
           <section className="oc-card">
             <h2 className="mon-h2">Today's log</h2>
             {m.interventions.length === 0 && <p className="oc-small oc-muted" style={{ margin: 0 }}>No intervention today.</p>}
@@ -140,6 +164,93 @@ export function CourseMonitorPage() {
         </>}
       </Modal>
     </div>
+  );
+}
+
+type Stop = Schemas['CourseStop'];
+
+/** Rain stop / lightning warning for the whole course from the Marshal's
+ * phone or tablet (demo feedback 10 Oct 2026 #29): every flight in play
+ * pauses, the caddy tablets get the message, the tee-off is held; Resume
+ * play restarts them together. The day's stops stay listed for the report. */
+function CourseStops({ courseId, paused, inPlay, onChange }: { courseId: string; paused: number; inPlay: number; onChange: () => void }) {
+  const { can } = useAuth();
+  const toast = useToast();
+  const path = `/api/v1/golf/course-stops${qs({ courseId })}`;
+  const stops = useGet<Page<Stop>>(path, { refetchInterval: 30_000 });
+  const start = useSend<Row, Stop>('POST', '/api/v1/golf/course-stops', [path, '/api/v1/golf/course-monitor']);
+  const resume = useSend<{ id: string }, Stop>('POST', (v) => `/api/v1/golf/course-stops/${v.id}:resume`, [path, '/api/v1/golf/course-monitor']);
+  const [ask, setAsk] = useState<'rain_stop' | 'lightning_warning' | null>(null);
+  const [reason, setReason] = useState('');
+  const list = stops.data?.items ?? [];
+  const open = list.find((x) => !x.endedAt);
+  const manage = can('golf.course_status.update');
+  const name = (k: string) => (k === 'lightning_warning' ? 'Lightning warning' : 'Rain stop');
+  return (
+    <>
+      {open ? (
+        <div className="oc-alert oc-alert-error mon-stop" role="alert">
+          <Icon name={open.kind === 'lightning_warning' ? 'thunderstorm' : 'rainy'} size={22} />
+          <div style={{ flex: 1 }}><strong>{name(open.kind)} since {hhmm(open.startedAt)}</strong> · {open.flights} flight{open.flights === 1 ? '' : 's'} paused · {open.minutes} min
+            {open.reason ? ` · ${open.reason}` : ''}<div className="oc-small">Tee-off is suspended; the caddy tablets show the stop.</div></div>
+          {manage && <button className="oc-btn oc-btn-ink" disabled={resume.isPending} onClick={() => resume.mutate({ id: open.id }, { onSuccess: () => { toast('Play resumed'); onChange(); } })}>
+            <Icon name="play_arrow" size={18} /> Resume play</button>}
+        </div>
+      ) : (
+        <div className="oc-row-wrap mon-stop-bar">
+          {paused > 1 && <span className="oc-alert oc-alert-warning" style={{ padding: '6px 12px' }}><Icon name="rainy" size={18} /> {paused} of {inPlay} flights paused for rain{manage ? ' — set a rain stop for the course?' : ''}</span>}
+          <span className="oc-spacer" />
+          {manage && <>
+            <button className="oc-btn oc-btn-outline" onClick={() => { setReason(''); setAsk('rain_stop'); }}><Icon name="rainy" size={18} /> Rain stop</button>
+            <button className="oc-btn oc-btn-outline" onClick={() => { setReason(''); setAsk('lightning_warning'); }}><Icon name="thunderstorm" size={18} /> Lightning warning</button>
+          </>}
+        </div>
+      )}
+      {list.filter((x) => x.endedAt).length > 0 && (
+        <p className="oc-small oc-muted" style={{ margin: 0 }}>Today: {list.filter((x) => x.endedAt).map((x) => `${name(x.kind)} ${hhmm(x.startedAt)}–${hhmm(x.endedAt!)} (${x.minutes} min, ${x.flights} flights)`).join(' · ')}</p>
+      )}
+      <ErrorAlert error={stops.error ?? start.error ?? resume.error} />
+      <Modal open={!!ask} onClose={() => setAsk(null)} title={ask ? name(ask) : ''} actions={<>
+        <button className="oc-btn oc-btn-neutral" onClick={() => setAsk(null)}>Cancel</button>
+        <button className="oc-btn oc-btn-danger" disabled={start.isPending} onClick={() => ask && start.mutate({ courseId, kind: ask, reason: reason || undefined },
+          { onSuccess: (r) => { toast(`${name(r.kind)}: ${r.flights} flight${r.flights === 1 ? '' : 's'} paused`); setAsk(null); onChange(); } })}>Stop play on the course</button>
+      </>}>
+        <p style={{ marginTop: 0 }}>Every flight in play pauses now (the pace stops), every caddy tablet gets "go to the nearest shelter", and the starter cannot tee off until you resume play.</p>
+        <TextArea label="Reason (optional)" rows={2} value={reason} onChange={setReason} />
+      </Modal>
+    </>
+  );
+}
+
+type Correction = Schemas['CorrectionRequest'];
+
+/** Players' score corrections after the round (demo feedback 10 Oct 2026 #36):
+ * the Marshal / handicap committee approves (the hole is changed, audited)
+ * or rejects with a note the player sees in the Member App. */
+function ScoreCorrections() {
+  const toast = useToast();
+  const path = '/api/v1/golf/score-correction-requests?filter[status]=requested';
+  const list = useGet<Page<Correction>>(path, { refetchInterval: 60_000 });
+  const decide = useSend<{ id: string; verb: string; note?: string }, Correction>('POST', (v) => `/api/v1/golf/score-correction-requests/${v.id}:${v.verb}`, [path]);
+  const items = list.data?.items ?? [];
+  if (!items.length) return null;
+  return (
+    <section className="oc-card">
+      <h2 className="mon-h2">Score correction requests</h2>
+      {items.map((x) => (
+        <div key={x.id} className="oc-row-wrap" style={{ alignItems: 'center', marginBottom: 8 }}>
+          <strong>{x.playerName}</strong><span className="oc-muted">{x.playedOn.slice(0, 10)}</span>
+          <span>Hole {x.holeNumber} (par {x.par}): {x.currentStrokes ?? '—'} → <strong>{x.strokes}</strong></span>
+          <span className="oc-small oc-muted" style={{ flex: 1 }}>{x.reason}</span>
+          <button className="oc-btn oc-btn-sm oc-btn-ink" disabled={decide.isPending} onClick={() => decide.mutate({ id: x.id, verb: 'approve' }, { onSuccess: () => toast('Score corrected') })}>Approve</button>
+          <button className="oc-btn oc-btn-sm oc-btn-outline" disabled={decide.isPending} onClick={() => {
+            const note = window.prompt(`Why is the correction of ${x.playerName} rejected?`);
+            if (note) decide.mutate({ id: x.id, verb: 'reject', note }, { onSuccess: () => toast('Correction rejected') });
+          }}>Reject</button>
+        </div>
+      ))}
+      <ErrorAlert error={list.error ?? decide.error} />
+    </section>
   );
 }
 
@@ -277,7 +388,8 @@ function FlightCard({ f, selected, onSelect, onAct }: { f: Flight; selected: boo
         <strong className="mon-behind" data-tone={toneOf(f)}>{behindText(f)}</strong>
       </button>
       <div className="oc-small oc-muted">
-        Tee-off {hhmm(f.teeOffAt)} · <PlayTime start={f.teeOffAt} label={false} /> played (target {f.targetMinutes} min)
+        Tee-off {hhmm(f.teeOffAt)} · <PlayTime start={f.teeOffAt} pausedAt={f.pausedAt && !f.onBreak ? f.pausedAt : null} pausedSeconds={f.pausedMinutes * 60} label={false} /> played (target {f.targetMinutes} min)
+        {f.breakMinutes ? ` · breaks ${f.breakMinutes} min` : ''}
         {f.aheadLabel ? ` · ${f.gapHoles ?? 0} hole${f.gapHoles === 1 ? '' : 's'} behind ${f.aheadLabel}` : ' · first on the route'}
       </div>
       <div className="oc-small">{f.players.join(', ') || '—'}</div>

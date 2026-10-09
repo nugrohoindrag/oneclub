@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate, formatDateTime, formatNumber } from '@oneclub/i18n';
 import {
-  Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, useToast,
+  Checkbox, DataTable, Drawer, Empty, ErrorAlert, Icon, Modal, MoneyField, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth, useToast,
   type StatusTone,
 } from '@oneclub/shell';
 import { FolioDrawer } from '../p1/business';
@@ -394,7 +394,7 @@ export function CheckInModal({ stay, onClose }: { stay: Stay; onClose: () => voi
         </div>
         {can('billing.payment.create') && (
           <div className="oc-form">
-            <TextField label="Deposit now (optional)" value={v.deposit} onChange={(x) => setV({ ...v, deposit: x })} placeholder="0" />
+            <MoneyField label="Deposit now (optional)" value={v.deposit} onChange={(x) => setV({ ...v, deposit: x })} placeholder="0" />
             <SelectField label="Method" value={v.method} onChange={(x) => setV({ ...v, method: x })} options={['cash', 'card', 'bank_transfer', 'qris'].map((m) => ({ value: m, label: label(m) }))} />
           </div>
         )}
@@ -526,7 +526,7 @@ export function ChargeModal({ stay, onClose }: { stay: Stay; onClose: () => void
         <SelectField label="Category" value={v.category} onChange={(x) => setV({ ...v, category: x })}
           options={['fnb', 'minibar', 'laundry', 'transportation', 'damage', 'extra_bed', 'other'].map((c) => ({ value: c, label: c === 'fnb' ? 'Food & Beverage' : label(c) }))} />
         <TextField label="Description" value={v.description} onChange={(x) => setV({ ...v, description: x })} />
-        <TextField label="Unit price" value={v.unitPrice} onChange={(x) => setV({ ...v, unitPrice: x })} />
+        <MoneyField label="Unit price" value={v.unitPrice} onChange={(x) => setV({ ...v, unitPrice: x })} />
         <TextField label="Quantity" type="number" value={v.quantity} onChange={(x) => setV({ ...v, quantity: x })} />
         <SelectField label="Price" value={v.pricingMode} onChange={(x) => setV({ ...v, pricingMode: x })}
           options={[{ value: 'nett', label: 'Includes tax & service (nett)' }, { value: 'plus_plus', label: 'Before tax & service (++)' }]} />
@@ -581,7 +581,7 @@ export function RequestModal({ stay, onClose }: { stay: Stay; onClose: () => voi
         <SelectField label="Source" value={v.source} onChange={(x) => setV({ ...v, source: x })} options={[{ value: 'front_desk', label: 'Front desk' }, { value: 'phone', label: 'Phone' }]} />
         <SelectField label="Paid service (add-on)" value={v.addonId} onChange={(x) => setV({ ...v, addonId: x })} placeholder="Free"
           options={(addons.data?.items ?? []).filter((a) => a.availability !== 'booking').map((a) => ({ value: String(a.id), label: `${a.name} · ${money(a.price)}` }))} />
-        {!v.addonId && <TextField label="Or a charge amount" value={v.chargeAmount} onChange={(x) => setV({ ...v, chargeAmount: x })} placeholder="0 = free" />}
+        {!v.addonId && <MoneyField label="Or a charge amount" value={v.chargeAmount} onChange={(x) => setV({ ...v, chargeAmount: x })} placeholder="0 = free" />}
         <TextField label="Assign to" value={v.assignedTo} onChange={(x) => setV({ ...v, assignedTo: x })} />
         <TextArea label="Description" span rows={2} value={v.description} onChange={(x) => setV({ ...v, description: x })} />
       </div>
@@ -647,7 +647,7 @@ export function PayModal({ stay, onClose }: { stay: Stay; onClose: () => void })
       <p className="oc-muted">Total {money(stay.totalDue)} · paid {money(stay.paid)} · open {money(open)}. A deposit is held until check-out; refunds are made from the folio.</p>
       <div className="oc-form">
         <SelectField label="Purpose" value={v.purpose} onChange={(x) => setV({ ...v, purpose: x })} options={[{ value: 'deposit', label: 'Deposit' }, { value: 'settlement', label: 'Payment' }]} />
-        <TextField label="Amount" value={v.amount} onChange={(x) => setV({ ...v, amount: x })} />
+        <MoneyField label="Amount" value={v.amount} onChange={(x) => setV({ ...v, amount: x })} />
         <SelectField label="Method" value={v.methodType} onChange={(x) => setV({ ...v, methodType: x })}
           options={['cash', 'card', 'bank_transfer', 'qris', 'virtual_account'].map((m) => ({ value: m, label: label(m) }))} />
         <TextField label="Reference" value={v.reference} onChange={(x) => setV({ ...v, reference: x })} />

@@ -3,8 +3,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
 import { formatDate } from '@oneclub/i18n';
 import {
-  Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, Modal, PageHeader, SearchBox, SelectField, Skeleton, StatusPill, TextArea, TextField, useAuth,
-  useDebounced, useToast,
+  Card, Checkbox, DataTable, Empty, ErrorAlert, Icon, Modal, MoneyField, PageHeader, SearchBox, SelectField, Skeleton, StatusPill, TextArea, TextField,
+  useAuth, useDebounced, useToast,
 } from '@oneclub/shell';
 import { KV, Tabs } from '../p1/common';
 import {
@@ -254,7 +254,7 @@ export function NewReservationPage({ ops }: { ops?: boolean }) {
           </div>
           {pay.mode !== 'none' && (
             <div className="oc-form" style={{ marginTop: 8 }}>
-              {pay.mode === 'deposit' && <TextField label="Deposit amount" value={pay.amount} onChange={(x) => setPay({ ...pay, amount: x })} />}
+              {pay.mode === 'deposit' && <MoneyField label="Deposit amount" value={pay.amount} onChange={(x) => setPay({ ...pay, amount: x })} />}
               <SelectField label="Method" value={pay.methodType} onChange={(x) => setPay({ ...pay, methodType: x })}
                 options={['cash', 'card', 'bank_transfer', 'qris', 'virtual_account'].map((m) => ({ value: m, label: label(m) }))} />
               <TextField label="Reference" value={pay.reference} onChange={(x) => setPay({ ...pay, reference: x })} />
