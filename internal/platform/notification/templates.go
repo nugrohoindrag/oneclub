@@ -101,6 +101,10 @@ var defaults = map[string]map[string]tpl{
 		"en": {"{{.count}} bookings affected by {{.reason}}", "A {{.reason}} block on {{.course}} ({{.period}}) affects {{.count}} bookings. Follow them up in Golf → Bookings: {{.link}}"},
 		"id": {"{{.count}} booking terdampak {{.reason}}", "Blok {{.reason}} pada {{.course}} ({{.period}}) berdampak pada {{.count}} booking. Tindak lanjuti di Golf → Bookings: {{.link}}"},
 	},
+	"golf.scorecard_shared": {
+		"en": {"Your scorecard · {{.club}} {{.date}}", "Hello {{.name}},\n\nThank you for playing {{.course}} on {{.date}}. Gross {{.gross}}, net {{.net}}.\nYour scorecard: {{.link}}"},
+		"id": {"Scorecard Anda · {{.club}} {{.date}}", "Halo {{.name}},\n\nTerima kasih telah bermain di {{.course}} pada {{.date}}. Gross {{.gross}}, net {{.net}}.\nScorecard Anda: {{.link}}"},
+	},
 	"billing.receipt": {
 		"en": {"Receipt {{.number}}", "Hello {{.name}},\n\nThank you. We received {{.amount}} by {{.method}} on {{.paidAt}}.\nReceipt: {{.number}}{{if .reference}} ({{.reference}}){{end}}\n\n{{.link}}"},
 		"id": {"Bukti bayar {{.number}}", "Halo {{.name}},\n\nTerima kasih. Kami telah menerima {{.amount}} melalui {{.method}} pada {{.paidAt}}.\nBukti bayar: {{.number}}{{if .reference}} ({{.reference}}){{end}}\n\n{{.link}}"},
@@ -144,7 +148,7 @@ var defaults = map[string]map[string]tpl{
 // mapped per event in the integration settings.
 var whatsAppEvents = map[string]bool{"auth.login_code": true, "auth.portal_activation": true, "golf.booking_confirmed": true,
 	"golf.booking_payment_pending": true, "golf.booking_cancelled": true, "golf.booking_rescheduled": true, "golf.booking_reminder": true,
-	"golf.booking_no_show": true, "golf.rain_check_issued": true, "billing.receipt": true, "billing.refund_processed": true,
+	"golf.booking_no_show": true, "golf.rain_check_issued": true, "golf.scorecard_shared": true, "billing.receipt": true, "billing.refund_processed": true,
 	"membership.application_submitted": true, "membership.application_approved": true, "membership.application_rejected": true,
 	"membership.activated": true, "membership.renewal_reminder": true, "membership.renewed": true}
 

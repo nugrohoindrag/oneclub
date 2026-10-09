@@ -94756,6 +94756,207 @@
         ],
         "type": "object"
       },
+      "ScorecardShare": {
+        "properties": {
+          "link": {
+            "description": "Public PDF of the card (no account needed)",
+            "type": "string"
+          },
+          "sentTo": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "link",
+          "sentTo"
+        ],
+        "type": "object"
+      },
+      "ScorecardShareInput": {
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "send": {
+            "description": "Send the link by e-mail / WhatsApp",
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "ScorecardSheet": {
+        "properties": {
+          "attestedBy": {
+            "nullable": true,
+            "type": "string"
+          },
+          "caddyName": {
+            "nullable": true,
+            "type": "string"
+          },
+          "clubName": {
+            "type": "string"
+          },
+          "courseHandicap": {
+            "description": "WHS course handicap from the tee of the card",
+            "nullable": true,
+            "type": "integer"
+          },
+          "courseName": {
+            "type": "string"
+          },
+          "courseRating": {
+            "nullable": true,
+            "type": "string"
+          },
+          "customerId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "differential": {
+            "nullable": true,
+            "type": "string"
+          },
+          "email": {
+            "description": "Player contact for sharing",
+            "type": "string"
+          },
+          "finalizedAt": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "flightId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "gross": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "handicapIndex": {
+            "nullable": true,
+            "type": "string"
+          },
+          "holes": {
+            "type": "integer"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "net": {
+            "description": "Gross minus the course handicap",
+            "nullable": true,
+            "type": "integer"
+          },
+          "par": {
+            "type": "integer"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "playedOn": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "playerId": {
+            "description": "Booking player",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "playerName": {
+            "type": "string"
+          },
+          "playingRouteId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "playingRouteName": {
+            "type": "string"
+          },
+          "propertyId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "putts": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/components/schemas/ScoreHole"
+            },
+            "type": "array"
+          },
+          "shared": {
+            "description": "A share link exists",
+            "type": "boolean"
+          },
+          "slopeRating": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "draft",
+              "submitted",
+              "finalized"
+            ],
+            "type": "string"
+          },
+          "teeCategory": {
+            "description": "Player category of the tee",
+            "nullable": true,
+            "type": "string"
+          },
+          "teeColor": {
+            "nullable": true,
+            "type": "string"
+          },
+          "teeSetId": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "teeSetName": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "propertyId",
+          "playerName",
+          "playingRouteId",
+          "playingRouteName",
+          "playedOn",
+          "holes",
+          "par",
+          "status",
+          "flags",
+          "scores",
+          "clubName",
+          "courseName",
+          "shared"
+        ],
+        "type": "object"
+      },
       "SeedResult": {
         "properties": {
           "pipelines": {
@@ -223673,6 +223874,117 @@
         "x-permission": "golf.booking.update"
       }
     },
+    "/api/v1/golf/bookings/{id}/scorecards": {
+      "get": {
+        "operationId": "getGolfBookingsByIdScorecards",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Opaque cursor from nextCursor.",
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page size (max 500).",
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "items": {
+                      "items": {
+                        "$ref": "#/components/schemas/ScorecardSheet"
+                      },
+                      "type": "array"
+                    },
+                    "nextCursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Scorecards of a booking's players (print and share at the front desk)",
+        "tags": [
+          "Scoring"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.booking.view"
+      }
+    },
     "/api/v1/golf/bookings/{id}:cancel": {
       "post": {
         "operationId": "postGolfBookingsByIdCancel",
@@ -245236,6 +245548,96 @@
         "x-permission": "golf.scorecard.correct"
       }
     },
+    "/api/v1/golf/scorecards/{id}/pdf": {
+      "get": {
+        "operationId": "getGolfScorecardsByIdPdf",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property (a link cannot send X-Property-Id)",
+            "in": "query",
+            "name": "propertyId",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Printable scorecard (PDF)",
+        "tags": [
+          "Scoring"
+        ],
+        "x-module": "golf",
+        "x-permission": "golf.booking.view"
+      }
+    },
     "/api/v1/golf/scorecards/{id}/scores": {
       "post": {
         "operationId": "postGolfScorecardsByIdScores",
@@ -245408,6 +245810,98 @@
         "x-audited": true,
         "x-module": "golf",
         "x-permission": "golf.scorecard.finalize"
+      }
+    },
+    "/api/v1/golf/scorecards/{id}:share": {
+      "post": {
+        "operationId": "postGolfScorecardsByIdShare",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Active property chosen in the property switcher.",
+            "in": "header",
+            "name": "X-Property-Id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScorecardShareInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScorecardShare"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "401": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Not authenticated"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Missing permission, module disabled or MFA required"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [
+          {
+            "sessionCookie": []
+          },
+          {
+            "apiKey": []
+          }
+        ],
+        "summary": "Share a scorecard: public PDF link, sent by e-mail / WhatsApp",
+        "tags": [
+          "Scoring"
+        ],
+        "x-audited": true,
+        "x-module": "golf",
+        "x-permission": "golf.check_in.perform"
       }
     },
     "/api/v1/golf/scorecards/{id}:validate": {
@@ -357321,6 +357815,50 @@
         "summary": "Golf rate table from the Pricing Engine",
         "tags": [
           "Website"
+        ],
+        "x-module": "golf"
+      }
+    },
+    "/api/v1/public/golf/scorecards/{token}": {
+      "get": {
+        "operationId": "getPublicGolfScorecardsByToken",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "format": "binary",
+                  "type": "string"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "default": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            },
+            "description": "Problem Details (RFC 9457)"
+          }
+        },
+        "security": [],
+        "summary": "Shared scorecard (PDF, no account needed)",
+        "tags": [
+          "Public"
         ],
         "x-module": "golf"
       }

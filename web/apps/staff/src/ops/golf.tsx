@@ -6,7 +6,7 @@ import { cacheGet, cachePut, enqueue, useOnline } from '@oneclub/offline';
 import {
   Card, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
-import { CaddyCartModal } from './desk';
+import { BookingScorecards, CaddyCartModal } from './desk';
 import { DeskPayDialog, newPayments, type DeskTender } from './deskpay';
 
 type R = Record<string, unknown> & { id: string };
@@ -318,6 +318,7 @@ function CheckOutModal({ entry, onClose, onDone }: { entry: R; onClose: () => vo
         <p style={{ margin: 0 }}>{((entry.players as string[] | undefined) ?? []).join(', ')}</p>
         {(b.data?.flights ?? []).map((f) => <CaddyTips key={String(f.id)} flightId={String(f.id)} onTip={() => void b.refetch()} />)}
         {(b.data?.flights ?? []).map((f) => <CaddyRatings key={`r${String(f.id)}`} flightId={String(f.id)} />)}
+        <BookingScorecards bookingId={bid} />
         <p style={{ margin: 0 }}>Charges {money(b.data?.folio?.charges)} · paid {money(b.data?.folio?.payments)} · balance <strong>{money(b.data?.folio?.balance)}</strong></p>
         {due > 0 && (
           <div className="oc-row-wrap">

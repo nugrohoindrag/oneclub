@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { request } from '@oneclub/api-client';
+import { getActiveProperty, qs, request } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import { ErrorAlert, Icon } from '@oneclub/shell';
 import { Basket, Brand } from '../pos/pay';
@@ -52,6 +52,7 @@ export function DeskPayDialog({ amount, summary, members = [], methods, onClose,
   const payer = members.find((m) => m.customerId === member);
   const ready = amount > 0 && !(method === 'cash' && cash < amount) && !(method === 'member_account' && !payer);
   const close = step === 'done' ? onFinish : onClose;
+  const receipt = (p: R) => `/api/v1/billing/payments/${String(p.id)}/receipt${qs({ propertyId: getActiveProperty() })}`;
 
   // Escape closes this page only, not the booking window behind it
   useEffect(() => {
@@ -155,9 +156,9 @@ export function DeskPayDialog({ amount, summary, members = [], methods, onClose,
       <ErrorAlert error={error} />
       <div className="pos-dialog-actions">
         {paid.length === 1
-          ? <a className="pos-btn" data-variant="outline" href={`/api/v1/billing/payments/${String(paid[0].id)}/receipt`} target="_blank" rel="noreferrer"><Icon name="print" size={20} />Print Receipt</a>
+          ? <a className="pos-btn" data-variant="outline" href={receipt(paid[0])} target="_blank" rel="noreferrer"><Icon name="print" size={20} />Print Receipt</a>
           : <button className="pos-btn" data-variant="outline" disabled={!paid.length}
-            onClick={() => paid.forEach((p) => window.open(`/api/v1/billing/payments/${String(p.id)}/receipt`, '_blank'))}><Icon name="print" size={20} />Print Receipts</button>}
+            onClick={() => paid.forEach((p) => window.open(receipt(p), '_blank'))}><Icon name="print" size={20} />Print Receipts</button>}
         <button className="pos-btn" data-variant="outline" disabled={sent || !paid.length} onClick={() => void send()}>
           <Icon name={sent ? 'check' : 'send'} size={20} />{sent ? 'Sent' : 'Send Receipt'}</button>
       </div>

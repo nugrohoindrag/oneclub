@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { qs, request, useGet, useSend, uuidv7, type Page, type Schemas } from '@oneclub/api-client';
+import { getActiveProperty, qs, request, useGet, useSend, uuidv7, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import { Checkbox, CrowdLabel, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TEE_CATEGORY, TeeBadge, TextField, crowdClass, useToast } from '@oneclub/shell';
 import { BookingForm, type BookingPrefill } from '../p1/golf';
@@ -479,7 +479,66 @@ function PlayersTab({ b, onDone }: { b: Booking; onDone: () => void }) {
       </div>
       <ErrorAlert error={patch.error ?? remove.error ?? create.error} />
       <BookingHoleBests id={b.id} />
+      <BookingScorecards bookingId={b.id} />
     </div>
+  );
+}
+
+/** The players' scorecards after the round: printed (PDF) at the desk or
+ * shared as a link — by e-mail / WhatsApp, or copied — so guests without
+ * the Member App get theirs too. */
+export function BookingScorecards({ bookingId }: { bookingId: string }) {
+  const toast = useToast();
+  const cards = useGet<Page<R>>(`/api/v1/golf/bookings/${bookingId}/scorecards`);
+  const share = useSend<Record<string, unknown>, R>('POST', (v) => `/api/v1/golf/scorecards/${String(v.id)}:share`, [`/api/v1/golf/bookings/${bookingId}/scorecards`]);
+  const [open, setOpen] = useState<R | null>(null);
+  const [to, setTo] = useState({ email: '', phone: '' });
+  const [link, setLink] = useState('');
+  const items = cards.data?.items ?? [];
+  if (!items.length) return null;
+  const pdf = (id: string) => `/api/v1/golf/scorecards/${id}/pdf${qs({ propertyId: getActiveProperty() })}`;
+  const num = (v: unknown) => (v === null || v === undefined ? '—' : String(v));
+  const wa = digits(to.phone).replace(/^0/, '62');
+  const pick = (s: R) => { setOpen(s); setLink(''); setTo({ email: String(s.email ?? ''), phone: String(s.phone ?? '') }); };
+  return (
+    <>
+      <h3 style={{ margin: '8px 0 0' }}>Scorecards</h3>
+      <DataTable rows={items} columns={[{ key: 'playerName', header: 'Player' }, { key: 'teeSetName', header: 'Tee', render: (s) => num(s.teeSetName) },
+        { key: 'gross', header: 'Gross', align: 'right', render: (s) => num(s.gross) }, { key: 'courseHandicap', header: 'Course HCP', align: 'right', render: (s) => num(s.courseHandicap) },
+        { key: 'net', header: 'Net', align: 'right', render: (s) => <strong>{num(s.net)}</strong> }, { key: 'caddyName', header: 'Caddy', render: (s) => num(s.caddyName) },
+        { key: 'status', header: 'Card', render: (s) => <StatusPill status={String(s.status)} /> }]}
+        actions={(s) => (
+          <div className="oc-row">
+            <a className="oc-btn oc-btn-neutral oc-btn-sm" href={pdf(s.id)} target="_blank" rel="noreferrer"><Icon name="print" size={18} /> Print</a>
+            <button className="oc-btn oc-btn-outline oc-btn-sm" onClick={() => pick(s)}><Icon name="share" size={18} /> Share</button>
+          </div>
+        )} />
+      {open && (
+        <div className="oc-card oc-stack">
+          <strong>Share the scorecard of {String(open.playerName)}</strong>
+          <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
+            <TextField label="E-mail" value={to.email} onChange={(v) => setTo({ ...to, email: v })} />
+            <TextField label="WhatsApp" value={to.phone} onChange={(v) => setTo({ ...to, phone: v })} inputMode="tel" />
+            <Btn label="Send" kind="primary" disabled={share.isPending || (!to.email && !to.phone)}
+              onClick={() => share.mutate({ id: open.id, send: true, email: to.email || undefined, phone: to.phone || undefined },
+                { onSuccess: (r) => { setLink(String(r.link)); toast(`Scorecard sent to ${((r.sentTo as string[]) ?? []).join(', ')}`); } })} />
+            <Btn label="Get link" disabled={share.isPending} onClick={() => share.mutate({ id: open.id }, { onSuccess: (r) => setLink(String(r.link)) })} />
+            <Btn label="Close" onClick={() => setOpen(null)} />
+          </div>
+          {link && (
+            <div className="oc-row-wrap" style={{ alignItems: 'center' }}>
+              <code className="oc-code" style={{ wordBreak: 'break-all' }}>{link}</code>
+              <button className="oc-btn oc-btn-neutral oc-btn-sm" onClick={() => void navigator.clipboard?.writeText(link).then(() => toast('Link copied'))}>Copy</button>
+              {wa && <a className="oc-btn oc-btn-neutral oc-btn-sm" target="_blank" rel="noreferrer"
+                href={`https://wa.me/${wa}?text=${encodeURIComponent(`Your scorecard of ${String(open.playedOn ?? '')}: ${link}`)}`}>Open WhatsApp</a>}
+            </div>
+          )}
+          <span className="oc-small oc-muted">The link opens the PDF without an account. Guests without a Member App account get theirs this way.</span>
+          <ErrorAlert error={share.error} />
+        </div>
+      )}
+      <ErrorAlert error={cards.error} />
+    </>
   );
 }
 

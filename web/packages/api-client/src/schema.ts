@@ -14321,6 +14321,23 @@ export interface paths {
         patch: operations["patchGolfBookingsByIdPlayersByPlayerId"];
         trace?: never;
     };
+    "/api/v1/golf/bookings/{id}/scorecards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scorecards of a booking's players (print and share at the front desk) */
+        get: operations["getGolfBookingsByIdScorecards"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/bookings/{id}:cancel": {
         parameters: {
             query?: never;
@@ -17070,6 +17087,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/golf/scorecards/{id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Printable scorecard (PDF) */
+        get: operations["getGolfScorecardsByIdPdf"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/golf/scorecards/{id}/scores": {
         parameters: {
             query?: never;
@@ -17098,6 +17132,23 @@ export interface paths {
         put?: never;
         /** Score Finalization (immutable; handicap, HIO, Hall of Fame) */
         post: operations["postGolfScorecardsByIdFinalize"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/golf/scorecards/{id}:share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Share a scorecard: public PDF link, sent by e-mail / WhatsApp */
+        post: operations["postGolfScorecardsByIdShare"];
         delete?: never;
         options?: never;
         head?: never;
@@ -32945,6 +32996,23 @@ export interface paths {
         };
         /** Golf rate table from the Pricing Engine */
         get: operations["getPublicGolfRates"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/public/golf/scorecards/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Shared scorecard (PDF, no account needed) */
+        get: operations["getPublicGolfScorecardsByToken"];
         put?: never;
         post?: never;
         delete?: never;
@@ -68249,6 +68317,71 @@ export interface components {
             propertyId: string;
             putts?: number | null;
             scores: components["schemas"]["ScoreHole"][];
+            slopeRating?: number | null;
+            /** @enum {string} */
+            status: "draft" | "submitted" | "finalized";
+            /** @description Player category of the tee */
+            teeCategory?: string | null;
+            teeColor?: string | null;
+            /** Format: uuid */
+            teeSetId?: string | null;
+            teeSetName?: string | null;
+        };
+        ScorecardShare: {
+            /** @description Public PDF of the card (no account needed) */
+            link: string;
+            sentTo: string[];
+        };
+        ScorecardShareInput: {
+            email?: string;
+            phone?: string;
+            /** @description Send the link by e-mail / WhatsApp */
+            send?: boolean;
+        };
+        ScorecardSheet: {
+            attestedBy?: string | null;
+            caddyName?: string | null;
+            clubName: string;
+            /** @description WHS course handicap from the tee of the card */
+            courseHandicap?: number | null;
+            courseName: string;
+            courseRating?: string | null;
+            /** Format: uuid */
+            customerId?: string | null;
+            differential?: string | null;
+            /** @description Player contact for sharing */
+            email?: string;
+            /** Format: date-time */
+            finalizedAt?: string | null;
+            flags: string[];
+            /** Format: uuid */
+            flightId?: string | null;
+            gross?: number | null;
+            handicapIndex?: string | null;
+            holes: number;
+            /** Format: uuid */
+            id: string;
+            /** @description Gross minus the course handicap */
+            net?: number | null;
+            par: number;
+            phone?: string;
+            /** Format: date-time */
+            playedOn: string;
+            /**
+             * Format: uuid
+             * @description Booking player
+             */
+            playerId?: string | null;
+            playerName: string;
+            /** Format: uuid */
+            playingRouteId: string;
+            playingRouteName: string;
+            /** Format: uuid */
+            propertyId: string;
+            putts?: number | null;
+            scores: components["schemas"]["ScoreHole"][];
+            /** @description A share link exists */
+            shared: boolean;
             slopeRating?: number | null;
             /** @enum {string} */
             status: "draft" | "submitted" | "finalized";
@@ -137703,6 +137836,66 @@ export interface operations {
             };
         };
     };
+    getGolfBookingsByIdScorecards: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from nextCursor. */
+                cursor?: string;
+                /** @description Page size (max 500). */
+                limit?: number;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ScorecardSheet"][];
+                        nextCursor?: string;
+                    };
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postGolfBookingsByIdCancel: {
         parameters: {
             query?: never;
@@ -150147,6 +150340,61 @@ export interface operations {
             };
         };
     };
+    getGolfScorecardsByIdPdf: {
+        parameters: {
+            query?: {
+                /** @description Active property (a link cannot send X-Property-Id) */
+                propertyId?: string;
+            };
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
     postGolfScorecardsByIdScores: {
         parameters: {
             query?: never;
@@ -150224,6 +150472,62 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Scorecard"];
+                };
+            };
+            /** @description Not authenticated */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Missing permission, module disabled or MFA required */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    postGolfScorecardsByIdShare: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Active property chosen in the property switcher. */
+                "X-Property-Id": string;
+            };
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScorecardShareInput"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScorecardShare"];
                 };
             };
             /** @description Not authenticated */
@@ -215819,6 +216123,37 @@ export interface operations {
                         items: components["schemas"]["RateRow"][];
                         nextCursor?: string;
                     };
+                };
+            };
+            /** @description Problem Details (RFC 9457) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getPublicGolfScorecardsByToken: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
                 };
             };
             /** @description Problem Details (RFC 9457) */
