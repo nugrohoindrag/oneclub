@@ -10,7 +10,7 @@ type Method = 'qris' | 'card' | 'member_account' | 'golfer_bill' | 'voucher_prep
 const REST: Method[] = ['qris', 'card', 'cash'];
 const LABEL: Record<Method, string> = { qris: 'QRIS', card: 'Credit Card', member_account: 'Member Account', golfer_bill: 'Golfer Bill', voucher_prepaid: 'Voucher', loyalty_points: 'Redeem Points', cash: 'Cash' };
 
-function Brand({ m }: { m: Method }) {
+export function Brand({ m }: { m: Method }) {
   if (m === 'qris') return <span className="pos-brand-qris" aria-hidden="true">QRIS</span>;
   if (m === 'card') return <span className="pos-brand-card" aria-hidden="true"><i /><i /></span>;
   const icon = m === 'cash' ? 'payments' : m === 'member_account' ? 'card_membership' : m === 'golfer_bill' ? 'sports_golf' : m === 'voucher_prepaid' ? 'redeem' : 'loyalty';
@@ -182,7 +182,7 @@ export function OfflinePayDialog({ due, onClose, onPay }: { due: number; onClose
 }
 
 /** Basket illustration of Order Successful (drawn for OneClub). */
-function Basket() {
+export function Basket() {
   return (
     <svg className="pos-success-art" viewBox="0 0 132 96" aria-hidden="true">
       <path d="M96 10l2.6 7.4L106 20l-7.4 2.6L96 30l-2.6-7.4L86 20l7.4-2.6z" fill="#5cc46a" />

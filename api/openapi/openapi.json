@@ -11498,12 +11498,19 @@
             "description": "Without players: any amount up to the balance (default the whole balance)",
             "type": "string"
           },
+          "customerId": {
+            "description": "Member Account: the member whose account is charged (default the booker)",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
           "methodType": {
             "enum": [
               "cash",
               "card",
               "qris",
-              "bank_transfer"
+              "bank_transfer",
+              "member_account"
             ],
             "type": "string"
           },
@@ -23299,12 +23306,19 @@
             },
             "type": "array"
           },
+          "customerId": {
+            "description": "Member Account: the member whose account is charged",
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
           "methodType": {
             "enum": [
               "cash",
               "card",
               "qris",
-              "bank_transfer"
+              "bank_transfer",
+              "member_account"
             ],
             "type": "string"
           },

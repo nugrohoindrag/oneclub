@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { qs, useGet, useSend, type Page } from '@oneclub/api-client';
+import { qs, request, useGet, useSend, uuidv7, type Page } from '@oneclub/api-client';
 import { formatDateTime, formatMoney } from '@oneclub/i18n';
 import { cacheGet, cachePut, enqueue, useOnline } from '@oneclub/offline';
 import {
   Card, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TextField, useAuth, useToast,
 } from '@oneclub/shell';
 import { CaddyCartModal } from './desk';
+import { DeskPayDialog, newPayments, type DeskTender } from './deskpay';
 
 type R = Record<string, unknown> & { id: string };
 
@@ -282,30 +283,36 @@ export function OpsCheckOutPage() {
   );
 }
 
-const SETTLE = [['cash', 'Cash'], ['card', 'Card (EDC)'], ['qris', 'QRIS'], ['bank_transfer', 'Bank transfer']];
-
 function CheckOutModal({ entry, onClose, onDone }: { entry: R; onClose: () => void; onDone: (code: string) => void }) {
-  const b = useGet<R & { folio?: R; flights?: R[] }>(`/api/v1/golf/bookings/${String(entry.bookingId)}`);
+  const bid = String(entry.bookingId);
+  const b = useGet<R & { folio?: R; flights?: R[] }>(`/api/v1/golf/bookings/${bid}`);
   const due = Number(b.data?.folio?.balance ?? entry.balance ?? 0);
-  const [method, setMethod] = useState(entry.memberAccount ? 'member_account' : 'cash');
-  const [ref, setRef] = useState('');
   const [amount, setAmount] = useState('');
-  const out = useSend<Record<string, unknown>>('POST', `/api/v1/golf/bookings/${String(entry.bookingId)}:check-out`, ['/api/v1/golf', '/api/v1/billing']);
+  const [paying, setPaying] = useState(false);
+  const idem = () => ({ 'Idempotency-Key': uuidv7() });
+  const out = useSend<Record<string, unknown>>('POST', `/api/v1/golf/bookings/${bid}:check-out`, ['/api/v1/golf', '/api/v1/billing']);
   // a part payment first (split tenders); the last one settles and checks out
-  const part = useSend<Record<string, unknown>>('POST', '/api/v1/billing/payments', ['/api/v1/billing', '/api/v1/golf']);
+  const part = useSend<Record<string, unknown>, R>('POST', '/api/v1/billing/payments', ['/api/v1/billing', '/api/v1/golf'], idem);
   const n = amount === '' ? due : Number(amount);
   const partial = due > 0 && n > 0 && n < due;
-  const methods = [...(entry.memberAccount ? [['member_account', 'Member account']] : []), ...SETTLE];
   const count = (v: unknown) => ((v as string[] | undefined) ?? []).length;
+  const bill = () => request<R & { payments: R[] }>('GET', `/api/v1/golf/bookings/${bid}/bill`);
+  const go = async (t: DeskTender) => {
+    if (partial) return [await part.mutateAsync({ folioId: b.data?.folioId, amount: String(n), methodType: t.methodType, channel: 'venue', reference: t.reference })];
+    const before = await bill();
+    await out.mutateAsync({ methodType: t.methodType, reference: t.reference });
+    return newPayments(before.payments, (await bill()).payments);
+  };
+  const finish = () => {
+    setPaying(false);
+    if (partial) { setAmount(''); void b.refetch(); } else onDone(String(entry.code));
+  };
   return (
     <Modal open onClose={onClose} title={`Check-out ${String(entry.code)}`} actions={<><Btn label="Cancel" onClick={onClose} />
-      {partial ? (
-        <Btn label={`Receive ${money(n)}`} kind="primary" disabled={part.isPending || !b.data?.folioId || method === 'member_account'}
-          onClick={() => part.mutate({ folioId: b.data?.folioId, amount: String(n), methodType: method, channel: 'venue', reference: ref || undefined },
-            { onSuccess: () => { setAmount(''); setRef(''); void b.refetch(); } })} />
+      {due > 0 ? (
+        <Btn label={partial ? `Pay ${money(n)}` : `Settle ${money(due)} & check out`} kind="primary" disabled={!b.data?.folioId || !(n > 0 && n <= due)} onClick={() => setPaying(true)} />
       ) : (
-        <Btn label={due > 0 ? `Settle ${money(due)} & check out` : 'Check out'} kind="primary" disabled={out.isPending || !b.data || n > due}
-          onClick={() => out.mutate({ methodType: due > 0 ? method : undefined, reference: ref || undefined }, { onSuccess: () => onDone(String(entry.code)) })} />
+        <Btn label="Check out" kind="primary" disabled={out.isPending || !b.data} onClick={() => out.mutate({}, { onSuccess: () => onDone(String(entry.code)) })} />
       )}</>}>
       <div className="oc-stack">
         <p style={{ margin: 0 }}>{((entry.players as string[] | undefined) ?? []).join(', ')}</p>
@@ -315,10 +322,13 @@ function CheckOutModal({ entry, onClose, onDone }: { entry: R; onClose: () => vo
         {due > 0 && (
           <div className="oc-row-wrap">
             <TextField label="Amount (empty = all)" value={amount} onChange={(v) => setAmount(v.replace(/\D/g, ''))} inputMode="numeric" />
-            <SelectField label="Pay by" value={method} onChange={setMethod} options={methods.map(([value, label]) => ({ value, label }))} />
-            {method !== 'cash' && method !== 'member_account' && <TextField label="Reference" value={ref} onChange={setRef} />}
           </div>
         )}
+        {paying && <DeskPayDialog amount={n} onClose={() => setPaying(false)} pay={go} onFinish={finish}
+          methods={partial || !entry.memberAccount ? ['cash', 'card', 'qris', 'bank_transfer'] : ['member_account', 'cash', 'card', 'qris', 'bank_transfer']}
+          members={entry.memberAccount ? [{ customerId: '', name: String(entry.contactName ?? 'the member') }] : []}
+          summary={[['Booking', `${String(entry.code)} · ${String(entry.localTime ?? '')}`], ['Players', ((entry.players as string[] | undefined) ?? []).join(', ')],
+            ...(partial ? [['Left on the bill', money(due - n)] as [string, string]] : [['Then', 'check out'] as [string, string]])]} />}
         {partial && <p className="oc-small oc-muted" style={{ margin: 0 }}>Part payment: the rest ({money(due - n)}) stays on the bill for the next tender.</p>}
         <ErrorAlert error={part.error} />
         <p className="oc-small oc-muted" style={{ margin: 0 }}>

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { qs, request, useGet, useSend, type Page, type Schemas } from '@oneclub/api-client';
+import { qs, request, useGet, useSend, uuidv7, type Page, type Schemas } from '@oneclub/api-client';
 import { formatDateTime } from '@oneclub/i18n';
 import { Checkbox, CrowdLabel, DataTable, ErrorAlert, Icon, Modal, PlayTime, SelectField, StatusPill, TEE_CATEGORY, TeeBadge, TextField, crowdClass, useToast } from '@oneclub/shell';
 import { BookingForm, type BookingPrefill } from '../p1/golf';
+import { DeskPayDialog, newPayments, type DeskMember, type DeskTender } from './deskpay';
 import { Btn, Head, money, today, useCached } from './golf';
 
 // Front Desk (demo feedback 9 Oct 2026): players book at the desk with or
@@ -15,7 +16,7 @@ import { Btn, Head, money, today, useCached } from './golf';
 type R = Record<string, unknown> & { id: string };
 type Booking = R & { players: R[]; flights: R[]; folio?: R; teeTimeId: string; courseId: string; playDate: string };
 
-const METHODS = [['cash', 'Cash'], ['card', 'Card (EDC)'], ['qris', 'QRIS'], ['bank_transfer', 'Bank transfer']].map(([value, label]) => ({ value, label }));
+const idem = () => ({ 'Idempotency-Key': uuidv7() });
 const digits = (v: string) => v.replace(/\D/g, '');
 /** Rows keyed by another id field (DataTable needs id). */
 const withId = (xs: R[] | undefined, key: string): R[] => (xs ?? []).map((x) => ({ ...x, id: String(x[key]) }) as R);
@@ -204,7 +205,8 @@ function DeskBookingModal({ id, onClose }: { id: string; onClose: () => void }) 
           <div className="oc-row-wrap" role="tablist">
             {TABS.map(([k, l]) => <Btn key={k} label={l} kind={tab === k ? 'ink' : 'neutral'} onClick={() => setTab(k)} />)}
           </div>
-          {tab === 'bill' && <BillTab id={id} />}
+          {tab === 'bill' && <BillTab id={id} members={x.players.filter((p) => live(p) && p.playerType === 'member' && p.customerId)
+            .map((p) => ({ customerId: String(p.customerId), name: String(p.name) }))} />}
           {tab === 'time' && <TimeTab b={x} onDone={() => void b.refetch()} />}
           {tab === 'players' && <PlayersTab b={x} onDone={() => void b.refetch()} />}
           {tab === 'caddy' && <CaddyTab b={x} />}
@@ -215,27 +217,31 @@ function DeskBookingModal({ id, onClose }: { id: string; onClose: () => void }) 
   );
 }
 
-/** Pay all, any part, or per player (split bill: more than one player). */
-function BillTab({ id }: { id: string }) {
-  const bill = useGet<R & { players: R[]; lines: R[]; payments: R[] }>(`/api/v1/golf/bookings/${id}/bill`);
-  const pay = useSend<Record<string, unknown>>('POST', `/api/v1/golf/bookings/${id}/bill:pay`, ['/api/v1/golf', '/api/v1/billing']);
+type Bill = R & { code: string; players: R[]; lines: R[]; payments: R[] };
+
+/** Pay all, any part, or per player (split bill: more than one player); the
+ * payment itself runs on the payment page (method, confirm, receipt). */
+function BillTab({ id, members }: { id: string; members: DeskMember[] }) {
+  const bill = useGet<Bill>(`/api/v1/golf/bookings/${id}/bill`);
+  const pay = useSend<Record<string, unknown>, Bill>('POST', `/api/v1/golf/bookings/${id}/bill:pay`, ['/api/v1/golf', '/api/v1/billing'], idem);
   const toast = useToast();
   const [split, setSplit] = useState(false);
   const [picked, setPicked] = useState<string[]>([]);
   const [amount, setAmount] = useState('');
-  const [method, setMethod] = useState('cash');
-  const [ref, setRef] = useState('');
   const [payer, setPayer] = useState('');
+  const [paying, setPaying] = useState(false);
   const x = bill.data;
   if (!x) return <ErrorAlert error={bill.error} />;
   const balance = Number(x.balance);
   const players = x.players ?? [];
   const pickedDue = players.filter((p) => picked.includes(String(p.playerId))).reduce((a, p) => a + Number(p.due), 0);
   const n = amount === '' ? balance : Number(amount);
-  const done = () => { toast('Payment recorded'); setPicked([]); setAmount(''); setRef(''); void bill.refetch(); };
-  const go = () => pay.mutate(split
-    ? { playerIds: picked, methodType: method, reference: ref || undefined }
-    : { amount: amount || undefined, methodType: method, reference: ref || undefined, payerName: payer || undefined }, { onSuccess: done });
+  const done = () => { setPaying(false); toast('Payment recorded'); setPicked([]); setAmount(''); void bill.refetch(); };
+  const go = async (t: DeskTender) => {
+    const after = await pay.mutateAsync(split ? { playerIds: picked, ...t } : { amount: amount || undefined, payerName: payer || undefined, ...t });
+    return newPayments(x.payments, after.payments);
+  };
+  const who = split ? players.filter((p) => picked.includes(String(p.playerId))).map((p) => String(p.name)).join(', ') : payer;
   return (
     <div className="oc-stack">
       <p style={{ margin: 0 }}>Charges {money(x.charges)} · paid {money(x.paid)} · balance <strong>{money(x.balance)}</strong></p>
@@ -259,18 +265,16 @@ function BillTab({ id }: { id: string }) {
               <TextField label="Payer name" value={payer} onChange={setPayer} />
             </div>
           )}
-          <div className="oc-row-wrap" style={{ alignItems: 'flex-end' }}>
-            <SelectField label="Method" value={method} onChange={setMethod} options={METHODS} />
-            {method !== 'cash' && <TextField label="Reference" value={ref} onChange={setRef} />}
-            <Btn label={`Receive ${money(split ? pickedDue : n)}`} kind="primary" onClick={go}
-              disabled={pay.isPending || (split ? picked.length === 0 : !(n > 0 && n <= balance))} />
-          </div>
+          <div><Btn label={`Pay ${money(split ? pickedDue : n)}`} kind="primary" onClick={() => setPaying(true)}
+            disabled={split ? picked.length === 0 : !(n > 0 && n <= balance)} /></div>
+          {paying && <DeskPayDialog amount={split ? pickedDue : n} members={members} onClose={() => setPaying(false)} pay={go} onFinish={done}
+            summary={[['Booking', `${x.code} · ${String(x.localTime)}`], [split ? 'Players' : 'Payer', who || String(x.contactName ?? '—')],
+              ...(n < balance && !split ? [['Left on the bill', money(balance - n)] as [string, string]] : [])]} />}
           <p className="oc-small oc-muted" style={{ margin: 0 }}>
             The rest can be paid later — here, at check-out, or by the member in the app. On-course F&B is added from the POS (Golfer Bill).
           </p>
         </>
       )}
-      <ErrorAlert error={pay.error} />
       {(x.payments ?? []).length > 0 && (
         <DataTable rows={withId(x.payments, 'id')} columns={[{ key: 'number', header: 'Payment' },
           { key: 'payerName', header: 'Payer', render: (p) => String(p.payerName ?? '—') }, { key: 'methodType', header: 'Method', render: (p) => String(p.methodType).replace(/_/g, ' ') },
@@ -729,20 +733,22 @@ export function FlightPlayTime({ flights, flightId }: { flights: R[]; flightId: 
 
 /** Several bookings paid by one person with one tender. */
 function MergeBillModal({ ids, onClose, onDone }: { ids: string[]; onClose: () => void; onDone: () => void }) {
-  const [bills, setBills] = useState<R[] | null>(null);
+  const [bills, setBills] = useState<Bill[] | null>(null);
   const [error, setError] = useState<unknown>(null);
-  const [method, setMethod] = useState('cash');
-  const [ref, setRef] = useState('');
   const [payer, setPayer] = useState('');
-  const pay = useSend<Record<string, unknown>>('POST', '/api/v1/golf/bills:pay-combined', ['/api/v1/golf', '/api/v1/billing']);
+  const [paying, setPaying] = useState(false);
+  const pay = useSend<Record<string, unknown>, Page<Bill>>('POST', '/api/v1/golf/bills:pay-combined', ['/api/v1/golf', '/api/v1/billing'], idem);
   useEffect(() => {
-    Promise.all(ids.map((id) => request<R>('GET', `/api/v1/golf/bookings/${id}/bill`))).then(setBills).catch(setError);
+    Promise.all(ids.map((id) => request<Bill>('GET', `/api/v1/golf/bookings/${id}/bill`))).then(setBills).catch(setError);
   }, [ids]);
   const total = (bills ?? []).reduce((a, b) => a + Math.max(0, Number(b.balance)), 0);
+  const go = async (t: DeskTender) => {
+    const after = await pay.mutateAsync({ bookingIds: ids, payerName: payer || undefined, ...t });
+    return after.items.flatMap((b) => newPayments(bills?.find((x) => x.bookingId === b.bookingId)?.payments, b.payments));
+  };
   return (
     <Modal open onClose={onClose} title="Merged bill" actions={<><Btn label="Cancel" onClick={onClose} />
-      <Btn label={`Receive ${money(total)}`} kind="primary" disabled={!bills || total <= 0 || pay.isPending}
-        onClick={() => pay.mutate({ bookingIds: ids, methodType: method, reference: ref || undefined, payerName: payer || undefined }, { onSuccess: onDone })} /></>}>
+      <Btn label={`Pay ${money(total)}`} kind="primary" disabled={!bills || total <= 0} onClick={() => setPaying(true)} /></>}>
       <div className="oc-stack">
         <ErrorAlert error={error} />
         <DataTable rows={withId(bills ?? [], 'bookingId')} loading={!bills && !error} columns={[{ key: 'code', header: 'Booking' },
@@ -751,10 +757,9 @@ function MergeBillModal({ ids, onClose, onDone }: { ids: string[]; onClose: () =
         <p style={{ margin: 0 }}>Total <strong>{money(total)}</strong></p>
         <div className="oc-row-wrap">
           <TextField label="Payer name" value={payer} onChange={setPayer} />
-          <SelectField label="Method" value={method} onChange={setMethod} options={METHODS} />
-          {method !== 'cash' && <TextField label="Reference" value={ref} onChange={setRef} />}
         </div>
-        <ErrorAlert error={pay.error} />
+        {paying && <DeskPayDialog amount={total} methods={['cash', 'card', 'qris', 'bank_transfer']} onClose={() => setPaying(false)} pay={go} onFinish={onDone}
+          summary={[['Bookings', (bills ?? []).map((b) => b.code).join(', ')], ['Payer', payer || '—']]} />}
       </div>
     </Modal>
   );

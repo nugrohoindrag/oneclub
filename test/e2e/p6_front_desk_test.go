@@ -106,3 +106,36 @@ func TestFrontDeskBookingAndBill(t *testing.T) {
 		}
 	}
 }
+
+// Payment page of the front desk (demo feedback 9 Oct 2026): the Bill tab
+// also charges a member account — of the player picked, or of the booker —
+// and a walk-in without a member cannot be charged to one.
+func TestFrontDeskBillMemberAccount(t *testing.T) {
+	gm := login(t, inst, "golf.manager@demo.oneclub.id", demoPassword)
+	fd := login(t, inst, "front.desk@demo.oneclub.id", demoPassword)
+	course := demoCourse(t, inst)
+	day := clubDay(inst, 6, isWeekday)
+	pm := slotsOf(teeTimes(t, gm, course, day), "afternoon", 10)
+	bk := fd.Must(201, "POST", "/api/v1/golf/bookings", map[string]any{"bookingType": "member", "channel": "back_office", "teeTimeId": pm[12]["id"],
+		"players": []map[string]any{{"playerType": "member", "memberNo": "D0001"}, {"playerType": "non_member", "name": "Gita Guest"}}}).JSON()
+	var member any
+	for _, p := range bk["players"].([]any) {
+		if p.(map[string]any)["playerType"] == "member" {
+			member = p.(map[string]any)["customerId"]
+		}
+	}
+	after := fd.Must(200, "POST", "/api/v1/golf/bookings/"+str(bk["id"])+"/bill:pay", map[string]any{"amount": "100000", "methodType": "member_account",
+		"customerId": member}).JSON()
+	var charged bool
+	for _, p := range after["payments"].([]any) {
+		pay := p.(map[string]any)
+		charged = charged || (pay["methodType"] == "member_account" && pay["status"] == "completed" && dec(pay["amount"]).IntPart() == 100000)
+	}
+	if !charged {
+		t.Fatalf("member account payment on the bill: %v", after["payments"])
+	}
+
+	w := fd.Must(201, "POST", "/api/v1/golf/bookings", map[string]any{"bookingType": "walk_in", "channel": "walk_in", "teeTimeId": pm[13]["id"],
+		"contactName": "Hari Walk-in", "players": []map[string]any{{"playerType": "non_member", "name": "Hari Walk-in"}, {"playerType": "non_member", "name": "Ika Walk-in"}}}).JSON()
+	fd.Must(422, "POST", "/api/v1/golf/bookings/"+str(w["id"])+"/bill:pay", map[string]any{"methodType": "member_account"})
+}

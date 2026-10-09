@@ -591,3 +591,8 @@
   .desk-players-fields, .desk-players-buttons { flex-direction: column; }
   .desk-players-buttons > * { flex-basis: auto; }
 }
+
+/* front desk payment page (Bill tab, merged bill, check-out): the POS payment
+ * dialogs above the booking window */
+.desk-pay .pos-scrim { z-index: 100; }
+.desk-pay a.pos-btn { text-decoration: none; }

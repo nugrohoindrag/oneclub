@@ -150,25 +150,47 @@ func refPlayer(ref string) (uuid.UUID, bool) {
 	return id, err == nil
 }
 
-var deskMethods = map[string]bool{"cash": true, "card": true, "qris": true, "bank_transfer": true}
+var deskMethods = map[string]bool{"cash": true, "card": true, "qris": true, "bank_transfer": true, "member_account": true}
 
 // BillPayRequest pays a booking bill at the front desk.
 type BillPayRequest struct {
 	PlayerIDs  []uuid.UUID `json:"playerIds,omitempty" doc:"Split bill: pay the share of these players (one payment per player)"`
 	Amount     string      `json:"amount,omitempty" doc:"Without players: any amount up to the balance (default the whole balance)"`
-	MethodType string      `json:"methodType" enum:"cash,card,qris,bank_transfer"`
+	MethodType string      `json:"methodType" enum:"cash,card,qris,bank_transfer,member_account"`
 	Reference  string      `json:"reference,omitempty" doc:"EDC approval / transfer reference"`
 	PayerName  string      `json:"payerName,omitempty"`
+	CustomerID *uuid.UUID  `json:"customerId,omitempty" doc:"Member Account: the member whose account is charged (default the booker)"`
 }
 
 // PayBill takes a payment for the whole bill, part of it or the share of
 // players.
 func (m *Module) PayBill(ctx context.Context, tx pgx.Tx, property, bid uuid.UUID, req BillPayRequest) (BookingBill, error) {
 	if !deskMethods[req.MethodType] {
-		return BookingBill{}, errs.Validation("invalid_method", "choose cash, card, QRIS or bank transfer", errs.Field("methodType", "invalid", "cash, card, qris, bank_transfer"))
+		return BookingBill{}, errs.Validation("invalid_method", "choose cash, card, QRIS, bank transfer or member account",
+			errs.Field("methodType", "invalid", "cash, card, qris, bank_transfer, member_account"))
 	}
-	if _, err := lockBooking(ctx, tx, property, bid); err != nil {
+	b, err := lockBooking(ctx, tx, property, bid)
+	if err != nil {
 		return BookingBill{}, err
+	}
+	// Member Account: charged to the member's account (on the statement)
+	var account *uuid.UUID
+	if req.MethodType == "member_account" {
+		cust := req.CustomerID
+		if cust == nil {
+			cust = b.CustomerID
+		}
+		if cust == nil {
+			return BookingBill{}, errs.Validation("member_required", "choose the member whose account is charged", errs.Field("customerId", "required", "a member"))
+		}
+		a, err := billing.AccountFor(ctx, tx, property, *cust, "member")
+		if err != nil {
+			return BookingBill{}, err
+		}
+		if a == nil || a.Status != "active" {
+			return BookingBill{}, errs.Conflict("no_member_account", "this customer has no active member account")
+		}
+		account = &a.ID
 	}
 	bill, err := m.Bill(ctx, tx, property, bid)
 	if err != nil {
@@ -184,7 +206,11 @@ func (m *Module) PayBill(ctx context.Context, tx pgx.Tx, property, bid uuid.UUID
 		if payer == "" {
 			payer = req.PayerName
 		}
-		_, err := m.Billing.TakePayment(ctx, tx, billing.PaymentInput{FolioID: bill.FolioID, MethodType: req.MethodType, Channel: "venue", Amount: amount,
+		channel := "venue"
+		if account != nil {
+			channel = "member_account"
+		}
+		_, err := m.Billing.TakePayment(ctx, tx, billing.PaymentInput{FolioID: bill.FolioID, AccountID: account, MethodType: req.MethodType, Channel: channel, Amount: amount,
 			Reference: ref, PayerName: payer, Description: "Golf booking " + bill.Code})
 		return err
 	}
@@ -226,9 +252,10 @@ func (m *Module) PayBill(ctx context.Context, tx pgx.Tx, property, bid uuid.UUID
 // CombinedPayRequest pays several bookings as one bill.
 type CombinedPayRequest struct {
 	BookingIDs []uuid.UUID `json:"bookingIds" doc:"The bookings merged into one bill"`
-	MethodType string      `json:"methodType" enum:"cash,card,qris,bank_transfer"`
+	MethodType string      `json:"methodType" enum:"cash,card,qris,bank_transfer,member_account"`
 	Reference  string      `json:"reference,omitempty"`
 	PayerName  string      `json:"payerName,omitempty" doc:"Who pays the merged bill"`
+	CustomerID *uuid.UUID  `json:"customerId,omitempty" doc:"Member Account: the member whose account is charged"`
 }
 
 // PayCombined settles the balance of every booking with one tender.
@@ -253,7 +280,7 @@ func (m *Module) PayCombined(ctx context.Context, tx pgx.Tx, property uuid.UUID,
 	out := make([]BookingBill, 0, len(bills))
 	for _, b := range bills {
 		if b.FolioID != nil && dec(b.Balance).IsPositive() {
-			if _, err := m.PayBill(ctx, tx, property, b.BookingID, BillPayRequest{MethodType: req.MethodType, Reference: ref, PayerName: req.PayerName}); err != nil {
+			if _, err := m.PayBill(ctx, tx, property, b.BookingID, BillPayRequest{MethodType: req.MethodType, Reference: ref, PayerName: req.PayerName, CustomerID: req.CustomerID}); err != nil {
 				return nil, err
 			}
 		}

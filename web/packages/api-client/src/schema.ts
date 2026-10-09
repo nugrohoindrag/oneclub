@@ -39765,8 +39765,13 @@ export interface components {
         BillPayRequest: {
             /** @description Without players: any amount up to the balance (default the whole balance) */
             amount?: string;
+            /**
+             * Format: uuid
+             * @description Member Account: the member whose account is charged (default the booker)
+             */
+            customerId?: string | null;
             /** @enum {string} */
-            methodType: "cash" | "card" | "qris" | "bank_transfer";
+            methodType: "cash" | "card" | "qris" | "bank_transfer" | "member_account";
             payerName?: string;
             /** @description Split bill: pay the share of these players (one payment per player) */
             playerIds?: string[];
@@ -43739,8 +43744,13 @@ export interface components {
         CombinedPayRequest: {
             /** @description The bookings merged into one bill */
             bookingIds: string[];
+            /**
+             * Format: uuid
+             * @description Member Account: the member whose account is charged
+             */
+            customerId?: string | null;
             /** @enum {string} */
-            methodType: "cash" | "card" | "qris" | "bank_transfer";
+            methodType: "cash" | "card" | "qris" | "bank_transfer" | "member_account";
             /** @description Who pays the merged bill */
             payerName?: string;
             reference?: string;
