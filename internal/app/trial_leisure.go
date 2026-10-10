@@ -6,8 +6,9 @@ package app
 // their types and rates. Every simulated day visitors enter the pool and
 // the gym (walk-in, child, family package, entry voucher), tennis courts
 // are booked, the classes run with bookings and attendance, vouchers are
-// sold; guests stay in the bungalows (deposit, check-in with ID, the night
-// audit posts the room nights, check-out after settling the folio). Every
+// sold; guests stay in the bungalows of the flyer (Room Only, breakfast,
+// Long Stay; deposit, check-in with ID, the night audit posts the room
+// nights, check-out after settling the folio). Every
 // month the coaches' fees are calculated, approved and paid.
 
 import (
@@ -30,12 +31,7 @@ const (
 )
 
 func trialLeisureSetup(ctx context.Context, t *Trial) error {
-	admin, sm := t.Admin(), t.As(trialSportManager)
-	eff := t.Start.AddDate(0, 0, -30).Format(time.DateOnly)
-	rule := func(b J) {
-		b["effectiveFrom"], b["taxCodes"], b["pricingMode"] = eff, []string{"PPN"}, "nett"
-		admin.Post("/api/v1/commercial/pricing-rules", b)
-	}
+	sm := t.As(trialSportManager)
 	// facilities, courts, rates, packages and memberships of the brochure (Rates 2025)
 	trialSportClubMGCC(t)
 	var coachUser string
@@ -75,73 +71,9 @@ func trialLeisureSetup(ctx context.Context, t *Trial) error {
 			"payment": J{"methodType": "bank_transfer", "reference": "PKG-" + fmt.Sprint(i)}})
 	}
 
-	// bungalows
-	rm := t.As(trialResort)
-	ro := admin.Post("/api/v1/commercial/rate-plans", J{"code": "STAY_RO", "name": "Room Only", "serviceType": "bungalow", "minNights": 1,
-		"facilityAccess": []string{"swimming_pool", "gym"}}).S("id")
-	for _, b := range []struct {
-		code, name, price, weekend, bed, size string
-		adults                                int
-		units                                 []string
-	}{{"EAGLE", "Eagle Bungalow", "1450000", "1750000", "1 King", "42", 2, []string{"E-01", "E-02", "E-03"}},
-		{"ALBATROSS", "Albatross Family Bungalow", "2350000", "2750000", "1 King + 2 Single", "68", 4, []string{"A-01", "A-02"}}} {
-		rule(J{"code": b.code + "-RO", "name": b.name + " Room Only", "serviceType": "bungalow", "itemRef": b.code, "ratePlanId": ro, "unit": "night",
-			"price": b.price, "revenueComponent": "bungalow"})
-		tid := rm.Post("/api/v1/stay/bungalow-types", J{"code": b.code, "name": b.name, "maxAdults": b.adults, "maxChildren": 2, "bedrooms": b.adults / 2,
-			"baseRate": b.price, "weekendRate": b.weekend, "bedConfiguration": b.bed, "sizeSqm": b.size, "view": "Golf course & lake",
-			"facilities": []string{"wifi", "ac", "minibar", "terrace", "hot_water"}}).S("id")
-		t.SetRef("bungalowtype:"+b.code, tid)
-		for i, u := range b.units {
-			rm.Post("/api/v1/stay/bungalows", J{"code": u, "name": b.name + " " + u[2:], "typeId": tid, "view": []string{"golf", "lake"}[i%2],
-				"location": []string{"Lakeside", "Fairway 9"}[i%2]})
-		}
-	}
-	trialAccommodationSetup(t, rm)
+	// bungalows: the room types, units and rates of the flyer (trial_bungalow_mgcc.go)
+	trialStayMGCC(t)
 	return nil
-}
-
-// trialAccommodationSetup configures the accommodation (bungalow management
-// requirements): rate plans, seasons, add-ons, a stay package, promotions and
-// preventive maintenance.
-func trialAccommodationSetup(t *Trial, rm *TrialClient) {
-	pool := []string{"swimming_pool", "gym"}
-	rm.Post("/api/v1/stay/rate-plans", J{"code": "BAR", "name": "Best Available Rate", "planType": "standard", "derivation": "bar", "isDefault": true,
-		"freeCancelHours": 48, "cancelFeePercent": "50", "noShowFeePercent": "100", "facilityAccess": pool, "sortOrder": 1})
-	rm.Post("/api/v1/stay/rate-plans", J{"code": "MEMBER", "name": "Member Rate", "planType": "member", "derivation": "percent", "adjustValue": "-15",
-		"eligibility": "member", "includesBreakfast": true, "freeCancelHours": 24, "facilityAccess": []string{"*"}, "sortOrder": 2})
-	rm.Post("/api/v1/stay/rate-plans", J{"code": "NONREF", "name": "Non-refundable Saver", "planType": "promotional", "derivation": "percent", "adjustValue": "-10",
-		"nonRefundable": true, "paymentPolicy": "full_prepayment", "facilityAccess": pool, "sortOrder": 3})
-	rm.Post("/api/v1/stay/rate-plans", J{"code": "CORP", "name": "Corporate Rate", "planType": "corporate", "derivation": "percent", "adjustValue": "-12",
-		"eligibility": "corporate", "paymentPolicy": "pay_at_hotel", "facilityAccess": pool, "sortOrder": 4})
-	y := t.Today.Year()
-	hol := rm.Post("/api/v1/stay/seasons", J{"code": "HOLIDAY", "name": "Year-end Holiday", "seasonType": "holiday", "startDate": fmt.Sprintf("%d-12-20", y),
-		"endDate": fmt.Sprintf("%d-01-05", y+1), "priority": 10}).S("id")
-	rm.Post("/api/v1/stay/season-prices", J{"seasonId": hol, "bungalowTypeId": t.Ref("bungalowtype:EAGLE"), "weekdayPrice": "1950000", "weekendPrice": "2150000"})
-	rm.Post("/api/v1/stay/season-prices", J{"seasonId": hol, "bungalowTypeId": t.Ref("bungalowtype:ALBATROSS"), "weekdayPrice": "3100000", "weekendPrice": "3400000"})
-	rm.Post("/api/v1/stay/seasons", J{"code": "PEAK", "name": "School Holiday Peak", "seasonType": "peak", "startDate": fmt.Sprintf("%d-06-20", y),
-		"endDate": fmt.Sprintf("%d-07-20", y), "priority": 20, "adjustPercent": "15"})
-	addon := func(code, name, cat, price, unit, avail string) string {
-		return rm.Post("/api/v1/stay/addons", J{"code": code, "name": name, "category": cat, "price": price, "unit": unit, "availability": avail,
-			"pricingMode": "nett"}).S("id")
-	}
-	bf := addon("BREAKFAST", "Breakfast", "breakfast", "125000", "per_person_night", "both")
-	t.SetRef("addon:BREAKFAST", bf)
-	addon("EXTRA-BED", "Extra Bed", "extra_bed", "350000", "per_night", "both")
-	addon("BBQ", "BBQ Dinner Set", "bbq", "450000", "per_item", "both")
-	addon("AIRPORT", "Airport Transfer", "transportation", "300000", "per_item", "both")
-	addon("LAUNDRY", "Laundry (per bag)", "laundry", "75000", "per_item", "in_stay")
-	addon("TOWEL", "Extra Towel", "extra_towel", "25000", "per_item", "in_stay")
-	rm.Post("/api/v1/stay/packages", J{"code": "BNB", "name": "Bed & Breakfast", "priceMode": "fixed", "price": "1700000", "includesBreakfast": true,
-		"inclusions": []J{{"addonId": bf, "quantity": 1}}, "bungalowTypeIds": []string{t.Ref("bungalowtype:EAGLE")},
-		"description": "Eagle Bungalow with breakfast for two"})
-	rm.Post("/api/v1/stay/promotions", J{"code": "STAY3PAY2", "name": "Stay 3 Pay 2", "promoType": "stay_pay", "stayNights": 3, "payNights": 2,
-		"bungalowTypeIds": []string{t.Ref("bungalowtype:EAGLE")}, "priority": 10})
-	rm.Post("/api/v1/stay/promotions", J{"code": "EARLYBIRD", "name": "Early Bird 10%", "promoType": "early_booking", "minDaysBefore": 30,
-		"discountPercent": "10", "priority": 20})
-	rm.Post("/api/v1/stay/preventive-schedules", J{"code": "AC-CLEAN", "name": "AC cleaning", "category": "ac", "intervalDays": 90,
-		"nextDue": t.Today.AddDate(0, 0, 3).Format(time.DateOnly), "assignedTo": "Teknisi Resort"})
-	rm.Post("/api/v1/stay/preventive-schedules", J{"code": "WATER-HEATER", "name": "Water heater inspection", "category": "water_heater", "intervalDays": 180,
-		"nextDue": t.Today.AddDate(0, 0, 10).Format(time.DateOnly), "assignedTo": "Teknisi Resort"})
 }
 
 func trialLeisureDay(ctx context.Context, t *Trial, day time.Time) error {
@@ -321,18 +253,17 @@ func trialStayDay(t *Trial, day time.Time) {
 	guests := t.Guests()
 	for range n {
 		g := guests[r.IntN(len(guests))]
-		typ := []string{"EAGLE", "EAGLE", "ALBATROSS"}[r.IntN(3)]
+		typ := []string{"BIRDIE", "BIRDIE", "EAGLE", "EAGLE", "ALBATROS", "VIP"}[r.IntN(6)]
 		nights := 1 + r.IntN(3)
-		// half the guests on the accommodation rates (BAR, some with breakfast), half on the P2 Room Only rate
+		// Room Only (some with breakfast); now and then a Long Stay of 7 nights
 		body := J{"kind": "bungalow", "bungalowTypeId": bungalowType(typ), "arrivalDate": ds, "departureDate": day.AddDate(0, 0, nights).Format(time.DateOnly),
-			"ratePlan": "STAY_RO", "customerId": g.ID, "adults": 2, "bookingSource": []string{"front_desk", "phone", "website", "walk_in"}[r.IntN(4)],
+			"customerId": g.ID, "adults": 2, "bookingSource": []string{"front_desk", "phone", "website", "walk_in"}[r.IntN(4)],
 			"payment": J{"methodType": "bank_transfer", "reference": "DP-" + ds}}
-		accommodation, breakfast := r.IntN(2) == 0, r.IntN(2) == 0
-		if accommodation {
-			delete(body, "ratePlan")
-			if breakfast {
-				body["addons"] = []J{{"addonId": t.Ref("addon:BREAKFAST"), "quantity": 1}}
-			}
+		switch x := r.IntN(10); {
+		case x == 0:
+			body["ratePlan"], body["departureDate"] = "LONGSTAY", day.AddDate(0, 0, 7).Format(time.DateOnly)
+		case x < 5:
+			body["addons"] = []J{{"addonId": t.Ref("addon:BREAKFAST"), "quantity": 1}}
 		}
 		request := r.IntN(3)
 		st, res, _ := rm.Call("POST", "/api/v1/stay/stays", body)
@@ -356,15 +287,19 @@ func trialLeisureFinal(_ context.Context, t *Trial) error {
 	rm := t.As(trialResort)
 	guests := t.Guests()
 	bungalowType := t.ids("bungalowtype", "/api/v1/stay/bungalow-types?limit=20", trialResort)
+	codes := []string{"BIRDIE", "EAGLE", "ALBATROS", "BIRDIE", "EAGLE"}
 	for d := 2; d < t.Ahead; d += 3 {
 		day := t.Today.AddDate(0, 0, d)
 		r := t.Rand("stay-ahead:" + day.Format(time.DateOnly))
 		g := guests[r.IntN(len(guests))]
-		body := J{"kind": "bungalow", "bungalowTypeId": bungalowType("EAGLE"), "arrivalDate": day.Format(time.DateOnly),
+		body := J{"kind": "bungalow", "bungalowTypeId": bungalowType(codes[(d/3)%len(codes)]), "arrivalDate": day.Format(time.DateOnly),
 			"departureDate": day.AddDate(0, 0, 2).Format(time.DateOnly), "customerId": g.ID, "adults": 2, "bookingSource": "website",
 			"payment": J{"methodType": "bank_transfer", "reference": "DP-" + day.Format("0102")}}
-		if d%2 == 0 {
-			body["stayPackage"] = "BNB"
+		switch {
+		case d%7 == 5: // a Long Stay (7 nights)
+			body["ratePlan"], body["departureDate"] = "LONGSTAY", day.AddDate(0, 0, 7).Format(time.DateOnly)
+		case d%2 == 0:
+			body["addons"] = []J{{"addonId": t.Ref("addon:BREAKFAST"), "quantity": 1}}
 		}
 		rm.Call("POST", "/api/v1/stay/stays", body)
 	}

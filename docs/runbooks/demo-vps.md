@@ -84,7 +84,10 @@ With the first `<sha>-vps` images built by `vps.yml`:
 2. Enable every module (Platform Administration → Enabled Modules, or `UPDATE platform.modules SET enabled = true`).
 3. Demo data with the worker stopped: `seed-demo --trial` (90 days of history, 30 days ahead; demo users with the
    demo password and PIN). The mock payment gateway, WhatsApp and e-mail sandboxes come from `instance create`;
-   mock e-Meterai and e-Faktur from the trial dataset.
+   mock e-Meterai and e-Faktur from the trial dataset. On an instance seeded before, run it again (worker stopped)
+   after a deploy that adds trial seeders: only the new steps run — e.g. `sportclub-mgcc` (Sport Club brochure,
+   court booking demo) and `bungalow-mgcc` (bungalows and rates of the flyer, Long Stay, Stay Policies contact,
+   housekeeping roster, the front desk demo day).
 4. `/srv/oneclub/scripts/deploy.sh <code> <sha>-vps` — pulls, migrates, publishes the static apps, starts Caddy
    (certificates) and runs the smoke test.
 5. In GitHub set `VPS_INSTANCE=<code>` and the secrets `VPS_HOST`, `VPS_SSH_KEY`: from then on every merge
