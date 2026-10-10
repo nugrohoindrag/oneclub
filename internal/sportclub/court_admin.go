@@ -989,7 +989,12 @@ func (m *Module) CloseIncident(ctx context.Context, tx pgx.Tx, property, iid uui
 		return Incident{}, errs.Conflict("not_open", "the incident is not open")
 	}
 	rows, err := tx.Query(ctx, incidentSelect+` WHERE i.id = $1`, iid)
-	return handle.One[Incident](rows, err, "incident")
+	inc, err := handle.One[Incident](rows, err, "incident")
+	if err != nil {
+		return inc, err
+	}
+	return inc, audit.Record(ctx, tx, audit.Entry{Module: "sportclub", Action: "close", EntityType: "sportclub.incident", EntityID: iid.String(),
+		EntityLabel: inc.Number, PropertyID: &property, After: inc, Reason: action})
 }
 
 // ── rate card (FR-09) ────────────────────────────────────────────────────────

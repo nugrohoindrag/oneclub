@@ -56,9 +56,10 @@ const secrets = {
 export async function login(page: Page, base: string, user: string, next?: string) {
   await page.goto(`${base}/login${next ? `?next=${encodeURIComponent(next)}` : ''}`);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  await page.getByLabel(/^Email Address/).fill(user);
-  await page.getByLabel(/^Password/).fill(PASSWORD);
-  await page.getByRole('button', { name: 'Log in', exact: true }).click();
+  // the Staff App sign-in page and the Member App one (E-mail, Sign in)
+  await page.getByLabel(/^(Email Address|E-mail)/).fill(user);
+  await page.getByLabel(/^(Password|Kata sandi)/).fill(PASSWORD);
+  await page.getByRole('button', { name: /^(Log in|Sign in|Masuk)$/ }).click();
   const code = page.getByLabel(/Authentication code|Kode autentikasi/);
   await Promise.race([
     page.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 15_000 }).catch(() => undefined),

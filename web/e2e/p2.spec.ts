@@ -34,7 +34,9 @@ test('Ops: Starter sees Pace of Play; Sport Reception validates access', async (
   const ctx = await page.context().browser()!.newContext();
   const p = await ctx.newPage();
   await login(p, CASHIER, email('sport_club_receptionist'));
-  await p.goto(`${CASHIER}/ops/sport-reception`);
+  await p.goto(`${CASHIER}/ops/sport-reception`); // the old path opens Tiket Masuk of the Sport Club desk
+  await expect(p.getByRole('heading', { name: 'Tiket Masuk' })).toBeVisible();
+  await p.getByRole('tab', { name: /Scan & Okupansi/ }).click();
   await expect(p.getByRole('heading', { name: 'Facility Access' })).toBeVisible();
   await ctx.close();
 });
@@ -52,7 +54,7 @@ test('Caddy Tablet: assignments, earnings and the offline queue', async ({ page 
 
 test('Member App: scores, sport club, vouchers, fees & requests and preferences', async ({ page }) => {
   await login(page, MEMBER, email('member'));
-  for (const [path, title] of [['golf/scores', 'Scores & Handicap'], ['sport-club', 'Sport Club'], ['vouchers', 'Voucher & Prepaid'],
+  for (const [path, title] of [['golf/scores', 'Scores & Handicap'], ['sport-club', 'Pesan Lapangan'], ['vouchers', 'Voucher & Prepaid'],
     ['membership/services', 'Fees & Requests'], ['preferences', 'Preferences']]) {
     await page.goto(`${MEMBER}/${path}`);
     await expect(page.getByRole('heading', { name: title, level: 1 })).toBeVisible();

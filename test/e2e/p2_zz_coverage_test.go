@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -117,6 +118,15 @@ func TestP2GolfOperationsCoverage(t *testing.T) {
 		"lines": []map[string]any{{"productId": prod, "quantity": "2"}}, "deliver": "halfway_house"}, "Idempotency-Key", newKey()).JSON(); o["source"] != "caddy_tablet" {
 		t.Fatalf("tablet order: %v", o)
 	}
+	// an order the tee house has not started can be cancelled from the tablet
+	extra := sa.Must(201, "POST", "/api/v1/golf/on-course-orders", map[string]any{"flightId": fid, "playerId": myPlayer, "outletId": outlet,
+		"lines": []map[string]any{{"productId": prod, "quantity": "1"}}, "deliver": "halfway_house"}, "Idempotency-Key", newKey()).JSON()
+	if o := sa.Must(200, "POST", "/api/v1/golf/rounds/"+fid+"/orders/"+str(extra["id"])+":cancel", map[string]any{"reason": "ordered twice"}).JSON(); o["status"] != "voided" {
+		t.Fatalf("cancelled tablet order: %v", o)
+	}
+	// rain stop for the whole course, then play resumes
+	stop := sa.Must(201, "POST", "/api/v1/golf/course-stops", map[string]any{"courseId": g.Course, "kind": "rain_stop", "reason": "heavy rain"}).JSON()
+	sa.Must(200, "POST", "/api/v1/golf/course-stops/"+str(stop["id"])+":resume", nil)
 	// The member keeps their own score in the app and submits the card.
 	var entries []map[string]any
 	for s := 1; s <= 18; s++ {
@@ -129,6 +139,18 @@ func TestP2GolfOperationsCoverage(t *testing.T) {
 	dispatch(t)
 	if sc := mc.Must(200, "POST", "/api/v1/member/golf/scorecards/"+myCard+":submit", map[string]any{"attestedBy": "Rina Tamu"}).JSON(); sc["status"] != "submitted" {
 		t.Fatalf("my card submitted: %v", sc)
+	}
+	// after the round the member asks for score corrections: the marshal approves one and rejects the other
+	q1 := mc.Must(201, "POST", "/api/v1/member/golf/scorecards/"+myCard+"/correction-requests", map[string]any{"seq": 1, "strokes": 4, "reason": "par, not bogey"}).JSON()
+	q2 := mc.Must(201, "POST", "/api/v1/member/golf/scorecards/"+myCard+"/correction-requests", map[string]any{"seq": 2, "strokes": 3, "reason": "birdie"}).JSON()
+	if q := sa.Must(200, "POST", "/api/v1/golf/score-correction-requests/"+str(q1["id"])+":approve", map[string]any{"note": "confirmed by the caddy"}).JSON(); q["status"] != "approved" {
+		t.Fatalf("correction approved: %v", q)
+	}
+	if q := sa.Must(200, "POST", "/api/v1/golf/score-correction-requests/"+str(q2["id"])+":reject", map[string]any{"note": "the caddy wrote 5"}).JSON(); q["status"] != "rejected" {
+		t.Fatalf("correction rejected: %v", q)
+	}
+	if sh := mc.Must(200, "POST", "/api/v1/member/golf/scorecards/"+myCard+":share", nil).JSON(); !strings.Contains(str(sh["link"]), "/scorecards/") {
+		t.Fatalf("my scorecard shared: %v", sh)
 	}
 	// Ratings and favourites (member app and staff on behalf of the guest).
 	// Player rows (tee sheet, the member's My Flights) carry the caddy

@@ -140,7 +140,8 @@ test('development without a surface: every area opens by path', async ({ page })
   test.skip(!LOCAL, 'Staging serves only the four domains');
   await login(page, STAFF, email('super_admin'));
   await expect(page).toHaveURL(`${STAFF}/management`);
-  for (const [path, heading] of [['/ops', /Super Admin/], ['/kitchen', 'Kitchen'], ['/screen', /./]] as const) {
+  // Operational opens on the work area chooser (HRIS work areas)
+  for (const [path, heading] of [['/ops', /Super Admin|Pilih area kerja/], ['/kitchen', 'Kitchen'], ['/screen', /./]] as const) {
     await page.goto(`${STAFF}${path}`);
     await expect(page.getByText('403')).toHaveCount(0);
     await expect(page.getByRole('heading', { name: heading }).first()).toBeVisible();
@@ -212,7 +213,8 @@ test('Platform Administration shows the §6.2 menu only to Platform Admin', asyn
 
 test('Member Portal: member logs in, top pill navigation, mobile bottom navigation', async ({ page }) => {
   await login(page, MEMBER, email('member'));
-  await expect(page.getByRole('link', { name: 'Member Card' })).toBeVisible(); // home: the Digital Member Card shortcut
+  // home: the Digital Member Card shortcut, or the upgrade for a member account without a membership
+  await expect(page.getByRole('link', { name: /Member Card|Upgrade to Member/ })).toBeVisible();
   expect(await menuLabels(page)).toEqual(expect.arrayContaining(['Home', 'Profile']));
   await page.setViewportSize({ width: 390, height: 800 });
   await expect(page.locator('.oc-bottom-nav')).toBeVisible(); // FR-SH-06 mobile
@@ -220,9 +222,9 @@ test('Member Portal: member logs in, top pill navigation, mobile bottom navigati
   const ctx = await page.context().browser()!.newContext();
   const p = await ctx.newPage();
   await p.goto(`${MEMBER}/login`);
-  await p.getByLabel(/^Email Address/).fill(email('starter_marshal'));
-  await p.getByLabel(/^Password/).fill(PASSWORD);
-  await p.getByRole('button', { name: 'Log in', exact: true }).click();
+  await p.getByLabel(/^(Email Address|E-mail)/).fill(email('starter_marshal'));
+  await p.getByLabel(/^(Password|Kata sandi)/).fill(PASSWORD);
+  await p.getByRole('button', { name: /^(Log in|Sign in|Masuk)$/ }).click();
   await expect(p.getByText(/do not have access|tidak memiliki akses/)).toBeVisible();
   await ctx.close();
 });

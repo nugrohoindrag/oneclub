@@ -94,7 +94,7 @@ func (m *Module) registerCourts(reg *route.Registry) {
 			}
 			return m.grid(ctx, tx, handle.Property(ctx), *f, d, false, nil)
 		})})
-	add(route.Route{Method: http.MethodPost, Path: "/api/v1/sportclub/quote", Summary: "Price of courts and hours (the quote of every screen)", Permission: "sportclub.booking.view",
+	add(route.Route{Method: http.MethodPost, Path: "/api/v1/sportclub/quote", Summary: "Price of courts and hours (the quote of every screen)", NoAudit: "read-only calculation", Permission: "sportclub.booking.view",
 		Request: QuoteInput{}, Response: Quote{}, Status: http.StatusOK,
 		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in QuoteInput) (Quote, error) {
 			pid := handle.Property(ctx)
@@ -325,7 +325,7 @@ func (m *Module) registerCourts(reg *route.Registry) {
 				FROM reservation.reservation_lines l WHERE l.reservation_id = r.id)`, g.GroupID)
 			return g, err
 		})})
-	add(route.Route{Method: http.MethodPost, Path: "/api/v1/sportclub/recurring:preview", Summary: "Meetings of a recurring booking with the clashes, before saving",
+	add(route.Route{Method: http.MethodPost, Path: "/api/v1/sportclub/recurring:preview", Summary: "Meetings of a recurring booking with the clashes, before saving", NoAudit: "read-only preview",
 		Permission: "sportclub.recurring.manage", Request: RecurringInput{}, Response: RecurringPreview{}, Status: http.StatusOK,
 		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in RecurringInput) (RecurringPreview, error) {
 			return m.PreviewRecurring(ctx, tx, handle.Property(ctx), in)
@@ -819,7 +819,7 @@ func (m *Module) registerCourtPublic(reg *route.Registry) {
 				return m.grid(ctx, tx, pid, fid, d, true, nil)
 			})
 		}})
-	pub(route.Route{Method: http.MethodPost, Path: "/api/v1/public/sport-club/quote", Summary: "Website quote of a cart: rent, promotion, tax, service fee per method",
+	pub(route.Route{Method: http.MethodPost, Path: "/api/v1/public/sport-club/quote", Summary: "Website quote of a cart: rent, promotion, tax, service fee per method", NoAudit: "read-only calculation",
 		Request: PublicQuoteInput{}, Response: Quote{},
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			var in PublicQuoteInput
@@ -896,7 +896,7 @@ func (m *Module) registerCourtPublic(reg *route.Registry) {
 				return m.publicView(ctx, tx, pid, nb)
 			})
 		}})
-	pub(route.Route{Method: http.MethodPost, Path: "/api/v1/public/court-bookings:lookup", Summary: "Cek Booking: code + phone or e-mail → the booking page",
+	pub(route.Route{Method: http.MethodPost, Path: "/api/v1/public/court-bookings:lookup", Summary: "Cek Booking: code + phone or e-mail → the booking page", NoAudit: "read-only lookup",
 		Request: LookupInput{}, Response: LookupResult{},
 		Handler: func(w http.ResponseWriter, r *http.Request) {
 			var in LookupInput
@@ -1219,7 +1219,7 @@ func (m *Module) registerCourtMember(reg *route.Registry) {
 				FROM commercial.voucher_types WHERE property_id = $1 AND status = 'active' AND archived_at IS NULL
 				AND category IN ('court_package', 'class_package', 'sport_entry') AND code NOT LIKE '%-G-%' ORDER BY category, code`, p.PropertyID)))
 		})})
-	me(route.Route{Method: http.MethodPost, Path: "/api/v1/member/sport-club/quote", Summary: "Price of courts and hours for the Member App (service fee of the method)",
+	me(route.Route{Method: http.MethodPost, Path: "/api/v1/member/sport-club/quote", Summary: "Price of courts and hours for the Member App (service fee of the method)", NoAudit: "read-only calculation",
 		Request: QuoteInput{}, Response: Quote{}, Status: http.StatusOK,
 		Handler: handle.Write(db, http.StatusOK, func(ctx context.Context, tx pgx.Tx, r *http.Request, in QuoteInput) (Quote, error) {
 			p, err := crm.Me(ctx, tx)

@@ -343756,7 +343756,7 @@
         "tags": [
           "Member Portal"
         ],
-        "x-audited": true,
+        "x-audited": false,
         "x-module": "sportclub",
         "x-permission": "platform.member_portal.access"
       }
@@ -376082,7 +376082,7 @@
         "tags": [
           "Public"
         ],
-        "x-audited": true,
+        "x-audited": false,
         "x-module": "sportclub"
       }
     },
@@ -379046,7 +379046,7 @@
         "tags": [
           "Public"
         ],
-        "x-audited": true,
+        "x-audited": false,
         "x-module": "sportclub"
       }
     },
@@ -395314,7 +395314,7 @@
         "tags": [
           "Sport Club Courts"
         ],
-        "x-audited": true,
+        "x-audited": false,
         "x-module": "sportclub",
         "x-permission": "sportclub.booking.view"
       }
@@ -396120,7 +396120,7 @@
         "tags": [
           "Sport Club Courts"
         ],
-        "x-audited": true,
+        "x-audited": false,
         "x-module": "sportclub",
         "x-permission": "sportclub.recurring.manage"
       }
